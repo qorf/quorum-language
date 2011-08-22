@@ -1,0 +1,74 @@
+package Libraries.Sound
+
+/*
+    This class generates music from the Music Instrument Digital Interface
+    (MIDI) standard. 
+
+    Attribute: Author Andy Stefik and Jeff Wilson
+    Attribute: Example
+
+use Libraries.Sound.Music
+
+Music music
+//play me a chromatic scale
+integer note = 60
+repeat 12 times
+    music:Play(note, 0.25)
+    note = note + 1
+end
+*/
+
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
+
+class Music 
+    public integer wholeNote = 0
+    public integer halfNote = 1
+    public integer quarterNote = 2
+    public integer eighthNote = 3
+    public integer sixteenthNote = 4
+    public integer thirtySecondthNote = 5
+    public integer sixtyFourthNote = 6
+    public integer breve = 7
+    
+    private integer ticksPerWholeNote = 384 // 96 * 4
+    private List<Instrument> instruments
+    private List<Track> tracks
+    private Instrument instrument
+    
+    /*
+        Plays a single note. 
+
+        Attribute: Parameter note the midi value of a note. Middle C is 60,
+            for example.
+
+        Attribute: Parameter duration the number of seconds the note should play.
+
+        Attribute: Example
+        Music music
+        music:Play(60, 1.0)
+    */
+    system action Play(integer note, number duration)
+
+    public action Play(Note note)
+    end
+
+    public action Play(Chord chord)
+    end
+
+    public action GetTrack(integer index) returns Track
+        return tracks:Get(index)
+    end
+
+    public action GetTracks() returns Iterator<Track>
+        return tracks:GetIterator()
+    end
+
+    public action GetInstruments() returns Iterator<Instrument>
+        return instruments:GetIterator()
+    end
+
+    public action AddTrack() returns Track
+        return undefined
+    end
+end

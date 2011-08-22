@@ -1,0 +1,44 @@
+package Libraries.System
+
+/*
+The Console is a helper class that represents printing and input windows.
+
+Attribute: Author Andy Stefik
+
+*/
+class Console
+    /*
+    Prints a message to the sodbeans output window
+
+    Attribute: Parameter value The text to print to the output console.
+
+    Attribute: Example
+
+    Print "some message"
+    */
+    system action Print(text value)
+
+    /*
+    generates an input window and returns the text that was input.
+
+    Attribute: Return The text typed into the input window.
+
+    Attribute: Example
+
+    text value = Input()
+    */
+    system action Input returns text
+
+    /*
+    generates an input window and returns the text that was input.
+
+    Attribute: Parameter message The message to display in the input box.
+
+    Attribute: Return The text typed into the input window.
+
+    Attribute: Example
+
+    text value = Input("What is your favorite color?")
+    */
+    system action Input(text message) returns text
+end

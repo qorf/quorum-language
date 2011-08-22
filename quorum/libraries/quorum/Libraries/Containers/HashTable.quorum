@@ -1,0 +1,286 @@
+package Libraries.Containers
+
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Array
+
+/*
+The HashTable class is a data structure that stores and allows access to items
+through the use of a key. In the hash table keys and values are paired. Some 
+basic examples and explanations of Lists can be found below.
+
+Attribute: Example
+
+use Libraries.Containers.HashTable
+class Main
+   action Main
+      //make the hash table
+      HashTable<text, integer> phoneBook
+      //add a value(2626984) with a key(Jane)
+      phoneBook:Add("Jane", 2626984)
+      //get it back
+      integer value = phoneBook:GetValue("Jane")
+   end
+end
+*/
+class HashTable<Key, Value> is a HashTableBlueprint<Key, Value>
+    //the maximum number of items that can be stored before a rehash must be done.
+    integer threshold
+
+    //the number of items that are stored.
+    integer nodeCount
+
+    //the maximum ratio of nodeCount to threshold before a rehash must be done.
+    number fillFactor
+
+    //the items stored in the hash table
+    Array<KeyedNode<Key, Value>> data = undefined
+
+
+    /*
+        This action gets a value with a given key.
+
+        Attribute: Parameter key The key that matches up to a value.
+
+        Attribute: Returns The value that matches the key-value pair. 
+
+        Attribute: Example
+
+        HashTable<text, integer> phoneBook
+        integer value = phoneBook:GetValue("Jane")
+    */
+    action GetValue(Key key) returns Value
+        return undefined
+    end
+
+    /*
+        This action gets the key that matches the value. Warning: this method
+        is inefficient, you should access items in a hash table through their
+        keys.
+
+        Attribute: Parameter value The value that matches up to a key.
+
+        Attribute: Returns The key that matches the key-value pair. 
+
+        Attribute: Example
+
+        HashTable<text, integer> phoneBook
+        text key = phoneBook:GetKey(2626984)
+    */
+    action GetKey(Value value) returns Key
+        return undefined
+    end
+
+    /*
+        This action gets an iterator that iterates over all the keys in the
+        hash table.
+
+        Attribute: Returns The iterator of keys. 
+
+        Attribute: Example
+
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+        Iterator<text> keysIterator = phoneBook:GetKeyIterator()
+    */
+    action GetKeyIterator() returns Iterator<Key>
+        return undefined
+    end
+
+    /*
+        This action gets an iterator that iterates over all the values in the
+        hash table.
+
+        Attribute: Returns The iterator of values.
+
+        Attribute: Example
+
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+        Iterator<integer> keysIterator = phoneBook:GetValueIterator()
+    */
+    action GetValueIterator() returns Iterator<Value>
+        return undefined
+    end
+
+    /*
+        This action gets the number of items in the hash table.
+
+        Attribute: Returns The number of items in the hash table .
+
+        Attribute: Example
+
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+        integer size = phoneBook:GetSize()
+    */
+    action GetSize returns integer
+        return 0
+    end
+
+    /*
+        This action empties or clears out the hash table.
+
+        Attribute: Example
+
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+        phoneBook:Empty()
+    */
+    action Empty
+        
+    end
+
+    /*
+        This action determines if a hash table is empty.
+
+        Attribute: Returns True if the hash table is empty and false if it
+        contains any items. 
+
+        Attribute: Example
+
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+        boolean empty = phoneBook:IsEmpty()
+    */
+    action IsEmpty returns boolean
+        return false
+    end
+
+    /*
+        This action adds an item to the hash table, given the key-value pair.
+
+        Attribute: Parameter key The key used to access the value.
+
+        Attribute: Parameter value The value to be stored.
+
+        Attribute: Example
+
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+    */
+    action Add(Key key, Value value)
+        KeyedNode<Key, Value> item = undefined
+        if key not= undefined then
+            
+        end
+        else then
+        end
+    end
+
+    /*
+        This action determines if the hash table contains a certain value.
+
+        Attribute: Parameter value The value to find.
+        
+        Attribute: Returns True if the value is in the hash table and false
+        if it is not.
+
+        Attribute: Example
+
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+        phoneBook:HasValue(2626984)
+    */
+    action HasValue(Value value) returns boolean
+        return false
+    end
+
+    /*
+        This action determines if the hash table contains a certain key.
+
+        Attribute: Parameter key The key to find.
+        
+        Attribute: Returns True if the key is in the hash table and false
+        if it is not.
+
+        Attribute: Example
+
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+        phoneBook:HasKey("Jane")
+    */
+    action HasKey(Key key) returns boolean
+        return false
+    end
+
+    /*
+        This action removes a key-value pair given a key.
+
+        Attribute: Parameter key The key of the key-value pair to be removed.
+        
+        Attribute: Returns The value that was removed.
+
+        Attribute: Example
+
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+        integer value = phoneBook:RemoveKey("Jane")
+    */
+    action RemoveKey(Key key) returns Value
+        return undefined
+    end
+
+    /*
+        This action removes a key-value pair given a value.
+
+        Attribute: Parameter value The value of the key-value pair to be removed.
+        
+        Attribute: Returns The key that was removed.
+
+        Attribute: Example
+
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+        text key = phoneBook:RemoveValue(2626984)
+    */
+    action RemoveValue(Value value) returns Key
+        return undefined
+    end
+
+    /*
+        This action removes all instances of a key-value pair given a key.
+
+        Attribute: Parameter key The key of the key-value pair to be removed.
+        
+        Attribute: Returns True if any key-value pairs were removed and false
+        if none were removed.
+
+        Attribute: Example
+
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+        boolean removed = phoneBook:RemoveAllValues(2626984)
+    */
+    action RemoveAllValues(Value value) returns boolean
+        return false
+    end
+
+    /*
+        This action removes a key-value pair given a key.
+
+        Attribute: Parameter key The key of the key-value pair to be removed.
+        
+        Attribute: Returns True if any key-value pairs were removed and false 
+        if none were removed.
+
+        Attribute: Example
+
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+        boolean removed = phoneBook:RemoveAllKeys("Jane")
+    */
+    action RemoveAllKeys(Key key) returns boolean
+        return false
+    end
+    action Copy returns Object
+        return undefined
+    end
+
+
+
+    private action ComputeHashCode(Key key, integer length) returns number
+
+        return 0
+    end
+
+end

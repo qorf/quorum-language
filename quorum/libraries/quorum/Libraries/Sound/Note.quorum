@@ -1,0 +1,39 @@
+package Libraries.Sound
+
+/*
+    This class represents a single note in a track.
+
+    Attribute: Author Jeff Wilson
+*/
+
+use Libraries.Sound.Playable
+
+class Note is a Playable
+    private integer pitch = 60
+    
+    public action GetPitch returns integer
+        return pitch
+    end
+
+    public action SetPitch(integer pitch)
+        me:pitch = pitch
+    end
+
+    /*
+        Perform a deep copy of this object.
+        
+        Attribute: Returns the new Note
+    */
+    public action Copy returns Object
+        Note n
+        n:SetEventType(parent:MusicEvent:eventType)
+        n:SetConstantPitchBend(parent:Playable:constantPitchBend)
+        n:SetPrePitchBend(parent:Playable:prePitchBend)
+        n:SetPrePitchBendLength(parent:Playable:prePitchBendLength)
+        n:SetStartTime(parent:Playable:startTime)
+        n:SetLength(parent:Playable:length)
+        n:SetVolume(parent:Playable:volume)
+        n:SetPitch(pitch)
+        return n
+    end
+end

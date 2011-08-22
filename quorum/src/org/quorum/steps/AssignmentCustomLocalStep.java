@@ -1,0 +1,23 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package org.quorum.steps;
+
+import org.quorum.execution.ExpressionValue;
+import org.quorum.symbols.Result;
+
+/**
+ * An assignment step for custom types.
+ *
+ * @author Andreas Stefik
+ */
+public class AssignmentCustomLocalStep extends AssignmentLocalStep{
+    @Override
+    protected Result calculateOpcode(ExpressionValue result) {
+        Result res = new Result();
+        res.noConvert = true;
+        return res;
+    }
+}

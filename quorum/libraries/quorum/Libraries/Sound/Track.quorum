@@ -1,0 +1,55 @@
+package Libraries.Sound
+
+/*
+    This class represents a single note in a track.
+
+    Attribute: Author Jeff Wilson
+*/
+
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
+
+class Track
+    private List<MusicEvent> events
+    private Instrument instrument
+
+    public action Add(MusicEvent event)
+    end
+
+    public action Add(Note note)
+        Add(note)
+    end
+
+    public action Add(Chord chord)
+        Add(chord)
+    end
+
+    public action GetInstrument returns Instrument
+        return instrument
+    end
+
+    public action SetInstrument(Instrument instrument)
+        me:instrument = instrument
+    end
+
+    public action GetNotes() returns Iterator<Playable>
+        List<Playable> notes
+        Iterator<MusicEvent> noteIterator = GetEvents()
+
+        repeat while noteIterator:HasNext()
+            if noteIterator:Next() is a Playable then
+                Playable p = cast(Playable, noteIterator:GetCurrent())
+                events:Add(p)
+            end
+        end
+
+        return notes:GetIterator()
+    end
+
+    public action GetEvents() returns Iterator<MusicEvent>
+        return events:GetIterator()
+    end
+
+    public action Remove(integer index)
+    end
+end

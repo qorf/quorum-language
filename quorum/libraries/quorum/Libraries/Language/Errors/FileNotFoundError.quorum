@@ -1,0 +1,32 @@
+package Libraries.Language.Errors
+
+use Libraries.Language.Errors.Error
+
+/*
+The FileNotFoundError class is an error or exception that is thrown when 
+an attempt is made to access a file that was not found on the disk.
+
+Attribute: Example
+
+use Libraries.Language.Errors.FileNotFoundError
+use Libraries.Containers.File
+
+class Main
+   action Main
+      File file
+      check
+        file:OpenForRead("myfile.txt")
+      end
+      detect e of type FileNotFound
+        print "File not found: " + e:GetErrorMessage()
+      end
+   end
+end
+*/
+class FileNotFoundError is a Error
+    on create
+        if(GetErrorMessage() = "") then
+            SetErrorMessage("FileNotFoundError: The requested file was not found on disk.")
+        end
+    end
+end

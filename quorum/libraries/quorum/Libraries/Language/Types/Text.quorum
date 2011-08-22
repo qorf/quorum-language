@@ -1,0 +1,266 @@
+package Libraries.Language.Types
+
+use Libraries.Language.Object
+use Libraries.Language.Support.CompareResult
+use Libraries.Containers.Array
+use Libraries.Language.Errors.InvalidLocationError
+
+/*
+The Text class is the object representation of the primitive type text. 
+
+
+Attribute: Example
+
+class Main
+   action Main
+      text name = "melissa"
+      Text result = test(name)
+   end
+   action test(Text value) returns Text
+        return value
+   end
+end
+*/
+class Text is a Object
+    //The value this Text class represents
+    text value = ""
+
+    private system action SetValueNative(text value)
+    private system action GetCharacterNative(integer index) returns text
+    private system action GetSubstringNative(integer startIndex, integer endIndex) returns text
+
+    /*
+        This action sets the value of the text object.
+
+        Attribute: Parameter i The text value.
+
+        Attribute: Example
+
+        Text name
+        name:SetValue("Melissa")
+    */ 
+    action SetValue(text i)
+        value = i
+
+        // And also update the native side.
+        SetValueNative(i)
+    end
+
+    /*
+        This action gets the value from the text object.
+
+        Attribute: Returns The value of the object.
+
+        Attribute: Example
+
+        Text name
+        text result = name:GetValue()
+    */ 
+    action GetValue returns text
+        return value
+    end
+
+    /*
+        This action determines if two objects are equal based on their
+        values.
+
+        Attribute: Parameter object The to be compared.
+
+        Attribute: Returns True if the values are equal and false if they
+        are not equal. 
+
+        Attribute: Example
+
+        Text o
+        Text t
+        boolean result = o:Equals(t)
+    */ 
+    action Equals(Object object) returns boolean
+        text myValue = GetValue()
+
+        Text t = undefined
+        t = cast(Text, object)
+        text otherValue = t:GetValue()
+
+        return myValue = otherValue
+    end
+
+    /*
+        This action compares two object values and returns a CompareResult.
+        The compare result is either larger if this hash code is larger than
+        the object passed as a parameter, smaller, or equal.
+
+        Attribute: Parameter object The object to compare to.
+        Attribute: Returns The Comprare result, Smaller, Equal, or Larger. 
+
+        Attribute: Example
+
+        Text o
+        Text t
+        CompareResult result = o:Compare(t)
+    */ 
+    action Compare(Object object) returns CompareResult
+        CompareResult result
+        text thisOne = me:value
+        Text b = cast(Text, object)
+        text other = b:GetValue()
+
+        integer nativeResult = CompareInt(thisOne, other)
+
+        if nativeResult = 0 then
+            result:result = result:EQUAL
+        end
+        else if nativeResult < 0 then
+            result:result = result:SMALLER
+        end
+        else then
+            result:result = result:LARGER
+        end
+        return result
+    end
+
+    private system action CompareInt(text left, text right) returns integer
+
+    /*
+        This action returns the length of the text object.
+
+        Attribute: Returns the length of the text object.
+
+        Attribute: Example
+        Text a
+        a:SetValue("X")
+        print a:GetLength()
+    */
+    system action GetLength() returns integer
+
+    /*
+        This action gets the character specified by the given index and returns it.
+        
+        Attribute: Parameter index The index to get. Must be greater than or equal to zero.
+        Attribute: Returns the character at the specified index
+
+        Attribute: Example
+        Text a
+        a:SetValue("abcd")
+        print a:GetCharacter(0)
+    */
+    action GetCharacter(integer index) returns text
+        // Index must be in the range 0 <= x < me:GetLength()
+        if index < 0 or index >= me:GetLength() then
+            InvalidLocationError e
+            alert(e)
+        end
+
+        return GetCharacterNative(index)
+    end
+
+    /*
+        This action returns a substring of the text object.
+
+        Attribute: Parameter startIndex The starting index
+        Attribute: Parameter endIndex The ending index
+        Attribute: Returns The substring
+        
+        Attribute: Example
+        Text a
+        a:SetValue("hello world")
+        print a:GetSubstring(0, 5)
+    */
+    action GetSubstring(integer startIndex, integer endIndex) returns text
+        if startIndex = endIndex or startIndex > endIndex or startIndex < 0 or endIndex < 0 or endIndex >= me:GetLength() then
+            InvalidLocationError e
+            alert(e)
+        end
+        
+        return GetSubstringNative(startIndex, endIndex)
+    end
+
+    /*
+    This action appends the given text value to the value in this object.
+    
+    Attribute: Parameter value The value to append.
+    
+    Attribute: Example
+    Text a
+    a:SetValue("hello ")
+    a:Append("world.")
+    */
+    action Append(text value)
+        me:value = me:value + value
+
+        // And update the native side.
+        SetValueNative(me:value)
+    end
+
+    /*
+        This action splits the string based on the given non-empty delimiter.
+        The delimiter can be of any length. The string will be split by the
+        given delimiter and an array of text objects will be returned, without
+        the delimiter.
+        
+        Attribute: Parameter delimiter The non-empty delimiter to use.
+        Attribute: Returns An array of text objects corresponding to the splits by the delimiter.
+    */
+    action Split(text delimiter) returns Array<text>
+        // TODO: Rewrite this. it is horrid. There are much more clever ways to do this.
+
+	Array<text> results
+	integer pos = 0
+	integer length = me:GetLength()
+	Text delim
+        delim:SetValue(delimiter)
+	integer delimLength = delim:GetLength()
+	text newString = ""
+        boolean afterDelim = false
+
+	repeat while pos < length
+            // If this doesn't start the delimiter, add it to the new string.
+            if me:GetCharacter(pos) not= delim:GetCharacter(0) then
+                newString = newString + me:GetCharacter(pos)
+                pos = pos + 1
+                afterDelim = false
+            end
+            else then
+                // Matches start of delimiter. Keep track and bail if we don't match the delimiter
+                text tmpString = ""
+                integer delimPos = 0
+                text currentChar = me:GetCharacter(pos)
+                text currentDelimChar = delim:GetCharacter(0)
+
+                // As long as the values read continue to match the delimiter...
+                repeat while delimPos < delimLength and currentChar = currentDelimChar and pos < length
+                    tmpString = tmpString + me:GetCharacter(pos)
+                    delimPos = delimPos + 1 // keep going through delimiter
+                    pos = pos + 1 // and keep moving ahead in main string
+                    
+                    if pos < length then
+                        currentChar = me:GetCharacter(pos)
+                    end
+
+                    if delimPos < delimLength then
+                        currentDelimChar = delim:GetCharacter(delimPos)
+                    end
+                end
+
+                if delimPos not= delimLength then
+                    // We didn't reach the end of the delimiter, so add this temporary string and keep moving.
+                    tmpString = tmpString + newString
+                    afterDelim = false
+                end
+                else then
+                    // Delimiter hit. Store the result.
+                    results:Add(newString)
+                    newString = ""  
+                    afterDelim = true
+                end
+            end
+	end
+
+
+        if not afterDelim then
+            results:Add(newString)
+        end
+
+        return results
+    end
+end

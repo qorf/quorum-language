@@ -1,0 +1,82 @@
+package Libraries.Sound
+
+use Libraries.Sound.MusicEvent
+/*
+    This class represents any kind of playable event in a music track.
+
+    Attribute: Author Jeff Wilson
+*/
+
+class Playable is a MusicEvent
+    private integer constantPitchBend = 0
+    private integer prePitchBend = 0
+    private integer prePitchBendLength = 0
+    private integer startTime = 0
+    private integer length = 0
+    private number volume = 1.0
+    
+    public action GetConstantPitchBend returns integer
+        return constantPitchBend
+    end
+
+    public action SetConstantPitchBend(integer constantPitchBend)
+        me:constantPitchBend = constantPitchBend
+    end
+
+    public action GetPrePitchBend returns integer
+        return prePitchBend
+    end
+
+    public action SetPrePitchBend(integer prePitchBend)
+        me:prePitchBend = prePitchBend
+    end
+
+    public action GetPrePitchBendLength returns integer
+        return prePitchBendLength
+    end
+
+    public action SetPrePitchBendLength(integer prePitchBendLength)
+        me:prePitchBendLength = prePitchBendLength
+    end
+
+    public action GetStartTime returns integer
+        return startTime
+    end
+    
+    public action SetStartTime(integer startTime)
+        me:startTime = startTime
+    end
+
+    public action GetLength returns integer
+        return length
+    end
+
+    public action SetLength(integer length)
+        me:length = length
+    end
+
+    public action GetVolume returns number
+        return volume
+    end
+
+    public action SetVolume(number volume)
+        me:volume = volume
+    end
+
+    /*
+        Perform a deep copy of this object.
+        
+        Attribute: Returns the new Playable
+    */
+    public action Copy returns Object
+        Playable p
+        p:SetEventType(parent:MusicEvent:eventType)
+        p:SetConstantPitchBend(constantPitchBend)
+        p:SetPrePitchBend(prePitchBend)
+        p:SetPrePitchBendLength(prePitchBendLength)
+        p:SetStartTime(startTime)
+        p:SetLength(length)
+        p:SetVolume(volume)
+        return p
+    end
+end

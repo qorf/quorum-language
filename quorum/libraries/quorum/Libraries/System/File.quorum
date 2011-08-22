@@ -1,0 +1,556 @@
+package Libraries.System
+use Libraries.Language.Errors.InputOutputError
+use Libraries.Language.Errors.EndOfFileError
+use Libraries.Containers.Array
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.System.DateTime
+
+/*
+The File class is used to read/write/modify files on disk.
+
+Attribute: Author Jeff Wilson
+Attribute: Example
+use Libraries.System.File
+
+class Main
+    action main
+        File myFile
+        //open a file.
+        myFile:OpenForRead("/users/melissa/test.txt")
+        text result = myFile:Read()
+        myFile:Close()
+    end
+*/
+class File
+    // Used by the native side to determine which mode to actually use when
+    // opening the file. Must be consistent with the native side.
+    private integer READ_MODE = 1
+    private integer WRITE_MODE = 2
+    private integer RANDOM_ACCESS_MODE = 3
+
+    /* -- class methods -- */
+    private system action GetLastModifiedNative(text path) returns number
+    private system action GetDirectoryListingNative(text path) returns text
+    private system action GetMode() returns integer
+
+    /*
+    This action returns true if the given path is a directory and false if it is not.
+    
+    Attribute: Parameter path The path to an item.
+
+    Attribute: Returns Returns true if the path is a directory and false if it is not.
+
+    Attribute: Example
+    File myFile
+    boolean result = myFile:IsDirectory("/users/melissa/test.txt")
+    */
+    system action IsDirectory(text path) returns boolean
+
+    /*
+    This action returns true if the given path is a hidden file and false if it is not.
+    
+    Attribute: Parameter path The path to an item.
+
+    Attribute: Returns Returns true if the path is hidden and false if it is not.
+
+    Attribute: Example
+    File myFile
+    boolean result = myFile:IsHidden("/users/melissa/test.txt")
+    */
+    system action IsHidden(text pah) returns boolean
+
+    /*
+    This action returns true if the given path exists and false if it does not.
+    
+    Attribute: Parameter path The path to an item.
+
+    Attribute: Returns Returns true if the path exists and false if it does not.
+
+    Attribute: Example
+    File myFile
+    boolean result = myFile:Exists("/users/melissa/test.txt")
+    */
+    system action Exists(text path) returns boolean
+
+    /*
+    This action gets the name of the file.
+    
+    Attribute: Parameter path The path to the file.
+
+    Attribute: Returns Returns the name of the file.
+
+    Attribute: Example
+    File myFile
+    text name = myFile:GetName("/users/melissa/test.txt")
+    */
+    system action GetName(text path) returns text
+
+    /*
+    This action gets the extension of the file.
+    
+    Attribute: Parameter path The path to the file.
+
+    Attribute: Returns Returns the extension of the given file.
+
+    Attribute: Example
+    File myFile
+    text extension = myFile:GetExtension("/users/melissa/test.txt")
+    */
+    system action GetExtension(text path) returns text
+
+    /*
+    This action gets the parent of the file given as the path.
+    
+    Attribute: Parameter path The path to the file.
+
+    Attribute: Returns Returns the parent of the file.
+
+    Attribute: Example
+    File myFile
+    text parent = myFile:GetParent("/users/melissa/test.txt")
+    */
+    system action GetParent(text path) returns text
+
+    /*
+    This action gets the URI.
+    
+    Attribute: Parameter path The path to the file.
+
+    Attribute: Returns Returns the URI.
+
+    Attribute: Example
+    File myFile
+    text URI = myFile:GetURI("/users/melissa/test.txt")
+    */
+    system action GetURI(text path) returns text
+
+    /*
+    This action gets the size of the file in bytes.
+    
+    Attribute: Parameter path The path to the file.
+
+    Attribute: Returns Returns file size.
+
+    Attribute: Example
+    File myFile
+    integer size = myFile:GetFileSize("/users/melissa/test.txt")
+    */
+    system action GetFileSize(text path) returns number
+
+    /*
+    This action gets the free space available in bytes.
+    
+    Attribute: Parameter path The path to the file.
+
+    Attribute: Returns Returns the free space.
+
+    Attribute: Example
+    File myFile
+    integer size = myFile:GetFreeSpace("/users/melissa/test.txt")
+    */
+    system action GetFreeSpace(text path) returns number
+
+    /*
+    This action gets the total disk space in bytes.
+    
+    Attribute: Parameter path The path to the file.
+
+    Attribute: Returns Returns the total disk space.
+
+    Attribute: Example
+    File myFile
+    integer size = myFile:GetTotalDiskSpace("/users/melissa/test.txt")
+    */
+    system action GetTotalDiskSpace(text path) returns number
+
+    /*
+    This action creates a given directory.
+    
+    Attribute: Parameter path The path of the directory.
+
+    Attribute: Returns Returns true if successful in creating a directory and false if is is not.
+
+    Attribute: Example
+    File myFile
+    boolean created = myFile:CreateDirectory("/users/melissa/test.txt")
+    */
+    system action CreateDirectory(text path) returns boolean
+
+    /*
+    This action deletes a given file.
+    
+    Attribute: Parameter path The path of the file.
+
+    Attribute: Returns Returns true if successful in deleting a file and false if is is not.
+
+    Attribute: Example
+    File myFile
+    boolean deleted = myFile:Delete("/users/melissa/test.txt")
+    */
+    system action Delete(text path) returns boolean
+
+    /*
+    This action moves a given file to another location and returns true if it was moved.
+    
+    Attribute: Parameter oldPath The path of the file to move.
+
+    Attribute: Parameter newPath The path to move the file to.
+
+    Attribute: Returns Returns true if the file has been moved.
+
+    Attribute: Example
+    File myFile
+    boolean moved = myFile:Move("/users/melissa/test.txt", "/users/andy/test.txt")
+    */
+    system action Move(text oldPath, text newPath) returns boolean
+
+    /*
+    This action gets the current systems newline symbol.
+
+    Attribute: Returns Returns the system newline.
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForRead("/users/melissa/test.txt")
+    text newline = myFile:GetSystemNewline()
+    myFile:Close()
+    */
+    system action GetSystemNewline() returns text
+
+    /*
+    This action determines if a path is to a file.
+
+    Attribute: Parameter path The path of a file.
+
+    Attribute: Returns Returns true if the path is to a file and false if it is not.
+
+    Attribute: Example
+    File myFile
+    boolean result = myFile:IsFile("/users/melissa/test.txt")
+    */
+    action IsFile(text path) returns boolean
+        return not IsDirectory(path)
+    end
+
+    /*
+    This action gets an array that contains the file paths to all files in a directory
+
+    Attribute: Parameter path The path of the directory.
+
+    Attribute: Returns Returns an array of text, each item is a file in the given directory.
+
+    Attribute: Example
+    File myFile
+    Array<text> results = myFile:GetDirectoryListing("/users/melissa")
+    */
+    action GetDirectoryListing(text path) returns Array<text>
+        Text listingString
+        
+        listingString:SetValue(GetDirectoryListingNative(path))
+        return listingString:Split(GetSystemNewline())
+    end
+
+    /*
+    This action get the last modified information for a file.
+
+    Attribute: Parameter path The path of the file.
+
+    Attribute: Returns Returns a date time object that indicates when a file was last modified.
+
+    Attribute: Example
+    File myFile
+    DateTime modified = myFile:GetLastModified("/users/melissa/test.txt")
+    */
+    action GetLastModified(text path) returns DateTime
+        DateTime date
+        
+        date:SetEpochTime(GetLastModifiedNative(path))
+        return date
+    end
+
+    /* -- instance methods -- */
+    private system action OpenNative(text path, integer mode, boolean append, boolean write)
+    
+    /*
+    This action determines if the end of the file has been reached.
+
+    Attribute: Returns Returns true if at the end of file.
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForRead("/users/melissa/test.txt")
+    boolean eof = myFile:IsEndOfFile()
+    myFile:Close()
+    */
+    system action IsEndOfFile() returns boolean
+
+    /*
+    This action determines the current position in the file(note: the count is 
+    zero indexed). For example, if three characters are read the position 
+    returned will be 3. Warning: only works with random access files.
+
+    Attribute: Returns Returns the character position that is the current access position.
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForRandomAccess("/users/melissa/test.txt", false)
+    number position = myFile:GetPosition()
+    myFile:Close()
+    */
+    system action GetPosition() returns number
+
+    /*
+    This action sets the current position in the file(note: the count is 
+    zero indexed). Warning: only works with random access files.
+
+    Attribute: Parameter position The character position for the file.
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForRead("/users/melissa/test.txt")
+    myFile:SetPosition(0)
+    myFile:Close()
+    */
+    system action SetPosition(number position)
+
+    /*
+    This action reads from the current position onward.
+
+    Attribute: Returns Returns the text read from the file
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForRead("/users/melissa/test.txt")
+    text result = myFile:Read()
+    myFile:Close()
+    */
+    system action Read() returns text
+
+    /*
+    This action reads a given number of characters from a file.
+
+    Attribute: Parameter amount The number of characters to read from the file.
+
+    Attribute: Returns Returns the text read from the file
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForRead("/users/melissa/test.txt")
+    text result = myFile:Read(10)
+    myFile:Close()
+    */
+    system action Read(integer amount) returns text
+
+    /*
+    This action reads a line from the file.
+
+    Attribute: Returns Returns the text read from the file
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForRead("/users/melissa/test.txt")
+    text result = myFile:ReadLine()
+    myFile:Close()
+    */
+    system action ReadLine() returns text
+
+    /*
+    This action writes given text to an opened file.
+
+    Attribute: Parameter textToWrite The text to write to the open file.
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForWrite("/users/melissa/test.txt", true)
+    myFile:Write("Hello World")
+    myFile:Close()
+    */
+    system action Write(text textToWrite)
+
+    /*
+    This action writes given line of text to an opened file.
+
+    Attribute: Parameter textToWrite The text to write to the open file.
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForWrite("/users/melissa/test.txt", true)
+    myFile:WriteLine("Hello World")
+    myFile:Close()
+    */
+    system action WriteLine(text textToWrite)
+
+    /*
+    This action resets the access position of the file back to zero. Warning: you must
+    use the open random access method.
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForRandomAccess("/users/melissa/test.txt", true)
+    myFile:Rewind()
+    myFile:Close()
+    */
+    system action Rewind()
+
+    /*
+    The action forces the contents of the file stream to be written to 
+    disk. Warning: OpenForRandomAccess requires write mode or random 
+    access mode (with writing enabled).
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForRandomAccess("/users/melissa/test.txt", true)
+    myFile:Rewind()
+    myFile:Close()
+    */
+    system action ForceWriteContents()
+
+    /*
+    This action closes an opened file.
+
+    Attribute: Returns Returns true if the file was successfully closed.
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForRandomAccess("/users/melissa/test.txt", true)
+    boolean success = myFile:Close()
+    */
+    system action Close() returns boolean
+
+    /*
+    This action opens a file for read only.
+
+    Attribute: Parameter path The path to a file.
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForRead("/users/melissa/test.txt")
+    myFile:Close()
+    */
+    action OpenForRead(text path)
+        OpenNative(path, READ_MODE, false, false)
+    end
+    
+    /*
+    This action opens a file for write only.
+
+    Attribute: Parameter path The path to a file.
+    
+    Attribute: Parameter append If set to true writing will append to the file
+    without overriding anything already in the file.
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForWrite("/users/melissa/test.txt", true)
+    myFile:Close()
+    */
+    action OpenForWrite(text path, boolean append)
+        OpenNative(path, WRITE_MODE, append, true)
+    end
+
+    /*
+    This action opens a file for random access.
+
+    Attribute: Parameter path The path to a file.
+
+    Attribute: Parameter write Enables writing.
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForRandomAccess("/users/melissa/test.txt", true)
+    myFile:Close()
+    */
+    action OpenForRandomAccess(text path, boolean write)
+        OpenNative(path, RANDOM_ACCESS_MODE, false, write)
+    end
+
+    /*
+    This action reads lines from the file.
+
+    Attribute: Returns Returns an array of each line read from the file.
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForRead("/users/melissa/test.txt")
+    Array<text> lines = myFile:ReadLines()
+    myFile:Close()
+    */
+    action ReadLines() returns Array<text>
+        if me:IsEndOfFile() then
+            EndOfFileError e
+            alert(e)
+        end
+        else if me:GetMode() not= READ_MODE and me:GetMode() not= RANDOM_ACCESS_MODE then
+            // Can't do it! Must be in read or random access mode.
+            InputOutputError e
+            e:SetErrorMessage("InputOutputError: ReadLines() requires a file open in read or random access mode.")
+            alert(e)
+        end
+
+        boolean eof = false
+        Array<text> lines
+        
+        repeat until eof
+            check
+                text line = me:ReadLine()
+                lines:Add(line)
+            end
+            detect e of type EndOfFileError
+                // End of file has been reached. Break loop.
+                eof = true
+            end
+        end
+
+        return lines
+    end
+
+    /*
+    This action reads a given number of lines from the file.
+
+    Attribute: Parameter amount The number of lines to read from the file.
+
+    Attribute: Returns Returns an array of each line read from the file.
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForRead("/users/melissa/test.txt")
+    Array<text> lines = myFile:ReadLines(2)
+    myFile:Close()
+    */
+    action ReadLines(integer amount) returns Array<text>
+        Array<text> lines
+        integer totalReadLines = 0
+
+        repeat until me:IsEndOfFile() or totalReadLines = amount
+            text line = me:ReadLine()
+            if not me:IsEndOfFile() then
+                lines:Add(line)
+                totalReadLines = totalReadLines + 1
+            end
+        end
+
+        return lines
+    end
+
+    /*
+    This action writes an array of text to a file in the form of lines.
+
+    Attribute: Parameter lines The lines to write to the file.
+
+    Attribute: Example
+    File myFile
+    myFile:OpenForWrite("/users/melissa/test.txt", true)
+    Array<text> lines
+    lines:Add("hello")
+    lines:Add(" ")
+    lines:Add("world")
+    myFile:WriteLines(lines)
+    myFile:Close()
+    */
+    action WriteLines(Array<text> lines)
+        Iterator<text> lineIterator = lines:GetIterator()
+        repeat while lineIterator:HasNext()
+            WriteLine(lineIterator:Next())
+        end        
+    end
+end

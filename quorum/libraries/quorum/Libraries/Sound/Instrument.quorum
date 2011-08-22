@@ -1,0 +1,30 @@
+package Libraries.Sound
+
+/*
+    This class represents a MIDI instrument.
+
+    Attribute: Author Jeff Wilson
+*/
+
+class Instrument
+    private text name = ""
+    private integer value = 0
+
+    public action GetName returns text
+        return name
+    end
+    
+    public action SetName(text name)
+        // TODO: update 'value' appropriately.
+        me:name = name
+    end
+
+    public action GetValue returns integer
+        return value
+    end
+
+    public action SetValue(integer value)
+        // TODO: Update 'name' appropriately.
+        me:value = value
+    end
+end

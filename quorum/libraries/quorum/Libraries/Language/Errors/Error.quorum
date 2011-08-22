@@ -1,0 +1,185 @@
+package Libraries.Language.Errors
+
+use Libraries.Containers.Array
+use Libraries.System.StackTraceItem
+
+/*
+The Error class is a general error or exception that has been thrown. All
+errors inherit from Error, which means error can be used as a catch all
+error used by the exception handling system.
+
+Attribute: Example
+
+use Libraries.Language.Errors.Error
+class Main
+   action Main
+      check
+        integer i = cast(integer, "1.4")
+      end
+      detect e of type Error
+        print "Error detected: " + e:GetErrorMessage()
+      end
+   end
+end
+*/
+class Error
+    private Array<StackTraceItem> stackTrace
+    private text errorMessage = "An Error has occurred."
+
+    on create  
+        InitStackTraceFromError()
+
+        integer size = GetStackSize()
+
+        //set the size of the stack trace
+        if(size > 20) then
+            stackTrace:SetSize(20)
+        end
+        else then
+            stackTrace:SetSize(size)
+        end
+
+        //fill the stack trace with items
+        integer i = size - 1
+        integer j = 0
+        repeat while i >= 0
+            StackTraceItem item = GetStackTraceItem(j)
+            stackTrace:Set(i, item)
+            i = i - 1
+            j = j + 1
+        end
+
+        errorMessage = InitMessage()
+    end
+
+    /*
+        This action sets the stack trace of an error. 
+
+        Attribute: Parameter trace The generated stack trace.
+
+        Attribute: Example
+
+        Array<StackTraceItem> callStack
+        Error error
+        error:SetStackTrace(callStack)
+    */ 
+    action SetStackTrace(Array<StackTraceItem> trace)
+        integer size = trace:GetSize()
+        integer i = 0
+        stackTrace:SetSize(size)
+        repeat while i < size
+            stackTrace:Set(i,trace:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+        This action gets the stack trace of an object. 
+
+        Attribute: Returns The errors stack trace.
+
+        Attribute: Example
+
+        Array<StackTraceItem> callStack
+        Error error
+        callStack = error:GetStackTrace()
+    */
+    action GetStackTrace() returns Array<StackTraceItem>
+        return stackTrace
+    end
+
+    /*
+        This action sets the error message for the error. 
+
+        Attribute: Parameter message The error message.
+
+        Attribute: Example
+
+        
+        Error error
+        error:SetErrorMessage("An error has occurred.")
+    */
+    action SetErrorMessage(text message)
+        errorMessage = message
+        SystemSetMessage(errorMessage)
+    end
+
+    /*
+        This action gets the error message of an object. 
+
+        Attribute: Returns The errors message.
+
+        Attribute: Example
+
+        
+        Error error
+        text message = error:GetErrorMessage()
+    */
+    action GetErrorMessage() returns text
+        return errorMessage
+    end
+
+    /*
+        This action gets the stack trace size. 
+
+        Attribute: Returns The size of the stack trace.
+
+        Attribute: Example
+
+        
+        Error error
+        integer size = error:GetStackSize()
+    */
+    system action GetStackSize() returns integer
+
+    /*
+        This action prints the errors stack trace to the sodbeans output
+        window. 
+
+        Attribute: Example
+
+        Error error
+        error:PrintStackTrace()
+    */
+    action PrintStackTrace()
+        text str = errorMessage
+        integer size = stackTrace:GetSize()
+        integer i = 0
+        repeat while i < size
+            StackTraceItem item = stackTrace:Get(i)
+            str = str + " " + item:GetFileName()
+            str = str + " " + item:GetClassName()
+            str = str + " " + item:GetMethodName()
+            str = str + " [" + item:GetLineNumber() + "] "
+            i = i + 1
+        end
+        print str
+    end
+
+    /*
+        This action gets an item off the stack trace. 
+
+        Attribute: Parameter index The location to grab the item from.
+
+        Attribute: Returns An item off the stack trace.
+
+        Attribute: Example
+
+        Error error
+        StackTraceItem callStackItem = error:GetStackTraceItem(0)
+    */
+    action GetStackTraceItem(integer index) returns StackTraceItem
+        StackTraceItem item
+        item:Init(GetClassName(index), GetMethodName(index), GetFileName(index), GetLineNumber(index))
+        return item
+    end
+
+    private system action SystemSetMessage(text message)
+    private system action GetClassName(integer index) returns text
+    private system action GetMethodName(integer index) returns text
+    private system action GetFileName(integer index) returns text
+    private system action GetLineNumber(integer index) returns integer
+    private system action InitStackTraceFromError()
+    private system action InitMessage() returns text
+
+end

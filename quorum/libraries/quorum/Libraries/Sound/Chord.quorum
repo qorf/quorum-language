@@ -1,0 +1,46 @@
+package Libraries.Sound
+
+/*
+    This class represents a single note in a track.
+
+    Attribute: Author Jeff Wilson
+*/
+
+use Libraries.Sound.Playable
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
+
+class Chord is a Playable
+    private List<integer> pitches
+    
+    public action Add(integer pitch)
+        pitches:Add(pitch)
+    end
+
+    public action GetPitches returns Iterator<integer>
+        return pitches:GetIterator()
+    end
+
+    /*
+        Perform a deep copy of this object.
+        
+        Attribute: Returns the new Chord
+    */
+    public action Copy returns Object
+        Chord c
+        c:SetEventType(parent:MusicEvent:eventType)
+        c:SetConstantPitchBend(parent:Playable:constantPitchBend)
+        c:SetPrePitchBend(parent:Playable:prePitchBend)
+        c:SetPrePitchBendLength(parent:Playable:prePitchBendLength)
+        c:SetStartTime(parent:Playable:startTime)
+        c:SetLength(parent:Playable:length)
+        c:SetVolume(parent:Playable:volume)
+        
+        Iterator<integer> pitches = me:GetPitches()
+        repeat while pitches:HasNext()
+            c:Add(pitches:Next())
+        end
+
+        return c
+    end
+end

@@ -1,0 +1,157 @@
+package Libraries.Language.Types
+
+use Libraries.Language.Object
+use Libraries.Language.Support.CompareResult
+
+/*
+The Number class is the object representation of the primitive type number. 
+
+
+Attribute: Example
+
+class Main
+   action Main
+      number age = 15.5
+      Number result = test(age)
+   end
+   action test(Number num) returns Number
+        return num
+   end
+end
+*/
+class Number is a Object
+    //The value this Number class represents
+    private number value = 0.0
+
+    /*
+        This action sets the value of the number object.
+
+        Attribute: Parameter i The number value.
+
+        Attribute: Example
+
+        Number age
+        age:SetValue(15.5)
+    */ 
+    action SetValue(number i)
+        value = i
+    end
+
+    /*
+        This action gets the value from the number object and casts it to
+        an integer.
+
+        Attribute: Returns The value of the object converted to an integer.
+
+        Attribute: Example
+
+        Number age
+        integer result = age:GetIntegerValue()
+    */ 
+    action GetIntegerValue returns integer
+        return cast(integer, value)
+    end
+
+    /*
+        This action gets the value from the number object.
+
+        Attribute: Returns The value of the object.
+
+        Attribute: Example
+
+        Number age
+        Number result = age:GetValue()
+    */ 
+    action GetValue returns number
+        return value
+    end
+
+    /*
+        This action gets the value from the number object and casts it to
+        a text value.
+
+        Attribute: Returns The value of the object converted to text.
+
+        Attribute: Example
+
+        Number age
+        text result = age:GetTextValue()
+    */ 
+    action GetTextValue returns text
+        return cast(text, value)
+    end
+
+    /*
+        This action gets the value from the number object and casts it to
+        an boolean.
+
+        Attribute: Returns The value of the object converted to an boolean.
+
+        Attribute: Example
+
+        Number age
+        boolean result = age:GetBooleanValue()
+    */ 
+    action GetBooleanValue returns boolean
+        return cast(boolean, value)
+    end
+
+    /*
+        This action compares two object values and returns a CompareResult.
+        The compare result is either larger if this hash code is larger than
+        the object passed as a parameter, smaller, or equal.
+
+        Attribute: Parameter object The object to compare to.
+        Attribute: Returns The Comprare result, Smaller, Equal, or Larger. 
+
+        Attribute: Example
+
+        Number o
+        Number t
+        CompareResult result = o:Compare(t)
+    */ 
+    action Compare(Object object) returns CompareResult
+        CompareResult result
+
+        number thisOne = me:value
+        Number b = cast(Number, object)
+
+        number other = b:GetValue()
+
+        if thisOne = other then
+            result:result = result:EQUAL
+        end
+        else if thisOne < other then
+            result:result = result:SMALLER
+        end
+        else then
+            result:result = result:LARGER
+        end
+        return result
+    end
+
+    /*
+        This action determines if two objects are equal based on their
+        values.
+
+        Attribute: Parameter object The to be compared.
+
+        Attribute: Returns True if the values are equal and false if they
+        are not equal. 
+
+        Attribute: Example
+
+        Number o
+        Number t
+        boolean result = o:Equals(t)
+    */ 
+    action Equals(Object object) returns boolean
+        number myValue = GetValue()
+
+        Number t = undefined
+        t = cast(Number, object)
+        number otherValue = t:GetValue()
+
+        return myValue = otherValue
+    end
+end
