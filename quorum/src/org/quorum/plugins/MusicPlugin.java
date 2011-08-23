@@ -4,77 +4,93 @@
  */
 package org.quorum.plugins;
 
+import java.util.HashMap;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.sound.midi.Instrument;
 import javax.sound.midi.MidiChannel;
 import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import javax.sound.midi.Soundbank;
 import javax.sound.midi.Synthesizer;
+import org.quorum.execution.ExecutionStep;
 import org.quorum.vm.interfaces.Plugin;
 import org.quorum.vm.interfaces.PluginCall;
 import org.quorum.vm.interfaces.PluginReturn;
 import org.quorum.execution.ExpressionValue;
+import org.quorum.symbols.Structure;
+import org.quorum.symbols.TypeDescriptor;
 
 /**
  *
- * @author Andreas Stefik
+ * @author Andreas Stefik and Jeff Wilson
  */
 public class MusicPlugin implements Plugin {
 
     public static final String KEY = "Libraries.Sound.Music";
-    public static final String PLAY = "Play:integer:number";
-    private Synthesizer synthesizer; // the music synthesizer
-    private Soundbank soundbank; // the sound bank
-    private MidiChannel[] channels; // all the channels
-    private MidiChannel channel;
-    private Sequencer sequencer;
-    private Sequence sequence;
-    private Instrument[] instruments;
-
+    public static final String PLAY = "Play:integer:number:number";
+    public static final String GET_TEMPO_NATIVE = "GetTempoNative";
+    public static final String SET_TEMPO_NATIVE = "SetTempoNative:integer";
+    public static final String ADD_NOTE_FOR_CHORD = "AddNoteForChord:integer";
+    public static final String PLAY_CHORD = "PlayChord:number:number:number";
+    
+    private HashMap<Integer, QuorumMusic> instances;
+    private Synthesizer synthesizer;
+    
     public MusicPlugin() {
         try {
-            if (synthesizer == null) {
-                if ((synthesizer = MidiSystem.getSynthesizer()) == null) {
-                }
-            } 
-            synthesizer.open();
-            sequencer = MidiSystem.getSequencer();
-            sequence = new Sequence(Sequence.PPQ, 10);
-        } catch (Exception ex) {
+            synthesizer = MidiSystem.getSynthesizer();
+        } catch (MidiUnavailableException ex) {
+            Logger.getLogger(MusicPlugin.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        if (synthesizer != null) {
-            Soundbank sb = synthesizer.getDefaultSoundbank();
-            if (sb != null) {
-                instruments = synthesizer.getDefaultSoundbank().getInstruments();
-                synthesizer.loadInstrument(instruments[0]);
-            }
-            channels = synthesizer.getChannels();
-            channel = channels[0];
-        }
-        
-        // TODO: Sane alternative for null synthesizer?
     }
 
-    private void playNote(int note, int duration, int intensity) {
-        try {
-            channel.noteOn(note, intensity);
-            Thread.sleep(duration);
-            channel.noteOff(note, intensity);
-        } catch (InterruptedException e) {
-        }
+    @Override
+    public void reset() {
+        instances = new HashMap<Integer, QuorumMusic>();
     }
+    
 
     public PluginReturn execute(PluginCall call) {
         PluginReturn ret = new PluginReturn();
+        QuorumMusic inst = instances.get(call.getCallingObject().getHashKey());
+        
+        if (inst == null) {
+            // This instance hasn't been logged yet. Put it in.
+            inst = new QuorumMusic(synthesizer);
+            instances.put(call.getCallingObject().getHashKey(), inst);
+        }
+        
         if (call.getActionName().equals(PLAY)) {
             ExpressionValue note = call.getArgument("note");
             ExpressionValue duration = call.getArgument("duration");
+            ExpressionValue volume = call.getArgument("volume");
             int n = note.getResult().integer;
-            int d = (int)(duration.getResult().number * 1000);
-            playNote(n, d, 64);
+            double d = duration.getResult().number;
+            inst.Play(n, d, volume.getResult().number);
         }
+        else if (call.getActionName().equals(GET_TEMPO_NATIVE)) {
+            setPluginReturnValue(ret, inst.getBeatsPerMinute());
+        }
+        else if (call.getActionName().equals(SET_TEMPO_NATIVE)) {
+            ExpressionValue bpm = call.getArgument("beatsPerMinute");
+            inst.setBeatsPerMinute(bpm.getResult().integer);
+        }
+        else if (call.getActionName().equals(ADD_NOTE_FOR_CHORD)) {
+            int note = call.getArgument("note").getResult().integer;
+            inst.AddNoteForChord(note);
+        }
+        else if (call.getActionName().equals(PLAY_CHORD)) {
+            long length = (long)call.getArgument("length").getResult().number;
+            double volume = call.getArgument("volume").getResult().number;
+            long lengthInSeconds = (long)call.getArgument("lengthInSeconds").getResult().number;
+            
+            inst.PlayChord(length, volume, lengthInSeconds);
+        }
+        
         return ret;
     }
 
@@ -110,7 +126,49 @@ public class MusicPlugin implements Plugin {
     public String getKey() {
         return KEY;
     }
+    
+    protected void setPluginReturnValue(PluginReturn ret, int num) {
+        ExpressionValue value = ExpressionValue.getPrimitiveDefault(TypeDescriptor.getNumberType());
+        value.getResult().integer = num;
+        ret.setReturnValue(value);
+    }
+    
+    protected void setPluginReturnValue(PluginReturn ret, double num) {
+        ExpressionValue value = ExpressionValue.getPrimitiveDefault(TypeDescriptor.getNumberType());
+        value.getResult().number = num;
+        ret.setReturnValue(value);
+    }
 
-    public void reset() {
+    protected void setPluginReturnValue(PluginReturn ret, String str){
+        ExpressionValue value = ExpressionValue.getPrimitiveDefault(TypeDescriptor.getTextType());
+        value.getResult().text = str;
+        ret.setReturnValue(value);
+    }
+
+    protected void setPluginReturnValue(PluginReturn ret, boolean bool){
+        ExpressionValue value = ExpressionValue.getPrimitiveDefault(TypeDescriptor.getBooleanType());
+        value.getResult().boolean_value = bool;
+        ret.setReturnValue(value);
+    }
+
+    protected void setPluginReturnValue(PluginReturn ret, Structure obj){
+        ExpressionValue value = ExpressionValue.getPrimitiveDefault(TypeDescriptor.getTextType());
+        value.getResult().structure = obj;
+        ret.setReturnValue(value);
+    }
+
+    protected void setExpressionValue(ExpressionValue exp, String str){
+        exp = ExpressionValue.getPrimitiveDefault(TypeDescriptor.getTextType());
+        exp.getResult().text = str;
+    }
+
+    protected void setExpressionValue(ExpressionValue exp, double num){
+        exp = ExpressionValue.getPrimitiveDefault(TypeDescriptor.getNumberType());
+        exp.getResult().number = num;
+    }
+
+    protected void setExpressionValue(ExpressionValue exp, Boolean bool){
+        exp = ExpressionValue.getPrimitiveDefault(TypeDescriptor.getBooleanType());
+        exp.getResult().boolean_value = bool;
     }
 }

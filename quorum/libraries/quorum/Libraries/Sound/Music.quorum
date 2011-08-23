@@ -18,24 +18,36 @@ repeat 12 times
 end
 */
 
+use Libraries.Sound.Note
+use Libraries.Sound.Chord
 use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
 
-class Music 
-    public integer wholeNote = 0
-    public integer halfNote = 1
-    public integer quarterNote = 2
-    public integer eighthNote = 3
-    public integer sixteenthNote = 4
-    public integer thirtySecondthNote = 5
-    public integer sixtyFourthNote = 6
-    public integer breve = 7
-    
+class Music
     private integer ticksPerWholeNote = 384 // 96 * 4
+    private integer beatsPerMinute = 120 // A pretty standard tempo
     private List<Instrument> instruments
     private List<Track> tracks
     private Instrument instrument
+
+    public integer breve = ticksPerWholeNote * 2
+    public integer wholeNote = ticksPerWholeNote
+    public integer halfNote = ticksPerWholeNote / 2
+    public integer quarterNote = ticksPerWholeNote / 4
+    public integer eighthNote = ticksPerWholeNote / 8
+    public integer sixteenthNote = ticksPerWholeNote / 16
+    public integer thirtySecondthNote = ticksPerWholeNote / 32
+    public integer sixtyFourthNote = ticksPerWholeNote / 64
+
+    //private system action AddTrack() returns integer
+    private system action AddNoteForChord(integer note)
+    private system action PlayChord(number length, number volume, number lengthInSeconds)
     
+    private system action GetTempoNative() returns integer
+    private system action SetTempoNative(integer beatsPerMinute)
+
+    system action Play(integer note, number duration, number volume)
+
     /*
         Plays a single note. 
 
@@ -48,12 +60,55 @@ class Music
         Music music
         music:Play(60, 1.0)
     */
-    system action Play(integer note, number duration)
+    public action Play(integer note, number duration)
+        Play(note, duration, 1.0)
+    end
+
+    private action ComputeNoteSeconds(number length) returns number
+        number beatsPerSecond = beatsPerMinute / 60.0
+        number ticksPerSecond = beatsPerSecond * quarterNote
+        number noteLen = length / ticksPerSecond
+        
+        return noteLen
+    end
 
     public action Play(Note note)
+        number noteLen = ComputeNoteSeconds(note:GetLength())
+
+        Play(note:GetPitch(), noteLen, note:GetVolume())
     end
 
     public action Play(Chord chord)
+        Iterator<integer> notes = chord:GetPitches()
+
+        repeat while notes:HasNext()
+            integer note = notes:Next()
+            
+            AddNoteForChord(note)
+        end
+        
+        // Now actually play the chord
+        number noteLen = ComputeNoteSeconds(chord:GetLength())
+        PlayChord(chord:GetLength(), chord:GetVolume(), noteLen)
+    end
+    
+    public action PlayMidi(text path)
+    end
+    
+    public action PlayWave(text path)
+    end
+    
+    public action SaveMidi(text path)
+    end
+
+    public action SaveWave(text path)
+    end
+
+    public action PlaySong()
+    end
+
+    public action GetTempo() returns integer
+        return beatsPerMinute
     end
 
     public action GetTrack(integer index) returns Track
@@ -67,8 +122,19 @@ class Music
     public action GetInstruments() returns Iterator<Instrument>
         return instruments:GetIterator()
     end
+    
+    public action GetTicksPerWholeNote() returns integer
+        return ticksPerWholeNote
+    end
 
     public action AddTrack() returns Track
-        return undefined
+        Track t
+        t:SetInstrument(instrument)
+        return t
+    end
+
+    public action SetTempo(integer beatsPerMinute)
+        me:beatsPerMinute = beatsPerMinute
+        me:SetTempoNative(beatsPerMinute)
     end
 end

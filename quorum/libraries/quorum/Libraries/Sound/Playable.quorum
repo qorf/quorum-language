@@ -12,7 +12,7 @@ class Playable is a MusicEvent
     private integer prePitchBend = 0
     private integer prePitchBendLength = 0
     private integer startTime = 0
-    private integer length = 0
+    private number length = 0
     private number volume = 1.0
     
     public action GetConstantPitchBend returns integer
@@ -47,12 +47,13 @@ class Playable is a MusicEvent
         me:startTime = startTime
     end
 
-    public action GetLength returns integer
+    public action GetLength returns number
         return length
     end
 
-    public action SetLength(integer length)
-        me:length = length
+    public action SetLength(number len)
+        me:length = len
+        print me:length
     end
 
     public action GetVolume returns number
