@@ -88,6 +88,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         parseHash = new HashMap<String, QuorumFile>();
         typeChecker = new TypeChecker();
         standardLibrary = new QuorumStandardLibrary();
+        generator = new QuorumBytecodeGenerator();
     }
 
     private void resetBuild() {
@@ -471,6 +472,18 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             Vector<ExecutionStep> steps = linker.getLinkedSteps();
             vTable = linker.getVTable();
             this.getExecution().addStep(steps);
+            if(this.isGenerateCode()) {
+                QuorumBytecodeGenerator gen = (QuorumBytecodeGenerator) this.generator;
+                gen.setLinker(linker);
+                gen.setBuilder(builder);
+                gen.generate();
+                try {
+                    gen.writeToDisk();
+                } catch (IOException ex) {
+                    Logger.getLogger(QuorumVirtualMachine.class.getName()).log(Level.INFO, 
+                            "Could not write bytecode to disk", ex);
+                }
+            }
         }
     }
 
@@ -521,12 +534,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
             //Link phase
             link();
-//            Linker linker = new Linker();
-//            linker.setMachine(this);
-//            linker.link(builder);
-//            Vector<ExecutionStep> steps = linker.getLinkedSteps();
-//            vTable = linker.getVTable();
-//            this.getExecution().addStep(steps);
             
             it = parseHash.values().iterator();
             while(it.hasNext()) {

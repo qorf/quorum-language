@@ -59,6 +59,13 @@ public class Main {
         
         File library = new File(root.getAbsolutePath() +
                 "/libraries/quorum");
+        File build = new File(root.getAbsolutePath() +
+                "/build");
+        
+        if(!build.isDirectory()) {
+            build.mkdir();
+        }
+        
         QuorumStandardLibrary.overrideStandardLibraryPath(library, index);
         vm = new QuorumVirtualMachine();
         
@@ -80,9 +87,14 @@ public class Main {
                 File next = new File(root + "/" + args[i]);
                 files[i] = next;
             }
-            
+            //setup the VM
+            vm.setGenerateCode(true);
+            vm.getCodeGenerator().setBuildFolder(build);
             vm.setMain(files[0].getAbsolutePath());
+            //build
             vm.build(files);
+            
+            
             
             if (!vm.getCompilerErrors().isCompilationErrorFree()) {
                 CompilerErrorManager compilerErrors = vm.getCompilerErrors();
@@ -93,6 +105,7 @@ public class Main {
                 }
             }
             else {
+                //execute
                 vm.run();
             }
         }

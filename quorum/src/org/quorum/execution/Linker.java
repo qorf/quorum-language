@@ -4,6 +4,7 @@
  */
 package org.quorum.execution;
 
+import org.quorum.vm.interfaces.CodeGenerator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;

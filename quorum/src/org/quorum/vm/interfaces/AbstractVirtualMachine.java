@@ -150,6 +150,15 @@ public abstract class AbstractVirtualMachine {
     
     ArrayList<DebuggerListener> debuggerListeners = new ArrayList<DebuggerListener>();
     
+    protected CodeGenerator generator;
+    
+    
+    /**
+     * Determines whether some kind of machine or byte code should be generated
+     * if a build is requested.
+     */
+    private boolean generateCode = false;
+    
     /**
      * This represents the absolute path for the folder in which documentation
      * will be generated.
@@ -972,6 +981,27 @@ public abstract class AbstractVirtualMachine {
      */
     public void setDocumentationPath(String documentationPath) {
         this.documentationPath = documentationPath;
+    }
+
+    /**
+     * @return the generator
+     */
+    public CodeGenerator getCodeGenerator() {
+        return generator;
+    }
+
+    /**
+     * @return the generateCode
+     */
+    public boolean isGenerateCode() {
+        return generateCode;
+    }
+
+    /**
+     * @param generateCode the generateCode to set
+     */
+    public void setGenerateCode(boolean generateCode) {
+        this.generateCode = generateCode;
     }
 
     private class Run implements Runnable {
