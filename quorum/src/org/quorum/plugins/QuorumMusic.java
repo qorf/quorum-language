@@ -34,8 +34,11 @@ public class QuorumMusic {
     private MidiChannel channel;
     private Sequencer sequencer;
     private Sequence sequence;
+    private Sequence songSequence;
     private Instrument[] instruments;
     private int beatsPerMinute = 120; // a standard tempo
+    private Track currentTrack = null;
+    
     private ArrayList<Integer> chordNotes = new ArrayList<Integer>();
     
     public QuorumMusic(Synthesizer synthesizer) {
@@ -97,7 +100,6 @@ public class QuorumMusic {
      */
     public void PlayChord(long length, double volume, long lengthInSeconds) {
         try {
-            // Loop through the chord notes array and add them to the sequence.
             sequence = new Sequence(Sequence.PPQ, TICKS_PER_WHOLE_NOTE/4);
         } catch (InvalidMidiDataException ex) {
             Logger.getLogger(QuorumMusic.class.getName()).log(Level.SEVERE, null, ex);
@@ -143,6 +145,78 @@ public class QuorumMusic {
         
         // Flush out the notes cache for chords.
         chordNotes.clear();
+    }
+    
+    /**
+     * Start creating a new song. Clears all old tracks.
+     */
+    public void StartSong() {
+        currentTrack = null;
+
+        try {
+            songSequence = new Sequence(Sequence.PPQ, TICKS_PER_WHOLE_NOTE/4);
+        } catch (InvalidMidiDataException ex) {
+            Logger.getLogger(QuorumMusic.class.getName()).log(Level.SEVERE, null, ex);
+            return;
+        }
+    }
+    
+    /**
+     * Create a new track.
+     */
+    public void StartTrack() {
+        if (songSequence == null)
+            return;
+        
+        currentTrack = songSequence.createTrack();
+    }
+    
+    /**
+     * Adds a new note to the current track, if one is set.
+     * @param note
+     * @param volume 
+     * @param onPos where to put the NOTE ON event
+     * @param offPos where to put the NOTE OFF event
+     */
+    public void AddNoteToTrack(int note, double volume, long onPos, long offPos) {
+        
+        if (currentTrack == null)
+            return;
+        
+            ShortMessage on_message = new ShortMessage();
+            ShortMessage off_message = new ShortMessage();
+            on_message = new ShortMessage();
+            off_message = new ShortMessage();
+            try {
+                
+                on_message.setMessage(ShortMessage.NOTE_ON, 0, note, computeVolume(volume));
+                off_message.setMessage(ShortMessage.NOTE_OFF, 0, note, computeVolume(volume));
+            } catch (InvalidMidiDataException ex) {
+                Logger.getLogger(QuorumMusic.class.getName()).log(Level.SEVERE, null, ex);
+                return;
+            }
+            
+            System.out.println("NOTE_ON " + note + " " + computeVolume(volume) + " " + onPos);
+            System.out.println("NOTE_OFF " + note + " " + computeVolume(volume) + " " + offPos);
+
+            currentTrack.add(new MidiEvent(on_message, onPos));
+            currentTrack.add(new MidiEvent(off_message, offPos));
+    }
+    
+    /**
+     * Play the song built using StartSong, StartTrack and AddNoteToTrack.
+     */
+    public void PlaySong() {
+        if (songSequence == null)
+            return;
+        
+        try {
+            sequencer.setSequence(songSequence);
+        } catch (InvalidMidiDataException ex) {
+            Logger.getLogger(QuorumMusic.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        sequencer.setTempoInBPM(beatsPerMinute);
+        sequencer.start();
     }
     
     private int computeVolume(double volume) {

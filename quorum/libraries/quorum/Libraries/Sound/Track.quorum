@@ -14,14 +14,15 @@ class Track
     private Instrument instrument
 
     public action Add(MusicEvent event)
+        events:Add(event)
     end
 
     public action Add(Note note)
-        Add(note)
+        events:Add(note)
     end
 
     public action Add(Chord chord)
-        Add(chord)
+        events:Add(chord)
     end
 
     public action GetInstrument returns Instrument
@@ -51,5 +52,6 @@ class Track
     end
 
     public action Remove(integer index)
+        events:RemoveAt(index)
     end
 end

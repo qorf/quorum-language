@@ -11,29 +11,31 @@ class Main
         print "HI"
         Music m
         //m:Play(60, 1)
-        /*Note n
+        Note n
         n:SetPitch(60)
         n:SetLength(m:quarterNote)
-        m:Play(n)
+        //m:Play(n)
         n:SetPitch(64)
         n:SetLength(m:quarterNote)
-        m:Play(n)*/
+        //m:Play(n)
         
         Chord c
         c:Add(60)
         c:Add(64)
         c:Add(67)
         c:Add(72)
+        c:SetStartTime(m:wholeNote)
         c:SetLength(m:wholeNote)
-        m:Play(c)
+        //m:Play(c)
         
         Chord d
         d:Add(65)
         d:Add(69)
         d:Add(72)
         d:Add(77)
+        d:SetStartTime(m:wholeNote)
         d:SetLength(m:wholeNote)
-        m:Play(d)
+        //m:Play(d)
 
         Chord e
         e:Add(67)
@@ -41,10 +43,19 @@ class Main
         e:Add(74)
         e:Add(77)
         e:Add(79)
+        e:SetStartTime(m:wholeNote)
         e:SetLength(m:wholeNote)
-        m:Play(e)
+        //m:Play(e)
 
-        c:SetLength(m:quarterNote)
-        m:Play(c)
+        //c:SetLength(m:quarterNote)
+        //m:Play(c)
+
+        Track t = m:AddTrack()
+        t:Add(c)
+        t:Add(d)
+        t:Add(e)
+        t:Add(c)
+        m:PlaySong()
+        print "done"
     end
 end

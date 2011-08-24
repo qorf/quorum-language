@@ -36,6 +36,10 @@ public class MusicPlugin implements Plugin {
     public static final String SET_TEMPO_NATIVE = "SetTempoNative:integer";
     public static final String ADD_NOTE_FOR_CHORD = "AddNoteForChord:integer";
     public static final String PLAY_CHORD = "PlayChord:number:number:number";
+    public static final String START_SONG = "StartSong";
+    public static final String START_TRACK = "StartTrack";
+    public static final String ADD_NOTE_TO_TRACK = "AddNoteToTrack:integer:number:number:number";
+    public static final String PLAY_SONG_NATIVE = "PlaySongNative";
     
     private HashMap<Integer, QuorumMusic> instances;
     private Synthesizer synthesizer;
@@ -90,7 +94,29 @@ public class MusicPlugin implements Plugin {
             
             inst.PlayChord(length, volume, lengthInSeconds);
         }
-        
+        else if (call.getActionName().equals(START_SONG)) {
+            inst.StartSong();
+        }
+        else if (call.getActionName().equals(START_TRACK)) {
+            inst.StartTrack();
+        }
+        else if (call.getActionName().equals(ADD_NOTE_TO_TRACK)) {
+            int note = call.getArgument("note").getResult().integer;
+            double volume = call.getArgument("volume").getResult().number;
+            long onPos = (long)call.getArgument("onPos").getResult().number;
+            long offPos = (long)call.getArgument("offPos").getResult().number;
+            inst.AddNoteToTrack(note, volume, onPos, offPos);
+        }
+        else if (call.getActionName().equals(PLAY_SONG_NATIVE)) {
+            inst.PlaySong();
+        }
+
+    /*
+    private system action StartSong()
+    private system action StartTrack()
+    private system action AddNoteToTrack(integer note, number volume, number onPos, number offPos)
+    private system action PlaySongNative()
+     */
         return ret;
     }
 

@@ -39,10 +39,12 @@ class Music
     public integer thirtySecondthNote = ticksPerWholeNote / 32
     public integer sixtyFourthNote = ticksPerWholeNote / 64
 
-    //private system action AddTrack() returns integer
     private system action AddNoteForChord(integer note)
     private system action PlayChord(number length, number volume, number lengthInSeconds)
-    
+    private system action StartSong()
+    private system action StartTrack()
+    private system action AddNoteToTrack(integer note, number volume, number onPos, number offPos)
+    private system action PlaySongNative()
     private system action GetTempoNative() returns integer
     private system action SetTempoNative(integer beatsPerMinute)
 
@@ -101,10 +103,65 @@ class Music
     public action SaveMidi(text path)
     end
 
-    public action SaveWave(text path)
-    end
+    /*public action SaveWave(text path)
+    end*/
 
     public action PlaySong()
+        // The StartSong() native method will clean up the native side for
+        // new song generation.
+        StartSong()
+
+        // Since all times are put into the system relatively, we have to
+        // convert them to absolute timings. We do that by adding to this
+        // variable the start time of each event. Time '0' is our start time.
+        number currentTime = 0
+
+        // Loop through all tracks and get *all* events.
+        Iterator<Track> trackIterator = tracks:GetIterator()
+        
+        // Get each event and handle them as necessary. For now, there are only
+        // Playable events, but as others are added, they will need to be
+        // dumped here to be managed and sent to the native side.
+        repeat while trackIterator:HasNext()
+            Track track = trackIterator:Next()
+            StartTrack() // start a new track on the native side.
+
+            Iterator<MusicEvent> events = track:GetEvents()
+            repeat while events:HasNext()
+                MusicEvent event = events:Next()
+
+                // Handle playable events first.
+                if event is a Playable then
+                    Playable p = cast(Playable, event)
+                    
+                    // We must keep track of the current time to convert
+                    // all relative times to absolute time, since this is what
+                    // the Java MIDI library requires.
+                    currentTime = currentTime + p:GetStartTime()
+                    
+                    if event is a Note then
+                        // Single notes can just be dumped directly into the track.
+                        Note n = cast(Note, event)
+                        AddNoteToTrack(n:GetPitch(), n:GetVolume(), currentTime, currentTime + n:GetLength())
+                    end
+                    else if event is a Chord then
+                        // Chords must be dumped one note at a time. All notes
+                        // start at the same time, so advancing the time is
+                        // not required.
+                        Chord c = cast(Chord, event)
+                        Iterator<integer> notes = c:GetPitches()
+
+                        repeat while notes:HasNext()
+                            integer note = notes:Next()
+                            
+                            AddNoteToTrack(note, c:GetVolume(), currentTime, currentTime + c:GetLength())
+                        end
+                    end
+                end
+            end
+        end
+
+        PlaySongNative()
     end
 
     public action GetTempo() returns integer
@@ -130,6 +187,7 @@ class Music
     public action AddTrack() returns Track
         Track t
         t:SetInstrument(instrument)
+        tracks:Add(t)
         return t
     end
 

@@ -19,32 +19,32 @@ class Playable is a MusicEvent
         return constantPitchBend
     end
 
-    public action SetConstantPitchBend(integer constantPitchBend)
-        me:constantPitchBend = constantPitchBend
+    public action SetConstantPitchBend(integer constantBend)
+        me:constantPitchBend = constantBend
     end
 
     public action GetPrePitchBend returns integer
         return prePitchBend
     end
 
-    public action SetPrePitchBend(integer prePitchBend)
-        me:prePitchBend = prePitchBend
+    public action SetPrePitchBend(integer preBend)
+        me:prePitchBend = preBend
     end
 
     public action GetPrePitchBendLength returns integer
         return prePitchBendLength
     end
 
-    public action SetPrePitchBendLength(integer prePitchBendLength)
-        me:prePitchBendLength = prePitchBendLength
+    public action SetPrePitchBendLength(integer preBendLength)
+        me:prePitchBendLength = preBendLength
     end
 
-    public action GetStartTime returns integer
+    public action GetStartTime() returns integer
         return startTime
     end
     
-    public action SetStartTime(integer startTime)
-        me:startTime = startTime
+    public action SetStartTime(integer time)
+        me:startTime = time
     end
 
     public action GetLength returns number
@@ -53,15 +53,14 @@ class Playable is a MusicEvent
 
     public action SetLength(number len)
         me:length = len
-        print me:length
     end
 
     public action GetVolume returns number
         return volume
     end
 
-    public action SetVolume(number volume)
-        me:volume = volume
+    public action SetVolume(number vol)
+        me:volume = vol
     end
 
     /*
