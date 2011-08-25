@@ -151,7 +151,6 @@ class Music
                     // all relative times to absolute time, since this is what
                     // the Java MIDI library requires.
                     currentTime = currentTime + p:GetStartTime()
-                    print currentTime
 
                     if event is a Note then
                         // Single notes can just be dumped directly into the track.

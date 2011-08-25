@@ -235,8 +235,7 @@ public class QuorumMusic {
      * @param offPos where to put the NOTE OFF event
      */
 
-    public void AddNoteToTrack(int note, double volume, int constPitchBend, int prePitchBend, int prePitchBendLength, long onPos, long offPos) {
-        
+    public void AddNoteToTrack(int note, double volume, int constPitchBend, int prePitchBend, int prePitchBendLength, long onPos, long offPos) {        
         if (currentTrack == null)
             return;
             
@@ -271,9 +270,9 @@ public class QuorumMusic {
         if (cents > 200 || cents < -200)
             return 64; // invalid range
         else if (cents >= 0)
-            return (int)(Math.ceil((double)cents / 200.0) * 63) + 64;
+            return (int)(((double)cents / 200.0) * 63) + 64;
         else
-            return 127 - (int)(Math.ceil((double)cents / 200.0) * 63) + 64;
+            return 127 - (int)(((double)cents / 200.0) * 63) + 64;
     }
     
     /**
