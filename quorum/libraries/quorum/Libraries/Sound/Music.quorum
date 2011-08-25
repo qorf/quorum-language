@@ -115,15 +115,6 @@ class Music
     
     public action PlayMidi(text path)
     end
-    
-    public action PlayWave(text path)
-    end
-    
-    public action SaveMidi(text path)
-    end
-
-    /*public action SaveWave(text path)
-    end*/
 
     public action PlaySong()
         // The StartSong() native method will clean up the native side for
@@ -142,6 +133,7 @@ class Music
         // Playable events, but as others are added, they will need to be
         // dumped here to be managed and sent to the native side.
         repeat while trackIterator:HasNext()
+            currentTime = 0
             Track track = trackIterator:Next()
             Instrument ti = track:GetInstrument()
             integer instrumentIndex = ti:GetValue()
@@ -159,7 +151,8 @@ class Music
                     // all relative times to absolute time, since this is what
                     // the Java MIDI library requires.
                     currentTime = currentTime + p:GetStartTime()
-                    
+                    print currentTime
+
                     if event is a Note then
                         // Single notes can just be dumped directly into the track.
                         Note n = cast(Note, event)

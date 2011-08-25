@@ -93,6 +93,7 @@ public class QuorumMusic {
         this.currentInstrument = instruments[index];
         this.currentInstrumentIndex = index;
         synthesizer.loadInstrument(this.currentInstrument);
+        channel.programChange(this.currentInstrumentIndex);
     }
     
     /**

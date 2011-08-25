@@ -135,7 +135,7 @@ public class MusicPlugin implements Plugin {
         else if (call.getActionName().equals(SET_CURRENT_INSTRUMENT)) {
             int index = call.getArgument("index").getResult().integer;
             
-            setPluginReturnValue(ret, index);
+            inst.SetCurrentInstrument(index);
         }
 
         return ret;

@@ -12,7 +12,7 @@ class Main
         Music m
         Instrument k = m:GetInstrument(30)
         m:SetInstrument(k)
-        //m:Play(60, 1)
+        m:Play(60, 1)
         Note n
         n:SetPitch(60)
         n:SetLength(m:quarterNote)
@@ -54,9 +54,8 @@ class Main
 
         Track t = m:AddTrack()
         t:Add(c)
-        t:Add(d)
-        t:Add(e)
-        t:Add(c)
-        m:PlaySong()
+        Track t2 = m:AddTrack()
+        t2:Add(e)
+        //m:PlaySong()
     end
 end
