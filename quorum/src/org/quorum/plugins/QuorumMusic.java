@@ -247,24 +247,33 @@ public class QuorumMusic {
             
             try {
                 // Add the constant bend message.
-                //constbend_message.setMessage(ShortMessage.PITCH_BEND, 89, 127);
+                constbend_message.setMessage(ShortMessage.PITCH_BEND, 0, CentsToMidiPitch(constPitchBend));
 
                 // Finally, add the note.
                 on_message.setMessage(ShortMessage.NOTE_ON, 0, note, computeVolume(volume));
                 off_message.setMessage(ShortMessage.NOTE_OFF, 0, note, computeVolume(volume));
                 
                 // We need to reset the pitch as well, so configure that message.
-                resetbend_message.setMessage(ShortMessage.PITCH_BEND, 0, 0x40);
+                resetbend_message.setMessage(ShortMessage.PITCH_BEND, 0, 64);
             } catch (InvalidMidiDataException ex) {
                 Logger.getLogger(QuorumMusic.class.getName()).log(Level.SEVERE, null, ex);
                 return;
             }
-            //currentTrack.add(new MidiEvent(constbend_message, onPos));
+            currentTrack.add(new MidiEvent(constbend_message, onPos));
             currentTrack.add(new MidiEvent(on_message, onPos));
             currentTrack.add(new MidiEvent(off_message, offPos));
             
             // Reset the pitch.
             currentTrack.add(new MidiEvent(resetbend_message, offPos));
+    }
+    
+    private int CentsToMidiPitch(int cents) {
+        if (cents > 200 || cents < -200)
+            return 64; // invalid range
+        else if (cents >= 0)
+            return (int)(Math.ceil((double)cents / 200.0) * 63) + 64;
+        else
+            return 127 - (int)(Math.ceil((double)cents / 200.0) * 63) + 64;
     }
     
     /**
