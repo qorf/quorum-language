@@ -13,6 +13,7 @@ import java.util.Vector;
 import org.quorum.vm.interfaces.AbstractVirtualMachine;
 import org.quorum.vm.interfaces.CompilerError;
 import org.quorum.vm.interfaces.CompilerErrorManager;
+import org.quorum.vm.interfaces.ErrorType;
 import org.quorum.vm.interfaces.LibraryIndexEntry;
 import org.quorum.vm.interfaces.StandardLibrary;
 
@@ -117,6 +118,7 @@ public class SymbolTable {
                 mainError.setLineNumber(descriptor.getLineBegin());
                 mainError.setColumn(descriptor.getColumnBegin());
                 mainError.setError(descriptor.getName() + " has already been defined.");
+                mainError.setErrorType(ErrorType.METHOD_DUPLICATE);
                 return mainError;
             } else {
                 scopes.put(scopeKey, Boolean.TRUE);
@@ -237,7 +239,7 @@ public class SymbolTable {
             return null;
         } else { //throw a compiler error, this class already exists.
             CompilerError error = new CompilerError(descriptor.getLineBegin(),
-                    "Class " + descriptor.getName() + " is already defined.");
+                    "Class " + descriptor.getName() + " is already defined.", ErrorType.CLASS_DUPLICATE);
             return error;
         }
 
@@ -300,7 +302,7 @@ public class SymbolTable {
             } else { //this is a compiler error, it does not reference a proper package
                 CompilerError error = new CompilerError(use.getLineBegin(),
                         "Package " + use.getNameWithoutLast() + " does not"
-                        + " exist. Did you spell it correctly?");
+                        + " exist. Did you spell it correctly?", ErrorType.MISSING_USE);
                         CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                         errorManager.setErrorKey(currentFile.getFile().getAbsolutePath());
                         errorManager.addError(error);
@@ -320,7 +322,7 @@ public class SymbolTable {
                     CompilerError error = new CompilerError(use.getLineBegin(),
                             "Package " + use.getNameWithoutLast() + "exists, but there is"
                             + " no class " + use.getLastName()
-                            + " inside of it. Did you spell its name correctly?");
+                            + " inside of it. Did you spell its name correctly?", ErrorType.MISSING_USE);
                         CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                         errorManager.setErrorKey(currentFile.getFile().getAbsolutePath());
                         errorManager.addError(error);
@@ -332,7 +334,7 @@ public class SymbolTable {
                 if (!library.doesPackageExist(name)) {
                     CompilerError error = new CompilerError(use.getLineBegin(),
                             "Package " + use.getNameWithoutLast() + " does not"
-                            + " exist. Did you spell it correctly?");
+                            + " exist. Did you spell it correctly?", ErrorType.MISSING_USE);
                         CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                         errorManager.setErrorKey(currentFile.getFile().getAbsolutePath());
                         errorManager.addError(error);
@@ -342,7 +344,7 @@ public class SymbolTable {
                         CompilerError error = new CompilerError(use.getLineBegin(),
                                 "Package " + use.getNameWithoutLast() + "exists, but there is"
                                 + " no class " + use.getLastName()
-                                + " inside of it. Did you spell its name correctly?");
+                                + " inside of it. Did you spell its name correctly?", ErrorType.MISSING_USE);
                         CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                         errorManager.setErrorKey(currentFile.getFile().getAbsolutePath());
                         errorManager.addError(error);
@@ -422,7 +424,7 @@ public class SymbolTable {
                         } else if (valid != null && alreadyExists == null) {
                             CompilerError error = new CompilerError(cd.getLineBegin(),
                                     "Cannot define two separate classes in "
-                                    + "different packages of type  " + cd.getName());
+                                    + "different packages of type  " + cd.getName(), ErrorType.CLASS_DUPLICATE);
                             this.getVirtualMachine().getCompilerErrors().addError(error);
                         }
                     }
@@ -916,7 +918,7 @@ public class SymbolTable {
                     if(cd == null){
                         CompilerError error = new CompilerError(next.getLineBegin(),
                                 "Class " + unPar + " does not"
-                                + " exist. Did you forget the \"use\" statement?");
+                                + " exist. Did you forget the \"use\" statement?", ErrorType.MISSING_CLASS);
                             CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                             errorManager.setErrorKey(next.getFile().getFile().getAbsolutePath());
                             errorManager.addError(error);
@@ -975,7 +977,7 @@ public class SymbolTable {
                     } else if (node.getStaticKey().equals(root.getStaticKey()) || prevNodes.contains(node)) {//detect circular inheritance
                         loopsFound.add(node.getStaticKey());
                         CompilerError error = new CompilerError(node.getLineBegin(),
-                                "Class " + node.getStaticKey() + " inherits from itself. Circular inheritance is not allowed.");
+                                "Class " + node.getStaticKey() + " inherits from itself. Circular inheritance is not allowed.", ErrorType.INHERITANCE_CIRCULAR);
                         CompilerErrorManager eManager = getVirtualMachine().getCompilerErrors();
                         eManager.setErrorKey(node.getFile().getFile().getAbsolutePath());
                         eManager.addError(error);

@@ -7,8 +7,7 @@ package org.quorum.symbols;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import org.quorum.steps.AutoBoxCreateStep;
-import org.quorum.steps.UnaryOperationStep;
+import org.quorum.vm.interfaces.ErrorType;
 
 /** 
  * This class checks expressions returned from the abstract syntax tree
@@ -1022,6 +1021,7 @@ public class TypeChecker {
                     result.setErrorMessage("Cannot assign a value of type \"" +
                         right.generateTypeKey() + "\"" +
                         " to a variable of type \"" + left.generateTypeKey() + ".\"");
+                    result.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
                     return result;
                 }
                 //return result;
@@ -1034,6 +1034,7 @@ public class TypeChecker {
                     result.setErrorMessage("Cannot assign a value of type \"" +
                         rTemp.generateTypeKey() + "\"" +
                         " to a variable of type \"" + lTemp.generateTypeKey() + ".\"");
+                    result.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
                     return result;
                 }
                 
@@ -1071,11 +1072,13 @@ public class TypeChecker {
                 result.setErrorMessage("The operation \"" +
                     lstr + " " + op + " "+ rstr +
                     ",\" is not allowed.");
+                result.setErrorType(ErrorType.INVALID_OPERATOR);
             }
             else {
                 result.setErrorMessage("Cannot assign a value of type \"" +
                     rightKey + "\"" +
                     " to a variable of type \"" + lstr + ".\"");
+                result.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
             }
         }
         return result;
@@ -1121,6 +1124,7 @@ public class TypeChecker {
             result.setConversionResult(TypeConversionResults.Incompatible);
                 result.setErrorMessage("The unary operation \"" + OperationEnum.AUTOBOX_CAST + " " +
                 rightKey + "\" is not allowed.");
+                result.setErrorType(ErrorType.INVALID_OPERATOR);
         }
 
         return result;
@@ -1212,6 +1216,7 @@ public class TypeChecker {
             result.setConversionResult(TypeConversionResults.Incompatible);
                 result.setErrorMessage("The unary operation \"" + op + " " +
                 left + "\" is not allowed.");
+                result.setErrorType(ErrorType.INVALID_OPERATOR);
         }
         return result;
     }
@@ -1248,6 +1253,7 @@ public class TypeChecker {
                 result.setErrorMessage("Cannot return type \"" +
                     returnActual.generateTypeKey() + "\"" +
                     ", as the action accepts a return of type \"" + returnRequired.generateTypeKey() + ".\"");
+                result.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
             }
             return result;
         }
@@ -1262,6 +1268,7 @@ public class TypeChecker {
                 result.setErrorMessage("Cannot return type \"" + actualName +
                 "\", as the action accepts a return of type \"" +
                 returnRequired.toString() + ".\"");
+            result.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
         }else{
             result = checkTemplateTypes(returnRequired, returnActual,OperationEnum.RETURN,false,false);
             if(result == null){
@@ -1270,6 +1277,7 @@ public class TypeChecker {
                 result.setErrorMessage("Cannot return type \"" + actualName +
                 "\", as the action accepts a return of type \"" +
                 returnRequired.toString() + ".\"");
+                result.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
             }
         }
         return result;
@@ -1311,6 +1319,7 @@ public class TypeChecker {
                 result.setConversionResult(TypeConversionResults.Incompatible);
                     result.setErrorMessage("Inconvertable types\"" + " " +
                     left + " " + right);
+               result.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
             }
 
         }

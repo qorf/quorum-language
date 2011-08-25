@@ -41,6 +41,7 @@ import java.util.Iterator;
 import java.util.Vector;
 import org.antlr.runtime.tree.CommonTree;
 import org.quorum.execution.ScopeSelector;
+import org.quorum.vm.interfaces.ErrorType;
 }
 @lexer::header {package org.quorum.parser;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
@@ -947,6 +948,7 @@ loop_statement
 				{
 					CompilerError error = new CompilerError();
 					error.setError("Variable " + $ID.text + " not defined.");
+					error.setErrorType(ErrorType.MISSING_VARIABLE);
 					error.setLineNumber($ID.line);
 					error.setColumn($ID.getCharPositionInLine());
 					error.setFile(getGrammarFileNameNoExtension());

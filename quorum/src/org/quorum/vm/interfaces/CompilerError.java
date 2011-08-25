@@ -21,6 +21,7 @@ public class CompilerError {
     private String file;
     private String error;
     private String absolutePath;
+    private ErrorType errorType;
     
     /** Creates a new instance of CompilerError */
     public CompilerError() {
@@ -28,9 +29,10 @@ public class CompilerError {
         error = "";
     }
     
-    public CompilerError(int line, String error) {
+    public CompilerError(int line, String error, ErrorType errorType) {
         lineNumber = line;
         this.error = error;
+        this.errorType = errorType;
     }
 
     /**
@@ -124,5 +126,19 @@ public class CompilerError {
      */
     public void setAbsolutePath(String absolutePath) {
         this.absolutePath = absolutePath;
+    }
+
+    /**
+     * @return the errorType
+     */
+    public ErrorType getErrorType() {
+        return errorType;
+    }
+
+    /**
+     * @param errorType the errorType to set
+     */
+    public void setErrorType(ErrorType errorType) {
+        this.errorType = errorType;
     }
 }

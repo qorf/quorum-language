@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 import org.quorum.vm.interfaces.CompilerError;
+import org.quorum.vm.interfaces.ErrorType;
 import org.quorum.vm.interfaces.LineInformation;
 
 /**
@@ -70,6 +71,7 @@ public class ControlFlowAnalyzer {
             error.setError("Unreachable, as a previous return statement " +
                 "was already defined on line " + exists.getStartLine()
                 + ".");
+            error.setErrorType(ErrorType.UNREACHABLE);
         }
         return error;
     }
@@ -95,6 +97,7 @@ public class ControlFlowAnalyzer {
             error.setError("Unreachable, as a return statement " +
                 "was defined on line " + exists.getStartLine()
                 + ".");
+            error.setErrorType(ErrorType.UNREACHABLE);
         }
         return error;
     }
@@ -208,6 +211,7 @@ public class ControlFlowAnalyzer {
                 error.setFile(parentFile.getStaticKey());
                 error.setError("Missing return statement in action " + 
                         method.getName() + ".");
+                error.setErrorType(ErrorType.MISSING_RETURN);
                 this.method = null;
                 return error;
             }

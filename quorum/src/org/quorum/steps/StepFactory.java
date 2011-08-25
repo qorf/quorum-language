@@ -31,6 +31,7 @@ import org.quorum.vm.interfaces.CompilerError;
 import org.quorum.vm.interfaces.CompilerErrorManager;
 import org.quorum.symbols.ErrorTypeDescriptor;
 import org.quorum.symbols.SystemActionDescriptor;
+import org.quorum.vm.interfaces.ErrorType;
 
 /**
  * This class constructs the opcode that will be used in the compiler. It
@@ -60,6 +61,7 @@ public class StepFactory {
             CompilerError error = new CompilerError();
             error.setLineNumber(step.getBeginLine());
             error.setError("If statements require an expression of type boolean.");
+            error.setErrorType(ErrorType.IF_INVALID_EXPRESSION);
             error.setColumn(step.getBeginColumn());
             error.setFile(fileName);
             machine.getCompilerErrors().addError(error);
@@ -223,7 +225,7 @@ public class StepFactory {
         boolean passed = true;
         TypeCheckerResult typeCheckResult = getTypeChecker().check(info.value.getType(), op);
         if (typeCheckResult.getResult() == null) {
-            CompilerError error = new CompilerError(location.getStartLine(), typeCheckResult.getErrorMessage());
+            CompilerError error = new CompilerError(location.getStartLine(), typeCheckResult.getErrorMessage(), typeCheckResult.getErrorType());
             error.setFile(location.getFile());
             machine.getCompilerErrors().addError(error);
             passed = false;
@@ -511,7 +513,7 @@ public class StepFactory {
     private ResultTuple postBinaryOperationStep(BinaryOperationInformation info) {
         boolean passed = true;
         if (info.typeCheckResult.getResult() == null) {
-            CompilerError error = new CompilerError(info.location.getStartLine(), info.typeCheckResult.getErrorMessage());
+            CompilerError error = new CompilerError(info.location.getStartLine(), info.typeCheckResult.getErrorMessage(), info.typeCheckResult.getErrorType());
             error.setFile(info.location.getFile());
             machine.getCompilerErrors().addError(error);
             passed = false;
@@ -669,7 +671,7 @@ public class StepFactory {
             }else{
                 CompilerError error = new CompilerError(info.location.getStartLine(),
                     info.parent.getStaticKey() + " is not a parent of the class "
-                    + curClass.getStaticKey());
+                    + curClass.getStaticKey(), ErrorType.MISSING_PARENT);
                 error.setFile(info.location.getFile());
                 machine.getCompilerErrors().addError(error);
             }
@@ -697,10 +699,10 @@ public class StepFactory {
                     VariableDescriptor variable = classDescriptor.getVariable(info.variableInObjectName);
                     if (variable == null ) {
                         this.addCompilerError("Variable " + info.variableInObjectName
-                                + " has not been defined in the class " + vd.getName() + ".", info.location);
+                                + " has not been defined in the class " + vd.getName() + ".", info.location, ErrorType.MISSING_VARIABLE);
                     }else if(variable.getAccessModifier().equals(variable.getAccessModifier().PRIVATE)){
                         this.addCompilerError("Variable " + info.variableInObjectName
-                                + " cannot be accessed from " + vd.getName() + " because it is private. ", info.location);
+                                + " cannot be accessed from " + vd.getName() + " because it is private. ", info.location, ErrorType.MISSING_VARIABLE);
                     }else {
                         leftType = variable.getType();
                     }
@@ -778,7 +780,7 @@ public class StepFactory {
                         CompilerError error = new CompilerError(
                                 info.location.getStartLine(),
                                 "The class " + cd.getName() +
-                                " is a templated class of the form " + cd.getName() + "<");
+                                " is a templated class of the form " + cd.getName() + "<", ErrorType.MISMATCHED_TEMPLATES);
                         String errorString = error.getError();
                         Iterator<GenericDescriptor> templateVariables = cd.getTemplateVariables();
                         int count = 0;
@@ -799,7 +801,7 @@ public class StepFactory {
                         CompilerError error = new CompilerError(
                                 info.location.getStartLine(),
                                 "The class " + cd.getName() +
-                                " is not a templated class.");
+                                " is not a templated class.", ErrorType.MISMATCHED_TEMPLATES);
                         error.setFile(info.location.getFile());
                         machine.getCompilerErrors().addError(error);
                     }
@@ -811,7 +813,7 @@ public class StepFactory {
                         CompilerError error = new CompilerError(
                                 info.location.getStartLine(),
                                 "You cannot instantiate the abstract class "
-                                + cd.getName() + ". This class has not implemented all necessary blueprints.");
+                                + cd.getName() + ". This class has not implemented all necessary blueprints.", ErrorType.INSTANTIATE_ABSTRACT);
                         error.setFile(info.location.getFile());
                         machine.getCompilerErrors().addError(error);
                     }
@@ -829,7 +831,7 @@ public class StepFactory {
                                     "You cannot instantiate an object of type "
                                     + cd.getStaticKey() + " inside a class of the same type. Instead, say \""
                                     + cd.getName() + " " + cd.getName().toLowerCase()
-                                    + " = undefined\".");
+                                    + " = undefined\".", ErrorType.INSTANTIATE_THIS);
                             error.setFile(info.location.getFile());
                             machine.getCompilerErrors().addError(error);
                         }
@@ -843,7 +845,7 @@ public class StepFactory {
                                     + vd.getName() + " of type "
                                     + vd.getType().getTemplateName() + ". Instead, say \""
                                     + vd.getType().getTemplateName() + " " + vd.getName()
-                                    + " = undefined\".");
+                                    + " = undefined\".", ErrorType.INSTANTIATE_GENERIC);
                             error.setFile(info.location.getFile());
                             machine.getCompilerErrors().addError(error);
                         }
@@ -857,7 +859,7 @@ public class StepFactory {
                                     + vd.getName() + " of type "
                                     + vd.getType().getTemplateName() + ". Instead, say \""
                                     + vd.getType().getTemplateName() + " " + vd.getName()
-                                    + " = undefined\".");
+                                    + " = undefined\".", ErrorType.INSTANTIATE_GENERIC);
                             error.setFile(info.location.getFile());
                             machine.getCompilerErrors().addError(error);
                         }
@@ -881,14 +883,14 @@ public class StepFactory {
             } else { //the assignment is invalid
                 CompilerError error = new CompilerError(
                         info.location.getStartLine(),
-                        typeCheckResult.getErrorMessage());
+                        typeCheckResult.getErrorMessage(), typeCheckResult.getErrorType());
                 error.setFile(info.location.getFile());
                 machine.getCompilerErrors().addError(error);
             }
         } else { //throw a compiler error
             CompilerError error = new CompilerError(info.location.getStartLine(),
                     "The variable " + info.variableName + " cannot be assigned"
-                    + " a value in this context, as it does not exist.");
+                    + " a value in this context, as it does not exist.", ErrorType.MISSING_VARIABLE);
             error.setFile(info.location.getFile());
             machine.getCompilerErrors().addError(error);
         }
@@ -1026,6 +1028,7 @@ public class StepFactory {
                 error.setLineNumber(info.location.getStartLine());
                 error.setError("The variable " + info.variable.getName() + " must be defined before it is used.");
                 error.setColumn(info.location.getStartColumn());
+                error.setErrorType(ErrorType.MISSING_VARIABLE);
                 error.setFile(info.location.getFile());
                 machine.getCompilerErrors().addError(error);
                 tuple.setNextRegister(info.register);
@@ -1044,7 +1047,7 @@ public class StepFactory {
         }
 
         if (clazz == null) {
-            CompilerError error = new CompilerError(info.location.getStartLine(), "Class " + className + " has not been defined.");
+            CompilerError error = new CompilerError(info.location.getStartLine(), "Class " + className + " has not been defined.", ErrorType.MISSING_CLASS);
             error.setFile(info.location.getFile());
             error.setColumn(info.location.getStartColumn());
             machine.getCompilerErrors().addError(error);
@@ -1085,6 +1088,7 @@ public class StepFactory {
             error.setError("The method '" + methodKey + "' in class '" + machine.getSymbolTable().getCurrentClass() + "' has not been defined.");
             error.setColumn(info.location.getStartColumn());
             error.setFile(info.location.getFile());
+            error.setErrorType(ErrorType.MISSING_METHOD);
             CompilerErrorManager errorManager = machine.getCompilerErrors();
             errorManager.setErrorKey(machine.getSymbolTable().getCurrentClass().getFile().getFile().getAbsolutePath());
             errorManager.addError(error);
@@ -1288,6 +1292,7 @@ public class StepFactory {
             error.setError("The parent class '" + className + " has not been defined.");
             error.setColumn(info.location.getStartColumn());
             error.setFile(info.location.getFile());
+            error.setErrorType(ErrorType.MISSING_PARENT);
             machine.getCompilerErrors().addError(error);
             tuple.setNextRegister(info.register);
             tuple.setStep(new CallStep());
@@ -1322,6 +1327,7 @@ public class StepFactory {
                 error.setError("The method '" + methodKey + "' in class '" + clazz.getName() + "' has not been defined.");
                 error.setColumn(info.location.getStartColumn());
                 error.setFile(info.location.getFile());
+                error.setErrorType(ErrorType.MISSING_METHOD);
                 CompilerErrorManager errorManager = machine.getCompilerErrors();
                 errorManager.setErrorKey(machine.getSymbolTable().getCurrentClass().getFile().getFile().getAbsolutePath());
                 errorManager.addError(error);
@@ -1496,7 +1502,7 @@ public class StepFactory {
         TypeCheckerResult typeCheckResult = getTypeChecker().check(type,
                 value.getType(), cast, false, false);
         if (typeCheckResult.getResult() == null) {
-            CompilerError error = new CompilerError(location.getStartLine(), typeCheckResult.getErrorMessage());
+            CompilerError error = new CompilerError(location.getStartLine(), typeCheckResult.getErrorMessage(), typeCheckResult.getErrorType());
             error.setFile(location.getFile());
             machine.getCompilerErrors().addError(error);
             passed = false;
@@ -1573,6 +1579,7 @@ public class StepFactory {
                 error.setFile(machine.getSymbolTable().getCurrentClass().getFile().getStaticKey());
                 error.setError("Cannot \"return now\" from a method that"
                         + " requires a return of type " + returnType.getName() + ".");
+                error.setErrorType(ErrorType.INVALID_RETURN_NOW);
                 machine.getCompilerErrors().addError(error);
             }
         }
@@ -1592,7 +1599,7 @@ public class StepFactory {
 
             TypeCheckerResult result = typeChecker.check(returnRequired, returnActual);
             if (result.getResult() == null) {
-                error = new CompilerError(location.getStartLine(), result.getErrorMessage());
+                error = new CompilerError(location.getStartLine(), result.getErrorMessage(), result.getErrorType());
                 machine.getCompilerErrors().addError(error);
             }else if(result.getConversionResult().compareTo(TypeConversionResults.None) != 0){
                 UnaryOperationStep resultStep = (UnaryOperationStep) result.generateOpcode();
@@ -1742,12 +1749,13 @@ public class StepFactory {
      * @param err
      * @param location
      */
-    private void addCompilerError(String err, LineInformation location) {
+    private void addCompilerError(String err, LineInformation location, ErrorType errorType) {
         CompilerError error = new CompilerError();
         error.setFile(location.getFile());
         error.setLineNumber(location.getStartLine());
         error.setColumn(location.getStartColumn());
         error.setError(err);
+        error.setErrorType(errorType);
         machine.getCompilerErrors().addError(error);
     }
 
@@ -2023,7 +2031,7 @@ public class StepFactory {
 
             if(nextParam.isInvalidType()){//check that the alert type is of a Quorum Error Type.
                 CompilerError error = new CompilerError(nextParam.getLineBegin(),
-                    "The detect was given an invalid error type." );
+                    "The detect was given an invalid error type.", ErrorType.INVALID_ERROR);
                 error.setFile(nextParam.getLineInformation().getFile());
                 machine.getCompilerErrors().addError(error);
             }
@@ -2162,7 +2170,7 @@ public class StepFactory {
         } else {
             if (!vd.isInitialized()) {
                 this.addCompilerError("Variable " + vd.getName()
-                        + " must be initialized before it is used.", location);
+                        + " must be initialized before it is used.", location, ErrorType.MISSING_VARIABLE);
             }
             resultValue = StepFactory.createExpressionValue(resultRegister, new Result(), vd.getType());
             step.setTemp(resultRegister);
@@ -2245,7 +2253,7 @@ public class StepFactory {
         } else {
             if (!vd.isInitialized()) {
                 this.addCompilerError("Variable " + vd.getName()
-                        + " must be initialized before it is used.", location);
+                        + " must be initialized before it is used.", location, ErrorType.MISSING_VARIABLE);
             }
             //check the variable
             TypeDescriptor type = new TypeDescriptor();
@@ -2255,7 +2263,7 @@ public class StepFactory {
                 if (variable == null || (variable.getAccessModifier().equals(variable.getAccessModifier().PRIVATE) &&
                         !classDescriptor.getStaticKey().equals(machine.getSymbolTable().getCurrentClass().getStaticKey()))) {
                     this.addCompilerError("Variable " + idVariable
-                            + " has not been defined in the class " + vd.getName() + ".", location);
+                            + " has not been defined in the class " + vd.getName() + ".", location, ErrorType.MISSING_VARIABLE);
                 } else {
                     type = variable.getType();
                 }
@@ -2311,6 +2319,7 @@ public class StepFactory {
             error.setError("The class '" + parent.getStaticKey() + "' is not a parent of the class "
                     + machine.getSymbolTable().getCurrentClass().getStaticKey() + ".");
             error.setColumn(location.getStartColumn());
+            error.setErrorType(ErrorType.MISSING_PARENT);
             error.setFile(location.getFile());
             machine.getCompilerErrors().addError(error);
         }
@@ -2325,7 +2334,7 @@ public class StepFactory {
         } else {
             if (!vd.isInitializedClassVariable() && !vd.isInitialized()) {
                 this.addCompilerError("Variable " + vd.getName()
-                        + " is not initialized in the parent class's initialization block.", location);
+                        + " is not initialized in the parent class's initialization block.", location, ErrorType.MISSING_VARIABLE);
             }
             resultValue = StepFactory.createExpressionValue(resultRegister, new Result(), vd.getType());
             step.setTemp(resultRegister);
@@ -2360,7 +2369,7 @@ public class StepFactory {
         } else {
             if (!vd.isInitialized()) {
                 this.addCompilerError("Variable " + vd.getName()
-                        + " must be initialized before it is used.", location);
+                        + " must be initialized before it is used.", location, ErrorType.MISSING_VARIABLE);
             }
             resultValue = StepFactory.createExpressionValue(resultRegister, new Result(), vd.getType());
             step.setTemp(resultRegister);
@@ -2383,6 +2392,7 @@ public class StepFactory {
         error.setError("The variable '" + variableName + "' has not been defined. Did you spell the variable's name correctly?");
         error.setColumn(location.getStartColumn());
         error.setFile(location.getFile());
+        error.setErrorType(ErrorType.MISSING_VARIABLE);
         machine.getCompilerErrors().addError(error);
     }
 
@@ -2453,7 +2463,7 @@ public class StepFactory {
             //check that the alerts error type is a valid ErrorTypeDescriptor
             //then add the value to the alert step.
             if(errorType.isInvalidType()){//check that the alert type is of a Quorum Error Type.
-                CompilerError error = new CompilerError(location.getStartLine(), "The alert was given an invalid error type." );
+                CompilerError error = new CompilerError(location.getStartLine(), "The alert was given an invalid error type.", ErrorType.INVALID_ERROR );
                 error.setFile(location.getFile());
                 machine.getCompilerErrors().addError(error);
             }else{

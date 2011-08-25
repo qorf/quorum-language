@@ -27,6 +27,7 @@ import org.quorum.symbols.MethodDescriptor;
 import org.quorum.symbols.Result;
 import org.quorum.symbols.TypeDescriptor;
 import org.quorum.symbols.VirtualMethodDescriptor;
+import org.quorum.vm.interfaces.ErrorType;
 
 /**
  * This class takes an execution tree and flattens it
@@ -90,6 +91,7 @@ public class Linker {
         error.setColumn(1);
         error.setLineNumber(1);
         error.setError("Cannot start the program, as no main method is defined.");
+        error.setErrorType(ErrorType.MISSING_MAIN);
         machine.getCompilerErrors().setErrorKey(machine.getMain());
         error.setFile(machine.getMain());
         machine.getCompilerErrors().addError(error);

@@ -6,6 +6,7 @@
 package org.quorum.symbols;
 
 import org.quorum.execution.ExecutionStep;
+import org.quorum.vm.interfaces.ErrorType;
 
 
 
@@ -19,10 +20,12 @@ public class TypeCheckerResult {
     private String errorMessage;
     private TypeCheckerStepFactory opcodeGenerator;
     private TypeConversionEnum conversionScore;
+    private ErrorType errorType;
 
     public TypeCheckerResult() {
         errorMessage = "";
         conversionScore = TypeConversionEnum.EXACT_MATCH;
+        errorType = ErrorType.OTHER;
     }
 
     /**
@@ -107,5 +110,19 @@ public class TypeCheckerResult {
      */
     public void setConversionScore(TypeConversionEnum conversionScore) {
         this.conversionScore = conversionScore;
+    }
+
+    /**
+     * @return the errorType
+     */
+    public ErrorType getErrorType() {
+        return errorType;
+    }
+
+    /**
+     * @param errorType the errorType to set
+     */
+    public void setErrorType(ErrorType errorType) {
+        this.errorType = errorType;
     }
 }

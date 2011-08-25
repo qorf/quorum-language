@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.Vector;
 import org.quorum.vm.interfaces.CompilerError;
 import org.quorum.vm.interfaces.CompilerErrorManager;
+import org.quorum.vm.interfaces.ErrorType;
 import org.quorum.vm.interfaces.LineInformation;
 
 /**
@@ -164,7 +165,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         //make sure the blueprint is not set to private
         if (descriptor.isPrivate()) {
             CompilerError error = new CompilerError(getLineBegin(),
-                    "The private modifier cannot be used here.");
+                    "The private modifier cannot be used here.", ErrorType.INHERITANCE_MODIFIER_DOWNGRADE);
             CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
             errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
             return error;
@@ -236,7 +237,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         if (descriptor != null) {
             if (this.getStaticKey().equals(descriptor.getStaticKey())) {
                 CompilerError error = new CompilerError(getLineBegin(),
-                        "Class " + this.getName() + " inherits from itself. Circular inheritance is not allowed.");
+                        "Class " + this.getName() + " inherits from itself. Circular inheritance is not allowed.", ErrorType.INHERITANCE_CIRCULAR);
                 CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                 errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
                 errorManager.addError(error);
@@ -249,7 +250,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
             }
         } else {
             CompilerError error = new CompilerError(getLineBegin(),
-                    "Class " + this.getName() + " cannot have a parent of type null.");
+                    "Class " + this.getName() + " cannot have a parent of type null.", ErrorType.INHERITANCE_NULL);
             CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
             errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
             errorManager.addError(error);
@@ -290,7 +291,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                 //check if the access modifier is erroniously set to private
                 if (implMethod!=null && implMethod.getAccessModifier().equals(AccessModifierEnum.PRIVATE)) {
                     CompilerError error = new CompilerError(implMethod.getLineBegin(),
-                            "An overriding method " + implMethod.getStaticKey() + " cannot downgrade its modifier to private.");
+                            "The blueprint method " + implMethod.getStaticKey() + " cannot be private.", ErrorType.INHERITANCE_MODIFIER_DOWNGRADE);
                     CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                     errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
                     errorManager.addError(error);
@@ -326,7 +327,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                             + method.getParent().getScopeString() + " and "
                             + curMethod.getParent().getScopeString()
                             + ". You must implement this method in the class "
-                            + getName());
+                            + getName(), ErrorType.INHERITANCE_AMBIGUOUS);
                     CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                     errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
                     errorManager.addError(error);
@@ -408,7 +409,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                                     + method.getParent().getScopeString() + " and "
                                     + curMethod.getParent().getScopeString()
                                     + ". You must implement this method in the class "
-                                    + getName());
+                                    + getName(), ErrorType.INHERITANCE_AMBIGUOUS);
                             CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                             errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
                             errorManager.addError(error);
@@ -490,7 +491,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                         + "Method " + method1.getStaticKey() + "(return type " + method1.getReturnType().getStaticKey()
                         + ") in class " + method1.getParent().getScopeString() + " and method " + method2.getStaticKey()
                         + "(return type " + method2.getReturnType().getStaticKey()
-                        + ") in class " + method2.getParent().getScopeString() + " are incompatible.");
+                        + ") in class " + method2.getParent().getScopeString() + " are incompatible.", ErrorType.INHERITANCE_MISSMATCHED_RETURN);
                 CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                 errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
                 errorManager.addError(error);
@@ -508,14 +509,15 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                         + "Method " + originalMethod.getStaticKey() + "(return type " + originalMethod.getReturnType().getStaticKey()
                         + ") in class " + originalMethod.getParent().getScopeString() + " and method "
                         + overridingMethod.getStaticKey() + "(return type " + overridingMethod.getReturnType().getStaticKey()
-                        + ") in class " + overridingMethod.getParent().getScopeString() + " are incompatible.  ");
+                        + ") in class " + overridingMethod.getParent().getScopeString() + " are incompatible.  ", ErrorType.INHERITANCE_MISSMATCHED_RETURN);
                 CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                 errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
                 errorManager.addError(error);
                 return true;
             } else if (originalMethod.getAccessModifier().equals(AccessModifierEnum.PUBLIC) && overridingMethod.getAccessModifier().equals(AccessModifierEnum.PRIVATE)) {
                 CompilerError error = new CompilerError(overridingMethod.getLineBegin(),
-                        "An overriding method " + overridingMethod.getStaticKey() + " cannot downgrade its modifier to private.");
+                        "The method " + originalMethod.getStaticKey() + " is public, but the overriding method " 
+                        + overridingMethod.getStaticKey() + " is private. The overriding method must be public.", ErrorType.INHERITANCE_MODIFIER_DOWNGRADE);
                 CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                 errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
                 errorManager.addError(error);
@@ -922,7 +924,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                                 if (actual.getName().compareTo(specified.getName()) == 0) {
                                     result = checker.checkAutobox(actual);
                                     if (result.getResult() == null) {
-                                        CompilerError error = new CompilerError(getLineBegin(), result.getErrorMessage());
+                                        CompilerError error = new CompilerError(getLineBegin(), result.getErrorMessage(), result.getErrorType());
                                         CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                                         errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
                                         errorManager.addError(error);
@@ -933,7 +935,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
 
                                 } else {
                                     if (result.getConversionResult().compareTo(TypeConversionResults.None) == 0) {
-                                        CompilerError error = new CompilerError(getLineBegin(), result.getErrorMessage());
+                                        CompilerError error = new CompilerError(getLineBegin(), result.getErrorMessage(), result.getErrorType());
                                         CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                                         errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
                                         errorManager.addError(error);
@@ -990,7 +992,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                 }
 
                 //add the compiler error
-                CompilerError error = new CompilerError(callLocation.getStartLine(), message);
+                CompilerError error = new CompilerError(callLocation.getStartLine(), message, ErrorType.METHOD_CALL_AMBIGUOUS);
                 error.setFile(callLocation.getFile());
                 CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                 errorManager.setErrorKey(callLocation.getFile());
@@ -1219,7 +1221,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                 CompilerError error = new CompilerError(use.getLineBegin(),
                         "There is a naming conflict." + " You have asked to use "
                         + "the class " + cd.getName() + " from the package " + containerOld
-                        + " and the package " + containerNew + ".");
+                        + " and the package " + containerNew + ".", ErrorType.USE_AMBIGUOUS);
                 error.setFile(getFile().getName());
                 return error;
             }
@@ -1644,6 +1646,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         if(constructor != null){
             CompilerError error = getCompilerErrorInfoFromDescriptor(newConstructor);
             error.setError(newConstructor.getName() + " has already been defined.");
+            error.setErrorType(ErrorType.METHOD_DUPLICATE);
             return error;
         }
         return null;

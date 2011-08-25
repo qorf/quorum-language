@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import org.quorum.vm.interfaces.AbstractVirtualMachine;
 import org.quorum.vm.interfaces.CompilerError;
+import org.quorum.vm.interfaces.ErrorType;
 import org.quorum.vm.interfaces.LineInformation;
 
 /**
@@ -51,6 +52,7 @@ public abstract class Descriptor {
         if(m.containsKey(d.getStaticKey())) { //already defined
             CompilerError error = getCompilerErrorInfoFromDescriptor(d);
             error.setError(d.getName() + " has already been defined.");
+            error.setErrorType(ErrorType.DUPLICATE);
             return error;
         }
         else {

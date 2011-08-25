@@ -541,6 +541,7 @@ scope{
 		          	error.setError("Class " + cd.getStaticKey() + " is not an error type." +
 		          				cd.getStaticKey() + " must inherit from class Error to be an error type");
 		          	error.setColumn($LEFT_PAREN.getCharPositionInLine());
+		          	error.setErrorType(ErrorType.INVALID_ERROR);
 		          	error.setFile(getGrammarFileNameNoExtension());
 		          	vm.getCompilerErrors().addError(error);
 		        }
@@ -720,6 +721,7 @@ scope{
 				error.setLineNumber($qn.type.getLineBegin());
 				error.setError("Class " + $qn.type.getStaticKey() + " could not be found." +
 					" Did you forget a \"use\" statement?");
+				error.setErrorType(ErrorType.MISSING_CLASS);
 				error.setColumn($qn.type.getColumnBegin());
 				error.setFile(getGrammarFileNameNoExtension());
 				vm.getCompilerErrors().addError(error);
@@ -733,6 +735,7 @@ scope{
             			error.setLineNumber(cd.getLineBegin());
             			error.setError("Class " + cd.getStaticKey() + " is not an error type." +
             					cd.getStaticKey() + " must inherit from class Error to be an error type");
+            			error.setErrorType(ErrorType.INVALID_ERROR);
             			error.setColumn($qn.type.getColumnBegin());
             			error.setFile(getGrammarFileNameNoExtension());
             			vm.getCompilerErrors().addError(error);
@@ -756,6 +759,7 @@ scope{
 				error.setLineNumber($qn.type.getLineBegin());
 				error.setError("Class " + $qn.type.getStaticKey() + " could not be found." +
 					" Did you forget a \"use\" statement?");
+				error.setErrorType(ErrorType.MISSING_CLASS);
 				error.setColumn($qn.type.getColumnBegin());
 				error.setFile(getGrammarFileNameNoExtension());
 				vm.getCompilerErrors().addError(error);
@@ -769,6 +773,7 @@ scope{
             			error.setLineNumber(cd.getLineBegin());
             			error.setError("Class " + cd.getStaticKey() + " is not an error type." +
             					cd.getStaticKey() + " must inherit from class Error to be an error type");
+            			error.setErrorType(ErrorType.INVALID_ERROR);
             			error.setColumn($qn.type.getColumnBegin());
             			error.setFile(getGrammarFileNameNoExtension());
             			vm.getCompilerErrors().addError(error);
@@ -926,6 +931,7 @@ class_type returns [TypeDescriptor myType]
 				error.setLineNumber($qn.type.getLineBegin());
 				error.setError("Class " + $qn.type.getStaticKey() + " could not be found." +
 					" Did you forget a \"use\" statement?");
+				error.setErrorType(ErrorType.MISSING_CLASS);
 				error.setColumn($qn.type.getColumnBegin());
 				error.setFile(getGrammarFileNameNoExtension());
 				vm.getCompilerErrors().addError(error);
@@ -955,6 +961,7 @@ assignment_declaration returns [TypeDescriptor myType]
 				error.setLineNumber($qn.type.getLineBegin());
 				error.setError("Class " + $qn.type.getStaticKey() + " could not be found." +
 					" Did you forget a \"use\" statement?");
+				error.setErrorType(ErrorType.MISSING_CLASS);
 				error.setColumn($qn.type.getColumnBegin());
 				error.setFile(getGrammarFileNameNoExtension());
 				vm.getCompilerErrors().addError(error);
@@ -1044,7 +1051,7 @@ assignment_statement
 			cd = symbol.findClassDescriptorFromCurrentClass($parent.type.getStaticKey());
 			
 			if(cd == null){
-				CompilerError error = new CompilerError($PARENT.getLine(), "The class "+ symbol.getCurrentClass().getStaticKey() +" does not have access to " + $parent.type.getStaticKey());
+				CompilerError error = new CompilerError($PARENT.getLine(), "The class "+ symbol.getCurrentClass().getStaticKey() +" does not have access to " + $parent.type.getStaticKey(), ErrorType.MISSING_PARENT);
 				vm.getCompilerErrors().addError(error);
 			}
 		}
@@ -1368,7 +1375,7 @@ range		returns[ExpressionValue first_value, ExecutionStep first_step, Expression
 
 		if(result.getResult() == null)
 		{
-			CompilerError error = new CompilerError($TO.getLine(), result.getErrorMessage());
+			CompilerError error = new CompilerError($TO.getLine(), result.getErrorMessage(), result.getErrorType());
 			vm.getCompilerErrors().addError(error);
 		}
 
@@ -1386,7 +1393,7 @@ selector returns[ScopeSelector scopeSel]
 		ClassDescriptor cd = symbol.findClassDescriptorFromCurrentClass($qualified_name.type.getStaticKey());
 		
 		if(cd == null){
-			CompilerError error = new CompilerError($PARENT.getLine(), "The class "+ symbol.getCurrentClass().getStaticKey() +" does not have access to " + $qualified_name.type.getStaticKey());
+			CompilerError error = new CompilerError($PARENT.getLine(), "The class "+ symbol.getCurrentClass().getStaticKey() +" does not have access to " + $qualified_name.type.getStaticKey(), ErrorType.MISSING_PARENT);
 			vm.getCompilerErrors().addError(error);
 		}
 		scopeItem.setIsParent(true);
@@ -1778,6 +1785,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 			CompilerError error = new CompilerError();
 			error.setLineNumber($DECIMAL.getLine());
 			error.setError($DECIMAL.text + " is an invalid number.");
+			error.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
 			error.setColumn($DECIMAL.getCharPositionInLine());
 			error.setFile(getGrammarFileNameNoExtension());
 			vm.getCompilerErrors().addError(error);
@@ -1807,6 +1815,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 			CompilerError error = new CompilerError();
 			error.setLineNumber($INT.getLine());
 			error.setError($INT.text + " is an invalid integer. The integer may be too large.");
+			error.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
 			error.setColumn($INT.getCharPositionInLine());
 			error.setFile(getGrammarFileNameNoExtension());
 			vm.getCompilerErrors().addError(error);
