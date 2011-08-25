@@ -38,13 +38,13 @@ public class MusicPlugin implements Plugin {
     public static final String PLAY_CHORD = "PlayChord:number:number:number";
     public static final String START_SONG = "StartSong";
     public static final String START_TRACK = "StartTrack:integer";
-    public static final String ADD_NOTE_TO_TRACK = "AddNoteToTrack:integer:number:number:number";
+    public static final String ADD_NOTE_TO_TRACK = "AddNoteToTrack:integer:number:integer:integer:integer:number:number";
     public static final String PLAY_SONG_NATIVE = "PlaySongNative";
     public static final String GET_CURRENT_INSTRUMENT_NAME = "GetCurrentInstrumentName";
     public static final String GET_CURRENT_INSTRUMENT_NUMBER = "GetCurrentInstrumentNumber";
     public static final String GET_INSTRUMENT_NAME = "GetInstrumentName:integer";
     public static final String SET_CURRENT_INSTRUMENT = "SetCurrentInstrument:integer";
-    
+
     private HashMap<Integer, QuorumMusic> instances;
     private Synthesizer synthesizer;
     
@@ -107,11 +107,16 @@ public class MusicPlugin implements Plugin {
             inst.StartTrack(instrument);
         }
         else if (call.getActionName().equals(ADD_NOTE_TO_TRACK)) {
+            //     private system action AddNoteToTrack(integer note, number volume, integer constantBend, integer preBend, integer preBendLength, number onPos, number offPos)
             int note = call.getArgument("note").getResult().integer;
             double volume = call.getArgument("volume").getResult().number;
+            int constBend = call.getArgument("constantBend").getResult().integer;
+            int preBend = call.getArgument("preBend").getResult().integer;
+            int preBendLength = call.getArgument("preBendLength").getResult().integer;
             long onPos = (long)call.getArgument("onPos").getResult().number;
             long offPos = (long)call.getArgument("offPos").getResult().number;
-            inst.AddNoteToTrack(note, volume, onPos, offPos);
+            
+            inst.AddNoteToTrack(note, volume, constBend, preBend, preBendLength, onPos, offPos);
         }
         else if (call.getActionName().equals(PLAY_SONG_NATIVE)) {
             inst.PlaySong();

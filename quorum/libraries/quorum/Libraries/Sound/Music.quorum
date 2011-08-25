@@ -43,7 +43,7 @@ class Music
     private system action PlayChord(number length, number volume, number lengthInSeconds)
     private system action StartSong()
     private system action StartTrack(integer instrument)
-    private system action AddNoteToTrack(integer note, number volume, number onPos, number offPos)
+    private system action AddNoteToTrack(integer note, number volume, integer constantBend, integer preBend, integer preBendLength, number onPos, number offPos)
     private system action PlaySongNative()
     private system action GetTempoNative() returns integer
     private system action SetTempoNative(integer beatsPerMinute)
@@ -156,7 +156,8 @@ class Music
                     if event is a Note then
                         // Single notes can just be dumped directly into the track.
                         Note n = cast(Note, event)
-                        AddNoteToTrack(n:GetPitch(), n:GetVolume(), currentTime, currentTime + n:GetLength())
+
+                        AddNoteToTrack(n:GetPitch(), n:GetVolume(), n:GetConstantPitchBend(), n:GetPrePitchBend(), n:GetPrePitchBendLength(), currentTime, currentTime + n:GetLength())
                     end
                     else if event is a Chord then
                         // Chords must be dumped one note at a time. All notes
@@ -168,7 +169,7 @@ class Music
                         repeat while notes:HasNext()
                             integer note = notes:Next()
                             
-                            AddNoteToTrack(note, c:GetVolume(), currentTime, currentTime + c:GetLength())
+                            AddNoteToTrack(note, c:GetVolume(), c:GetConstantPitchBend(), c:GetPrePitchBend(), c:GetPrePitchBendLength(), currentTime, currentTime + c:GetLength())
                         end
                     end
                 end
