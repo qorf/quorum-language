@@ -36,6 +36,9 @@ public class QuorumMusic {
     private Sequence sequence;
     private Sequence songSequence;
     private Instrument[] instruments;
+    private Instrument currentInstrument;
+    private int currentInstrumentIndex;
+    
     private int beatsPerMinute = 120; // a standard tempo
     private Track currentTrack = null;
     
@@ -57,12 +60,52 @@ public class QuorumMusic {
             if (sb != null) {
                 instruments = synthesizer.getDefaultSoundbank().getInstruments();
                 synthesizer.loadInstrument(instruments[0]);
+                this.currentInstrument = instruments[0];
+                this.currentInstrumentIndex = 0;
             }
             channels = synthesizer.getChannels();
             channel = channels[0];
         }
         
         // TODO: Sane alternative for null synthesizer?
+    }
+    
+    /**
+     * Get the current instrument's name.
+     * @return 
+     */
+    public String GetCurrentInstrumentName() {
+        return this.currentInstrument.getName();
+    }
+    
+    /**
+     * Get the current instrument's number.
+     * @return 
+     */
+    public int GetCurrentInstrumentNumber() {
+        return currentInstrumentIndex;
+    }
+    
+    public void SetCurrentInstrument(int index) {
+        if (instruments.length <= index)
+            return;
+        
+        this.currentInstrument = instruments[index];
+        this.currentInstrumentIndex = index;
+        synthesizer.loadInstrument(this.currentInstrument);
+    }
+    
+    /**
+     * Get the instrument's name by index.
+     * 
+     * @param index
+     * @return 
+     */
+    public String GetInstrumentName(int index) {
+        if (index >= instruments.length)
+            return "";
+        
+        return instruments[index].getName();
     }
     
     /**
@@ -163,12 +206,24 @@ public class QuorumMusic {
     
     /**
      * Create a new track.
+     * 
+     * @param instrument - the instrument to set for this track.
      */
-    public void StartTrack() {
+    public void StartTrack(int instrument) {
         if (songSequence == null)
             return;
         
         currentTrack = songSequence.createTrack();
+        ShortMessage inst_message = new ShortMessage();
+        
+        try {
+            inst_message.setMessage(ShortMessage.PROGRAM_CHANGE, instrument, 0);
+        } catch (InvalidMidiDataException ex) {
+            Logger.getLogger(QuorumMusic.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        // Set the instrument at the start of the track.
+        currentTrack.add(new MidiEvent(inst_message, 0));
     }
     
     /**
@@ -185,8 +240,7 @@ public class QuorumMusic {
         
             ShortMessage on_message = new ShortMessage();
             ShortMessage off_message = new ShortMessage();
-            on_message = new ShortMessage();
-            off_message = new ShortMessage();
+            
             try {
                 
                 on_message.setMessage(ShortMessage.NOTE_ON, 0, note, computeVolume(volume));
@@ -195,9 +249,6 @@ public class QuorumMusic {
                 Logger.getLogger(QuorumMusic.class.getName()).log(Level.SEVERE, null, ex);
                 return;
             }
-            
-            System.out.println("NOTE_ON " + note + " " + computeVolume(volume) + " " + onPos);
-            System.out.println("NOTE_OFF " + note + " " + computeVolume(volume) + " " + offPos);
 
             currentTrack.add(new MidiEvent(on_message, onPos));
             currentTrack.add(new MidiEvent(off_message, offPos));

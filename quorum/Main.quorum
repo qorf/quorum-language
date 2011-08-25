@@ -10,6 +10,8 @@ class Main
     action Main
         print "HI"
         Music m
+        Instrument k = m:GetInstrument(30)
+        m:SetInstrument(k)
         //m:Play(60, 1)
         Note n
         n:SetPitch(60)
@@ -20,29 +22,29 @@ class Main
         //m:Play(n)
         
         Chord c
-        c:Add(60)
-        c:Add(64)
-        c:Add(67)
-        c:Add(72)
+        c:Add(36)
+        //c:Add(40)
+        c:Add(43)
+        c:Add(48)
         c:SetStartTime(m:wholeNote)
         c:SetLength(m:wholeNote)
         //m:Play(c)
         
         Chord d
-        d:Add(65)
-        d:Add(69)
-        d:Add(72)
-        d:Add(77)
+        d:Add(41)
+        //d:Add(45)
+        d:Add(48)
+        d:Add(53)
         d:SetStartTime(m:wholeNote)
         d:SetLength(m:wholeNote)
         //m:Play(d)
 
         Chord e
-        e:Add(67)
-        e:Add(71)
-        e:Add(74)
-        e:Add(77)
-        e:Add(79)
+        e:Add(43)
+        //e:Add(47)
+        e:Add(50)
+        //e:Add(77)
+        e:Add(55)
         e:SetStartTime(m:wholeNote)
         e:SetLength(m:wholeNote)
         //m:Play(e)
@@ -56,6 +58,5 @@ class Main
         t:Add(e)
         t:Add(c)
         m:PlaySong()
-        print "done"
     end
 end

@@ -37,9 +37,13 @@ public class MusicPlugin implements Plugin {
     public static final String ADD_NOTE_FOR_CHORD = "AddNoteForChord:integer";
     public static final String PLAY_CHORD = "PlayChord:number:number:number";
     public static final String START_SONG = "StartSong";
-    public static final String START_TRACK = "StartTrack";
+    public static final String START_TRACK = "StartTrack:integer";
     public static final String ADD_NOTE_TO_TRACK = "AddNoteToTrack:integer:number:number:number";
     public static final String PLAY_SONG_NATIVE = "PlaySongNative";
+    public static final String GET_CURRENT_INSTRUMENT_NAME = "GetCurrentInstrumentName";
+    public static final String GET_CURRENT_INSTRUMENT_NUMBER = "GetCurrentInstrumentNumber";
+    public static final String GET_INSTRUMENT_NAME = "GetInstrumentName:integer";
+    public static final String SET_CURRENT_INSTRUMENT = "SetCurrentInstrument:integer";
     
     private HashMap<Integer, QuorumMusic> instances;
     private Synthesizer synthesizer;
@@ -67,7 +71,7 @@ public class MusicPlugin implements Plugin {
             inst = new QuorumMusic(synthesizer);
             instances.put(call.getCallingObject().getHashKey(), inst);
         }
-        
+
         if (call.getActionName().equals(PLAY)) {
             ExpressionValue note = call.getArgument("note");
             ExpressionValue duration = call.getArgument("duration");
@@ -98,7 +102,9 @@ public class MusicPlugin implements Plugin {
             inst.StartSong();
         }
         else if (call.getActionName().equals(START_TRACK)) {
-            inst.StartTrack();
+            int instrument = call.getArgument("instrument").getResult().integer;
+            
+            inst.StartTrack(instrument);
         }
         else if (call.getActionName().equals(ADD_NOTE_TO_TRACK)) {
             int note = call.getArgument("note").getResult().integer;
@@ -110,13 +116,28 @@ public class MusicPlugin implements Plugin {
         else if (call.getActionName().equals(PLAY_SONG_NATIVE)) {
             inst.PlaySong();
         }
+        else if (call.getActionName().equals(GET_CURRENT_INSTRUMENT_NAME)) {
+            String name = inst.GetCurrentInstrumentName();
+            
+            setPluginReturnValue(ret, name);
+        }
+        else if (call.getActionName().equals(GET_CURRENT_INSTRUMENT_NUMBER)) {
+            int num = inst.GetCurrentInstrumentNumber();
+            
+            setPluginReturnValue(ret, num);
+        }
+        else if (call.getActionName().equals(GET_INSTRUMENT_NAME)) {
+            int index = call.getArgument("index").getResult().integer;
+            String name = inst.GetInstrumentName(index);
+            
+            setPluginReturnValue(ret, name);
+        }
+        else if (call.getActionName().equals(SET_CURRENT_INSTRUMENT)) {
+            int index = call.getArgument("index").getResult().integer;
+            
+            setPluginReturnValue(ret, index);
+        }
 
-    /*
-    private system action StartSong()
-    private system action StartTrack()
-    private system action AddNoteToTrack(integer note, number volume, number onPos, number offPos)
-    private system action PlaySongNative()
-     */
         return ret;
     }
 

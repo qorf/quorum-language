@@ -28,7 +28,7 @@ class Music
     private integer beatsPerMinute = 120 // A pretty standard tempo
     private List<Instrument> instruments
     private List<Track> tracks
-    private Instrument instrument
+    private Instrument currentInstrument
 
     public integer breve = ticksPerWholeNote * 2
     public integer wholeNote = ticksPerWholeNote
@@ -42,13 +42,40 @@ class Music
     private system action AddNoteForChord(integer note)
     private system action PlayChord(number length, number volume, number lengthInSeconds)
     private system action StartSong()
-    private system action StartTrack()
+    private system action StartTrack(integer instrument)
     private system action AddNoteToTrack(integer note, number volume, number onPos, number offPos)
     private system action PlaySongNative()
     private system action GetTempoNative() returns integer
     private system action SetTempoNative(integer beatsPerMinute)
+    private system action GetCurrentInstrumentName() returns text
+    private system action GetCurrentInstrumentNumber() returns integer
+    private system action SetCurrentInstrument(integer index)
+    private system action GetInstrumentName(integer index) returns text
 
-    system action Play(integer note, number duration, number volume)
+    private action ComputeNoteSeconds(number length) returns number
+        number beatsPerSecond = beatsPerMinute / 60.0
+        number ticksPerSecond = beatsPerSecond * quarterNote
+        number noteLen = length / ticksPerSecond
+        
+        return noteLen
+    end
+
+    public system action Play(integer note, number duration, number volume)
+    
+    on create
+        // Populate the instruments list
+        integer index = 0
+        text name = "not an instrument"
+
+        repeat until name = ""
+            Instrument i
+            name = GetInstrumentName(index)
+            i:SetName(name)
+            i:SetValue(index)
+            index = index + 1
+            instruments:Add(i)
+        end
+    end
 
     /*
         Plays a single note. 
@@ -64,14 +91,6 @@ class Music
     */
     public action Play(integer note, number duration)
         Play(note, duration, 1.0)
-    end
-
-    private action ComputeNoteSeconds(number length) returns number
-        number beatsPerSecond = beatsPerMinute / 60.0
-        number ticksPerSecond = beatsPerSecond * quarterNote
-        number noteLen = length / ticksPerSecond
-        
-        return noteLen
     end
 
     public action Play(Note note)
@@ -124,7 +143,9 @@ class Music
         // dumped here to be managed and sent to the native side.
         repeat while trackIterator:HasNext()
             Track track = trackIterator:Next()
-            StartTrack() // start a new track on the native side.
+            Instrument ti = track:GetInstrument()
+            integer instrumentIndex = ti:GetValue()
+            StartTrack(instrumentIndex) // start a new track on the native side with the appropriate instrument.
 
             Iterator<MusicEvent> events = track:GetEvents()
             repeat while events:HasNext()
@@ -176,6 +197,10 @@ class Music
         return tracks:GetIterator()
     end
 
+    public action GetInstrument(integer index) returns Instrument
+        return instruments:Get(index)
+    end
+
     public action GetInstruments() returns Iterator<Instrument>
         return instruments:GetIterator()
     end
@@ -186,7 +211,7 @@ class Music
 
     public action AddTrack() returns Track
         Track t
-        t:SetInstrument(instrument)
+        t:SetInstrument(currentInstrument)
         tracks:Add(t)
         return t
     end
@@ -194,5 +219,10 @@ class Music
     public action SetTempo(integer beatsPerMinute)
         me:beatsPerMinute = beatsPerMinute
         me:SetTempoNative(beatsPerMinute)
+    end
+
+    public action SetInstrument(Instrument instrument)
+        me:currentInstrument = instrument
+        SetCurrentInstrument(currentInstrument:GetValue())
     end
 end
