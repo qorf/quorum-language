@@ -116,7 +116,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     }
     
     public static String convertStaticKeyToBytecodePath(String key) {
-        return "quorum/" + key.substring(0).replaceAll("\\.", "/");
+        return "quorum" + key.substring(0).replaceAll("\\.", "/");
     }
     
     private void writeBytes(File file, byte[] bites) throws FileNotFoundException, IOException {

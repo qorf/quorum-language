@@ -6,7 +6,7 @@ package org.quorum.vm.implementation;
 
 import java.util.Iterator;
 import java.util.Vector;
-import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.*;
 import org.objectweb.asm.Opcodes;
 import org.quorum.execution.ExecutionStep;
 import org.quorum.execution.ExecutionStepVisitor;
@@ -153,7 +153,7 @@ import org.quorum.steps.VariableMoveStep;
  *
  * @author astefik
  */
-public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor{
+public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opcodes{
 
     private ClassWriter classWriter;
     
@@ -167,15 +167,18 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor{
         String staticKey = clazz.getClassDescriptor().getStaticKey();
         
         String name = QuorumBytecodeGenerator.convertStaticKeyToBytecodePath(staticKey);
-        ClassWriter cw = new ClassWriter(0);
+        classWriter = new ClassWriter(0);
         
         //this will have to be modified for inheritance conversion
-        cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, name, null, "java/lang/object", null);
+        classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", null);
         
         
         //loop through each step. Have a separate visitor method for each subclass
         Vector<ExecutionStep> steps = clazz.getSteps();
-        
+        for(int i = 0; i < steps.size(); i++) {
+            ExecutionStep step = steps.get(i);
+            step.visit(this);
+        }
         
         //now do all methods
         Iterator<MethodExecution> methods = clazz.getMethods();
@@ -191,6 +194,29 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor{
         boolean main = method.isMainMethod();
         
         //add the bytecode for the main method.
+        FieldVisitor fv;
+        MethodVisitor mv;
+        AnnotationVisitor av0;
+
+
+            //call the class's initialization function
+            mv = classWriter.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+            mv.visitCode();
+            mv.visitVarInsn(ALOAD, 0);
+            mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+            mv.visitInsn(RETURN);
+            mv.visitMaxs(1, 1);
+            mv.visitEnd();
+        
+            
+            mv = classWriter.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
+            mv.visitCode();
+            mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+            mv.visitLdcInsn("Hello, World!");
+            mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
+            mv.visitInsn(RETURN);
+            mv.visitMaxs(2, 1);
+            mv.visitEnd();
         
         
         Vector<ExecutionStep> steps = method.getSteps();
