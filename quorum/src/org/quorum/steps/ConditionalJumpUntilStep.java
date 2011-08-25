@@ -6,6 +6,7 @@
 package org.quorum.steps;
 
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 
 /**
@@ -30,4 +31,8 @@ public class ConditionalJumpUntilStep extends ConditionalJumpLoopStep {
         jump = !value.getResult().boolean_value;
     }
 
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }

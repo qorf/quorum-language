@@ -1,5 +1,6 @@
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.symbols.Result;
 import org.quorum.execution.ExpressionValue;
 
@@ -18,5 +19,10 @@ public class BinaryEqualsCustomCustomStep extends BinaryOperationStep{
         }
         result.type = Result.BOOLEAN;
         return result;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

@@ -6,6 +6,7 @@
 package org.quorum.steps;
 
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.symbols.Result;
 
@@ -16,7 +17,7 @@ import org.quorum.symbols.Result;
  * 
  * @author Andreas Stefik
  */
-public class NativeLibraryStep extends IntermediateStep{
+public abstract class NativeLibraryStep extends IntermediateStep{
 
     private int libraryRegister;
     private int actionRegister;
@@ -94,4 +95,7 @@ public class NativeLibraryStep extends IntermediateStep{
     public void setResultRegister(int resultRegister) {
         this.resultRegister = resultRegister;
     }
+
+    @Override
+    public abstract void visit(ExecutionStepVisitor visitor);
 }

@@ -6,6 +6,7 @@
 package org.quorum.steps;
 
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.RuntimeObject;
 import org.quorum.symbols.Result;
 import org.quorum.execution.ExpressionValue;
@@ -78,5 +79,10 @@ public class BinaryIsACustomCustomStep extends BinaryOperationStep{
      */
     public void setRightType(TypeDescriptor rightType) {
         this.rightType = rightType;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

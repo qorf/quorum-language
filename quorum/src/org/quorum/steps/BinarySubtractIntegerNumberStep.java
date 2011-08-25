@@ -1,5 +1,6 @@
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.symbols.Result;
 import org.quorum.execution.ExpressionValue;
 
@@ -16,5 +17,10 @@ public class BinarySubtractIntegerNumberStep extends BinaryOperationStep{
         result.number = left.getResult().integer - right.getResult().number;
         result.type = Result.NUMBER;
         return result;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

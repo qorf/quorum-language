@@ -5,6 +5,7 @@
 
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.symbols.Result;
 import org.quorum.execution.ExpressionValue;
 
@@ -22,5 +23,10 @@ public class UnaryIntegerNumberCastStep extends UnaryOperationStep{
         result.integer = (int) value.getResult().number;
         result.type = Result.INTEGER;
         return result;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

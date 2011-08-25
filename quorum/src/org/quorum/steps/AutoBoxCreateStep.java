@@ -7,6 +7,7 @@ package org.quorum.steps;
 
 import java.util.Stack;
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.execution.RuntimeObject;
 import org.quorum.symbols.ClassDescriptor;
@@ -118,4 +119,8 @@ public class AutoBoxCreateStep extends UnaryOperationStep{
         this.primitiveType = primitiveType;
     }
 
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }

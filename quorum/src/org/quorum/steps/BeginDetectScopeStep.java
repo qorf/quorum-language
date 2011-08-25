@@ -7,6 +7,7 @@ package org.quorum.steps;
 
 import org.quorum.execution.BlockScope;
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.execution.RuntimeScope;
 
@@ -41,5 +42,10 @@ public class BeginDetectScopeStep extends BeginScopeStep {
      */
     public void setDetectVariable(ExpressionValue value){
         variable = value;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

@@ -6,6 +6,7 @@
 package org.quorum.steps;
 
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 
 
@@ -128,4 +129,8 @@ public class ConditionalJumpLoopStep extends JumpBaseStep{
         return value;
     }
 
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }

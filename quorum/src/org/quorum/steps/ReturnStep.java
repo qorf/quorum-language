@@ -8,6 +8,7 @@ import java.util.Iterator;
 import org.quorum.execution.ActivationRecord;
 import org.quorum.execution.DataEnvironment;
 import org.quorum.execution.DataObject;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.execution.RuntimeObject;
 
@@ -147,6 +148,10 @@ public class ReturnStep extends IntermediateStep {
         return IntermediateConstants.RETURN_STEP.getName();
     }
 
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }
 
 

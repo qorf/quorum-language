@@ -6,6 +6,7 @@
 package org.quorum.steps;
 
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.RuntimeObject;
 
 /**
@@ -47,4 +48,8 @@ public final class CreateMainObjectStep extends CreateObjectStep{
         return IntermediateConstants.CREATE_MAIN_OBJECT_STEP.getName();
     }
 
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }

@@ -6,6 +6,7 @@
 package org.quorum.steps;
 
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.symbols.Result;
 
@@ -24,5 +25,10 @@ public class AssignIntegerObjectToNumberAutoBoxStep extends AssignmentStep{
         res.number = (double)var.getResult().integer;
         res.type = res.NUMBER;
         return res;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

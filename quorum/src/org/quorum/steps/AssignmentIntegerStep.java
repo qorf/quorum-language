@@ -5,6 +5,7 @@
 
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.symbols.Result;
 
@@ -23,4 +24,8 @@ public class AssignmentIntegerStep extends AssignmentStep{
         return r;
     }
 
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }

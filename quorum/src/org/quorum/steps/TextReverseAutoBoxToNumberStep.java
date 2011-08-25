@@ -5,6 +5,7 @@
 
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.plugins.RuntimeError;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.symbols.ErrorTypeDescriptor;
@@ -31,5 +32,10 @@ public class TextReverseAutoBoxToNumberStep extends IntegerReverseAutoBoxStep{
         }
         result.type = Result.NUMBER;
         return result;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

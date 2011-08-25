@@ -5,6 +5,7 @@
 
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.symbols.Result;
 
@@ -24,5 +25,10 @@ public class NumberReverseAutoBoxToBooleanStep extends IntegerReverseAutoBoxStep
 
         result.type = Result.BOOLEAN;
         return result;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

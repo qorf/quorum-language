@@ -388,4 +388,11 @@ public abstract class ExecutionStep {
     public void setCallStateBeforeException(RuntimeScope callStateBeforeException) {
         this.callStateBeforeException = callStateBeforeException;
     }
+    
+    /**
+     * TODO: Make this method abstract to force all subclasses to implement it.
+     * 
+     * @param visitor 
+     */
+    public abstract void visit(ExecutionStepVisitor visitor);
 }

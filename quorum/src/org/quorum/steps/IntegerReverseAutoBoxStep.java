@@ -6,6 +6,7 @@
 package org.quorum.steps;
 
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.symbols.Result;
 import org.quorum.execution.ExpressionValue;
 
@@ -30,5 +31,10 @@ public class IntegerReverseAutoBoxStep extends IntegerAutoBoxStep{
         result.setType(res.getType());
         result.setResult(res);
         data.setRegister(getResultRegister(),result);
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

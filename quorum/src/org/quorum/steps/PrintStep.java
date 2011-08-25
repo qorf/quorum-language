@@ -5,6 +5,7 @@
 
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.vm.interfaces.Plugin;
 import org.quorum.vm.interfaces.PluginCall;
 import org.quorum.vm.interfaces.PluginManager;
@@ -58,5 +59,10 @@ public class PrintStep extends NativeLibraryStep{
      */
     public String getParameter() {
         return parameter;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

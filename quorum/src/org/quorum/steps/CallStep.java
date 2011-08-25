@@ -16,6 +16,7 @@ import org.quorum.plugins.RuntimeError;
 import org.quorum.execution.ActivationRecord;
 import org.quorum.execution.DataEnvironment;
 import org.quorum.execution.DataObject;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.symbols.MethodDescriptor;
 import org.quorum.symbols.ParameterDescriptor;
 import org.quorum.execution.ExpressionValue;
@@ -457,5 +458,10 @@ public class CallStep extends IntermediateStep {
      */
     public void setIsThisCall(boolean isThisCall) {
         this.isThisCall = isThisCall;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

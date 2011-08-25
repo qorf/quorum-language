@@ -6,6 +6,7 @@
 package org.quorum.steps;
 
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 
 /**
  * Opcode used to close a scope.
@@ -26,4 +27,8 @@ public class EndScopeStep extends IntermediateStep{
         de.callStackUndo();
     }
 
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }

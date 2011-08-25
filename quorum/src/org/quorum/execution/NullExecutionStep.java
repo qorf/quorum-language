@@ -24,4 +24,8 @@ public class NullExecutionStep extends ExecutionStep{
     public void unexecute() {
     }
 
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }

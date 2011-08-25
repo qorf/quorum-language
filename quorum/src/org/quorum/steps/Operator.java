@@ -24,6 +24,4 @@ public enum Operator {
     EQUALS,
     NOT_EQUALS,
     CONCATENATE,
-
-
 }

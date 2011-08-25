@@ -4,6 +4,7 @@
  */
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.symbols.Result;
 import org.quorum.execution.ExpressionValue;
 
@@ -19,5 +20,10 @@ public class BinaryEqualsStringStep extends BinaryOperationStep{
         result.boolean_value = left.getResult().text.compareTo(right.getResult().text) == 0;
         result.type = Result.BOOLEAN;
         return result;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

@@ -8,6 +8,7 @@ package org.quorum.steps;
 import java.util.Stack;
 import org.quorum.plugins.RuntimeError;
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.execution.RuntimeObject;
 import org.quorum.symbols.ErrorTypeDescriptor;
@@ -69,5 +70,10 @@ public class SimpleAlertStep extends IntermediateStep{
         ExpressionValue value = de.getRegister(register);
         Result res = value.getResult();
         return res.text;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

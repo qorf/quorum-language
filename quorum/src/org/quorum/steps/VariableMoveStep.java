@@ -4,6 +4,7 @@
  */
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.symbols.VariableParameterCommonDescriptor;
 import org.quorum.execution.ExpressionValue;
 
@@ -82,5 +83,10 @@ public class VariableMoveStep extends IntermediateStep {
      */
     public void setIndex(int index) {
         this.index = index;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

@@ -5,6 +5,7 @@
 
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.plugins.RuntimeError;
 import org.quorum.symbols.Result;
 import org.quorum.execution.ExpressionValue;
@@ -31,5 +32,10 @@ public class BinaryDivideNumberStep extends BinaryOperationStep {
             result.type = Result.NUMBER;
         }
         return result;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

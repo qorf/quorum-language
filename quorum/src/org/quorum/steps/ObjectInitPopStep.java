@@ -7,6 +7,7 @@ package org.quorum.steps;
 
 import java.util.Stack;
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.RuntimeObject;
 
 /**
@@ -75,5 +76,10 @@ public class ObjectInitPopStep extends IntermediateStep{
     public int nextStep() {//clazz should never be null. If it is, it's a
                            //serious bug in the compiler.
         return vm.getDataEnvironment().popCreateObjectOpcode() + 1;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

@@ -6,6 +6,7 @@
 package org.quorum.steps;
 
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 
 /**
@@ -75,4 +76,8 @@ public class ConditionalJumpCheckStep extends JumpBaseStep{
         return IntermediateConstants.CONDITIONAL_DETECT_JUMP_STEP.getName();
     }
 
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }

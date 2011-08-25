@@ -7,6 +7,7 @@ package org.quorum.steps;
 
 import org.quorum.execution.BlockScope;
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 
 /**
  * Check block opcode that adds a custom scope, used to determine how to
@@ -46,4 +47,8 @@ public class BeginCheckScopeStep extends IntermediateStep{
         blockName = name;
     }
 
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }

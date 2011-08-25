@@ -7,6 +7,7 @@ package org.quorum.steps;
 
 import org.quorum.execution.BlockScope;
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.RuntimeScope;
 
 /**
@@ -42,5 +43,10 @@ public class BeginScopeStep extends IntermediateStep{
      */
     public void setBlockName(String name){
         blockName = name;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

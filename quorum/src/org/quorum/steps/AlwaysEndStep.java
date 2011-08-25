@@ -5,6 +5,7 @@
 
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.plugins.RuntimeError;
 import org.quorum.execution.ExpressionValue;
 
@@ -15,7 +16,7 @@ import org.quorum.execution.ExpressionValue;
  * 
  * @author Melissa Stefik
  */
-class AlwaysEndStep extends IntermediateStep {
+public class AlwaysEndStep extends IntermediateStep {
 
     private boolean threwException = false;
     private boolean alertException = false;
@@ -45,4 +46,8 @@ class AlwaysEndStep extends IntermediateStep {
         }
     }
 
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }

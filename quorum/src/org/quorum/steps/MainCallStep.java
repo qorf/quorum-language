@@ -6,6 +6,7 @@
 package org.quorum.steps;
 
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.TypeDescriptor;
 import org.quorum.execution.ExpressionValue;
@@ -63,5 +64,10 @@ public class MainCallStep extends CallStep{
      */
     public void setClassDescriptor(ClassDescriptor classDescriptor) {
         this.classDescriptor = classDescriptor;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

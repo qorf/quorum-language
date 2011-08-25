@@ -7,6 +7,7 @@ package org.quorum.steps;
 
 import java.util.Stack;
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.RuntimeObject;
 import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.VariableParameterCommonDescriptor;
@@ -75,5 +76,8 @@ public class ObjectInitParentStep extends IntermediateStep {
         this.variable = variable;
     }
 
-
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }

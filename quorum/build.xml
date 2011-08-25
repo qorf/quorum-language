@@ -19,6 +19,7 @@
             <fileset dir="dependencies/jni"/>
         </copy>
         <copy file="Main.quorum" todir="dist"/>
+        <copy file="Stefik.quorum" todir="dist"/>
     </target>
     
     <target name="-post-compile">
@@ -27,6 +28,7 @@
         </copy>
         
         <copy file="Main.quorum" todir="build/classes"/>
+        <copy file="Stefik.quorum" todir="build/classes"/>
     </target>
     <!--
 

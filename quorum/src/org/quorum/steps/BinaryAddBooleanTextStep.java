@@ -4,6 +4,7 @@
  */
 
 package org.quorum.steps;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.symbols.Result;
 import org.quorum.execution.ExpressionValue;
 
@@ -19,5 +20,10 @@ public class BinaryAddBooleanTextStep extends BinaryOperationStep{
         result.text = left.getResult().boolean_value + right.getResult().text;
         result.type = Result.TEXT;
         return result;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

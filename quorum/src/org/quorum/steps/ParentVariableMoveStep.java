@@ -5,6 +5,7 @@
 
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.execution.RuntimeObject;
 import org.quorum.symbols.ClassDescriptor;
@@ -16,7 +17,7 @@ import org.quorum.symbols.VariableParameterCommonDescriptor;
  *
  * @author Melissa Stefik
  */
-class ParentVariableMoveStep extends IntermediateStep{
+public class ParentVariableMoveStep extends IntermediateStep{
 
     /**
      * This number represents the value of a temporary variable in the
@@ -111,4 +112,8 @@ class ParentVariableMoveStep extends IntermediateStep{
         this.locatedInClass = locatedInClass;
     }
 
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }

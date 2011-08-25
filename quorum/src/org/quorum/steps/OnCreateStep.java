@@ -7,6 +7,7 @@ package org.quorum.steps;
 
 import org.quorum.execution.ActivationRecord;
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.RuntimeObject;
 import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.MethodDescriptor;
@@ -68,6 +69,10 @@ public class OnCreateStep extends CallStep{
 
         activationRecord.clearRegisters();
         isInErrorState = false;
-
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

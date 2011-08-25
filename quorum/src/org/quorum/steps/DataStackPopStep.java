@@ -7,6 +7,7 @@ package org.quorum.steps;
 
 import org.quorum.execution.DataEnvironment;
 import org.quorum.execution.DataObject;
+import org.quorum.execution.ExecutionStepVisitor;
 
 /**
  * When executed this step pops a value off the dataStack and puts it in to a register
@@ -45,4 +46,8 @@ public class DataStackPopStep  extends IntermediateStep {
         this.register = register;
     }
 
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }

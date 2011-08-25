@@ -42,6 +42,28 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
             generate(exe);
         }
     }
+    
+    private void generate(ContainerExecution container) {
+        Iterator<ClassExecution> classes = container.getClasses();
+        while (classes.hasNext()) {
+            ClassExecution clazz = classes.next();
+            QuorumBytecode code = generate(clazz);
+            classHash.put(code.getStaticKey(), code);
+        }
+    }
+    
+    private QuorumBytecode generate(ClassExecution clazz) {
+        QuorumBytecode code = new QuorumBytecode();
+        code.setStaticKey(clazz.getStaticKey());
+        QuorumJavaBytecodeStepVisitor visitor = new QuorumJavaBytecodeStepVisitor();
+        visitor.visit(clazz);
+        ClassWriter classWriter = visitor.getClassWriter();
+        
+        //get the final bytecode and hash it away.
+        byte[] b = classWriter.toByteArray();
+        code.setOutput(b);
+        return code;
+    }
 
     /**
      * This method flushes all of the bytecode arrays for the generated
@@ -68,7 +90,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     
     private File prepareFolder(QuorumBytecode code) throws IOException {
         File file;
-        String path = convertToPath(code.getStaticKey());
+        String path = convertStaticKeyToBytecodePath(code.getStaticKey());
         String fullPath = buildFolder + "/" + path + ".class";
         String[] split = fullPath.split("/");
         
@@ -93,7 +115,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         return file;
     }
     
-    private String convertToPath(String key) {
+    public static String convertStaticKeyToBytecodePath(String key) {
         return "quorum/" + key.substring(0).replaceAll("\\.", "/");
     }
     
@@ -114,30 +136,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         classHash = new HashMap<String, QuorumBytecode>();
     }
     
-    private void generate(ContainerExecution container) {
-        Iterator<ClassExecution> classes = container.getClasses();
-        while (classes.hasNext()) {
-            ClassExecution c = classes.next();
-            String staticKey = c.getClassDescriptor().getStaticKey();
-            QuorumBytecode code = new QuorumBytecode();
-            code.setStaticKey(staticKey);
-            
-            
-            
-            String name = convertToPath(staticKey);
-            
-            ClassWriter cw = new ClassWriter(0);
-            cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, name, null, "java/lang/object", null);
-            
-            
-            cw.visitEnd();
-            byte[] b = cw.toByteArray();
-            code.setOutput(b);
-            classHash.put(staticKey, code);
-            
-            
-        }
-    }
+    
     
     
     /**

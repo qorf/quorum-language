@@ -4,6 +4,7 @@
  */
 
 package org.quorum.steps;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.symbols.Result;
 import org.quorum.execution.ExpressionValue;
 
@@ -19,6 +20,11 @@ public class BinaryModStep extends BinaryOperationStep{
         result.integer = left.getResult().integer % right.getResult().integer;
         result.type = Result.INTEGER;
         return result;
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }
 

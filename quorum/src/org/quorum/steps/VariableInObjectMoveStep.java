@@ -5,6 +5,7 @@
 
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.execution.RuntimeObject;
 import org.quorum.symbols.VariableParameterCommonDescriptor;
@@ -13,7 +14,7 @@ import org.quorum.symbols.VariableParameterCommonDescriptor;
  *
  * @author Melissa Stefik
  */
-class VariableInObjectMoveStep extends IntermediateStep{
+public class VariableInObjectMoveStep extends IntermediateStep{
 
     private int temp;
     private VariableParameterCommonDescriptor obj;
@@ -90,4 +91,8 @@ class VariableInObjectMoveStep extends IntermediateStep{
         this.obj = obj;
     }
 
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }

@@ -5,6 +5,7 @@
 
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 
 /**
@@ -60,5 +61,10 @@ public class MoveStep extends IntermediateStep {
     
     public String getStaticKey() {
         return IntermediateConstants.MOVE_STEP.getName();
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

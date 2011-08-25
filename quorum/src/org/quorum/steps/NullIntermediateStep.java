@@ -5,6 +5,8 @@
 
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
+
 /**
  * This class represents an execution step that does nothing. It's purpose
  * is to include it in various event listeners that require an
@@ -26,5 +28,10 @@ public class NullIntermediateStep extends IntermediateStep {
     @Override
     public String getStaticKey() {
         return IntermediateConstants.VIRTUAL_MACHINE_ERROR.getName();
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }

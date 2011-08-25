@@ -5,6 +5,7 @@
 
 package org.quorum.steps;
 
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.symbols.VariableDescriptor;
 
 /**
@@ -26,5 +27,9 @@ public class PushStep extends IntermediateStep{
     public void unexecute() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
+    }
 }

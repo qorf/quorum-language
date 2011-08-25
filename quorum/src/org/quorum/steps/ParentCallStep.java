@@ -10,6 +10,7 @@ import java.util.Vector;
 import org.quorum.plugins.RuntimeError;
 import org.quorum.execution.ActivationRecord;
 import org.quorum.execution.DataEnvironment;
+import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.execution.RuntimeObject;
 import org.quorum.symbols.ClassDescriptor;
@@ -150,6 +151,10 @@ public class ParentCallStep extends CallStep{
     @Override
     public void unexecute() {
         super.unexecute();
-
+    }
+    
+    @Override
+    public void visit(ExecutionStepVisitor visitor) {
+        visitor.visit(this);
     }
 }
