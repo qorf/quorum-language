@@ -9,7 +9,8 @@ import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 
 /**
- *
+ * This step moves a constant from the system into a temporary location.
+ * 
  * @author Andreas Stefik
  */
 public class MoveStep extends IntermediateStep {

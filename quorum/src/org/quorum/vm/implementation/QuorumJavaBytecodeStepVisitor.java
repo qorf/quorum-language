@@ -5,11 +5,13 @@
 package org.quorum.vm.implementation;
 
 import java.util.Iterator;
+import java.util.Stack;
 import java.util.Vector;
 import org.objectweb.asm.*;
 import org.objectweb.asm.Opcodes;
 import org.quorum.execution.ExecutionStep;
 import org.quorum.execution.ExecutionStepVisitor;
+import org.quorum.execution.ExpressionValue;
 import org.quorum.execution.NullExecutionStep;
 import org.quorum.steps.AlertStep;
 import org.quorum.steps.AlwaysEndStep;
@@ -156,7 +158,11 @@ import org.quorum.steps.VariableMoveStep;
 public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opcodes{
 
     private ClassWriter classWriter;
-    
+    private FieldVisitor fieldVisitor;
+    private MethodVisitor methodVisitor;
+    private AnnotationVisitor annotationVisitor;
+     
+    private Stack<ExpressionValue> constants = new Stack<ExpressionValue>();
     public QuorumJavaBytecodeStepVisitor() {
         
     }
@@ -172,6 +178,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //this will have to be modified for inheritance conversion
         classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", null);
         
+        //call the class's initialization function
+        methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+        methodVisitor.visitCode();
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+        methodVisitor.visitInsn(RETURN);
+        methodVisitor.visitMaxs(1, 1);
+        methodVisitor.visitEnd();
         
         //loop through each step. Have a separate visitor method for each subclass
         Vector<ExecutionStep> steps = clazz.getSteps();
@@ -194,36 +208,37 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         boolean main = method.isMainMethod();
         
         //add the bytecode for the main method.
-        FieldVisitor fv;
-        MethodVisitor mv;
-        AnnotationVisitor av0;
+        
 
 
-            //call the class's initialization function
-            mv = classWriter.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
-            mv.visitCode();
-            mv.visitVarInsn(ALOAD, 0);
-            mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
-            mv.visitInsn(RETURN);
-            mv.visitMaxs(1, 1);
-            mv.visitEnd();
+        if(main) {
+            methodVisitor = classWriter.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
+        }
+        else {
+            
+            //check what kind of method it is
+            //TODO: Change the next line of code to make this happen
+            methodVisitor = classWriter.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
+        }
         
             
-            mv = classWriter.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
-            mv.visitCode();
-            mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-            mv.visitLdcInsn("Hello, World!");
-            mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
-            mv.visitInsn(RETURN);
-            mv.visitMaxs(2, 1);
-            mv.visitEnd();
-        
-        
+            
+        methodVisitor.visitCode();
+
+
         Vector<ExecutionStep> steps = method.getSteps();
         for(int i = 0; i < steps.size(); i++) {
             ExecutionStep step = steps.get(i);
             step.visit(this);
         }
+
+
+        methodVisitor.visitInsn(RETURN);
+        methodVisitor.visitMaxs(2, 1);
+        methodVisitor.visitEnd();
+        
+        
+        
         
     }
 
@@ -757,7 +772,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(MoveStep step) {
-        int a = 5;
+        ExpressionValue value = step.getValue();
+        constants.push(value);
+        //if(value.getType().isText()) {
+            
+        //    methodVisitor.visitLdcInsn(value.getResult().text);
+       // }
+        //int a = 5;
     }
 
     @Override
@@ -797,7 +818,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(PrintStep step) {
-        int a = 5;
+        methodVisitor.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+        
+        //fill this out with more legal constants
+        ExpressionValue value = constants.pop();
+        if(value.getType().isText()) {   
+            methodVisitor.visitLdcInsn(value.getResult().text);
+        }
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
     }
 
     @Override
