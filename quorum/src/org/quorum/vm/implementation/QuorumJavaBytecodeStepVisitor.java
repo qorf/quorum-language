@@ -163,6 +163,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private AnnotationVisitor annotationVisitor;
      
     private Stack<ExpressionValue> constants = new Stack<ExpressionValue>();
+    private Stack<Integer> variables = new Stack<Integer>();
+    
     public QuorumJavaBytecodeStepVisitor() {
         
     }
@@ -171,6 +173,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         classWriter = new ClassWriter(0);
         
         String staticKey = clazz.getClassDescriptor().getStaticKey();
+        
+        //garbage code to ease debugging, remove for reality.
+        //if(!".Stefik".equals(staticKey)) {
+        //    return;
+        //}
         
         String name = QuorumBytecodeGenerator.convertStaticKeyToBytecodePath(staticKey);
         classWriter = new ClassWriter(0);
@@ -234,12 +241,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
 
         methodVisitor.visitInsn(RETURN);
-        methodVisitor.visitMaxs(2, 1);
+        //this should be filled out with the number of local variables
+        int numberVariables = method.getMethodDescriptor().getNumberVariables();
+        methodVisitor.visitMaxs(2, numberVariables + 1);
         methodVisitor.visitEnd();
-        
-        
-        
-        
     }
 
     public void end() {
@@ -342,7 +347,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentTextLocalStep step) {
-        int a = 5;
+        if(!constants.isEmpty()) { //we're just storing a constant
+            ExpressionValue pop = constants.pop();
+            int variableNumber = step.getVariable().getVariableNumber();
+            methodVisitor.visitLdcInsn(ExpressionValueConverter.convert(pop));
+            methodVisitor.visitVarInsn(ASTORE, variableNumber);
+            variables.push(variableNumber);
+
+        }
+        else { //otherwise we're storing something more complicated
+            
+        }
     }
 
     @Override
@@ -774,11 +789,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(MoveStep step) {
         ExpressionValue value = step.getValue();
         constants.push(value);
-        //if(value.getType().isText()) {
-            
-        //    methodVisitor.visitLdcInsn(value.getResult().text);
-       // }
-        //int a = 5;
     }
 
     @Override
@@ -821,9 +831,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
         
         //fill this out with more legal constants
-        ExpressionValue value = constants.pop();
-        if(value.getType().isText()) {   
-            methodVisitor.visitLdcInsn(value.getResult().text);
+        if(!constants.isEmpty()) {
+            ExpressionValue value = constants.pop();
+            if(value.getType().isText()) {   
+                methodVisitor.visitLdcInsn(value.getResult().text);
+            }
+        }
+        else if(!variables.isEmpty()) {
+            Integer pop = variables.pop();
+            int num = pop;
+            methodVisitor.visitVarInsn(ALOAD, num);
+
         }
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
     }

@@ -21,6 +21,12 @@ public class VariableParameterCommonDescriptor extends Descriptor{
     private boolean initialized = false;
 
     /**
+     * A numeric value that indicates the order in which a particular 
+     * variable was added to a function or class.
+     */
+    private int variableNumber = -1;
+    
+    /**
      * @return the type
      */
     public TypeDescriptor getType() {
@@ -102,5 +108,19 @@ public class VariableParameterCommonDescriptor extends Descriptor{
      */
     public void setInitialized(boolean initialized) {
         this.initialized = initialized;
+    }
+    
+    /**
+     * @return the variableNumber
+     */
+    public int getVariableNumber() {
+        return variableNumber;
+    }
+
+    /**
+     * @param variableNumber the variableNumber to set
+     */
+    public void setVariableNumber(int variableNumber) {
+        this.variableNumber = variableNumber;
     }
 }

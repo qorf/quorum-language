@@ -49,6 +49,7 @@ public class MethodDescriptor extends Descriptor implements Scopable {
         CompilerError error = super.isDefined(descriptor, getVariables());
         if (error == null) {
             getVariables().put(descriptor.getStaticKey(), descriptor);
+            descriptor.setVariableNumber(getVariables().size());
         }
 
         return error;
@@ -382,9 +383,18 @@ public class MethodDescriptor extends Descriptor implements Scopable {
     }
 
     /**
+     * Returns the number of local variables that have been added
+     * to this method descriptor, not including parameters.
+     * @return 
+     */
+    public int getNumberVariables() {
+        return variables.size();
+    }
+    
+    /**
      * @return the variables
      */
-    public HashMap<String, VariableParameterCommonDescriptor> getVariables() {
+    private HashMap<String, VariableParameterCommonDescriptor> getVariables() {
         return variables;
     }
 

@@ -12,7 +12,7 @@ package org.quorum.symbols;
 public class VariableDescriptor extends VariableParameterCommonDescriptor{
     private AccessModifierEnum accessModifier;
     private boolean isInitializedClassVariable = false;
-
+    
     /**
      * @return the accessModifier enumerator for public and private modifiers.
      */
@@ -41,5 +41,4 @@ public class VariableDescriptor extends VariableParameterCommonDescriptor{
     public void setIsInitializedClassVariable(boolean isInitializedClassVariable) {
         this.isInitializedClassVariable = isInitializedClassVariable;
     }
-
 }
