@@ -109,22 +109,128 @@ import org.quorum.vm.interfaces.CompilerError;
 	public void setGrammarFileNameNoExtension(String name) {
 		fileName = name;
 	}
-	
-	@Override
-    	public String getErrorMessage(RecognitionException re, String[] tokenNames) {
-        	String message = "";
-                if(vm != null) {
-        		message = super.getErrorMessage(re, tokenNames);
-        		CompilerError error = new CompilerError();
-        		error.setLineNumber(re.line);
-        		error.setColumn(re.charPositionInLine);
-        		error.setError(message);
-        		error.setFile(fileName);
-        		CompilerErrorManager ces = vm.getCompilerErrors();
-        		ces.addError(error);
-        	}
-        	return message;
+
+    @Override
+    public String getErrorMessage(RecognitionException re, String[] tokenNames) {
+        String message = re.getMessage();
+        CompilerError error = new CompilerError();
+        
+        if (re instanceof UnwantedTokenException) {
+            UnwantedTokenException ute = (UnwantedTokenException) re;
+            String tokenName = "<unknown>";
+            if (ute.expecting == Token.EOF) {
+                tokenName = "EOF";
+                message = "extraneous input " + getTokenErrorDisplay(ute.getUnexpectedToken());
+                error.setErrorType(ErrorType.EOF);
+            } else {
+                tokenName = tokenNames[ute.expecting];
+                message = "extraneous input " + getTokenErrorDisplay(ute.getUnexpectedToken());
+                if(tokenName.equals(")")){
+                    error.setErrorType(ErrorType.EXPECTED_CLOSURE);
+                    message = "For every '(' there must be a matching ')'. Extraneous input " + getTokenErrorDisplay(ute.getUnexpectedToken());
+                }else if(ute.getUnexpectedToken().getText().equals("end")){
+                    error.setErrorType(ErrorType.EOF);
+                }else{
+                    error.setErrorType(ErrorType.OTHER);
+                }
+            }      
+        } else if (re instanceof MissingTokenException) {
+            MissingTokenException mte = (MissingTokenException) re;
+            String tokenName = "<unknown>";
+            if (mte.expecting == Token.EOF) {
+                tokenName = "EOF";
+                if(getTokenErrorDisplay(re.token).equals("'end'")){
+                    message = " The end of the file was reached before all the code was evaluated. There may be an extraneous " + getTokenErrorDisplay(re.token);
+            	    error.setErrorType(ErrorType.EOF);
+            	}else{
+            	    message = "Missing or invalid statement at " + getTokenErrorDisplay(re.token);
+            	    error.setErrorType(ErrorType.OTHER);
+            	}
+            }else {
+                tokenName = tokenNames[mte.expecting];
+                message = "missing " + tokenName + " at " + getTokenErrorDisplay(re.token);
+                if(tokenName.equals("THEN")){
+                    message = "An 'if' or 'else' statement is missing a 'then' at line " + (mte.line - 1);
+                    error.setErrorType(ErrorType.MISSING_THEN);
+                }else if(tokenName.equals("ID")){
+                    message = "An <identifier> is missing. Please give the item you are declaring a name.";
+                    error.setErrorType(ErrorType.IDENTIFIER_EXPECTED);
+                }else if(tokenName.equals("RIGHT_PAREN") || tokenName.equals("LEFT_PAREN")){
+                    message = "For every '(' there must be a matching ')'.";
+                    error.setErrorType(ErrorType.EXPECTED_CLOSURE);
+                }else{
+                    error.setErrorType(ErrorType.OTHER);
+                }
+            }
+                
+        } else if (re instanceof MismatchedTokenException) {
+            MismatchedTokenException mte = (MismatchedTokenException) re;
+            String tokenName = "<unknown>";
+            if (mte.expecting == Token.EOF) {
+                tokenName = "EOF";
+                message = "mismatched input " + getTokenErrorDisplay(re.token)
+                            + " expecting " + tokenName;
+            } else {
+                tokenName = tokenNames[mte.expecting];
+                message = "mismatched input " + getTokenErrorDisplay(re.token)
+                           + " expecting " + tokenName;
+                if(tokenName.equals("THEN")){
+                    message = "An 'else if' statement is missing the 'if' at line " + mte.line;
+                    error.setErrorType(ErrorType.MISSING_IF);
+                }else if(tokenName.equals("END")){
+                    message = "An 'end' is missing.";
+                    error.setErrorType(ErrorType.EXPECTED_CLOSURE);
+                }else{
+                    error.setErrorType(ErrorType.OTHER);
+                }
+            }
+        } else if (re instanceof MismatchedTreeNodeException) {
+            MismatchedTreeNodeException mtne = (MismatchedTreeNodeException) re;
+            String tokenName = "<unknown>";
+            if (mtne.expecting == Token.EOF) {
+                tokenName = "EOF";
+            } else {
+                tokenName = tokenNames[mtne.expecting];
+            }
+            message = "mismatched tree node: " + mtne.node
+                    + " expecting " + tokenName;
+        } else if (re instanceof NoViableAltException) {
+            //NoViableAltException nvae = (NoViableAltException)e;
+            // for development, can add "decision=<<"+nvae.grammarDecisionDescription+">>"
+            // and "(decision="+nvae.decisionNumber+") and
+            // "state "+nvae.stateNumber
+            message = "no viable alternative at input " + getTokenErrorDisplay(re.token);
+        } else if (re instanceof EarlyExitException) {
+            //EarlyExitException eee = (EarlyExitException)e;
+            // for development, can add "(decision="+eee.decisionNumber+")"
+            message = "required (...)+ loop did not match anything at input "
+                    + getTokenErrorDisplay(re.token);
+        } else if (re instanceof MismatchedSetException) {
+            MismatchedSetException mse = (MismatchedSetException) re;
+            message = "mismatched input " + getTokenErrorDisplay(re.token)
+                    + " expecting set " + mse.expecting;
+
+        } else if (re instanceof MismatchedNotSetException) {
+            MismatchedNotSetException mse = (MismatchedNotSetException) re;
+            message = "mismatched input " + getTokenErrorDisplay(re.token)
+                    + " expecting set " + mse.expecting;
+
+        } else if (re instanceof FailedPredicateException) {
+            FailedPredicateException fpe = (FailedPredicateException) re;
+            message = "rule " + fpe.ruleName + " failed predicate: {"
+                    + fpe.predicateText + "}?";
         }
+
+        if (vm != null) {
+            error.setLineNumber(re.line);
+            error.setColumn(re.charPositionInLine);
+            error.setError(message);
+            error.setFile(fileName);
+            CompilerErrorManager ces = vm.getCompilerErrors();
+            ces.addError(error);
+        }
+        return message;
+    }
         
         public Documentation getDocumentationFromRecentToken() {
         	String documentationString = "";
@@ -1039,7 +1145,7 @@ atom 	:
 	| STRING
 	| NULL
 	| ME
-	| INPUT LEFT_PAREN expression RIGHT_PAREN
+		| INPUT LEFT_PAREN expression RIGHT_PAREN
 	| LEFT_PAREN expression RIGHT_PAREN -> ^(expression)
 	;
 

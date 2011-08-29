@@ -44,7 +44,8 @@ public enum ErrorType {
     INVALID_OPERATOR("Invalid operator"), 
     UNREACHABLE("Unreachable statements"), 
     DUPLICATE("Already defined"), 
-    MISSING_MAIN("Missing main method");
+    MISSING_MAIN("Missing main method"), 
+    EOF("End of file error");
 
     String errorType;
     ErrorType(String st) {
