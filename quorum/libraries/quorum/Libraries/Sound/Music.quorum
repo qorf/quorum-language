@@ -18,6 +18,8 @@ repeat 12 times
 end
 */
 
+use Libraries.Language.Errors.InvalidArgumentError
+use Libraries.System.File
 use Libraries.Sound.Note
 use Libraries.Sound.Chord
 use Libraries.Containers.List
@@ -42,6 +44,7 @@ class Music
     private system action AddNoteForChord(integer note)
     private system action PlayChord(number length, number volume, number lengthInSeconds)
     private system action StartSong()
+    private system action PlayMidiNative(text path)
     private system action StartTrack(integer instrument)
     private system action AddNoteToTrack(integer note, number volume, integer constantBend, integer preBend, integer preBendLength, number onPos, number offPos)
     private system action PlaySongNative()
@@ -51,6 +54,7 @@ class Music
     private system action GetCurrentInstrumentNumber() returns integer
     private system action SetCurrentInstrument(integer index)
     private system action GetInstrumentName(integer index) returns text
+    private system action StopNative()
 
     private action ComputeNoteSeconds(number length) returns number
         number beatsPerSecond = beatsPerMinute / 60.0
@@ -114,6 +118,15 @@ class Music
     end
     
     public action PlayMidi(text path)
+        File f
+        
+        if not f:IsFile(path) then
+            InvalidArgumentError e
+            e:SetErrorMessage("The MIDI file " + path + " is not a valid file. It either doesn't exist or points to a directory.")
+            alert(e)
+        end
+
+        PlayMidiNative(path)
     end
 
     public action PlaySong()
@@ -176,6 +189,10 @@ class Music
         end
 
         PlaySongNative()
+    end
+
+    public action Stop
+        StopNative()
     end
 
     public action GetTempo() returns integer

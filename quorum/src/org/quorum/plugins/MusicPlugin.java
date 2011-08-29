@@ -40,11 +40,13 @@ public class MusicPlugin implements Plugin {
     public static final String START_TRACK = "StartTrack:integer";
     public static final String ADD_NOTE_TO_TRACK = "AddNoteToTrack:integer:number:integer:integer:integer:number:number";
     public static final String PLAY_SONG_NATIVE = "PlaySongNative";
+    public static final String PLAY_MIDI_NATIVE = "PlayMidiNative:text";
     public static final String GET_CURRENT_INSTRUMENT_NAME = "GetCurrentInstrumentName";
     public static final String GET_CURRENT_INSTRUMENT_NUMBER = "GetCurrentInstrumentNumber";
     public static final String GET_INSTRUMENT_NAME = "GetInstrumentName:integer";
     public static final String SET_CURRENT_INSTRUMENT = "SetCurrentInstrument:integer";
-
+    public static final String STOP_NATIVE = "StopNative";
+    
     private HashMap<Integer, QuorumMusic> instances;
     private Synthesizer synthesizer;
     
@@ -107,7 +109,6 @@ public class MusicPlugin implements Plugin {
             inst.StartTrack(instrument);
         }
         else if (call.getActionName().equals(ADD_NOTE_TO_TRACK)) {
-            //     private system action AddNoteToTrack(integer note, number volume, integer constantBend, integer preBend, integer preBendLength, number onPos, number offPos)
             int note = call.getArgument("note").getResult().integer;
             double volume = call.getArgument("volume").getResult().number;
             int constBend = call.getArgument("constantBend").getResult().integer;
@@ -120,6 +121,10 @@ public class MusicPlugin implements Plugin {
         }
         else if (call.getActionName().equals(PLAY_SONG_NATIVE)) {
             inst.PlaySong();
+        }
+        else if (call.getActionName().equals(PLAY_MIDI_NATIVE)) {
+            String path = call.getArgument("path").getResult().text;
+            inst.PlayMidi(path);
         }
         else if (call.getActionName().equals(GET_CURRENT_INSTRUMENT_NAME)) {
             String name = inst.GetCurrentInstrumentName();
@@ -142,7 +147,10 @@ public class MusicPlugin implements Plugin {
             
             inst.SetCurrentInstrument(index);
         }
-
+        else if (call.getActionName().equals(STOP_NATIVE)) {
+            inst.Stop();
+        }
+        
         return ret;
     }
 

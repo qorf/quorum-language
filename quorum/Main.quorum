@@ -11,7 +11,7 @@ class Main
         print "HI"
         Music m
         Instrument k = m:GetInstrument(30)
-        m:SetInstrument(k)
+        //m:SetInstrument(k)
         //m:Play(60, 1)
         Note n
         n:SetPitch(60)
@@ -26,8 +26,10 @@ class Main
         //c:Add(40)
         c:Add(43)
         c:Add(48)
-        c:SetStartTime(m:wholeNote)
-        c:SetLength(m:wholeNote)
+        c:SetPrePitchBend(200)
+        c:SetPrePitchBendLength(m:eighthNote)
+        c:SetStartTime(0)
+        c:SetLength(m:breve)
         //m:Play(c)
         
         Chord d
@@ -57,6 +59,7 @@ class Main
         t:Add(c)
         //Track t2 = m:AddTrack()
         //t2:Add(e)
-        m:PlaySong()
+        //m:PlaySong()
+        m:PlayMidi("/l.mid")
     end
 end

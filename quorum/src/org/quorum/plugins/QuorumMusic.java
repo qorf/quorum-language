@@ -4,6 +4,8 @@
  */
 package org.quorum.plugins;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -13,6 +15,7 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiChannel;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
@@ -51,7 +54,7 @@ public class QuorumMusic {
             synthesizer.open();
             sequencer = MidiSystem.getSequencer();
             sequencer.open();
-            sequence = new Sequence(Sequence.PPQ, 10);
+            sequence = new Sequence(Sequence.PPQ, TICKS_PER_WHOLE_NOTE/4);
         } catch (Exception ex) {
         }
         
@@ -247,7 +250,22 @@ public class QuorumMusic {
             try {
                 // Add the constant bend message.
                 constbend_message.setMessage(ShortMessage.PITCH_BEND, 0, CentsToMidiPitch(constPitchBend));
-
+                
+                // Add the pre-bend message.
+                double slope;
+                if (prePitchBend > 0)
+                    slope = (((double)CentsToMidiPitch(prePitchBend) - 63)) / (double)prePitchBendLength;
+                else
+                    slope = ((double)CentsToMidiPitch(prePitchBend) - 63) / (double)prePitchBendLength;
+                                
+                for (int x = 1; x < prePitchBendLength; x++) {
+                    int n = (int)Math.floor(slope * x);
+                    ShortMessage prebend_message = new ShortMessage();
+                    prebend_message.setMessage(ShortMessage.PITCH_BEND, 0, n + 63);
+                    
+                    currentTrack.add(new MidiEvent(prebend_message, x));
+                }
+                
                 // Finally, add the note.
                 on_message.setMessage(ShortMessage.NOTE_ON, 0, note, computeVolume(volume));
                 off_message.setMessage(ShortMessage.NOTE_OFF, 0, note, computeVolume(volume));
@@ -266,13 +284,19 @@ public class QuorumMusic {
             currentTrack.add(new MidiEvent(resetbend_message, offPos));
     }
     
+    /**
+     * Converts cents to midi pitch. The returned pitch ranges from 0 to 127.
+     * 
+     * @param cents
+     * @return 
+     */
     private int CentsToMidiPitch(int cents) {
         if (cents > 200 || cents < -200)
             return 64; // invalid range
         else if (cents >= 0)
             return (int)(((double)cents / 200.0) * 63) + 64;
         else
-            return 127 - (int)(((double)cents / 200.0) * 63) + 64;
+            return (int)((cents / 200.0) * 63) + 63;
     }
     
     /**
@@ -289,6 +313,25 @@ public class QuorumMusic {
         }
         sequencer.setTempoInBPM(beatsPerMinute);
         sequencer.start();
+    }
+    
+    /**
+     * Stop any playing, including notes, chords, songs, or MIDI files.
+     */
+    public void Stop() {
+        sequencer.stop();
+    }
+    
+    public void PlayMidi(String path) {
+        try {
+            Sequence seq = MidiSystem.getSequence(new File(path));
+            sequencer.setSequence(seq);
+
+            // Start playing
+            sequencer.start();
+        } catch (IOException e) {
+        } catch (InvalidMidiDataException e) {
+        }
     }
     
     private int computeVolume(double volume) {
