@@ -5,9 +5,19 @@ use Libraries.Sound.Note
 use Libraries.Sound.Chord
 use Libraries.Sound.Instrument
 use Libraries.Sound.Track
+use Libraries.Containers.Blueprints.Iterator
 
 class Main
     action Main
+        Music muse
+        
+        // Select a different instrument and set it as the default, then play a note.
+        Instrument i = muse:GetInstrument(10)
+        muse:SetInstrument(i)
+        muse:Play(60, 1)
+    end
+
+    action foo
         print "HI"
         Music m
         Instrument k = m:GetInstrument(30)
@@ -60,6 +70,6 @@ class Main
         //Track t2 = m:AddTrack()
         //t2:Add(e)
         //m:PlaySong()
-        m:PlayMidi("/l.mid")
+        //m:PlayMidi("/l.mid")
     end
 end
