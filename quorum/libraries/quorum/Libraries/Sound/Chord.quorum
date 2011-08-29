@@ -1,22 +1,43 @@
 package Libraries.Sound
 
-/*
-    This class represents a single note in a track.
-
-    Attribute: Author Jeff Wilson
-*/
-
 use Libraries.Sound.Playable
 use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
 
+/*
+    This class represents a chord. A chord is a collection of notes that are
+    played together, at the same time.
+
+    Attribute: Author Jeff Wilson
+
+    Attribute: Example
+    // Play a C major chord.
+    Music muse
+    Chord c
+    c:Add(60) // C
+    c:Add(64) // E
+    c:Add(67) // G
+    muse:Play(c)
+*/
+
 class Chord is a Playable
     private List<integer> pitches
     
+    /*
+        Add a new pitch to this chord. When the chord is played, all the pitches
+        will sound at once.
+
+        Attribute: Parameter pitch the pitch to add
+    */
     public action Add(integer pitch)
         pitches:Add(pitch)
     end
 
+    /*
+        Get all the pitches from this chord.
+
+        Attribute: Returns an iterator of the pitches.
+    */
     public action GetPitches returns Iterator<integer>
         return pitches:GetIterator()
     end

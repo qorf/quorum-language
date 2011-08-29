@@ -11,8 +11,8 @@ class Playable is a MusicEvent
     private integer constantPitchBend = 0
     private integer prePitchBend = 0
     private integer prePitchBendLength = 0
-    private integer startTime = 0
-    private number length = 0
+    private integer startTime = 96 // HARDCODED so we don't have to load the music class again.
+    private number length = 384 // HARDCODED so we don't have to load the music class again.
     private number volume = 1.0
     
     public action GetConstantPitchBend returns integer

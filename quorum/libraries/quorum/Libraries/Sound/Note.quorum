@@ -1,20 +1,30 @@
 package Libraries.Sound
 
+use Libraries.Sound.Playable
+
 /*
-    This class represents a single note in a track.
+    This class represents a single note to be played.
 
     Attribute: Author Jeff Wilson
 */
 
-use Libraries.Sound.Playable
-
 class Note is a Playable
     private integer pitch = 60
     
+    /*
+        Get the pitch for this particular note. See the Music class's documentation on specifying pitches.
+        
+        Attribute: Returns the pitch (0 to 127)
+    */
     public action GetPitch returns integer
         return pitch
     end
 
+    /*
+        Set the pitch for this particular note. See the Music class's documenation on specifying pitches.
+
+        Attribute: Parameter the pitch (0 to 127)
+    */
     public action SetPitch(integer pitch)
         me:pitch = pitch
     end
