@@ -139,6 +139,7 @@ class Playable is a MusicEvent
     public action SetVolume(number vol)
         if vol < 0.0 then
             vol = 0.0
+        end
         else if vol > 1.0 then
             vol = 1.0
         end
