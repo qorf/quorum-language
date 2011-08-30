@@ -22,9 +22,15 @@ public class ExpressionValueConverter {
      * version is 49.0 or more).
      */
     public static Object convert(ExpressionValue value) {
-        if(value.getType().isText()) {
+        if(value.getType().isInteger()) {
+            return new Integer(value.getResult().integer);
+        }
+        
+        
+        else if(value.getType().isText()) {
             return value.getResult().text;
         }
+        
         
         //ultimately, this should account for all possible configurations
         //see MethodVisitor.LdcInsn for more information

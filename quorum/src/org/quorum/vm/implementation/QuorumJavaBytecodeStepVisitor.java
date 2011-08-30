@@ -129,6 +129,7 @@ import org.quorum.steps.PushStep;
 import org.quorum.steps.ReturnStep;
 import org.quorum.steps.SimpleAlertStep;
 import org.quorum.steps.SpeakStep;
+import org.quorum.steps.StepFactory;
 import org.quorum.steps.TextAutoBoxStep;
 import org.quorum.steps.ThisMoveStep;
 import org.quorum.steps.UnaryBooleanBooleanCastStep;
@@ -150,6 +151,7 @@ import org.quorum.steps.UnaryTextNumberCastStep;
 import org.quorum.steps.UnaryTextTextCastStep;
 import org.quorum.steps.VariableInObjectMoveStep;
 import org.quorum.steps.VariableMoveStep;
+import org.quorum.symbols.TypeDescriptor;
 
 /**
  *
@@ -173,11 +175,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         classWriter = new ClassWriter(0);
         
         String staticKey = clazz.getClassDescriptor().getStaticKey();
-        
         //garbage code to ease debugging, remove for reality.
-        //if(!".Stefik".equals(staticKey)) {
-        //    return;
-        //}
+        if(!".Main".equals(staticKey)) {
+            return;
+        }
         
         String name = QuorumBytecodeGenerator.convertStaticKeyToBytecodePath(staticKey);
         classWriter = new ClassWriter(0);
@@ -317,7 +318,16 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentIntegerLocalStep step) {
-        int a = 5;
+        if(!constants.isEmpty()) { //we're just storing a constant
+            ExpressionValue pop = constants.pop();
+            int variableNumber = step.getVariable().getVariableNumber();
+            methodVisitor.visitLdcInsn(ExpressionValueConverter.convert(pop));
+            methodVisitor.visitVarInsn(ISTORE, variableNumber);
+            variables.push(variableNumber);
+        }
+        else { //otherwise we're storing something more complicated
+            
+        }
     }
 
     @Override
@@ -353,7 +363,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitLdcInsn(ExpressionValueConverter.convert(pop));
             methodVisitor.visitVarInsn(ASTORE, variableNumber);
             variables.push(variableNumber);
-
         }
         else { //otherwise we're storing something more complicated
             
@@ -829,20 +838,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(PrintStep step) {
         methodVisitor.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-        
-        //fill this out with more legal constants
-        if(!constants.isEmpty()) {
-            ExpressionValue value = constants.pop();
-            if(value.getType().isText()) {   
-                methodVisitor.visitLdcInsn(value.getResult().text);
-            }
-        }
-        else if(!variables.isEmpty()) {
-            Integer pop = variables.pop();
-            int num = pop;
-            methodVisitor.visitVarInsn(ALOAD, num);
+        methodVisitor.visitInsn(SWAP);
+//        //fill this out with more legal constants
+//        if(!constants.isEmpty()) {
+//            ExpressionValue value = constants.pop();
+//            if(value.getType().isText()) {   
+//                methodVisitor.visitLdcInsn(value.getResult().text);
+//            }
+//        }
+//        else if(!variables.isEmpty()) {
+//            Integer pop = variables.pop();
+//            int val = pop;
+//            methodVisitor.visitVarInsn(ALOAD, val);
+//        }
 
-        }
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
     }
 
@@ -948,7 +957,21 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryTextIntegerCastStep step) {
-        int a = 5;
+        if(!constants.isEmpty()) {
+            ExpressionValue value = constants.pop();
+            if(value.getType().isInteger()) {
+                value.setType(TypeDescriptor.getTextType());
+                constants.push(value);
+                methodVisitor.visitLdcInsn(value.getResult().text);
+            }
+        }
+        else if(!variables.isEmpty()) {
+            Integer pop = variables.pop();
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "Java/lang/Integer", "toString", "()Ljava/lang/String;");
+//            methodVisitor.visitVarInsn(NOP, V1_1);
+            constants.push(StepFactory.createExpressionValue(step.getRegister() + 1, pop.toString()));
+//            methodVisitor.visitLdcInsn(pop.toString());
+        }
     }
 
     @Override
