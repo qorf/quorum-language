@@ -1,7 +1,13 @@
 package Libraries.Sound
 
 /*
-    This class represents a MIDI instrument.
+    This class represents a MIDI instrument. A MIDI instrument consists of a
+    number and a name. For a complete list of MIDI instruments specified by the
+    General MIDI standard, see:
+
+    http://www.midi.org/techspecs/gm1sound.php
+
+    On most systems, these will be the only instruments available.
 
     Attribute: Author Jeff Wilson
 */
@@ -9,20 +15,49 @@ package Libraries.Sound
 class Instrument
     private text name = ""
     private integer value = 0
-
+    private boolean nameSet = false
+    private boolean valueSet = false
+    
+    /*
+        Get the name of the instrument.
+        
+        Attribute: Returns the name of the instrument.
+    */
     public action GetName returns text
         return name
     end
     
+    /*
+        Sets the name of the instrument. This should only be called by helper
+        music classes.
+       
+        Attribute: Parameter name the name to set.
+    */
     public action SetName(text name)
-        me:name = name
+        if not nameSet then
+            me:name = name
+            nameSet = true
+        end
     end
 
+    /*
+        Get the number of this instrument.
+
+        Attribute: Returns the number of this instrument.
+    */
     public action GetValue returns integer
         return value
     end
 
+    /*
+        Sets the number of this instrument. This should only be called by helper
+        music classes.
+
+        Attribute: Parameter value the number to set.
+    */
     public action SetValue(integer value)
-        me:value = value
+        if not valueSet then
+            me:value = value
+        end
     end
 end

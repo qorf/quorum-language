@@ -5,7 +5,7 @@ package Libraries.Sound
     (MIDI) standard. This class can be used to play invidual notes and
     individual chords, as well as used to compose multi-track songs. This class
     abstracts away much of the MIDI interface, greatly simplifying song
-    composing. See the Playable and Track classes, as well as the AddTrack() and
+    composition. For song composition, see the Playable and Track classes, as well as the AddTrack() and
     PlaySong() methods of this class.
 
     Throughout this class and its related classes, individual pitches are
@@ -13,6 +13,23 @@ package Libraries.Sound
     understanding these numbers is the following page:
 
     http://tomscarff.110mb.com/midi_analyser/midi_note_numbers_for_octaves.htm
+
+    This class also defines some constants that can be used throughout music-related
+    classes. These constants include:
+
+    * breve
+    * wholeNote
+    * halfNote
+    * quarterNote
+    * eighthNote
+    * sixteenthNote
+    * thirtySecondthNote
+    * sixtyFourthNote
+
+    These constants can all be used to specify note start times and length. In
+    addition, mathematical manipulation of these constants is permitted. For example,
+    if one desired a double whole note, one could type m:wholeNote*2, as well as just
+    m:breve.
 
     Attribute: Author Andy Stefik and Jeff Wilson
     Attribute: Example
@@ -86,7 +103,7 @@ class Music
         
         Attribute: Example
         Music muse
-        muse:Play(60, 1, 1)
+        muse:Play(60, 1, 0.5) // middle C for 1 second, half volume
     */
     public system action Play(integer note, number duration, number volume)
     
@@ -106,14 +123,14 @@ class Music
     end
 
     /*
-        Plays a note for the specified duration.
+        Plays a note for the specified duration at maximum volume.
         
         Attribute: Parameter note the note number (0 to 127)
         Attribute: Parameter duration how long to play the note (in seconds)
         
         Attribute: Example
         Music muse
-        muse:Play(60, 1)
+        muse:Play(60, 1) // middle C, for 1 second, full volume
     */
     public action Play(integer note, number duration)
         Play(note, duration, 1.0)
@@ -168,7 +185,7 @@ class Music
     end
     
     /*
-        Play the given MIDI file.
+        Play the given MIDI file. See the "Stop" method to stop playback.
 
         Attribute: Parameter path the path to the MIDI fie.
 
@@ -191,26 +208,35 @@ class Music
     /*
         Play the song that was constructed using the AddTrack() method. A "song"
         consists of one or more tracks of notes and/or chords. If no tracks
-        exist, this method will do nothing.
+        exist, this method will do nothing. See the "Stop" method to stop playback.
 
         Attribute: Example
+        // Play a simple C arpeggio followed by a C chord.
+
         Music muse
         Track t = muse:AddTrack()
 
         Note n1
         Note n2
         Note n3
+        Chord c1
         n1:SetPitch(60)
         n2:SetPitch(64)
         n3:SetPitch(67)
         n2:SetStartTime(muse:quarterNote)
         n3:SetStartTime(muse:quarterNote)
-        n1:SetLength(muse:wholeNote)
-        n2:SetLength(muse:wholeNote)
-        n3:SetLength(muse:breve)
+        n1:SetLength(muse:quarterNote)
+        n2:SetLength(muse:quarterNote)
+        n3:SetLength(muse:quarterNote)
+        c1:Add(60)
+        c1:Add(64)
+        c1:Add(67)
+        c1:SetStartTime(muse:quarterNote)
+        c1:SetLength(muse:breve)
         t:Add(n1)
         t:Add(n2)
         t:Add(n3)
+        t:Add(c1)
         muse:PlaySong()
     */
     public action PlaySong()
@@ -323,7 +349,7 @@ class Music
 
     /*
         Returns the requested instrument. This instrument can be used to set
-        the instrument of individual tracks, or of this Music object. The MIDI
+        the instrument of individual tracks, or of this Music object. The General MIDI
         specification defines a number of instruments which can be expected
         on most systems. For a complete list, see:
 

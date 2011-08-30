@@ -10,11 +10,30 @@ use Libraries.Containers.Blueprints.Iterator
 class Main
     action Main
         Music muse
-        
-        // Select a different instrument and set it as the default, then play a note.
-        Instrument i = muse:GetInstrument(10)
-        muse:SetInstrument(i)
-        muse:Play(60, 1)
+        Track t = muse:AddTrack()
+
+        Note n1
+        Note n2
+        Note n3
+        Chord c1
+        n1:SetPitch(60)
+        n2:SetPitch(64)
+        n3:SetPitch(67)
+        n2:SetStartTime(muse:quarterNote)
+        n3:SetStartTime(muse:quarterNote)
+        n1:SetLength(muse:quarterNote)
+        n2:SetLength(muse:quarterNote)
+        n3:SetLength(muse:quarterNote)
+        c1:Add(60)
+        c1:Add(64)
+        c1:Add(67)
+        c1:SetStartTime(muse:quarterNote)
+        c1:SetLength(muse:breve)
+        t:Add(n1)
+        t:Add(n2)
+        t:Add(n3)
+        t:Add(c1)
+        muse:PlaySong()
     end
 
     action foo

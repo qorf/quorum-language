@@ -2,7 +2,13 @@ package Libraries.Sound
 
 use Libraries.Containers.Blueprints.Copyable
 /*
-    This class represents an event in a music track.
+    This class represents an event in a music track. This is the top level
+    interface describing anything that can be put on a music track, such as
+    Notes and Chords.
+
+    This class defines constants to describe the various event types. Currently,
+    the only event type supported is "noteOn", which is an event that will sound
+    one or more notes.
 
     Attribute: Author Jeff Wilson
 */
@@ -23,7 +29,6 @@ class MusicEvent is a Copyable
         
         Attribute: Returns the event type.
     */
-
     public action GetEventType() returns integer
         return eventType
     end
