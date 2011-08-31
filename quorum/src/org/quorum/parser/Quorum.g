@@ -194,31 +194,35 @@ import org.quorum.vm.interfaces.CompilerError;
             }
             message = "mismatched tree node: " + mtne.node
                     + " expecting " + tokenName;
+            error.setErrorType(ErrorType.OTHER);
         } else if (re instanceof NoViableAltException) {
             //NoViableAltException nvae = (NoViableAltException)e;
             // for development, can add "decision=<<"+nvae.grammarDecisionDescription+">>"
             // and "(decision="+nvae.decisionNumber+") and
             // "state "+nvae.stateNumber
             message = "no viable alternative at input " + getTokenErrorDisplay(re.token);
+            error.setErrorType(ErrorType.OTHER);
         } else if (re instanceof EarlyExitException) {
             //EarlyExitException eee = (EarlyExitException)e;
             // for development, can add "(decision="+eee.decisionNumber+")"
             message = "required (...)+ loop did not match anything at input "
                     + getTokenErrorDisplay(re.token);
+            error.setErrorType(ErrorType.OTHER);
         } else if (re instanceof MismatchedSetException) {
             MismatchedSetException mse = (MismatchedSetException) re;
             message = "mismatched input " + getTokenErrorDisplay(re.token)
                     + " expecting set " + mse.expecting;
-
+            error.setErrorType(ErrorType.OTHER);
         } else if (re instanceof MismatchedNotSetException) {
             MismatchedNotSetException mse = (MismatchedNotSetException) re;
             message = "mismatched input " + getTokenErrorDisplay(re.token)
                     + " expecting set " + mse.expecting;
-
+            error.setErrorType(ErrorType.OTHER);
         } else if (re instanceof FailedPredicateException) {
             FailedPredicateException fpe = (FailedPredicateException) re;
             message = "rule " + fpe.ruleName + " failed predicate: {"
                     + fpe.predicateText + "}?";
+            error.setErrorType(ErrorType.OTHER);
         }
 
         if (vm != null) {
