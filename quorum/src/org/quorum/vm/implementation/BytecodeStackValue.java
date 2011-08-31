@@ -4,6 +4,7 @@
  */
 package org.quorum.vm.implementation;
 
+import org.objectweb.asm.Opcodes;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.symbols.Result;
 import org.quorum.symbols.TypeDescriptor;
@@ -37,4 +38,45 @@ public class BytecodeStackValue {
         this.result = result;
         this.type = type;
     }
+    
+    public Result getResult() {
+        return result;
+    }
+    
+    public TypeDescriptor getTypeDescriptor() {
+        return type;
+    }
+    
+    public int getVarNumber() {
+        return varNumber;
+    }
+    
+    public boolean isConstant() {
+        return isConstant;
+    }
+    
+    public void setAsVariable(int varNumber) {
+        isConstant = false;
+        this.varNumber = varNumber;
+    }
+    
+    // temporary
+    public Object getValue(){
+        if (type.isText())
+            return result.text;
+        return result.integer;
+    }
+    
+    public int getLoadOpCode() {
+        if (type.isInteger())
+            return Opcodes.ILOAD;
+        return Opcodes.ALOAD;
+    }
+//    
+    public String getByteCodeTypeDescriptor() {
+        if (type.isInteger())
+            return "I";
+        return "Ljava/lang/String;";
+    }
+//    public int get
 }
