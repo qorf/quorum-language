@@ -13,7 +13,7 @@ import org.quorum.symbols.TypeDescriptor;
  *
  * @author Andreas Stefik
  */
-public class ExpressionValueConverter {
+public class QuorumConverter {
     /**
      * This method converts an expression value object to an Object that
      * can be interpreted correctly by the MethodVisitor.LdcInsn(Object cst)
@@ -47,6 +47,19 @@ public class ExpressionValueConverter {
         
         
         
+        return result;
+    }
+    
+    /**
+     * Converts a static key for a class into a full class name.
+     * @param key
+     * @return 
+     */
+    public static String convertStaticKeyToBytecodePath(String key) {
+        if(key.charAt(0) == '.') { //a quorum class in the default package
+            key = key.substring(1);
+        }
+        String result = "quorum/" + key.replaceAll("\\.", "/");
         return result;
     }
     

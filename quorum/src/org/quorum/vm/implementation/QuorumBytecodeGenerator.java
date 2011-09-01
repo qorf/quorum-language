@@ -90,7 +90,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     
     private File prepareFolder(QuorumBytecode code) throws IOException {
         File file;
-        String path = convertStaticKeyToBytecodePath(code.getStaticKey());
+        String path = QuorumConverter.convertStaticKeyToBytecodePath(code.getStaticKey());
         String fullPath = buildFolder + "/" + path + ".class";
         String[] split = fullPath.split("/");
         
@@ -115,18 +115,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         return file;
     }
     
-    /**
-     * Converts a static key for a class into a full class name.
-     * @param key
-     * @return 
-     */
-    public static String convertStaticKeyToBytecodePath(String key) {
-        if(key.charAt(0) == '.') { //a quorum class in the default package
-            key = key.substring(1);
-        }
-        String result = "quorum/" + key.replaceAll("\\.", "/");
-        return result;
-    }
+    
     
     private void writeBytes(File file, byte[] bites) throws FileNotFoundException, IOException {
         FileOutputStream stream = new FileOutputStream(file);

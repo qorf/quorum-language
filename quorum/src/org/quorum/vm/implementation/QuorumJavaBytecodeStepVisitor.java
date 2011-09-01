@@ -202,7 +202,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             return;
         }
         
-        String name = QuorumBytecodeGenerator.convertStaticKeyToBytecodePath(staticKey);
+        String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
         classWriter = new ClassWriter(0);
         
