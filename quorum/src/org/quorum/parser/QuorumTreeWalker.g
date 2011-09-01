@@ -167,7 +167,7 @@ access_modifier returns [AccessModifierEnum amEnum]
 	}
 	;	
 class_stmnts
-	:	access_modifier? assignment_statement
+	:	assignment_statement
 	|	modEnum = access_modifier? 
 	{
 		if(modEnum == null){
@@ -1058,7 +1058,7 @@ assignment_statement
 		
 		stepFactory.addAssignmentStep(location, $obj.type.getStaticKey(), $rhs.eval, $rhs.step, isLocal, $ID.text, cd);
 	}
-	|	type = assignment_declaration name = ID rhs=assign_right_hand_side?
+	|	modifier = access_modifier? type = assignment_declaration name = ID rhs=assign_right_hand_side?
 	{
                 LineInformation location = new LineInformation (
                     $ID.line,

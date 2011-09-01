@@ -420,13 +420,8 @@ access_modifier returns [AccessModifierEnum amEnum]
 	}
 	;	
 class_stmnts
-	:	modifier = access_modifier?
+	:
 	{
-		accessModifier = $modifier.amEnum;
-		if(accessModifier == null){
-			
-			accessModifier = accessModifier.PRIVATE;
-		}
 		isInClassAssignmentStatementScope = true;
 	}
 	assignment_statement {isInClassAssignmentStatementScope = false;}
@@ -972,7 +967,15 @@ assignment_statement
 			}
 		}
 	|	obj=qualified_name (COLON PARENT COLON parent=qualified_name)? COLON ID rhs=assign_right_hand_side
-	|	type = assignment_declaration name = ID rhs = assign_right_hand_side?	
+	|	modifier = access_modifier?
+		{
+			accessModifier = $modifier.amEnum;
+			if(accessModifier == null){
+				
+				accessModifier = accessModifier.PRIVATE;
+			}
+		}
+	type = assignment_declaration name = ID rhs = assign_right_hand_side?	
 		{
 			VariableDescriptor new_desc = new VariableDescriptor();
 			Iterator<GenericDescriptor> gdList = $type.type.getSubTypes();
