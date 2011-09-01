@@ -19,6 +19,13 @@ public class BytecodeStackValue {
     private int varNumber;
     private boolean isConstant; 
     
+    public BytecodeStackValue() {
+        result = new Result();
+        type = new TypeDescriptor();
+        varNumber = 0;
+        isConstant = true;
+    }
+    
     public BytecodeStackValue(boolean isConstant, int varNumber) {
         this.isConstant = isConstant;
         this.varNumber = varNumber;
@@ -55,6 +62,18 @@ public class BytecodeStackValue {
         return isConstant;
     }
     
+    public void setResult(Result result) {
+        this.result = result;
+    }
+    
+    public void setType (TypeDescriptor type) {
+        this.type = type;
+    }
+    
+    public void setVarNumber (int varNumber) {
+        this.varNumber = varNumber;
+    }
+    
     public void setAsVariable(int varNumber) {
         isConstant = false;
         this.varNumber = varNumber;
@@ -62,21 +81,42 @@ public class BytecodeStackValue {
     
     // temporary
     public Object getValue(){
-        if (type.isText())
+        if (type.isBoolean())
+            return result.boolean_value;
+        else if (type.isInteger())
+            return result.integer;
+        else if (type.isNumber())
+            return result.number;
+        else if (type.isText())
             return result.text;
-        return result.integer;
+        else
+            return null;
     }
     
     public int getLoadOpCode() {
-        if (type.isInteger())
+        if (type.isInteger() || type.isBoolean())
             return Opcodes.ILOAD;
+        else if(type.isNumber())
+            return Opcodes.DLOAD;
         return Opcodes.ALOAD;
     }
 //    
     public String getByteCodeTypeDescriptor() {
-        if (type.isInteger())
+        if(type.isBoolean()) {
+            return "Z";
+        }
+        else if(type.isText()) {
+            return "Ljava/lang/String;";
+        }
+        else if(type.isNumber()) {
+            return "D";
+        }
+        else if(type.isInteger()) {
             return "I";
-        return "Ljava/lang/String;";
+        }
+        else {
+            return null;
+        }
     }
 //    public int get
 }
