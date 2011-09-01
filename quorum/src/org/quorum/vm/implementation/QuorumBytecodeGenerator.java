@@ -115,6 +115,11 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         return file;
     }
     
+    /**
+     * Converts a static key for a class into a full class name.
+     * @param key
+     * @return 
+     */
     public static String convertStaticKeyToBytecodePath(String key) {
         if(key.charAt(0) == '.') { //a quorum class in the default package
             key = key.substring(1);

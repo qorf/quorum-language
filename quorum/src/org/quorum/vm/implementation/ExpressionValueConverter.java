@@ -4,7 +4,10 @@
  */
 package org.quorum.vm.implementation;
 
+
 import org.quorum.execution.ExpressionValue;
+import org.quorum.symbols.MethodDescriptor;
+import org.quorum.symbols.TypeDescriptor;
 
 /**
  *
@@ -35,5 +38,43 @@ public class ExpressionValueConverter {
         //ultimately, this should account for all possible configurations
         //see MethodVisitor.LdcInsn for more information
         return null;
+    }
+    
+    public static String convertToMethodSignature(MethodDescriptor descriptor) {
+        String result = "";
+        TypeDescriptor ret = descriptor.getReturnType();
+        
+        
+        
+        
+        return result;
+    }
+    
+    /**
+     * This method takes a type descriptor and converts it into a valid 
+     * type descriptor value in Java bytecode. This conversion copies
+     * largely page 11 of the asm-guide.pdf documentation for ASM.
+     * 
+     * TODO: Finish conversions.
+     * 
+     * @param type
+     * @return 
+     */
+    public static String convertReturnToBytecodeString(TypeDescriptor type) {
+        if(type.isBoolean()) {
+            return "Z";
+        }
+        else if(type.isText()) {
+            return "Ljava/lang/String;";
+        }
+        else if(type.isNumber()) {
+            return "D";
+        }
+        else if(type.isInteger()) {
+            return "I";
+        }
+        else {
+            return null;
+        }
     }
 }
