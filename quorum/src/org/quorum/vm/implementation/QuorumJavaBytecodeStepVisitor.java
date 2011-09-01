@@ -249,7 +249,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitMethodInsn(INVOKESPECIAL, processedClazzName, "<init>", "()V");
             methodVisitor.visitVarInsn(ASTORE, 1);
             methodVisitor.visitVarInsn(ALOAD, 1);
-            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, processedClazzName, "Main", "()V");
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, processedClazzName, 
+                    method.getMethodDescriptor().getName(), 
+                    QuorumConverter.convertMethodDescriptorToBytecodeSignature(method.getMethodDescriptor()));
             methodVisitor.visitInsn(RETURN);
             methodVisitor.visitMaxs(2, 2);
             methodVisitor.visitEnd();
@@ -260,7 +262,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         
         //still have to handle parameters here.
-        methodVisitor = classWriter.visitMethod(ACC_PUBLIC, method.getMethodDescriptor().getName(), "()V", null, null);
+        String name = method.getMethodDescriptor().getName();
+        String params = QuorumConverter.convertMethodDescriptorToBytecodeSignature(method.getMethodDescriptor());
+        methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, params, null, null);
         methodStackSize = 1;
 
         methodVisitor.visitCode();
@@ -793,7 +797,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if(!step.IsObjectCall()) { //it's a this call, so load it
             methodVisitor.visitVarInsn(ALOAD, THIS);
             //TODO: Change to accomodate parameters
-            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, processedClazzName, callee.getName(), "()V");
+            
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, processedClazzName, 
+                    callee.getName(), 
+                    QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));
         }
     }
 

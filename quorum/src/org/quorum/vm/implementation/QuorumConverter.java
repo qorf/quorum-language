@@ -7,6 +7,8 @@ package org.quorum.vm.implementation;
 
 import org.quorum.execution.ExpressionValue;
 import org.quorum.symbols.MethodDescriptor;
+import org.quorum.symbols.ParameterDescriptor;
+import org.quorum.symbols.Parameters;
 import org.quorum.symbols.TypeDescriptor;
 
 /**
@@ -40,13 +42,21 @@ public class QuorumConverter {
         return null;
     }
     
-    public static String convertToMethodSignature(MethodDescriptor descriptor) {
+    public static String convertMethodDescriptorToBytecodeSignature(MethodDescriptor descriptor) {
         String result = "";
         TypeDescriptor ret = descriptor.getReturnType();
+        String returnString = convertTypeToBytecodeString(ret);
+        String parametersString = "(";
+        Parameters parameters = descriptor.getParameters();
+        for(int i = 0; i < parameters.size(); i++) {
+            ParameterDescriptor param = parameters.get(i);
+            TypeDescriptor type = param.getType();
+            parametersString += convertTypeToBytecodeString(type);
+        }
         
+        parametersString += ")";
         
-        
-        
+        result = parametersString + returnString;
         return result;
     }
     
@@ -73,7 +83,7 @@ public class QuorumConverter {
      * @param type
      * @return 
      */
-    public static String convertReturnToBytecodeString(TypeDescriptor type) {
+    public static String convertTypeToBytecodeString(TypeDescriptor type) {
         if(type.isBoolean()) {
             return "Z";
         }
@@ -85,6 +95,9 @@ public class QuorumConverter {
         }
         else if(type.isInteger()) {
             return "I";
+        }
+        else if(type.isVoid()) {
+            return "V";
         }
         else {
             return null;
