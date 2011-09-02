@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Opcodes;
 
 import org.quorum.execution.Linker;
 import org.quorum.steps.ClassExecution;
@@ -168,6 +167,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     /**
      * @return the buildFolder
      */
+    @Override
     public File getBuildFolder() {
         return buildFolder;
     }
@@ -175,6 +175,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     /**
      * @param buildFolder the buildFolder to set
      */
+    @Override
     public void setBuildFolder(File buildFolder) {
         this.buildFolder = buildFolder;
     }    

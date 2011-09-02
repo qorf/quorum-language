@@ -6,6 +6,7 @@ package org.quorum.vm.implementation;
 
 import java.util.HashMap;
 import java.util.Stack;
+import org.quorum.symbols.TypeDescriptor;
 
 /**
  * A helper class to encapsulate the standard operations stacks must deal
@@ -17,8 +18,8 @@ import java.util.Stack;
 public class BytecodeStack {
     private Stack<BytecodeStackValue> constants = new Stack<BytecodeStackValue>();
     private HashMap<Integer, BytecodeStackValue> variables = new HashMap<Integer, BytecodeStackValue>();
-    
     private int maxSize = 0;
+    private int currentSize = 0;
     
     
     /**
@@ -28,6 +29,10 @@ public class BytecodeStack {
      */
     public void push(BytecodeStackValue value) {
         constants.push(value);
+        currentSize += value.getSize();
+        if(currentSize > maxSize) {
+            maxSize = currentSize;
+        }
     }
     
     /**
@@ -35,7 +40,9 @@ public class BytecodeStack {
      * @return 
      */
     public BytecodeStackValue pop() {
-        return constants.pop();
+        BytecodeStackValue pop = constants.pop();
+        currentSize -= pop.getSize();
+        return pop;
     }
     
     /**
@@ -79,13 +86,29 @@ public class BytecodeStack {
      */
     public void startMethod() {
         maxSize = 0;
+        currentSize = 0;
         constants.empty();
         variables.clear();
     }
     
-    public void endMethod() {
-        
+    /**
+     * This method allows you to temporarily increase and decrease the 
+     * constant stack size, possibly increasing the max stack size, 
+     * and decreasing it back again. This is useful if you need to push
+     * something on the stack, but do not need to actually push the 
+     * value onto the stack.
+     * 
+     * @param type 
+     */
+    public void implicitStackIncrease(TypeDescriptor type) {
+        int size = BytecodeStackValue.getSize(type);
+        this.currentSize += size;
+        if(currentSize > maxSize) {
+            maxSize = currentSize;
+        }
+        currentSize -= size;
     }
+    
     
     /**
      * Returns the maximum size that this particular method has 
@@ -103,6 +126,6 @@ public class BytecodeStack {
      * @return 
      */
     public int getCurrentSize() {
-        return constants.size();
+        return currentSize;
     }
 }

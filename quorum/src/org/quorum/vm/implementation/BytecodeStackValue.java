@@ -124,11 +124,32 @@ public class BytecodeStackValue {
      * from its type, to help with computations related to max stack size
      * in methods.
      * 
-     * TODO: Make this change size depending upon if it's a double, int, etc.
-     * 
      * @return 
      */
     public int getSize() {
+        return getSize(type);
+    }
+    
+    /**
+     * This value computes the size of the object being pushed on the stack
+     * from its type, to help with computations related to max stack size
+     * in methods.
+     * 
+     * @param type
+     * @return 
+     */
+    public static int getSize(TypeDescriptor type) {
+        if(!type.isPrimitiveType()) {
+            return 1;
+        }
+        
+        if(type.isNumber()) {
+            return 2;
+        }
+        if(type.isText()) {
+            return 2;
+        }
+        
         return 1;
     }
 }

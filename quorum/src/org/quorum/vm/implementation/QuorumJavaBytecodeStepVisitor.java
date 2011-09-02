@@ -4,9 +4,7 @@
  */
 package org.quorum.vm.implementation;
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Stack;
 import java.util.Vector;
 import org.objectweb.asm.*;
 import org.objectweb.asm.Opcodes;
@@ -151,6 +149,7 @@ import org.quorum.steps.UnaryTextNumberCastStep;
 import org.quorum.steps.UnaryTextTextCastStep;
 import org.quorum.steps.VariableInObjectMoveStep;
 import org.quorum.steps.VariableMoveStep;
+import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.MethodDescriptor;
 
 /**
@@ -162,19 +161,19 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private FieldVisitor fieldVisitor;
     private MethodVisitor methodVisitor;
     private AnnotationVisitor annotationVisitor;
-    
     private BytecodeStack stack = new BytecodeStack();
     private String processedClazzName = "";
     private final int THIS = 0;
+    private ClassDescriptor currentClass = null;
     
     public QuorumJavaBytecodeStepVisitor() {
-        
     }
     
     public void visit(ClassExecution clazz) {
         classWriter = new ClassWriter(0);
-        
         String staticKey = clazz.getClassDescriptor().getStaticKey();
+        currentClass = clazz.getClassDescriptor();
+        
         //garbage code to ease debugging, remove for reality.
         if(!".Stefik".equals(staticKey) && !".Matt".equals(staticKey) && !".Main".equals(staticKey)) {
             return;
@@ -215,11 +214,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     
     public void visit(MethodExecution method) {
         boolean main = method.isMainMethod();
-        
         //add the bytecode for the main method.
-        
-
-
         if(main) {
             methodVisitor = classWriter.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
             methodVisitor.visitTypeInsn(NEW, processedClazzName);
@@ -239,7 +234,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         String name = method.getMethodDescriptor().getName();
         String params = QuorumConverter.convertMethodDescriptorToBytecodeSignature(method.getMethodDescriptor());
         methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, params, null, null);
-
+        stack.startMethod();
         methodVisitor.visitCode();
 
         Vector<ExecutionStep> steps = method.getSteps();
@@ -251,10 +246,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitInsn(RETURN);
         //this should be filled out with the number of local variables
         int numberVariables = method.getMethodDescriptor().getNumberVariables();
-        
+        int stackSize = stack.getMaxSize();
         //the stack size should also change depending on the 
         //expressions that need to be processed.
-        methodVisitor.visitMaxs(2, numberVariables + 1);
+        methodVisitor.visitMaxs(stackSize, numberVariables + 1);
         methodVisitor.visitEnd();
     }
 
@@ -795,11 +790,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //NOTE: step.isThisCall is not what you want here, that's different
         if(!step.IsObjectCall()) { //it's a this call, so load it
             methodVisitor.visitVarInsn(ALOAD, THIS);
+            
+            //push the this pointer on and pop it off
+            stack.implicitStackIncrease(currentClass.getType());
+            
             //TODO: Change to accomodate parameters
             //this solution will not work in the general case
             //because it assumes parameters. It is just for 
             //testing and experimenting.
-            //popBytecodevaluesAndVisit(); //don't need the return
+            popBytecodevaluesAndVisit(); //don't need the return
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, processedClazzName, 
                     callee.getName(), 
                     QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));
@@ -865,7 +864,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(MoveStep step) {
         ExpressionValue value = step.getValue();
         BytecodeStackValue bytecodeValue = new BytecodeStackValue(value, true, 0);
-        methodVisitor.visitLdcInsn(bytecodeValue.getValue());
         stack.push(bytecodeValue);
     }
 
@@ -1035,7 +1033,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(VariableMoveStep step) {
-        
         BytecodeStackValue value = stack.get(step.getValue().getVariableNumber());
         stack.push(value);
     }
