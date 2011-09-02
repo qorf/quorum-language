@@ -45,7 +45,7 @@ public class BytecodeStack {
      * @param location
      * @param value 
      */
-    public void push(int location, BytecodeStackValue value) {
+    public void set(int location, BytecodeStackValue value) {
         variables.put(location, value);
     }
     
@@ -56,8 +56,19 @@ public class BytecodeStack {
      * @param location
      * @return 
      */
-    public BytecodeStackValue pop(int location) {
+    public BytecodeStackValue remove(int location) {
         return variables.remove(location);
+    }
+    
+    
+    /**
+     * Returns a value from a hash map storing variable values.
+     * 
+     * @param location
+     * @return 
+     */
+    public BytecodeStackValue get(int location) {
+        return variables.get(location);
     }
     
     /**
