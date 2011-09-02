@@ -27,7 +27,7 @@ public class BytecodeStack {
      * 
      * @param value 
      */
-    public void push(BytecodeStackValue value) {
+    public void pushConstant(BytecodeStackValue value) {
         constants.push(value);
         currentSize += value.getSize();
         if(currentSize > maxSize) {
@@ -35,14 +35,29 @@ public class BytecodeStack {
         }
     }
     
+    
     /**
      * This method pops constants off the stack.
      * @return 
      */
-    public BytecodeStackValue pop() {
+    public BytecodeStackValue popConstant() {
         BytecodeStackValue pop = constants.pop();
         currentSize -= pop.getSize();
         return pop;
+    }
+    
+    /**
+     * This method returns a constant value, zero-indexed from the top
+     * of the stack. So, for example, if there are three values on the 
+     * top of the stack and you want them in the order they were pushed on, 
+     * you would call getConstantFromTop(-2), getConstantFromTop(-1), and 
+     * getConstantFromTop(0).
+     * 
+     * @param location
+     * @return 
+     */
+    public BytecodeStackValue getConstantFromTop(int location) {
+        return constants.get(constants.size() - 1 - location);
     }
     
     /**
@@ -52,7 +67,7 @@ public class BytecodeStack {
      * @param location
      * @param value 
      */
-    public void set(int location, BytecodeStackValue value) {
+    public void setVariable(int location, BytecodeStackValue value) {
         variables.put(location, value);
     }
     
@@ -63,7 +78,7 @@ public class BytecodeStack {
      * @param location
      * @return 
      */
-    public BytecodeStackValue remove(int location) {
+    public BytecodeStackValue removeVariable(int location) {
         return variables.remove(location);
     }
     
@@ -74,7 +89,7 @@ public class BytecodeStack {
      * @param location
      * @return 
      */
-    public BytecodeStackValue get(int location) {
+    public BytecodeStackValue getVariable(int location) {
         return variables.get(location);
     }
     
