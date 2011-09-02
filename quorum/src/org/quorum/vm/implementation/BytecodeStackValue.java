@@ -8,11 +8,13 @@ import org.objectweb.asm.Opcodes;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.symbols.Result;
 import org.quorum.symbols.TypeDescriptor;
-/**
- *
- * @author mattlawson
- */
 
+/**
+ * This class is a wrapper class for containing variables and constants
+ * in the conversion between Quorum types and Java bytecode values.
+ * 
+ * @author Andreas Stefik and Matt Lawson
+ */
 public class BytecodeStackValue {
     private Result result;
     private TypeDescriptor type;
@@ -50,7 +52,12 @@ public class BytecodeStackValue {
         return result;
     }
     
-    public TypeDescriptor getTypeDescriptor() {
+    /**
+     * Returns the type descriptor for a constant or variable.
+     * 
+     * @return 
+     */
+    public TypeDescriptor getType() {
         return type;
     }
     
@@ -58,6 +65,12 @@ public class BytecodeStackValue {
         return varNumber;
     }
     
+    /**
+     * Determines whether or not the value currently placed is a fixed
+     * constant or whether its value must be computed at runtime.
+     * 
+     * @return 
+     */
     public boolean isConstant() {
         return isConstant;
     }
@@ -101,6 +114,14 @@ public class BytecodeStackValue {
         return Opcodes.ALOAD;
     }
 //    
+    /**
+     * This method returns the raw String representation in java bytecode
+     * of a particular Quorum type. For example, a type boolean
+     * (primitive), would be Z, while a text (primitive), would be
+     * Ljava/lang/String;
+     * 
+     * @return The string representation of the type in java bytecode.
+     */
     public String getByteCodeTypeDescriptor() {
         if(type.isBoolean()) {
             return "Z";

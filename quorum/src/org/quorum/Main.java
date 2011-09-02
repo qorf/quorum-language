@@ -94,8 +94,6 @@ public class Main {
             //build
             vm.build(files);
             
-            
-            
             if (!vm.getCompilerErrors().isCompilationErrorFree()) {
                 CompilerErrorManager compilerErrors = vm.getCompilerErrors();
                 Iterator<CompilerError> errors = compilerErrors.iterator();
