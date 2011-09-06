@@ -5,6 +5,7 @@
 package org.quorum.vm.implementation;
 
 import java.util.Iterator;
+import java.util.Stack;
 import java.util.Vector;
 import org.objectweb.asm.*;
 import org.objectweb.asm.Opcodes;
@@ -168,6 +169,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private String processedClazzName = "";
     private final int THIS = 0;
     private ClassDescriptor currentClass = null;
+    private ClassExecution currentClassExecution = null;
+    private MethodExecution currentMethodExecution = null;
     
     public QuorumJavaBytecodeStepVisitor() {
     }
@@ -176,9 +179,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         classWriter = new ClassWriter(0);
         String staticKey = clazz.getClassDescriptor().getStaticKey();
         currentClass = clazz.getClassDescriptor();
+        currentClassExecution = clazz;
         
         //garbage code to ease debugging, remove for reality.
-        if(!".Stefik".equals(staticKey) && !".Matt".equals(staticKey) && !".Main".equals(staticKey)) {
+        if(!".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !".Matt".equals(staticKey) && !".Main".equals(staticKey)) {
             return;
         }
         
@@ -216,6 +220,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     }
     
     public void visit(MethodExecution method) {
+        currentMethodExecution = method;
         boolean main = method.isMainMethod();
         //add the bytecode for the main method.
         if(main) {
@@ -823,10 +828,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(ConditionalJumpCheckStep step) {
         int a = 5;
     }
-
+    
     @Override
     public void visit(ConditionalJumpIfStep step) {
-        int a = 5;
+        Label label0 = new Label();
+        methodVisitor.visitJumpInsn(IF_ICMPNE, label0);
+
+        LabelStackValue label = new LabelStackValue(LabelTypeEnum.IF, IF_ICMPNE, label0);
+        stack.pushLabel(label);
+        
     }
 
     @Override
@@ -847,6 +857,25 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(EndScopeStep step) {
         int a = 5;
+        if(stack.peekLabel() != null){
+            LabelStackValue label = stack.popLabel();
+            if(label.getLabelType().equals(LabelTypeEnum.IF)) {
+                if(label.getJumpType() == IF_ICMPNE){
+                    
+                    Label pop = label.getLabel();
+                    Label label1 = new Label();
+                   
+                    methodVisitor.visitJumpInsn(GOTO, label1);
+                    stack.pushLabel(new LabelStackValue(LabelTypeEnum.IF, GOTO, label1));
+                    methodVisitor.visitLabel(pop);
+                    methodVisitor.visitFrame(F_APPEND, 1, new Object[] {INTEGER}, 0, null);
+                }else if(label.getJumpType() == GOTO){
+                    Label pop = label.getLabel();
+                    methodVisitor.visitLabel(pop);
+                    methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
+                }
+            }
+        }
     }
 
     @Override

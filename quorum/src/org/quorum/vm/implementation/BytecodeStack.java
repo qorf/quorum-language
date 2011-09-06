@@ -17,6 +17,7 @@ import org.quorum.symbols.TypeDescriptor;
  */
 public class BytecodeStack {
     private Stack<BytecodeStackValue> constants = new Stack<BytecodeStackValue>();
+    private Stack<LabelStackValue> labels = new Stack<LabelStackValue>();
     private HashMap<Integer, BytecodeStackValue> variables = new HashMap<Integer, BytecodeStackValue>();
     private int maxSize = 0;
     private int currentSize = 0;
@@ -58,6 +59,19 @@ public class BytecodeStack {
      */
     public BytecodeStackValue getConstantFromTop(int location) {
         return constants.get(constants.size() - 1 - location);
+    }
+    
+    public void pushLabel(LabelStackValue value) {
+        labels.push(value);
+    }
+    
+    
+    public LabelStackValue popLabel() {
+        return labels.pop();
+    }
+    
+    public LabelStackValue peekLabel() {
+        return labels.peek();
     }
     
     /**
