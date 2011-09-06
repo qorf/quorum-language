@@ -92,6 +92,10 @@ public class BytecodeStackValue {
         this.varNumber = varNumber;
     }
     
+    public void setAsConstant() {
+        isConstant = true;
+    }
+    
     // temporary
     public Object getValue(){
         if (type.isBoolean())
@@ -112,6 +116,14 @@ public class BytecodeStackValue {
         else if(type.isNumber())
             return Opcodes.DLOAD;
         return Opcodes.ALOAD;
+    }
+    
+    public int getStoreOpCode() {
+        if (type.isInteger() || type.isBoolean())
+            return Opcodes.ISTORE;
+        else if(type.isNumber())
+            return Opcodes.DSTORE;
+        return Opcodes.ASTORE;
     }
 //    
     /**

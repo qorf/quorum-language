@@ -24,6 +24,7 @@ import org.quorum.steps.AssignmentCustomLocalStep;
 import org.quorum.steps.AssignmentCustomStep;
 import org.quorum.steps.AssignmentIntegerLocalStep;
 import org.quorum.steps.AssignmentIntegerStep;
+import org.quorum.steps.AssignmentLocalStep;
 import org.quorum.steps.AssignmentNumberIntegerLocalStep;
 import org.quorum.steps.AssignmentNumberIntegerStep;
 import org.quorum.steps.AssignmentNumberLocalStep;
@@ -247,11 +248,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         methodVisitor.visitInsn(RETURN);
         //this should be filled out with the number of local variables
-        int numberVariables = method.getMethodDescriptor().getNumberVariables();
+//        int numberVariables = method.getMethodDescriptor().getNumberVariables();
+        int numberVariables = 0;
+        for (int index = 0; index < method.getMethodDescriptor().getNumberVariables(); index++) {
+            numberVariables++;
+            // insert type checking here
+        }
         int stackSize = stack.getMaxSize();
         //the stack size should also change depending on the 
         //expressions that need to be processed.
-        methodVisitor.visitMaxs(stackSize, numberVariables + 1);
+//        methodVisitor.visitMaxs(stackSize + 1, numberVariables + 1);
+        methodVisitor.visitMaxs(stackSize + 1, numberVariables + 1);
         methodVisitor.visitEnd();
     }
 
@@ -321,6 +328,21 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
     }
     
+    public void AssignLocal(BytecodeStackValue value, AssignmentLocalStep step) {
+        int variableNumber = step.getVariable().getVariableNumber();
+        if (value.isConstant()) {
+            value.setAsVariable(variableNumber);
+            methodVisitor.visitVarInsn(value.getStoreOpCode(), variableNumber);
+            stack.setVariable(variableNumber, value);
+        }
+        else {
+            addToMethodVisit(value);
+            value.setAsConstant();
+            methodVisitor.visitVarInsn(value.getStoreOpCode(), variableNumber);
+            stack.setVariable(variableNumber, value);
+        }
+    }
+    
     @Override
     public void visit(AlertStep step) {
         int a = 5;
@@ -354,17 +376,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AssignmentBooleanLocalStep step) {
         BytecodeStackValue pop = stack.popConstant();
-        int variableNumber = step.getVariable().getVariableNumber();
-        if (pop.isConstant()) {
-            pop.setAsVariable(variableNumber);
-            methodVisitor.visitVarInsn(ISTORE, variableNumber);
-            stack.setVariable(variableNumber, pop);
-        }
-        else {
-            BytecodeStackValue newVar = new BytecodeStackValue(pop.getResult(), pop.getType(), false, variableNumber);
-            methodVisitor.visitVarInsn(ISTORE, variableNumber);
-            stack.setVariable(variableNumber, newVar);
-        }
+        AssignLocal(pop, step);
     }
 
     @Override
@@ -385,17 +397,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AssignmentIntegerLocalStep step) {
         BytecodeStackValue pop = stack.popConstant();
-        int variableNumber = step.getVariable().getVariableNumber();
-        if (pop.isConstant()) {
-            pop.setAsVariable(variableNumber);
-            methodVisitor.visitVarInsn(ISTORE, variableNumber);
-            stack.setVariable(variableNumber, pop);
-        }
-        else {
-            BytecodeStackValue newVar = new BytecodeStackValue(pop.getResult(), pop.getType(), false, variableNumber);
-            methodVisitor.visitVarInsn(ISTORE, variableNumber);
-            stack.setVariable(variableNumber, newVar);
-        }
+        AssignLocal(pop, step);
     }
 
     @Override
@@ -416,17 +418,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AssignmentNumberLocalStep step) {
         BytecodeStackValue pop = stack.popConstant();
-        int variableNumber = step.getVariable().getVariableNumber();
-        if (pop.isConstant()) {
-            pop.setAsVariable(variableNumber);
-            methodVisitor.visitVarInsn(DSTORE, variableNumber);
-            stack.setVariable(variableNumber, pop);
-        }
-        else {
-            BytecodeStackValue newVar = new BytecodeStackValue(pop.getResult(), pop.getType(), false, variableNumber);
-            methodVisitor.visitVarInsn(DSTORE, variableNumber);
-            stack.setVariable(variableNumber, newVar);
-        }
+        AssignLocal(pop, step);
     }
 
     @Override
@@ -436,18 +428,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentTextLocalStep step) {
+        
         BytecodeStackValue pop = stack.popConstant();
-        int variableNumber = step.getVariable().getVariableNumber();
-        if (pop.isConstant()) {
-            pop.setAsVariable(variableNumber);
-            methodVisitor.visitVarInsn(ASTORE, variableNumber);
-            stack.setVariable(variableNumber, pop);
-        }
-        else {
-            BytecodeStackValue newVar = new BytecodeStackValue(pop.getResult(), pop.getType(), false, variableNumber);
-            methodVisitor.visitVarInsn(ASTORE, variableNumber);
-            stack.setVariable(variableNumber, newVar);
-        }
+        AssignLocal(pop, step);
     }
 
     @Override
@@ -895,6 +878,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(MoveStep step) {
         ExpressionValue value = step.getValue();
         BytecodeStackValue bytecodeValue = new BytecodeStackValue(value, true, 0);
+        addToMethodVisit(bytecodeValue);
         stack.pushConstant(bytecodeValue);
     }
 
@@ -1064,6 +1048,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(VariableMoveStep step) {
         BytecodeStackValue value = stack.getVariable(step.getValue().getVariableNumber());
+//        addToMethodVisit(value);
         stack.pushConstant(value);
     }
 }
