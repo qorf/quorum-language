@@ -5,6 +5,7 @@
 package org.quorum.vm.implementation;
 
 
+import org.objectweb.asm.Opcodes;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.symbols.MethodDescriptor;
 import org.quorum.symbols.ParameterDescriptor;
@@ -101,6 +102,27 @@ public class QuorumConverter {
         }
         else {
             return null;
+        }
+    }
+    
+    public static Object convertTypeToBytecodeType(TypeDescriptor type){
+        if(type.isBoolean()){
+            return Opcodes.INTEGER;
+        }else if (type.isText()){
+            return "java/lang/String";
+        }else if(type.isInteger()){
+            return Opcodes.INTEGER;
+        }else if(type.isNumber()){
+            return Opcodes.DOUBLE;
+        }else if(type.isIntegerClass() || type.isNumberClass()){
+            return Opcodes.TOP;
+        }else if(type.isObjectClass()){
+            return "java/lang/Object";
+        }else if(type.isVoid()){//not sure about this one?
+            return Opcodes.NULL;
+        }else{
+            String s = type.getName();
+            return convertStaticKeyToBytecodePath(s);
         }
     }
 }

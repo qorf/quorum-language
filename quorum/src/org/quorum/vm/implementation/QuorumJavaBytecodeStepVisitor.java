@@ -4,6 +4,7 @@
  */
 package org.quorum.vm.implementation;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Stack;
 import java.util.Vector;
@@ -155,6 +156,7 @@ import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.MethodDescriptor;
 import org.quorum.symbols.ParameterDescriptor;
 import org.quorum.symbols.Parameters;
+import org.quorum.symbols.TypeDescriptor;
 
 /**
  * This class takes a set of opcodes
@@ -854,19 +856,36 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(EndScopeStep step) {
-        int a = 5;
-        if(stack.peekLabel() != null){
+        if(!stack.isEmptyLabel()){
             LabelStackValue label = stack.popLabel();
             if(label.getLabelType().equals(LabelTypeEnum.IF)) {
-                if(label.getJumpType() == IF_ICMPNE){
-                    
+                if(label.getJumpType() != GOTO){
                     Label pop = label.getLabel();
-                    Label label1 = new Label();
+                    
+                    //check to see if an end label has already been made for the if,
+                    //if it has get that label and if it has not create the label.
+                    Label label1;  
+                    if(!stack.isEmptyLabel() && stack.peekLabel().getJumpType() == GOTO){
+                        label1 = stack.peekLabel().getLabel();
+                    }else{
+                        label1 = new Label();
+                    }
                    
                     methodVisitor.visitJumpInsn(GOTO, label1);
                     stack.pushLabel(new LabelStackValue(LabelTypeEnum.IF, GOTO, label1));
                     methodVisitor.visitLabel(pop);
-                    methodVisitor.visitFrame(F_APPEND, 1, new Object[] {INTEGER}, 0, null);
+                    
+                    //calculate the frame
+                    ArrayList<TypeDescriptor> frame = stack.getFrame();
+                    int frameSize = frame.size();
+                    if(frameSize > 0 && frameSize < 4){//F_APPEND only
+                        Object[] obj = new Object[frameSize];
+                        for(int i = 1; i <= frameSize; i++){
+                            obj[i] = QuorumConverter.convertTypeToBytecodeType(frame.get(i));
+                        }
+                        methodVisitor.visitFrame(F_APPEND, frameSize, obj, 0, null);
+                    }
+                    
                 }else if(label.getJumpType() == GOTO){
                     Label pop = label.getLabel();
                     methodVisitor.visitLabel(pop);

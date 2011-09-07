@@ -4,6 +4,7 @@
  */
 package org.quorum.vm.implementation;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Stack;
 import org.quorum.symbols.TypeDescriptor;
@@ -19,6 +20,7 @@ public class BytecodeStack {
     private Stack<BytecodeStackValue> constants = new Stack<BytecodeStackValue>();
     private Stack<LabelStackValue> labels = new Stack<LabelStackValue>();
     private HashMap<Integer, BytecodeStackValue> variables = new HashMap<Integer, BytecodeStackValue>();
+    private ArrayList<TypeDescriptor> frameVariables = new ArrayList<TypeDescriptor>();
     private HashMap<Integer, Integer> variableNumberMappings = new HashMap<Integer, Integer>();
     private int maxVariablesSize = 0;
     private int currentVariablesSize = 0;
@@ -68,15 +70,32 @@ public class BytecodeStack {
         return constants.get(constants.size() - 1 - location);
     }
     
+    /**
+     * Push a label onto the label stack.
+     * 
+     * @param value 
+     */
     public void pushLabel(LabelStackValue value) {
         labels.push(value);
     }
     
-    
+    /**
+     * Pop a label off the label stack.
+     * 
+     * @return 
+     */
     public LabelStackValue popLabel() {
+        if(labels.isEmpty()){
+            return null;
+        }
         return labels.pop();
     }
     
+    /**
+     * peek a label on the top of the label stack.
+     * 
+     * @return 
+     */
     public LabelStackValue peekLabel() {
         return labels.peek();
     }
@@ -96,6 +115,7 @@ public class BytecodeStack {
         if(currentVariablesSize > maxVariablesSize) {
             maxVariablesSize = currentVariablesSize;
         }
+        addFrameVariable(value.getType());
     }
     
     /**
@@ -120,6 +140,33 @@ public class BytecodeStack {
      */
     public BytecodeStackValue getVariable(int location) {
         return variables.get(location);
+    }
+    
+    /**
+     * add a variable to the frame (only a local variable).
+     * @param variable 
+     */
+    private void addFrameVariable(TypeDescriptor variable){
+        frameVariables.add(variable);
+    }
+    
+    /**
+     * get the current frame that contains local variables from
+     * a previous scope. Note: this should only be called when
+     * a new scope is entered.
+     * 
+     * @return 
+     */
+    public ArrayList<TypeDescriptor> getFrame(){
+        return frameVariables;
+    }
+    
+    /**
+     * clears the frame. Note: this should be called every time
+     * a new frame has been calculated (e.g. going into an if scope).
+     */
+    public void clearFrame(){
+        frameVariables.clear();
     }
     
     /**
@@ -172,8 +219,19 @@ public class BytecodeStack {
     public int getCurrentSize() {
         return currentSize;
     }
+
+    /**
+     * is the labels field empty.
+     */
+    public boolean isEmptyLabel() {
+        if(labels.isEmpty()){
+            return true;
+        }else{
+            return false;
+        }
+    }
     
-        /**
+    /**
      * Returns the maximum total size of the variables stored in the stack
      * achieved while processing push and pop values.
      * 
@@ -195,4 +253,5 @@ public class BytecodeStack {
     public int getMappedVariableNumber(int variableNumber) {
         return variableNumberMappings.get(variableNumber);
     }
+
 }
