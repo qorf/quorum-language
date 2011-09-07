@@ -179,9 +179,9 @@ public class BytecodeStackValue {
         if(type.isNumber()) {
             return 2;
         }
-        if(type.isText()) {
-            return 2;
-        }
+//        if(type.isText()) {
+//            return 2;
+//        }
         
         return 1;
     }

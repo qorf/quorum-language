@@ -244,6 +244,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, params, null, null);
         stack.startMethod();
         methodVisitor.visitCode();
+        stack.setMappedStartingVariableNumber(1);
 
         Vector<ExecutionStep> steps = method.getSteps();
         for(int i = 0; i < steps.size(); i++) {
@@ -254,11 +255,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitInsn(RETURN);
         //this should be filled out with the number of local variables
 //        int numberVariables = method.getMethodDescriptor().getNumberVariables();
-        int numberVariables = 0;
-        for (int index = 0; index < method.getMethodDescriptor().getNumberVariables(); index++) {
-            numberVariables++;
-            // insert type checking here
-        }
+        int numberVariables = stack.getMaxVariablesSize();
         int stackSize = stack.getMaxSize();
         //the stack size should also change depending on the 
         //expressions that need to be processed.
@@ -329,21 +326,22 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
         }
         else {
-            methodVisitor.visitVarInsn(value.getLoadOpCode(), value.getVarNumber());
+            methodVisitor.visitVarInsn(value.getLoadOpCode(), stack.getMappedVariableNumber(value.getVarNumber()));
         }
     }
     
     public void AssignLocal(BytecodeStackValue value, AssignmentLocalStep step) {
         int variableNumber = step.getVariable().getVariableNumber();
+        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
         if (value.isConstant()) {
             value.setAsVariable(variableNumber);
-            methodVisitor.visitVarInsn(value.getStoreOpCode(), variableNumber);
+            methodVisitor.visitVarInsn(value.getStoreOpCode(), mappedVariableNumber);
             stack.setVariable(variableNumber, value);
         }
         else {
             addToMethodVisit(value);
             value.setAsConstant();
-            methodVisitor.visitVarInsn(value.getStoreOpCode(), variableNumber);
+            methodVisitor.visitVarInsn(value.getStoreOpCode(), mappedVariableNumber);
             stack.setVariable(variableNumber, value);
         }
     }

@@ -19,9 +19,16 @@ public class BytecodeStack {
     private Stack<BytecodeStackValue> constants = new Stack<BytecodeStackValue>();
     private Stack<LabelStackValue> labels = new Stack<LabelStackValue>();
     private HashMap<Integer, BytecodeStackValue> variables = new HashMap<Integer, BytecodeStackValue>();
+    private HashMap<Integer, Integer> variableNumberMappings = new HashMap<Integer, Integer>();
+    private int maxVariablesSize = 0;
+    private int currentVariablesSize = 0;
     private int maxSize = 0;
     private int currentSize = 0;
     
+    
+    public void setMappedStartingVariableNumber(int variableNumber) {
+        variableNumberMappings.put(1, variableNumber);
+    }
     
     /**
      * This method pushes constants on the stack.
@@ -82,7 +89,13 @@ public class BytecodeStack {
      * @param value 
      */
     public void setVariable(int location, BytecodeStackValue value) {
+        int mappedVariableNumber = getMappedVariableNumber(location);
         variables.put(location, value);
+        variableNumberMappings.put(location + 1, mappedVariableNumber + value.getSize());
+        currentVariablesSize += BytecodeStackValue.getSize(value.getType());
+        if(currentVariablesSize > maxVariablesSize) {
+            maxVariablesSize = currentVariablesSize;
+        }
     }
     
     /**
@@ -93,7 +106,9 @@ public class BytecodeStack {
      * @return 
      */
     public BytecodeStackValue removeVariable(int location) {
-        return variables.remove(location);
+        BytecodeStackValue value = variables.remove(location);
+        currentVariablesSize -= BytecodeStackValue.getSize(value.getType());
+        return value;
     }
     
     
@@ -156,5 +171,28 @@ public class BytecodeStack {
      */
     public int getCurrentSize() {
         return currentSize;
+    }
+    
+        /**
+     * Returns the maximum total size of the variables stored in the stack
+     * achieved while processing push and pop values.
+     * 
+     * @return 
+     */
+    public int getMaxVariablesSize() {
+        return maxVariablesSize;
+    }
+    
+    /**
+     * Returns the current total size of the variables stored in the stack
+     * 
+     * @return 
+     */
+    public int getCurrentVariablesSize() {
+        return currentVariablesSize;
+    }
+    
+    public int getMappedVariableNumber(int variableNumber) {
+        return variableNumberMappings.get(variableNumber);
     }
 }
