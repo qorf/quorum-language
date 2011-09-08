@@ -115,7 +115,6 @@ public class BytecodeStack {
         if(currentVariablesSize > maxVariablesSize) {
             maxVariablesSize = currentVariablesSize;
         }
-        addFrameVariable(value.getType());
     }
     
     /**
@@ -146,7 +145,7 @@ public class BytecodeStack {
      * add a variable to the frame (only a local variable).
      * @param variable 
      */
-    private void addFrameVariable(TypeDescriptor variable){
+    public void addFrameVariable(TypeDescriptor variable){
         frameVariables.add(variable);
     }
     
@@ -250,6 +249,12 @@ public class BytecodeStack {
         return currentVariablesSize;
     }
     
+    /**
+     * 
+     * 
+     * @param variableNumber
+     * @return 
+     */
     public int getMappedVariableNumber(int variableNumber) {
         return variableNumberMappings.get(variableNumber);
     }

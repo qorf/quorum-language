@@ -376,6 +376,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitVarInsn(value.getStoreOpCode(), mappedVariableNumber);
             stack.setVariable(variableNumber, value);
         }
+        
+        //add the local variable that has been assigned a value to the frame
+        stack.addFrameVariable(value.getType());
     }
     
     @Override
@@ -910,10 +913,23 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     int frameSize = frame.size();
                     if(frameSize > 0 && frameSize < 4){//F_APPEND only
                         Object[] obj = new Object[frameSize];
-                        for(int i = 1; i <= frameSize; i++){
+                        for(int i = 0; i < frameSize; i++){
                             obj[i] = QuorumConverter.convertTypeToBytecodeType(frame.get(i));
                         }
                         methodVisitor.visitFrame(F_APPEND, frameSize, obj, 0, null);
+                        stack.clearFrame();
+                    }else if(frameSize == 0){
+                        methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
+                    }else if(frameSize >= 4){
+                        Object[] obj = new Object[frameSize + 1];
+                        for(int i = 0; i < frameSize; i++){
+                            if(i == 0){
+                                obj[i] = "Ljava/lang/String;";
+                            }
+                            
+                            obj[i + 1] = QuorumConverter.convertTypeToBytecodeType(frame.get(i));
+                        }
+                        methodVisitor.visitFrame(F_FULL, frameSize + 1, obj, 0, null);
                     }
                     
                 }else if(label.getJumpType() == GOTO){

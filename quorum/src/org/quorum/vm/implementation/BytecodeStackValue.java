@@ -125,7 +125,7 @@ public class BytecodeStackValue {
             return Opcodes.DSTORE;
         return Opcodes.ASTORE;
     }
-//    
+   
     /**
      * This method returns the raw String representation in java bytecode
      * of a particular Quorum type. For example, a type boolean
