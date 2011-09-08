@@ -75,6 +75,27 @@ public class QuorumConverter {
     }
     
     /**
+     * Converts a static key for a class into a full class name.
+     * @param key
+     * @return 
+     */
+    public static String convertStaticKeyToPluginPath(String key) {
+        return "plugins/" + convertStaticKeyToBytecodePath(key);
+    }
+    
+    /**
+     * Converts a static key for a class into a full class name. In this case,
+     * the type name is converted with additional information, so 
+     * plugin/quorum/test would be Lplugin/quorum/test;
+     * 
+     * @param key
+     * @return 
+     */
+    public static String convertStaticKeyToPluginPathTypeName(String key) {
+        return "Lplugins/" + convertStaticKeyToBytecodePath(key) + ";";
+    }
+    
+    /**
      * This method takes a type descriptor and converts it into a valid 
      * type descriptor value in Java bytecode. This conversion copies
      * largely page 11 of the asm-guide.pdf documentation for ASM.

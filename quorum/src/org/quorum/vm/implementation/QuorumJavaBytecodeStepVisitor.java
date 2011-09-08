@@ -175,6 +175,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private ClassExecution currentClassExecution = null;
     private MethodExecution currentMethodExecution = null;
     private boolean fieldInitialization = false;
+    private final String PLUGIN_NAME = "plugin";
     
     public QuorumJavaBytecodeStepVisitor() {
     }
@@ -197,15 +198,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //this will have to be modified for inheritance conversion
         classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", null);
         
-        
-        
-        
-        //call the class's initialization function
-        methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
-        methodVisitor.visitCode();
-        methodVisitor.visitVarInsn(ALOAD, THIS);
-        methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
-        
         //Do field visiting for the class.
         Iterator<VariableDescriptor> classVariables = clazz.getClassDescriptor().getClassVariables();
         while(classVariables.hasNext()) {
@@ -213,10 +205,28 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             String varName = next.getName();
             TypeDescriptor varType = next.getType();
             String converted = QuorumConverter.convertTypeToBytecodeString(varType);
-            fieldVisitor = classWriter.visitField(0, varName, converted, null, null);
+            fieldVisitor = classWriter.visitField(ACC_PUBLIC, varName, converted, null, null);
             fieldVisitor.visitEnd();
 
         }
+        
+        //put in an extra plugin field if the class has system actions.
+        int numSystem = currentClass.getNumberSystemActions();
+        if(numSystem > 0) {
+            String converted = QuorumConverter.convertStaticKeyToPluginPathTypeName(currentClass.getStaticKey());
+            fieldVisitor = classWriter.visitField(ACC_PUBLIC, PLUGIN_NAME, converted, null, null);
+            fieldVisitor.visitEnd();
+        }
+        
+        //call the class's initialization function
+        methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+        methodVisitor.visitCode();
+        methodVisitor.visitVarInsn(ALOAD, THIS);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+        
+        
+        
+        
         
         
         //now do field initialization
@@ -227,6 +237,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             step.visit(this);
         }
         fieldInitialization = false;
+        
+        //initialize the plugin last
+        methodVisitor.visitVarInsn(ALOAD, THIS);
+        String converted = QuorumConverter.convertStaticKeyToPluginPath(currentClass.getStaticKey());
+        String convertedSupplement = QuorumConverter.convertStaticKeyToPluginPathTypeName(currentClass.getStaticKey());
+        methodVisitor.visitTypeInsn(NEW, converted);
+        methodVisitor.visitInsn(DUP);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "()V");
+        methodVisitor.visitFieldInsn(PUTFIELD, converted, PLUGIN_NAME, convertedSupplement);
+        
+        
         
         
         methodVisitor.visitInsn(RETURN);

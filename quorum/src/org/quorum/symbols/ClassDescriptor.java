@@ -1365,7 +1365,34 @@ public class ClassDescriptor extends Descriptor implements Scopable {
     public boolean hasConstructor() {
         return this.constructor != null;
     }
+    
+    /**
+     * Returns the number of blueprint actions defined on the system.
+     * 
+     * @return 
+     */
+    public int getNumberBlueprintActions() {
+        return blueprints.size();
+    }
 
+    /**
+     * Returns the number of system actions defined on the system.
+     * 
+     * @return 
+     */
+    public int getNumberSystemActions() {
+        return this.systemActions.size();
+    }
+    
+    /**
+     * Returns the number of standard implemented actions in the class.
+     * 
+     * @return 
+     */
+    public int getNumberActions() {
+        return this.methods.size();
+    }
+    
     public BlueprintDescriptor getBlueprint(String key) {
         return blueprints.get(key);
     }
