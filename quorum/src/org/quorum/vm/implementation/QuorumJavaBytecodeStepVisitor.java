@@ -6,7 +6,6 @@ package org.quorum.vm.implementation;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Stack;
 import java.util.Vector;
 import org.objectweb.asm.*;
 import org.objectweb.asm.Opcodes;
@@ -152,10 +151,11 @@ import org.quorum.steps.UnaryTextNumberCastStep;
 import org.quorum.steps.UnaryTextTextCastStep;
 import org.quorum.steps.VariableInObjectMoveStep;
 import org.quorum.steps.VariableMoveStep;
+import org.quorum.symbols.BlueprintDescriptor;
 import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.MethodDescriptor;
-import org.quorum.symbols.ParameterDescriptor;
 import org.quorum.symbols.Parameters;
+import org.quorum.symbols.SystemActionDescriptor;
 import org.quorum.symbols.TypeDescriptor;
 import org.quorum.symbols.VariableDescriptor;
 
@@ -245,7 +245,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitTypeInsn(NEW, converted);
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "()V");
-        methodVisitor.visitFieldInsn(PUTFIELD, converted, PLUGIN_NAME, convertedSupplement);
+        methodVisitor.visitFieldInsn(PUTFIELD, name, PLUGIN_NAME, convertedSupplement);
         
         
         
@@ -254,7 +254,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         
         //TODO: The visitMaxs method will almost certainly have to change,
         //once field initialization works.
-        methodVisitor.visitMaxs(1, 1);
+        methodVisitor.visitMaxs(3, 1);
         methodVisitor.visitEnd();
         
         
@@ -269,7 +269,41 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             visit(method);
         }
         
+        Iterator<SystemActionDescriptor> systems = clazz.getClassDescriptor().getSystemActions();
+        while(systems.hasNext()) {
+            SystemActionDescriptor sys = systems.next();
+            computeSystemAction(sys);
+        }
         classWriter.visitEnd();
+    }
+    
+    public void computeSystemAction(SystemActionDescriptor action) {
+        String name = action.getName();
+        String params = QuorumConverter.convertMethodDescriptorToBytecodeSignature(action);
+        methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, params, null, null);
+        methodVisitor.visitCode();
+
+        //names
+        String key = currentClass.getStaticKey();
+        String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
+        String converted = QuorumConverter.convertStaticKeyToPluginPath(key);
+        String convertedSupplement = QuorumConverter.convertStaticKeyToPluginPathTypeName(key);
+        String signature = QuorumConverter.convertMethodDescriptorToBytecodeSignature(action);
+        
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitFieldInsn(GETFIELD, className, PLUGIN_NAME, convertedSupplement);
+        
+        //load parameters
+        methodVisitor.visitVarInsn(ILOAD, 1);
+        methodVisitor.visitVarInsn(ILOAD, 2);
+        
+        
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted, action.getName(), signature);
+        //methodVisitor.visitInsn(POP);
+
+        methodVisitor.visitInsn(RETURN);
+        methodVisitor.visitMaxs(3, 3);
+        methodVisitor.visitEnd();
     }
     
     public void visit(MethodExecution method) {
@@ -313,7 +347,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //the stack size should also change depending on the 
         //expressions that need to be processed.
 //        methodVisitor.visitMaxs(stackSize + 1, numberVariables + 1);
-        methodVisitor.visitMaxs(stackSize + 1, numberVariables + 1);
+        methodVisitor.visitMaxs(stackSize, numberVariables + 1);
         methodVisitor.visitEnd();
     }
 
@@ -991,7 +1025,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(MoveStep step) {
         ExpressionValue value = step.getValue();
         BytecodeStackValue bytecodeValue = new BytecodeStackValue(value, true, 0);
-        addToMethodVisit(bytecodeValue);
+        //addToMethodVisit(bytecodeValue);
         stack.pushConstant(bytecodeValue);
     }
 
