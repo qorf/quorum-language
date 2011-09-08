@@ -157,6 +157,7 @@ import org.quorum.symbols.MethodDescriptor;
 import org.quorum.symbols.ParameterDescriptor;
 import org.quorum.symbols.Parameters;
 import org.quorum.symbols.TypeDescriptor;
+import org.quorum.symbols.VariableDescriptor;
 
 /**
  * This class takes a set of opcodes
@@ -173,6 +174,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private ClassDescriptor currentClass = null;
     private ClassExecution currentClassExecution = null;
     private MethodExecution currentMethodExecution = null;
+    private boolean fieldInitialization = false;
     
     public QuorumJavaBytecodeStepVisitor() {
     }
@@ -195,21 +197,49 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //this will have to be modified for inheritance conversion
         classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", null);
         
+        
+        
+        
         //call the class's initialization function
         methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
         methodVisitor.visitCode();
         methodVisitor.visitVarInsn(ALOAD, THIS);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
-        methodVisitor.visitInsn(RETURN);
-        methodVisitor.visitMaxs(1, 1);
-        methodVisitor.visitEnd();
         
-        //loop through each step. Have a separate visitor method for each subclass
-        Vector<ExecutionStep> steps = clazz.getSteps();
+        //Do field visiting for the class.
+        Iterator<VariableDescriptor> classVariables = clazz.getClassDescriptor().getClassVariables();
+        while(classVariables.hasNext()) {
+            VariableDescriptor next = classVariables.next();
+            String varName = next.getName();
+            TypeDescriptor varType = next.getType();
+            String converted = QuorumConverter.convertTypeToBytecodeString(varType);
+            fieldVisitor = classWriter.visitField(0, varName, converted, null, null);
+            fieldVisitor.visitEnd();
+
+        }
+        
+        
+        //now do field initialization
+        fieldInitialization = true;
+        Vector<ExecutionStep> steps = this.currentClassExecution.getSteps();
         for(int i = 0; i < steps.size(); i++) {
             ExecutionStep step = steps.get(i);
             step.visit(this);
         }
+        fieldInitialization = false;
+        
+        
+        methodVisitor.visitInsn(RETURN);
+        
+        //TODO: The visitMaxs method will almost certainly have to change,
+        //once field initialization works.
+        methodVisitor.visitMaxs(1, 1);
+        methodVisitor.visitEnd();
+        
+        
+        
+        
+        
         
         //now do all methods
         Iterator<MethodExecution> methods = clazz.getMethods();
@@ -234,7 +264,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitVarInsn(ALOAD, 1);
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, processedClazzName, 
                     method.getMethodDescriptor().getName(), 
-                    QuorumConverter.convertMethodDescriptorToBytecodeSignature(method.getMethodDescriptor()));
+                    QuorumConverter.convertMethodDescriptorToBytecodeSignature(method.getMethodDescriptor()));           
             methodVisitor.visitInsn(RETURN);
             methodVisitor.visitMaxs(2, 2);
             methodVisitor.visitEnd();
