@@ -154,6 +154,7 @@ import org.quorum.steps.VariableMoveStep;
 import org.quorum.symbols.BlueprintDescriptor;
 import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.MethodDescriptor;
+import org.quorum.symbols.ParameterDescriptor;
 import org.quorum.symbols.Parameters;
 import org.quorum.symbols.SystemActionDescriptor;
 import org.quorum.symbols.TypeDescriptor;
@@ -292,17 +293,23 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         
         methodVisitor.visitVarInsn(ALOAD, 0);
         methodVisitor.visitFieldInsn(GETFIELD, className, PLUGIN_NAME, convertedSupplement);
-        
         //load parameters
-        methodVisitor.visitVarInsn(ILOAD, 1);
-        methodVisitor.visitVarInsn(ILOAD, 2);
-        
+        Parameters parameters = action.getParameters();
+        int position = 1;
+        for(int i = 0; i < parameters.size(); i++) {
+            methodVisitor.visitVarInsn(ILOAD, position);
+            ParameterDescriptor param = parameters.get(i);
+            int size = BytecodeStackValue.getSize(param.getType());
+            position += size;
+        }        
         
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted, action.getName(), signature);
-        //methodVisitor.visitInsn(POP);
+        if(!action.getReturnType().isVoid()) {
+            methodVisitor.visitInsn(POP);
+        }
 
         methodVisitor.visitInsn(RETURN);
-        methodVisitor.visitMaxs(3, 3);
+        methodVisitor.visitMaxs(position, position);
         methodVisitor.visitEnd();
     }
     
