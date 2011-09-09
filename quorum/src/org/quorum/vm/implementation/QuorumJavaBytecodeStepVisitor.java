@@ -189,10 +189,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         currentClassExecution = clazz;
         
         //garbage code to ease debugging, remove for reality.
-        if(!".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !".Matt".equals(staticKey) && !".Main".equals(staticKey)) {
+//        if(!".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !".Matt".equals(staticKey) && !".Main".equals(staticKey)) {
+//            return;
+//        }
+        
+        if(!".Stefik".equals(staticKey) && !"Libraries.Sound.Speech".equals(staticKey) && !".Matt".equals(staticKey) && !".Main".equals(staticKey)) {
             return;
         }
-        
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
         classWriter = new ClassWriter(0);
@@ -209,7 +212,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             String converted = QuorumConverter.convertTypeToBytecodeString(varType);
             fieldVisitor = classWriter.visitField(ACC_PUBLIC, varName, converted, null, null);
             fieldVisitor.visitEnd();
-
         }
         
         //put in an extra plugin field if the class has system actions.
@@ -241,14 +243,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         fieldInitialization = false;
         
         //initialize the plugin last
-        methodVisitor.visitVarInsn(ALOAD, THIS);
-        String converted = QuorumConverter.convertStaticKeyToPluginPath(currentClass.getStaticKey());
-        String convertedSupplement = QuorumConverter.convertStaticKeyToPluginPathTypeName(currentClass.getStaticKey());
-        methodVisitor.visitTypeInsn(NEW, converted);
-        methodVisitor.visitInsn(DUP);
-        methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "()V");
-        methodVisitor.visitFieldInsn(PUTFIELD, name, PLUGIN_NAME, convertedSupplement);
-        
+        if(numSystem > 0) {
+            methodVisitor.visitVarInsn(ALOAD, THIS);
+            String converted = QuorumConverter.convertStaticKeyToPluginPath(currentClass.getStaticKey());
+            String convertedSupplement = QuorumConverter.convertStaticKeyToPluginPathTypeName(currentClass.getStaticKey());
+            methodVisitor.visitTypeInsn(NEW, converted);
+            methodVisitor.visitInsn(DUP);
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "()V");
+            methodVisitor.visitFieldInsn(PUTFIELD, name, PLUGIN_NAME, convertedSupplement);
+        }
         
         
         
@@ -256,7 +259,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         
         //TODO: The visitMaxs method will almost certainly have to change,
         //once field initialization works.
-        methodVisitor.visitMaxs(3, 1);
+        if(numSystem > 0) {
+            methodVisitor.visitMaxs(3, 1);
+        }
+        else {
+            methodVisitor.visitMaxs(1, 1);
+        }
         methodVisitor.visitEnd();
         
         
@@ -298,19 +306,27 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         Parameters parameters = action.getParameters();
         int position = 1;
         for(int i = 0; i < parameters.size(); i++) {
-            methodVisitor.visitVarInsn(ILOAD, position);
+            
+            
             ParameterDescriptor param = parameters.get(i);
+            methodVisitor.visitVarInsn(BytecodeStackValue.getLoadOpcode(param.getType()), position);
             int size = BytecodeStackValue.getSize(param.getType());
             position += size;
         }        
         
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted, action.getName(), signature);
-        if(!action.getReturnType().isVoid()) {
-            methodVisitor.visitInsn(POP);
-        }
+        
+        int returnOpcode = QuorumConverter.convertTypeToReturnOpcode(action.getReturnType());
+        methodVisitor.visitInsn(returnOpcode);
 
-        methodVisitor.visitInsn(RETURN);
-        methodVisitor.visitMaxs(position, position);
+        int stackSize = position;
+        int varSize = position;
+        
+        if(action.getReturnType().isNumber()) {
+            stackSize += 1;
+        }
+        
+        methodVisitor.visitMaxs(stackSize, varSize);
         methodVisitor.visitEnd();
     }
     
@@ -427,6 +443,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     
     public void AssignLocal(BytecodeStackValue value, AssignmentLocalStep step) {
         int variableNumber = step.getVariable().getVariableNumber();
+        if(variableNumber == -1) {
+            return; //it's a field and we don't handle these yet.
+        }
         int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
         if (value.isConstant()) {
             value.setAsVariable(variableNumber);
@@ -973,8 +992,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         VariableParameterCommonDescriptor variable = step.getVariable();
         
         int variableNumber = step.getVariable().getVariableNumber();
+        if(variableNumber == -1) {
+            return; //it's a field and we don't handle these yet.
+        }
         int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
-        
         
         BytecodeStackValue value = new BytecodeStackValue();
         value.setAsVariable(variableNumber);
@@ -1257,6 +1278,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(VariableMoveStep step) {
+        if(step.getValue().getVariableNumber() == -1) {
+            return; //it's a field and we don't handle these yet.
+        }
         BytecodeStackValue value = stack.getVariable(step.getValue().getVariableNumber());
 //        addToMethodVisit(value);
         stack.pushConstant(value);

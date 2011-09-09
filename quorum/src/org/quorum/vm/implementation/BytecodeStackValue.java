@@ -110,7 +110,22 @@ public class BytecodeStackValue {
             return null;
     }
     
+    /**
+     * This method returns the correct opcode for loading a particular 
+     * value onto the stack. 
+     */
     public int getLoadOpCode() {
+        return getLoadOpcode(type);
+    }
+    
+    /**
+     * This method returns the correct opcode for loading a particular
+     * value onto the stack.
+     * 
+     * @param type The type to check the opcode for.
+     * @return 
+     */
+    public static int getLoadOpcode(TypeDescriptor type) {
         if (type.isInteger() || type.isBoolean())
             return Opcodes.ILOAD;
         else if(type.isNumber())

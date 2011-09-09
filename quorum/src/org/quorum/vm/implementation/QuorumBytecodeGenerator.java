@@ -45,9 +45,14 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     private void generate(ContainerExecution container) {
         Iterator<ClassExecution> classes = container.getClasses();
         while (classes.hasNext()) {
-            ClassExecution clazz = classes.next();
-            QuorumBytecode code = generate(clazz);
-            classHash.put(code.getStaticKey(), code);
+            try {
+                ClassExecution clazz = classes.next();
+                QuorumBytecode code = generate(clazz);
+                classHash.put(code.getStaticKey(), code);
+            }
+            catch(Exception e) {
+                int a = 5;
+            }
         }
     }
     

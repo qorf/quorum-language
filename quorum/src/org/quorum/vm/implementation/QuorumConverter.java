@@ -122,7 +122,9 @@ public class QuorumConverter {
             return "V";
         }
         else {
-            return null;
+            String key = type.getStaticKey();
+            String convert = convertStaticKeyToBytecodePath(key);
+            return "L" + convert + ";";
         }
     }
     
@@ -144,6 +146,27 @@ public class QuorumConverter {
         }else{
             String s = type.getName();
             return convertStaticKeyToBytecodePath(s);
+        }
+    }
+    
+    /**
+     * Takes a type descriptor object and converts it into the appropriate
+     * opcode for a return statement.
+     * 
+     * @param type The most common cases are IRETURN for ints, DRETURN for doubles
+     *        and RETURN for void.
+     * @return 
+     */
+    public static int convertTypeToReturnOpcode(TypeDescriptor type) {
+        if(type.isVoid()) {
+            return Opcodes.RETURN;
+            
+        }
+        else if(type.isNumber()) {
+            return Opcodes.DRETURN;
+        }
+        else {
+            return Opcodes.IRETURN;
         }
     }
 }
