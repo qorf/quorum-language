@@ -176,7 +176,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private ClassExecution currentClassExecution = null;
     private MethodExecution currentMethodExecution = null;
     private boolean fieldInitialization = false;
-    private final String PLUGIN_NAME = "plugin";
+    private final String PLUGIN_NAME = "<plugin>";
     
     public QuorumJavaBytecodeStepVisitor() {
     }
