@@ -159,6 +159,7 @@ import org.quorum.symbols.Parameters;
 import org.quorum.symbols.SystemActionDescriptor;
 import org.quorum.symbols.TypeDescriptor;
 import org.quorum.symbols.VariableDescriptor;
+import org.quorum.symbols.VariableParameterCommonDescriptor;
 
 /**
  * This class takes a set of opcodes
@@ -917,6 +918,27 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 callee.getName(), 
                 QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));
         }
+        else {
+            VariableParameterCommonDescriptor var = step.getParentObject();
+            String staticKey = var.getStaticKey();
+            int variableNumber = var.getVariableNumber();
+            
+            methodVisitor.visitVarInsn(ALOAD, stack.getMappedVariableNumber(variableNumber));
+            //push the this pointer on and pop it off
+            String converted = QuorumConverter.convertStaticKeyToBytecodePath(var.getType().getStaticKey());
+            
+            //this is technically the wrong class, but the size is the same, regardless of class type
+            stack.implicitStackIncrease(currentClass.getType());
+            Parameters parameters = callee.getParameters();
+            for(int i = 0; i < parameters.size(); i++) {
+                int location = parameters.size() - 1 - i;
+                BytecodeStackValue value = stack.getConstantFromTop(location);
+                addToMethodVisit(value);
+            }
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted, 
+                callee.getName(), 
+                QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));
+        }
     }
 
     @Override
@@ -942,6 +964,40 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(CreateObjectStep step) {
         int a = 5;
+        ClassDescriptor clazz = step.getClazz();
+        //methodVisitor.visitVarInsn(ALOAD, THIS);
+        String converted = QuorumConverter.convertStaticKeyToBytecodePath(clazz.getStaticKey());
+        methodVisitor.visitTypeInsn(NEW, converted);
+        methodVisitor.visitInsn(DUP);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "()V");
+        VariableParameterCommonDescriptor variable = step.getVariable();
+        
+        int variableNumber = step.getVariable().getVariableNumber();
+        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+        
+        
+        BytecodeStackValue value = new BytecodeStackValue();
+        value.setAsVariable(variableNumber);
+        value.setType(variable.getType());
+//        if (value.isConstant()) {
+//            value.setAsVariable(variableNumber);
+//            methodVisitor.visitVarInsn(value.getStoreOpCode(), mappedVariableNumber);
+//            stack.setVariable(variableNumber, value);
+//        }
+//        else {
+//            addToMethodVisit(value);
+//            value.setAsConstant();
+//            methodVisitor.visitVarInsn(value.getStoreOpCode(), mappedVariableNumber);
+//            stack.setVariable(variableNumber, value);
+//        }
+        
+        stack.setVariable(variableNumber, value);
+        //add the local variable that has been assigned a value to the frame
+        stack.addFrameVariable(variable.getType());
+        
+        methodVisitor.visitVarInsn(ASTORE, mappedVariableNumber);
+        //stack.setVariable(variableNumber, value);
+        int b = 5;
     }
 
     @Override
