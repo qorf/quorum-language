@@ -1,8 +1,16 @@
-integer toPrint = 5
-number toPrint2 = 4.0
-text toPrint3 = "Hello"
-boolean toPrint4 = false
-print toPrint
-print toPrint2
-print toPrint3
-print toPrint4
+class Matt
+    action Main
+        boolean x = true
+        boolean y = false
+
+        print x or y
+    end
+
+    action TrueGenerator returns boolean
+        return true
+    end
+
+    action FalseGenerator returns boolean
+        return false
+    end
+end
