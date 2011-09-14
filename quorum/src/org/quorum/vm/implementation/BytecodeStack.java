@@ -251,7 +251,6 @@ public class BytecodeStack {
         constants.empty();
         variables.clear();
         labels.clear();
-        frameVariables.clear();
         variableNumberMappings.clear();
         setMappedStartingVariableNumber(1);
     }
