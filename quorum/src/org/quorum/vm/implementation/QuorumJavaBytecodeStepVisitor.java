@@ -604,8 +604,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BeginScopeStep step) {
-        stack.newFrame();
-        stack.newEndFrame();
+        if (!stack.isEmptyLabel()) {
+            LabelStackValue label = stack.peekLabel();
+            if (label.getLabelType().equals(LabelTypeEnum.IF) && !step.getBlockTag().equals("else")) {
+                stack.newFrame();
+                stack.newEndFrame();
+            }
+        }
     }
 
     @Override
