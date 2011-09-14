@@ -122,4 +122,9 @@ public interface Scopable {
      * @return scopable item
      */
     public Scopable getParent();
+
+    /**
+     * Get the number of variables available in the scope.
+     */
+    public int getNumberOfVariables();
 }

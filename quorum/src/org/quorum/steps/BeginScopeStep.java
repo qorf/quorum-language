@@ -18,13 +18,14 @@ import org.quorum.execution.RuntimeScope;
 public class BeginScopeStep extends IntermediateStep{
 
     protected String blockName;
+    protected String blockTag = "";
 
     @Override
     public void execute() {
         DataEnvironment de = vm.getDataEnvironment();
         BlockScope cs = new BlockScope();
         RuntimeScope localScope = de.getLocalScope();
-
+        
         cs.setBlockName(blockName);
         cs.setParent(localScope);
         de.callStackPush(cs);
@@ -48,5 +49,13 @@ public class BeginScopeStep extends IntermediateStep{
     @Override
     public void visit(ExecutionStepVisitor visitor) {
         visitor.visit(this);
+    }
+
+    public void setBlockTag(String tag){
+        blockTag = tag;
+    }
+    
+    public String getBlockTag() {
+        return blockTag;
     }
 }

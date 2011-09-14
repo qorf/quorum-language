@@ -1,4 +1,4 @@
-// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g 2011-09-01 16:31:30
+// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g 2011-09-14 13:38:16
 
 
 
@@ -867,7 +867,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: CLASS, inherit_stmnts, END, generic_declaration, class_stmnts, ID
+                    // elements: ID, CLASS, class_stmnts, generic_declaration, END, inherit_stmnts
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -1361,7 +1361,7 @@ public class QuorumParser extends Parser {
 
 
             // AST REWRITE
-            // elements: qualified_name, INHERITS, generic_statement
+            // elements: qualified_name, generic_statement, INHERITS
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -1986,7 +1986,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: ID, RETURNS, formal_parameter, END, assignment_declaration, block, ACTION
+                    // elements: assignment_declaration, block, RETURNS, ACTION, ID, END, formal_parameter
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2011,13 +2011,13 @@ public class QuorumParser extends Parser {
                         }
                         stream_formal_parameter.reset();
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:502:35: ( RETURNS assignment_declaration )?
-                        if ( stream_RETURNS.hasNext()||stream_assignment_declaration.hasNext() ) {
+                        if ( stream_assignment_declaration.hasNext()||stream_RETURNS.hasNext() ) {
                             adaptor.addChild(root_1, stream_RETURNS.nextNode());
                             adaptor.addChild(root_1, stream_assignment_declaration.nextTree());
 
                         }
-                        stream_RETURNS.reset();
                         stream_assignment_declaration.reset();
+                        stream_RETURNS.reset();
                         adaptor.addChild(root_1, stream_block.nextTree());
                         adaptor.addChild(root_1, stream_END.nextNode());
 
@@ -2186,7 +2186,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: BLUEPRINT, RETURNS, formal_parameter, ACTION, assignment_declaration, ID
+                    // elements: assignment_declaration, RETURNS, formal_parameter, ACTION, BLUEPRINT, ID
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2212,13 +2212,13 @@ public class QuorumParser extends Parser {
                         }
                         stream_formal_parameter.reset();
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:544:45: ( RETURNS assignment_declaration )?
-                        if ( stream_RETURNS.hasNext()||stream_assignment_declaration.hasNext() ) {
+                        if ( stream_assignment_declaration.hasNext()||stream_RETURNS.hasNext() ) {
                             adaptor.addChild(root_1, stream_RETURNS.nextNode());
                             adaptor.addChild(root_1, stream_assignment_declaration.nextTree());
 
                         }
-                        stream_RETURNS.reset();
                         stream_assignment_declaration.reset();
+                        stream_RETURNS.reset();
 
                         adaptor.addChild(root_0, root_1);
                         }
@@ -2385,7 +2385,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: formal_parameter, ACTION, RETURNS, ID, NATIVE, assignment_declaration
+                    // elements: ACTION, RETURNS, ID, NATIVE, formal_parameter, assignment_declaration
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2474,7 +2474,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: ON_CREATE, END, block
+                    // elements: block, END, ON_CREATE
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2734,7 +2734,7 @@ public class QuorumParser extends Parser {
 
 
             // AST REWRITE
-            // elements: PERIOD, ID, ID
+            // elements: ID, PERIOD, ID
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -3345,7 +3345,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: qualified_name, LEFT_PAREN, COLON, RIGHT_PAREN, COMMA, expression, ID, expression
+                    // elements: LEFT_PAREN, COLON, expression, expression, COMMA, qualified_name, RIGHT_PAREN, ID
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -3373,21 +3373,21 @@ public class QuorumParser extends Parser {
                         stream_ID.reset();
                         adaptor.addChild(root_1, stream_LEFT_PAREN.nextNode());
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:707:63: ( expression ( COMMA expression )* )?
-                        if ( stream_COMMA.hasNext()||stream_expression.hasNext()||stream_expression.hasNext() ) {
+                        if ( stream_expression.hasNext()||stream_expression.hasNext()||stream_COMMA.hasNext() ) {
                             adaptor.addChild(root_1, stream_expression.nextTree());
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:707:75: ( COMMA expression )*
-                            while ( stream_COMMA.hasNext()||stream_expression.hasNext() ) {
+                            while ( stream_expression.hasNext()||stream_COMMA.hasNext() ) {
                                 adaptor.addChild(root_1, stream_COMMA.nextNode());
                                 adaptor.addChild(root_1, stream_expression.nextTree());
 
                             }
-                            stream_COMMA.reset();
                             stream_expression.reset();
+                            stream_COMMA.reset();
 
                         }
+                        stream_expression.reset();
+                        stream_expression.reset();
                         stream_COMMA.reset();
-                        stream_expression.reset();
-                        stream_expression.reset();
                         adaptor.addChild(root_1, stream_RIGHT_PAREN.nextNode());
 
                         adaptor.addChild(root_0, root_1);
@@ -3484,7 +3484,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: LEFT_PAREN, COLON, expression, qualified_name, COMMA, COLON, PARENT, RIGHT_PAREN, expression, ID
+                    // elements: expression, expression, RIGHT_PAREN, COLON, COLON, COMMA, ID, qualified_name, PARENT, LEFT_PAREN
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -3508,21 +3508,21 @@ public class QuorumParser extends Parser {
                         adaptor.addChild(root_1, stream_ID.nextNode());
                         adaptor.addChild(root_1, stream_LEFT_PAREN.nextNode());
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:709:80: ( expression ( COMMA expression )* )?
-                        if ( stream_expression.hasNext()||stream_COMMA.hasNext()||stream_expression.hasNext() ) {
+                        if ( stream_expression.hasNext()||stream_expression.hasNext()||stream_COMMA.hasNext() ) {
                             adaptor.addChild(root_1, stream_expression.nextTree());
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:709:92: ( COMMA expression )*
-                            while ( stream_COMMA.hasNext()||stream_expression.hasNext() ) {
+                            while ( stream_expression.hasNext()||stream_COMMA.hasNext() ) {
                                 adaptor.addChild(root_1, stream_COMMA.nextNode());
                                 adaptor.addChild(root_1, stream_expression.nextTree());
 
                             }
-                            stream_COMMA.reset();
                             stream_expression.reset();
+                            stream_COMMA.reset();
 
                         }
                         stream_expression.reset();
-                        stream_COMMA.reset();
                         stream_expression.reset();
+                        stream_COMMA.reset();
                         adaptor.addChild(root_1, stream_RIGHT_PAREN.nextNode());
 
                         adaptor.addChild(root_0, root_1);
@@ -3636,7 +3636,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: COMMA, qualified_name, expression, expression, LEFT_PAREN, RIGHT_PAREN, COLON, ID, COLON, ME
+                    // elements: ID, COMMA, qualified_name, ME, RIGHT_PAREN, expression, COLON, LEFT_PAREN, expression, COLON
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -3907,7 +3907,7 @@ public class QuorumParser extends Parser {
 
 
             // AST REWRITE
-            // elements: ALERT, LEFT_PAREN, expression, RIGHT_PAREN
+            // elements: expression, LEFT_PAREN, ALERT, RIGHT_PAREN
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -4321,7 +4321,7 @@ public class QuorumParser extends Parser {
 
 
             // AST REWRITE
-            // elements: qualified_name, OF_TYPE, OR, ID, qualified_name
+            // elements: qualified_name, qualified_name, ID, OR, OF_TYPE
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -4339,23 +4339,23 @@ public class QuorumParser extends Parser {
                 root_1 = (CommonTree)adaptor.becomeRoot(stream_ID.nextNode(), root_1);
 
                 // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:789:10: ( OF_TYPE qualified_name ( OR qualified_name )* )?
-                if ( stream_qualified_name.hasNext()||stream_OF_TYPE.hasNext()||stream_OR.hasNext()||stream_qualified_name.hasNext() ) {
+                if ( stream_qualified_name.hasNext()||stream_qualified_name.hasNext()||stream_OR.hasNext()||stream_OF_TYPE.hasNext() ) {
                     adaptor.addChild(root_1, stream_OF_TYPE.nextNode());
                     adaptor.addChild(root_1, stream_qualified_name.nextTree());
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:789:33: ( OR qualified_name )*
-                    while ( stream_OR.hasNext()||stream_qualified_name.hasNext() ) {
+                    while ( stream_qualified_name.hasNext()||stream_OR.hasNext() ) {
                         adaptor.addChild(root_1, stream_OR.nextNode());
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
                     }
-                    stream_OR.reset();
                     stream_qualified_name.reset();
+                    stream_OR.reset();
 
                 }
                 stream_qualified_name.reset();
-                stream_OF_TYPE.reset();
-                stream_OR.reset();
                 stream_qualified_name.reset();
+                stream_OR.reset();
+                stream_OF_TYPE.reset();
 
                 adaptor.addChild(root_0, root_1);
                 }
@@ -4692,7 +4692,7 @@ public class QuorumParser extends Parser {
 
 
             // AST REWRITE
-            // elements: COMMA, GREATER, ID, ID, LESS
+            // elements: ID, LESS, GREATER, COMMA, ID
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -4712,13 +4712,13 @@ public class QuorumParser extends Parser {
                 adaptor.addChild(root_1, stream_LESS.nextNode());
                 adaptor.addChild(root_1, stream_ID.nextNode());
                 // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:827:23: ( COMMA ID )*
-                while ( stream_COMMA.hasNext()||stream_ID.hasNext() ) {
+                while ( stream_ID.hasNext()||stream_COMMA.hasNext() ) {
                     adaptor.addChild(root_1, stream_COMMA.nextNode());
                     adaptor.addChild(root_1, stream_ID.nextNode());
 
                 }
-                stream_COMMA.reset();
                 stream_ID.reset();
+                stream_COMMA.reset();
                 adaptor.addChild(root_1, stream_GREATER.nextNode());
 
                 adaptor.addChild(root_0, root_1);
@@ -4866,7 +4866,7 @@ public class QuorumParser extends Parser {
 
 
             // AST REWRITE
-            // elements: COMMA, GREATER, assignment_declaration, LESS, assignment_declaration
+            // elements: GREATER, LESS, COMMA, assignment_declaration, assignment_declaration
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -6110,7 +6110,7 @@ public class QuorumParser extends Parser {
 
 
             // AST REWRITE
-            // elements: TO, root_expression, root_expression
+            // elements: root_expression, TO, root_expression
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -6223,7 +6223,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: qualified_name, PARENT
+                    // elements: PARENT, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7318,7 +7318,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: NOT, atom
+                    // elements: atom, NOT
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7566,7 +7566,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: ID, COLON, qualified_name
+                    // elements: COLON, ID, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7585,13 +7585,13 @@ public class QuorumParser extends Parser {
 
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1140:75: ( COLON ID )?
-                        if ( stream_ID.hasNext()||stream_COLON.hasNext() ) {
+                        if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
                             adaptor.addChild(root_1, stream_COLON.nextNode());
                             adaptor.addChild(root_1, stream_ID.nextNode());
 
                         }
-                        stream_ID.reset();
                         stream_COLON.reset();
+                        stream_ID.reset();
 
                         adaptor.addChild(root_0, root_1);
                         }
@@ -7648,7 +7648,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: LEFT_PAREN, ID, function_expression_list, RIGHT_PAREN, qualified_name, COLON
+                    // elements: qualified_name, RIGHT_PAREN, ID, COLON, function_expression_list, LEFT_PAREN
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7707,7 +7707,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: qualified_name, COLON, selector
+                    // elements: COLON, qualified_name, selector
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7772,7 +7772,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: LEFT_PAREN, function_expression_list, COLON, COLON, PARENT, ID, qualified_name, RIGHT_PAREN
+                    // elements: COLON, LEFT_PAREN, PARENT, RIGHT_PAREN, COLON, function_expression_list, qualified_name, ID
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7859,7 +7859,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: qualified_name, LEFT_PAREN, RIGHT_PAREN, ID, COLON, COLON, function_expression_list, ME
+                    // elements: function_expression_list, LEFT_PAREN, ID, qualified_name, ME, COLON, RIGHT_PAREN, COLON
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 

@@ -1133,7 +1133,7 @@ scope {
 			stepFactory.startIf($if_statement::info);
 			
 		}
-			block[true] //<< true code 
+			b=block[true] //<< true code 
 		{
                         
                         $if_statement::info.ifJumpStep.setBeginColumn($begin_if.getCharPositionInLine());
@@ -1180,7 +1180,7 @@ scope {
 				
 			stepFactory.startElseIf($if_statement::info,$if_statement::else_if_counter);
 		}
-		block[true] 
+		b=block[true] 
 		{
 			JumpStep jump = new JumpStep();
 			jump.setBeginColumn($begin_else_if.getCharPositionInLine());
@@ -1204,7 +1204,7 @@ scope {
 			labelCounter++;	
 			stepFactory.startElse($if_statement::info);	
 		}
-		block[true] END
+		b=block[true] END
 		{
 			stepFactory.endElse();																					
 		})?
@@ -1287,7 +1287,7 @@ scope {
 		
 		symbol.enterNextBlock();
 		$loop_statement::type = 1;
-		stepFactory.addBeginScopeStep($loop_statement::marker_loop);
+		stepFactory.addBeginScopeStep($loop_statement::marker_loop, "loop");
 	})
 	|	(expr = root_expression TIMES)
 	{
@@ -1305,7 +1305,7 @@ scope {
 		$loop_statement::cJumpStep.setLineInformation($loop_statement::location);
 		builder.add($loop_statement::cJumpStep);
 		builder.addMarker($loop_statement::marker_bottom);
-		stepFactory.addBeginScopeStep($loop_statement::marker_loop);
+		stepFactory.addBeginScopeStep($loop_statement::marker_loop, "loop");
 		symbol.enterNextBlock();
 		$loop_statement::type = 1;
 		
@@ -1334,14 +1334,14 @@ scope {
 				builder.add($loop_statement::uJumpStep);
 			}
 			builder.addMarker($loop_statement::marker_bottom);
-			stepFactory.addBeginScopeStep($loop_statement::marker_loop);
+			stepFactory.addBeginScopeStep($loop_statement::marker_loop, "loop");
 			symbol.enterNextBlock();
 
 		}))
 	
 	block[true]
 	{
-		stepFactory.addEndScopeStep();
+		stepFactory.addEndScopeStep("loop");
 		symbol.popScope();
 		if($loop_statement::type == 1)
 		{

@@ -49,7 +49,7 @@ public class MethodDescriptor extends Descriptor implements Scopable {
         CompilerError error = super.isDefined(descriptor, getVariables());
         if (error == null) {
             getVariables().put(descriptor.getStaticKey(), descriptor);
-            descriptor.setVariableNumber(getVariables().size());
+            descriptor.setVariableNumber(getNumberOfVariables());
         }
 
         return error;
@@ -504,5 +504,10 @@ public class MethodDescriptor extends Descriptor implements Scopable {
      */
     public boolean isConstructor(){
         return isConstructor;
+    }
+
+    @Override
+    public int getNumberOfVariables() {
+        return parent.getNumberOfVariables() + getVariables().size();
     }
 }

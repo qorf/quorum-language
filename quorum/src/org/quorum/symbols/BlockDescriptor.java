@@ -59,6 +59,8 @@ public class BlockDescriptor extends Descriptor implements Scopable{
         CompilerError error = super.isDefined(descriptor, variables);
         if (error == null) {
             variables.put(descriptor.getStaticKey(), descriptor);
+            parent.getNumberOfVariables();
+            descriptor.setVariableNumber(getNumberOfVariables());
         }
 
         return error;
@@ -125,5 +127,10 @@ public class BlockDescriptor extends Descriptor implements Scopable{
 
     public BlueprintDescriptor getBlueprint(String key) {
         return null;
+    }
+
+    @Override
+    public int getNumberOfVariables() {
+        return parent.getNumberOfVariables() + variables.size();
     }
 }

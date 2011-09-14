@@ -6,7 +6,9 @@ package org.quorum.vm.implementation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Stack;
+import org.quorum.execution.OmniscientStack;
 import org.quorum.symbols.TypeDescriptor;
 
 /**
@@ -18,9 +20,10 @@ import org.quorum.symbols.TypeDescriptor;
  */
 public class BytecodeStack {
     private Stack<BytecodeStackValue> constants = new Stack<BytecodeStackValue>();
-    private Stack<LabelStackValue> labels = new Stack<LabelStackValue>();
+    private OmniscientStack<LabelStackValue> labels = new OmniscientStack<LabelStackValue>();
     private HashMap<Integer, BytecodeStackValue> variables = new HashMap<Integer, BytecodeStackValue>();
-    private ArrayList<TypeDescriptor> frameVariables = new ArrayList<TypeDescriptor>();
+    private ArrayList<ArrayList<TypeDescriptor>> frame = new ArrayList<ArrayList<TypeDescriptor>>();
+    private ArrayList<ArrayList<TypeDescriptor>> endFrame = new ArrayList<ArrayList<TypeDescriptor>>();
     private HashMap<Integer, Integer> variableNumberMappings = new HashMap<Integer, Integer>();
     private int maxVariablesSize = 0;
     private int currentVariablesSize = 0;
@@ -101,6 +104,13 @@ public class BytecodeStack {
     }
     
     /**
+     * Undo a label pop.
+     */
+    public void undoLabel(){
+        labels.undo();
+    }
+    
+    /**
      * Pushes a value for a particular variable onto a hash map that can
      * later be queried.
      * 
@@ -146,7 +156,14 @@ public class BytecodeStack {
      * @param variable 
      */
     public void addFrameVariable(TypeDescriptor variable){
-        frameVariables.add(variable);
+        if(frame.isEmpty()){
+            frame.add(new ArrayList<TypeDescriptor>());
+        }
+        if(endFrame.isEmpty()){
+            newEndFrame();
+        }
+        frame.get(frame.size() - 1).add(variable);
+        endFrame.get(endFrame.size() - 1).add(variable);
     }
     
     /**
@@ -156,16 +173,68 @@ public class BytecodeStack {
      * 
      * @return 
      */
-    public ArrayList<TypeDescriptor> getFrame(){
-        return frameVariables;
+    private ArrayList<TypeDescriptor> removeFrontFrame(){
+        if(frame.isEmpty()){
+            return null;
+        }
+        ArrayList<TypeDescriptor> removed = frame.remove(0);
+        return removed;
+    }
+    
+    private ArrayList<TypeDescriptor> getFrontFrame(){
+        if(frame.isEmpty()){
+            return null;
+        }
+        return frame.get(0);
+    }
+    
+    public ArrayList<TypeDescriptor> getFrame() {
+        ArrayList<TypeDescriptor> previousFrame = removeFrontFrame();
+        ArrayList<TypeDescriptor> currentFrame = getFrontFrame();
+        ArrayList<TypeDescriptor> newFrame = new ArrayList<TypeDescriptor>();
+        if(previousFrame != null){
+            Iterator<TypeDescriptor> prevIt = previousFrame.iterator();
+            while(prevIt.hasNext()){
+                newFrame.add(prevIt.next());
+            }
+            if(currentFrame != null && !currentFrame.isEmpty()){
+                ArrayList<TypeDescriptor> newScope = new ArrayList<TypeDescriptor>();
+                while(!currentFrame.isEmpty()){
+                    TypeDescriptor removed = currentFrame.remove(0);
+                    newScope.add(removed);
+                    newFrame.add(removed);
+                }
+            }
+        }
+        clearFrame();
+        return newFrame;
+    }
+    
+    public void newFrame(){
+        frame.add(new ArrayList<TypeDescriptor>());
+    }
+    
+    private void clearFrame(){
+        frame.clear();
+    }
+    
+    /**
+     * Remove the current frame from the endFrame.
+     * @return 
+     */
+    public ArrayList<TypeDescriptor> removeEndFrame(){
+        if(endFrame.isEmpty()){
+            return null;
+        }
+        return endFrame.remove(endFrame.size() - 1);
     }
     
     /**
      * clears the frame. Note: this should be called every time
      * a new frame has been calculated (e.g. going into an if scope).
      */
-    public void clearFrame(){
-        frameVariables.clear();
+    public void newEndFrame(){
+        endFrame.add(new ArrayList<TypeDescriptor>());
     }
     
     /**

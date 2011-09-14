@@ -14,6 +14,7 @@ import org.quorum.execution.ExecutionStepVisitor;
  * @author Melissa Stefik
  */
 public class EndScopeStep extends IntermediateStep{
+    protected String blockTag;
 
     @Override
     public void execute() {
@@ -30,5 +31,14 @@ public class EndScopeStep extends IntermediateStep{
     @Override
     public void visit(ExecutionStepVisitor visitor) {
         visitor.visit(this);
+    }
+
+
+    public void setBlockTag(String tag){
+        blockTag = tag;
+    }
+
+    public String getBlockTag() {
+        return blockTag;
     }
 }

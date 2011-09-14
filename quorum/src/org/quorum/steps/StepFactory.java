@@ -1770,7 +1770,7 @@ public class StepFactory {
         SymbolTable symbolTable = this.machine.getSymbolTable();
         addConditionalJumpIfStep(info.ifFalseLabel, info.ifConditionalStep);
 
-        addBeginScopeStep(info.ifStartLabel);
+        addBeginScopeStep(info.ifStartLabel, "if");
         symbolTable.getControlFlow().ifStart();
         symbolTable.enterNextBlock();
     }
@@ -1799,7 +1799,7 @@ public class StepFactory {
      */
     public void addIfEndJumpStep(IfStatementInfo info){
         //end the block
-        addEndScopeStep();
+        addEndScopeStep("if");
 
         IntermediateExecutionBuilder builder = this.machine.getBuilder();
         String al = info.endLabel;
@@ -1837,7 +1837,7 @@ public class StepFactory {
 
         addConditionalJumpIfStep(info.elseIfFalseLabels.get(counter), info.elseIfConditionalSteps.get(counter));
 
-        addBeginScopeStep(info.elseIfStartLabels.get(counter));
+        addBeginScopeStep(info.elseIfStartLabels.get(counter), "elseif");
         symbolTable.getControlFlow().ifElseStart();
         symbolTable.enterNextBlock();
     }
@@ -1854,7 +1854,7 @@ public class StepFactory {
      */
     public void addElseIfEndJumpStep(IfStatementInfo info, int counter) {
         //end the block
-        addEndScopeStep();
+        addEndScopeStep("elseif");
 
         JumpBaseStep jump = info.elseIfJumpSteps.get(counter);
         IntermediateExecutionBuilder builder = this.machine.getBuilder();
@@ -1892,7 +1892,7 @@ public class StepFactory {
     public void startElse(IfStatementInfo info){
         SymbolTable symbolTable = this.machine.getSymbolTable();
 
-        addBeginScopeStep(info.elseStartLabel);
+        addBeginScopeStep(info.elseStartLabel, "else");
         symbolTable.getControlFlow().elseStart();
         symbolTable.enterNextBlock();
     }
@@ -1901,7 +1901,7 @@ public class StepFactory {
      */
     public void endElse(){
         //end the block
-        addEndScopeStep();
+        addEndScopeStep("else");
         
         SymbolTable symbolTable = this.machine.getSymbolTable();
         symbolTable.getControlFlow().elseEnd();
@@ -1968,9 +1968,10 @@ public class StepFactory {
      *
      * @param info
      */
-    public void addBeginScopeStep(String name){
+    public void addBeginScopeStep(String name, String tag){
         BeginScopeStep step = new BeginScopeStep();
         step.setBlockName(name);
+        step.setBlockTag(tag);
 
         machine.getBuilder().add(step);
     }
@@ -1981,8 +1982,9 @@ public class StepFactory {
      * such as if statements or loops.
      *
      */
-    public void addEndScopeStep(){
+    public void addEndScopeStep(String tag){
         EndScopeStep step = new EndScopeStep();
+        step.setBlockTag(tag);
         machine.getBuilder().add(step);
     }
 
@@ -1994,7 +1996,7 @@ public class StepFactory {
      */
     public void addCheckEndJumpStep(ExceptionInfo info) {
         //end the block
-        addEndScopeStep();
+        addEndScopeStep("check");
 
         IntermediateExecutionBuilder builder = this.machine.getBuilder();
         String al = info.alwaysStartLabel;
@@ -2070,7 +2072,7 @@ public class StepFactory {
      */
     public void addDetectEndJumpStep(ExceptionInfo info, JumpBaseStep jump) {
         //end the scope
-        this.addEndScopeStep();
+        this.addEndScopeStep("detect");
         
         IntermediateExecutionBuilder builder = this.machine.getBuilder();
         String al = info.alwaysStartLabel;
@@ -2117,7 +2119,7 @@ public class StepFactory {
 
         if(info.hasAlways){
             //start the block
-            this.addBeginScopeStep(info.alwaysStartLabel);
+            this.addBeginScopeStep(info.alwaysStartLabel, "always");
             SymbolTable symbolTable = this.machine.getSymbolTable();
             symbolTable.enterNextBlock();
         }
@@ -2132,7 +2134,7 @@ public class StepFactory {
         IntermediateExecutionBuilder builder = this.machine.getBuilder();
         if(info.hasAlways){
             //end the block
-            this.addEndScopeStep();
+            this.addEndScopeStep("always");
             SymbolTable symbolTable = this.machine.getSymbolTable();
             symbolTable.popScope();
         }

@@ -157,6 +157,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
             return error;
         }
         variables.put(descriptor.getStaticKey(), descriptor);
+        descriptor.setVariableNumber(getNumberOfVariables());
         return null;
     }
 
@@ -1729,5 +1730,10 @@ public class ClassDescriptor extends Descriptor implements Scopable {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public int getNumberOfVariables() {
+        return variables.size();
     }
 }
