@@ -162,21 +162,7 @@ public class BytecodeStackValue {
      * @return The string representation of the type in java bytecode.
      */
     public String getByteCodeTypeDescriptor() {
-        if(type.isBoolean()) {
-            return "Z";
-        }
-        else if(type.isText()) {
-            return "Ljava/lang/String;";
-        }
-        else if(type.isNumber()) {
-            return "D";
-        }
-        else if(type.isInteger()) {
-            return "I";
-        }
-        else {
-            return null;
-        }
+        return QuorumConverter.convertTypeToBytecodeString(type);
     }
 
     /**

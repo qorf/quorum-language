@@ -357,7 +357,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, params, null, null);
         stack.startMethod();
         methodVisitor.visitCode();
-        stack.setMappedStartingVariableNumber(1);
 
         Vector<ExecutionStep> steps = method.getSteps();
         for(int i = 0; i < steps.size(); i++) {
@@ -472,8 +471,34 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         stack.addFrameVariable(value.getType());
     }
     
-    private void performComparison(BinaryOperationStep step) {
+    private void performBinaryComparison(int bytecodeOpcode) {
+        BytecodeStackValue operand = stack.popConstant();
+        stack.popConstant();
+
+        if (operand.getType().isNumber()) {
+            methodVisitor.visitInsn(DCMPG);
+            BytecodeStackValue result = new BytecodeStackValue();
+            TypeDescriptor integer = new TypeDescriptor();
+            integer.setName(TypeDescriptor.BOOLEAN);
+            result.setType(integer);
+            stack.pushConstant(result);
+            performUnaryComparison(bytecodeOpcode);
+        }
         
+
+    }
+    
+    private void performUnaryComparison(int bytecodeOpcode) {
+        Label l0 = new Label();
+        methodVisitor.visitJumpInsn(bytecodeOpcode, l0);
+        methodVisitor.visitInsn(ICONST_1);
+        Label l1 = new Label();
+        methodVisitor.visitJumpInsn(GOTO, l1);
+        methodVisitor.visitLabel(l0);
+        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+        methodVisitor.visitInsn(ICONST_0);
+        methodVisitor.visitLabel(l1);
+        methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[] {Opcodes.INTEGER});
     }
     
     @Override
@@ -827,17 +852,33 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryLessEqualsIntegerNumberStep step) {
-        int a = 5;
+        BytecodeStackValue numberVal = stack.popConstant();
+        BytecodeStackValue integerVal = stack.popConstant();
+        methodVisitor.visitInsn(DUP2_X1);
+        methodVisitor.visitInsn(POP2);
+        methodVisitor.visitInsn(I2D);
+
+        integerVal.getType().setName(TypeDescriptor.NUMBER);
+        stack.pushConstant(numberVal);
+        stack.pushConstant(integerVal);
+
+        performBinaryComparison(IFLE);
+
     }
 
     @Override
     public void visit(BinaryLessEqualsNumberIntegerStep step) {
-        int a = 5;
+        methodVisitor.visitInsn(I2D);
+        BytecodeStackValue operand = stack.popConstant();
+        
+        operand.getType().setName(TypeDescriptor.NUMBER);
+        stack.pushConstant(operand);
+        performBinaryComparison(IFGT);
     }
 
     @Override
     public void visit(BinaryLessEqualsNumberStep step) {
-        int a = 5;
+        performBinaryComparison(IFGT);
     }
 
     @Override
@@ -1036,7 +1077,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             BytecodeStackValue returnValue = new BytecodeStackValue();
             returnValue.setAsConstant();
             returnValue.setAsReturnValue(true);
-            returnValue.setType(callee.getReturnType());
+            TypeDescriptor returnType = new TypeDescriptor();
+            returnType.setName(callee.getReturnType().getName());
+            returnValue.setType(returnType);
             stack.pushConstant(returnValue);
         }
     }
@@ -1228,11 +1271,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitInsn(IRETURN);
         else if(returnType.isNumber())
             methodVisitor.visitInsn(DRETURN);
-        else if(returnType.isText());
+        else
             methodVisitor.visitInsn(ARETURN);
-        
-        methodVisitor.visitInsn(RETURN);
-        int a = 5;
     }
 
     @Override
@@ -1355,6 +1395,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         BytecodeStackValue value = stack.getVariable(step.getValue().getVariableNumber());
         addToMethodVisit(value);
+        value.setAsConstant();
         stack.pushConstant(value);
     }
 }

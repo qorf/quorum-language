@@ -1,16 +1,16 @@
 class Matt
     action Main
-        boolean x = true
-        boolean y = false
+        integer x = 10
+        number y = 95
 
-        print x or y
+        print y <= x
     end
 
-    action TrueGenerator returns boolean
-        return true
+    action NumberGenerator1() returns integer
+        return 5
     end
 
-    action FalseGenerator returns boolean
-        return false
+    action NumberGenerator2() returns number
+        return 8.0
     end
 end

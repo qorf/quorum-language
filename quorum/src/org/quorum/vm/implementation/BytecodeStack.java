@@ -246,8 +246,14 @@ public class BytecodeStack {
     public void startMethod() {
         maxSize = 0;
         currentSize = 0;
+        maxVariablesSize = 0;
+        currentVariablesSize = 0;
         constants.empty();
         variables.clear();
+        labels.clear();
+        frameVariables.clear();
+        variableNumberMappings.clear();
+        setMappedStartingVariableNumber(1);
     }
     
     /**
