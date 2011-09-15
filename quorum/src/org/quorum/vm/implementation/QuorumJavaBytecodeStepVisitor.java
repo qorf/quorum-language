@@ -630,7 +630,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(BeginScopeStep step) {
         if (!stack.isEmptyLabel()) {
             LabelStackValue label = stack.peekLabel();
-            if (label.getLabelType().equals(LabelTypeEnum.IF) && !step.getBlockTag().equals("else")) {
+            if (label.getLabelType().equals(LabelTypeEnum.IF)) {
                 stack.newFrame();
                 stack.newEndFrame();
             }
@@ -1156,8 +1156,22 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                             obj[i] = QuorumConverter.convertTypeToBytecodeType(frame.get(i));
                         }
                         methodVisitor.visitFrame(F_APPEND, frameSize, obj, 0, null);
+                        
+                        stack.removeEndFrame();
                     } else if (frameSize == 0) {
-                        methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
+                        //remove the current frame
+                        ArrayList<TypeDescriptor> removedFrame = stack.removeEndFrame();
+                        
+                        if (removedFrame.isEmpty()) {//if the frame is empty then use F_SAME
+                            methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
+                        } else {//if the frame is not empty then use F_CHOP
+                            int endFrameSize = removedFrame.size();
+                            Object[] obj = new Object[endFrameSize];
+                            for (int i = 0; i < endFrameSize; i++) {
+                                obj[i] = QuorumConverter.convertTypeToBytecodeType(removedFrame.get(i));
+                            }
+                            methodVisitor.visitFrame(F_CHOP, endFrameSize, null, 0, null);
+                        }
                     } else if (frameSize >= 4) {
                         Object[] obj = new Object[frameSize + 1];
                         for (int i = 0; i < frameSize; i++) {
@@ -1167,6 +1181,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                             obj[i + 1] = QuorumConverter.convertTypeToBytecodeType(frame.get(i));
                         }
                         methodVisitor.visitFrame(F_FULL, frameSize + 1, obj, 0, null);
+                        stack.removeEndFrame();
                     }
 
                 } else if (label.getJumpType() == GOTO) {//if jumping out of the if

@@ -189,20 +189,24 @@ public class BytecodeStack {
     }
     
     public ArrayList<TypeDescriptor> getFrame() {
-        ArrayList<TypeDescriptor> previousFrame = removeFrontFrame();
-        ArrayList<TypeDescriptor> currentFrame = getFrontFrame();
         ArrayList<TypeDescriptor> newFrame = new ArrayList<TypeDescriptor>();
-        if(previousFrame != null){
-            Iterator<TypeDescriptor> prevIt = previousFrame.iterator();
-            while(prevIt.hasNext()){
-                newFrame.add(prevIt.next());
-            }
-            if(currentFrame != null && !currentFrame.isEmpty()){
-                ArrayList<TypeDescriptor> newScope = new ArrayList<TypeDescriptor>();
-                while(!currentFrame.isEmpty()){
-                    TypeDescriptor removed = currentFrame.remove(0);
-                    newScope.add(removed);
-                    newFrame.add(removed);
+        
+        while(!frame.isEmpty()){
+            ArrayList<TypeDescriptor> previousFrame = removeFrontFrame();
+            ArrayList<TypeDescriptor> currentFrame = getFrontFrame();
+            
+            if(previousFrame != null){
+                Iterator<TypeDescriptor> prevIt = previousFrame.iterator();
+                while(prevIt.hasNext()){
+                    newFrame.add(prevIt.next());
+                }
+                if(currentFrame != null && !currentFrame.isEmpty()){
+                    ArrayList<TypeDescriptor> newScope = new ArrayList<TypeDescriptor>();
+                    while(!currentFrame.isEmpty()){
+                        TypeDescriptor removed = currentFrame.remove(0);
+                        newScope.add(removed);
+                        newFrame.add(removed);
+                    }
                 }
             }
         }
