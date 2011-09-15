@@ -467,33 +467,57 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         stack.addFrameVariable(value.getType());
     }
 
+    // converts the first operand on the stack (an integer) to a double
+    // so that both operands are doubles
+        private void prepareNumberIntegerOperation() {
+        methodVisitor.visitInsn(I2D);
+        BytecodeStackValue operand = stack.popConstant();
+
+        operand.getType().setName(TypeDescriptor.NUMBER);
+        stack.pushConstant(operand);
+    }
+
+    // converts the second operand on the stack (an integer) to a double
+    // so that both operands are doubles
+    private void prepareIntegerNumberOperation() {
+        BytecodeStackValue numberVal = stack.popConstant();
+        BytecodeStackValue integerVal = stack.popConstant();
+        methodVisitor.visitInsn(DUP2_X1);
+        methodVisitor.visitInsn(POP2);
+        methodVisitor.visitInsn(I2D);
+
+        integerVal.getType().setName(TypeDescriptor.NUMBER);
+        stack.pushConstant(numberVal);
+        stack.pushConstant(integerVal);
+    }
+    
     private void performBinaryComparison(int bytecodeOpcode) {
         BytecodeStackValue operand = stack.popConstant();
         stack.popConstant();
 
-        if (operand.getType().isNumber()) {
+           
+        if (operand.getType().isNumber())
             methodVisitor.visitInsn(DCMPG);
-            BytecodeStackValue result = new BytecodeStackValue();
-            TypeDescriptor integer = new TypeDescriptor();
-            integer.setName(TypeDescriptor.BOOLEAN);
-            result.setType(integer);
-            stack.pushConstant(result);
-            performUnaryComparison(bytecodeOpcode);
-        }
 
-
+        performComparison(bytecodeOpcode);
+        
+        BytecodeStackValue result = new BytecodeStackValue();
+        TypeDescriptor integer = new TypeDescriptor();
+        integer.setName(TypeDescriptor.BOOLEAN);
+        result.setType(integer);
+        stack.pushConstant(result);
     }
-
-    private void performUnaryComparison(int bytecodeOpcode) {
-        Label l0 = new Label();
-        methodVisitor.visitJumpInsn(bytecodeOpcode, l0);
+    
+    private void performComparison(int bytecodeOpcode) {
+        Label c0 = new Label();
+        methodVisitor.visitJumpInsn(bytecodeOpcode, c0);
         methodVisitor.visitInsn(ICONST_1);
-        Label l1 = new Label();
-        methodVisitor.visitJumpInsn(GOTO, l1);
-        methodVisitor.visitLabel(l0);
+        Label c1 = new Label();
+        methodVisitor.visitJumpInsn(GOTO, c1);
+        methodVisitor.visitLabel(c0);
         methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
         methodVisitor.visitInsn(ICONST_0);
-        methodVisitor.visitLabel(l1);
+        methodVisitor.visitLabel(c1);
         methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[]{Opcodes.INTEGER});
     }
 
@@ -718,7 +742,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryEqualsIntegerNumberStep step) {
-        int a = 5;
+        prepareIntegerNumberOperation();
+        performBinaryComparison(IFNE);
     }
 
     @Override
@@ -728,17 +753,18 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryEqualsNumberIntegerStep step) {
-        int a = 5;
+        prepareNumberIntegerOperation();
+        performBinaryComparison(IFNE);
     }
 
     @Override
     public void visit(BinaryEqualsNumberStep step) {
-        int a = 5;
+        performBinaryComparison(IFNE);
     }
 
     @Override
     public void visit(BinaryEqualsStep step) {
-        int a = 5;
+        performBinaryComparison(IF_ICMPNE);
     }
 
     @Override
@@ -748,22 +774,24 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryGreaterEqualsIntegerNumberStep step) {
-        int a = 5;
+        prepareIntegerNumberOperation();
+        performBinaryComparison(IFLT);
     }
 
     @Override
     public void visit(BinaryGreaterEqualsNumberIntegerStep step) {
-        int a = 5;
+        prepareNumberIntegerOperation();
+        performBinaryComparison(IFLT);
     }
 
     @Override
     public void visit(BinaryGreaterEqualsNumberStep step) {
-        int a = 5;
+        performBinaryComparison(IFLT);
     }
 
     @Override
     public void visit(BinaryGreaterEqualsStep step) {
-        int a = 5;
+        performBinaryComparison(IF_ICMPLT);
     }
 
     @Override
@@ -773,22 +801,24 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryGreaterThanIntegerNumberStep step) {
-        int a = 5;
+        prepareIntegerNumberOperation();
+        performBinaryComparison(IFLE);
     }
 
     @Override
     public void visit(BinaryGreaterThanNumberIntegerStep step) {
-        int a = 5;
+        prepareNumberIntegerOperation();
+        performBinaryComparison(IFLE);
     }
 
     @Override
     public void visit(BinaryGreaterThanNumberStep step) {
-        int a = 5;
+        performBinaryComparison(IFLE);
     }
 
     @Override
     public void visit(BinaryGreaterThanStep step) {
-        int a = 5;
+        performBinaryComparison(IF_ICMPLE);
     }
 
     @Override
@@ -803,27 +833,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryLessEqualsIntegerNumberStep step) {
-        BytecodeStackValue numberVal = stack.popConstant();
-        BytecodeStackValue integerVal = stack.popConstant();
-        methodVisitor.visitInsn(DUP2_X1);
-        methodVisitor.visitInsn(POP2);
-        methodVisitor.visitInsn(I2D);
-
-        integerVal.getType().setName(TypeDescriptor.NUMBER);
-        stack.pushConstant(numberVal);
-        stack.pushConstant(integerVal);
-
-        performBinaryComparison(IFLE);
-
+        prepareIntegerNumberOperation();
+        performBinaryComparison(IFGT);
     }
 
     @Override
     public void visit(BinaryLessEqualsNumberIntegerStep step) {
-        methodVisitor.visitInsn(I2D);
-        BytecodeStackValue operand = stack.popConstant();
-
-        operand.getType().setName(TypeDescriptor.NUMBER);
-        stack.pushConstant(operand);
+        prepareNumberIntegerOperation();
         performBinaryComparison(IFGT);
     }
 
@@ -834,7 +850,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryLessEqualsStep step) {
-        int a = 5;
+        performBinaryComparison(IF_ICMPGT);
     }
 
     @Override
@@ -844,22 +860,24 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryLessThanIntegerNumberStep step) {
-        int a = 5;
+        prepareIntegerNumberOperation();
+        performBinaryComparison(IFGE);
     }
 
     @Override
     public void visit(BinaryLessThanNumberIntegerStep step) {
-        int a = 5;
+        prepareNumberIntegerOperation();
+        performBinaryComparison(IFGE);
     }
 
     @Override
     public void visit(BinaryLessThanNumberStep step) {
-        int a = 5;
+        performBinaryComparison(IFGE);
     }
 
     @Override
     public void visit(BinaryLessThanStep step) {
-        int a = 5;
+        performBinaryComparison(IF_ICMPGE);
     }
 
     @Override
@@ -909,7 +927,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryNotEqualsBooleanStep step) {
-        int a = 5;
+        BytecodeStackValue operand = stack.popConstant();
+        stack.popConstant();
+        methodVisitor.visitInsn(IXOR);
+        stack.pushConstant(operand);
     }
 
     @Override
@@ -924,7 +945,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryNotEqualsIntegerNumberStep step) {
-        int a = 5;
+        prepareIntegerNumberOperation();
+        performBinaryComparison(IFEQ);
     }
 
     @Override
@@ -934,17 +956,18 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryNotEqualsNumberIntegerStep step) {
-        int a = 5;
+        prepareNumberIntegerOperation();
+        performBinaryComparison(IFEQ);
     }
 
     @Override
     public void visit(BinaryNotEqualsNumberStep step) {
-        int a = 5;
+        performBinaryComparison(IFEQ);
     }
 
     @Override
     public void visit(BinaryNotEqualsStep step) {
-        int a = 5;
+        performBinaryComparison(IF_ICMPEQ);
     }
 
     @Override
