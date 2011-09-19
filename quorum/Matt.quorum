@@ -1,1 +1,28 @@
-integer z = 1
+class Matt
+    action Main
+        //integer a = (IntegerGenerator() - 1) mod IntegerGenerator() * IntegerGenerator()
+        //number b = 20 + NumberGenerator()
+        //number b = NumberGenerator() + 10
+        text c = true + " " + TextGenerator() + " " + 5678 + " " + 865.75
+        print c
+
+        //if c >= "bcde1234" then
+        //   print "x"
+        //end
+        //else then
+        //   print "not x"
+        //end
+    end
+
+    action IntegerGenerator returns integer
+        return 4
+    end
+
+    action NumberGenerator returns number
+        return 8.4
+    end
+
+    action TextGenerator returns text
+        return "abcd1234"
+    end
+end

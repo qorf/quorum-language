@@ -252,7 +252,7 @@ public class BytecodeStack {
         currentSize = 0;
         maxVariablesSize = 0;
         currentVariablesSize = 0;
-        constants.empty();
+        constants.clear();
         variables.clear();
         labels.clear();
         variableNumberMappings.clear();
