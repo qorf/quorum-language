@@ -23,35 +23,6 @@ public class BytecodeStackValue {
     private Result result = new Result();
     private boolean isReturnValue = false;
     
-//    public BytecodeStackValue() {
-//        //result = new Result();
-//        type = new TypeDescriptor();
-//        varNumber = 0;
-//        isConstant = true;
-//        result = new Result();
-//    }
-    
-//    public BytecodeStackValue(boolean isConstant, int varNumber) {
-//        this.isConstant = isConstant;
-//        this.varNumber = varNumber;
-//        this.type = new TypeDescriptor();
-//        //result = new Result();
-//    }
-    
-//    public BytecodeStackValue(ExpressionValue value, boolean isConstant, int varNumber) {
-//        this.isConstant = isConstant;
-//        this.varNumber = varNumber;
-//        //result = value.getResult();
-//        type = value.getType();
-//    }
-//    
-//    public BytecodeStackValue(Result result, TypeDescriptor type, boolean isConstant, int varNumber) {
-//        this.isConstant = isConstant;
-//        this.varNumber = varNumber;
-//        //this.result = result;
-//        this.type = type;
-//    }
-    
     public Result getResult() {
         return result;
     }

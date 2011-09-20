@@ -582,6 +582,48 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitInsn(SWAP);
     }
     
+    private void castValueToText() {
+        BytecodeStackValue value = stack.popConstant();
+        
+        methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertTypeToJavaClassTypeEquivalent(value.getType()), 
+                                      "toString", "(" + value.getByteCodeTypeDescriptor() + ")Ljava/lang/String;");
+        value.getType().setName(TypeDescriptor.TEXT);
+        stack.pushConstant(value);
+    }
+    
+    private void castTextToValue(TypeDescriptor returnValueType) {
+        BytecodeStackValue value = stack.popConstant();
+        
+        String type = QuorumConverter.convertTypeToJavaTypeEquivalent(returnValueType);
+        type = type.substring(0, 1).toUpperCase() + type.substring(1);
+        
+        methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertTypeToJavaTypeEquivalent(returnValueType),
+                                     "parse" + type, "(Ljava/lang/String;)" + value.getByteCodeTypeDescriptor());
+        value.getType().setName(returnValueType.getName());
+        stack.pushConstant(value);
+    }
+    
+//    private void performCast(TypeDescriptor typeNameTo) {
+//        if (typeNameTo.isNumber()) {
+//            if (value.getType().isText()) {
+//                methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertTypeToJavaTypeEquivalent(typeNameTo),
+//                                              "parseDouble", "(Ljava/lang/String;)" + value.getByteCodeTypeDescriptor());
+//            }
+//            else if (value.getType().isInteger() || value.getType().isBoolean()) {
+//                methodVisitor.visitInsn(I2D);
+//            }
+//        }
+//        else if (typeNameTo.isInteger()) {
+//            if (value.getType().isText()) {
+//                methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertTypeToJavaTypeEquivalent(typeNameTo),
+//                                              "parseInt", "(Ljava/lang/String;)I");
+//            }
+//        }
+//                
+//
+//
+//    }
+    
     @Override
     public void visit(AlertStep step) {
         int a = 5;
@@ -1472,24 +1514,26 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryNumberTextCastStep step) {
-        int a = 5;
+        TypeDescriptor valueType = new TypeDescriptor();
+        valueType.setName(TypeDescriptor.NUMBER);
+        castTextToValue(valueType);
     }
 
     @Override
     public void visit(UnaryTextBooleanCastStep step) {
-        int a = 5;
+        castValueToText();
     }
 
     @Override
     public void visit(UnaryTextIntegerCastStep step) {
-        int a = 5;
+        castValueToText();
     }
 
     @Override
     public void visit(UnaryTextNumberCastStep step) {
-        int a = 5;
+        castValueToText();
     }
-
+    
     @Override
     public void visit(UnaryTextTextCastStep step) {
         int a = 5;

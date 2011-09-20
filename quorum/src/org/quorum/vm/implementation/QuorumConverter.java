@@ -128,6 +128,47 @@ public class QuorumConverter {
         }
     }
     
+    public static String convertTypeToJavaTypeEquivalent(TypeDescriptor type) {
+        if(type.isBoolean()) {
+            return "boolean";
+        }
+        else if(type.isText()) {
+            return "java/lang/String";
+        }
+        else if(type.isNumber()) {
+            return "double";
+        }
+        else if(type.isInteger()) {
+            return "int";
+        }
+        else if(type.isVoid()) {
+            return "void";
+        }
+        else {
+            String key = type.getStaticKey();
+            return convertStaticKeyToBytecodePath(key);
+        }    
+    }
+    
+    public static String convertTypeToJavaClassTypeEquivalent(TypeDescriptor type) {
+        if(type.isBoolean()) {
+            return "java/lang/Boolean";
+        }
+        else if(type.isText()) {
+            return "java/lang/String";
+        }
+        else if(type.isNumber()) {
+            return "java/lang/Double";
+        }
+        else if(type.isInteger()) {
+            return "java/lang/Integer";
+        }
+        else {
+            String key = type.getStaticKey();
+            return convertStaticKeyToBytecodePath(key);
+        }    
+    }
+    
     public static Object convertTypeToBytecodeType(TypeDescriptor type){
         if(type.isBoolean()){
             return Opcodes.INTEGER;

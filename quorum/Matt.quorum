@@ -3,15 +3,20 @@ class Matt
         //integer a = (IntegerGenerator() - 1) mod IntegerGenerator() * IntegerGenerator()
         //number b = 20 + NumberGenerator()
         //number b = NumberGenerator() + 10
+        text a = "85.4"
+        number f = 4343.34
+        //number f = cast(number, 100)
+        //number d = -5.33 + cast(number, a)
+        text b = cast(text, true) 
         text c = true + " " + TextGenerator() + " " + 5678 + " " + 865.75
-        print c
+        print f
 
-        //if c >= "bcde1234" then
-        //   print "x"
-        //end
-        //else then
-        //   print "not x"
-        //end
+        if c >= "bcde1234" then
+           print "x"
+        end
+        else then
+           print "not x"
+        end
     end
 
     action IntegerGenerator returns integer
