@@ -1,17 +1,14 @@
 class Matt
     action Main
-        //integer a = (IntegerGenerator() - 1) mod IntegerGenerator() * IntegerGenerator()
-        //number b = 20 + NumberGenerator()
-        //number b = NumberGenerator() + 10
         text a = "85.4"
-        number f = 4343.34
-        //number f = cast(number, 100)
-        //number d = -5.33 + cast(number, a)
-        text b = cast(text, true) 
-        text c = true + " " + TextGenerator() + " " + 5678 + " " + 865.75
-        print f
+        number b = cast(number, BooleanGenerator())
+        number c = -5.33 + cast(number, a)
+        text d = cast(text, true) 
+        text e = BooleanGenerator() + " " + TextGenerator() + " " + IntegerGenerator() + " " + NumberGenerator()
+        print b * 50.4543634123
+        print e
 
-        if c >= "bcde1234" then
+        if e >= "100.8" then
            print "x"
         end
         else then
@@ -30,4 +27,9 @@ class Matt
     action TextGenerator returns text
         return "abcd1234"
     end
+
+    action BooleanGenerator returns boolean
+        return true
+    end
 end
+
