@@ -14,7 +14,6 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.Opcodes;
 import org.quorum.execution.ExecutionStep;
 import org.quorum.execution.ExecutionStepVisitor;
-import org.quorum.execution.ExpressionValue;
 import org.quorum.execution.NullExecutionStep;
 import org.quorum.steps.AlertStep;
 import org.quorum.steps.AlwaysEndStep;
@@ -101,7 +100,6 @@ import org.quorum.steps.BinaryNotEqualsNumberIntegerStep;
 import org.quorum.steps.BinaryNotEqualsNumberStep;
 import org.quorum.steps.BinaryNotEqualsStep;
 import org.quorum.steps.BinaryNotEqualsStringStep;
-import org.quorum.steps.BinaryOperationStep;
 import org.quorum.steps.BinaryOrStep;
 import org.quorum.steps.BinarySubtractIntegerNumberStep;
 import org.quorum.steps.BinarySubtractNumberIntegerStep;
@@ -155,7 +153,6 @@ import org.quorum.steps.UnaryTextNumberCastStep;
 import org.quorum.steps.UnaryTextTextCastStep;
 import org.quorum.steps.VariableInObjectMoveStep;
 import org.quorum.steps.VariableMoveStep;
-import org.quorum.symbols.BlueprintDescriptor;
 import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.MethodDescriptor;
 import org.quorum.symbols.ParameterDescriptor;
@@ -241,6 +238,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         //now do field initialization
         fieldInitialization = true;
+        stack.startMethod();
         Vector<ExecutionStep> steps = this.currentClassExecution.getSteps();
         for (int i = 0; i < steps.size(); i++) {
             ExecutionStep step = steps.get(i);
@@ -538,7 +536,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         BytecodeStackValue operand = stack.popConstant();
         stack.popConstant();
         
-
         if (operand.getType().isNumber())
             methodVisitor.visitInsn(DCMPG);
         else if (operand.getType().isText())
@@ -1186,13 +1183,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));
         }
         if (!callee.getReturnType().isVoid()) {
-            BytecodeStackValue returnValue = new BytecodeStackValue();
-            returnValue.setAsConstant();
-            returnValue.setAsReturnValue(true);
+            BytecodeStackValue returnVal = new BytecodeStackValue();
+            returnVal.setAsConstant();
+            returnVal.setAsReturnValue(true);
             TypeDescriptor returnType = new TypeDescriptor();
             returnType.setName(callee.getReturnType().getName());
-            returnValue.setType(returnType);
-            stack.pushConstant(returnValue);
+            returnVal.setType(returnType);
+            stack.pushConstant(returnVal);
         }
     }
 
