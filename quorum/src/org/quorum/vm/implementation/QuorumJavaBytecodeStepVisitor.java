@@ -6,6 +6,7 @@ package org.quorum.vm.implementation;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.logging.Level;
@@ -153,6 +154,8 @@ import org.quorum.steps.UnaryTextNumberCastStep;
 import org.quorum.steps.UnaryTextTextCastStep;
 import org.quorum.steps.VariableInObjectMoveStep;
 import org.quorum.steps.VariableMoveStep;
+import org.quorum.symbols.AccessModifierEnum;
+import org.quorum.symbols.BlueprintDescriptor;
 import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.MethodDescriptor;
 import org.quorum.symbols.ParameterDescriptor;
@@ -181,6 +184,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private boolean fieldInitialization = false;
     private final String PLUGIN_NAME = "<plugin>";
     private BytecodeStackValue returnValue = null;
+    private int fieldSize = 1;
 
     public QuorumJavaBytecodeStepVisitor() {
     }
@@ -196,7 +200,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 
-        if (!".Stefik".equals(staticKey) && !"Libraries.Sound.Speech".equals(staticKey) && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)) {
+//        if (!".Stefik".equals(staticKey) && !"Libraries.Sound.Speech".equals(staticKey) && 
+//                !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
+//                && !"Libraries.Language.Object".equals(staticKey)) {
+//            return;
+//        }
+        
+        if (!".Stefik".equals(staticKey) && !"Libraries.Sound.Speech".equals(staticKey) && 
+                !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
+                ) {
             return;
         }
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
@@ -205,7 +217,19 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         //this will have to be modified for inheritance conversion
         classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", null);
-
+        //first weave in the parents of the class and initialize them
+        Iterator<ClassDescriptor> parents = currentClass.getFlattenedListOfParents();
+        while(parents.hasNext()) {
+            ClassDescriptor parent = parents.next();
+            String parentKey = parent.getStaticKey();
+            String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
+            String converted = QuorumConverter.convertStaticKeyToBytecodePathTypeName(parentKey);
+            fieldVisitor = classWriter.visitField(ACC_PUBLIC, parentName, converted, null, null);
+            fieldVisitor.visitEnd();
+            fieldSize += 2;
+        }
+        
+        
         //Do field visiting for the class.
         Iterator<VariableDescriptor> classVariables = clazz.getClassDescriptor().getClassVariables();
         while (classVariables.hasNext()) {
@@ -246,6 +270,23 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         fieldInitialization = false;
 
+        //initialize all of the parent objects as fields
+        parents = currentClass.getFlattenedListOfParents();
+        while(parents.hasNext()) {
+            ClassDescriptor parent = parents.next();
+            String parentKey = parent.getStaticKey();
+            String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
+            String converted = QuorumConverter.convertStaticKeyToBytecodePath(parentKey);
+            
+            methodVisitor.visitVarInsn(ALOAD, THIS);
+            methodVisitor.visitTypeInsn(NEW, converted);
+            methodVisitor.visitInsn(DUP);
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "()V");
+            methodVisitor.visitFieldInsn(PUTFIELD, name, parentName, QuorumConverter.convertStaticKeyToBytecodePathTypeName(parentKey));
+        }
+        
+        
+        
         //initialize the plugin last
         if (numSystem > 0) {
             methodVisitor.visitVarInsn(ALOAD, THIS);
@@ -255,26 +296,34 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitInsn(DUP);
             methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "()V");
             methodVisitor.visitFieldInsn(PUTFIELD, name, PLUGIN_NAME, convertedSupplement);
+            fieldSize += 2;
         }
 
-
-
         methodVisitor.visitInsn(RETURN);
+        
+        methodVisitor.visitMaxs(fieldSize, 1);
+        
+        
+        //
 
         //TODO: The visitMaxs method will almost certainly have to change,
         //once field initialization works.
-        if (numSystem > 0) {
-            methodVisitor.visitMaxs(3, 1);
-        } else {
-            methodVisitor.visitMaxs(1, 1);
-        }
+        //if (numSystem > 0) {
+        //    methodVisitor.visitMaxs(fieldSize, 1);
+        //} else {
+        //    methodVisitor.visitMaxs(1, 1);
+        //}
+        
         methodVisitor.visitEnd();
 
-
-
-
-
-
+        //now dump all of the parent methods that 
+        //are not in the base class out as wrapper functions.
+        parents = currentClass.getFlattenedListOfParents();
+        while(parents.hasNext()) {
+            ClassDescriptor parent = parents.next();
+            computeParentMethods(parent);
+        }
+        
         //now do all methods
         Iterator<MethodExecution> methods = clazz.getMethods();
         while (methods.hasNext()) {
@@ -288,6 +337,69 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             computeSystemAction(sys);
         }
         classWriter.visitEnd();
+    }
+    
+    
+    private void computeParentMethods(ClassDescriptor parent) {
+        Collection<MethodDescriptor> methods = parent.getAllMethods(AccessModifierEnum.PUBLIC);
+        Iterator<MethodDescriptor> iterator = methods.iterator();
+        while(iterator.hasNext()) {
+            MethodDescriptor method = iterator.next();
+            MethodDescriptor baseMethod = currentClass.getMethod(method.getStaticKey());
+            //weave in the method into the base class, by composition
+            if(baseMethod == null && !(method instanceof BlueprintDescriptor)) {
+                computeParentMethod(parent, method);
+            }
+        }
+        
+    }
+    
+    private void computeParentMethod(ClassDescriptor parent, MethodDescriptor action) {
+        String name = action.getName();
+        String params = QuorumConverter.convertMethodDescriptorToBytecodeSignature(action);
+        methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, params, null, null);
+        methodVisitor.visitCode();
+
+        //names
+        String key = currentClass.getStaticKey();
+        String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
+        String convertedParent = QuorumConverter.convertStaticKeyToBytecodePath(parent.getStaticKey());
+        String convertedSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
+        String signature = QuorumConverter.convertMethodDescriptorToBytecodeSignature(action);
+
+        String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
+        
+        //get the appropriate parent field
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        //the four parameters: 1) get a field, 2) the class the field is in
+        //3) the name of the field, and 4) 
+        methodVisitor.visitFieldInsn(GETFIELD, className, parentName, convertedSupplement);
+        //load parameters
+        Parameters parameters = action.getParameters();
+        int position = 1;
+        for (int i = 0; i < parameters.size(); i++) {
+
+
+            ParameterDescriptor param = parameters.get(i);
+            methodVisitor.visitVarInsn(BytecodeStackValue.getLoadOpcode(param.getType()), position);
+            int size = BytecodeStackValue.getSize(param.getType());
+            position += size;
+        }
+
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, convertedParent, action.getName(), signature);
+
+        int returnOpcode = QuorumConverter.convertTypeToReturnOpcode(action.getReturnType());
+        methodVisitor.visitInsn(returnOpcode);
+
+        int stackSize = position;
+        int varSize = position;
+
+        if (action.getReturnType().isNumber()) {
+            stackSize += 1;
+        }
+
+        methodVisitor.visitMaxs(stackSize, varSize);
+        methodVisitor.visitEnd();
     }
 
     public void computeSystemAction(SystemActionDescriptor action) {

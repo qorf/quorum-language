@@ -51,7 +51,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
                 classHash.put(code.getStaticKey(), code);
             }
             catch(Exception e) {
-                int a = 5;
+                e.printStackTrace();
             }
         }
     }

@@ -62,6 +62,17 @@ public class QuorumConverter {
     }
     
     /**
+     * This method takes a static key from a parent object of a class
+     * and converts it to a valid name to be used by a class.
+     * 
+     * @param key
+     * @return 
+     */
+    public static String convertParentStaticKeyToValidName(String key) {
+        return "<" + key + ">";
+    }
+    
+    /**
      * Converts a static key for a class into a full class name.
      * @param key
      * @return 
@@ -72,6 +83,18 @@ public class QuorumConverter {
         }
         String result = "quorum/" + key.replaceAll("\\.", "/");
         return result;
+    }
+    
+    /**
+     * Converts a static key for a class into a full class name. In this case,
+     * the type name is converted with additional information, so 
+     * quorum/test would be Lquorum/test;
+     * 
+     * @param key
+     * @return 
+     */
+    public static String convertStaticKeyToBytecodePathTypeName(String key) {
+        return "L" + convertStaticKeyToBytecodePath(key) + ";";
     }
     
     /**
