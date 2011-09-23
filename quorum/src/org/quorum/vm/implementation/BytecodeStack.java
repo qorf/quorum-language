@@ -25,6 +25,7 @@ public class BytecodeStack {
     private ArrayList<ArrayList<TypeDescriptor>> frame = new ArrayList<ArrayList<TypeDescriptor>>();
     private ArrayList<ArrayList<TypeDescriptor>> endFrame = new ArrayList<ArrayList<TypeDescriptor>>();
     private HashMap<Integer, Integer> variableNumberMappings = new HashMap<Integer, Integer>();
+    private int currentIfBytecode = 0;
     private int maxVariablesSize = 0;
     private int currentVariablesSize = 0;
     private int maxSize = 0;
@@ -335,6 +336,20 @@ public class BytecodeStack {
      */
     public int getMappedVariableNumber(int variableNumber) {
         return variableNumberMappings.get(variableNumber);
+    }
+
+    /**
+     * @return the currentIfBytecode
+     */
+    public int getCurrentIfBytecode() {
+        return currentIfBytecode;
+    }
+
+    /**
+     * @param currentIfBytecode the currentIfBytecode to set
+     */
+    public void setCurrentIfBytecode(int currentIfBytecode) {
+        this.currentIfBytecode = currentIfBytecode;
     }
 
 }

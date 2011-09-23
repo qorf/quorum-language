@@ -654,6 +654,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "compareTo", "(Ljava/lang/String;)I");
         
         performComparison(bytecodeOpcode);
+        stack.setCurrentIfBytecode(bytecodeOpcode);
         
         BytecodeStackValue result = new BytecodeStackValue();
         TypeDescriptor integer = new TypeDescriptor();
@@ -1316,9 +1317,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //addToMethodVisit(stack.popConstant());
         Label label0 = new Label();
 //        methodVisitor.visitJumpInsn(IF_ICMPNE, label0);
-        methodVisitor.visitJumpInsn(IFEQ, label0);
+        int currentIfBytecode = stack.getCurrentIfBytecode();
+        methodVisitor.visitJumpInsn(currentIfBytecode, label0);
 
-        LabelStackValue label = new LabelStackValue(LabelTypeEnum.IF, IFEQ, label0);
+        LabelStackValue label = new LabelStackValue(LabelTypeEnum.IF, currentIfBytecode, label0);
         stack.pushLabel(label);
 
     }
