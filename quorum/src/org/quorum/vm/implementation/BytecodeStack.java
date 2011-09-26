@@ -248,7 +248,7 @@ public class BytecodeStack {
      * stacks and resets the max size value for a new method.
      * 
      */
-    public void startMethod() {
+    public void startMethod(int startingVariableNumber) {
         maxSize = 0;
         currentSize = 0;
         maxVariablesSize = 0;
@@ -257,7 +257,7 @@ public class BytecodeStack {
         variables.clear();
         labels.clear();
         variableNumberMappings.clear();
-        setMappedStartingVariableNumber(1);
+        setMappedStartingVariableNumber(startingVariableNumber);
     }
     
     /**
@@ -335,7 +335,10 @@ public class BytecodeStack {
      * @return 
      */
     public int getMappedVariableNumber(int variableNumber) {
-        return variableNumberMappings.get(variableNumber);
+        if (variableNumberMappings.get(variableNumber) != null)
+            return variableNumberMappings.get(variableNumber);
+        else
+            return -1;
     }
 
     /**

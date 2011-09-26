@@ -22,6 +22,7 @@ public class BytecodeStackValue {
     private boolean isConstant = true; 
     private Result result = new Result();
     private boolean isReturnValue = false;
+    private String varName = "";
     
     public Result getResult() {
         return result;
@@ -38,6 +39,10 @@ public class BytecodeStackValue {
     
     public int getVarNumber() {
         return varNumber;
+    }
+    
+    public String getVarName() {
+        return varName;
     }
     
     public boolean isReturnValue() {
@@ -71,6 +76,10 @@ public class BytecodeStackValue {
         this.varNumber = varNumber;
     }
     
+    public void setName(String name) {
+        this.varName = name;
+    }
+    
     public void setAsConstant() {
         isConstant = true;
     }
@@ -97,33 +106,14 @@ public class BytecodeStackValue {
      * This method returns the correct opcode for loading a particular 
      * value onto the stack. 
      */
-    public int getLoadOpCode() {
-        return getLoadOpcode(type);
+    public int getLoadOpcode() {
+        return QuorumConverter.getLoadOpcode(type);
     }
     
-    /**
-     * This method returns the correct opcode for loading a particular
-     * value onto the stack.
-     * 
-     * @param type The type to check the opcode for.
-     * @return 
-     */
-    public static int getLoadOpcode(TypeDescriptor type) {
-        if (type.isInteger() || type.isBoolean())
-            return Opcodes.ILOAD;
-        else if(type.isNumber())
-            return Opcodes.DLOAD;
-        return Opcodes.ALOAD;
+    public int getStoreOpcode() {
+        return QuorumConverter.getStoreOpcode(type);
     }
     
-    public int getStoreOpCode() {
-        if (type.isInteger() || type.isBoolean())
-            return Opcodes.ISTORE;
-        else if(type.isNumber())
-            return Opcodes.DSTORE;
-        return Opcodes.ASTORE;
-    }
-   
     /**
      * This method returns the raw String representation in java bytecode
      * of a particular Quorum type. For example, a type boolean

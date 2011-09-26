@@ -233,4 +233,20 @@ public class QuorumConverter {
             return Opcodes.IRETURN;
         }
     }
+    
+    public static int getLoadOpcode(TypeDescriptor type) {
+        if (type.isInteger() || type.isBoolean())
+            return Opcodes.ILOAD;
+        else if(type.isNumber())
+            return Opcodes.DLOAD;
+        return Opcodes.ALOAD;
+    }
+    
+    public static int getStoreOpcode(TypeDescriptor type) {
+        if (type.isInteger() || type.isBoolean())
+            return Opcodes.ISTORE;
+        else if(type.isNumber())
+            return Opcodes.DSTORE;
+        return Opcodes.ASTORE;
+    }
 }

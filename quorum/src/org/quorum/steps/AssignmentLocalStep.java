@@ -8,6 +8,7 @@ package org.quorum.steps;
 import org.quorum.execution.DataEnvironment;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.symbols.Result;
+import org.quorum.symbols.VariableDescriptor;
 
 /**
  * This op-code puts the specified variable's current value, from a register,
@@ -43,4 +44,13 @@ public abstract class AssignmentLocalStep extends AssignmentStep {
         DataEnvironment de = vm.getDataEnvironment();
         de.popVariableValueLocalScopeOnly(variable.getStaticKey());
     }
+    
+    @Override 
+    public VariableDescriptor getVariable() {
+        if (variable instanceof VariableDescriptor)
+            return (VariableDescriptor) variable;
+        else
+            return null;
+    }
+    
 }

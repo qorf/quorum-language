@@ -1,18 +1,21 @@
 class Matt
+    number x = cast(number, "6.0")
+    integer y = cast(integer, "5005")
+
     action Main
-        text a = "85.4"
-        number b = cast(number, BooleanGenerator())
-        number c = -5.33 + cast(number, a)
-        text d = cast(text, true) 
+        //text a = "85.4"
+        //number b = cast(number, BooleanGenerator())
+        //number c = -5.33 + cast(number, a)
+        //text d = cast(text, true) 
         text e = BooleanGenerator() + " " + TextGenerator() + " " + IntegerGenerator() + " " + NumberGenerator()
-        print b * 50.4543634123
+        //print b * 50.4543634123
         print e
 
         if e >= "100.8" then
-           print "x"
+           print x
         end
         else then
-           print "not x"
+           print y
         end
     end
 
