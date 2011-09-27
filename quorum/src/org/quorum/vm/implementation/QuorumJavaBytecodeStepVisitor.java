@@ -28,11 +28,11 @@ import org.quorum.steps.AssignmentCustomLocalStep;
 import org.quorum.steps.AssignmentCustomStep;
 import org.quorum.steps.AssignmentIntegerLocalStep;
 import org.quorum.steps.AssignmentIntegerStep;
-import org.quorum.steps.AssignmentLocalStep;
 import org.quorum.steps.AssignmentNumberIntegerLocalStep;
 import org.quorum.steps.AssignmentNumberIntegerStep;
 import org.quorum.steps.AssignmentNumberLocalStep;
 import org.quorum.steps.AssignmentNumberStep;
+import org.quorum.steps.AssignmentStep;
 import org.quorum.steps.AssignmentTextLocalStep;
 import org.quorum.steps.AssignmentTextStep;
 import org.quorum.steps.AutoBoxCreateStep;
@@ -237,7 +237,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             String varName = next.getName();
             TypeDescriptor varType = next.getType();
             String converted = QuorumConverter.convertTypeToBytecodeString(varType);
-            fieldVisitor = classWriter.visitField(ACC_PUBLIC, varName, converted, null, null);
+            int accessModifier;
+            if (next.getAccessModifier().toString().compareTo(AccessModifierEnum.PUBLIC.toString()) == 0)
+                accessModifier = ACC_PUBLIC;
+            else
+                accessModifier = ACC_PRIVATE;
+            
+            fieldVisitor = classWriter.visitField(accessModifier, varName, converted, null, null);
             fieldVisitor.visitEnd();
         }
 
@@ -559,8 +565,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
     }
 
-    public void AssignLocal(BytecodeStackValue value, AssignmentLocalStep step) {
-        if ((step.getVariable() != null && step.getVariable().isInitializedClassVariable()) || fieldInitialization) {
+    public void PerformAssignment(BytecodeStackValue value, AssignmentStep step, boolean fieldInit) {
+        if (fieldInit) {
+        //if ((step.getVariable() != null && step.getVariable().isInitializedClassVariable()) || fieldInitialization) {
             methodVisitor.visitVarInsn(ALOAD, 0);
             
             TypeDescriptor objectType = new TypeDescriptor();
@@ -576,11 +583,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 else
                     fieldSize++;
             }
-
-            
         }
-        else {
-            int variableNumber = step.getVariable().getVariableNumber();
+        else{
+            int variableNumber = step.getVariable().getVariableNumber() - currentClass.getNumberOfVariables();
             int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
             value.setAsVariable(variableNumber);
             value.setAsReturnValue(false);
@@ -588,17 +593,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitVarInsn(value.getStoreOpcode(), mappedVariableNumber);
             stack.setVariable(variableNumber, value);
         }
-//        if (value.isConstant()) {
-
-//        } else {
-//
-//            if (variableNumber == -1) {
-//                return; //it's a field and we don't handle these yet.
-//            }
-//            value.setAsConstant();
-//            methodVisitor.visitVarInsn(value.getStoreOpCode(), mappedVariableNumber);
-//            stack.setVariable(variableNumber, value);
-//        }
         //add the local variable that has been assigned a value to the frame
         stack.addFrameVariable(value.getType());
     }
@@ -804,12 +798,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AssignmentBooleanLocalStep step) {
         BytecodeStackValue pop = stack.popConstant();
-        AssignLocal(pop, step);
+        PerformAssignment(pop, step, fieldInitialization);
     }
 
     @Override
     public void visit(AssignmentBooleanStep step) {
-        int a = 5;
+        BytecodeStackValue pop = stack.popConstant();
+        PerformAssignment(pop, step, true);
     }
 
     @Override
@@ -825,45 +820,51 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AssignmentIntegerLocalStep step) {
         BytecodeStackValue pop = stack.popConstant();
-        AssignLocal(pop, step);
+        PerformAssignment(pop, step, fieldInitialization);
     }
 
     @Override
     public void visit(AssignmentIntegerStep step) {
-        int a = 5;
+        BytecodeStackValue pop = stack.popConstant();
+        PerformAssignment(pop, step, true);
     }
 
     @Override
     public void visit(AssignmentNumberIntegerLocalStep step) {
-        int a = 5;
+        prepareNumberIntegerOperation();
+        BytecodeStackValue pop = stack.popConstant();
+        PerformAssignment(pop, step, fieldInitialization);
     }
 
     @Override
     public void visit(AssignmentNumberIntegerStep step) {
-        int a = 5;
+        prepareNumberIntegerOperation();
+        BytecodeStackValue pop = stack.popConstant();
+        PerformAssignment(pop, step, true);
     }
 
     @Override
     public void visit(AssignmentNumberLocalStep step) {
         BytecodeStackValue pop = stack.popConstant();
-        AssignLocal(pop, step);
+        PerformAssignment(pop, step, fieldInitialization);
     }
 
     @Override
     public void visit(AssignmentNumberStep step) {
-        int a = 5;
+        BytecodeStackValue pop = stack.popConstant();
+        PerformAssignment(pop, step, true);
     }
 
     @Override
     public void visit(AssignmentTextLocalStep step) {
-
         BytecodeStackValue pop = stack.popConstant();
-        AssignLocal(pop, step);
+        PerformAssignment(pop, step, fieldInitialization);
     }
 
     @Override
     public void visit(AssignmentTextStep step) {
-        int a = 5;
+        BytecodeStackValue pop = stack.popConstant();
+        PerformAssignment(pop, step, true);
     }
 
     @Override
@@ -1334,10 +1335,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //addToMethodVisit(stack.popConstant());
         Label label0 = new Label();
 //        methodVisitor.visitJumpInsn(IF_ICMPNE, label0);
-        int currentIfBytecode = stack.getCurrentIfBytecode();
-        methodVisitor.visitJumpInsn(currentIfBytecode, label0);
+        //int currentIfBytecode = stack.getCurrentIfBytecode();
+        //methodVisitor.visitJumpInsn(currentIfBytecode, label0);
+        methodVisitor.visitJumpInsn(IFEQ, label0);
 
-        LabelStackValue label = new LabelStackValue(LabelTypeEnum.IF, currentIfBytecode, label0);
+        LabelStackValue label = new LabelStackValue(LabelTypeEnum.IF, IFEQ, label0);
         stack.pushLabel(label);
 
     }
@@ -1729,7 +1731,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 variableType = varDescriptor.getType().getName();
             }
             else {
-                variable = stack.getVariable(step.getValue().getVariableNumber());
+                int variableNumber = step.getValue().getVariableNumber() - currentClass.getNumberOfVariables();
+                variable = stack.getVariable(variableNumber);
                 variableType = variable.getType().getName();
                 addToMethodVisit(variable);
             }

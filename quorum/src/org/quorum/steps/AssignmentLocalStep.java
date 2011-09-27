@@ -45,12 +45,4 @@ public abstract class AssignmentLocalStep extends AssignmentStep {
         de.popVariableValueLocalScopeOnly(variable.getStaticKey());
     }
     
-    @Override 
-    public VariableDescriptor getVariable() {
-        if (variable instanceof VariableDescriptor)
-            return (VariableDescriptor) variable;
-        else
-            return null;
-    }
-    
 }

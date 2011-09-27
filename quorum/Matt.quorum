@@ -3,15 +3,15 @@ class Matt
     integer y = cast(integer, "5005")
 
     action Main
-        //text a = "85.4"
-        //number b = cast(number, BooleanGenerator())
-        //number c = -5.33 + cast(number, a)
-        //text d = cast(text, true) 
+        text a = "85.4"
+        number b = cast(number, BooleanGenerator())
+        number c = -5.33 + cast(number, a)
+        text d = cast(text, true) 
         text e = BooleanGenerator() + " " + TextGenerator() + " " + IntegerGenerator() + " " + NumberGenerator()
-        //print b * 50.4543634123
+        print b * 50.4543634123
         print e
 
-        if e >= "100.8" then
+        if e not= "100.8" then
            print x
         end
         else then
@@ -20,11 +20,11 @@ class Matt
     end
 
     action IntegerGenerator returns integer
-        return 4
+        return y
     end
 
     action NumberGenerator returns number
-        return 8.4
+        return x
     end
 
     action TextGenerator returns text
