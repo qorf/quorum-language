@@ -190,7 +190,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     }
 
     public void visit(ClassExecution clazz) {
-        classWriter = new ClassWriter(0);
+        //classWriter = new ClassWriter(0);
         String staticKey = clazz.getClassDescriptor().getStaticKey();
         currentClass = clazz.getClassDescriptor();
         currentClassExecution = clazz;
@@ -207,6 +207,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //        }
         
         if (!".Stefik".equals(staticKey) && !"Libraries.Sound.Speech".equals(staticKey) && 
+                !"Libraries.Language.Object".equals(staticKey) &&
                 !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
                 ) {
             return;
@@ -214,7 +215,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
         classWriter = new ClassWriter(0);
-
+        
+        //if you need to cheat temporarily, this will compute the maxS
+        //function automatically. This is useful for reverse engineering.
+        //classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        
         //this will have to be modified for inheritance conversion
         classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", null);
         //first weave in the parents of the class and initialize them
@@ -373,9 +378,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitFieldInsn(PUTFIELD, name, PLUGIN_NAME, convertedSupplement);
             fieldSize += 2;
         }
+        
+        
+        int maxLocals = 1;
+        if(isParent) {
+            maxLocals++;
+        }
 
         methodVisitor.visitInsn(RETURN);
-        methodVisitor.visitMaxs(fieldSize, 1);
+        methodVisitor.visitMaxs(fieldSize, maxLocals);
         methodVisitor.visitEnd();
     }
     
@@ -1376,7 +1387,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(CreateObjectStep step) {
-        int a = 5;
         ClassDescriptor clazz = step.getClazz();
         //methodVisitor.visitVarInsn(ALOAD, THIS);
         String converted = QuorumConverter.convertStaticKeyToBytecodePath(clazz.getStaticKey());
@@ -1389,7 +1399,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (variableNumber == -1) {
             return; //it's a field and we don't handle these yet.
         }
-        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+        
+        
+        
 
         BytecodeStackValue value = new BytecodeStackValue();
         value.setAsVariable(variableNumber);
@@ -1409,8 +1421,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         stack.setVariable(variableNumber, value);
         //add the local variable that has been assigned a value to the frame
         stack.addFrameVariable(variable.getType());
+        
+        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
 
-        methodVisitor.visitVarInsn(ASTORE, mappedVariableNumber);
+        if(mappedVariableNumber != -1) {
+            methodVisitor.visitVarInsn(ASTORE, mappedVariableNumber);
+        }
         //stack.setVariable(variableNumber, value);
         int b = 5;
     }
