@@ -255,70 +255,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             fieldVisitor.visitEnd();
         }
 
-        //call the class's initialization function
-        methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
-        methodVisitor.visitCode();
-        methodVisitor.visitVarInsn(ALOAD, THIS);
-        methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
-
-
-
-
-
-
-        //now do field initialization
-        fieldInitialization = true;
-        stack.startMethod(1);
-        Vector<ExecutionStep> steps = this.currentClassExecution.getSteps();
-        for (int i = 0; i < steps.size(); i++) {
-            ExecutionStep step = steps.get(i);
-            step.visit(this);
-        }
-        fieldInitialization = false;
-
-        //initialize all of the parent objects as fields
-        parents = currentClass.getFlattenedListOfParents();
-        while(parents.hasNext()) {
-            ClassDescriptor parent = parents.next();
-            String parentKey = parent.getStaticKey();
-            String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
-            String converted = QuorumConverter.convertStaticKeyToBytecodePath(parentKey);
-            
-            methodVisitor.visitVarInsn(ALOAD, THIS);
-            methodVisitor.visitTypeInsn(NEW, converted);
-            methodVisitor.visitInsn(DUP);
-            methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "()V");
-            methodVisitor.visitFieldInsn(PUTFIELD, name, parentName, QuorumConverter.convertStaticKeyToBytecodePathTypeName(parentKey));
-        }
-                
-        //initialize the plugin last
-        if (numSystem > 0) {
-            methodVisitor.visitVarInsn(ALOAD, THIS);
-            String converted = QuorumConverter.convertStaticKeyToPluginPath(currentClass.getStaticKey());
-            String convertedSupplement = QuorumConverter.convertStaticKeyToPluginPathTypeName(currentClass.getStaticKey());
-            methodVisitor.visitTypeInsn(NEW, converted);
-            methodVisitor.visitInsn(DUP);
-            methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "()V");
-            methodVisitor.visitFieldInsn(PUTFIELD, name, PLUGIN_NAME, convertedSupplement);
-            fieldSize += 2;
-        }
-
-        methodVisitor.visitInsn(RETURN);
-        
-        methodVisitor.visitMaxs(fieldSize, 1);
-        
-        
-        //
-
-        //TODO: The visitMaxs method will almost certainly have to change,
-        //once field initialization works.
-        //if (numSystem > 0) {
-        //    methodVisitor.visitMaxs(fieldSize, 1);
-        //} else {
-        //    methodVisitor.visitMaxs(1, 1);
-        //}
-        
-        methodVisitor.visitEnd();
+        //add a constructor that initializes its parents
+        computeConstructor(true);
+        //add a constructor that doesn't
+        computeConstructor(false);
 
         //now dump all of the parent methods that 
         //are not in the base class out as wrapper functions.
@@ -358,6 +298,91 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         
     }
     
+    
+    /**
+     * This method computes the bytecode for a class's constructor. This method
+     * will be called twice, the first time for the current class
+     * and the second time for when the current class is initialized
+     * by a child class. This second constructor may never be used, but
+     * is important to weave in anyway, otherwise it would waste memory, 
+     * as children would have to initialize their parents (and their parents
+     * would initialize their parents) and so on, leading to unnecessary
+     * garbage collection.
+     * 
+     * @param clazz
+     * @param isParent True if this constructor should initialize its parents 
+     */
+    private void computeConstructor(boolean isParent) {
+        int numSystem = currentClass.getNumberSystemActions();
+        String staticKey = currentClass.getStaticKey();
+        String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
+        
+        String signature = "";
+        if(isParent) {
+            signature = "()V";
+        }
+        else {
+            signature = "(Z)V";
+        }
+        
+        
+        //call the class's initialization function
+        methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "<init>", signature, null, null);
+        methodVisitor.visitCode();
+        methodVisitor.visitVarInsn(ALOAD, THIS);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+
+        //now do field initialization
+        fieldInitialization = true;
+        stack.startMethod(1);
+        Vector<ExecutionStep> steps = this.currentClassExecution.getSteps();
+        for (int i = 0; i < steps.size(); i++) {
+            ExecutionStep step = steps.get(i);
+            step.visit(this);
+        }
+        fieldInitialization = false;
+
+        if(isParent) {
+            //initialize all of the parent objects as fields
+            Iterator<ClassDescriptor> parents = currentClass.getFlattenedListOfParents();
+            while(parents.hasNext()) {
+                ClassDescriptor parent = parents.next();
+                String parentKey = parent.getStaticKey();
+                String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
+                String converted = QuorumConverter.convertStaticKeyToBytecodePath(parentKey);
+
+                methodVisitor.visitVarInsn(ALOAD, THIS);
+                methodVisitor.visitTypeInsn(NEW, converted);
+                methodVisitor.visitInsn(DUP);
+                //push a boolean onto the stack
+                methodVisitor.visitInsn(ICONST_0);
+                fieldSize++;
+                methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "(Z)V");
+                methodVisitor.visitFieldInsn(PUTFIELD, name, parentName, QuorumConverter.convertStaticKeyToBytecodePathTypeName(parentKey));
+            }
+        }
+        
+        //initialize the plugin last
+        if (numSystem > 0) {
+            methodVisitor.visitVarInsn(ALOAD, THIS);
+            String converted = QuorumConverter.convertStaticKeyToPluginPath(currentClass.getStaticKey());
+            String convertedSupplement = QuorumConverter.convertStaticKeyToPluginPathTypeName(currentClass.getStaticKey());
+            methodVisitor.visitTypeInsn(NEW, converted);
+            methodVisitor.visitInsn(DUP);
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "()V");
+            methodVisitor.visitFieldInsn(PUTFIELD, name, PLUGIN_NAME, convertedSupplement);
+            fieldSize += 2;
+        }
+
+        methodVisitor.visitInsn(RETURN);
+        methodVisitor.visitMaxs(fieldSize, 1);
+        methodVisitor.visitEnd();
+    }
+    
+    /**
+     * Takes any method used by a parent and weaves them into the current
+     * class via composition.
+     */
     private void computeParentMethod(ClassDescriptor parent, MethodDescriptor action) {
         String name = action.getName();
         String params = QuorumConverter.convertMethodDescriptorToBytecodeSignature(action);
