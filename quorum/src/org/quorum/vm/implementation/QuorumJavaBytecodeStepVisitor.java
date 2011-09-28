@@ -701,7 +701,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "compareTo", "(Ljava/lang/String;)I");
         
         performComparison(bytecodeOpcode);
-        stack.setCurrentIfBytecode(bytecodeOpcode);
+        stack.setCurrentConditionalBytecode(bytecodeOpcode);
         
         BytecodeStackValue result = new BytecodeStackValue();
         TypeDescriptor integer = new TypeDescriptor();
@@ -1371,9 +1371,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //addToMethodVisit(stack.popConstant());
         Label label0 = new Label();
 //        methodVisitor.visitJumpInsn(IF_ICMPNE, label0);
-        //int currentIfBytecode = stack.getCurrentIfBytecode();
-        //methodVisitor.visitJumpInsn(currentIfBytecode, label0);
-        methodVisitor.visitJumpInsn(IFEQ, label0);
+        int currentIfBytecode = stack.getCurrentConditionalBytecode();
+        methodVisitor.visitJumpInsn(currentIfBytecode, label0);
 
         LabelStackValue label = new LabelStackValue(LabelTypeEnum.IF, IFEQ, label0);
         stack.pushLabel(label);
@@ -1382,7 +1381,16 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(ConditionalJumpLoopStep step) {
-        int a = 5;
+        stack.popConstant();
+        Label label0 = new Label();
+        
+        methodVisitor.visitLabel(label0);
+//        int currentLoopBytecode = stack.getCurrentConditionalBytecode();
+//
+//        LabelStackValue label = new LabelStackValue(LabelTypeEnum.LOOP, currentLoopBytecode, label0);
+//        stack.pushLabel(label);
+        
+
     }
 
     @Override
@@ -1519,6 +1527,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         methodVisitor.visitFrame(F_CHOP, frameSize, null, 0, null);
                     }
                 }
+            }else if(label.getLabelType().equals(LabelTypeEnum.LOOP) && label.getJumpType() != GOTO){//end of loop scope
+                
+
             }
         }
     }
