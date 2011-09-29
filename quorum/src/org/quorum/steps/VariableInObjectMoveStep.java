@@ -8,6 +8,7 @@ package org.quorum.steps;
 import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.execution.RuntimeObject;
+import org.quorum.symbols.TypeDescriptor;
 import org.quorum.symbols.VariableParameterCommonDescriptor;
 
 /**
@@ -19,6 +20,7 @@ public class VariableInObjectMoveStep extends IntermediateStep{
     private int temp;
     private VariableParameterCommonDescriptor obj;
     private String variableName;
+    private TypeDescriptor variableType;
     @Override
     public void execute() {
         String objName = getObj().getStaticKey();
@@ -84,6 +86,15 @@ public class VariableInObjectMoveStep extends IntermediateStep{
         return obj;
     }
 
+    public TypeDescriptor getVariableType() {
+        return variableType;
+    }
+    
+    public void setVariableType(TypeDescriptor type) {
+        variableType = new TypeDescriptor();
+        variableType.setName(type.getName());
+    }
+    
     /**
      * @param obj the obj to set
      */

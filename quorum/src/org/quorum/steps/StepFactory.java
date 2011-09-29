@@ -2275,6 +2275,7 @@ public class StepFactory {
             step.setTemp(resultRegister);
             step.setObj(vd);
             step.setVariableName(idVariable);
+            step.setVariableType(type);
             machine.getBuilder().add(step);
 
         }
