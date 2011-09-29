@@ -64,6 +64,7 @@ import org.quorum.tests.compiler.exceptions.ExceptionsTester;
 @RunWith(Suite.class)
 @Suite.SuiteClasses(value={TypeCheckTester.class, ListTester.class, RandomTester.class, StackTester.class,
     CurriculumTester.class, ActionsTester.class, ExceptionsTester.class, ArrayTester.class})
+
 /*@Suite.SuiteClasses(value={QuorumVirtualMachineTest.class, TypeCheckTester.class, TemplateTester.class, ActionsTester.class, ArraysTester.class,
     CurriculumTester.class, IfStatementTester.class, InheritanceTester.class, LoopsTester.class, NativeFunctionsTester.class, OtherTester.class,
     PublicPrivateTester.class, UseTester.class, ExceptionsTester.class, ListTester.class, MathTester.class, FileTester.class, 
