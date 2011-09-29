@@ -21,9 +21,9 @@ import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.quorum.plugins.DefaultPluginLoader;
-import org.quorum.tests.compiler.File.FileTester;
-//import org.sodbeans.tests.compiler.DateTime.DateTimeTester;
-//import org.sodbeans.tests.compiler.List.ListTester;
+//import org.quorum.tests.compiler.File.FileTester; // <-- old senior project team code
+//import org.quorum.tests.compiler.DateTime.DateTimeTester; // < -- old senior project team code
+import org.quorum.tests.compiler.List.ListTester;
 //import org.sodbeans.tests.compiler.actions.ActionsTester;
 //import org.sodbeans.tests.compiler.arrays.ArraysTester;
 //import org.sodbeans.tests.compiler.curriculum.CurriculumTester;
@@ -52,7 +52,7 @@ import org.quorum.vm.implementation.QuorumVirtualMachine;
  * @author astefik
  */
 @RunWith(Suite.class)
-@Suite.SuiteClasses(value={FileTester.class, TypeCheckTester.class})
+@Suite.SuiteClasses(value={TypeCheckTester.class, ListTester.class})
 /*@Suite.SuiteClasses(value={QuorumVirtualMachineTest.class, TypeCheckTester.class, TemplateTester.class, ActionsTester.class, ArraysTester.class,
     CurriculumTester.class, IfStatementTester.class, InheritanceTester.class, LoopsTester.class, NativeFunctionsTester.class, OtherTester.class,
     PublicPrivateTester.class, UseTester.class, ExceptionsTester.class, ListTester.class, MathTester.class, FileTester.class, 

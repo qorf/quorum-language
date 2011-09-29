@@ -1,0 +1,42 @@
+use Libraries.Containers.List
+
+/**
+ * Uses:
+ * action RemoveLast()
+**/
+
+/**
+ * Description:
+ * This test case tests the RemoveLast action.
+**/
+
+/**
+ * Expected Results:
+ * text textTotal = "OneFiveNineOneEightThree"
+**/
+
+/**
+ * @author Elliot Motl
+**/
+class Main
+    action Main
+       List<text> textList
+
+       textList:Add("One")
+       textList:Add("Five")
+       textList:Add("Nine")
+       textList:Add("One")
+       textList:Add("Eight")
+       textList:Add("Three")
+       textList:Add("One")
+
+       textList:RemoveFromFront()
+
+       text textTotal = ""
+       integer i = 0
+       repeat from 0 to 5
+           textTotal = textTotal + textList:Get(i)
+           i = i + 1
+       end
+    end
+end
