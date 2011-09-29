@@ -134,11 +134,11 @@ public class CompilerTestSuite {
         }
         
         //
-            vm = new QuorumVirtualMachine();
-            //add the default plugins
-            DefaultPluginLoader loader = new DefaultPluginLoader();
-            loader.loadIntoVirtualMachine(vm);
-            loader.checkConsistency(vm);
+        vm = new QuorumVirtualMachine();
+        //add the default plugins
+        DefaultPluginLoader loader = new DefaultPluginLoader();
+        loader.loadIntoVirtualMachine(vm);
+        loader.checkConsistency(vm);
     }
     
 
