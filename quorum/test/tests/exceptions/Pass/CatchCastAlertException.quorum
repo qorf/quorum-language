@@ -1,0 +1,13 @@
+use Libraries.Language.Errors.CastError
+class Main
+    action main
+        integer i = 1
+        check
+            CastError er
+            alert(er)
+        end
+        detect e of type CastError
+            i = 2
+        end
+    end
+end

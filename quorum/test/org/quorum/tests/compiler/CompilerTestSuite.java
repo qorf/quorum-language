@@ -21,9 +21,22 @@ import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.quorum.plugins.DefaultPluginLoader;
+import org.quorum.tests.compiler.Array.ArrayTester;
+import org.quorum.vm.implementation.QuorumStandardLibrary;
+import org.quorum.vm.implementation.QuorumVirtualMachine;
+
+// Test imports.
 //import org.quorum.tests.compiler.File.FileTester; // <-- old senior project team code
 //import org.quorum.tests.compiler.DateTime.DateTimeTester; // < -- old senior project team code
+//import org.sodbeans.tests.compiler.PriorityQueue.PriorityQueueTester; // <-- old senior project code ?
+import org.quorum.tests.compiler.types.TypeCheckTester;
 import org.quorum.tests.compiler.List.ListTester;
+import org.quorum.tests.compiler.Random.RandomTester;
+import org.quorum.tests.compiler.Stack.StackTester;
+import org.quorum.tests.compiler.actions.ActionsTester;
+import org.quorum.tests.compiler.curriculum.CurriculumTester;
+import org.quorum.tests.compiler.exceptions.ExceptionsTester;
+
 //import org.sodbeans.tests.compiler.actions.ActionsTester;
 //import org.sodbeans.tests.compiler.arrays.ArraysTester;
 //import org.sodbeans.tests.compiler.curriculum.CurriculumTester;
@@ -35,16 +48,13 @@ import org.quorum.tests.compiler.List.ListTester;
 //import org.sodbeans.tests.compiler.other.OtherTester;
 //import org.sodbeans.tests.compiler.publicprivate.PublicPrivateTester;
 //import org.sodbeans.tests.compiler.templating.TemplateTester;
-import org.quorum.tests.compiler.types.TypeCheckTester;
 //import org.sodbeans.tests.compiler.use.UseTester;
 //import org.sodbeans.tests.compiler.math.MathTester;
 //import org.sodbeans.tests.compiler.Stack.StackTester;
 //import org.sonify.vm.quorum.parser.QuorumVirtualMachineTest;
-//import org.sodbeans.tests.compiler.PriorityQueue.PriorityQueueTester;
 //import org.sodbeans.tests.compiler.queue.QueueTester;
 //import org.sodbeans.tests.compiler.table.TableTester;
-import org.quorum.vm.implementation.QuorumStandardLibrary;
-import org.quorum.vm.implementation.QuorumVirtualMachine;
+
 
 
 /**
@@ -52,7 +62,8 @@ import org.quorum.vm.implementation.QuorumVirtualMachine;
  * @author astefik
  */
 @RunWith(Suite.class)
-@Suite.SuiteClasses(value={TypeCheckTester.class, ListTester.class})
+@Suite.SuiteClasses(value={TypeCheckTester.class, ListTester.class, RandomTester.class, StackTester.class,
+    CurriculumTester.class, ActionsTester.class, ExceptionsTester.class, ArrayTester.class})
 /*@Suite.SuiteClasses(value={QuorumVirtualMachineTest.class, TypeCheckTester.class, TemplateTester.class, ActionsTester.class, ArraysTester.class,
     CurriculumTester.class, IfStatementTester.class, InheritanceTester.class, LoopsTester.class, NativeFunctionsTester.class, OtherTester.class,
     PublicPrivateTester.class, UseTester.class, ExceptionsTester.class, ListTester.class, MathTester.class, FileTester.class, 
@@ -70,7 +81,7 @@ public class CompilerTestSuite {
     public static final String NATIVE_FUNCIONS = "nativefunctions" + File.separatorChar;
     public static final String INHERITANCE = "inheritance" + File.separatorChar;
     public static final String USE = "use" + File.separatorChar;
-    public static final String ARRAYS = "arrays" + File.separatorChar;
+    public static final String ARRAYS = "Array" + File.separatorChar;
     public static final String PUBLIC_PRIVATE = "publicprivate" + File.separatorChar;
     public static final String EXCEPTIONS = "exceptions" + File.separatorChar;
     public static final String OTHER = "other" + File.separatorChar;

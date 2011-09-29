@@ -1,0 +1,84 @@
+use Libraries.Compute.Math
+
+class main
+    boolean asdf
+
+    action Main
+        playGame()
+    end
+
+    action playGame
+        integer computerScore = 0
+        integer humanScore = 0
+        boolean gameOver = false
+        repeat while gameOver = false
+            computerScore = computerTurn(computerScore)
+            humanScore = computerTurn(humanScore)
+            if humanScore >= 100 then
+                if computerScore < 100 then
+                    say "You won"
+                    gameOver = true
+                    asdf = true
+                end
+                else then
+                    say "Tie"
+                    gameOver = true
+                    asdf = true
+                end
+            end
+            else if computerScore >= 100 then
+                say "Computer won"
+                gameOver = true
+                asdf = true
+            end
+        end
+    end
+
+    action computerTurn (integer score) returns integer
+        integer currentTurnScore = 0
+        integer diceRoll = rollDice()
+        boolean rollAgain = true
+        repeat while rollAgain = true
+            if diceRoll = 1 then
+                rollAgain = false
+                currentTurnScore = 0
+            end
+            else then
+                currentTurnScore = currentTurnScore + diceRoll
+                if currentTurnScore > 20 then
+                    rollAgain = false
+                end
+            end
+            diceRoll = rollDice()
+        end
+        score = score + currentTurnScore
+        return score
+    end
+
+    action humanTurn (integer score) returns integer
+        integer currentTurnScore = 0
+        integer diceRoll = rollDice()
+        text temp
+        integer rollAgain = 1
+        repeat while rollAgain = 1
+            if diceRoll = 1 then
+                rollAgain = 0
+                currentTurnScore = 0
+            end
+            else then
+                currentTurnScore = currentTurnScore + diceRoll
+                temp = input ("Your current score is " + currentTurnScore + ". Enter 1 to roll again or 2 to add your turn score to your total.")
+                rollAgain = cast(integer, temp)
+            end
+            diceRoll = rollDice()
+        end
+        score = score + currentTurnScore
+        return score
+    end
+
+    action rollDice returns integer
+        Math math
+        integer diceRoll = math:Random(6)
+        return diceRoll
+    end
+end

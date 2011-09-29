@@ -1,0 +1,15 @@
+use Libraries.Language.Errors.CastError
+class NestedCatchCastException
+    integer result = 1
+    action main
+        
+        A_1 a
+        check
+             a:test()
+        end
+        detect e of type CastError
+            result = result + 1
+        end
+        result = result + 1
+    end
+end

@@ -1,0 +1,16 @@
+use Libraries.Containers.Array
+
+class Main
+    action main
+        Array<integer> a
+        a:Add(12)
+        a:Add(13)
+        a:Add(13)
+
+        a:Remove(13)
+
+        integer result1 = a:Get(0)
+        integer result2 = a:Get(1)
+        integer size = a:GetSize()
+    end
+end

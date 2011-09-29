@@ -1,0 +1,14 @@
+use Libraries.Language.Errors.InvalidLocationError
+class Main
+    action main
+        integer result = 1
+        A_2 a
+        check
+             a:test()
+        end
+        detect e of type InvalidLocationError
+            result = result + 1
+        end
+        result = result + 1
+    end
+end

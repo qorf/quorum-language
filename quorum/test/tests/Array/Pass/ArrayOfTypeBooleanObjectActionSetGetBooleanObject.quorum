@@ -1,0 +1,17 @@
+use Libraries.Containers.Array
+class Main
+    action main
+        Array<Boolean> myArray
+        myArray:SetSize(1)
+
+        Boolean eAt0
+        eAt0:SetValue(true)
+
+        myArray:Set(0,eAt0)
+
+        Boolean elementAt0 = myArray:Get(0)
+
+        boolean value0 = elementAt0:GetValue()
+
+    end
+end

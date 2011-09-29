@@ -1,0 +1,17 @@
+use Libraries.Containers.Array
+
+class Main
+    action main
+        Array<integer> a
+        a:SetAutoResize(false)
+        a:Add(13)
+        a:Add(12)
+        a:Add(14)
+
+        integer result1 = a:Get(0)
+        a:RemoveFromFront()
+        integer result2 = a:Get(0)
+
+        integer result3 = a:Get(1)
+    end
+end

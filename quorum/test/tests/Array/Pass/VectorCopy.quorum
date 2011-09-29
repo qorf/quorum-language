@@ -1,0 +1,16 @@
+use Libraries.Containers.Array
+
+class Main
+    action main
+        Array<integer> a
+        a:Add(13)
+        a:Add(12)
+        a:Add(14)
+
+        Object o = a:Copy()
+        Array<integer> b = cast(Array<integer>, o)
+        integer result1 = b:Get(0)
+        integer result2 = b:Get(1)
+        integer result3 = b:Get(2)
+    end
+end
