@@ -1,0 +1,12 @@
+use Libraries.Language.Support.CompareResult
+
+class Main
+    action main
+        Number var1
+        var1:SetValue(450.45)
+        Number var2
+        var2:SetValue(79.2145)
+        CompareResult result = var1:Compare(var2)
+        boolean final = result:result = result:LARGER
+    end
+end

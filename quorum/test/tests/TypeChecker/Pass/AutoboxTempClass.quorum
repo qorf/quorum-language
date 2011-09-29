@@ -1,0 +1,11 @@
+class AutoboxTempClass<type>
+    type something = undefined
+
+    action setSomething(type t)
+        something = t
+    end
+
+    action getSomething() returns type
+        return something
+    end
+end
