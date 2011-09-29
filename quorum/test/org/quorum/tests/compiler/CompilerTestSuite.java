@@ -123,21 +123,22 @@ public class CompilerTestSuite {
             for(int i = 0; i < 7; i++) {
                 systemRoot = systemRoot.getParentFile();
             }
-            
+
             // Fix for new test suite: Update to the standard library path.
             File index = new File(systemRoot.getAbsolutePath() +
                     "/libraries/indexes/quorum.index");
             File root = new File(systemRoot.getAbsolutePath() +
                     "/libraries/quorum/");
             QuorumStandardLibrary.overrideStandardLibraryPath(root, index);
+            setup = true;
+        }
+        
+        //
             vm = new QuorumVirtualMachine();
             //add the default plugins
             DefaultPluginLoader loader = new DefaultPluginLoader();
             loader.loadIntoVirtualMachine(vm);
             loader.checkConsistency(vm);
-
-            setup = true;
-        }
     }
     
 
