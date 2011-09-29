@@ -1,0 +1,14 @@
+class Main
+    action Main
+            integer j = func(10)
+    end
+
+    action func(integer j) returns integer
+        if j <= 0 then
+                return 0
+        else
+                j = j - 1
+                return func(j)
+        end
+    end
+end

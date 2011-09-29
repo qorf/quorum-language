@@ -1,0 +1,51 @@
+class TypesTest
+    action Main
+        Integer a
+        integer b
+
+        Text c
+        text d
+
+        Number e
+        number f
+
+        Boolean g
+        boolean h
+
+        a = 345
+        b = 90
+        integer a1 = a + b
+        a1 = a * b
+        a1 = a / b
+        a1 = a mod b
+        a1 = a - b
+        a1 = a - b - 7
+        a1 = 7 - b - a
+
+        c = "Hello "
+        d = "world"
+        text c1 = "sup"
+        c1 = c + d
+        c1 = d + c
+
+        e = 345.5
+        f = 90.6
+        number e1 = a + b
+        e1 = a * b
+        e1 = a / b
+        e1 = a - b
+        e1 = a - b - 7.345
+        e1 = 7.345 - b - a
+
+        g = false
+        h = true
+        boolean g1 = true
+        g1 = g or h
+        g1 = g and h
+        g1 = h or g
+        g1 = h and g
+        g1 = not g1
+        g1 = Not g1
+        g1 = g and g and h and false and true and false or true or not false
+    end
+end

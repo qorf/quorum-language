@@ -1,0 +1,20 @@
+class Hop
+
+    action New
+    end
+
+    action Main
+        integer num1 = 2 * 4 + 9
+        integer num2 = 15 - 13 * 6
+        integer answer = GreatestCommonDivisor(num1, num2)
+
+    end
+
+    action GreatestCommonDivisor(integer x, integer y) returns integer
+        if  y = 0 then
+            return x
+        end else
+            return GreatestCommonDivisor(y, x mod y)
+        end
+    end
+end

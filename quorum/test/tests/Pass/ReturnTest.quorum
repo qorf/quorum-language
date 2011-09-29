@@ -1,0 +1,10 @@
+class recursive
+    action Main
+            integer a = some_func(5)
+            integer b = a + 5
+    end
+
+    action some_func(integer j) returns integer
+        return j + 2
+    end
+end

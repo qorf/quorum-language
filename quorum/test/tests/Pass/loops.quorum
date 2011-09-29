@@ -1,0 +1,22 @@
+class Loops
+    action Main
+        integer i = 0
+        integer x = 10
+        integer my_counter = 0
+        repeat from i to x
+            my_counter = my_counter + 1
+        end
+
+        integer bill = i
+        repeat from i to x
+            bill = bill * 2
+            bill = bill + 1
+        end
+
+        integer bill = i * 32
+        repeat from i * 32 to x * 546 - 17
+                bill = bill -1
+                bill = bill + 1
+            end
+        end
+end

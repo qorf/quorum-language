@@ -1,0 +1,32 @@
+class Hop
+    action Main
+        integer a = 5
+        integer b = 10
+        integer c = 15
+        integer m = 20
+        integer jon = 25
+        integer fred = 25
+        integer l = 7
+        integer g = 8
+        Text answer = ""
+
+        if a + b = c and jon = fred then
+            b = m + 2
+            integer d = l + g
+            answer = answer + ": top true"
+        end else
+            answer = answer + ": inner false"
+            if a + b not= c then
+                answer = answer + ": inner true"
+                if a = 4 then
+                    answer = answer + ": inner inner true"
+                end else
+                    answer = answer + ": inner inner false"
+                end
+            end else
+                answer = answer + ": inner false"
+            end
+
+        end
+    end
+end

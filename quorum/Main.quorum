@@ -1,94 +1,17 @@
-use Libraries.Sound.Music
-use Libraries.Sound.MusicEvent
-use Libraries.Sound.Playable
-use Libraries.Sound.Note
-use Libraries.Sound.Chord
-use Libraries.Sound.Instrument
-use Libraries.Sound.Track
-use Libraries.Containers.Blueprints.Iterator
+integer i = 0
 
-class Main
-    action Main
-        Music muse
-        Track t = muse:AddTrack()
+/*
 
-        Note n1
-        Note n2
-        Note n3
-        Chord c1
-        n1:SetPitch(60)
-        n2:SetPitch(64)
-        n3:SetPitch(67)
-        n2:SetStartTime(muse:quarterNote)
-        n3:SetStartTime(muse:quarterNote)
-        n1:SetLength(muse:quarterNote)
-        n2:SetLength(muse:quarterNote)
-        n3:SetLength(muse:quarterNote)
-        c1:Add(60)
-        c1:Add(64)
-        c1:Add(67)
-        c1:SetStartTime(muse:quarterNote)
-        c1:SetLength(muse:breve)
-        t:Add(n1)
-        t:Add(n2)
-        t:Add(n3)
-        t:Add(c1)
-        muse:PlaySong()
-    end
 
-    action foo
-        print "HI"
-        Music m
-        Instrument k = m:GetInstrument(30)
-        //m:SetInstrument(k)
-        //m:Play(60, 1)
-        Note n
-        n:SetPitch(60)
-        n:SetLength(m:quarterNote)
-        //m:Play(n)
-        n:SetPitch(64)
-        n:SetLength(m:quarterNote)
-        //m:Play(n)
-        
-        Chord c
-        c:Add(36)
-        //c:Add(40)
-        c:Add(43)
-        c:Add(48)
-        c:SetPrePitchBend(200)
-        c:SetPrePitchBendLength(m:eighthNote)
-        c:SetStartTime(0)
-        c:SetLength(m:breve)
-        //m:Play(c)
-        
-        Chord d
-        d:Add(41)
-        //d:Add(45)
-        d:Add(48)
-        d:Add(53)
-        d:SetStartTime(m:wholeNote)
-        d:SetLength(m:wholeNote)
-        //m:Play(d)
+Go to /Users/melissa/NetBeansProjects/quorum/trunk/quorum/build/classes/build
 
-        Chord e
-        e:Add(43)
-        //e:Add(47)
-        e:Add(50)
-        //e:Add(77)
-        e:Add(55)
-        e:SetStartTime(m:wholeNote)
-        e:SetLength(m:wholeNote)
-        //m:Play(e)
+to run:
 
-        //c:SetLength(m:quarterNote)
-        //m:Play(c)
-        
-        c:SetConstantPitchBend(30)
-        Track t = m:AddTrack()
-        t:Add(c)
-        //Track t2 = m:AddTrack()
-        //t2:Add(e)
-        //m:PlaySong()
-        //m:PlayMidi("/l.mid")
-    end
-end
+java quorum.Melissa
+
+To do asm dump:
+
+java -jar /Users/melissa/Desktop/ASMDump/ASMDump.jar quorum/Melissa.class
+
+
+*/

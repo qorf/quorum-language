@@ -190,7 +190,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     }
 
     public void visit(ClassExecution clazz) {
-        //classWriter = new ClassWriter(0);
+        classWriter = new ClassWriter(0);
+        
+        //if you need to cheat temporarily, this will compute the maxS
+        //function automatically. This is useful for reverse engineering.
+        //classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         String staticKey = clazz.getClassDescriptor().getStaticKey();
         currentClass = clazz.getClassDescriptor();
         currentClassExecution = clazz;
@@ -214,11 +218,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
-        classWriter = new ClassWriter(0);
         
-        //if you need to cheat temporarily, this will compute the maxS
-        //function automatically. This is useful for reverse engineering.
-        //classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         
         //this will have to be modified for inheritance conversion
         classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", null);
