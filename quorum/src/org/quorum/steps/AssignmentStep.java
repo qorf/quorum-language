@@ -207,6 +207,10 @@ public abstract class AssignmentStep extends IntermediateStep {
         subVariableName = variableInObjectName;
     }
 
+    public String getSubVariableName() {
+        return subVariableName;
+    }
+    
     /**
      * @return the parent
      */
