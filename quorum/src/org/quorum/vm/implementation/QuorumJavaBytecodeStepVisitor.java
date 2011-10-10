@@ -1405,12 +1405,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(ConditionalJumpIfStep step) {
         stack.popConstant();
-//        addToMethodVisit(stack.popConstant());
+
+        //generate a new label for the if and visit the jump instruction
         Label label0 = new Label();
-//        methodVisitor.visitJumpInsn(IF_ICMPNE, label0);
         int currentIfBytecode = stack.getCurrentConditionalBytecode();
         methodVisitor.visitJumpInsn(currentIfBytecode, label0);
 
+        //generate the if label add the label to the bytecode stack
         LabelStackValue label = new LabelStackValue(LabelTypeEnum.IF, currentIfBytecode, label0);
         stack.pushLabel(label);
 
@@ -1534,7 +1535,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         methodVisitor.visitFrame(F_APPEND, frameSize, obj, 0, null);
 
                         stack.removeEndFrame();
-                    } else if (frameSize == 0) {
+                    } else if (frameSize == 0) {//F_SAME or F_CHOP
                         //remove the current frame
                         ArrayList<TypeDescriptor> removedFrame = stack.removeEndFrame();
 
@@ -1548,7 +1549,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                             }
                             methodVisitor.visitFrame(F_CHOP, endFrameSize, null, 0, null);
                         }
-                    } else if (frameSize >= 4) {
+                    } else if (frameSize >= 4) {//F_FULL
                         Object[] obj = new Object[frameSize + 1];
                         for (int i = 0; i < frameSize; i++) {
                             if (i == 0) {
