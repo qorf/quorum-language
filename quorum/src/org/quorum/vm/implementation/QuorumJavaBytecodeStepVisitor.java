@@ -192,14 +192,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     public void visit(ClassExecution clazz) {
         classWriter = new ClassWriter(0);
-        
+
         //if you need to cheat temporarily, this will compute the maxS
         //function automatically. This is useful for reverse engineering.
         //classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         String staticKey = clazz.getClassDescriptor().getStaticKey();
         currentClass = clazz.getClassDescriptor();
         currentClassExecution = clazz;
-        
+
         classWriter = new ClassWriter(0);
 
         //garbage code to ease debugging, remove for reality.
@@ -212,22 +212,21 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //                && !"Libraries.Language.Object".equals(staticKey)) {
 //            return;
 //        }
-        
-        if (!".Stefik".equals(staticKey) && !"Libraries.Sound.Speech".equals(staticKey) && 
-                !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey) &&
-                !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
-                ) {
+
+        if (!".Stefik".equals(staticKey) && !"Libraries.Sound.Speech".equals(staticKey)
+                && !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
+                && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)) {
             return;
         }
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
-        
-        
+
+
         //this will have to be modified for inheritance conversion
         classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", null);
         //first weave in the parents of the class and initialize them
         Iterator<ClassDescriptor> parents = currentClass.getFlattenedListOfParents();
-        while(parents.hasNext()) {
+        while (parents.hasNext()) {
             ClassDescriptor parent = parents.next();
             String parentKey = parent.getStaticKey();
             String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
@@ -236,8 +235,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             fieldVisitor.visitEnd();
             fieldSize += 2;
         }
-        
-        
+
+
         //Do field visiting for the class.
         Iterator<VariableDescriptor> classVariables = clazz.getClassDescriptor().getClassVariables();
         while (classVariables.hasNext()) {
@@ -246,11 +245,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             TypeDescriptor varType = next.getType();
             String converted = QuorumConverter.convertTypeToBytecodeString(varType);
             int accessModifier;
-            if (next.getAccessModifier().toString().compareTo(AccessModifierEnum.PUBLIC.toString()) == 0)
+            if (next.getAccessModifier().toString().compareTo(AccessModifierEnum.PUBLIC.toString()) == 0) {
                 accessModifier = ACC_PUBLIC;
-            else
+            } else {
                 accessModifier = ACC_PRIVATE;
-            
+            }
+
             fieldVisitor = classWriter.visitField(accessModifier, varName, converted, null, null);
             fieldVisitor.visitEnd();
         }
@@ -271,11 +271,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //now dump all of the parent methods that 
         //are not in the base class out as wrapper functions.
         parents = currentClass.getFlattenedListOfParents();
-        while(parents.hasNext()) {
+        while (parents.hasNext()) {
             ClassDescriptor parent = parents.next();
             //computeParentMethods(parent);
         }
-        
+
         //now do all methods
         Iterator<MethodExecution> methods = clazz.getMethods();
         while (methods.hasNext()) {
@@ -290,23 +290,21 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         classWriter.visitEnd();
     }
-    
-    
+
     private void computeParentMethods(ClassDescriptor parent) {
         Collection<MethodDescriptor> methods = parent.getAllMethods(AccessModifierEnum.PUBLIC);
         Iterator<MethodDescriptor> iterator = methods.iterator();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             MethodDescriptor method = iterator.next();
             MethodDescriptor baseMethod = currentClass.getMethod(method.getStaticKey());
             //weave in the method into the base class, by composition
-            if(baseMethod == null && !(method instanceof BlueprintDescriptor)) {
+            if (baseMethod == null && !(method instanceof BlueprintDescriptor)) {
                 computeParentMethod(parent, method);
             }
         }
-        
+
     }
-    
-    
+
     /**
      * This method computes the bytecode for a class's constructor. This method
      * will be called twice, the first time for the current class
@@ -324,16 +322,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         int numSystem = currentClass.getNumberSystemActions();
         String staticKey = currentClass.getStaticKey();
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
-        
+
         String signature = "";
-        if(isParent) {
+        if (isParent) {
             signature = "()V";
-        }
-        else {
+        } else {
             signature = "(Z)V";
         }
-        
-        
+
+
         //call the class's initialization function
         methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "<init>", signature, null, null);
         methodVisitor.visitCode();
@@ -350,10 +347,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         fieldInitialization = false;
 
-        if(isParent) {
+        if (isParent) {
             //initialize all of the parent objects as fields
             Iterator<ClassDescriptor> parents = currentClass.getFlattenedListOfParents();
-            while(parents.hasNext()) {
+            while (parents.hasNext()) {
                 ClassDescriptor parent = parents.next();
                 String parentKey = parent.getStaticKey();
                 String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
@@ -368,7 +365,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //                methodVisitor.visitFieldInsn(PUTFIELD, name, parentName, QuorumConverter.convertStaticKeyToBytecodePathTypeName(parentKey));
             }
         }
-        
+
         //initialize the plugin last
         if (numSystem > 0) {
             methodVisitor.visitVarInsn(ALOAD, THIS);
@@ -380,9 +377,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            methodVisitor.visitFieldInsn(PUTFIELD, name, PLUGIN_NAME, convertedSupplement);
             fieldSize += 2;
         }
-        
+
         int maxLocals = 3;
-        if(isParent) {
+
+        if (isParent) {
             maxLocals++;
         }
 
@@ -390,7 +388,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitMaxs(fieldSize, maxLocals);
         methodVisitor.visitEnd();
     }
-    
+
     /**
      * Takes any method used by a parent and weaves them into the current
      * class via composition.
@@ -411,7 +409,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
         stack.startMethod(1);
         addParametersAsVariables(action);
-        
+
         //get the appropriate parent field
         methodVisitor.visitVarInsn(ALOAD, 0);
         //the four parameters: 1) get a field, 2) the class the field is in
@@ -550,17 +548,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         for (int i = 1; i <= method.getParameters().size(); i++) {
             BytecodeStackValue parameterVariable = new BytecodeStackValue();
             TypeDescriptor constantType = new TypeDescriptor();
-            ParameterDescriptor parameter = method.getParameters().get(i-1);
-            
+            ParameterDescriptor parameter = method.getParameters().get(i - 1);
+
             constantType.setName(parameter.getType().getName());
             parameterVariable.setType(constantType);
             parameterVariable.setName(parameter.getName());
-                    
+
             parameterVariable.setAsVariable(i);
             stack.setVariable(i, parameterVariable);
         }
     }
-    
+
     /**
      * This method takes a stack value, computes the appropriate
      * op-code to be placed in the code block of the method, and then
@@ -597,11 +595,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     }
                 } else if ((value.getResult().integer >= -128 && value.getResult().integer <= 127)) {
                     methodVisitor.visitIntInsn(BIPUSH, value.getResult().integer);
-                }
-                else if ((value.getResult().integer >= -32768 && value.getResult().integer <= 32767)){
+                } else if ((value.getResult().integer >= -32768 && value.getResult().integer <= 32767)) {
                     methodVisitor.visitIntInsn(SIPUSH, value.getResult().integer);
-                }
-                else {
+                } else {
                     methodVisitor.visitLdcInsn(value.getResult().integer);
                 }
             } else if (value.getType().isBoolean()) {
@@ -618,7 +614,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
     }
 
-    private void PerformFieldAssignment(VariableParameterCommonDescriptor variable, String subVariableName, TypeDescriptor subVariableType) {
+    private void performFieldAssignment(VariableParameterCommonDescriptor variable, String subVariableName, TypeDescriptor subVariableType) {
         String fieldParent;
         String variableName;
         TypeDescriptor variableType;
@@ -645,20 +641,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitFieldInsn(PUTFIELD, fieldParent, variableName, QuorumConverter.convertTypeToBytecodeString(variableType));
     }
     
-    public void PerformAssignment(BytecodeStackValue value, AssignmentStep step, boolean fieldInit) {
+    public void performAssignment(BytecodeStackValue value, AssignmentStep step, boolean fieldInit) {
         if (fieldInit) {
-        //if ((step.getVariable() != null && step.getVariable().isInitializedClassVariable()) || fieldInitialization) {
-            
-            PerformFieldAssignment(step.getVariable(), step.getSubVariableName(), value.getType());
+            //if ((step.getVariable() != null && step.getVariable().isInitializedClassVariable()) || fieldInitialization) {
+
+            performFieldAssignment(step.getVariable(), step.getSubVariableName(), value.getType());
                         
             if (fieldInitialization) {
-                if (value.getType().isNumber())
+                if (value.getType().isNumber()) {
                     fieldSize += 2;
-                else
+                } else {
                     fieldSize++;
+                }
             }
-        }
-        else{
+        } else {
             int variableNumber = step.getVariable().getVariableNumber() - currentClass.getNumberOfVariables();
             int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
             value.setAsVariable(variableNumber);
@@ -673,7 +669,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     // converts the first operand on the stack (an integer) to a double
     // so that both operands are doubles
-        private void prepareNumberIntegerOperation() {
+    private void prepareNumberIntegerOperation() {
         methodVisitor.visitInsn(I2D);
         BytecodeStackValue operand = stack.popConstant();
 
@@ -686,159 +682,160 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private void prepareIntegerNumberOperation(boolean orderMatters) {
         BytecodeStackValue numberVal = stack.popConstant();
         BytecodeStackValue integerVal = stack.popConstant();
-        
+
         swapOperandStackValues(numberVal.getType(), integerVal.getType());
 
         if (orderMatters) {
             swapOperandStackValues(numberVal.getType(), numberVal.getType());
         }
-         
+
         integerVal.getType().setName(TypeDescriptor.NUMBER);
         stack.pushConstant(numberVal);
         stack.pushConstant(integerVal);
     }
-    
+
     private void prepareTextValueConcatenation() {
         BytecodeStackValue operand = stack.popConstant();
         TypeDescriptor operandType = operand.getType();
-        if (operandType.isBoolean())
+        if (operandType.isBoolean()) {
             methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "toString", "(Z)Ljava/lang/String;");
-        else if (operandType.isInteger())
+        } else if (operandType.isInteger()) {
             methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "toString", "(I)Ljava/lang/String;");
-        else if (operandType.isNumber())
+        } else if (operandType.isNumber()) {
             methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "toString", "(D)Ljava/lang/String;");
-        
+        }
+
         operandType.setName(TypeDescriptor.TEXT);
         stack.pushConstant(operand);
     }
-    
+
     private void prepareValueTextConcatenation() {
         BytecodeStackValue text = stack.popConstant();
         BytecodeStackValue value = stack.getConstantFromTop(0);
-        
+
         swapOperandStackValues(text.getType(), value.getType());
 
         prepareTextValueConcatenation();
-        
+
         swapOperandStackValues(text.getType(), value.getType());
         stack.pushConstant(text);
     }
-    
+
     private void performTextConcatenation() {
         stack.popConstant();
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;");
-     }
-    
+    }
+
     private void performBinaryComparison(int bytecodeOpcode) {
         BytecodeStackValue operand = stack.popConstant();
         stack.popConstant();
-        
-        if (operand.getType().isNumber())
+
+        if (operand.getType().isNumber()) {
             methodVisitor.visitInsn(DCMPG);
-        else if (operand.getType().isText())
+        } else if (operand.getType().isText()) {
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "compareTo", "(Ljava/lang/String;)I");
-        
+        }
+
         performComparison(bytecodeOpcode);
         stack.setCurrentConditionalBytecode(bytecodeOpcode);
-        
+
         BytecodeStackValue result = new BytecodeStackValue();
         TypeDescriptor integer = new TypeDescriptor();
         integer.setName(TypeDescriptor.BOOLEAN);
         result.setType(integer);
         stack.pushConstant(result);
     }
-    
+
     private void performBinaryArithmeticOperation(int bytecodeOpcode) {
         stack.popConstant();
         methodVisitor.visitInsn(bytecodeOpcode);
     }
-    
+
     private void performComparison(int oppositeBytecodeOpcode) {
-        Label c0 = new Label();
-        methodVisitor.visitJumpInsn(oppositeBytecodeOpcode, c0);
-        methodVisitor.visitInsn(ICONST_1);
-        Label c1 = new Label();
-        methodVisitor.visitJumpInsn(GOTO, c1);
-        methodVisitor.visitLabel(c0);
-        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-        methodVisitor.visitInsn(ICONST_0);
-        methodVisitor.visitLabel(c1);
-        methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[]{Opcodes.INTEGER});
+        
+//        Label c0 = new Label();
+//        methodVisitor.visitJumpInsn(oppositeBytecodeOpcode, c0);
+//        methodVisitor.visitInsn(ICONST_1);
+//        Label c1 = new Label();
+//        methodVisitor.visitJumpInsn(GOTO, c1);
+//        methodVisitor.visitLabel(c0);
+//        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+//        methodVisitor.visitInsn(ICONST_0);
+//        methodVisitor.visitLabel(c1);
+//        methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[]{Opcodes.INTEGER});
     }
 
     private void swapOperandStackValues(TypeDescriptor topType, TypeDescriptor secondType) {
         if (!topType.isNumber() && !secondType.isNumber()) {
             methodVisitor.visitInsn(SWAP);
-        }
-        else if (topType.isNumber() && secondType.isNumber()) {
+        } else if (topType.isNumber() && secondType.isNumber()) {
             stack.implicitStackIncrease(topType);
             methodVisitor.visitInsn(DUP2_X2);
             methodVisitor.visitInsn(POP2);
-        }
-        else if (topType.isNumber()) {
+        } else if (topType.isNumber()) {
             stack.implicitStackIncrease(topType);
             methodVisitor.visitInsn(DUP2_X1);
             methodVisitor.visitInsn(POP2);
-        }
-        else {
+        } else {
             stack.implicitStackIncrease(topType);
             methodVisitor.visitInsn(DUP_X2);
             methodVisitor.visitInsn(POP);
         }
     }
-    
+
     private void castValueToText() {
         BytecodeStackValue value = stack.popConstant();
-        
-        methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertTypeToJavaClassTypeEquivalent(value.getType()), 
-                                      "toString", "(" + value.getByteCodeTypeDescriptor() + ")Ljava/lang/String;");
+
+        methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertTypeToJavaClassTypeEquivalent(value.getType()),
+                "toString", "(" + value.getByteCodeTypeDescriptor() + ")Ljava/lang/String;");
         value.getType().setName(TypeDescriptor.TEXT);
         stack.pushConstant(value);
     }
-    
+
     private void castTextToValue(TypeDescriptor returnValueType) {
         BytecodeStackValue value = stack.popConstant();
 
         String type = QuorumConverter.convertTypeToJavaTypeEquivalent(returnValueType);
         type = type.substring(0, 1).toUpperCase() + type.substring(1);
 
-        
+
         methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertTypeToJavaClassTypeEquivalent(returnValueType),
-                                     "parse" + type, "(Ljava/lang/String;)" + QuorumConverter.convertTypeToBytecodeString(returnValueType));
+                "parse" + type, "(Ljava/lang/String;)" + QuorumConverter.convertTypeToBytecodeString(returnValueType));
         value.getType().setName(returnValueType.getName());
         stack.pushConstant(value);
     }
-    
+
     private void castValueToValue(TypeDescriptor returnValueType) {
-        BytecodeStackValue value = stack.popConstant(); 
-        
+        BytecodeStackValue value = stack.popConstant();
+
         String leftBytecodeString = QuorumConverter.convertTypeToBytecodeString(value.getType());
         String rightBytecodeString = QuorumConverter.convertTypeToBytecodeString(returnValueType);
-        
-        if (leftBytecodeString.compareTo("Z") == 0)
+
+        if (leftBytecodeString.compareTo("Z") == 0) {
             leftBytecodeString = "I";
-        
-        if (rightBytecodeString.compareTo("Z") == 0)
+        }
+
+        if (rightBytecodeString.compareTo("Z") == 0) {
             rightBytecodeString = "I";
-        
+        }
+
         if (leftBytecodeString.compareTo(rightBytecodeString) != 0) {
-        
+
             String opcodeName = leftBytecodeString + "2" + rightBytecodeString;
             int opcode = 0;
             try {
                 Field field = Opcodes.class.getField(opcodeName);
                 opcode = field.getInt(field.getType());
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(Level.SEVERE, null, ex);
             }
             methodVisitor.visitInsn(opcode);
         }
-        
+
         value.getType().setName(returnValueType.getName());
         stack.pushConstant(value);
     }
-    
+
     @Override
     public void visit(AlertStep step) {
         int a = 5;
@@ -872,13 +869,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AssignmentBooleanLocalStep step) {
         BytecodeStackValue pop = stack.popConstant();
-        PerformAssignment(pop, step, fieldInitialization);
+        performAssignment(pop, step, fieldInitialization);
     }
 
     @Override
     public void visit(AssignmentBooleanStep step) {
         BytecodeStackValue pop = stack.popConstant();
-        PerformAssignment(pop, step, true);
+        performAssignment(pop, step, true);
     }
 
     @Override
@@ -894,51 +891,51 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AssignmentIntegerLocalStep step) {
         BytecodeStackValue pop = stack.popConstant();
-        PerformAssignment(pop, step, fieldInitialization);
+        performAssignment(pop, step, fieldInitialization);
     }
 
     @Override
     public void visit(AssignmentIntegerStep step) {
         BytecodeStackValue pop = stack.popConstant();
-        PerformAssignment(pop, step, true);
+        performAssignment(pop, step, true);
     }
 
     @Override
     public void visit(AssignmentNumberIntegerLocalStep step) {
         prepareNumberIntegerOperation();
         BytecodeStackValue pop = stack.popConstant();
-        PerformAssignment(pop, step, fieldInitialization);
+        performAssignment(pop, step, fieldInitialization);
     }
 
     @Override
     public void visit(AssignmentNumberIntegerStep step) {
         prepareNumberIntegerOperation();
         BytecodeStackValue pop = stack.popConstant();
-        PerformAssignment(pop, step, true);
+        performAssignment(pop, step, true);
     }
 
     @Override
     public void visit(AssignmentNumberLocalStep step) {
         BytecodeStackValue pop = stack.popConstant();
-        PerformAssignment(pop, step, fieldInitialization);
+        performAssignment(pop, step, fieldInitialization);
     }
 
     @Override
     public void visit(AssignmentNumberStep step) {
         BytecodeStackValue pop = stack.popConstant();
-        PerformAssignment(pop, step, true);
+        performAssignment(pop, step, true);
     }
 
     @Override
     public void visit(AssignmentTextLocalStep step) {
         BytecodeStackValue pop = stack.popConstant();
-        PerformAssignment(pop, step, fieldInitialization);
+        performAssignment(pop, step, fieldInitialization);
     }
 
     @Override
     public void visit(AssignmentTextStep step) {
         BytecodeStackValue pop = stack.popConstant();
-        PerformAssignment(pop, step, true);
+        performAssignment(pop, step, true);
     }
 
     @Override
@@ -1408,13 +1405,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(ConditionalJumpIfStep step) {
         stack.popConstant();
-        //addToMethodVisit(stack.popConstant());
+//        addToMethodVisit(stack.popConstant());
         Label label0 = new Label();
 //        methodVisitor.visitJumpInsn(IF_ICMPNE, label0);
         int currentIfBytecode = stack.getCurrentConditionalBytecode();
         methodVisitor.visitJumpInsn(currentIfBytecode, label0);
 
-        LabelStackValue label = new LabelStackValue(LabelTypeEnum.IF, IFEQ, label0);
+        LabelStackValue label = new LabelStackValue(LabelTypeEnum.IF, currentIfBytecode, label0);
         stack.pushLabel(label);
 
     }
@@ -1423,13 +1420,30 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(ConditionalJumpLoopStep step) {
         stack.popConstant();
         Label label0 = new Label();
-        
         methodVisitor.visitLabel(label0);
-//        int currentLoopBytecode = stack.getCurrentConditionalBytecode();
+
+                        //calculate the frame
+        ArrayList<TypeDescriptor> frame = stack.getFrame();
+        int frameSize = frame.size();
+        if (frameSize > 0 && frameSize < 4) {//F_APPEND only
+            Object[] obj = new Object[frameSize];
+            for (int i = 0; i < frameSize; i++) {
+                obj[i] = QuorumConverter.convertTypeToBytecodeType(frame.get(i));
+            }
+            methodVisitor.visitFrame(F_APPEND, frameSize, obj, 0, null);
+
+            //stack.removeEndFrame();
+        }
+//        
+        int currentLoopBytecode = stack.getCurrentConditionalBytecode();
+        //methodVisitor.visitJumpInsn(currentLoopBytecode, label0);
 //
-//        LabelStackValue label = new LabelStackValue(LabelTypeEnum.LOOP, currentLoopBytecode, label0);
-//        stack.pushLabel(label);
-        
+//
+//
+        LabelStackValue temp = new LabelStackValue(LabelTypeEnum.LOOP, currentLoopBytecode, label0);
+        stack.pushLabel(temp);
+
+
 
     }
 
@@ -1447,9 +1461,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (variableNumber == -1) {
             return; //it's a field and we don't handle these yet.
         }
-        
+
         int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
-        
+
         BytecodeStackValue value = new BytecodeStackValue();
         TypeDescriptor type = new TypeDescriptor();
         type.setName(variable.getType().getName());
@@ -1472,9 +1486,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         stack.setVariable(variableNumber, value);
         //add the local variable that has been assigned a value to the frame
         stack.addFrameVariable(variable.getType());
-        
 
-        if(mappedVariableNumber != -1) {
+
+        if (mappedVariableNumber != -1) {
             methodVisitor.visitVarInsn(ASTORE, mappedVariableNumber);
         }
         //stack.setVariable(variableNumber, value);
@@ -1518,12 +1532,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                             obj[i] = QuorumConverter.convertTypeToBytecodeType(frame.get(i));
                         }
                         methodVisitor.visitFrame(F_APPEND, frameSize, obj, 0, null);
-                        
+
                         stack.removeEndFrame();
                     } else if (frameSize == 0) {
                         //remove the current frame
                         ArrayList<TypeDescriptor> removedFrame = stack.removeEndFrame();
-                        
+
                         if (removedFrame.isEmpty()) {//if the frame is empty then use F_SAME
                             methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
                         } else {//if the frame is not empty then use F_CHOP
@@ -1547,10 +1561,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     }
 
                 } else if (label.getJumpType() == GOTO) {//if jumping out of the if
-                    if(step.getBlockTag().equals("elseif")){
+                    if (step.getBlockTag().equals("elseif")) {
                         stack.undoLabel();
                     }
-                    
+
                     stack.popLabel();
                     Label pop = label.getLabel();
                     methodVisitor.visitLabel(pop);
@@ -1569,9 +1583,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         methodVisitor.visitFrame(F_CHOP, frameSize, null, 0, null);
                     }
                 }
-            }else if(label.getLabelType().equals(LabelTypeEnum.LOOP) && label.getJumpType() != GOTO){//end of loop scope
-                
-
             }
         }
     }
@@ -1652,10 +1663,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         TypeDescriptor type2 = new TypeDescriptor();
         type2.setName(TypeDescriptor.OBJECT);
         stack.implicitStackIncrease(type2);
-        
+
         swapOperandStackValues(pop.getType(), type2);
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(" + pop.getByteCodeTypeDescriptor() + ")V");
-       
+
     }
 
     @Override
@@ -1670,8 +1681,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         if (returnType.isVoid()) {
             methodVisitor.visitInsn(RETURN);
-        }
-        else {
+        } else {
             stack.popConstant();
             if (returnType.isBoolean() || returnType.isInteger()) {
                 methodVisitor.visitInsn(IRETURN);
@@ -1803,7 +1813,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(UnaryTextNumberCastStep step) {
         castValueToText();
     }
-    
+
     @Override
     public void visit(UnaryTextTextCastStep step) {
         int a = 5;
@@ -1837,16 +1847,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         String variableType = "";
         BytecodeStackValue constant = new BytecodeStackValue();
         TypeDescriptor constantType = new TypeDescriptor();
-                
+
         if (step.getValue() instanceof VariableDescriptor) {
             VariableDescriptor varDescriptor = (VariableDescriptor) step.getValue();
             if (varDescriptor != null && varDescriptor.isInitializedClassVariable()) {
                 methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()), 
-                                             varDescriptor.getName(), QuorumConverter.convertTypeToBytecodeString(varDescriptor.getType()));
+                methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()),
+                        varDescriptor.getName(), QuorumConverter.convertTypeToBytecodeString(varDescriptor.getType()));
                 variableType = varDescriptor.getType().getName();
-            }
-            else {
+            } else {
                 int variableNumber = step.getValue().getVariableNumber() - currentClass.getNumberOfVariables();
                 variable = stack.getVariable(variableNumber);
                 variableType = variable.getType().getName();
