@@ -1,0 +1,74 @@
+class LinkedList<Type>
+    Node<Type> head = undefined
+    Node<Type> tail = undefined
+    integer count = 0
+
+    action addAtEnd(Type t)
+        Node<Type> new
+        new:setData(t)
+        if (head = undefined) then
+            head = new
+            tail = new
+        end else then
+            new:setPrev(tail)
+            tail:setNext(new)
+            tail = new
+        end
+        count = count + 1
+    end
+
+    action removeAtPosition(integer index) returns boolean
+        return delete(getNodeAtPosition(index))
+    end
+
+    action getAtPosition(integer index) returns Type
+        Node<Type> it = getNodeAtPosition(index)
+        if it not= undefined then
+            return it:getData()
+        end
+        return undefined
+    end
+
+    action getCount() returns integer
+        return count
+    end
+
+    private action getNewNode(Type data) returns Node<Type>
+        Node<Type> new
+        new:setData(data)
+        return new
+    end
+
+    private action delete(Node<Type> trash) returns boolean
+        Node<Type> next
+        Node<Type> prev
+        if trash = undefined then
+            return false
+        end
+        count = count - 1
+        next = trash:getNext()
+        prev = trash:getPrev()
+        if (prev not= undefined) then
+            prev:setNext(next)
+        end else then
+            head = next
+        end
+        if (next not= undefined) then
+            next:setPrev(prev)
+        end else then
+            tail = prev
+        end
+        return true
+    end
+
+    private action getNodeAtPosition(integer index) returns Node<Type>
+        Node<Type> curr = head
+        integer i = 1
+
+        repeat while i < index
+            curr = curr:getNext()
+            i = i + 1
+        end
+        return curr
+    end
+end

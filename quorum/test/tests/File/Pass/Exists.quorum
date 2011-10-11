@@ -1,0 +1,39 @@
+use Libraries.System.File
+
+/**
+ * Uses:
+ * system action Exists(text fileName) returns boolean
+ * system action CreateNew(text fileName)
+ * action Delete()
+**/
+
+/**
+ * Description:
+ * The purpose of this test case is to test the Exists action to see if it works
+ * as expected.  This action creates a new file. this file will be stored in the
+ * C:\temp directory. and checks to see if the file exists.
+ * Then calls the Delete action to delete this file. and checks to see if the
+ * exists.
+**/
+
+/**
+ * Expected Results:
+ * Creates a file called testFileName.text in the C:\temp directory. and then
+ * deletes the file.
+ * bool = truefalse
+**/
+
+/*
+ * @author Elliot Motl
+*/
+class Main
+    action Main
+       text file = "file:/C:/temp/testFileName.text"
+       File testFile
+       testFile:CreateNew(file)
+       boolean t = testFile:Exists(file)
+       testFile:Delete()
+       boolean y = testFile:Exists(file)
+       text bool = cast(text, t) + cast(text, y)
+    end
+end

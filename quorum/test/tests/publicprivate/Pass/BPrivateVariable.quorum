@@ -1,0 +1,9 @@
+class BPrivateVariable is a APrivateVariable
+    action test
+        parent:APrivateVariable:something = 2
+    end
+
+    action getValue() returns integer
+        return parent:APrivateVariable:something
+    end
+end

@@ -1,0 +1,9 @@
+class BPublicVariable is a APublicVariable
+    action test
+        parent:APublicVariable:something = 2
+    end
+
+    action getValue() returns integer
+        return parent:APublicVariable:something
+    end
+end

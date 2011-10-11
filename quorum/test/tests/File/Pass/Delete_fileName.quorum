@@ -1,0 +1,35 @@
+use Libraries.System.File
+
+/**
+ * Uses:
+ * system action Delete(text fileName)
+ * action GetPath() returns text
+ * system action CreateNew(text fileName)
+**/
+
+/**
+ * Description:
+ * The purpose of this test case is to test the Delete to see if it works as
+ * expected.  This action creates a new file. this file will be stored in the
+ * C:\temp directory. and then calls the Delete action to delete this file.
+**/
+
+/**
+ * Expected Results:
+ * Creates a file called testFileName.text in the C:\temp directory. and then
+ * deletes the file.
+ * path = ""
+**/
+
+/*
+ * @author Elliot Motl
+*/
+class Main
+    action Main
+       text file = "file:/C:/temp/testFileName.text"
+       File testFile
+       testFile:CreateNew(file)
+       testFile:Delete(file)
+       text path = testFile:GetPath()
+    end
+end

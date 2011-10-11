@@ -1,0 +1,15 @@
+/*
+    Author: Melissa Stefik
+
+    results:
+            r1=10
+*/
+use Libraries.Containers.Table
+class main
+    action main
+        Table<integer> t
+        t:SetSize(4,4)
+
+        integer r1 = t:GetMaxNumberOfColumns()
+    end
+end

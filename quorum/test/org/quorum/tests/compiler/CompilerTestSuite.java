@@ -22,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.quorum.plugins.DefaultPluginLoader;
 import org.quorum.tests.compiler.Array.ArrayTester;
+import org.quorum.tests.compiler.File.FileTester;
 import org.quorum.vm.implementation.QuorumStandardLibrary;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
 
@@ -31,11 +32,22 @@ import org.quorum.vm.implementation.QuorumVirtualMachine;
 //import org.sodbeans.tests.compiler.PriorityQueue.PriorityQueueTester; // <-- old senior project code ?
 import org.quorum.tests.compiler.types.TypeCheckTester;
 import org.quorum.tests.compiler.List.ListTester;
+import org.quorum.tests.compiler.Math.MathTester;
+import org.quorum.tests.compiler.Queue.QueueTester;
 import org.quorum.tests.compiler.Random.RandomTester;
 import org.quorum.tests.compiler.Stack.StackTester;
+import org.quorum.tests.compiler.Table.TableTester;
 import org.quorum.tests.compiler.actions.ActionsTester;
 import org.quorum.tests.compiler.curriculum.CurriculumTester;
 import org.quorum.tests.compiler.exceptions.ExceptionsTester;
+import org.quorum.tests.compiler.ifstatement.IfStatementTester;
+import org.quorum.tests.compiler.inheritance.InheritanceTester;
+import org.quorum.tests.compiler.loops.LoopsTester;
+import org.quorum.tests.compiler.nativefunctions.NativeFunctionsTester;
+import org.quorum.tests.compiler.other.OtherTester;
+import org.quorum.tests.compiler.publicprivate.PublicPrivateTester;
+import org.quorum.tests.compiler.templating.TemplateTester;
+import org.quorum.tests.compiler.use.UseTester;
 
 //import org.sodbeans.tests.compiler.actions.ActionsTester;
 //import org.sodbeans.tests.compiler.arrays.ArraysTester;
@@ -53,7 +65,6 @@ import org.quorum.tests.compiler.exceptions.ExceptionsTester;
 //import org.sodbeans.tests.compiler.Stack.StackTester;
 //import org.sonify.vm.quorum.parser.QuorumVirtualMachineTest;
 //import org.sodbeans.tests.compiler.queue.QueueTester;
-//import org.sodbeans.tests.compiler.table.TableTester;
 
 
 
@@ -63,7 +74,11 @@ import org.quorum.tests.compiler.exceptions.ExceptionsTester;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses(value={TypeCheckTester.class, ListTester.class, RandomTester.class, StackTester.class,
-    CurriculumTester.class, ActionsTester.class, ExceptionsTester.class, ArrayTester.class})
+    CurriculumTester.class, ActionsTester.class, ExceptionsTester.class, ArrayTester.class, TableTester.class,
+    MathTester.class, QueueTester.class, IfStatementTester.class, InheritanceTester.class, LoopsTester.class,
+    NativeFunctionsTester.class, OtherTester.class, PublicPrivateTester.class, TemplateTester.class,
+    UseTester.class, FileTester.class})
+
 
 /*@Suite.SuiteClasses(value={QuorumVirtualMachineTest.class, TypeCheckTester.class, TemplateTester.class, ActionsTester.class, ArraysTester.class,
     CurriculumTester.class, IfStatementTester.class, InheritanceTester.class, LoopsTester.class, NativeFunctionsTester.class, OtherTester.class,

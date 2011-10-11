@@ -1,0 +1,30 @@
+/*
+ * Tests for proper recursion behavior -- both functions should return 7.
+*/
+
+class Main
+    action fibMethodA(integer n) returns integer
+        if n <= 2 then
+            return 1
+        end
+        else then
+            return fibMethodA(n - 1) + fibMethodA(n - 2)
+        end
+    end
+
+    action fibMethodB(integer n) returns integer
+        if n <= 2 then
+            return 1
+        end
+        else then
+            integer x = fibMethodB(n - 1)
+            integer y = fibMethodB(n - 2)
+            return x + y
+        end
+    end
+
+    action main
+        integer fibResultA = fibMethodA(6)
+        integer fibResultB = fibMethodB(6)
+    end
+end

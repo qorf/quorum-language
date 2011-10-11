@@ -1,0 +1,9 @@
+use Libraries.Containers.Queue
+
+class main
+    action main
+        Queue<text> q
+        q:Add("One")
+        text result = q:RemoveFromFront()
+    end
+end

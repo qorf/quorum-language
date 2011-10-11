@@ -1,0 +1,15 @@
+/*
+    Author: Melissa Stefik
+
+    results:
+            r1=false
+*/
+use Libraries.Containers.Table
+class main
+    action main
+        Table<integer> t
+        t:SetAutoResize(false)
+
+        boolean r1 = t:GetAutoResize()
+    end
+end
