@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
+import org.quorum.steps.StepTypeEnum;
 
 /**
  * This class tracks opcodes generated for a particular execution object, like 
@@ -31,7 +32,7 @@ public class OpcodeTracker {
     /**
      * This stores a list of opcodes and their types in linear order.
      */
-    private ArrayList<OpcodeType> opcodeList = new ArrayList<OpcodeType>();
+    private ArrayList<StepTypeEnum> opcodeList = new ArrayList<StepTypeEnum>();
     
     /**
      * This encapsulates the queue and dequeue process used by the bytecode
@@ -55,7 +56,7 @@ public class OpcodeTracker {
      * @param index
      * @param type 
      */
-    public void addBeginIndex(int index, OpcodeType type) {
+    public void addBeginIndex(int index, StepTypeEnum type) {
        opcodeList.add(type);
        int position = opcodeList.size() - 1;
        opcodePositionToArrayMapper.put(position, index);
