@@ -10,6 +10,7 @@ import java.util.Vector;
 import org.quorum.vm.interfaces.AbstractVirtualMachine;
 import org.quorum.execution.ExecutionStep;
 import org.quorum.symbols.SymbolTable;
+import org.quorum.vm.implementation.OpcodeTracker;
 
 /**
  *  This is a test class, experimenting with the idea of having a parent class
@@ -24,6 +25,7 @@ public class LinearExecution {
     private AbstractVirtualMachine vm;
     private SymbolTable symbolTable;
     private HashMap<String, Integer> labels;
+    private OpcodeTracker tracker = new OpcodeTracker();
     private boolean built;
     private int address;
 
@@ -150,5 +152,12 @@ public class LinearExecution {
      */
     public void setAddress(int adress) {
         this.address = adress;
+    }
+
+    /**
+     * @return the tracker
+     */
+    public OpcodeTracker getTracker() {
+        return tracker;
     }
 }
