@@ -866,8 +866,31 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         int a = 5;
     }
 
+    
+    public void processExpressions(int index) {
+        //for(int j = 0; j < num_items_on_stack; j++) {
+            //check queue for its current value
+            //int begin = queue.getTop();
+            //int end = queue.getEnd(value);
+
+            //loop through all op-codes
+            //for(int i = begin; i < end; i++) {
+
+                //visit the steps
+            //}
+        
+        //}
+    }
+    
     @Override
     public void visit(AssignmentBooleanLocalStep step) {
+        
+        //1. Loop through all expressions and dequeue them
+        //processExpressions(getTopOfQueue())
+        
+        
+        //2. Now that everything is out of the queue,
+        //do the actual assignment
         BytecodeStackValue pop = stack.popConstant();
         performAssignment(pop, step, fieldInitialization);
     }
@@ -955,6 +978,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             if (label.getLabelType().equals(LabelTypeEnum.IF)) {
                 stack.newFrame();
                 stack.newEndFrame();
+            }else if (label.getLabelType().equals(LabelTypeEnum.LOOP)){
+                int currentConditionalBytecode = stack.getCurrentConditionalBytecode();
+                
+                Label label1 = new Label();
+        
+                methodVisitor.visitJumpInsn(currentConditionalBytecode,label1);
             }
         }
     }
@@ -1419,6 +1448,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(ConditionalJumpLoopStep step) {
+        
+        //1. set a label before the expressions
+        
+        //2. Loop through all expressions and dequeue them
+        //processExpressions(getTopOfQueue())
+        
+        
+        //3. Now that everything is out of the queue,
+        //do the body of the loop
+        
+        
         stack.popConstant();
         Label label0 = new Label();
         methodVisitor.visitLabel(label0);
@@ -1435,16 +1475,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
             //stack.removeEndFrame();
         }
-//        
+        
         int currentLoopBytecode = stack.getCurrentConditionalBytecode();
-        //methodVisitor.visitJumpInsn(currentLoopBytecode, label0);
-//
-//
-//
+
         LabelStackValue temp = new LabelStackValue(LabelTypeEnum.LOOP, currentLoopBytecode, label0);
         stack.pushLabel(temp);
-
-
 
     }
 
