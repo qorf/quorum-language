@@ -200,8 +200,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         currentClass = clazz.getClassDescriptor();
         currentClassExecution = clazz;
 
-        classWriter = new ClassWriter(0);
-
         //garbage code to ease debugging, remove for reality.
 //        if(!".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !".Matt".equals(staticKey) && !".Main".equals(staticKey)) {
 //            return;
@@ -231,9 +229,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             String parentKey = parent.getStaticKey();
             String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
             String converted = QuorumConverter.convertStaticKeyToBytecodePathTypeName(parentKey);
-            fieldVisitor = classWriter.visitField(ACC_PUBLIC, parentName, converted, null, null);
-            fieldVisitor.visitEnd();
-            fieldSize += 2;
+//            fieldVisitor = classWriter.visitField(ACC_PUBLIC, parentName, converted, null, null);
+//            fieldVisitor.visitEnd();
+//            fieldSize += 2;
         }
 
 
@@ -259,8 +257,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         int numSystem = currentClass.getNumberSystemActions();
         if (numSystem > 0) {
             String converted = QuorumConverter.convertStaticKeyToPluginPathTypeName(currentClass.getStaticKey());
-            fieldVisitor = classWriter.visitField(ACC_PUBLIC, PLUGIN_NAME, converted, null, null);
-            fieldVisitor.visitEnd();
+//            fieldVisitor = classWriter.visitField(ACC_PUBLIC, PLUGIN_NAME, converted, null, null);
+//            fieldVisitor.visitEnd();
         }
 
         //add a constructor that initializes its parents
