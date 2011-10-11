@@ -10,6 +10,7 @@ import java.util.Vector;
 import org.quorum.vm.interfaces.AbstractVirtualMachine;
 import org.quorum.execution.ExecutionStep;
 import org.quorum.symbols.*;
+import org.quorum.vm.implementation.OpcodeType;
 
 /**
  *
@@ -48,12 +49,22 @@ public class IntermediateExecutionBuilder {
         return null;
     }
     
-    public void addStepLabel(StepTypeEnum stepType){
+    /**
+     * Add the step label to the opcode tracker for expressions, loops, assignments,
+     * and method calls.
+     * 
+     * @param stepType 
+     */
+    public void addStepLabel(OpcodeType stepType){
         int position = -1;
         if(getCurrentMethod() == null){
-            position = this.getCurrentClass().getStepCount();
+            ClassExecution clazz = this.getCurrentClass();
+            position = clazz.getStepCount();
+            clazz.getTracker().addBeginIndex(position, stepType);
         }else{
-            position = this.getCurrentMethod().getStepCount();
+            MethodExecution method = this.getCurrentMethod();
+            position = method.getStepCount();
+            method.getTracker().addBeginIndex(position, stepType);
         }
     }
 

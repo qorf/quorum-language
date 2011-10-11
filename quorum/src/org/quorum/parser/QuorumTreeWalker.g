@@ -1320,6 +1320,8 @@ scope {
 			$loop_statement::first_step = $expr.step;
 			$loop_statement::type = 2;
 			
+			builder.addStepLabel(OpcodeType.LOOP);
+			
 			if($loop_statement::isWhile){
 				$loop_statement::cJumpStep = new ConditionalJumpLoopStep();
 	
@@ -1411,6 +1413,7 @@ selector returns[ScopeSelector scopeSel]
 root_expression returns[ExpressionValue eval, ExecutionStep step]
 	:	^(ROOT_EXPRESSION expression) 
 	{
+		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
 		$eval = $expression.eval;
 		$step = $expression.step;
 	}

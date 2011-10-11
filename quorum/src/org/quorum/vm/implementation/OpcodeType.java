@@ -12,8 +12,9 @@ package org.quorum.vm.implementation;
  * @author Andreas Stefik
  */
 public enum OpcodeType {
-    EXPRESSION,
+    ROOT_EXPRESSION,
     ASSIGNMENT,
-    METHOD_CALL;
+    METHOD_CALL,
+    LOOP;
     //fill in other categories as/if needed.
 }

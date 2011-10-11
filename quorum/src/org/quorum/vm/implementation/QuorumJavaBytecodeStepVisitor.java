@@ -119,6 +119,7 @@ import org.quorum.steps.EndScopeStep;
 import org.quorum.steps.InputStep;
 import org.quorum.steps.IntegerAutoBoxStep;
 import org.quorum.steps.JumpStep;
+import org.quorum.steps.LinearExecution;
 import org.quorum.steps.MeVariableMoveStep;
 import org.quorum.steps.MethodExecution;
 import org.quorum.steps.MoveRegistersStep;
@@ -833,6 +834,38 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         value.getType().setName(returnValueType.getName());
         stack.pushConstant(value);
     }
+    
+    /**
+     * Helper method: process the cached expressions whenever they need to be
+     * processed. eg. while loops should be identified then the expressions are
+     * inserted.
+     * 
+     * @param index 
+     */
+    private void processExpressions(int index) {
+        OpcodeTracker tracker = null;
+        LinearExecution execution = null;
+        if(currentMethodExecution == null){
+            tracker = currentClassExecution.getTracker();
+            execution = currentClassExecution;
+        }else{
+            tracker = currentMethodExecution.getTracker();
+            execution = currentMethodExecution;
+        }
+        for(int j = 0; j < tracker.getQueueSize() - 1; j++) {
+            //check queue for its current value
+            int begin = tracker.removeFromQueue();
+            int end = tracker.peekQueue();
+
+            //loop through all op-codes
+            Vector<ExecutionStep> steps = execution.getSteps();
+            for(int i = begin; i < end; i++) {
+                ExecutionStep step = steps.get(i);
+                step.visit(this);
+            }
+        
+        }
+    }
 
     @Override
     public void visit(AlertStep step) {
@@ -862,22 +895,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AssignObjectAutoBoxStep step) {
         int a = 5;
-    }
-
-    
-    public void processExpressions(int index) {
-        //for(int j = 0; j < num_items_on_stack; j++) {
-            //check queue for its current value
-            //int begin = queue.getTop();
-            //int end = queue.getEnd(value);
-
-            //loop through all op-codes
-            //for(int i = begin; i < end; i++) {
-
-                //visit the steps
-            //}
-        
-        //}
     }
     
     @Override
