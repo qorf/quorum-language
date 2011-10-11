@@ -5,6 +5,7 @@
 
 package org.quorum.tests.compiler.other;
 
+import org.quorum.execution.RunResult;
 import java.io.File;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.tests.compiler.CompilerTestSuite;
@@ -140,5 +141,21 @@ public class OtherTester {
         if (fibResultA != 8 || fibResultB != 8) {
             fail();
         }
+    }
+    
+    
+    @Test
+    public void test_print() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "Print.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        //vm.blockRun();
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
     }
 }

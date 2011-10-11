@@ -4,6 +4,9 @@
  */
 package org.quorum.tests.compiler;
 
+import java.io.BufferedReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -13,6 +16,8 @@ import static org.junit.Assert.*;
 import org.quorum.Main;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -20,6 +25,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
+import org.quorum.execution.RunResult;
 import org.quorum.plugins.DefaultPluginLoader;
 import org.quorum.tests.compiler.Array.ArrayTester;
 import org.quorum.tests.compiler.File.FileTester;
@@ -27,9 +33,6 @@ import org.quorum.vm.implementation.QuorumStandardLibrary;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
 
 // Test imports.
-//import org.quorum.tests.compiler.File.FileTester; // <-- old senior project team code
-//import org.quorum.tests.compiler.DateTime.DateTimeTester; // < -- old senior project team code
-//import org.sodbeans.tests.compiler.PriorityQueue.PriorityQueueTester; // <-- old senior project code ?
 import org.quorum.tests.compiler.types.TypeCheckTester;
 import org.quorum.tests.compiler.List.ListTester;
 import org.quorum.tests.compiler.Math.MathTester;
@@ -49,25 +52,6 @@ import org.quorum.tests.compiler.publicprivate.PublicPrivateTester;
 import org.quorum.tests.compiler.templating.TemplateTester;
 import org.quorum.tests.compiler.use.UseTester;
 
-//import org.sodbeans.tests.compiler.actions.ActionsTester;
-//import org.sodbeans.tests.compiler.arrays.ArraysTester;
-//import org.sodbeans.tests.compiler.curriculum.CurriculumTester;
-//import org.sodbeans.tests.compiler.exceptions.ExceptionsTester;
-//import org.sodbeans.tests.compiler.ifstatement.IfStatementTester;
-//import org.sodbeans.tests.compiler.inheritance.InheritanceTester;
-//import org.sodbeans.tests.compiler.loops.LoopsTester;
-//import org.sodbeans.tests.compiler.nativefunctions.NativeFunctionsTester;
-//import org.sodbeans.tests.compiler.other.OtherTester;
-//import org.sodbeans.tests.compiler.publicprivate.PublicPrivateTester;
-//import org.sodbeans.tests.compiler.templating.TemplateTester;
-//import org.sodbeans.tests.compiler.use.UseTester;
-//import org.sodbeans.tests.compiler.math.MathTester;
-//import org.sodbeans.tests.compiler.Stack.StackTester;
-//import org.sonify.vm.quorum.parser.QuorumVirtualMachineTest;
-//import org.sodbeans.tests.compiler.queue.QueueTester;
-
-
-
 /**
  *
  * @author astefik
@@ -86,6 +70,7 @@ import org.quorum.tests.compiler.use.UseTester;
     DateTimeTester.class, StackTester.class, PriorityQueueTester.class, QueueTester.class, TableTester.class})*/
 
 public class CompilerTestSuite {
+    public static final String CLASS_TMP_PATH = "runTmp" + File.separatorChar;
     public static final String PASS = "Pass" + File.separatorChar;
     public static final String FAIL = "Fail" + File.separatorChar;
     public static final String TYPE_CHECKER = "TypeChecker" + File.separatorChar;
@@ -138,7 +123,10 @@ public class CompilerTestSuite {
             for(int i = 0; i < 7; i++) {
                 systemRoot = systemRoot.getParentFile();
             }
-
+            
+            // Create the temporary directory for where to place class files.
+            new File(systemRoot + "/test/" + CLASS_TMP_PATH).mkdir();
+            
             // Fix for new test suite: Update to the standard library path.
             File index = new File(systemRoot.getAbsolutePath() +
                     "/libraries/indexes/quorum.index");
@@ -159,6 +147,8 @@ public class CompilerTestSuite {
 
     @After
     public void tearDown() throws Exception {
+        // Delete the temporary directory where class files are placed.
+        new File(systemRoot + "/test/" + CLASS_TMP_PATH).delete();
     }
 
 
@@ -192,5 +182,54 @@ public class CompilerTestSuite {
         File file = new File(systemRoot + "/test/tests/" + name);
         return file;
     }
-
+    
+    /**
+     * Run the given build result with java, and return the output as an array
+     * of strings.
+     * 
+     * @param result
+     * @return 
+     */
+    public static RunResult runQuorumFile() {
+        RunResult runResult = new RunResult();
+        File[] files = {new File(vm.getCurrentFileBeingExecuted())};
+        File dir = new File(systemRoot + "/test/" + CLASS_TMP_PATH);
+        
+        //setup the VM
+        vm.setGenerateCode(true);
+        vm.getCodeGenerator().setBuildFolder(dir);
+        vm.setMain(files[0].getAbsolutePath());
+        //build
+        vm.build(files);
+        
+        ProcessBuilder pb = new ProcessBuilder("java", "quorum." + files[0]);
+        pb.directory(dir);
+        Process proc = null;
+        
+        try {
+            proc = pb.start();
+        } catch (IOException ex) {
+            Logger.getLogger(CompilerTestSuite.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        try {
+            runResult.setSuccessful(proc.waitFor() == 0);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(CompilerTestSuite.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        // Parse the output.
+        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+        String line = null;
+        do {
+            try {
+                line = reader.readLine();
+            } catch (IOException ex) {
+                Logger.getLogger(CompilerTestSuite.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            runResult.addLine(line);
+        } while (line != null);
+        
+        return runResult;
+    }
 }
