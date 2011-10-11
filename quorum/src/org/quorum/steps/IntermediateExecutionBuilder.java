@@ -47,6 +47,15 @@ public class IntermediateExecutionBuilder {
         }
         return null;
     }
+    
+    public void addStepLabel(StepTypeEnum stepType){
+        int position = -1;
+        if(getCurrentMethod() == null){
+            position = this.getCurrentClass().getStepCount();
+        }else{
+            position = this.getCurrentMethod().getStepCount();
+        }
+    }
 
     /**
      * Adds a label pointing to the next ExecutionStep
