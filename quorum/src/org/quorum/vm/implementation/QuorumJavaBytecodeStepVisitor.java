@@ -1061,10 +1061,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      */
     @Override
     public void visit(BinaryAddStep step) {
-        // Insert both expression steps.
-        processExpressions();
-        processExpressions();
-
         // Add the appropriate steps.
         performBinaryArithmeticOperation(IADD);
         
