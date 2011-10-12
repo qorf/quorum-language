@@ -31,6 +31,7 @@ import org.quorum.vm.interfaces.CompilerError;
 import org.quorum.vm.interfaces.CompilerErrorManager;
 import org.quorum.symbols.ErrorTypeDescriptor;
 import org.quorum.symbols.SystemActionDescriptor;
+import org.quorum.vm.implementation.OpcodeType;
 import org.quorum.vm.interfaces.ErrorType;
 
 /**
@@ -1789,6 +1790,8 @@ public class StepFactory {
         String al = label;
         builder.add(conditionalStep);
         builder.addUnresolvedJumpStep(al, conditionalStep);
+        
+        machine.getBuilder().addStepLabel(OpcodeType.IF);
     }
 
     /**

@@ -1180,8 +1180,8 @@ scope {
 
 			conditionalStep.setLeftRegister($condition2.eval.getRegister());
 			
-			$if_statement::info.elseIfConditionalSteps.add(conditionalStep);
-				
+			$if_statement::info.elseIfConditionalSteps.add(conditionalStep);	
+			
 			stepFactory.startElseIf($if_statement::info,$if_statement::else_if_counter);
 		}
 		b=block[true] 
@@ -1585,6 +1585,10 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		
 		ResultTuple result =  stepFactory.addCallStep(info);
 		
+		if(fel!=null){
+			builder.addStepLabel(OpcodeType.METHOD_CALL);
+		}
+		
 		temp = result.getNextRegister();
 		$eval = result.getValue();
 		$step = result.getStep();
@@ -1694,6 +1698,9 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		info.isObjectCall = false;
 		
 		ResultTuple result =  stepFactory.addParentCallStep(info);
+		if(fel!=null){
+			builder.addStepLabel(OpcodeType.METHOD_CALL);
+		}
 		
 		temp = result.getNextRegister();
 		$eval = result.getValue();
@@ -1755,6 +1762,10 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		info.isThisCall = true;
 		
 		ResultTuple result =  stepFactory.addCallStep(info);
+		
+		if(fel!=null){
+			builder.addStepLabel(OpcodeType.METHOD_CALL);
+		}
 		
 		temp = result.getNextRegister();
 		$eval = result.getValue();
@@ -1923,7 +1934,11 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 function_expression_list returns [List list]
 @init{$list = new ArrayList(); }
 	:
-	^(FUNCTION_EXPRESSION_LIST (e = expression {$list.add(e);} )*)
+	^(FUNCTION_EXPRESSION_LIST (e = expression 
+	{
+		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+		$list.add(e);
+	} )*)
 	;
 	
 	

@@ -15,6 +15,7 @@ public enum OpcodeType {
     ROOT_EXPRESSION,
     ASSIGNMENT,
     METHOD_CALL,
-    LOOP;
+    LOOP,
+    IF;
     //fill in other categories as/if needed.
 }
