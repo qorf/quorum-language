@@ -170,7 +170,7 @@ import org.quorum.symbols.VariableParameterCommonDescriptor;
 
 /**
  * This class takes a set of opcodes
- * @author Andreas Stefik and Matt Lawson
+ * @author Andreas Stefik,Melissa Stefik, and Matt Lawson
  */
 public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opcodes {
 
@@ -511,12 +511,25 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitCode();
 
         Vector<ExecutionStep> steps = method.getSteps();
+        OpcodeTracker tracker = currentMethodExecution.getTracker();
         for (int i = 0; i < steps.size(); i++) {
-            ExecutionStep step = steps.get(i);
-            step.visit(this);
+            OpcodeType opcodeType = tracker.getOpcodeType(i);
+            if(opcodeType == OpcodeType.ROOT_EXPRESSION){
+                tracker.addToQueue(i);
+                int finalPosition = tracker.getFinalPosition(i);
+                
+                if(finalPosition >= 0){
+                    i = finalPosition;
+                }
+            }else{
+                if(opcodeType != null){
+                    tracker.addToQueue(i);
+                }
+                ExecutionStep step = steps.get(i);
+                step.visit(this);
+            }
         }
         //this should be filled out with the number of local variables
-//        int numberVariables = method.getMethodDescriptor().getNumberVariables();
         int numberVariables = stack.getMaxVariablesSize();
         int stackSize = stack.getMaxSize();
         //the stack size should also change depending on the 

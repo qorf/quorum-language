@@ -13,20 +13,20 @@ import java.util.Queue;
  * This class tracks opcodes generated for a particular execution object, like 
  * a method execution or a class execution.
  * 
- * @author Andreas Stefik
+ * @author Andreas Stefik, Melissa Stefik
  */
 public class OpcodeTracker {
     /**
      * This class maps the raw position value in a method execution object
      * to the array position in this class.
      */
-    private HashMap<Integer, Integer> opcodePositionToArrayMapper = new HashMap<Integer, Integer>();
+    private HashMap<Integer, Integer> arrayPositionToOpcodePositionMapper = new HashMap<Integer, Integer>();
     
     /**
-     * This does the opposite of opcodePositionToArrayMapper, mapping the index position
+     * This does the opposite of arrayPositionToOpcodePositionMapper, mapping the index position
      * in the array to the raw position of the opcode in the method execution object.
      */
-    private HashMap<Integer, Integer> opcodeArrayToPositionMapper = new HashMap<Integer, Integer>();
+    private HashMap<Integer, Integer> opcodePositionToArrayPositionMapper = new HashMap<Integer, Integer>();
     
     /**
      * This stores a list of opcodes and their types in linear order.
@@ -55,13 +55,28 @@ public class OpcodeTracker {
      * @param index
      * @param type 
      */
-    public void addBeginIndex(int index, OpcodeType type) {
+    public void addBeginIndex(int opcodePosition, OpcodeType type) {
        opcodeList.add(type);
-       int position = opcodeList.size() - 1;
-       opcodePositionToArrayMapper.put(position, index);
-       opcodeArrayToPositionMapper.put(index, position);
+       int arrayPosition = opcodeList.size() - 1;
+       arrayPositionToOpcodePositionMapper.put(arrayPosition, opcodePosition);
+       opcodePositionToArrayPositionMapper.put(opcodePosition, arrayPosition);
     }
     
+    /**
+     * Returns the opcode type for a particular opcode position.
+     * 
+     * @param opcodePosition
+     * @return 
+     */
+    public OpcodeType getOpcodeType(int opcodePosition){
+        int beginIndex = getArrayPosition(opcodePosition);
+        if(beginIndex != -1){
+            OpcodeType op = this.opcodeList.get(beginIndex);
+            return op;
+        }else{
+            return null;
+        }
+    }
     
     /**
      * Given a raw position of an opcode in its execution object,
@@ -69,20 +84,26 @@ public class OpcodeTracker {
      * @param index
      * @return 
      */
-    private int getBeginIndex(int index) {
-        int mappedIndex = getArrayIndex(index);
-        return mappedIndex;
+    private int getArrayPosition(int opcodePosition) {
+        if(opcodePositionToArrayPositionMapper.containsKey(opcodePosition)) {
+            return opcodePositionToArrayPositionMapper.get(opcodePosition);
+        }
+        else {
+            return -1;
+        }
     }
     
     
     /**
-     * Adds an item to the queue.
+     * Adds an opcode item to the queue.
      * 
      * @param index 
      */
-    private void addToQueue(int index) {
-        int arrayIndex = getArrayIndex(index);
-        queue.add(arrayIndex);
+    public void addToQueue(int opcodePosition) {
+        int arrayPosition = getArrayPosition(opcodePosition);
+        if(arrayPosition != -1){
+            queue.add(opcodePosition);
+        }
     }
     
     /**
@@ -91,7 +112,6 @@ public class OpcodeTracker {
      * @return 
      */
     public int removeFromQueue() {
-        Integer peek = peekQueue();
         return queue.remove();
     }
     
@@ -100,8 +120,7 @@ public class OpcodeTracker {
      * @return 
      */
     public int peekQueue() {
-        Integer peek = opcodeArrayToPositionMapper.get(queue.peek());
-        return peek;
+        return queue.peek();
     }
     
     /**
@@ -121,27 +140,19 @@ public class OpcodeTracker {
     }
     
     /**
-     * Returns the index in the 
+     * Get the final opcode in the expression.
+     * 
      * @param index
      * @return 
      */
-    private int getArrayIndex(int index) {
-        if(opcodePositionToArrayMapper.containsKey(index)) {
-            return opcodePositionToArrayMapper.get(index);
-        }
-        else {
-            return -1;
-        }
-    }
-    
-    public int getFinalIndex(int index) {
-        int begin = getBeginIndex(index);
-        if(opcodeList.size() - 1 > begin + 1) {
-            int position = opcodeArrayToPositionMapper.get(begin + 1);
+    public int getFinalPosition(int opcodePosition) {
+        int begin = getArrayPosition(opcodePosition);
+        if(opcodeList.size() - 1 >= begin + 1) {
+            int position = arrayPositionToOpcodePositionMapper.get(begin + 1);
             return position - 1;
         }
         else { //it's the last value in the array list
-            return numberOpcodes - 1;
+            return numberOpcodes;
         }
     }
 
@@ -168,8 +179,8 @@ public class OpcodeTracker {
      * Removes all items from this data structure.
      */
     public void clear() {
-        opcodePositionToArrayMapper.clear();
-        opcodeArrayToPositionMapper.clear();
+        arrayPositionToOpcodePositionMapper.clear();
+        opcodePositionToArrayPositionMapper.clear();
         opcodeList.clear();
     }
 }
