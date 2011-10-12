@@ -842,16 +842,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * 
      * @param index 
      */
-    private void processExpressions(int index) {
+    private void processExpressions() {
         OpcodeTracker tracker = null;
         LinearExecution execution = null;
-        if(currentMethodExecution == null){
+        
+        if(currentMethodExecution == null){//if no current method execution
             tracker = currentClassExecution.getTracker();
             execution = currentClassExecution;
-        }else{
+        }else{//otherwise look in the method execution
             tracker = currentMethodExecution.getTracker();
             execution = currentMethodExecution;
         }
+        
+        //for each item in the queue exculding the last 
+        //item(which is the opcode processing the expressions)
         for(int j = 0; j < tracker.getQueueSize() - 1; j++) {
             //check queue for its current value
             int begin = tracker.removeFromQueue();
@@ -859,7 +863,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
             //loop through all op-codes
             Vector<ExecutionStep> steps = execution.getSteps();
-            for(int i = begin; i < end; i++) {
+            for(int i = begin; i < end; i++) {//visit the expressions
                 ExecutionStep step = steps.get(i);
                 step.visit(this);
             }
