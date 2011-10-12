@@ -1027,6 +1027,7 @@ assignment_statement
 		
 		symbol.addStatementFlagToCurrentFile($ID.line);
 		stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, false, "", cd);
+		builder.addStepLabel(OpcodeType.ASSIGNMENT);
 	}
 	|	obj=qualified_name (COLON PARENT COLON parent=qualified_name)? COLON ID rhs=assign_right_hand_side
 	{
@@ -1057,6 +1058,7 @@ assignment_statement
 		}
 		
 		stepFactory.addAssignmentStep(location, $obj.type.getStaticKey(), $rhs.eval, $rhs.step, isLocal, $ID.text, cd);
+		builder.addStepLabel(OpcodeType.ASSIGNMENT);
 	}
 	|	modifier = access_modifier? type = assignment_declaration name = ID rhs=assign_right_hand_side?
 	{
@@ -1082,6 +1084,8 @@ assignment_statement
                 else { // are we are trying to instantiate an object?
                     	stepFactory.addAssignmentStep(location, $ID.text, isLocal);
                 }
+                
+                builder.addStepLabel(OpcodeType.ASSIGNMENT);
 	}
 	;
 assign_right_hand_side returns[ExpressionValue eval, ExecutionStep step]
