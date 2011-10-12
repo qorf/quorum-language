@@ -162,6 +162,7 @@ import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.MethodDescriptor;
 import org.quorum.symbols.ParameterDescriptor;
 import org.quorum.symbols.Parameters;
+import org.quorum.symbols.Result;
 import org.quorum.symbols.SystemActionDescriptor;
 import org.quorum.symbols.TypeDescriptor;
 import org.quorum.symbols.VariableDescriptor;
@@ -745,9 +746,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         stack.pushConstant(result);
     }
 
+    /**
+     * Perform the appropriate steps for a binary addition.
+     * @param bytecodeOpcode 
+     */
     private void performBinaryArithmeticOperation(int bytecodeOpcode) {
+        // A binary addition requires two constants to be on the stack. Now,
+        // we pop them off.
         stack.popConstant();
+        stack.popConstant();
+        
+        // Insert the appropriate opcode.
         methodVisitor.visitInsn(bytecodeOpcode);
+        
+        
     }
 
     private void performComparison(int oppositeBytecodeOpcode) {
@@ -1042,9 +1054,25 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         performTextConcatenation();
     }
 
+    /**
+     * Binary addition of two integers.
+     * 
+     * @param step 
+     */
     @Override
     public void visit(BinaryAddStep step) {
+        // Insert both expression steps.
+        processExpressions();
+        processExpressions();
+
+        // Add the appropriate steps.
         performBinaryArithmeticOperation(IADD);
+        
+        // Push an integer constant onto the stack.
+        BytecodeStackValue bytecodeValue = new BytecodeStackValue();
+        bytecodeValue.setType(TypeDescriptor.getIntegerType());
+        bytecodeValue.setResult(Result.getDefaultResult(TypeDescriptor.getIntegerType()));
+        stack.pushConstant(bytecodeValue);
     }
 
     @Override
@@ -1713,6 +1741,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(PrintStep step) {
+        /*
         methodVisitor.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
         BytecodeStackValue pop = stack.popConstant();
         TypeDescriptor type2 = new TypeDescriptor();
@@ -1721,7 +1750,21 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         swapOperandStackValues(pop.getType(), type2);
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(" + pop.getByteCodeTypeDescriptor() + ")V");
+         */
+        
+        // Put the reference to "system.out" on the stack.
+        TypeDescriptor type = new TypeDescriptor();
+        type.setName(TypeDescriptor.OBJECT);
+        stack.implicitStackIncrease(type);
+        methodVisitor.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
 
+        // Insert the appropriate steps for this statement.
+        processExpressions();
+        BytecodeStackValue value = stack.popConstant(); // get expression result off stack.
+        
+        // Insert the appropriate print opcode for the type.
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println",
+                "(" + value.getByteCodeTypeDescriptor() + ")V");
     }
 
     @Override
