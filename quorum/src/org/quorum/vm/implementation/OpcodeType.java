@@ -16,6 +16,7 @@ public enum OpcodeType {
     ASSIGNMENT,
     METHOD_CALL,
     LOOP,
-    IF;
+    IF, 
+    PRINT;
     //fill in other categories as/if needed.
 }

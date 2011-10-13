@@ -15,7 +15,6 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.Opcodes;
 import org.quorum.execution.ExecutionStep;
 import org.quorum.execution.ExecutionStepVisitor;
-import org.quorum.execution.ExpressionValue;
 import org.quorum.execution.NullExecutionStep;
 import org.quorum.steps.AlertStep;
 import org.quorum.steps.AlwaysEndStep;
@@ -192,6 +191,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public QuorumJavaBytecodeStepVisitor() {
     }
 
+    /**
+     * Visiting the class execution will handle bytecode generation necessary 
+     * for generating class headers and visiting subcomponents of the class (by
+     * visiting those items).
+     * 
+     * Some code contained in this method is temporarily used to make testing
+     * of the bytecode generator easier.
+     * 
+     * 
+     * @param clazz 
+     */
     public void visit(ClassExecution clazz) {
         classWriter = new ClassWriter(0);
 
@@ -213,8 +223,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 
-        if (!".Stefik".equals(staticKey) && !"Libraries.Sound.Speech".equals(staticKey)
-                && !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
+        if (!".Stefik".equals(staticKey) //&& !"Libraries.Sound.Speech".equals(staticKey)
+                //&& !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
                 && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)) {
             return;
         }
@@ -225,6 +235,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //this will have to be modified for inheritance conversion
         classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", null);
         //first weave in the parents of the class and initialize them
+        /*
+         * 
+        //Add parents as extra behind the scenes fields.
         Iterator<ClassDescriptor> parents = currentClass.getFlattenedListOfParents();
         while (parents.hasNext()) {
             ClassDescriptor parent = parents.next();
@@ -234,7 +247,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            fieldVisitor = classWriter.visitField(ACC_PUBLIC, parentName, converted, null, null);
 //            fieldVisitor.visitEnd();
 //            fieldSize += 2;
-        }
+        }*/
 
 
         //Do field visiting for the class.
@@ -267,7 +280,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         computeConstructor(true);
         //add a constructor that doesn't
         //computeConstructor(false);
-
+        
+        /*
         //now dump all of the parent methods that 
         //are not in the base class out as wrapper functions.
         parents = currentClass.getFlattenedListOfParents();
@@ -275,6 +289,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             ClassDescriptor parent = parents.next();
             //computeParentMethods(parent);
         }
+         */
 
         //now do all methods
         Iterator<MethodExecution> methods = clazz.getMethods();
@@ -392,6 +407,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     /**
      * Takes any method used by a parent and weaves them into the current
      * class via composition.
+     * 
+     * @param parent
+     * @param action 
      */
     private void computeParentMethod(ClassDescriptor parent, MethodDescriptor action) {
         String name = action.getName();
@@ -776,7 +794,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     /**
      * Perform the appropriate steps for a binary arithmetic operation.
-     * @param bytecodeOpcode 
+     * 
+     * @param bytecodeOpcode
+     * @param returnType 
      */
     private void performBinaryArithmeticOperation(int bytecodeOpcode, TypeDescriptor returnType) {
         // A binary addition requires two constants to be on the stack. Now,
@@ -886,8 +906,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * Helper method: process the cached expressions whenever they need to be
      * processed. eg. while loops should be identified then the expressions are
      * inserted.
-     * 
-     * @param index 
      */
     private void processExpressions() {
         OpcodeTracker tracker = null;
@@ -947,14 +965,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignObjectAutoBoxStep step) {
         int a = 5;
     }
-    
-     /**
-     * Assigns a boolean to a local variable or field of type boolean
-     * 
-     * @param step 
-     */    
+ 
     @Override
     public void visit(AssignmentBooleanLocalStep step) {
+        //Assigns a boolean to a local variable or field of type boolean
+        
         //1. Loop through all expressions and dequeue them
         //processExpressions(getTopOfQueue())
         
@@ -965,14 +980,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         BytecodeStackValue pop = stack.popConstant();
         performAssignment(pop, step, fieldInitialization);
     }
-
-     /**
-     * Assigns a boolean to a field of type boolean
-     * 
-     * @param step 
-     */    
+   
     @Override
     public void visit(AssignmentBooleanStep step) {
+        //Assigns a boolean to a field of type boolean
         BytecodeStackValue pop = stack.popConstant();
         performAssignment(pop, step, true);
     }
@@ -986,93 +997,64 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentCustomStep step) {
         int a = 5;
     }
-
-     /**
-     * Assigns an integer to a local variable or field of type integer
-     * 
-     * @param step 
-     */   
+   
     @Override
     public void visit(AssignmentIntegerLocalStep step) {
         BytecodeStackValue pop = stack.popConstant();
+        //Assigns an integer to a local variable or field of type integer
         performAssignment(pop, step, fieldInitialization);
     }
-
-     /**
-     * Assigns an integer to a field of type integer
-     * 
-     * @param step 
-     */    
+   
     @Override
     public void visit(AssignmentIntegerStep step) {
+        //Assigns an integer to a field of type integer
         BytecodeStackValue pop = stack.popConstant();
         performAssignment(pop, step, true);
     }
-
-     /**
-     * Assigns an integer to a local variable or field of type number
-     * 
-     * @param step 
-     */    
+  
     @Override
     public void visit(AssignmentNumberIntegerLocalStep step) {
+        //prepare the integer as a number.
         prepareNumberIntegerOperation();
         BytecodeStackValue pop = stack.popConstant();
+        //Assigns an integer to a local variable or field of type number.
         performAssignment(pop, step, fieldInitialization);
     }
-    
-     /**
-     * Assigns an integer to a field of type number
-     * 
-     * @param step 
-     */    
+   
     @Override
     public void visit(AssignmentNumberIntegerStep step) {
+        //prepare the integer as a number.
         prepareNumberIntegerOperation();
         BytecodeStackValue pop = stack.popConstant();
+        //Assigns an integer to a field of type number.
         performAssignment(pop, step, true);
     }
-
-     /**
-     * Assigns a number to a local variable or field of type number
-     * 
-     * @param step 
-     */    
+   
     @Override
     public void visit(AssignmentNumberLocalStep step) {
+        //Assigns a number to a local variable or field of type number.
         BytecodeStackValue pop = stack.popConstant();
         performAssignment(pop, step, fieldInitialization);
     }
-
-     /**
-     * Assigns a number to a field of type number
-     * 
-     * @param step 
-     */    
+   
     @Override
     public void visit(AssignmentNumberStep step) {
+        //Assigns a number to a field of type number.
         BytecodeStackValue pop = stack.popConstant();
         performAssignment(pop, step, true);
     }
-
-     /**
-     * Assigns a number to a local variable or field of type text
-     * 
-     * @param step 
-     */    
+  
     @Override
     public void visit(AssignmentTextLocalStep step) {
+        //Assigns a number to a local variable or field of type text.
         BytecodeStackValue pop = stack.popConstant();
         performAssignment(pop, step, fieldInitialization);
     }
-
-     /**
-     * Assigns a number to a field of type text
-     * 
-     * @param step 
-     */    
+ 
     @Override
     public void visit(AssignmentTextStep step) {
+        //remove the constant from the bytecode stack and assign a number to 
+        //a field of type text.
         BytecodeStackValue pop = stack.popConstant();
         performAssignment(pop, step, true);
     }
@@ -1089,12 +1071,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BeginScopeStep step) {
+        //if the bytecode stack contains a label, process it.
         if (!stack.isEmptyLabel()) {
             LabelStackValue label = stack.peekLabel();
+            //if the lable marks an if statment add a frame.
             if (label.getLabelType().equals(LabelTypeEnum.IF)) {
                 stack.newFrame();
                 stack.newEndFrame();
-            }else if (label.getLabelType().equals(LabelTypeEnum.LOOP)){
+            }else if (label.getLabelType().equals(LabelTypeEnum.LOOP)){//if the label is a loop
+                
                 int currentConditionalBytecode = stack.getCurrentConditionalBytecode();
                 
                 Label label1 = new Label();
@@ -1104,240 +1089,124 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
     }
 
-     /**
-     * Converts a boolean to text, then concatenates the converted boolean text and
-     * other text.
-     * 
-     * stack before step:   text -> boolean;
-     * stack after step:    text
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryAddBooleanTextStep step) {
+        //Converts a boolean to text.
         prepareValueTextConcatenation();
+        //Concatenates the converted boolean and other text.
         performTextConcatenation();
     }
 
-    /**
-     * Converts an integer to a number, then adds two numbers
-     * 
-     * stack before step:   number -> integer;
-     * stack after step:    number
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryAddIntegerNumberStep step) {
+        //Converts an integer to a number.
         prepareIntegerNumberOperation(false);
+        //Adds the two numbers together.
         performBinaryArithmeticOperation(DADD, TypeDescriptor.getNumberType());
     }
 
-     /**
-     * Converts an integer to text, then concatenates the converted integer text and
-     * other text.
-     * 
-     * stack before step:   text -> integer;
-     * stack after step:    text
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryAddIntegerTextStep step) {
+        //Converts an integer to text.
         prepareValueTextConcatenation();
+        //Concatenates the converted integer and text.
         performTextConcatenation();
     }
 
-     /**
-     * Converts an integer to a number, then adds two numbers
-     * 
-     * stack before step:   integer -> number;
-     * stack after step:    number
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryAddNumberIntegerStep step) {
+        //Converts an integer to a number.
         prepareNumberIntegerOperation();
+        //Adds the two numbers together.
         performBinaryArithmeticOperation(DADD, TypeDescriptor.getNumberType());
     }
 
-    /**
-     * Adds two numbers
-     * 
-     * stack before step:   number -> number;
-     * stack after step:    number
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryAddNumberStep step) {
+        //Adds the two numbers together.
         performBinaryArithmeticOperation(DADD, TypeDescriptor.getNumberType());
     }
 
-    /**
-     * Converts a number to text, then concatenates the converted number text and
-     * other text.
-     * 
-     * stack before step:   text -> number;
-     * stack after step:    text
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryAddNumberTextStep step) {
+        //Converts a number to text.
         prepareValueTextConcatenation();
+        //concatenates the converted number and text.
         performTextConcatenation();
     }
 
-    /**
-     * Binary addition of two integers.
-     * 
-     * stack before step:   integer -> integer;
-     * stack after step:    integer
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryAddStep step) {
+        //Binary addition of two integers.
         performBinaryArithmeticOperation(IADD, TypeDescriptor.getIntegerType());
     }
 
-    /**
-     * Converts a boolean to text, then concatenates a text value and the converted
-     * boolean text.
-     * 
-     * stack before step:   boolean -> text;
-     * stack after step:    text
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryAddTextBooleanStep step) {
+        //Converts a boolean to text.
         prepareTextValueConcatenation();
+        //concatenates a text value and the converted boolean text.
         performTextConcatenation();
     }
 
-    /**
-     * Converts an integer to text, then concatenates a text value and the converted
-     * integer text.
-     * 
-     * stack before step:   integer -> text;
-     * stack after step:    text
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryAddTextIntegerStep step) {
+        //Converts an integer to text, then concatenates a text value and the converted
+        //integer text.
         prepareTextValueConcatenation();
         performTextConcatenation();
     }
 
-    /**
-     * Converts a number to text, then concatenates a text value and the converted
-     * number text.
-     * 
-     * stack before step:   number -> text;
-     * stack after step:    text
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryAddTextNumberStep step) {
+        //Converts a number to text, then concatenates a text value and the converted
+        //number text.
         prepareTextValueConcatenation();
         performTextConcatenation();
     }
 
-    /**
-     * Perform a binary and operation on two booleans.
-     * 
-     * stack before step:   boolean -> boolean;
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryAndStep step) {
+        //Perform a binary and operation on two booleans.
         stack.popConstant();
         methodVisitor.visitInsn(IAND);
     }
 
-    /**
-     * Concatenates two text values
-     * 
-     * stack before step:   text -> text;
-     * stack after step:    text
-     * 
-     */
     @Override
     public void visit(BinaryConcatenateStep step) {
+        //Concatenates two text values
         performTextConcatenation();
     }
 
-    /**
-     * Converts an integer to a number, then divides the integer by the number
-     * 
-     * stack before step:   number -> integer;
-     * stack after step:    number
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryDivideIntegerNumberStep step) {
+        //Converts an integer to a number, then divides the integer by the number.
         prepareIntegerNumberOperation(true);
         performBinaryArithmeticOperation(DDIV, TypeDescriptor.getNumberType());
     }
 
-    /**
-     * Converts an integer to a number, then divides the number by the integer
-     * 
-     * stack before step:   number -> integer;
-     * stack after step:    number
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryDivideNumberIntegerStep step) {
+        //Converts an integer to a number, then divides the number by the integer.
         prepareNumberIntegerOperation();
         performBinaryArithmeticOperation(DDIV, TypeDescriptor.getNumberType());
     }
 
-    /**
-     * Divides two numbers
-     * 
-     * stack before step:   number -> number;
-     * stack after step:    number
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryDivideNumberStep step) {
+        //Divides two numbers.
         performBinaryArithmeticOperation(DDIV, TypeDescriptor.getNumberType());
     }
 
-    /**
-     * Divides two integers
-     * 
-     * stack before step:   integer -> integer;
-     * stack after step:    integer
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryDivideStep step) {
+        //Divides two integers.
         performBinaryArithmeticOperation(IDIV, TypeDescriptor.getIntegerType());
     }
 
-    /**
-     * Determines if two boolean values are equal
-     * 
-     * stack before step:   boolean -> boolean;
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryEqualsBooleanStep step) {
+        //Determines if two boolean values are equal.
         stack.popConstant();
         methodVisitor.visitInsn(IXOR);
         methodVisitor.visitInsn(Opcodes.ICONST_1);
@@ -1354,18 +1223,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         int a = 5;
     }
 
-    /**
-     * Converts an integer to a number, then determines if the converted number is equal
-     * to another number
-     * 
-     * stack before step:   number -> integer;
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryEqualsIntegerNumberStep step) {
+        //Converts an integer to a number.
         prepareIntegerNumberOperation(false);
+        //determines if the converted number is equal to another number
         performBinaryComparison(IFNE);
     }
 
@@ -1374,195 +1236,97 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         int a = 5;
     }
 
-    
-    /**
-     * Converts an integer to a number, then determines if a number is equal to the
-     * converted number
-     * 
-     * stack before step:   number -> integer;
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryEqualsNumberIntegerStep step) {
+        //Converts an integer to a number.
         prepareNumberIntegerOperation();
+        //then determines if a number is equal to the converted number
         performBinaryComparison(IFNE);
     }
 
-    /**
-     * Determines if two numbers are equal
-     * 
-     * stack before step:   number -> number;
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryEqualsNumberStep step) {
+        //Determines if two numbers are equal.
         performBinaryComparison(IFNE);
     }
 
-    /**
-     * Determines if two integers are equal
-     * 
-     * stack before step:   integer -> integer;
-     * stack after step:    boolean
-     * 
-     */
     @Override
     public void visit(BinaryEqualsStep step) {
+        //Determines if two integers are equal.
         performBinaryComparison(IF_ICMPNE);
     }
 
-    /**
-     * Determines if two text values are equal
-     * 
-     * stack before step:   text -> text;
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryEqualsStringStep step) {
+        //Determines if two text values are equal.
         performBinaryComparison(IFNE);
     }
 
-    /**
-     * Converts an integer to a number, then determines if the converted number is 
-     * greater than or equal to another number
-     * 
-     * stack before step:   number -> integer;
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryGreaterEqualsIntegerNumberStep step) {
+        //Converts an integer to a number.
         prepareIntegerNumberOperation(true);
+        //determines if the converted number is greater than or equal to another number.
         performBinaryComparison(IFLT);
     }
 
-    /**
-     * Converts an integer to a number, then determines if another number is 
-     * greater than or equal to the converted number
-     * 
-     * stack before step:   integer -> number;
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryGreaterEqualsNumberIntegerStep step) {
+        //Converts an integer to a number.
         prepareNumberIntegerOperation();
+        //determines if another number is greater than or equal to the converted number.
         performBinaryComparison(IFLT);
     }
 
-    /**
-     * Determines if one number is greater than or equal to another number
-     * 
-     * stack before step:   number -> number
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryGreaterEqualsNumberStep step) {
+        //Determines if one number is greater than or equal to another number.
         performBinaryComparison(IFLT);
     }
 
-    /**
-     * Determines if one integer is greater than or equal to another integer
-     * 
-     * stack before step:   integer -> integer
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryGreaterEqualsStep step) {
+        //Determines if one integer is greater than or equal to another integer.
         performBinaryComparison(IF_ICMPLT);
     }
 
-    /**
-     * Determines if one text value is greater than or equal to another text value
-     * 
-     * stack before step:   text -> text
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryGreaterEqualsStringStep step) {
+        //Determines if one text value is greater than or equal to another text value.
         performBinaryComparison(IFLT);
     }
 
-    /**
-     * Converts an integer to a number, then determines if the converted number is 
-     * greater than another number
-     * 
-     * stack before step:   number -> integer
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryGreaterThanIntegerNumberStep step) {
+        //Converts an integer to a number.
         prepareIntegerNumberOperation(true);
+        //then determines if the converted number is greater than another number.
         performBinaryComparison(IFLE);
     }
 
-    /**
-     * Converts an integer to a number, then determines if another number is 
-     * greater than the converted number
-     * 
-     * stack before step:   integer -> number
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryGreaterThanNumberIntegerStep step) {
+        //Converts an integer to a number.
         prepareNumberIntegerOperation();
+        //determines if another number is greater than the converted number
         performBinaryComparison(IFLE);
     }
 
-    /**
-     * Determines if one number is greater than another number
-     * 
-     * stack before step:   number -> number
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryGreaterThanNumberStep step) {
+        //Determines if one number is greater than another number.
         performBinaryComparison(IFLE);
     }
 
-    /**
-     * Determines if one integer is greater than another integer
-     * 
-     * stack before step:   integer -> integer
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryGreaterThanStep step) {
+        //Determines if one integer is greater than another integer.
         performBinaryComparison(IF_ICMPLE);
     }
 
-    /**
-     * Determines if one text value is greater than another text value
-     * 
-     * stack before step:   text -> text
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryGreaterThanStringStep step) {
+        //Determines if one text value is greater than another text value
         performBinaryComparison(IFLE);
     }
 
@@ -1571,263 +1335,133 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         int a = 5;
     }
 
-    /**
-     * Converts an integer to a number, then determines if the converted number is 
-     * less than or equal to another number
-     * 
-     * stack before step:   number -> integer
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryLessEqualsIntegerNumberStep step) {
+        //Converts an integer to a number.
         prepareIntegerNumberOperation(true);
+        //then determines if the converted number is less than or equal to another number.
         performBinaryComparison(IFGT);
     }
 
-    /**
-     * Converts an integer to a number, then determines if another number is 
-     * less than or equal to the converted number
-     * 
-     * stack before step:   integer -> number
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryLessEqualsNumberIntegerStep step) {
+        //Converts an integer to a number.
         prepareNumberIntegerOperation();
+        //determines if another number is less than or equal to the converted number.
         performBinaryComparison(IFGT);
     }
 
-    /**
-     * Determines if one number is less than or equal to another number
-     * 
-     * stack before step:   number -> number
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryLessEqualsNumberStep step) {
+        //Determines if one number is less than or equal to another number.
         performBinaryComparison(IFGT);
     }
 
-    /**
-     * Determines if one integer is less than or equal to another integer
-     * 
-     * stack before step:   integer -> integer
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryLessEqualsStep step) {
+        //Determines if one integer is less than or equal to another integer.
         performBinaryComparison(IF_ICMPGT);
     }
 
-    /**
-     * Determines if one text value is less than or equal to another text value
-     * 
-     * stack before step:   text -> text
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryLessEqualsStringStep step) {
+        //Determines if one text value is less than or equal to another text value.
         performBinaryComparison(IFGT);
     }
 
-    /**
-     * Converts an integer to a number, then determines if the converted number is 
-     * less than another number
-     * 
-     * stack before step:   number -> integer
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryLessThanIntegerNumberStep step) {
+        //Converts an integer to a number.
         prepareIntegerNumberOperation(true);
+        //then determines if the converted number is less than another number.
         performBinaryComparison(IFGE);
     }
 
-    /**
-     * Converts an integer to a number, then determines if another number is 
-     * less than the converted number
-     * 
-     * stack before step:   integer -> number
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryLessThanNumberIntegerStep step) {
+        //Converts an integer to a number
         prepareNumberIntegerOperation();
+        //determines if another number is less than the converted number.
         performBinaryComparison(IFGE);
     }
 
-    /**
-     * Determines if one number is less than another number
-     * 
-     * stack before step:   number -> number
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryLessThanNumberStep step) {
+        //Determines if one number is less than another number.
         performBinaryComparison(IFGE);
     }
 
-    /**
-     * Determines if one integer is less than another integer
-     * 
-     * stack before step:   integer -> integer
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryLessThanStep step) {
+        //Determines if one integer is less than another integer.
         performBinaryComparison(IF_ICMPGE);
     }
 
-    /**
-     * Determines if one text value is less than another text value
-     * 
-     * stack before step:   text -> text
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryLessThanStringStep step) {
+        //Determines if one text value is less than another text value.
         performBinaryComparison(IFGE);
     }
 
-    /**
-     * Converts an integer to a number, then mods the integer by the number
-     * 
-     * stack before step:   number -> integer
-     * stack after step:    number
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryModIntegerNumberStep step) {
+        //Converts an integer to a number. 
         prepareIntegerNumberOperation(true);
+        //mods the integer by the number.
         performBinaryArithmeticOperation(DREM, TypeDescriptor.getNumberType());
     }
 
-    /**
-     * Converts an integer to a number, then mods the number by the integer
-     * 
-     * stack before step:   integer -> number
-     * stack after step:    number
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryModNumberIntegerStep step) {
+        //Converts an integer to a number.
         prepareNumberIntegerOperation();
+        //mods the number by the integer.
         performBinaryArithmeticOperation(DREM, TypeDescriptor.getNumberType());
     }
 
-    
-    /**
-     * Mods one number by another number
-     * 
-     * stack before step:   number -> number
-     * stack after step:    number
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryModNumberStep step) {
+        //Mods one number by another number.
         performBinaryArithmeticOperation(DREM, TypeDescriptor.getNumberType());
     }
-    
-    /**
-     * Mods one integer by another integer
-     * 
-     * stack before step:   integer -> integer
-     * stack after step:    integer
-     *
-     * @param step 
-     */
+
     @Override
     public void visit(BinaryModStep step) {
+        //Mods one integer by another integer
         performBinaryArithmeticOperation(IREM, TypeDescriptor.getIntegerType());
     }
 
-    /**
-     * Converts an integer to a number, then multiplies the integer by the number
-     * 
-     * stack before step:   number -> integer
-     * stack after step:    number
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryMultiplyIntegerNumberStep step) {
+        //Converts an integer to a number.
         prepareIntegerNumberOperation(false);
+        //multiplies the integer by the number.
         performBinaryArithmeticOperation(DMUL, TypeDescriptor.getNumberType());
     }
 
-    /**
-     * Converts an integer to a number, then mods the number by the integer
-     * 
-     * stack before step:   integer -> number
-     * stack after step:    number
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryMultiplyNumberIntegerStep step) {
+        //Converts an integer to a number.
         prepareNumberIntegerOperation();
+        //mods the number by the integer.
         performBinaryArithmeticOperation(DMUL, TypeDescriptor.getNumberType());
     }
 
-    /**
-     * Multiplies one number by another number
-     * 
-     * stack before step:   number -> number
-     * stack after step:    number
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryMultiplyNumberStep step) {
+        //Multiplies one number by another number.
         performBinaryArithmeticOperation(DMUL, TypeDescriptor.getNumberType());
     }
 
-    /**
-     * Multiplies one integer by another integer
-     * 
-     * stack before step:   integer -> integer
-     * stack after step:    integer
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryMultiplyStep step) {
+        //Multiplies one integer by another integer.
         performBinaryArithmeticOperation(IMUL, TypeDescriptor.getIntegerType());
     }
 
-    /**
-     * Determines if two boolean values are not equal
-     * 
-     * stack before step:   boolean -> boolean;
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryNotEqualsBooleanStep step) {
+        //Determines if two boolean values are not equal.
         BytecodeStackValue operand = stack.popConstant();
         stack.popConstant();
         methodVisitor.visitInsn(IXOR);
@@ -1844,18 +1478,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         int a = 5;
     }
 
-    /**
-     * Converts an integer to a number, then determines if the converted number is not equal
-     * to another number
-     * 
-     * stack before step:   number -> integer;
-     * stack after step:    boolean
-     * 
-     * @param step 
-     */
     @Override
     public void visit(BinaryNotEqualsIntegerNumberStep step) {
+        //Converts an integer to a number 
         prepareIntegerNumberOperation(false);
+        //determines if the converted number is not equal to another number
         performBinaryComparison(IFEQ);
     }
 
@@ -2008,7 +1635,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         Label label0 = new Label();
         methodVisitor.visitLabel(label0);
 
-                        //calculate the frame
+        //calculate the frame
         ArrayList<TypeDescriptor> frame = stack.getFrame();
         int frameSize = frame.size();
         if (frameSize > 0 && frameSize < 4) {//F_APPEND only
@@ -2083,10 +1710,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(EndScopeStep step) {
-        if (!stack.isEmptyLabel()) {
+        if (!stack.isEmptyLabel()) {//if the stack has a label
             LabelStackValue label = stack.peekLabel();
-            if (label.getLabelType().equals(LabelTypeEnum.IF)) {
-                if (label.getJumpType() != GOTO) {
+            if (label.getLabelType().equals(LabelTypeEnum.IF)) {//if the label is for an if statement
+                if (label.getJumpType() != GOTO) {//if the label is NOT a GOTO jump
 
                     stack.popLabel();
                     Label top = label.getLabel();
@@ -2141,7 +1768,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         stack.removeEndFrame();
                     }
 
-                } else if (label.getJumpType() == GOTO) {//if jumping out of the if
+                } else if (label.getJumpType() == GOTO) {//jumping out of the if
                     if (step.getBlockTag().equals("elseif")) {
                         stack.undoLabel();
                     }

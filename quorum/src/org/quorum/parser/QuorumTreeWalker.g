@@ -809,6 +809,7 @@ print_statement
 
                 symbol.addStatementFlagToCurrentFile(step.getBeginLine());
 		stepFactory.addPrintStep(location, $root_expression.eval, $root_expression.step);
+		builder.addStepLabel(OpcodeType.PRINT);
 	
 	}
 	;
