@@ -510,6 +510,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitEnd();
     }
 
+    /**
+     * Visit the method execution, i.e. each step that needs to be visited for 
+     * each methods execution.
+     * 
+     * @param method 
+     */
     public void visit(MethodExecution method) {
         currentMethodExecution = method;
         boolean main = method.isMainMethod();
@@ -539,19 +545,27 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         Vector<ExecutionStep> steps = method.getSteps();
         OpcodeTracker tracker = currentMethodExecution.getTracker();
-        for (int i = 0; i < steps.size(); i++) {
+        for (int i = 0; i < steps.size(); i++) {//visit each of the steps in the method execution
             OpcodeType opcodeType = tracker.getOpcodeType(i);
+            
+            //if the opcode type is of root expression queue it up for later.
             if(opcodeType == OpcodeType.ROOT_EXPRESSION){
                 tracker.addToQueue(i);
                 int finalPosition = tracker.getFinalPosition(i);
                 
+                //calculate the final position and jump to it.
                 if(finalPosition >= 0){
                     i = finalPosition;
                 }
             }else{
+                
+                //queue up the ending opcodes but still visit them (assignment, print, etc.)
                 if(opcodeType != null){
                     tracker.addToQueue(i);
                 }
+                
+                //otherwise process each step and let each step decide if it has
+                //queued up steps to visit and in which order they are processed.
                 ExecutionStep step = steps.get(i);
                 step.visit(this);
             }
