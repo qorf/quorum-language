@@ -668,8 +668,67 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitFieldInsn(PUTFIELD, fieldParent, variableName, QuorumConverter.convertTypeToBytecodeString(variableType));
     }
     
-    public void performAssignment(BytecodeStackValue value, AssignmentStep step, boolean fieldInit) {
-        if (fieldInit) {
+    
+    private void performLocalAssignment(BytecodeStackValue value, AssignmentStep step) {
+            int variableNumber = step.getVariable().getVariableNumber() - currentClass.getNumberOfVariables();
+            int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+            value.setAsVariable(variableNumber);
+            value.setAsReturnValue(false);
+            processExpressions();
+            methodVisitor.visitVarInsn(value.getStoreOpcode(), mappedVariableNumber);
+            stack.setVariable(variableNumber, value);
+    }
+    
+    /**
+     * This helper method performs an assignment into either a local variable or a field variable.
+     * @param value
+     * @param step
+     * @param isDefined 
+     */
+    public void performAssignment(BytecodeStackValue value, AssignmentStep step, boolean isDefined) {
+        VariableParameterCommonDescriptor variable = step.getVariable();
+        if(variable == null) {
+            Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
+                    Level.SEVERE, 
+                    "The AssignmentStep object of type: " + 
+                    step.getClass().getCanonicalName() + 
+                    ", has a missing variable value (null). ");
+        }
+        
+        boolean isField = step.getVariable().isFieldVariable();
+        
+        // Is the variable we are assigning to defined?
+        if (isDefined) {
+            // It is defined--is it a field?
+            if (isField) {
+                performFieldAssignment(step.getVariable(), step.getSubVariableName(), value.getType());
+            }
+            else {
+                performLocalAssignment(value, step);
+            }
+        }
+        else {
+            if (isField) {
+                performFieldAssignment(step.getVariable(), step.getSubVariableName(), value.getType());
+            }
+            else {
+                performLocalAssignment(value, step);
+                
+                // It's not a field, so we need to tell the system that we are
+                // adding a new value, which increases the "field size."
+                if (value.getType().isNumber())
+                    fieldSize += 2;
+                else
+                    fieldSize += 1;
+                
+                            
+                // Add the local variable to the frame here.
+                stack.addFrameVariable(value.getType());
+            }
+
+        }
+        
+        /*if (field) {
             performFieldAssignment(step.getVariable(), step.getSubVariableName(), value.getType());
                     
             if (fieldInitialization) {
@@ -691,7 +750,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             stack.setVariable(variableNumber, value);
         }
         //add the local variable that has been assigned a value to the frame
-        stack.addFrameVariable(value.getType());
+        stack.addFrameVariable(value.getType())
+         */
+        
     }
 
     /**
@@ -1048,14 +1109,16 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AssignmentTextLocalStep step) {
         //Assigns a number to a local variable or field of type text.
+        processExpressions();
         BytecodeStackValue pop = stack.popConstant();
-        performAssignment(pop, step, fieldInitialization);
+        performAssignment(pop, step, false);
     }
  
     @Override
     public void visit(AssignmentTextStep step) {
         //remove the constant from the bytecode stack and assign a number to 
         //a field of type text.
+        processExpressions();
         BytecodeStackValue pop = stack.popConstant();
         performAssignment(pop, step, true);
     }

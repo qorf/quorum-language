@@ -123,4 +123,16 @@ public class VariableParameterCommonDescriptor extends Descriptor{
     public void setVariableNumber(int variableNumber) {
         this.variableNumber = variableNumber;
     }
+    
+    /**
+     * Determines whether this is a field variable or defined in another scope.
+     * 
+     * @return 
+     */
+    public boolean isFieldVariable() {
+        if(this.parent instanceof ClassDescriptor) {
+            return true;
+        }
+        return false;
+    }
 }
