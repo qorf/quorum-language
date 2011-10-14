@@ -646,29 +646,44 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
     }
     
+    /**
+     * Performs the necessary bytecode operations for assigning a field variable (non local).
+     * 
+     * @param variable
+     * @param subVariableName
+     * @param subVariableType 
+     */
     private void performFieldAssignment(VariableParameterCommonDescriptor variable, String subVariableName, TypeDescriptor subVariableType) {
         String fieldParent;
         String variableName;
         TypeDescriptor variableType;
         
-        if (subVariableName.compareTo("") != 0) {
+        //if the sub-variable name does not match
+        if (!subVariableName.equals("")) {
+            //process and visit the variable instruction based on variable type.
             fieldParent = QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getName());
             methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(variable.getType()), stack.getMappedVariableNumber(variable.getVariableNumber()));
             variableName = subVariableName;
             variableType = subVariableType;
         }
-        else {
+        else {//if the sub-variable name does match
+            //process and visit the aload variable instruction
             fieldParent = QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey());
             methodVisitor.visitVarInsn(ALOAD, 0);
             variableName = variable.getName();
             variableType = variable.getType();
         }
         
+        //process the expression and put the field
         processExpressions();
         methodVisitor.visitFieldInsn(PUTFIELD, fieldParent, variableName, QuorumConverter.convertTypeToBytecodeString(variableType));
     }
     
-    
+    /**
+     * Performs the necessary bytecode operations for assigning a value to a local variable.
+     * @param value
+     * @param step 
+     */
     private void performLocalAssignment(BytecodeStackValue value, AssignmentStep step) {
             int variableNumber = step.getVariable().getVariableNumber() - currentClass.getNumberOfVariables();
             int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
@@ -681,9 +696,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     
     /**
      * This helper method performs an assignment into either a local variable or a field variable.
-     * @param value
-     * @param step
-     * @param isDefined 
+     * 
+     * @param value The bytecode stack value needed by the assignment.
+     * @param step The Assignment step being performed.
+     * @param isDefined True if the variable being assigned a value was already defined.
      */
     private void performAssignment(BytecodeStackValue value, AssignmentStep step, boolean isDefined) {
         VariableParameterCommonDescriptor variable = step.getVariable();
@@ -726,33 +742,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 stack.addFrameVariable(value.getType());
             }
 
-        }
-        
-        /*if (field) {
-            performFieldAssignment(step.getVariable(), step.getSubVariableName(), value.getType());
-                    
-            if (fieldInitialization) {
-                if (value.getType().isNumber()) {
-                    fieldSize += 2;
-                } 
-                else {
-                    fieldSize++;
-                }
-            }
         } 
-        else {
-            int variableNumber = step.getVariable().getVariableNumber() - currentClass.getNumberOfVariables();
-            int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
-            value.setAsVariable(variableNumber);
-            value.setAsReturnValue(false);
-            processExpressions();
-            methodVisitor.visitVarInsn(value.getStoreOpcode(), mappedVariableNumber);
-            stack.setVariable(variableNumber, value);
-        }
-        //add the local variable that has been assigned a value to the frame
-        stack.addFrameVariable(value.getType())
-         */
-        
     }
 
     /**
@@ -1037,11 +1027,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         
         //1. Loop through all expressions and dequeue them
         //processExpressions(getTopOfQueue())
-        
-        
+        processExpressions();
         //2. Now that everything is out of the queue,
         //do the actual assignment
-        processExpressions();
         BytecodeStackValue pop = stack.popConstant();
         performAssignment(pop, step, false);
     }
