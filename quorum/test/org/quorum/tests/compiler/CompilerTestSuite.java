@@ -109,6 +109,8 @@ public class CompilerTestSuite {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
+        // Delete the temporary directory where class files are placed.
+        deleteDir(new File(systemRoot + "/test/" + CLASS_TMP_PATH));
     }
 
     @Before
@@ -146,11 +148,27 @@ public class CompilerTestSuite {
     
 
     @After
-    public void tearDown() throws Exception {
-        // Delete the temporary directory where class files are placed.
-        new File(systemRoot + "/test/" + CLASS_TMP_PATH).delete();
+    public void tearDown() throws Exception {        
+
     }
 
+    /**
+     * Recursively delete the given directory.
+     * @param dir
+     * @return 
+     */
+    private static void deleteDir(File dir) {
+        if (dir.isDirectory()) {
+            String[] children = dir.list();
+            for (int i=0; i<children.length; i++) {
+                deleteDir(new File(dir, children[i]));
+            }
+        }
+
+        // The directory is now empty so delete it
+        dir.delete();
+        return;
+    }
 
     public static void build(File file) {
         File[] files = new File[1];
@@ -202,7 +220,7 @@ public class CompilerTestSuite {
         //build
         vm.build(files);
         
-        ProcessBuilder pb = new ProcessBuilder("java", "quorum." + files[0]);
+        ProcessBuilder pb = new ProcessBuilder("java", "quorum." + files[0].getName().split("\\.")[0]);
         pb.directory(dir);
         Process proc = null;
         
@@ -229,6 +247,7 @@ public class CompilerTestSuite {
             }
             runResult.addLine(line);
         } while (line != null);
+        
         
         return runResult;
     }

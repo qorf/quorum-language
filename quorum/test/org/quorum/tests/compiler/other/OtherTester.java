@@ -151,11 +151,9 @@ public class OtherTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
-        //vm.blockRun();
 
         RunResult r = CompilerTestSuite.runQuorumFile();
         if (!r.isSuccessful())
             fail();
-        
     }
 }

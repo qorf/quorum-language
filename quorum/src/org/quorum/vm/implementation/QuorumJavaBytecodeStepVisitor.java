@@ -225,7 +225,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         if (!".Stefik".equals(staticKey) //&& !"Libraries.Sound.Speech".equals(staticKey)
                 //&& !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
-                && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)) {
+                && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
+                && !".Print".equals(staticKey)) {
             return;
         }
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
