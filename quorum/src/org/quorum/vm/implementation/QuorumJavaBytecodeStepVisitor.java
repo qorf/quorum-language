@@ -996,7 +996,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
             
             //clear out the queue at the end of visiting
-            tracker.clear();
+            tracker.clearQueue();
         
         }
     }
@@ -1043,12 +1043,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //do the actual assignment
         processExpressions();
         BytecodeStackValue pop = stack.popConstant();
-        performAssignment(pop, step, fieldInitialization);
+        performAssignment(pop, step, false);
     }
    
     @Override
     public void visit(AssignmentBooleanStep step) {
         //Assigns a boolean to a field of type boolean
+        processExpressions();
         BytecodeStackValue pop = stack.popConstant();
         performAssignment(pop, step, true);
     }
@@ -1065,14 +1066,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
    
     @Override
     public void visit(AssignmentIntegerLocalStep step) {
+        //process the expressions in the queue
+        processExpressions();
         BytecodeStackValue pop = stack.popConstant();
         //Assigns an integer to a local variable or field of type integer
-        performAssignment(pop, step, fieldInitialization);
+        performAssignment(pop, step, false);
     }
    
     @Override
     public void visit(AssignmentIntegerStep step) {
         //Assigns an integer to a field of type integer
+        processExpressions();
         BytecodeStackValue pop = stack.popConstant();
         performAssignment(pop, step, true);
     }
@@ -1098,13 +1102,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AssignmentNumberLocalStep step) {
         //Assigns a number to a local variable or field of type number.
+        processExpressions();
         BytecodeStackValue pop = stack.popConstant();
-        performAssignment(pop, step, fieldInitialization);
+        performAssignment(pop, step, false);
     }
    
     @Override
     public void visit(AssignmentNumberStep step) {
         //Assigns a number to a field of type number.
+        processExpressions();
         BytecodeStackValue pop = stack.popConstant();
         performAssignment(pop, step, true);
     }
