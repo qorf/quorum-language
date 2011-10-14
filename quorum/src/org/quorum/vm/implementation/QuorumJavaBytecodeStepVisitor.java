@@ -685,7 +685,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * @param step
      * @param isDefined 
      */
-    public void performAssignment(BytecodeStackValue value, AssignmentStep step, boolean isDefined) {
+    private void performAssignment(BytecodeStackValue value, AssignmentStep step, boolean isDefined) {
         VariableParameterCommonDescriptor variable = step.getVariable();
         if(variable == null) {
             Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
@@ -994,6 +994,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 ExecutionStep step = steps.get(i);
                 step.visit(this);
             }
+            
+            //clear out the queue at the end of visiting
+            tracker.clear();
         
         }
     }
