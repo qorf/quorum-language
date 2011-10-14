@@ -1,4 +1,4 @@
-use Libraries.Sound.Speech
+//use Libraries.Sound.Speech
 
 /*
 
@@ -16,9 +16,11 @@ java -cp "../../../dependencies/phonemic.jar:./" quorum.Stefik
 */
 class Stefik
     action Main
-        //Speech speech
-        //speech:Say("Jeff is fired.")
-      //  integer i = GetHashCode()
-      //  print i
+        integer i = GetHashCode()
+        print "Now attempting to print out a hash code through a plugin."
+        print i
     end
+
+
+    system action GetHashCode() returns integer
 end

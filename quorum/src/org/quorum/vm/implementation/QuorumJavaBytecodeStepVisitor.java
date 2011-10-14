@@ -273,8 +273,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         int numSystem = currentClass.getNumberSystemActions();
         if (numSystem > 0) {
             String converted = QuorumConverter.convertStaticKeyToPluginPathTypeName(currentClass.getStaticKey());
-//            fieldVisitor = classWriter.visitField(ACC_PUBLIC, PLUGIN_NAME, converted, null, null);
-//            fieldVisitor.visitEnd();
+            fieldVisitor = classWriter.visitField(ACC_PUBLIC, PLUGIN_NAME, converted, null, null);
+            fieldVisitor.visitEnd();
         }
 
         //add a constructor that initializes its parents
@@ -302,7 +302,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         Iterator<SystemActionDescriptor> systems = clazz.getClassDescriptor().getSystemActions();
         while (systems.hasNext()) {
             SystemActionDescriptor sys = systems.next();
-            //computeSystemAction(sys);
+            computeSystemAction(sys);
         }
         classWriter.visitEnd();
     }
@@ -382,15 +382,23 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
         }
 
+        final String objectName = "___$$$Calling___$$$___Object$$$___";
+        final String javaObjectPath = "Ljava/lang/Object;";
         //initialize the plugin last
         if (numSystem > 0) {
             methodVisitor.visitVarInsn(ALOAD, THIS);
             String converted = QuorumConverter.convertStaticKeyToPluginPath(currentClass.getStaticKey());
             String convertedSupplement = QuorumConverter.convertStaticKeyToPluginPathTypeName(currentClass.getStaticKey());
-//            methodVisitor.visitTypeInsn(NEW, converted);
-//            methodVisitor.visitInsn(DUP);
-//            methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "()V");
-//            methodVisitor.visitFieldInsn(PUTFIELD, name, PLUGIN_NAME, convertedSupplement);
+            methodVisitor.visitTypeInsn(NEW, converted);
+            methodVisitor.visitInsn(DUP);
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "()V");
+            methodVisitor.visitFieldInsn(PUTFIELD, name, PLUGIN_NAME, convertedSupplement);
+            
+            //now load the current object into the plugin, in case it needs it
+            methodVisitor.visitVarInsn(ALOAD, THIS);
+            methodVisitor.visitFieldInsn(GETFIELD, name, PLUGIN_NAME, convertedSupplement);
+            methodVisitor.visitVarInsn(ALOAD, THIS);
+            methodVisitor.visitFieldInsn(PUTFIELD, convertedSupplement, objectName, javaObjectPath);
             fieldSize += 2;
         }
 
