@@ -711,7 +711,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
             value.setAsVariable(variableNumber);
             value.setAsReturnValue(false);
-            processExpressions();
+            //processExpressions();
             methodVisitor.visitVarInsn(value.getStoreOpcode(), mappedVariableNumber);
             stack.setVariable(variableNumber, value);
     }
@@ -890,16 +890,16 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     private void performComparison(int oppositeBytecodeOpcode) {
         
-//        Label c0 = new Label();
-//        methodVisitor.visitJumpInsn(oppositeBytecodeOpcode, c0);
-//        methodVisitor.visitInsn(ICONST_1);
-//        Label c1 = new Label();
-//        methodVisitor.visitJumpInsn(GOTO, c1);
-//        methodVisitor.visitLabel(c0);
-//        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-//        methodVisitor.visitInsn(ICONST_0);
-//        methodVisitor.visitLabel(c1);
-//        methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[]{Opcodes.INTEGER});
+        Label c0 = new Label();
+        methodVisitor.visitJumpInsn(oppositeBytecodeOpcode, c0);
+        methodVisitor.visitInsn(ICONST_1);
+        Label c1 = new Label();
+        methodVisitor.visitJumpInsn(GOTO, c1);
+        methodVisitor.visitLabel(c0);
+        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+        methodVisitor.visitInsn(ICONST_0);
+        methodVisitor.visitLabel(c1);
+        methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[]{Opcodes.INTEGER});
     }
 
     private void swapOperandStackValues(TypeDescriptor topType, TypeDescriptor secondType) {
@@ -1042,6 +1042,38 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignObjectAutoBoxStep step) {
         int a = 5;
     }
+    
+    @Override
+    public void visit(AssignmentCustomLocalStep step) {
+        int a = 5;
+    }
+
+    @Override
+    public void visit(AssignmentCustomStep step) {
+        int a = 5;
+    }
+    
+    @Override
+    public void visit(AssignmentNumberIntegerLocalStep step) {
+        //process the expressions
+        processExpressions();
+        //prepare the integer as a number.
+        prepareNumberIntegerOperation();
+        BytecodeStackValue pop = stack.popConstant();
+        //Assigns an integer to a local variable or field of type number.
+        performAssignment(pop, step, false);
+    }
+   
+    @Override
+    public void visit(AssignmentNumberIntegerStep step) {
+        //process the expressions
+        processExpressions();
+        //prepare the integer as a number.
+        prepareNumberIntegerOperation();
+        BytecodeStackValue pop = stack.popConstant();
+        //Assigns an integer to a field of type number.
+        performAssignment(pop, step, true);
+    }
  
     @Override
     public void visit(AssignmentBooleanLocalStep step) {
@@ -1063,16 +1095,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         BytecodeStackValue pop = stack.popConstant();
         performAssignment(pop, step, true);
     }
-
-    @Override
-    public void visit(AssignmentCustomLocalStep step) {
-        int a = 5;
-    }
-
-    @Override
-    public void visit(AssignmentCustomStep step) {
-        int a = 5;
-    }
    
     @Override
     public void visit(AssignmentIntegerLocalStep step) {
@@ -1088,24 +1110,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Assigns an integer to a field of type integer
         processExpressions();
         BytecodeStackValue pop = stack.popConstant();
-        performAssignment(pop, step, true);
-    }
-  
-    @Override
-    public void visit(AssignmentNumberIntegerLocalStep step) {
-        //prepare the integer as a number.
-        prepareNumberIntegerOperation();
-        BytecodeStackValue pop = stack.popConstant();
-        //Assigns an integer to a local variable or field of type number.
-        performAssignment(pop, step, fieldInitialization);
-    }
-   
-    @Override
-    public void visit(AssignmentNumberIntegerStep step) {
-        //prepare the integer as a number.
-        prepareNumberIntegerOperation();
-        BytecodeStackValue pop = stack.popConstant();
-        //Assigns an integer to a field of type number.
         performAssignment(pop, step, true);
     }
    
@@ -1688,6 +1692,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(ConditionalJumpIfStep step) {
+        //process the expressions
+        processExpressions();
         stack.popConstant();
 
         //generate a new label for the if and visit the jump instruction

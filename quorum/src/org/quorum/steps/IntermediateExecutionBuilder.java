@@ -59,11 +59,11 @@ public class IntermediateExecutionBuilder {
         int position = -1;
         if(getCurrentMethod() == null){
             ClassExecution clazz = this.getCurrentClass();
-            position = clazz.getStepCount() - 1;
+            position = clazz.getStepCount();
             clazz.getTracker().addBeginIndex(position, stepType);
         }else{
             MethodExecution method = this.getCurrentMethod();
-            position = method.getStepCount() - 1;
+            position = method.getStepCount();
             method.getTracker().addBeginIndex(position, stepType);
         }
     }

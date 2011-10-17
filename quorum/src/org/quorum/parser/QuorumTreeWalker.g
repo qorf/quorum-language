@@ -808,9 +808,8 @@ print_statement
                 location.setFile(getGrammarFileNameNoExtension());
 
                 symbol.addStatementFlagToCurrentFile(step.getBeginLine());
+                builder.addStepLabel(OpcodeType.PRINT);
 		stepFactory.addPrintStep(location, $root_expression.eval, $root_expression.step);
-		builder.addStepLabel(OpcodeType.PRINT);
-	
 	}
 	;
 
@@ -1027,8 +1026,8 @@ assignment_statement
 		}
 		
 		symbol.addStatementFlagToCurrentFile($ID.line);
-		stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, false, "", cd);
 		builder.addStepLabel(OpcodeType.ASSIGNMENT);
+		stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, false, "", cd);
 	}
 	|	obj=qualified_name (COLON PARENT COLON parent=qualified_name)? COLON ID rhs=assign_right_hand_side
 	{
@@ -1057,9 +1056,8 @@ assignment_statement
 				vm.getCompilerErrors().addError(error);
 			}
 		}
-		
-		stepFactory.addAssignmentStep(location, $obj.type.getStaticKey(), $rhs.eval, $rhs.step, isLocal, $ID.text, cd);
 		builder.addStepLabel(OpcodeType.ASSIGNMENT);
+		stepFactory.addAssignmentStep(location, $obj.type.getStaticKey(), $rhs.eval, $rhs.step, isLocal, $ID.text, cd);
 	}
 	|	modifier = access_modifier? type = assignment_declaration name = ID rhs=assign_right_hand_side?
 	{
@@ -1078,6 +1076,8 @@ assignment_statement
                 boolean isLocal = $type.myType != null;
                 
                 symbol.addStatementFlagToCurrentFile($ID.line);
+                
+                builder.addStepLabel(OpcodeType.ASSIGNMENT);
 		if($rhs.eval != null)
 		{
 			stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, isLocal);
@@ -1086,7 +1086,6 @@ assignment_statement
                     	stepFactory.addAssignmentStep(location, $ID.text, isLocal);
                 }
                 
-                builder.addStepLabel(OpcodeType.ASSIGNMENT);
 	}
 	;
 assign_right_hand_side returns[ExpressionValue eval, ExecutionStep step]
@@ -1416,9 +1415,13 @@ selector returns[ScopeSelector scopeSel]
 	;
 		
 root_expression returns[ExpressionValue eval, ExecutionStep step]
-	:	^(ROOT_EXPRESSION expression) 
+	:	
 	{
 		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+	}
+	^(ROOT_EXPRESSION expression) 
+	{
+		
 		$eval = $expression.eval;
 		$step = $expression.step;
 	}
@@ -1584,11 +1587,11 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		info.methodName = myMethodName;
 		info.isObjectCall = ($ID != null);
 		
-		ResultTuple result =  stepFactory.addCallStep(info);
-		
 		if(fel!=null){
 			builder.addStepLabel(OpcodeType.METHOD_CALL);
 		}
+		
+		ResultTuple result =  stepFactory.addCallStep(info);
 		
 		temp = result.getNextRegister();
 		$eval = result.getValue();
@@ -1698,10 +1701,11 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		info.methodName = myMethodName;
 		info.isObjectCall = false;
 		
-		ResultTuple result =  stepFactory.addParentCallStep(info);
 		if(fel!=null){
 			builder.addStepLabel(OpcodeType.METHOD_CALL);
 		}
+		
+		ResultTuple result =  stepFactory.addParentCallStep(info);
 		
 		temp = result.getNextRegister();
 		$eval = result.getValue();
@@ -1762,11 +1766,11 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		info.isObjectCall = false;
 		info.isThisCall = true;
 		
-		ResultTuple result =  stepFactory.addCallStep(info);
-		
 		if(fel!=null){
 			builder.addStepLabel(OpcodeType.METHOD_CALL);
 		}
+		
+		ResultTuple result =  stepFactory.addCallStep(info);
 		
 		temp = result.getNextRegister();
 		$eval = result.getValue();
@@ -1935,9 +1939,12 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 function_expression_list returns [List list]
 @init{$list = new ArrayList(); }
 	:
-	^(FUNCTION_EXPRESSION_LIST (e = expression 
 	{
 		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+	}
+	^(FUNCTION_EXPRESSION_LIST (e = expression 
+	{
+		
 		$list.add(e);
 	} )*)
 	;
