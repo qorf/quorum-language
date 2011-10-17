@@ -202,13 +202,22 @@ public class CompilerTestSuite {
     }
     
     /**
+     * Run the given build result with java. This method makes the assumption
+     * that the outputted file name is "Main.class".
+     * @return 
+     */
+    public static RunResult runQuorumFile() {
+        return runQuorumFile(new File("Main.class"));
+    }
+    
+    /**
      * Run the given build result with java, and return the output as an array
      * of strings.
      * 
      * @param result
      * @return 
      */
-    public static RunResult runQuorumFile() {
+    public static RunResult runQuorumFile(File file) {
         RunResult runResult = new RunResult();
         File[] files = {new File(vm.getCurrentFileBeingExecuted())};
         File dir = new File(systemRoot + "/test/" + CLASS_TMP_PATH);
@@ -220,9 +229,7 @@ public class CompilerTestSuite {
         //build
         vm.build(files);
         
-        //ProcessBuilder pb = new ProcessBuilder("java", "quorum." + files[0].getName().split("\\.")[0]);
-        // ASSUME each class has the class name "Main".
-        ProcessBuilder pb = new ProcessBuilder("java", "quorum.Main");
+        ProcessBuilder pb = new ProcessBuilder("java", "quorum." + file.getName().split("\\.")[0]);
         pb.directory(dir);
         Process proc = null;
         
