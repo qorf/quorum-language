@@ -157,7 +157,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
             return error;
         }
         variables.put(descriptor.getStaticKey(), descriptor);
-        descriptor.setParent(this);
+        descriptor.setIsFieldVariable(true);
         descriptor.setVariableNumber(getNumberOfVariables());
         return null;
     }

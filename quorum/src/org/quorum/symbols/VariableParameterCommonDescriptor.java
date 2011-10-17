@@ -19,6 +19,7 @@ public class VariableParameterCommonDescriptor extends Descriptor{
     private TypeDescriptor type;
     private ArrayList<GenericDescriptor> templateTypes = new ArrayList<GenericDescriptor>();
     private boolean initialized = false;
+    private boolean isField;
 
     /**
      * A numeric value that indicates the order in which a particular 
@@ -130,9 +131,16 @@ public class VariableParameterCommonDescriptor extends Descriptor{
      * @return 
      */
     public boolean isFieldVariable() {
-        if(this.parent instanceof ClassDescriptor) {
-            return true;
-        }
-        return false;
+        return isField;
+    }
+
+    /**
+     * Sets whether this variable is a field variable. This should only be true
+     * if it is stored in the scope of a class descriptor.
+     * 
+     * @param isField the isField to set
+     */
+    public void setIsFieldVariable(boolean isField) {
+        this.isField = isField;
     }
 }
