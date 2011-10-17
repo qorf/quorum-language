@@ -469,6 +469,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitEnd();
     }
 
+    /**
+     * 
+     * @param action 
+     */
     public void computeSystemAction(SystemActionDescriptor action) {
         String name = action.getName();
         String params = QuorumConverter.convertMethodDescriptorToBytecodeSignature(action);
@@ -807,23 +811,32 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         stack.pushConstant(integerVal);
     }
 
+    /**
+     * Helper method: prepares a text value to be concatenated.
+     */
     private void prepareTextValueConcatenation() {
+        //get the operand and it's type
         BytecodeStackValue operand = stack.popConstant();
         TypeDescriptor operandType = operand.getType();
-        if (operandType.isBoolean()) {
+        
+        if (operandType.isBoolean()) {//if the operand is a boolean
             methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "toString", "(Z)Ljava/lang/String;");
         } 
-        else if (operandType.isInteger()) {
+        else if (operandType.isInteger()) {//if the operand is an integer
             methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "toString", "(I)Ljava/lang/String;");
         } 
-        else if (operandType.isNumber()) {
+        else if (operandType.isNumber()) {//if the operand is a number
             methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "toString", "(D)Ljava/lang/String;");
         }
 
+        //set the new type to text and push the constant
         operandType.setName(TypeDescriptor.TEXT);
         stack.pushConstant(operand);
     }
 
+    /**
+     * helper method: swap values and prepare for concatenation.
+     */
     private void prepareValueTextConcatenation() {
         BytecodeStackValue text = stack.popConstant();
         BytecodeStackValue value = stack.getConstantFromTop(0);
@@ -836,6 +849,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         stack.pushConstant(text);
     }
 
+    /**
+     * Perform concatenation.
+     */
     private void performTextConcatenation() {
         stack.popConstant();
         stack.popConstant();
@@ -890,16 +906,16 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     private void performComparison(int oppositeBytecodeOpcode) {
         
-        Label c0 = new Label();
-        methodVisitor.visitJumpInsn(oppositeBytecodeOpcode, c0);
-        methodVisitor.visitInsn(ICONST_1);
-        Label c1 = new Label();
-        methodVisitor.visitJumpInsn(GOTO, c1);
-        methodVisitor.visitLabel(c0);
-        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-        methodVisitor.visitInsn(ICONST_0);
-        methodVisitor.visitLabel(c1);
-        methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[]{Opcodes.INTEGER});
+//        Label c0 = new Label();
+//        methodVisitor.visitJumpInsn(oppositeBytecodeOpcode, c0);
+//        methodVisitor.visitInsn(ICONST_1);
+//        Label c1 = new Label();
+//        methodVisitor.visitJumpInsn(GOTO, c1);
+//        methodVisitor.visitLabel(c0);
+//        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+//        methodVisitor.visitInsn(ICONST_0);
+//        methodVisitor.visitLabel(c1);
+//        methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[]{Opcodes.INTEGER});
     }
 
     private void swapOperandStackValues(TypeDescriptor topType, TypeDescriptor secondType) {
@@ -1719,7 +1735,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //3. Now that everything is out of the queue,
         //do the body of the loop
         
-        
+        processExpressions();
         stack.popConstant();
         Label label0 = new Label();
         methodVisitor.visitLabel(label0);
@@ -1820,6 +1836,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     stack.pushLabel(new LabelStackValue(LabelTypeEnum.IF, GOTO, label1));
                     methodVisitor.visitLabel(top);
 
+                    
                     //calculate the frame
                     ArrayList<TypeDescriptor> frame = stack.getFrame();
                     int frameSize = frame.size();
