@@ -220,7 +220,9 @@ public class CompilerTestSuite {
         //build
         vm.build(files);
         
-        ProcessBuilder pb = new ProcessBuilder("java", "quorum." + files[0].getName().split("\\.")[0]);
+        //ProcessBuilder pb = new ProcessBuilder("java", "quorum." + files[0].getName().split("\\.")[0]);
+        // ASSUME each class has the class name "Main".
+        ProcessBuilder pb = new ProcessBuilder("java", "quorum.Main");
         pb.directory(dir);
         Process proc = null;
         
@@ -245,7 +247,9 @@ public class CompilerTestSuite {
             } catch (IOException ex) {
                 Logger.getLogger(CompilerTestSuite.class.getName()).log(Level.SEVERE, null, ex);
             }
-            runResult.addLine(line);
+            
+            if (line != null)
+                runResult.addLine(line);
         } while (line != null);
         
         

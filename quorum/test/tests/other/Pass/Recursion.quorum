@@ -1,5 +1,5 @@
 /*
- * Tests for proper recursion behavior -- both functions should return 7.
+ * Tests for proper recursion behavior -- both functions should return 8.
 */
 
 class Main
@@ -26,5 +26,7 @@ class Main
     action main
         integer fibResultA = fibMethodA(6)
         integer fibResultB = fibMethodB(6)
+        print fibResultA
+        print fibResultB
     end
 end

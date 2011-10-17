@@ -102,6 +102,22 @@ public class OtherTester {
     }
     
     @Test
+    public void test_not_not_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "NotNot.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
+    }
+    
+    @Test
     public void test_parameters_with_same_names_as_ivars() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ParametersWithSameNameAsIVars.quorum"));
 
@@ -125,7 +141,7 @@ public class OtherTester {
     }
     
     @Test
-    public void test_recursion() {
+    public void test_pass_recursion() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "Recursion.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -145,7 +161,23 @@ public class OtherTester {
     
     
     @Test
-    public void test_print() {
+    public void test_pass_recursion_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "Recursion.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("8"));
+        assert(r.getLine(1).equals("8"));
+    }
+    
+    @Test
+    public void test_pass_print_bytecode() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "Print.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
