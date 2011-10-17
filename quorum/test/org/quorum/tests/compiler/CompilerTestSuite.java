@@ -47,6 +47,7 @@ import org.quorum.tests.compiler.ifstatement.IfStatementTester;
 import org.quorum.tests.compiler.inheritance.InheritanceTester;
 import org.quorum.tests.compiler.loops.LoopsTester;
 import org.quorum.tests.compiler.nativefunctions.NativeFunctionsTester;
+import org.quorum.tests.compiler.Expressions.ExpressionsTester;
 import org.quorum.tests.compiler.other.OtherTester;
 import org.quorum.tests.compiler.publicprivate.PublicPrivateTester;
 import org.quorum.tests.compiler.templating.TemplateTester;
@@ -61,7 +62,7 @@ import org.quorum.tests.compiler.use.UseTester;
     CurriculumTester.class, ActionsTester.class, ExceptionsTester.class, ArrayTester.class, TableTester.class,
     MathTester.class, QueueTester.class, IfStatementTester.class, InheritanceTester.class, LoopsTester.class,
     NativeFunctionsTester.class, OtherTester.class, PublicPrivateTester.class, TemplateTester.class,
-    UseTester.class, FileTester.class})
+    UseTester.class, FileTester.class, ExpressionsTester.class})
 
 
 /*@Suite.SuiteClasses(value={QuorumVirtualMachineTest.class, TypeCheckTester.class, TemplateTester.class, ActionsTester.class, ArraysTester.class,
@@ -76,6 +77,7 @@ public class CompilerTestSuite {
     public static final String TYPE_CHECKER = "TypeChecker" + File.separatorChar;
     public static final String TEMPLATING = "templating" + File.separatorChar;
     public static final String CURRICULUM = "curriculum" + File.separatorChar;
+    public static final String EXPRESSIONS = "expressions" + File.separatorChar;
     public static final String LOOPS = "loops" + File.separatorChar;
     public static final String IF_STATEMENT = "ifstatement" + File.separatorChar;
     public static final String ACTIONS = "actions" + File.separatorChar;
