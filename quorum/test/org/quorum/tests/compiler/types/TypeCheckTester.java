@@ -5,6 +5,7 @@
 
 package org.quorum.tests.compiler.types;
 
+import org.quorum.execution.RunResult;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.tests.compiler.CompilerTestSuite;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
@@ -122,6 +123,21 @@ public class TypeCheckTester {
     }
 
     @Test
+    public void test_pass_ImpAssignBooleanBoolean_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignBooleanBoolean.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignBooleanBoolean.class"));
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+    }
+    
+    @Test
     public void test_pass_ImpAssignBooleanBooleanWrapped_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignBooleanBooleanWrapped.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -135,6 +151,21 @@ public class TypeCheckTester {
         }
     }
 
+    @Test
+    public void test_pass_ImpAssignBooleanBooleanWrapped_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignBooleanBooleanWrapped.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+    }
+    
     @Test
     public void test_pass_ImpAssignIntObjIntObj_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignIntObjIntObj.quorum"));
@@ -206,6 +237,22 @@ public class TypeCheckTester {
     }
 
     @Test
+    public void test_pass_ImpAssignIntegerInteger_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignIntegerInteger.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignIntegerInteger.class"));
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+        assert(r.getLine(1).equals("5"));
+    }
+    
+    @Test
     public void test_pass_ImpAssignIntegerIntegerWrapped_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignIntegerIntegerWrapped.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -219,6 +266,22 @@ public class TypeCheckTester {
         }
     }
 
+    @Test
+    public void test_pass_ImpAssignIntegerIntegerWrapped_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignIntegerIntegerWrapped.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+        assert(r.getLine(1).equals("5"));
+    }
+    
     @Test
     public void test_pass_ImpAssignNumObjNumObj_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignNumObjNumObj.quorum"));
@@ -290,6 +353,22 @@ public class TypeCheckTester {
     }
 
     @Test
+    public void test_pass_ImpAssignNumberInteger_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignNumberInteger.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignNumberInteger.class"));
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+        assert(r.getLine(1).equals("5.0"));
+    }
+    
+    @Test
     public void test_pass_ImpAssignNumberIntegerWrapped_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignNumberIntegerWrapped.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -303,6 +382,22 @@ public class TypeCheckTester {
         }
     }
 
+    @Test
+    public void test_pass_ImpAssignNumberIntegerWrapped_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignNumberIntegerWrapped.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+        assert(r.getLine(1).equals("5.0"));
+    }
+    
     @Test
     public void test_pass_ImpAssignNumberNumObj_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignNumberNumObj.quorum"));
@@ -346,6 +441,21 @@ public class TypeCheckTester {
     }
 
     @Test
+    public void test_pass_ImpAssignNumberNumber_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignNumberNumber.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignNumberNumber.class"));
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("7.5"));
+    }
+    
+    @Test
     public void test_pass_ImpAssignNumberNumberWrapped_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignNumberNumberWrapped.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -359,6 +469,21 @@ public class TypeCheckTester {
         }
     }
 
+    @Test
+    public void test_pass_ImpAssignNumberNumberWrapped_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignNumberNumberWrapped.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("7.5"));
+    }
+    
     @Test
     public void test_pass_ImpAssignTextObjTextObj_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignTextObjTextObj.quorum"));
@@ -402,6 +527,21 @@ public class TypeCheckTester {
     }
 
     @Test
+    public void test_pass_ImpAssignTextText_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignTextText.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignTextText.class"));
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("t"));
+    }
+    
+    @Test
     public void test_pass_ImpAssignTextTextWrapped_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignTextTextWrapped.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -415,6 +555,21 @@ public class TypeCheckTester {
         }
     }
 
+    @Test
+    public void test_pass_ImpAssignTextTextWrapped_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignTextTextWrapped.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("t"));
+    }
+    
     @Test
     public void test_pass_ImpAssignTextTextObj_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignTextTextObj.quorum"));
