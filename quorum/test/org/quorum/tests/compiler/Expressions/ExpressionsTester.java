@@ -62,4 +62,19 @@ public class ExpressionsTester {
         
         assert(r.getLine(0).equals("6"));
     }
+    
+    @Test
+    public void test_pass_AddDoubleDouble_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "AddDoubleDouble.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("7.1"));
+    }
 }
