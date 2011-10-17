@@ -808,8 +808,9 @@ print_statement
                 location.setFile(getGrammarFileNameNoExtension());
 
                 symbol.addStatementFlagToCurrentFile(step.getBeginLine());
-                builder.addStepLabel(OpcodeType.PRINT);
+                
 		stepFactory.addPrintStep(location, $root_expression.eval, $root_expression.step);
+		builder.addStepLabel(OpcodeType.PRINT);
 	}
 	;
 
@@ -1026,8 +1027,9 @@ assignment_statement
 		}
 		
 		symbol.addStatementFlagToCurrentFile($ID.line);
-		builder.addStepLabel(OpcodeType.ASSIGNMENT);
+		
 		stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, false, "", cd);
+		builder.addStepLabel(OpcodeType.ASSIGNMENT);
 	}
 	|	obj=qualified_name (COLON PARENT COLON parent=qualified_name)? COLON ID rhs=assign_right_hand_side
 	{
@@ -1056,8 +1058,9 @@ assignment_statement
 				vm.getCompilerErrors().addError(error);
 			}
 		}
-		builder.addStepLabel(OpcodeType.ASSIGNMENT);
+		
 		stepFactory.addAssignmentStep(location, $obj.type.getStaticKey(), $rhs.eval, $rhs.step, isLocal, $ID.text, cd);
+		builder.addStepLabel(OpcodeType.ASSIGNMENT);
 	}
 	|	modifier = access_modifier? type = assignment_declaration name = ID rhs=assign_right_hand_side?
 	{
@@ -1077,7 +1080,6 @@ assignment_statement
                 
                 symbol.addStatementFlagToCurrentFile($ID.line);
                 
-                builder.addStepLabel(OpcodeType.ASSIGNMENT);
 		if($rhs.eval != null)
 		{
 			stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, isLocal);
@@ -1085,7 +1087,7 @@ assignment_statement
                 else { // are we are trying to instantiate an object?
                     	stepFactory.addAssignmentStep(location, $ID.text, isLocal);
                 }
-                
+                builder.addStepLabel(OpcodeType.ASSIGNMENT);
 	}
 	;
 assign_right_hand_side returns[ExpressionValue eval, ExecutionStep step]
@@ -1324,8 +1326,6 @@ scope {
 			$loop_statement::first_step = $expr.step;
 			$loop_statement::type = 2;
 			
-			builder.addStepLabel(OpcodeType.LOOP);
-			
 			if($loop_statement::isWhile){
 				$loop_statement::cJumpStep = new ConditionalJumpLoopStep();
 	
@@ -1339,6 +1339,7 @@ scope {
 				$loop_statement::uJumpStep.setLineInformation($loop_statement::location);
 				builder.add($loop_statement::uJumpStep);
 			}
+			builder.addStepLabel(OpcodeType.LOOP);
 			builder.addMarker($loop_statement::marker_bottom);
 			stepFactory.addBeginScopeStep($loop_statement::marker_loop, "loop");
 			symbol.enterNextBlock();
@@ -1587,11 +1588,11 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		info.methodName = myMethodName;
 		info.isObjectCall = ($ID != null);
 		
+		ResultTuple result =  stepFactory.addCallStep(info);
+		
 		if(fel!=null){
 			builder.addStepLabel(OpcodeType.METHOD_CALL);
 		}
-		
-		ResultTuple result =  stepFactory.addCallStep(info);
 		
 		temp = result.getNextRegister();
 		$eval = result.getValue();
@@ -1701,11 +1702,11 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		info.methodName = myMethodName;
 		info.isObjectCall = false;
 		
+		ResultTuple result =  stepFactory.addParentCallStep(info);
+		
 		if(fel!=null){
 			builder.addStepLabel(OpcodeType.METHOD_CALL);
 		}
-		
-		ResultTuple result =  stepFactory.addParentCallStep(info);
 		
 		temp = result.getNextRegister();
 		$eval = result.getValue();
@@ -1766,11 +1767,11 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		info.isObjectCall = false;
 		info.isThisCall = true;
 		
+		ResultTuple result =  stepFactory.addCallStep(info);
+		
 		if(fel!=null){
 			builder.addStepLabel(OpcodeType.METHOD_CALL);
 		}
-		
-		ResultTuple result =  stepFactory.addCallStep(info);
 		
 		temp = result.getNextRegister();
 		$eval = result.getValue();
@@ -1939,12 +1940,9 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 function_expression_list returns [List list]
 @init{$list = new ArrayList(); }
 	:
-	{
-		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
-	}
 	^(FUNCTION_EXPRESSION_LIST (e = expression 
 	{
-		
+		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
 		$list.add(e);
 	} )*)
 	;

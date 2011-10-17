@@ -60,11 +60,19 @@ public class IntermediateExecutionBuilder {
         if(getCurrentMethod() == null){
             ClassExecution clazz = this.getCurrentClass();
             position = clazz.getStepCount();
-            clazz.getTracker().addBeginIndex(position, stepType);
+            if(stepType.equals(OpcodeType.ROOT_EXPRESSION)){
+                clazz.getTracker().addBeginIndex(position, stepType);
+            }else{
+                clazz.getTracker().addBeginIndex(position - 1, stepType);
+            }
         }else{
             MethodExecution method = this.getCurrentMethod();
             position = method.getStepCount();
-            method.getTracker().addBeginIndex(position, stepType);
+            if(stepType.equals(OpcodeType.ROOT_EXPRESSION)){
+                method.getTracker().addBeginIndex(position, stepType);
+            }else{
+                method.getTracker().addBeginIndex(position - 1, stepType);
+            }
         }
     }
 
