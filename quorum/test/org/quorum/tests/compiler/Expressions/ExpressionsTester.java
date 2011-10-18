@@ -271,7 +271,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("0.0"));
-        assert(r.getLine(0).equals("0.0"));
+        assert(r.getLine(1).equals("0.0"));
     }
     
     @Test
@@ -319,7 +319,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("0"));
-        assert(r.getLine(0).equals("0"));
+        assert(r.getLine(1).equals("0"));
     }
     
     @Test
@@ -335,7 +335,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("4.0"));
-        assert(r.getLine(0).equals("4.0"));
+        assert(r.getLine(1).equals("4.0"));
     }
     
     @Test
@@ -383,7 +383,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("4"));
-        assert(r.getLine(0).equals("4"));
+        assert(r.getLine(1).equals("4"));
     }
     
     @Test
@@ -399,7 +399,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("2.0"));
-        assert(r.getLine(0).equals("2.0"));
+        assert(r.getLine(1).equals("2.0"));
     }
     
     @Test
@@ -447,7 +447,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("2"));
-        assert(r.getLine(0).equals("2"));
+        assert(r.getLine(1).equals("2"));
     }
     
     @Test
@@ -463,7 +463,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("1.0"));
-        assert(r.getLine(0).equals("1.0"));
+        assert(r.getLine(1).equals("1.0"));
     }
     
     @Test
@@ -511,7 +511,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("1"));
-        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("1"));
     }
 
     @Test
@@ -527,7 +527,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("false"));
-        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
     }
     
     @Test
@@ -540,10 +540,10 @@ public class ExpressionsTester {
 
         RunResult r = CompilerTestSuite.runQuorumFile();
         if (!r.isSuccessful())
-            fail();
+            fail("Run unsuccessful");
         
         assert(r.getLine(0).equals("false"));
-        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
     }
     
     @Test
@@ -591,7 +591,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("false"));
-        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
     }
     
     @Test
@@ -607,7 +607,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("false"));
-        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
     }
     
     @Test
@@ -623,7 +623,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("false"));
-        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
     }
     
     @Test
@@ -671,7 +671,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("false"));
-        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
     }
     
     @Test
@@ -687,7 +687,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("false"));
-        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
     }
     
     @Test
@@ -735,7 +735,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("false"));
-        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
     }
     
         @Test
@@ -751,7 +751,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("false"));
-        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
     }
     
     @Test
@@ -799,7 +799,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("false"));
-        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
     }
     
     @Test
@@ -815,7 +815,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("false"));
-        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
     }
     
     @Test
@@ -863,7 +863,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("false"));
-        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
     }
     
     @Test
@@ -879,7 +879,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("false"));
-        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
     }
     
     @Test
@@ -927,7 +927,7 @@ public class ExpressionsTester {
             fail();
         
         assert(r.getLine(0).equals("false"));
-        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
     }
     
     @Test
