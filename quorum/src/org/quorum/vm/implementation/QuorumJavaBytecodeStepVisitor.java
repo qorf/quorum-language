@@ -223,12 +223,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 
-        if (!".Stefik".equals(staticKey) //&& !"Libraries.Sound.Speech".equals(staticKey)
-                //&& !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
-                && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
-                && !".Print".equals(staticKey)) {
-            return;
-        }
+//        if (!".Stefik".equals(staticKey) //&& !"Libraries.Sound.Speech".equals(staticKey)
+//                //&& !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
+//                && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
+//                && !".Print".equals(staticKey)) {
+//            return;
+//        }
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
 
@@ -865,21 +865,21 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     }
 
     private void performBinaryComparison(int bytecodeOpcode) {
-        BytecodeStackValue operand = stack.popConstant();
-        stack.popConstant();
-
-        if (operand.getType().isNumber()) {
-            methodVisitor.visitInsn(DCMPG);
-        } else if (operand.getType().isText()) {
-            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "compareTo", "(Ljava/lang/String;)I");
-        }
-
-        performComparison(bytecodeOpcode);
-        stack.setCurrentConditionalBytecode(bytecodeOpcode);
-
-        BytecodeStackValue result = new BytecodeStackValue();
-        result.setType(TypeDescriptor.getBooleanType());
-        stack.pushConstant(result);
+//        BytecodeStackValue operand = stack.popConstant();
+//        stack.popConstant();
+//
+//        if (operand.getType().isNumber()) {
+//            methodVisitor.visitInsn(DCMPG);
+//        } else if (operand.getType().isText()) {
+//            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "compareTo", "(Ljava/lang/String;)I");
+//        }
+//
+//        performComparison(bytecodeOpcode);
+//        stack.setCurrentConditionalBytecode(bytecodeOpcode);
+//
+//        BytecodeStackValue result = new BytecodeStackValue();
+//        result.setType(TypeDescriptor.getBooleanType());
+//        stack.pushConstant(result);
     }
 
     /**
@@ -1312,7 +1312,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Determines if two boolean values are equal.
         stack.popConstant();
         methodVisitor.visitInsn(IXOR);
-        methodVisitor.visitInsn(Opcodes.ICONST_0);
+        methodVisitor.visitInsn(Opcodes.ICONST_1);
         methodVisitor.visitInsn(IXOR);
     }
 
