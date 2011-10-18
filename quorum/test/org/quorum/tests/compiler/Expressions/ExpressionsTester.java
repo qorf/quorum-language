@@ -107,8 +107,8 @@ public class ExpressionsTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("3.2 is a number"));
-        assert(r.getLine(1).equals("3.2 is a number"));
+        assert(r.getLine(0).equals("3.2 is a number."));
+        assert(r.getLine(1).equals("3.2 is a number."));
     }
     
     @Test
