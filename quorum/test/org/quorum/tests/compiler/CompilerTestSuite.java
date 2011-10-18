@@ -71,7 +71,6 @@ import org.quorum.tests.compiler.use.UseTester;
     DateTimeTester.class, StackTester.class, PriorityQueueTester.class, QueueTester.class, TableTester.class})*/
 
 public class CompilerTestSuite {
-    public static final String CLASS_TMP_PATH = "runTmp" + File.separatorChar;
     public static final String PASS = "Pass" + File.separatorChar;
     public static final String FAIL = "Fail" + File.separatorChar;
     public static final String TYPE_CHECKER = "TypeChecker" + File.separatorChar;
@@ -111,8 +110,6 @@ public class CompilerTestSuite {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        // Delete the temporary directory where class files are placed.
-        deleteDir(new File(systemRoot + "/test/" + CLASS_TMP_PATH));
     }
 
     @Before
@@ -127,9 +124,6 @@ public class CompilerTestSuite {
             for(int i = 0; i < 7; i++) {
                 systemRoot = systemRoot.getParentFile();
             }
-            
-            // Create the temporary directory for where to place class files.
-            new File(systemRoot + "/test/" + CLASS_TMP_PATH).mkdir();
             
             // Fix for new test suite: Update to the standard library path.
             File index = new File(systemRoot.getAbsolutePath() +
@@ -152,24 +146,6 @@ public class CompilerTestSuite {
     @After
     public void tearDown() throws Exception {        
 
-    }
-
-    /**
-     * Recursively delete the given directory.
-     * @param dir
-     * @return 
-     */
-    private static void deleteDir(File dir) {
-        if (dir.isDirectory()) {
-            String[] children = dir.list();
-            for (int i=0; i<children.length; i++) {
-                deleteDir(new File(dir, children[i]));
-            }
-        }
-
-        // The directory is now empty so delete it
-        dir.delete();
-        return;
     }
 
     public static void build(File file) {
@@ -222,7 +198,7 @@ public class CompilerTestSuite {
     public static RunResult runQuorumFile(File file) {
         RunResult runResult = new RunResult();
         File[] files = {new File(vm.getCurrentFileBeingExecuted())};
-        File dir = new File(systemRoot + "/test/" + CLASS_TMP_PATH);
+        File dir = new File(systemRoot + "/build/classes/build/");
         
         //setup the VM
         vm.setGenerateCode(true);
