@@ -195,7 +195,7 @@ public class CompilerTestSuite {
      * @param result
      * @return 
      */
-    public static RunResult runQuorumFile(File file) {
+    public static synchronized RunResult runQuorumFile(File file) {
         RunResult runResult = new RunResult();
         File[] files = {new File(vm.getCurrentFileBeingExecuted())};
         File dir = new File(systemRoot + "/build/classes/build/");

@@ -513,6 +513,22 @@ public class ExpressionsTester {
         assert(r.getLine(0).equals("1"));
         assert(r.getLine(0).equals("1"));
     }
+
+    @Test
+    public void test_pass_EqualBooleanBoolean_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "EqualBooleanBoolean.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+        assert(r.getLine(0).equals("true"));
+    }
     
     @Test
     public void test_pass_EqualDoubleDouble_bytecode() {
@@ -565,6 +581,22 @@ public class ExpressionsTester {
     @Test
     public void test_pass_EqualIntInt_bytecode() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "EqualIntInt.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+        assert(r.getLine(0).equals("true"));
+    }
+    
+    @Test
+    public void test_pass_NotEqualBooleanBoolean_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "NotEqualBooleanBoolean.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
