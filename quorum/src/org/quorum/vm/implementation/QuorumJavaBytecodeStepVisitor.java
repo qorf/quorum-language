@@ -203,11 +203,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * @param clazz 
      */
     public void visit(ClassExecution clazz) {
-        classWriter = new ClassWriter(0);
+        //classWriter = new ClassWriter(0);
 
         //if you need to cheat temporarily, this will compute the maxS
         //function automatically. This is useful for reverse engineering.
-        //classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         String staticKey = clazz.getClassDescriptor().getStaticKey();
         currentClass = clazz.getClassDescriptor();
         currentClassExecution = clazz;
@@ -1312,7 +1312,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Determines if two boolean values are equal.
         stack.popConstant();
         methodVisitor.visitInsn(IXOR);
-        methodVisitor.visitInsn(Opcodes.ICONST_1);
+        methodVisitor.visitInsn(Opcodes.ICONST_0);
         methodVisitor.visitInsn(IXOR);
     }
 
