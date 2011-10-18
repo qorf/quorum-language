@@ -183,7 +183,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private ClassDescriptor currentClass = null;
     private ClassExecution currentClassExecution = null;
     private MethodExecution currentMethodExecution = null;
-    private boolean fieldInitialization = false;
+    private boolean automaticComparisonJumps = true;
     private final String PLUGIN_NAME = "<plugin>";
     private BytecodeStackValue returnValue = null;
     private int fieldSize = 1;
@@ -222,7 +222,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //                && !"Libraries.Language.Object".equals(staticKey)) {
 //            return;
 //        }
-
+//
 //        if (!".Stefik".equals(staticKey) //&& !"Libraries.Sound.Speech".equals(staticKey)
 //                //&& !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
 //                && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
@@ -354,14 +354,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
 
         //now do field initialization
-        fieldInitialization = true;
         stack.startMethod(1);
         Vector<ExecutionStep> steps = this.currentClassExecution.getSteps();
         for (int i = 0; i < steps.size(); i++) {
             ExecutionStep step = steps.get(i);
             step.visit(this);
         }
-        fieldInitialization = false;
 
         if (isParent) {
             //initialize all of the parent objects as fields
@@ -762,10 +760,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     fieldSize += 2;
                 else
                     fieldSize += 1;
-                
-                            
-                // Add the local variable to the frame here.
-                stack.addFrameVariable(value.getType());
+
             }
 
         } 
@@ -870,6 +865,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (operand.getType().isNumber()) {
             // Start two labels: One we will jump to if we're not equal, and the
             // other will jump past that case.
+
             Label jumpIfNotEqualLabel = new Label();
             Label jumpPastLabel = new Label();
 
@@ -877,26 +873,31 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitInsn(Opcodes.DCMPL);
 
             // Are they equal?
-            methodVisitor.visitJumpInsn(IFNE, jumpIfNotEqualLabel);
+            if (automaticComparisonJumps) {
+                methodVisitor.visitJumpInsn(IFNE, jumpIfNotEqualLabel);
 
-            // If they are, we will fall through to here. We will need to jump past
-            // the next instructions below.
-            if (testEqual) {
-                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
-            } else {
-                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
-            }
-            methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
+                // If they are, we will fall through to here. We will need to jump past
+                // the next instructions below.
+                if (testEqual) {
+                    methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+                } else {
+                    methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+                }
+                methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
+                // This is where our "jumpIfNotEqualLabel" label begins.
+                methodVisitor.visitLabel(jumpIfNotEqualLabel);
 
-            // This is where our "jumpIfNotEqualLabel" label begins.
-            methodVisitor.visitLabel(jumpIfNotEqualLabel);
-            if (testEqual) {
-                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+                if (testEqual) {
+                    methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+                } else {
+                    methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+                }
+
+                // This is where our "jumpPastLabel" label begins.
+                methodVisitor.visitLabel(jumpPastLabel);
             } else {
-                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+                stack.setCurrentConditionalBytecode(IFNE);
             }
-            // This is where our "jumpPastLabel" label begins.
-            methodVisitor.visitLabel(jumpPastLabel);
         } else if (operand.getType().isText()) {
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
 
@@ -911,28 +912,32 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             Label jumpIfNotEqualLabel = new Label();
             Label jumpPastLabel = new Label();
 
-            // Do the comparison. Are they equal?
-            methodVisitor.visitJumpInsn(IF_ICMPNE, jumpIfNotEqualLabel);
+            if (automaticComparisonJumps) {
+                // Do the comparison. Are they equal?
+                methodVisitor.visitJumpInsn(IF_ICMPNE, jumpIfNotEqualLabel);
 
-            // If they are, we will fall through to here. We will need to jump past
-            // the next instructions below.
-            if (testEqual) {
-                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+                // If they are, we will fall through to here. We will need to jump past
+                // the next instructions below.
+                if (testEqual) {
+                    methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+                } else {
+                    methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+                }
+                methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
+
+                // This is where our "jumpIfNotEqualLabel" label begins.
+                methodVisitor.visitLabel(jumpIfNotEqualLabel);
+
+                if (testEqual) {
+                    methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+                } else {
+                    methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+                }
+                // This is where our "jumpPastLabel" label begins.
+                methodVisitor.visitLabel(jumpPastLabel);
             } else {
-                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+                stack.setCurrentConditionalBytecode(IF_ICMPNE);
             }
-            methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
-
-            // This is where our "jumpIfNotEqualLabel" label begins.
-            methodVisitor.visitLabel(jumpIfNotEqualLabel);
-
-            if (testEqual) {
-                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
-            } else {
-                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
-            }
-            // This is where our "jumpPastLabel" label begins.
-            methodVisitor.visitLabel(jumpPastLabel);
         }
 
         //push a boolean result onto the stack
@@ -958,29 +963,42 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             // And jump as appropriate.
             if (testEqual) // if so, use IFGT.
             {
-                methodVisitor.visitJumpInsn(IFGT, jumpIfGreaterThanLabel);
+                if (automaticComparisonJumps) {
+                    methodVisitor.visitJumpInsn(IFGT, jumpIfGreaterThanLabel);
+                } else {
+                    stack.setCurrentConditionalBytecode(IFGT);
+                }
             } else {
-                methodVisitor.visitJumpInsn(IFGE, jumpIfGreaterThanLabel);
+                if (automaticComparisonJumps) {
+                    methodVisitor.visitJumpInsn(IFGE, jumpIfGreaterThanLabel);
+                } else {
+                    stack.setCurrentConditionalBytecode(IFGE);
+                }
             }
 
-            // If they are, we will fall through to here. We will need to jump past
-            // the next instructions below.
-            if (lessThan) {
-                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
-            } else {
-                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
-            }
-            methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
+            if (automaticComparisonJumps) {
+                // If they are, we will fall through to here. We will need to jump past
+                // the next instructions below.
+                if (lessThan) {
+                    methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+                } else {
+                    methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+                }
+                methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
 
-            // This is where our "jumpIfNotEqualLabel" label begins.
-            methodVisitor.visitLabel(jumpIfGreaterThanLabel);
-            if (lessThan) {
-                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
-            } else {
-                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+                // This is where our "jumpIfNotEqualLabel" label begins.
+                methodVisitor.visitLabel(jumpIfGreaterThanLabel);
+
+
+                if (lessThan) {
+                    methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+                } else {
+                    methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+                }
+
+                // This is where our "jumpPastLabel" label begins.
+                methodVisitor.visitLabel(jumpPastLabel);
             }
-            // This is where our "jumpPastLabel" label begins.
-            methodVisitor.visitLabel(jumpPastLabel);
         } else {
             // Start two labels: One we will jump to if we're not equal, and the
             // other will jump past that case.
@@ -990,30 +1008,40 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             // Do the comparison.
             if (testEqual) // if testing equality, use IF_ICMPGT.
             {
-                methodVisitor.visitJumpInsn(IF_ICMPGT, jumpIfGreaterThanLabel);
+                if (automaticComparisonJumps) {
+                    methodVisitor.visitJumpInsn(IF_ICMPGT, jumpIfGreaterThanLabel);
+                } else {
+                    stack.setCurrentConditionalBytecode(IF_ICMPGT);
+                }
             } else {
-                methodVisitor.visitJumpInsn(IF_ICMPGE, jumpIfGreaterThanLabel);
+                if (automaticComparisonJumps) {
+                    methodVisitor.visitJumpInsn(IF_ICMPGE, jumpIfGreaterThanLabel);
+                } else {
+                    stack.setCurrentConditionalBytecode(IF_ICMPGE);
+                }
             }
 
-            // If they are, we will fall through to here. We will need to jump past
-            // the next instructions below.
-            if (lessThan) {
-                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
-            } else {
-                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
-            }
-            methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
+            if (automaticComparisonJumps) {
+                // If they are, we will fall through to here. We will need to jump past
+                // the next instructions below.
+                if (lessThan) {
+                    methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+                } else {
+                    methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+                }
+                methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
 
-            // This is where our "jumpIfNotEqualLabel" label begins.
-            methodVisitor.visitLabel(jumpIfGreaterThanLabel);
+                // This is where our "jumpIfNotEqualLabel" label begins.
+                methodVisitor.visitLabel(jumpIfGreaterThanLabel);
 
-            if (lessThan) {
-                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
-            } else {
-                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+                if (lessThan) {
+                    methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+                } else {
+                    methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+                }
+                // This is where our "jumpPastLabel" label begins.
+                methodVisitor.visitLabel(jumpPastLabel);
             }
-            // This is where our "jumpPastLabel" label begins.
-            methodVisitor.visitLabel(jumpPastLabel);
         }
 
         //push a boolean result onto the stack
@@ -1314,22 +1342,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BeginScopeStep step) {
-        //if the bytecode stack contains a label, process it.
-        if (!stack.isEmptyLabel()) {
-            LabelStackValue label = stack.peekLabel();
-            //if the lable marks an if statment add a frame.
-            if (label.getLabelType().equals(LabelTypeEnum.IF)) {
-                stack.newFrame();
-                stack.newEndFrame();
-            }else if (label.getLabelType().equals(LabelTypeEnum.LOOP)){//if the label is a loop
-                
-                int currentConditionalBytecode = stack.getCurrentConditionalBytecode();
-                
-                Label label1 = new Label();
-        
-                methodVisitor.visitJumpInsn(currentConditionalBytecode,label1);
-            }
-        }
+
     }
 
     @Override
@@ -1849,7 +1862,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(ConditionalJumpIfStep step) {
         //process the expressions
+        automaticComparisonJumps = false;
         processExpressions();
+        automaticComparisonJumps = true;
+        
         stack.popConstant();
 
         //generate a new label for the if and visit the jump instruction
@@ -1865,33 +1881,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(ConditionalJumpLoopStep step) {
-        
-        //1. set a label before the expressions
-        
-        //2. Loop through all expressions and dequeue them
-        //processExpressions(getTopOfQueue())
-        
-        
-        //3. Now that everything is out of the queue,
-        //do the body of the loop
-        
+        //process all the queued steps
         processExpressions();
         stack.popConstant();
+        
+        //generate the lables and visit as necessary
         Label label0 = new Label();
         methodVisitor.visitLabel(label0);
-
-        //calculate the frame
-        ArrayList<TypeDescriptor> frame = stack.getFrame();
-        int frameSize = frame.size();
-        if (frameSize > 0 && frameSize < 4) {//F_APPEND only
-            Object[] obj = new Object[frameSize];
-            for (int i = 0; i < frameSize; i++) {
-                obj[i] = QuorumConverter.convertTypeToBytecodeType(frame.get(i));
-            }
-            methodVisitor.visitFrame(F_APPEND, frameSize, obj, 0, null);
-
-            //stack.removeEndFrame();
-        }
         
         int currentLoopBytecode = stack.getCurrentConditionalBytecode();
 
@@ -1937,8 +1933,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //        }
 
         stack.setVariable(variableNumber, value);
-        //add the local variable that has been assigned a value to the frame
-        stack.addFrameVariable(variable.getType());
 
 
         if (mappedVariableNumber != -1) {
@@ -1975,45 +1969,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     methodVisitor.visitJumpInsn(GOTO, label1);
                     stack.pushLabel(new LabelStackValue(LabelTypeEnum.IF, GOTO, label1));
                     methodVisitor.visitLabel(top);
-
-                    
-                    //calculate the frame
-                    ArrayList<TypeDescriptor> frame = stack.getFrame();
-                    int frameSize = frame.size();
-                    if (frameSize > 0 && frameSize < 4) {//F_APPEND only
-                        Object[] obj = new Object[frameSize];
-                        for (int i = 0; i < frameSize; i++) {
-                            obj[i] = QuorumConverter.convertTypeToBytecodeType(frame.get(i));
-                        }
-                        methodVisitor.visitFrame(F_APPEND, frameSize, obj, 0, null);
-
-                        stack.removeEndFrame();
-                    } else if (frameSize == 0) {//F_SAME or F_CHOP
-                        //remove the current frame
-                        ArrayList<TypeDescriptor> removedFrame = stack.removeEndFrame();
-
-                        if (removedFrame.isEmpty()) {//if the frame is empty then use F_SAME
-                            methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
-                        } else {//if the frame is not empty then use F_CHOP
-                            int endFrameSize = removedFrame.size();
-                            Object[] obj = new Object[endFrameSize];
-                            for (int i = 0; i < endFrameSize; i++) {
-                                obj[i] = QuorumConverter.convertTypeToBytecodeType(removedFrame.get(i));
-                            }
-                            methodVisitor.visitFrame(F_CHOP, endFrameSize, null, 0, null);
-                        }
-                    } else if (frameSize >= 4) {//F_FULL
-                        Object[] obj = new Object[frameSize + 1];
-                        for (int i = 0; i < frameSize; i++) {
-                            if (i == 0) {
-                                obj[i] = "Ljava/lang/String;";
-                            }
-                            obj[i + 1] = QuorumConverter.convertTypeToBytecodeType(frame.get(i));
-                        }
-                        methodVisitor.visitFrame(F_FULL, frameSize + 1, obj, 0, null);
-                        stack.removeEndFrame();
-                    }
-
                 } else if (label.getJumpType() == GOTO) {//jumping out of the if
                     if (step.getBlockTag().equals("elseif")) {
                         stack.undoLabel();
@@ -2022,20 +1977,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     stack.popLabel();
                     Label pop = label.getLabel();
                     methodVisitor.visitLabel(pop);
-
-                    //remove the current frame
-                    ArrayList<TypeDescriptor> removedFrame = stack.removeEndFrame();
-
-                    if (removedFrame.isEmpty()) {//if the frame is empty then use F_SAME
-                        methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
-                    } else {//if the frame is not empty then use F_CHOP
-                        int frameSize = removedFrame.size();
-                        Object[] obj = new Object[frameSize];
-                        for (int i = 0; i < frameSize; i++) {
-                            obj[i] = QuorumConverter.convertTypeToBytecodeType(removedFrame.get(i));
-                        }
-                        methodVisitor.visitFrame(F_CHOP, frameSize, null, 0, null);
-                    }
                 }
             }
         }
@@ -2112,17 +2053,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(PrintStep step) {
-        /*
-        methodVisitor.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-        BytecodeStackValue pop = stack.popConstant();
-        TypeDescriptor type2 = new TypeDescriptor();
-        type2.setName(TypeDescriptor.OBJECT);
-        stack.implicitStackIncrease(type2);
-
-        swapOperandStackValues(pop.getType(), type2);
-        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(" + pop.getByteCodeTypeDescriptor() + ")V");
-         */
-        
         methodVisitor.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
 
         // Insert the appropriate steps for this statement.

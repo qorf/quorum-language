@@ -22,8 +22,6 @@ public class BytecodeStack {
     private Stack<BytecodeStackValue> constants = new Stack<BytecodeStackValue>();
     private OmniscientStack<LabelStackValue> labels = new OmniscientStack<LabelStackValue>();
     private HashMap<Integer, BytecodeStackValue> variables = new HashMap<Integer, BytecodeStackValue>();
-    private ArrayList<ArrayList<TypeDescriptor>> frame = new ArrayList<ArrayList<TypeDescriptor>>();
-    private ArrayList<ArrayList<TypeDescriptor>> endFrame = new ArrayList<ArrayList<TypeDescriptor>>();
     private HashMap<Integer, Integer> variableNumberMappings = new HashMap<Integer, Integer>();
     private int currentConditionalBytecode = 0;
     private int maxVariablesSize = 0;
@@ -150,96 +148,6 @@ public class BytecodeStack {
      */
     public BytecodeStackValue getVariable(int location) {
         return variables.get(location);
-    }
-    
-    /**
-     * add a variable to the frame (only a local variable).
-     * @param variable 
-     */
-    public void addFrameVariable(TypeDescriptor variable){
-        if(frame.isEmpty()){
-            frame.add(new ArrayList<TypeDescriptor>());
-        }
-        if(endFrame.isEmpty()){
-            newEndFrame();
-        }
-        frame.get(frame.size() - 1).add(variable);
-        endFrame.get(endFrame.size() - 1).add(variable);
-    }
-    
-    /**
-     * get the current frame that contains local variables from
-     * a previous scope. Note: this should only be called when
-     * a new scope is entered.
-     * 
-     * @return 
-     */
-    private ArrayList<TypeDescriptor> removeFrontFrame(){
-        if(frame.isEmpty()){
-            return null;
-        }
-        ArrayList<TypeDescriptor> removed = frame.remove(0);
-        return removed;
-    }
-    
-    private ArrayList<TypeDescriptor> getFrontFrame(){
-        if(frame.isEmpty()){
-            return null;
-        }
-        return frame.get(0);
-    }
-    
-    public ArrayList<TypeDescriptor> getFrame() {
-        ArrayList<TypeDescriptor> newFrame = new ArrayList<TypeDescriptor>();
-        
-        while(!frame.isEmpty()){
-            ArrayList<TypeDescriptor> previousFrame = removeFrontFrame();
-            ArrayList<TypeDescriptor> currentFrame = getFrontFrame();
-            
-            if(previousFrame != null){
-                Iterator<TypeDescriptor> prevIt = previousFrame.iterator();
-                while(prevIt.hasNext()){
-                    newFrame.add(prevIt.next());
-                }
-                if(currentFrame != null && !currentFrame.isEmpty()){
-                    ArrayList<TypeDescriptor> newScope = new ArrayList<TypeDescriptor>();
-                    while(!currentFrame.isEmpty()){
-                        TypeDescriptor removed = currentFrame.remove(0);
-                        newScope.add(removed);
-                        newFrame.add(removed);
-                    }
-                }
-            }
-        }
-        clearFrame();
-        return newFrame;
-    }
-    
-    public void newFrame(){
-        frame.add(new ArrayList<TypeDescriptor>());
-    }
-    
-    private void clearFrame(){
-        frame.clear();
-    }
-    
-    /**
-     * Remove the current frame from the endFrame.
-     * @return 
-     */
-    public ArrayList<TypeDescriptor> removeEndFrame(){
-        if(endFrame.isEmpty()){
-            return null;
-        }
-        return endFrame.remove(endFrame.size() - 1);
-    }
-    
-    /**
-     * clears the frame. Note: this should be called every time
-     * a new frame has been calculated (e.g. going into an if scope).
-     */
-    public void newEndFrame(){
-        endFrame.add(new ArrayList<TypeDescriptor>());
     }
     
     /**
