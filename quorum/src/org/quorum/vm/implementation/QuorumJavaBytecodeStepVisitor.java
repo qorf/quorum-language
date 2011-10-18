@@ -818,14 +818,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //get the operand and it's type
         BytecodeStackValue operand = stack.popConstant();
         TypeDescriptor operandType = operand.getType();
-        
+
         if (operandType.isBoolean()) {//if the operand is a boolean
             methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "toString", "(Z)Ljava/lang/String;");
-        } 
-        else if (operandType.isInteger()) {//if the operand is an integer
+        } else if (operandType.isInteger()) {//if the operand is an integer
             methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "toString", "(I)Ljava/lang/String;");
-        } 
-        else if (operandType.isNumber()) {//if the operand is a number
+        } else if (operandType.isNumber()) {//if the operand is a number
             methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "toString", "(D)Ljava/lang/String;");
         }
 
@@ -856,7 +854,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         stack.popConstant();
         stack.popConstant();
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;");
-                        
+
         // Push a text constant onto the stack.
         BytecodeStackValue bytecodeValue = new BytecodeStackValue();
         bytecodeValue.setType(TypeDescriptor.getTextType());
@@ -864,22 +862,164 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         stack.pushConstant(bytecodeValue);
     }
 
-    private void performBinaryComparison(int bytecodeOpcode) {
-//        BytecodeStackValue operand = stack.popConstant();
-//        stack.popConstant();
-//
-//        if (operand.getType().isNumber()) {
-//            methodVisitor.visitInsn(DCMPG);
-//        } else if (operand.getType().isText()) {
-//            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "compareTo", "(Ljava/lang/String;)I");
-//        }
-//
-//        performComparison(bytecodeOpcode);
-//        stack.setCurrentConditionalBytecode(bytecodeOpcode);
-//
-//        BytecodeStackValue result = new BytecodeStackValue();
-//        result.setType(TypeDescriptor.getBooleanType());
-//        stack.pushConstant(result);
+    private void performEqualityComparison(boolean testEqual) {
+        //get two values off the stack
+        BytecodeStackValue operand = stack.popConstant();
+        stack.popConstant();
+
+        if (operand.getType().isNumber()) {
+            // Start two labels: One we will jump to if we're not equal, and the
+            // other will jump past that case.
+            Label jumpIfNotEqualLabel = new Label();
+            Label jumpPastLabel = new Label();
+
+            // Do the comparison.
+            methodVisitor.visitInsn(Opcodes.DCMPL);
+
+            // Are they equal?
+            methodVisitor.visitJumpInsn(IFNE, jumpIfNotEqualLabel);
+
+            // If they are, we will fall through to here. We will need to jump past
+            // the next instructions below.
+            if (testEqual) {
+                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+            } else {
+                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+            }
+            methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
+
+            // This is where our "jumpIfNotEqualLabel" label begins.
+            methodVisitor.visitLabel(jumpIfNotEqualLabel);
+            if (testEqual) {
+                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+            } else {
+                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+            }
+            // This is where our "jumpPastLabel" label begins.
+            methodVisitor.visitLabel(jumpPastLabel);
+        } else if (operand.getType().isText()) {
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
+
+            if (!testEqual) {//if testing not equal do an xor
+                methodVisitor.visitInsn(ICONST_1);
+                methodVisitor.visitInsn(IXOR);
+            }
+        } else {
+            //if an integer or boolean is on the stack evaluate it.
+            // Start two labels: One we will jump to if we're not equal, and the
+            // other will jump past that case.
+            Label jumpIfNotEqualLabel = new Label();
+            Label jumpPastLabel = new Label();
+
+            // Do the comparison. Are they equal?
+            methodVisitor.visitJumpInsn(IF_ICMPNE, jumpIfNotEqualLabel);
+
+            // If they are, we will fall through to here. We will need to jump past
+            // the next instructions below.
+            if (testEqual) {
+                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+            } else {
+                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+            }
+            methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
+
+            // This is where our "jumpIfNotEqualLabel" label begins.
+            methodVisitor.visitLabel(jumpIfNotEqualLabel);
+
+            if (testEqual) {
+                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+            } else {
+                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+            }
+            // This is where our "jumpPastLabel" label begins.
+            methodVisitor.visitLabel(jumpPastLabel);
+        }
+
+        //push a boolean result onto the stack
+        BytecodeStackValue result = new BytecodeStackValue();
+        result.setType(TypeDescriptor.getBooleanType());
+        stack.pushConstant(result);
+    }
+
+    private void performInequalityComparison(boolean testEqual, boolean lessThan) {
+        //get two values off the stack
+        BytecodeStackValue operand = stack.popConstant();
+        stack.popConstant();
+
+        if (operand.getType().isNumber()) {
+            // Start two labels: One we will jump to if we're not equal, and the
+            // other will jump past that case.
+            Label jumpIfGreaterThanLabel = new Label();
+            Label jumpPastLabel = new Label();
+
+            // Do the comparison.
+            methodVisitor.visitInsn(Opcodes.DCMPG);
+
+            // And jump as appropriate.
+            if (testEqual) // if so, use IFGT.
+            {
+                methodVisitor.visitJumpInsn(IFGT, jumpIfGreaterThanLabel);
+            } else {
+                methodVisitor.visitJumpInsn(IFGE, jumpIfGreaterThanLabel);
+            }
+
+            // If they are, we will fall through to here. We will need to jump past
+            // the next instructions below.
+            if (lessThan) {
+                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+            } else {
+                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+            }
+            methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
+
+            // This is where our "jumpIfNotEqualLabel" label begins.
+            methodVisitor.visitLabel(jumpIfGreaterThanLabel);
+            if (lessThan) {
+                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+            } else {
+                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+            }
+            // This is where our "jumpPastLabel" label begins.
+            methodVisitor.visitLabel(jumpPastLabel);
+        } else {
+            // Start two labels: One we will jump to if we're not equal, and the
+            // other will jump past that case.
+            Label jumpIfGreaterThanLabel = new Label();
+            Label jumpPastLabel = new Label();
+
+            // Do the comparison.
+            if (testEqual) // if testing equality, use IF_ICMPGT.
+            {
+                methodVisitor.visitJumpInsn(IF_ICMPGT, jumpIfGreaterThanLabel);
+            } else {
+                methodVisitor.visitJumpInsn(IF_ICMPGE, jumpIfGreaterThanLabel);
+            }
+
+            // If they are, we will fall through to here. We will need to jump past
+            // the next instructions below.
+            if (lessThan) {
+                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+            } else {
+                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+            }
+            methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
+
+            // This is where our "jumpIfNotEqualLabel" label begins.
+            methodVisitor.visitLabel(jumpIfGreaterThanLabel);
+
+            if (lessThan) {
+                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+            } else {
+                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+            }
+            // This is where our "jumpPastLabel" label begins.
+            methodVisitor.visitLabel(jumpPastLabel);
+        }
+
+        //push a boolean result onto the stack
+        BytecodeStackValue result = new BytecodeStackValue();
+        result.setType(TypeDescriptor.getBooleanType());
+        stack.pushConstant(result);
     }
 
     /**
@@ -1331,7 +1471,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareIntegerNumberOperation(false);
         //determines if the converted number is equal to another number
-        performBinaryComparison(IFNE);
+        performEqualityComparison(true);
     }
 
     @Override
@@ -1344,25 +1484,25 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareNumberIntegerOperation();
         //then determines if a number is equal to the converted number
-        performBinaryComparison(IFNE);
+        performEqualityComparison(true);
     }
 
     @Override
     public void visit(BinaryEqualsNumberStep step) {
         //Determines if two numbers are equal.
-        performBinaryComparison(IFNE);
+        performEqualityComparison(true);
     }
 
     @Override
     public void visit(BinaryEqualsStep step) {
         //Determines if two integers are equal.
-        performBinaryComparison(IF_ICMPNE);
+        performEqualityComparison(true);
     }
 
     @Override
     public void visit(BinaryEqualsStringStep step) {
         //Determines if two text values are equal.
-        performBinaryComparison(IFNE);
+        performEqualityComparison(true);
     }
 
     @Override
@@ -1370,7 +1510,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareIntegerNumberOperation(true);
         //determines if the converted number is greater than or equal to another number.
-        performBinaryComparison(IFLT);
+        performInequalityComparison(true, false);
     }
 
     @Override
@@ -1378,25 +1518,25 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareNumberIntegerOperation();
         //determines if another number is greater than or equal to the converted number.
-        performBinaryComparison(IFLT);
+        performInequalityComparison(true, false);
     }
 
     @Override
     public void visit(BinaryGreaterEqualsNumberStep step) {
         //Determines if one number is greater than or equal to another number.
-        performBinaryComparison(IFLT);
+        performInequalityComparison(true, false);
     }
 
     @Override
     public void visit(BinaryGreaterEqualsStep step) {
         //Determines if one integer is greater than or equal to another integer.
-        performBinaryComparison(IF_ICMPLT);
+        performInequalityComparison(true, false);
     }
 
     @Override
     public void visit(BinaryGreaterEqualsStringStep step) {
         //Determines if one text value is greater than or equal to another text value.
-        performBinaryComparison(IFLT);
+        performInequalityComparison(true, false);
     }
 
     @Override
@@ -1404,7 +1544,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareIntegerNumberOperation(true);
         //then determines if the converted number is greater than another number.
-        performBinaryComparison(IFLE);
+        performInequalityComparison(false, false);
     }
 
     @Override
@@ -1412,25 +1552,25 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareNumberIntegerOperation();
         //determines if another number is greater than the converted number
-        performBinaryComparison(IFLE);
+        performInequalityComparison(false, false);
     }
 
     @Override
     public void visit(BinaryGreaterThanNumberStep step) {
         //Determines if one number is greater than another number.
-        performBinaryComparison(IFLE);
+        performInequalityComparison(false, false);
     }
 
     @Override
     public void visit(BinaryGreaterThanStep step) {
         //Determines if one integer is greater than another integer.
-        performBinaryComparison(IF_ICMPLE);
+        performInequalityComparison(false, false);
     }
 
     @Override
     public void visit(BinaryGreaterThanStringStep step) {
         //Determines if one text value is greater than another text value
-        performBinaryComparison(IFLE);
+        performInequalityComparison(false, false);
     }
 
     @Override
@@ -1443,7 +1583,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareIntegerNumberOperation(true);
         //then determines if the converted number is less than or equal to another number.
-        performBinaryComparison(IFGT);
+        performInequalityComparison(true, true);
     }
 
     @Override
@@ -1451,25 +1591,25 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareNumberIntegerOperation();
         //determines if another number is less than or equal to the converted number.
-        performBinaryComparison(IFGT);
+        performInequalityComparison(true, true);
     }
 
     @Override
     public void visit(BinaryLessEqualsNumberStep step) {
         //Determines if one number is less than or equal to another number.
-        performBinaryComparison(IFGT);
+        performInequalityComparison(true, true);
     }
 
     @Override
     public void visit(BinaryLessEqualsStep step) {
         //Determines if one integer is less than or equal to another integer.
-        performBinaryComparison(IF_ICMPGT);
+        performInequalityComparison(true, true);
     }
 
     @Override
     public void visit(BinaryLessEqualsStringStep step) {
         //Determines if one text value is less than or equal to another text value.
-        performBinaryComparison(IFGT);
+        performInequalityComparison(true, true);
     }
 
     @Override
@@ -1477,7 +1617,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareIntegerNumberOperation(true);
         //then determines if the converted number is less than another number.
-        performBinaryComparison(IFGE);
+        performInequalityComparison(false, true);
     }
 
     @Override
@@ -1485,25 +1625,25 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number
         prepareNumberIntegerOperation();
         //determines if another number is less than the converted number.
-        performBinaryComparison(IFGE);
+        performInequalityComparison(false, true);
     }
 
     @Override
     public void visit(BinaryLessThanNumberStep step) {
         //Determines if one number is less than another number.
-        performBinaryComparison(IFGE);
+        performInequalityComparison(false, true);
     }
 
     @Override
     public void visit(BinaryLessThanStep step) {
         //Determines if one integer is less than another integer.
-        performBinaryComparison(IF_ICMPGE);
+        performInequalityComparison(false, true);
     }
 
     @Override
     public void visit(BinaryLessThanStringStep step) {
         //Determines if one text value is less than another text value.
-        performBinaryComparison(IFGE);
+        performInequalityComparison(false, true);
     }
 
     @Override
@@ -1586,7 +1726,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number 
         prepareIntegerNumberOperation(false);
         //determines if the converted number is not equal to another number
-        performBinaryComparison(IFEQ);
+        performEqualityComparison(false);
     }
 
     @Override
@@ -1597,22 +1737,22 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BinaryNotEqualsNumberIntegerStep step) {
         prepareNumberIntegerOperation();
-        performBinaryComparison(IFEQ);
+        performEqualityComparison(false);
     }
 
     @Override
     public void visit(BinaryNotEqualsNumberStep step) {
-        performBinaryComparison(IFEQ);
+        performEqualityComparison(false);
     }
 
     @Override
     public void visit(BinaryNotEqualsStep step) {
-        performBinaryComparison(IF_ICMPEQ);
+        performEqualityComparison(false);
     }
 
     @Override
     public void visit(BinaryNotEqualsStringStep step) {
-        performBinaryComparison(IFEQ);
+        performEqualityComparison(false);
     }
 
     @Override
