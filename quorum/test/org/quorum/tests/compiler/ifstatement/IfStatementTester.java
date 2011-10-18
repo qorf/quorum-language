@@ -5,6 +5,7 @@
 
 package org.quorum.tests.compiler.ifstatement;
 
+import org.quorum.execution.RunResult;
 import org.quorum.execution.ExpressionValue;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -57,5 +58,20 @@ public class IfStatementTester {
             fail();
         }
 
+    }
+    
+    @Test
+    public void test_if_statement_one_condition_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.IF_STATEMENT + CompilerTestSuite.PASS + "IfStatementOneCondition.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
     }
 }
