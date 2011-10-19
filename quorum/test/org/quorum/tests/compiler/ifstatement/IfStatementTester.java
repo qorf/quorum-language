@@ -74,4 +74,66 @@ public class IfStatementTester {
         
         assert(r.getLine(0).equals("true"));
     }
+    
+    @Test
+    public void test_if_else_if(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.IF_STATEMENT + CompilerTestSuite.PASS + "IfElseIfStatement.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("x");
+        int x = variableValue.getResult().integer;
+        if(x != 40) {
+            fail();
+        }
+
+    }
+    
+    @Test
+    public void test_if_else_if_statement_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.IF_STATEMENT + CompilerTestSuite.PASS + "IfElseIfStatement.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("40"));
+    }
+    
+    @Test
+    public void test_if_else_if_multiple_conditions(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.IF_STATEMENT + CompilerTestSuite.PASS + "IfElseIfMultipleConditions.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("c");
+        int c = variableValue.getResult().integer;
+        if(c != 3) {
+            fail();
+        }
+
+    }
+    
+    @Test
+    public void test_if_else_if_multiple_conditions_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.IF_STATEMENT + CompilerTestSuite.PASS + "IfElseIfMultipleConditions.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("3"));
+    }
 }
