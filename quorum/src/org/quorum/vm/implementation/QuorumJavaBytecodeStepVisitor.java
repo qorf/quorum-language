@@ -223,12 +223,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-//        if (!".Stefik".equals(staticKey) //&& !"Libraries.Sound.Speech".equals(staticKey)
-//                //&& !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
-//                && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
-//                && !".Print".equals(staticKey)) {
-//            return;
-//        }
+        if (!".Stefik".equals(staticKey) //&& !"Libraries.Sound.Speech".equals(staticKey)
+                //&& !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
+                && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
+                && !".Print".equals(staticKey)) {
+            return;
+        }
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
 
@@ -1881,18 +1881,30 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(ConditionalJumpLoopStep step) {
-        //process all the queued steps
-        processExpressions();
-        stack.popConstant();
-        
-        //generate the lables and visit as necessary
+        //build the top label
         Label label0 = new Label();
         methodVisitor.visitLabel(label0);
         
+        //get thebytecode
         int currentLoopBytecode = stack.getCurrentConditionalBytecode();
-
         LabelStackValue temp = new LabelStackValue(LabelTypeEnum.LOOP, currentLoopBytecode, label0);
         stack.pushLabel(temp);
+        
+        //process all the queued steps
+        automaticComparisonJumps = false;
+        processExpressions();
+        automaticComparisonJumps = true;
+        
+        stack.popConstant();
+        
+        //generate the lables and visit as necessary
+        Label label1 = new Label();
+        currentLoopBytecode = stack.getCurrentConditionalBytecode();
+        methodVisitor.visitJumpInsn(currentLoopBytecode, label1);
+
+        //push the second label onto the stack so we can visit it later
+        LabelStackValue temp2 = new LabelStackValue(LabelTypeEnum.LOOP, currentLoopBytecode, label1);
+        stack.pushLabel(temp2);
 
     }
 
@@ -1978,6 +1990,18 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     Label pop = label.getLabel();
                     methodVisitor.visitLabel(pop);
                 }
+            }else if(label.getLabelType().equals(LabelTypeEnum.LOOP)){//end of the loop will mark the goto and visit the end label.
+                
+                stack.popLabel();
+                
+                //there are two labels that have been stored from the begging scope, get them.
+                Label label1 = label.getLabel();
+                Label label0 = stack.popLabel().getLabel();
+                
+                //create a goto to the beginning of the while loop (label 0)
+                methodVisitor.visitJumpInsn(GOTO, label0);
+                //visit the end of the loop label.
+                methodVisitor.visitLabel(label1);
             }
         }
     }
