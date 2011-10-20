@@ -22,6 +22,7 @@ public class ConditionalJumpLoopStep extends JumpBaseStep{
     protected long iterationNum = 0;
     private boolean isEndValueKnown = false;
     private int howManyTimesRegister = -1;
+    private LoopType loopType;
     
     @Override
     public void execute() {
@@ -132,5 +133,19 @@ public class ConditionalJumpLoopStep extends JumpBaseStep{
     @Override
     public void visit(ExecutionStepVisitor visitor) {
         visitor.visit(this);
+    }
+
+    /**
+     * @return the loopType
+     */
+    public LoopType getLoopType() {
+        return loopType;
+    }
+
+    /**
+     * @param loopType the loopType to set
+     */
+    public void setLoopType(LoopType loopType) {
+        this.loopType = loopType;
     }
 }

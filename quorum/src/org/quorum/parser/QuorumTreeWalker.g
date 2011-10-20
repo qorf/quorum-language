@@ -1309,6 +1309,7 @@ scope {
 		$loop_statement::cJumpStep.setHowManyTimesRegister($expr.eval.getRegister());
 		$loop_statement::cJumpStep.setLeftRegister(jump_compare.getValue().getRegister());
 		$loop_statement::cJumpStep.setLineInformation($loop_statement::location);
+		$loop_statement::cJumpStep.setLoopType(LoopType.TIMES);
 		builder.add($loop_statement::cJumpStep);
 		builder.addMarker($loop_statement::marker_bottom);
 		stepFactory.addBeginScopeStep($loop_statement::marker_loop, "loop");
@@ -1328,12 +1329,14 @@ scope {
 			
 			if($loop_statement::isWhile){
 				$loop_statement::cJumpStep = new ConditionalJumpLoopStep();
+				$loop_statement::cJumpStep.setLoopType(LoopType.WHILE);
 	
 				$loop_statement::cJumpStep.setLeftRegister($loop_statement::first_value.getRegister());
 				$loop_statement::cJumpStep.setLineInformation($loop_statement::location);
 				builder.add($loop_statement::cJumpStep);
 			}else{
 				$loop_statement::uJumpStep = new ConditionalJumpUntilStep();
+				$loop_statement::uJumpStep.setLoopType(LoopType.UNTIL);
 	
 				$loop_statement::uJumpStep.setLeftRegister($loop_statement::first_value.getRegister());
 				$loop_statement::uJumpStep.setLineInformation($loop_statement::location);

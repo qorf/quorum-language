@@ -119,6 +119,7 @@ import org.quorum.steps.InputStep;
 import org.quorum.steps.IntegerAutoBoxStep;
 import org.quorum.steps.JumpStep;
 import org.quorum.steps.LinearExecution;
+import org.quorum.steps.LoopType;
 import org.quorum.steps.MeVariableMoveStep;
 import org.quorum.steps.MethodExecution;
 import org.quorum.steps.MoveRegistersStep;
@@ -1848,7 +1849,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitLabel(label0);
 
         //get thebytecode
-        int currentLoopBytecode = stack.getCurrentConditionalBytecode();
+        int currentLoopBytecode = 0;
+        if(step.getLoopType().equals(LoopType.UNTIL)){
+           currentLoopBytecode = IFNE;
+        }else{
+           currentLoopBytecode = IFEQ;  
+        }
         LabelStackValue temp = new LabelStackValue(LabelTypeEnum.LOOP, currentLoopBytecode, label0);
         stack.pushLabel(temp);
 
@@ -1857,10 +1863,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         //generate the lables and visit as necessary
         Label label1 = new Label();
-        methodVisitor.visitJumpInsn(IFEQ , label1);
+        methodVisitor.visitJumpInsn(currentLoopBytecode , label1);
 
         //push the second label onto the stack so we can visit it later
-        LabelStackValue temp2 = new LabelStackValue(LabelTypeEnum.LOOP, IFEQ, label1);
+        LabelStackValue temp2 = new LabelStackValue(LabelTypeEnum.LOOP, currentLoopBytecode, label1);
         stack.pushLabel(temp2);
 
     }

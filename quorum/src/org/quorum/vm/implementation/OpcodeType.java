@@ -20,3 +20,4 @@ public enum OpcodeType {
     PRINT;
     //fill in other categories as/if needed.
 }
+
