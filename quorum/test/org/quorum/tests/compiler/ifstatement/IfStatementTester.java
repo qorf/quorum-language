@@ -52,12 +52,16 @@ public class IfStatementTester {
         }
         vm.blockRun();
 
-        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("c");
-        int c = variableValue.getResult().integer;
-        if(c != 5) {
-            fail();
-        }
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        boolean a = variableValue.getResult().boolean_value;
+        if(a) {
 
+            ExpressionValue variableValueC = vm.getDataEnvironment().getVariableValue("c");
+            int c = variableValueC.getResult().integer;
+            if(c != 5) {
+                fail();
+            }
+        }
     }
     
     @Test
@@ -135,6 +139,96 @@ public class IfStatementTester {
             fail();
         
         assert(r.getLine(0).equals("7"));
+    }
+
+    @Test
+    public void test_if_statement_compound_boolean(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.IF_STATEMENT + CompilerTestSuite.PASS + "IfStatementCompoundBoolean.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("printBool");
+        boolean printBool = variableValue.getResult().boolean_value;
+        if(!printBool) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_if_statement_compound_boolean_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.IF_STATEMENT + CompilerTestSuite.PASS + "IfStatementCompoundBoolean.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+    }
+
+    @Test
+    public void test_if_statement_compound_equal_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.IF_STATEMENT + CompilerTestSuite.PASS + "IfStatementCompoundEqual.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("printBool");
+        boolean printBool = variableValue.getResult().boolean_value;
+        if(!printBool) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_if_statement_compound_equal_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.IF_STATEMENT + CompilerTestSuite.PASS + "IfStatementCompoundEqual.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+    }
+
+    @Test
+    public void test_if_statement_compound_LT_and_equal_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.IF_STATEMENT + CompilerTestSuite.PASS + "IfStatementCompoundLTandEqual.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("printBool");
+        boolean printBool = variableValue.getResult().boolean_value;
+        if(!printBool) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_if_statement_compound_LT_and_equal_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.IF_STATEMENT + CompilerTestSuite.PASS + "IfStatementCompoundLTandEqual.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
     }
     
     @Test
