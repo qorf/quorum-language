@@ -15,6 +15,7 @@ import org.quorum.execution.ExecutionStepVisitor;
  */
 public class EndScopeStep extends IntermediateStep{
     protected String blockTag;
+    private boolean lastIfScope = false;
 
     @Override
     public void execute() {
@@ -33,12 +34,19 @@ public class EndScopeStep extends IntermediateStep{
         visitor.visit(this);
     }
 
-
     public void setBlockTag(String tag){
         blockTag = tag;
     }
 
     public String getBlockTag() {
         return blockTag;
+    }
+    
+    public void setLastIfScope(boolean value){
+        lastIfScope = value;
+    }
+    
+    public boolean isLastIfScope(){
+        return lastIfScope;
     }
 }

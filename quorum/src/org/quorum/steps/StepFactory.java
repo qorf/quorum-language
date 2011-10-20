@@ -1921,6 +1921,26 @@ public class StepFactory {
         String al = info.endLabel;
         IntermediateExecutionBuilder builder = this.machine.getBuilder();
         builder.addJumpLabelAndResolveSteps(al);
+        
+        
+        if(builder.getCurrentMethod() == null) {
+            ExecutionStep get = builder.getCurrentClass().getSteps().get(builder.getCurrentClass().getStepCount() - 1);
+            EndScopeStep st = (EndScopeStep)get;
+            st.setLastIfScope(true);
+        }
+        else {
+            ExecutionStep get = builder.getCurrentMethod().getSteps().get(builder.getCurrentMethod().getStepCount() - 1);
+            if(get instanceof EndScopeStep){
+                EndScopeStep st = (EndScopeStep)get;
+                st.setLastIfScope(true);
+            }else{
+                get = builder.getCurrentMethod().getSteps().get(builder.getCurrentMethod().getStepCount() - 2);
+                if(get instanceof EndScopeStep){
+                    EndScopeStep st = (EndScopeStep)get;
+                    st.setLastIfScope(true);
+                }
+            }
+        }
     }
 
     /**
