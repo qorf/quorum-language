@@ -945,74 +945,70 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (operand.getType().isNumber()) {
             // Start two labels: One we will jump to if we're not equal, and the
             // other will jump past that case.
-            Label jumpIfGreaterThanLabel = new Label();
+            Label jumpIfFalseLabel = new Label();
             Label jumpPastLabel = new Label();
-
+            
             // Do the comparison.
             methodVisitor.visitInsn(Opcodes.DCMPG);
-
+            
             // And jump as appropriate.
-            if (testEqual) // if so, use IFGT.
-            {
-                methodVisitor.visitJumpInsn(IFGT, jumpIfGreaterThanLabel);
-            } else {
-                methodVisitor.visitJumpInsn(IFGE, jumpIfGreaterThanLabel);
+            if (lessThan) {
+                if (!testEqual) 
+                    methodVisitor.visitJumpInsn(IFGE, jumpIfFalseLabel);
+                else
+                    methodVisitor.visitJumpInsn(IFGT, jumpIfFalseLabel);
             }
-
-
+            else {
+                if (!testEqual) 
+                    methodVisitor.visitJumpInsn(IFLE, jumpIfFalseLabel);
+                else
+                    methodVisitor.visitJumpInsn(IFLT, jumpIfFalseLabel);
+            }
+            
             // If they are, we will fall through to here. We will need to jump past
             // the next instructions below.
-            if (lessThan) {
-                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
-            } else {
-                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
-            }
+            methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+            
             methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
 
             // This is where our "jumpIfNotEqualLabel" label begins.
-            methodVisitor.visitLabel(jumpIfGreaterThanLabel);
-
-
-            if (lessThan) {
-                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
-            } else {
-                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
-            }
-
+            methodVisitor.visitLabel(jumpIfFalseLabel);
+            methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+            
             // This is where our "jumpPastLabel" label begins.
-            methodVisitor.visitLabel(jumpPastLabel);
+            methodVisitor.visitLabel(jumpPastLabel); 
 
         } else {
             // Start two labels: One we will jump to if we're not equal, and the
             // other will jump past that case.
-            Label jumpIfGreaterThanLabel = new Label();
+            Label jumpIfFalseLabel = new Label();
             Label jumpPastLabel = new Label();
 
             // Do the comparison.
-            if (testEqual) // if testing equality, use IF_ICMPGT.
-            {
-                methodVisitor.visitJumpInsn(IF_ICMPGT, jumpIfGreaterThanLabel);
-            } else {
-                methodVisitor.visitJumpInsn(IF_ICMPGE, jumpIfGreaterThanLabel);
+            if (lessThan) {
+                if (!testEqual) // if testing equality, use IF_ICMPGT.
+                    methodVisitor.visitJumpInsn(IF_ICMPGE, jumpIfFalseLabel);
+                else
+                    methodVisitor.visitJumpInsn(IF_ICMPGT, jumpIfFalseLabel);
+                }
+            else {
+                if (!testEqual) // if testing equality, use IF_ICMPGT.
+                    methodVisitor.visitJumpInsn(IF_ICMPLE, jumpIfFalseLabel);
+                else
+                    methodVisitor.visitJumpInsn(IF_ICMPLT, jumpIfFalseLabel);
             }
-
+            
             // If they are, we will fall through to here. We will need to jump past
             // the next instructions below.
-            if (lessThan) {
-                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
-            } else {
-                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
-            }
+            methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+
             methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
 
             // This is where our "jumpIfNotEqualLabel" label begins.
-            methodVisitor.visitLabel(jumpIfGreaterThanLabel);
+            methodVisitor.visitLabel(jumpIfFalseLabel);
 
-            if (lessThan) {
-                methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
-            } else {
-                methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
-            }
+            methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+
             // This is where our "jumpPastLabel" label begins.
             methodVisitor.visitLabel(jumpPastLabel);
         }
