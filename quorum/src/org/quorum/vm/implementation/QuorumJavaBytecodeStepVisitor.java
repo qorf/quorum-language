@@ -223,12 +223,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-        if (!".Stefik".equals(staticKey) //&& !"Libraries.Sound.Speech".equals(staticKey)
-                && !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
-                && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
-                && !".Print".equals(staticKey)) {
-            return;
-        }
+//        if (!".Stefik".equals(staticKey) //&& !"Libraries.Sound.Speech".equals(staticKey)
+//                && !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
+//                && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
+//                && !".Print".equals(staticKey)) {
+//            return;
+//        }
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
 
@@ -1049,8 +1049,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private void performBinaryArithmeticOperation(int bytecodeOpcode, TypeDescriptor returnType) {
         // A binary addition requires two constants to be on the stack. Now,
         // we pop them off.
-        stack.popConstant();
-        stack.popConstant();
+//        stack.popConstant();
+//        stack.popConstant();
 
         // Insert the appropriate opcode.
         methodVisitor.visitInsn(bytecodeOpcode);
