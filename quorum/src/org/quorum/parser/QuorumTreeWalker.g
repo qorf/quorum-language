@@ -1950,11 +1950,10 @@ function_expression_list returns [List list, int firstParam]
 	:
 	^(FUNCTION_EXPRESSION_LIST (e = expression 
 	{
-		//   jk builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+		$list.add(e);
 		if($list.size() == 1){
 			$firstParam = builder.addParameterLabel() - 1;
 		}
-		$list.add(e);
 	} )*)
 	;
 	

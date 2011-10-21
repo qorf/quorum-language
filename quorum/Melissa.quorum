@@ -1,5 +1,11 @@
-        integer i = 0
-        repeat from 1 to 3
-            i = i + 1
-        end
-        print i
+class Main
+action Main
+integer a = 3
+
+integer answer = foo(a) //foo(a - foo(b))
+print answer
+end
+action foo(integer a) returns integer
+return a
+end
+end
