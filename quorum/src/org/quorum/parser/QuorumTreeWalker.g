@@ -1952,7 +1952,7 @@ function_expression_list returns [List list]
 	:
 	^(FUNCTION_EXPRESSION_LIST (e = expression 
 	{
-		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+		//   jk builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
 		$list.add(e);
 	} )*)
 	;

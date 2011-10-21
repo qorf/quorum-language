@@ -1,4 +1,4 @@
-// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2011-10-21 13:07:59
+// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2011-10-21 13:22:49
 
 
 package org.quorum.parser;
@@ -5899,7 +5899,7 @@ public class QuorumTreeWalker extends TreeParser {
                 	    state._fsp--;
 
 
-                	    		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+                	    		//   jk builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
                 	    		retval.list.add(e);
                 	    	
 
