@@ -1290,6 +1290,7 @@ scope {
 		$loop_statement::cJumpStep.setLineInformation($loop_statement::location);
 		$loop_statement::cJumpStep.setLoopType(LoopType.FROM);
 		builder.add($loop_statement::cJumpStep);
+		builder.addStepLabel(OpcodeType.LOOP);
 		builder.addMarker($loop_statement::marker_bottom);
 		
 		symbol.enterNextBlock();
@@ -1312,6 +1313,7 @@ scope {
 		$loop_statement::cJumpStep.setLineInformation($loop_statement::location);
 		$loop_statement::cJumpStep.setLoopType(LoopType.TIMES);
 		builder.add($loop_statement::cJumpStep);
+		builder.addStepLabel(OpcodeType.LOOP);
 		builder.addMarker($loop_statement::marker_bottom);
 		stepFactory.addBeginScopeStep($loop_statement::marker_loop, "loop");
 		symbol.enterNextBlock();
@@ -1380,7 +1382,7 @@ scope {
 
 range		returns[ExpressionValue first_value, ExecutionStep first_step, ExpressionValue last_value, ExecutionStep last_step]
 	:	^(
-		TO first = root_expression last = root_expression
+		TO first = root_expression{} last = root_expression
 	{
 		TypeCheckerResult result = typeChecker.check($first.eval.getType(), $last.eval.getType(), OperationEnum.RANGE, false);
 
@@ -1560,15 +1562,18 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		Vector<TypeDescriptor> types = new Vector<TypeDescriptor>();
 		Vector<TypeDescriptor> argumentTypes = new Vector<TypeDescriptor>();
 		
+		int parameterPosition = -1;
 		if(fel != null) {
+			int count = 0;
 			for(Object o : $fel.list) {
+				parameterPosition = builder.addParameterLabel();
 				expression_return ex = (expression_return)o;
                 		types.add(ex.eval.getType());
                 		argumentTypes.add(ex.eval.getType());
                 		steps.add(ex.step);
                 		values.add(ex.eval);
                 		registers.add(ex.eval.getRegister());
-			
+				count = count + 1;
 			}
 		}
 		
@@ -1595,6 +1600,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		ResultTuple result =  stepFactory.addCallStep(info);
 		
 		if(fel!=null){
+			builder.addCallLabel(parameterPosition);
 			builder.addStepLabel(OpcodeType.METHOD_CALL);
 		}
 		

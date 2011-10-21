@@ -1028,8 +1028,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private void performBinaryArithmeticOperation(int bytecodeOpcode, TypeDescriptor returnType) {
         // A binary addition requires two constants to be on the stack. Now,
         // we pop them off.
-        stack.popConstant();
-        stack.popConstant();
+//        stack.popConstant();
+//        stack.popConstant();
 
         // Insert the appropriate opcode.
         methodVisitor.visitInsn(bytecodeOpcode);
@@ -1176,7 +1176,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
 
             //clear out the queue at the end of visiting
-            tracker.clearQueue();
+//            if(tracker.getOpcodeType(end).equals(OpcodeType.ROOT_EXPRESSION)){
+//                tracker.clearProcessedFromQueue();
+//            }else{
+                tracker.clearQueue();
+//            }
         }
     }
 
@@ -1907,6 +1911,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(ConditionalJumpLoopStep step) {
+        //if this is a from step we need to process the extra root expression.
+        if(step.getLoopType().equals(LoopType.FROM)){
+            //process all the queued steps
+            processExpressions();
+        }
+        
         //build the top label
         Label label0 = new Label();
         methodVisitor.visitLabel(label0);

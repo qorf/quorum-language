@@ -219,4 +219,10 @@ public class OpcodeTracker {
         opcodeList.clear();
         functionParameterMapping.clear();
     }
+
+    void clearProcessedFromQueue() {
+        while (queue.size() > 1){
+            queue.remove();
+        }
+    }
 }

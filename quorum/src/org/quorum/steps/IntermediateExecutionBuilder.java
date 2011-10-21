@@ -75,6 +75,31 @@ public class IntermediateExecutionBuilder {
             }
         }
     }
+    
+    public int addParameterLabel(){
+        int position = -1;
+        if(getCurrentMethod() == null){
+            ClassExecution clazz = this.getCurrentClass();
+            position = clazz.getStepCount();
+        }else{
+            MethodExecution method = this.getCurrentMethod();
+            position = method.getStepCount();
+        }
+        return position;
+    }
+    
+    public void addCallLabel(int parameterPosition){
+        int position = -1;
+        if(getCurrentMethod() == null){
+            ClassExecution clazz = this.getCurrentClass();
+            position = clazz.getStepCount();
+            clazz.getTracker().addFunctionParameterMapping(parameterPosition, position);
+        }else{
+            MethodExecution method = this.getCurrentMethod();
+            position = method.getStepCount();
+            method.getTracker().addFunctionParameterMapping(parameterPosition, position);
+        }
+    }
 
     /**
      * Adds a label pointing to the next ExecutionStep
