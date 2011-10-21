@@ -1803,10 +1803,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             VariableParameterCommonDescriptor var = step.getParentObject();
             boolean field = var.isFieldVariable();
             if(field) {
-             //   methodVisitor.visitVarInsn(ALOAD, 0);
-             //   methodVisitor.visitFieldInsn(GETFIELD, className, PLUGIN_NAME, convertedSupplement);
+                String key = currentClass.getStaticKey();
+                String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
+                String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), classNameSupplement);
             }
             else { //determine the local variable number and load it
+                   //I don't recall exactly how to do that
                 
             }
         }
@@ -1814,7 +1818,25 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     
     @Override
     public void visit(CallStep step) {
+        /**
+         * I haven't tested this, as we aren't quite there yet in the build,
+         * but it might work or be easily modified to work correctly.
+         * Remove this comment and the old dead code once finished.
+         */
         MethodDescriptor callee = step.getMethodCallee();
+        String converted = "";
+        if (!step.IsObjectCall()) {
+            converted = processedClazzName;
+        }
+        else {
+            VariableParameterCommonDescriptor var = step.getParentObject();
+            converted = QuorumConverter.convertStaticKeyToBytecodePath(var.getType().getStaticKey());
+        }   
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted,
+                    callee.getName(),
+                    QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));
+        
+       /* MethodDescriptor callee = step.getMethodCallee();
         //NOTE: step.isThisCall is not what you want here, that's different
         if (!step.IsObjectCall()) { //it's a this call, so load it
             methodVisitor.visitVarInsn(ALOAD, THIS);
@@ -1860,7 +1882,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             returnType.setName(callee.getReturnType().getName());
             returnVal.setType(returnType);
             stack.pushConstant(returnVal);
-        }
+        }*/
     }
 
     @Override
