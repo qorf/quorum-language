@@ -1564,16 +1564,14 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		
 		int parameterPosition = -1;
 		if(fel != null) {
-			int count = 0;
+			parameterPosition = $fel.firstParam;
 			for(Object o : $fel.list) {
-				parameterPosition = builder.addParameterLabel();
 				expression_return ex = (expression_return)o;
                 		types.add(ex.eval.getType());
                 		argumentTypes.add(ex.eval.getType());
                 		steps.add(ex.step);
                 		values.add(ex.eval);
                 		registers.add(ex.eval.getRegister());
-				count = count + 1;
 			}
 		}
 		
@@ -1597,12 +1595,12 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		info.methodName = myMethodName;
 		info.isObjectCall = ($ID != null);
 		
-		ResultTuple result =  stepFactory.addCallStep(info);
-		
 		if(fel!=null){
 			builder.addCallLabel(parameterPosition);
 			builder.addStepLabel(OpcodeType.METHOD_CALL);
 		}
+		
+		ResultTuple result =  stepFactory.addCallStep(info);
 		
 		temp = result.getNextRegister();
 		$eval = result.getValue();
@@ -1947,12 +1945,15 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 	}
 	;
 
-function_expression_list returns [List list]
-@init{$list = new ArrayList(); }
+function_expression_list returns [List list, int firstParam]
+@init{$list = new ArrayList(); $firstParam = -1;}
 	:
 	^(FUNCTION_EXPRESSION_LIST (e = expression 
 	{
 		//   jk builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+		if($list.size() == 1){
+			$firstParam = builder.addParameterLabel() - 1;
+		}
 		$list.add(e);
 	} )*)
 	;
