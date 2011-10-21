@@ -516,4 +516,65 @@ public class LoopsTester {
         
         assert(r.getLine(0).equals("0"));
     }
+    
+    @Test
+    public void test_repeat_times_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LOOPS + CompilerTestSuite.PASS + "RepeatTimes.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
+        int x = variableValue.getResult().integer;
+        if(x != 5) {
+            fail();
+        }
+
+    }
+    
+    @Test
+    public void test_repeat_times_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LOOPS + CompilerTestSuite.PASS + "RepeatTimes.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+    }
+    @Test
+    public void test_repeat_zero_times_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LOOPS + CompilerTestSuite.PASS + "RepeatZeroTimes.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
+        int x = variableValue.getResult().integer;
+        if(x != 0) {
+            fail();
+        }
+
+    }
+    
+    @Test
+    public void test_repeat_zero_times_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LOOPS + CompilerTestSuite.PASS + "RepeatZeroTimes.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("0"));
+    }
 }

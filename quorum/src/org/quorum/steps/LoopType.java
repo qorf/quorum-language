@@ -12,5 +12,6 @@ package org.quorum.steps;
 public enum LoopType {
     WHILE,
     UNTIL,
-    TIMES;
+    TIMES,
+    FROM;
 }
