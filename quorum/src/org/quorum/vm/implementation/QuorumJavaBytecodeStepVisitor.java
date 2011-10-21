@@ -224,7 +224,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //        }
 //
         if (!".Stefik".equals(staticKey) //&& !"Libraries.Sound.Speech".equals(staticKey)
-                //&& !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
+                && !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
                 && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
                 && !".Print".equals(staticKey)) {
             return;
@@ -235,20 +235,18 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         //this will have to be modified for inheritance conversion
         classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", null);
-        //first weave in the parents of the class and initialize them
-        /*
-         * 
-        //Add parents as extra behind the scenes fields.
+        //first weave in the parents of the class and initialize them          
+        //Add parents as extra behind the scenes fields.        
         Iterator<ClassDescriptor> parents = currentClass.getFlattenedListOfParents();
         while (parents.hasNext()) {
-        ClassDescriptor parent = parents.next();
-        String parentKey = parent.getStaticKey();
-        String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
-        String converted = QuorumConverter.convertStaticKeyToBytecodePathTypeName(parentKey);
-        //            fieldVisitor = classWriter.visitField(ACC_PUBLIC, parentName, converted, null, null);
-        //            fieldVisitor.visitEnd();
-        //            fieldSize += 2;
-        }*/
+            ClassDescriptor parent = parents.next();
+            String parentKey = parent.getStaticKey();
+            String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
+            String converted = QuorumConverter.convertStaticKeyToBytecodePathTypeName(parentKey);
+            fieldVisitor = classWriter.visitField(ACC_PUBLIC, parentName, converted, null, null);
+            fieldVisitor.visitEnd();
+            fieldSize += 2;
+        }
 
 
         //Do field visiting for the class.
@@ -280,17 +278,16 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //add a constructor that initializes its parents
         computeConstructor(true);
         //add a constructor that doesn't
-        //computeConstructor(false);
+       // computeConstructor(false);
 
-        /*
+        
         //now dump all of the parent methods that 
         //are not in the base class out as wrapper functions.
-        parents = currentClass.getFlattenedListOfParents();
+        /*parents = currentClass.getFlattenedListOfParents();
         while (parents.hasNext()) {
-        ClassDescriptor parent = parents.next();
-        //computeParentMethods(parent);
-        }
-         */
+            ClassDescriptor parent = parents.next();
+            computeParentMethods(parent);
+        }*/
 
         //now do all methods
         Iterator<MethodExecution> methods = clazz.getMethods();
@@ -378,6 +375,30 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //                methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "(Z)V");
 //                methodVisitor.visitFieldInsn(PUTFIELD, name, parentName, QuorumConverter.convertStaticKeyToBytecodePathTypeName(parentKey));
             }
+            
+            //now that all parents have been instantiated, get 
+            //their parents and set them appropriately
+//            parents = currentClass.getFlattenedListOfParents();
+//            while(parents.hasNext()) {
+//                ClassDescriptor parent = parents.next();
+//                String parentKey = parent.getStaticKey();
+//                String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
+//                String converted = QuorumConverter.convertStaticKeyToBytecodePath(parentKey);
+//                
+//                Iterator<ClassDescriptor> grandParents = parent.getFlattenedListOfParents();
+//                while(grandParents.hasNext()) {
+//                    ClassDescriptor grandParent = grandParents.next();
+//                    String grandParentKey = grandParent.getStaticKey();
+//                    String grandParentName = QuorumConverter.convertParentStaticKeyToValidName(grandParent.getStaticKey());
+//                    String convertedGrandParent = QuorumConverter.convertStaticKeyToBytecodePath(grandParentKey);
+//                    
+//                    
+//                    
+//                    //GET the field for the parent
+//                    
+//                    //PUT the appropriate grand parent field in its place
+//                }
+//            }
         }
 
         final String objectName = "___$$$Calling___$$$___Object$$$___";
