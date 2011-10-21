@@ -1,4 +1,4 @@
-// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2011-10-21 10:36:09
+// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2011-10-21 10:40:58
 
 
 package org.quorum.parser;
@@ -4306,7 +4306,7 @@ public class QuorumTreeWalker extends TreeParser {
                     		((loop_statement_scope)loop_statement_stack.peek()).cJumpStep = new ConditionalJumpLoopStep();
                     		((loop_statement_scope)loop_statement_stack.peek()).cJumpStep.setLeftRegister(jump_compare.getValue().getRegister());
                     		((loop_statement_scope)loop_statement_stack.peek()).cJumpStep.setLineInformation(((loop_statement_scope)loop_statement_stack.peek()).location);
-                    		((loop_statement_scope)loop_statement_stack.peek()).uJumpStep.setLoopType(LoopType.FROM);
+                    		((loop_statement_scope)loop_statement_stack.peek()).cJumpStep.setLoopType(LoopType.FROM);
                     		builder.add(((loop_statement_scope)loop_statement_stack.peek()).cJumpStep);
                     		builder.addMarker(((loop_statement_scope)loop_statement_stack.peek()).marker_bottom);
                     		

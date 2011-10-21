@@ -1288,7 +1288,7 @@ scope {
 		$loop_statement::cJumpStep = new ConditionalJumpLoopStep();
 		$loop_statement::cJumpStep.setLeftRegister(jump_compare.getValue().getRegister());
 		$loop_statement::cJumpStep.setLineInformation($loop_statement::location);
-		$loop_statement::uJumpStep.setLoopType(LoopType.FROM);
+		$loop_statement::cJumpStep.setLoopType(LoopType.FROM);
 		builder.add($loop_statement::cJumpStep);
 		builder.addMarker($loop_statement::marker_bottom);
 		
