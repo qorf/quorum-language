@@ -1049,8 +1049,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private void performBinaryArithmeticOperation(int bytecodeOpcode, TypeDescriptor returnType) {
         // A binary addition requires two constants to be on the stack. Now,
         // we pop them off.
-//        stack.popConstant();
-//        stack.popConstant();
+        stack.popConstant();
+        stack.popConstant();
 
         // Insert the appropriate opcode.
         methodVisitor.visitInsn(bytecodeOpcode);
@@ -1190,18 +1190,16 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                                 Level.SEVERE, "Function mapping between opcode parameters "
                                 + "and callsteps results in incorrect values. This is a compiler bug.");
                     }
-                } //if no, do nothing
+                }//if no, do nothing
                 
                 ExecutionStep step = steps.get(i);
                 step.visit(this);
             }
 
             //clear out the queue at the end of visiting
-//            if(tracker.getOpcodeType(end).equals(OpcodeType.ROOT_EXPRESSION)){
-//                tracker.clearProcessedFromQueue();
-//            }else{
+            if(!tracker.getOpcodeType(end).equals(OpcodeType.ROOT_EXPRESSION)){
                 tracker.clearQueue();
-//            }
+            }
         }
     }
 
@@ -1932,8 +1930,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(ConditionalJumpLoopStep step) {
+        LabelTypeEnum loopType = LabelTypeEnum.LOOP;
         //if this is a from step we need to process the extra root expression.
         if(step.getLoopType().equals(LoopType.FROM)){
+            loopType = LabelTypeEnum.FROM;
+            //process all the queued steps
+            processExpressions();
+        }else if(step.getLoopType().equals(LoopType.TIMES)){
+            loopType = LabelTypeEnum.TIMES;
             //process all the queued steps
             processExpressions();
         }
@@ -1944,14 +1948,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         //get thebytecode
         int currentLoopBytecode = 0;
-        if(step.getLoopType().equals(LoopType.UNTIL)){
+        if(step.getLoopType().equals(LoopType.UNTIL) || step.getLoopType().equals(LoopType.FROM)){
            currentLoopBytecode = IFNE;
         }else{
            currentLoopBytecode = IFEQ;  
         }
-        LabelStackValue temp = new LabelStackValue(LabelTypeEnum.LOOP, currentLoopBytecode, label0);
+        LabelStackValue temp = new LabelStackValue(loopType, currentLoopBytecode, label0);
         stack.pushLabel(temp);
-
+        
         //process all the queued steps
         processExpressions();
 
@@ -1960,7 +1964,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitJumpInsn(currentLoopBytecode , label1);
 
         //push the second label onto the stack so we can visit it later
-        LabelStackValue temp2 = new LabelStackValue(LabelTypeEnum.LOOP, currentLoopBytecode, label1);
+        LabelStackValue temp2 = new LabelStackValue(loopType, currentLoopBytecode, label1);
         stack.pushLabel(temp2);
 
     }
@@ -2085,7 +2089,21 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(JumpStep step) {
-        int a = 5;
+        if (!stack.isEmptyLabel()) {//if the stack has a label
+            LabelStackValue label = stack.peekLabel();
+            if (label.getLabelType().equals(LabelTypeEnum.FROM) || label.getLabelType().equals(LabelTypeEnum.TIMES)) {//if the label is for an if statement
+                stack.popLabel();
+
+                //there are two labels that have been stored from the begging scope, get them.
+                Label label1 = label.getLabel();
+                Label label0 = stack.popLabel().getLabel();
+
+                //create a goto to the beginning of the while loop (label 0)
+                methodVisitor.visitJumpInsn(GOTO, label0);
+                //visit the end of the loop label.
+                methodVisitor.visitLabel(label1);
+            }
+        }
     }
 
     @Override

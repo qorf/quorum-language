@@ -1290,7 +1290,7 @@ scope {
 		$loop_statement::cJumpStep.setLineInformation($loop_statement::location);
 		$loop_statement::cJumpStep.setLoopType(LoopType.FROM);
 		builder.add($loop_statement::cJumpStep);
-		builder.addStepLabel(OpcodeType.LOOP);
+		builder.addStepLabel(OpcodeType.FROM);
 		builder.addMarker($loop_statement::marker_bottom);
 		
 		symbol.enterNextBlock();
@@ -1313,7 +1313,7 @@ scope {
 		$loop_statement::cJumpStep.setLineInformation($loop_statement::location);
 		$loop_statement::cJumpStep.setLoopType(LoopType.TIMES);
 		builder.add($loop_statement::cJumpStep);
-		builder.addStepLabel(OpcodeType.LOOP);
+		builder.addStepLabel(OpcodeType.TIMES);
 		builder.addMarker($loop_statement::marker_bottom);
 		stepFactory.addBeginScopeStep($loop_statement::marker_loop, "loop");
 		symbol.enterNextBlock();

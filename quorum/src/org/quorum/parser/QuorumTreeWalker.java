@@ -1,4 +1,4 @@
-// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2011-10-21 13:40:48
+// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2011-10-21 15:12:44
 
 
 package org.quorum.parser;
@@ -4308,7 +4308,7 @@ public class QuorumTreeWalker extends TreeParser {
                     		((loop_statement_scope)loop_statement_stack.peek()).cJumpStep.setLineInformation(((loop_statement_scope)loop_statement_stack.peek()).location);
                     		((loop_statement_scope)loop_statement_stack.peek()).cJumpStep.setLoopType(LoopType.FROM);
                     		builder.add(((loop_statement_scope)loop_statement_stack.peek()).cJumpStep);
-                    		builder.addStepLabel(OpcodeType.LOOP);
+                    		builder.addStepLabel(OpcodeType.FROM);
                     		builder.addMarker(((loop_statement_scope)loop_statement_stack.peek()).marker_bottom);
                     		
                     		symbol.enterNextBlock();
@@ -4351,7 +4351,7 @@ public class QuorumTreeWalker extends TreeParser {
                     		((loop_statement_scope)loop_statement_stack.peek()).cJumpStep.setLineInformation(((loop_statement_scope)loop_statement_stack.peek()).location);
                     		((loop_statement_scope)loop_statement_stack.peek()).cJumpStep.setLoopType(LoopType.TIMES);
                     		builder.add(((loop_statement_scope)loop_statement_stack.peek()).cJumpStep);
-                    		builder.addStepLabel(OpcodeType.LOOP);
+                    		builder.addStepLabel(OpcodeType.TIMES);
                     		builder.addMarker(((loop_statement_scope)loop_statement_stack.peek()).marker_bottom);
                     		stepFactory.addBeginScopeStep(((loop_statement_scope)loop_statement_stack.peek()).marker_loop, "loop");
                     		symbol.enterNextBlock();
