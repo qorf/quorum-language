@@ -29,6 +29,28 @@ public class OpcodeTracker {
     private HashMap<Integer, Integer> opcodePositionToArrayPositionMapper = new HashMap<Integer, Integer>();
     
     /**
+     * This hashtable maps the opcode number of the first position of a parameter
+     * to a function call to the call step opcode number of the function it is
+     * calling.
+     * 
+     * 
+     * For example, the left integer is the opcode number for the first parameter
+     * to a function.
+     * 
+     * The right integer is the opcode number for the call step.
+     * 
+     * integer a = f(4)
+     * 
+     * 0 = MoveStep(4)
+     * 1 = call (f (4) )
+     * 
+     * 2 = assign(call (f (4 ) )
+     * 
+     * As such, the mapping here would be 0, 1.
+     */
+    private HashMap<Integer, Integer> functionParameterMapping = new HashMap<Integer, Integer>();
+    
+    /**
      * This stores a list of opcodes and their types in linear order.
      */
     private ArrayList<OpcodeType> opcodeList = new ArrayList<OpcodeType>();
@@ -47,6 +69,19 @@ public class OpcodeTracker {
      * length cannot be computed from the array in the getFinalIndex call.
      */
     private int numberOpcodes = -1;
+    
+    
+    public void addFunctionParameterMapping(int param, int call) {
+        functionParameterMapping.put(param, call);
+    }
+    
+    public int getFunctionParameterMapping(int param) {
+        return functionParameterMapping.get(param);
+    }
+    
+    public boolean containsFunctionParameterMapping(int param) {
+        return functionParameterMapping.containsKey(param);
+    }
     
     /**
      * Given the raw position in the opcode list (index), add the type 
@@ -182,5 +217,6 @@ public class OpcodeTracker {
         arrayPositionToOpcodePositionMapper.clear();
         opcodePositionToArrayPositionMapper.clear();
         opcodeList.clear();
+        functionParameterMapping.clear();
     }
 }

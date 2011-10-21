@@ -223,12 +223,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-//        if (!".Stefik".equals(staticKey) //&& !"Libraries.Sound.Speech".equals(staticKey)
-//                //&& !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
-//                && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
-//                && !".Print".equals(staticKey)) {
-//            return;
-//        }
+        if (!".Stefik".equals(staticKey) //&& !"Libraries.Sound.Speech".equals(staticKey)
+                //&& !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
+                && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
+                && !".Print".equals(staticKey)) {
+            return;
+        }
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
 
@@ -1142,7 +1142,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             execution = currentMethodExecution;
         }
 
-        //for each item in the queue exculding the last 
+        //for each item in the queue excluding the last 
         //item(which is the opcode processing the expressions)
         for (int j = 0; j < tracker.getQueueSize() - 1; j++) {
             //check queue for its current value
@@ -1151,14 +1151,32 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
             //loop through all op-codes
             Vector<ExecutionStep> steps = execution.getSteps();
-            for (int i = begin; i < end; i++) {//visit the expressions
+            for (int i = begin; i < end; i++) { //visit the expressions
+                //is this step the first parameter to a function call?
+                //if yes, call visitCallSpecial, with the call step 
+                //for that function call
+                boolean funcParam = tracker.containsFunctionParameterMapping(i);
+                if(funcParam) {
+                    int callStepNumber = tracker.getFunctionParameterMapping(i);
+                    ExecutionStep callStep = steps.get(callStepNumber);
+                    if(callStep instanceof CallStep) {
+                        CallStep call = (CallStep) callStep;
+                        //insert the pointer for the object being called upon
+                        visitCallSpecial(call);
+                    }
+                    else {
+                        Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
+                                Level.SEVERE, "Function mapping between opcode parameters "
+                                + "and callsteps results in incorrect values. This is a compiler bug.");
+                    }
+                } //if no, do nothing
+                
                 ExecutionStep step = steps.get(i);
                 step.visit(this);
             }
 
             //clear out the queue at the end of visiting
             tracker.clearQueue();
-
         }
     }
 
@@ -1767,6 +1785,33 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         int a = 5;
     }
 
+    /**
+     * This method pushes on a reference to the object on which it
+     * is going to call a function. This might either be this, ALOAD 0, 
+     * or a different object.
+     * 
+     * @author: Andy Stefik
+     * @param step 
+     */
+    public void visitCallSpecial(CallStep step) {
+        MethodDescriptor callee = step.getMethodCallee();
+        if (!step.IsObjectCall()) { //it's a this call, so load it
+            methodVisitor.visitVarInsn(ALOAD, THIS);
+        }
+        else { //handle the case where we are pushing the reference on 
+               //to the stack from 
+            VariableParameterCommonDescriptor var = step.getParentObject();
+            boolean field = var.isFieldVariable();
+            if(field) {
+             //   methodVisitor.visitVarInsn(ALOAD, 0);
+             //   methodVisitor.visitFieldInsn(GETFIELD, className, PLUGIN_NAME, convertedSupplement);
+            }
+            else { //determine the local variable number and load it
+                
+            }
+        }
+    }
+    
     @Override
     public void visit(CallStep step) {
         MethodDescriptor callee = step.getMethodCallee();
