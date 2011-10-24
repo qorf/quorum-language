@@ -20,9 +20,8 @@ import org.quorum.symbols.TypeDescriptor;
  */
 public class BytecodeStack {
     private Stack<TypeDescriptor> expressionTypes = new Stack<TypeDescriptor>();
-    private Stack<BytecodeStackValue> constants = new Stack<BytecodeStackValue>();
     private OmniscientStack<LabelStackValue> labels = new OmniscientStack<LabelStackValue>();
-    private HashMap<Integer, BytecodeStackValue> variables = new HashMap<Integer, BytecodeStackValue>();
+    private HashMap<Integer, TypeDescriptor> variables = new HashMap<Integer, TypeDescriptor>();
     private HashMap<Integer, Integer> variableNumberMappings = new HashMap<Integer, Integer>();
     private int currentConditionalBytecode = 0;
     private int maxVariablesSize = 0;
@@ -35,31 +34,6 @@ public class BytecodeStack {
         variableNumberMappings.put(1, variableNumber);
     }
     
-//    /**
-//     * This method pushes constants on the stack.
-//     * 
-//     * @param value 
-//     */
-//    public void pushConstant(BytecodeStackValue value) {
-//        constants.push(value);
-//        currentSize += value.getSize();
-//        if(currentSize > maxSize) {
-//            maxSize = currentSize;
-//        }
-//    }
-    
-    
-//    /**
-//     * This method pops constants off the stack.
-//     * @return 
-//     */
-//    public BytecodeStackValue popConstant() {
-//        BytecodeStackValue pop = constants.pop();
-//        currentSize -= pop.getSize();
-//        return pop;
-//        //return new BytecodeStackValue();
-//    }
-    
     /**
      * This method pushes expression types onto the stack.
      * 
@@ -68,7 +42,6 @@ public class BytecodeStack {
     public void pushExpressionType(TypeDescriptor type) {
         expressionTypes.push(type);
     }
-    
     
     /**
      * This method pops the last expression type.
@@ -79,19 +52,13 @@ public class BytecodeStack {
         return pop;
     }
     
-//    /**
-//     * This method returns a constant value, zero-indexed from the top
-//     * of the stack. So, for example, if there are three values on the 
-//     * top of the stack and you want them in the order they were pushed on, 
-//     * you would call getConstantFromTop(-2), getConstantFromTop(-1), and 
-//     * getConstantFromTop(0).
-//     * 
-//     * @param location
-//     * @return 
-//     */
-//    public BytecodeStackValue getConstantFromTop(int location) {
-//        return constants.get(constants.size() - 1 - location);
-//    }
+    /**
+     * This method gets without removing the last expression type.
+     * @return 
+     */
+    public TypeDescriptor peekExpressionType() {
+        return expressionTypes.peek();
+    }
     
     /**
      * Push a label onto the label stack.
@@ -137,11 +104,14 @@ public class BytecodeStack {
      * @param location
      * @param value 
      */
-    public void setVariable(int location, BytecodeStackValue value) {
+    public void setVariable(int location, TypeDescriptor valueType) {
         int mappedVariableNumber = getMappedVariableNumber(location);
-        variables.put(location, value);
-        variableNumberMappings.put(location + 1, mappedVariableNumber + value.getSize());
-        currentVariablesSize += BytecodeStackValue.getSize(value.getType());
+        variables.put(location, valueType);
+        
+        int size = getSize(valueType);
+        
+        variableNumberMappings.put(location + 1, mappedVariableNumber + size);
+        currentVariablesSize += size;
         if(currentVariablesSize > maxVariablesSize) {
             maxVariablesSize = currentVariablesSize;
         }
@@ -154,10 +124,10 @@ public class BytecodeStack {
      * @param location
      * @return 
      */
-    public BytecodeStackValue removeVariable(int location) {
-        BytecodeStackValue value = variables.remove(location);
-        currentVariablesSize -= BytecodeStackValue.getSize(value.getType());
-        return value;
+    public TypeDescriptor removeVariable(int location) {
+        TypeDescriptor valueType = variables.remove(location);
+        currentVariablesSize -= getSize(valueType);
+        return valueType;
     }
     
     
@@ -167,7 +137,7 @@ public class BytecodeStack {
      * @param location
      * @return 
      */
-    public BytecodeStackValue getVariable(int location) {
+    public TypeDescriptor getVariable(int location) {
         return variables.get(location);
     }
     
@@ -182,31 +152,11 @@ public class BytecodeStack {
         currentSize = 0;
         maxVariablesSize = 0;
         currentVariablesSize = 0;
-        constants.clear();
         variables.clear();
         labels.clear();
         variableNumberMappings.clear();
         setMappedStartingVariableNumber(startingVariableNumber);
     }
-    
-//    /**
-//     * This method allows you to temporarily increase and decrease the 
-//     * constant stack size, possibly increasing the max stack size, 
-//     * and decreasing it back again. This is useful if you need to push
-//     * something on the stack, but do not need to actually push the 
-//     * value onto the stack.
-//     * 
-//     * @param type 
-//     */
-//    public void implicitStackIncrease(TypeDescriptor type) {
-//        int size = BytecodeStackValue.getSize(type);
-//        this.currentSize += size;
-//        if(currentSize > maxSize) {
-//            maxSize = currentSize;
-//        }
-//        currentSize -= size;
-//    }
-    
     
     /**
      * Returns the maximum size that this particular method has 
@@ -283,6 +233,18 @@ public class BytecodeStack {
     public void setCurrentConditionalBytecode(int currentIfBytecode) {
         this.currentConditionalBytecode = currentIfBytecode;
     }
-
-
+    
+    /**
+     * Helper method: determines the size of a type for a variable position number.
+     * 
+     * @param valueType returns 2 if a number and 1 in any other case.
+     * @return 
+     */
+    private int getSize(TypeDescriptor valueType){
+        if(valueType.isNumber()){
+            return 2;
+        }else{
+            return 1;
+        }
+    }
 }
