@@ -19,6 +19,7 @@ import org.quorum.symbols.TypeDescriptor;
  * @author Andreas Stefik
  */
 public class BytecodeStack {
+    private Stack<TypeDescriptor> expressionTypes = new Stack<TypeDescriptor>();
     private Stack<BytecodeStackValue> constants = new Stack<BytecodeStackValue>();
     private OmniscientStack<LabelStackValue> labels = new OmniscientStack<LabelStackValue>();
     private HashMap<Integer, BytecodeStackValue> variables = new HashMap<Integer, BytecodeStackValue>();
@@ -34,43 +35,63 @@ public class BytecodeStack {
         variableNumberMappings.put(1, variableNumber);
     }
     
+//    /**
+//     * This method pushes constants on the stack.
+//     * 
+//     * @param value 
+//     */
+//    public void pushConstant(BytecodeStackValue value) {
+//        constants.push(value);
+//        currentSize += value.getSize();
+//        if(currentSize > maxSize) {
+//            maxSize = currentSize;
+//        }
+//    }
+    
+    
+//    /**
+//     * This method pops constants off the stack.
+//     * @return 
+//     */
+//    public BytecodeStackValue popConstant() {
+//        BytecodeStackValue pop = constants.pop();
+//        currentSize -= pop.getSize();
+//        return pop;
+//        //return new BytecodeStackValue();
+//    }
+    
     /**
-     * This method pushes constants on the stack.
+     * This method pushes expression types onto the stack.
      * 
      * @param value 
      */
-    public void pushConstant(BytecodeStackValue value) {
-        constants.push(value);
-        currentSize += value.getSize();
-        if(currentSize > maxSize) {
-            maxSize = currentSize;
-        }
+    public void pushExpressionType(TypeDescriptor type) {
+        expressionTypes.push(type);
     }
     
     
     /**
-     * This method pops constants off the stack.
+     * This method pops the last expression type.
      * @return 
      */
-    public BytecodeStackValue popConstant() {
-        BytecodeStackValue pop = constants.pop();
-        currentSize -= pop.getSize();
+    public TypeDescriptor popExpressionType() {
+        TypeDescriptor pop = expressionTypes.pop();
         return pop;
     }
     
-    /**
-     * This method returns a constant value, zero-indexed from the top
-     * of the stack. So, for example, if there are three values on the 
-     * top of the stack and you want them in the order they were pushed on, 
-     * you would call getConstantFromTop(-2), getConstantFromTop(-1), and 
-     * getConstantFromTop(0).
-     * 
-     * @param location
-     * @return 
-     */
-    public BytecodeStackValue getConstantFromTop(int location) {
-        return constants.get(constants.size() - 1 - location);
-    }
+//    /**
+//     * This method returns a constant value, zero-indexed from the top
+//     * of the stack. So, for example, if there are three values on the 
+//     * top of the stack and you want them in the order they were pushed on, 
+//     * you would call getConstantFromTop(-2), getConstantFromTop(-1), and 
+//     * getConstantFromTop(0).
+//     * 
+//     * @param location
+//     * @return 
+//     */
+//    public BytecodeStackValue getConstantFromTop(int location) {
+//        return constants.get(constants.size() - 1 - location);
+//    }
     
     /**
      * Push a label onto the label stack.
@@ -168,23 +189,23 @@ public class BytecodeStack {
         setMappedStartingVariableNumber(startingVariableNumber);
     }
     
-    /**
-     * This method allows you to temporarily increase and decrease the 
-     * constant stack size, possibly increasing the max stack size, 
-     * and decreasing it back again. This is useful if you need to push
-     * something on the stack, but do not need to actually push the 
-     * value onto the stack.
-     * 
-     * @param type 
-     */
-    public void implicitStackIncrease(TypeDescriptor type) {
-        int size = BytecodeStackValue.getSize(type);
-        this.currentSize += size;
-        if(currentSize > maxSize) {
-            maxSize = currentSize;
-        }
-        currentSize -= size;
-    }
+//    /**
+//     * This method allows you to temporarily increase and decrease the 
+//     * constant stack size, possibly increasing the max stack size, 
+//     * and decreasing it back again. This is useful if you need to push
+//     * something on the stack, but do not need to actually push the 
+//     * value onto the stack.
+//     * 
+//     * @param type 
+//     */
+//    public void implicitStackIncrease(TypeDescriptor type) {
+//        int size = BytecodeStackValue.getSize(type);
+//        this.currentSize += size;
+//        if(currentSize > maxSize) {
+//            maxSize = currentSize;
+//        }
+//        currentSize -= size;
+//    }
     
     
     /**

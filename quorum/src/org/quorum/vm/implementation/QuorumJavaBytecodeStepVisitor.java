@@ -223,12 +223,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-//        if (!".Stefik".equals(staticKey) //&& !"Libraries.Sound.Speech".equals(staticKey)
-//                && !"Libraries.Language.Object".equals(staticKey) && !"Libraries.Language.Support.CompareResult".equals(staticKey)
-//                && !".Matt".equals(staticKey) && !".Melissa".equals(staticKey) && !".Main".equals(staticKey)
-//                && !".Print".equals(staticKey)) {
-//            return;
-//        }
+        if (!".Main".equals(staticKey)) {
+            return;
+        }
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
 
@@ -643,54 +640,118 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * 
      * @param value 
      */
-    public void addToMethodVisit(BytecodeStackValue value) {
-        if (value.isConstant()) {
-            if (value.getType().isInteger()) {
-                if ((value.getResult().integer >= -1 && value.getResult().integer <= 5)) {
-                    switch (value.getResult().integer) {
-                        case -1:
-                            methodVisitor.visitInsn(ICONST_M1);
-                            break;
-                        case 0:
-                            methodVisitor.visitInsn(ICONST_0);
-                            break;
-                        case 1:
-                            methodVisitor.visitInsn(ICONST_1);
-                            break;
-                        case 2:
-                            methodVisitor.visitInsn(ICONST_2);
-                            break;
-                        case 3:
-                            methodVisitor.visitInsn(ICONST_3);
-                            break;
-                        case 4:
-                            methodVisitor.visitInsn(ICONST_4);
-                            break;
-                        case 5:
-                            methodVisitor.visitInsn(ICONST_5);
-                            break;
-                    }
-                } else if ((value.getResult().integer >= -128 && value.getResult().integer <= 127)) {
-                    methodVisitor.visitIntInsn(BIPUSH, value.getResult().integer);
-                } else if ((value.getResult().integer >= -32768 && value.getResult().integer <= 32767)) {
-                    methodVisitor.visitIntInsn(SIPUSH, value.getResult().integer);
-                } else {
-                    methodVisitor.visitLdcInsn(value.getResult().integer);
+//    public void addToMethodVisit(BytecodeStackValue value) {
+//        if (value.isConstant()) {
+//            if (value.getType().isInteger()) {
+//                if ((value.getResult().integer >= -1 && value.getResult().integer <= 5)) {
+//                    switch (value.getResult().integer) {
+//                        case -1:
+//                            methodVisitor.visitInsn(ICONST_M1);
+//                            break;
+//                        case 0:
+//                            methodVisitor.visitInsn(ICONST_0);
+//                            break;
+//                        case 1:
+//                            methodVisitor.visitInsn(ICONST_1);
+//                            break;
+//                        case 2:
+//                            methodVisitor.visitInsn(ICONST_2);
+//                            break;
+//                        case 3:
+//                            methodVisitor.visitInsn(ICONST_3);
+//                            break;
+//                        case 4:
+//                            methodVisitor.visitInsn(ICONST_4);
+//                            break;
+//                        case 5:
+//                            methodVisitor.visitInsn(ICONST_5);
+//                            break;
+//                    }
+//                } else if ((value.getResult().integer >= -128 && value.getResult().integer <= 127)) {
+//                    methodVisitor.visitIntInsn(BIPUSH, value.getResult().integer);
+//                } else if ((value.getResult().integer >= -32768 && value.getResult().integer <= 32767)) {
+//                    methodVisitor.visitIntInsn(SIPUSH, value.getResult().integer);
+//                } else {
+//                    methodVisitor.visitLdcInsn(value.getResult().integer);
+//                }
+//            } else if (value.getType().isBoolean()) {
+//                if (value.getResult().boolean_value) {
+//                    methodVisitor.visitInsn(ICONST_1);
+//                } else {
+//                    methodVisitor.visitInsn(ICONST_0);
+//                }
+//            } else {
+//                methodVisitor.visitLdcInsn(value.getValue());
+//            }
+//        } else {
+//            methodVisitor.visitVarInsn(value.getLoadOpcode(), stack.getMappedVariableNumber(value.getVarNumber()));
+//        }
+//    }
+
+    /**
+     * Push a constant value onto the stack, such as an integer, number, text value
+     * or boolean value.
+     * @param value 
+     */
+    public void pushConstant(Result value) {
+        if (value.getType().isInteger()) {
+            if ((value.integer >= -1 && value.integer <= 5)) {
+                switch (value.integer) {
+                    case -1:
+                        methodVisitor.visitInsn(ICONST_M1);
+                        break;
+                    case 0:
+                        methodVisitor.visitInsn(ICONST_0);
+                        break;
+                    case 1:
+                        methodVisitor.visitInsn(ICONST_1);
+                        break;
+                    case 2:
+                        methodVisitor.visitInsn(ICONST_2);
+                        break;
+                    case 3:
+                        methodVisitor.visitInsn(ICONST_3);
+                        break;
+                    case 4:
+                        methodVisitor.visitInsn(ICONST_4);
+                        break;
+                    case 5:
+                        methodVisitor.visitInsn(ICONST_5);
+                        break;
                 }
-            } else if (value.getType().isBoolean()) {
-                if (value.getResult().boolean_value) {
-                    methodVisitor.visitInsn(ICONST_1);
-                } else {
-                    methodVisitor.visitInsn(ICONST_0);
-                }
+            } else if ((value.integer >= -128 && value.integer <= 127)) {
+                methodVisitor.visitIntInsn(BIPUSH, value.integer);
+            } else if ((value.integer >= -32768 && value.integer <= 32767)) {
+                methodVisitor.visitIntInsn(SIPUSH, value.integer);
             } else {
-                methodVisitor.visitLdcInsn(value.getValue());
+                methodVisitor.visitLdcInsn(value.integer);
+            }
+        } else if (value.getType().isBoolean()) {
+            if (value.boolean_value) {
+                methodVisitor.visitInsn(ICONST_1);
+            } else {
+                methodVisitor.visitInsn(ICONST_0);
             }
         } else {
-            methodVisitor.visitVarInsn(value.getLoadOpcode(), stack.getMappedVariableNumber(value.getVarNumber()));
+            Object v = null;
+            if (value.getType().isNumber())
+                v = value.number;
+            else if (value.getType().isText())
+                v = value.text;
+            methodVisitor.visitLdcInsn(v);
         }
     }
-
+    
+    /**
+     * Pushes the value of a variable onto the stack.
+     * 
+     * @param type - the type of variable
+     * @param interpreterVarNumber - the variable's number in the interpreter. mapped to a JVM variable pool number.
+     */
+    public void pushVariable(TypeDescriptor type, int interpreterVarNumber) {
+        methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(type), stack.getMappedVariableNumber(interpreterVarNumber));
+    }
+    
     /**
      * Performs the necessary bytecode operations for assigning a field variable (non local).
      * 
@@ -728,9 +789,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * @param value
      * @param step 
      */
-    private void performLocalAssignment(BytecodeStackValue value, AssignmentStep step) {
+    private void performLocalAssignment(TypeDescriptor valueType, AssignmentStep step) {
         int variableNumber = step.getVariable().getVariableNumber() - currentClass.getNumberOfVariables();
         int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+        // TODO: Appeasing the byte code gods. fix.
+        BytecodeStackValue value = new BytecodeStackValue();
+        value.setType(valueType);
         value.setAsVariable(variableNumber);
         value.setAsReturnValue(false);
         //processExpressions();
@@ -745,7 +809,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * @param step The Assignment step being performed.
      * @param isDefined True if the variable being assigned a value was already defined.
      */
-    private void performAssignment(BytecodeStackValue value, AssignmentStep step, boolean isDefined) {
+    private void performAssignment(TypeDescriptor valueType, AssignmentStep step, boolean isDefined) {
         VariableParameterCommonDescriptor variable = step.getVariable();
         if (variable == null) {
             Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
@@ -761,19 +825,19 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (isDefined) {
             // It is defined--is it a field?
             if (isField) {
-                performFieldAssignment(step.getVariable(), step.getSubVariableName(), value.getType());
+                performFieldAssignment(step.getVariable(), step.getSubVariableName(), valueType);
             } else {
-                performLocalAssignment(value, step);
+                performLocalAssignment(valueType, step);
             }
         } else {
             if (isField) {
-                performFieldAssignment(step.getVariable(), step.getSubVariableName(), value.getType());
+                performFieldAssignment(step.getVariable(), step.getSubVariableName(), valueType);
             } else {
-                performLocalAssignment(value, step);
+                performLocalAssignment(valueType, step);
 
                 // It's not a field, so we need to tell the system that we are
                 // adding a new value, which increases the "field size."
-                if (value.getType().isNumber()) {
+                if (valueType.isNumber()) {
                     fieldSize += 2;
                 } else {
                     fieldSize += 1;
@@ -792,10 +856,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      */
     private void prepareNumberIntegerOperation() {
         methodVisitor.visitInsn(I2D);
-        BytecodeStackValue operand = stack.popConstant();
 
-        operand.getType().setName(TypeDescriptor.NUMBER);
-        stack.pushConstant(operand);
+        // Pop off the integer.
+        stack.popExpressionType();
+        
+        // Push a number.
+        stack.pushExpressionType(TypeDescriptor.getNumberType());
     }
 
     /**
@@ -808,79 +874,77 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * @param orderMatters 
      */
     private void prepareIntegerNumberOperation(boolean orderMatters) {
-        BytecodeStackValue numberVal = stack.popConstant();
-        BytecodeStackValue integerVal = stack.popConstant();
+        TypeDescriptor numberVal = stack.popExpressionType();
+        TypeDescriptor integerVal = stack.popExpressionType();
 
-        swapOperandStackValues(numberVal.getType(), integerVal.getType());
+        swapOperandStackValues(numberVal, integerVal);
 
         methodVisitor.visitInsn(I2D);
 
         if (orderMatters) {
-            swapOperandStackValues(numberVal.getType(), numberVal.getType());
+            swapOperandStackValues(numberVal, numberVal);
         }
 
-        integerVal.getType().setName(TypeDescriptor.NUMBER);
-        stack.pushConstant(numberVal);
-        stack.pushConstant(integerVal);
+        stack.pushExpressionType(TypeDescriptor.getNumberType());
+        stack.pushExpressionType(TypeDescriptor.getNumberType());
     }
 
     /**
      * Helper method: prepares a text value to be concatenated.
      */
     private void prepareTextValueConcatenation() {
+        // TODO: Refactor for QuorumConverter.
         //get the operand and it's type
-        BytecodeStackValue operand = stack.popConstant();
-        TypeDescriptor operandType = operand.getType();
+        TypeDescriptor operandType = stack.popExpressionType();
 
         if (operandType.isBoolean()) {//if the operand is a boolean
-            methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "toString", "(Z)Ljava/lang/String;");
+            methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "toString", "(Ljava/lang/String;)Z");
         } else if (operandType.isInteger()) {//if the operand is an integer
-            methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "toString", "(I)Ljava/lang/String;");
+            methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "toString", "(Ljava/lang/String;)I");
         } else if (operandType.isNumber()) {//if the operand is a number
-            methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "toString", "(D)Ljava/lang/String;");
+            methodVisitor.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "toString", "(Ljava/lang/String;)D");
         }
 
         //set the new type to text and push the constant
-        operandType.setName(TypeDescriptor.TEXT);
-        stack.pushConstant(operand);
+        stack.pushExpressionType(TypeDescriptor.getTextType());
     }
 
     /**
      * helper method: swap values and prepare for concatenation.
      */
     private void prepareValueTextConcatenation() {
-        BytecodeStackValue text = stack.popConstant();
-        BytecodeStackValue value = stack.getConstantFromTop(0);
-
-        swapOperandStackValues(text.getType(), value.getType());
-
-        prepareTextValueConcatenation();
-
-        swapOperandStackValues(text.getType(), value.getType());
-        stack.pushConstant(text);
+        // TODO: What the hell?
+//        BytecodeStackValue text = stack.popConstant();
+//        BytecodeStackValue value = stack.getConstantFromTop(0);
+//
+//        swapOperandStackValues(text.getType(), value.getType());
+//
+//        prepareTextValueConcatenation();
+//
+//        swapOperandStackValues(text.getType(), value.getType());
+//        stack.pushConstant(text);
     }
 
     /**
      * Perform concatenation.
      */
     private void performTextConcatenation() {
-        stack.popConstant();
-        stack.popConstant();
+        // Pop two text values off the stack.
+        stack.popExpressionType();
+        stack.popExpressionType();
+        
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;");
 
         // Push a text constant onto the stack.
-        BytecodeStackValue bytecodeValue = new BytecodeStackValue();
-        bytecodeValue.setType(TypeDescriptor.getTextType());
-        bytecodeValue.setResult(Result.getDefaultResult(TypeDescriptor.getIntegerType()));
-        stack.pushConstant(bytecodeValue);
+        stack.pushExpressionType(TypeDescriptor.getTextType());
     }
 
-    private void performEqualityComparison(boolean testEqual) {
+    private void performEqualityComparison(TypeDescriptor operandType, boolean testEqual) {
         //get two values off the stack
-        BytecodeStackValue operand = stack.popConstant();
-        stack.popConstant();
+        stack.popExpressionType();
+        stack.popExpressionType();
 
-        if (operand.getType().isNumber()) {
+        if (operandType.isNumber()) {
             // Start two labels: One we will jump to if we're not equal, and the
             // other will jump past that case.
 
@@ -913,7 +977,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             // This is where our "jumpPastLabel" label begins.
             methodVisitor.visitLabel(jumpPastLabel);
 
-        } else if (operand.getType().isText()) {
+        } else if (operandType.isText()) {
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
 
             if (!testEqual) {//if testing not equal do an xor
@@ -953,17 +1017,30 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
 
         //push a boolean result onto the stack
-        BytecodeStackValue result = new BytecodeStackValue();
-        result.setType(TypeDescriptor.getBooleanType());
-        stack.pushConstant(result);
+        stack.pushExpressionType(TypeDescriptor.getBooleanType());
     }
 
-    private void performInequalityComparison(boolean testEqual, boolean lessThan) {
-        //get two values off the stack
-        BytecodeStackValue operand = stack.popConstant();
-        stack.popConstant();
+    /**
+     * Performs an inequality comparison. 
+     * 
+     * The function performs the comparison based on the parameters testEqual and lessThan.
+     * 
+     * testEqual    |   lessThan    | comparison
+     * true         |   true        | <=
+     * true         |   false       | <
+     * false        |   true        | >=
+     * false        |   false       | >
+     * 
+     * @param operandType - the final type on the stack. *MUST* be either INTEGER or NUMBER.
+     * @param testEqual
+     * @param lessThan 
+     */
+    private void performInequalityComparison(TypeDescriptor operandType, boolean testEqual, boolean lessThan) {
+        // There will be two constants on the stack at this time. Pop them off.
+        stack.popExpressionType();
+        stack.popExpressionType();
 
-        if (operand.getType().isNumber()) {
+        if (operandType.isNumber()) {
             // Start two labels: One we will jump to if we're not equal, and the
             // other will jump past that case.
             Label jumpIfFalseLabel = new Label();
@@ -1034,10 +1111,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitLabel(jumpPastLabel);
         }
 
-        //push a boolean result onto the stack
-        BytecodeStackValue result = new BytecodeStackValue();
-        result.setType(TypeDescriptor.getBooleanType());
-        stack.pushConstant(result);
+        // push a boolean onto the stack.
+        stack.pushExpressionType(TypeDescriptor.getBooleanType());
     }
 
     /**
@@ -1049,61 +1124,44 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private void performBinaryArithmeticOperation(int bytecodeOpcode, TypeDescriptor returnType) {
         // A binary addition requires two constants to be on the stack. Now,
         // we pop them off.
-//        stack.popConstant();
-//        stack.popConstant();
+        stack.popExpressionType();
+        stack.popExpressionType();
 
         // Insert the appropriate opcode.
         methodVisitor.visitInsn(bytecodeOpcode);
 
         // Push a constant of type returnType onto the stack.
-        BytecodeStackValue bytecodeValue = new BytecodeStackValue();
-        bytecodeValue.setType(returnType);
-        bytecodeValue.setResult(Result.getDefaultResult(returnType));
-        stack.pushConstant(bytecodeValue);
-    }
-
-    private void performComparison(int oppositeBytecodeOpcode) {
-//        Label c0 = new Label();
-//        methodVisitor.visitJumpInsn(oppositeBytecodeOpcode, c0);
-//        methodVisitor.visitInsn(ICONST_1);
-//        Label c1 = new Label();
-//        methodVisitor.visitJumpInsn(GOTO, c1);
-//        methodVisitor.visitLabel(c0);
-//        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-//        methodVisitor.visitInsn(ICONST_0);
-//        methodVisitor.visitLabel(c1);
-//        methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[]{Opcodes.INTEGER});
+        stack.pushExpressionType(returnType);
     }
 
     private void swapOperandStackValues(TypeDescriptor topType, TypeDescriptor secondType) {
         if (!topType.isNumber() && !secondType.isNumber()) {
             methodVisitor.visitInsn(SWAP);
         } else if (topType.isNumber() && secondType.isNumber()) {
-            stack.implicitStackIncrease(topType);
+            //stack.implicitStackIncrease(topType);
             methodVisitor.visitInsn(DUP2_X2);
             methodVisitor.visitInsn(POP2);
         } else if (topType.isNumber()) {
-            stack.implicitStackIncrease(topType);
+            //stack.implicitStackIncrease(topType);
             methodVisitor.visitInsn(DUP2_X1);
             methodVisitor.visitInsn(POP2);
         } else {
-            stack.implicitStackIncrease(topType);
+            //stack.implicitStackIncrease(topType);
             methodVisitor.visitInsn(DUP_X2);
             methodVisitor.visitInsn(POP);
         }
     }
 
     private void castValueToText() {
-        BytecodeStackValue value = stack.popConstant();
+        TypeDescriptor type = stack.popExpressionType();
 
-        methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertTypeToJavaClassTypeEquivalent(value.getType()),
-                "toString", "(" + value.getByteCodeTypeDescriptor() + ")Ljava/lang/String;");
-        value.getType().setName(TypeDescriptor.TEXT);
-        stack.pushConstant(value);
+        methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertTypeToJavaClassTypeEquivalent(type),
+                "toString", "(" + QuorumConverter.convertTypeToBytecodeString(type) + ")Ljava/lang/String;");
+        stack.pushExpressionType(TypeDescriptor.getTextType());
     }
 
     private void castTextToValue(TypeDescriptor returnValueType) {
-        BytecodeStackValue value = stack.popConstant();
+        TypeDescriptor valueType = stack.popExpressionType();
 
         String type = QuorumConverter.convertTypeToJavaTypeEquivalent(returnValueType);
         type = type.substring(0, 1).toUpperCase() + type.substring(1);
@@ -1111,14 +1169,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertTypeToJavaClassTypeEquivalent(returnValueType),
                 "parse" + type, "(Ljava/lang/String;)" + QuorumConverter.convertTypeToBytecodeString(returnValueType));
-        value.getType().setName(returnValueType.getName());
-        stack.pushConstant(value);
+        stack.pushExpressionType(valueType);
     }
 
     private void castValueToValue(TypeDescriptor returnValueType) {
-        BytecodeStackValue value = stack.popConstant();
+        TypeDescriptor valueType = stack.popExpressionType();
 
-        String leftBytecodeString = QuorumConverter.convertTypeToBytecodeString(value.getType());
+        String leftBytecodeString = QuorumConverter.convertTypeToBytecodeString(valueType);
         String rightBytecodeString = QuorumConverter.convertTypeToBytecodeString(returnValueType);
 
         if (leftBytecodeString.compareTo("Z") == 0) {
@@ -1142,8 +1199,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitInsn(opcode);
         }
 
-        value.getType().setName(returnValueType.getName());
-        stack.pushConstant(value);
+        stack.pushExpressionType(valueType);
     }
 
     /**
@@ -1249,7 +1305,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         processExpressions();
         //prepare the integer as a number.
         prepareNumberIntegerOperation();
-        BytecodeStackValue pop = stack.popConstant();
+        TypeDescriptor pop = stack.popExpressionType();
         //Assigns an integer to a local variable or field of type number.
         performAssignment(pop, step, false);
     }
@@ -1260,7 +1316,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         processExpressions();
         //prepare the integer as a number.
         prepareNumberIntegerOperation();
-        BytecodeStackValue pop = stack.popConstant();
+        TypeDescriptor pop = stack.popExpressionType();
         //Assigns an integer to a field of type number.
         performAssignment(pop, step, true);
     }
@@ -1274,7 +1330,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         processExpressions();
         //2. Now that everything is out of the queue,
         //do the actual assignment
-        BytecodeStackValue pop = stack.popConstant();
+        TypeDescriptor pop = stack.popExpressionType();
         performAssignment(pop, step, false);
     }
 
@@ -1282,7 +1338,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentBooleanStep step) {
         //Assigns a boolean to a field of type boolean
         processExpressions();
-        BytecodeStackValue pop = stack.popConstant();
+        TypeDescriptor pop = stack.popExpressionType();
         performAssignment(pop, step, true);
     }
 
@@ -1290,7 +1346,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentIntegerLocalStep step) {
         //process the expressions in the queue
         processExpressions();
-        BytecodeStackValue pop = stack.popConstant();
+        TypeDescriptor pop = stack.popExpressionType();
         //Assigns an integer to a local variable or field of type integer
         performAssignment(pop, step, false);
     }
@@ -1299,7 +1355,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentIntegerStep step) {
         //Assigns an integer to a field of type integer
         processExpressions();
-        BytecodeStackValue pop = stack.popConstant();
+        TypeDescriptor pop = stack.popExpressionType();
         performAssignment(pop, step, true);
     }
 
@@ -1307,7 +1363,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentNumberLocalStep step) {
         //Assigns a number to a local variable or field of type number.
         processExpressions();
-        BytecodeStackValue pop = stack.popConstant();
+        TypeDescriptor pop = stack.popExpressionType();
         performAssignment(pop, step, false);
     }
 
@@ -1315,7 +1371,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentNumberStep step) {
         //Assigns a number to a field of type number.
         processExpressions();
-        BytecodeStackValue pop = stack.popConstant();
+        TypeDescriptor pop = stack.popExpressionType();
         performAssignment(pop, step, true);
     }
 
@@ -1323,7 +1379,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentTextLocalStep step) {
         //Assigns a number to a local variable or field of type text.
         processExpressions();
-        BytecodeStackValue pop = stack.popConstant();
+        TypeDescriptor pop = stack.popExpressionType();
         performAssignment(pop, step, false);
     }
 
@@ -1332,7 +1388,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //remove the constant from the bytecode stack and assign a number to 
         //a field of type text.
         processExpressions();
-        BytecodeStackValue pop = stack.popConstant();
+        TypeDescriptor pop = stack.popExpressionType();
         performAssignment(pop, step, true);
     }
 
@@ -1429,7 +1485,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BinaryAndStep step) {
         //Perform a binary and operation on two booleans.
-        stack.popConstant();
+        stack.popExpressionType(); // we only need to pop one off, since both are booleans.
         methodVisitor.visitInsn(IAND);
     }
 
@@ -1468,7 +1524,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BinaryEqualsBooleanStep step) {
         //Determines if two boolean values are equal.
-        stack.popConstant();
+        stack.popExpressionType(); // only need to pop off one boolean - both the same.
         methodVisitor.visitInsn(IXOR);
         methodVisitor.visitInsn(Opcodes.ICONST_1);
         methodVisitor.visitInsn(IXOR);
@@ -1489,7 +1545,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareIntegerNumberOperation(false);
         //determines if the converted number is equal to another number
-        performEqualityComparison(true);
+        performEqualityComparison(TypeDescriptor.getNumberType(), true);
     }
 
     @Override
@@ -1502,33 +1558,33 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareNumberIntegerOperation();
         //then determines if a number is equal to the converted number
-        performEqualityComparison(true);
+        performEqualityComparison(TypeDescriptor.getNumberType(), true);
     }
 
     @Override
     public void visit(BinaryEqualsNumberStep step) {
         //Determines if two numbers are equal.
-        performEqualityComparison(true);
+        performEqualityComparison(TypeDescriptor.getNumberType(), true);
     }
 
     @Override
     public void visit(BinaryEqualsStep step) {
         //Determines if two integers are equal.
-        performEqualityComparison(true);
+        performEqualityComparison(TypeDescriptor.getIntegerType(), true);
     }
 
     @Override
     public void visit(BinaryEqualsStringStep step) {
         //Determines if two text values are equal.
-        performEqualityComparison(true);
+        performEqualityComparison(TypeDescriptor.getTextType(), true);
     }
 
     @Override
     public void visit(BinaryGreaterEqualsIntegerNumberStep step) {
-        //Converts an integer to a number.
+        //Converts number to an integer
         prepareIntegerNumberOperation(true);
         //determines if the converted number is greater than or equal to another number.
-        performInequalityComparison(true, false);
+        performInequalityComparison(TypeDescriptor.getNumberType(), true, false);
     }
 
     @Override
@@ -1536,25 +1592,27 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareNumberIntegerOperation();
         //determines if another number is greater than or equal to the converted number.
-        performInequalityComparison(true, false);
+        performInequalityComparison(TypeDescriptor.getNumberType(), true, false);
     }
 
     @Override
     public void visit(BinaryGreaterEqualsNumberStep step) {
         //Determines if one number is greater than or equal to another number.
-        performInequalityComparison(true, false);
+        performInequalityComparison(TypeDescriptor.getNumberType(), true, false);
     }
 
     @Override
     public void visit(BinaryGreaterEqualsStep step) {
         //Determines if one integer is greater than or equal to another integer.
-        performInequalityComparison(true, false);
+        performInequalityComparison(TypeDescriptor.getIntegerType(), true, false);
     }
 
     @Override
     public void visit(BinaryGreaterEqualsStringStep step) {
         //Determines if one text value is greater than or equal to another text value.
-        performInequalityComparison(true, false);
+        //performInequalityComparison(true, false);
+        
+        // TODO: Seriously? Seriously.
     }
 
     @Override
@@ -1562,7 +1620,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareIntegerNumberOperation(true);
         //then determines if the converted number is greater than another number.
-        performInequalityComparison(false, false);
+        performInequalityComparison(TypeDescriptor.getNumberType(), false, false);
     }
 
     @Override
@@ -1570,25 +1628,27 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareNumberIntegerOperation();
         //determines if another number is greater than the converted number
-        performInequalityComparison(false, false);
+        performInequalityComparison(TypeDescriptor.getNumberType(), false, false);
     }
 
     @Override
     public void visit(BinaryGreaterThanNumberStep step) {
         //Determines if one number is greater than another number.
-        performInequalityComparison(false, false);
+        performInequalityComparison(TypeDescriptor.getNumberType(), false, false);
     }
 
     @Override
     public void visit(BinaryGreaterThanStep step) {
         //Determines if one integer is greater than another integer.
-        performInequalityComparison(false, false);
+        performInequalityComparison(TypeDescriptor.getIntegerType(), false, false);
     }
 
     @Override
     public void visit(BinaryGreaterThanStringStep step) {
         //Determines if one text value is greater than another text value
-        performInequalityComparison(false, false);
+        //performInequalityComparison(false, false);
+        
+        // TODO: Seriously? 
     }
 
     @Override
@@ -1601,7 +1661,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareIntegerNumberOperation(true);
         //then determines if the converted number is less than or equal to another number.
-        performInequalityComparison(true, true);
+        performInequalityComparison(TypeDescriptor.getNumberType(), true, true);
     }
 
     @Override
@@ -1609,25 +1669,27 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareNumberIntegerOperation();
         //determines if another number is less than or equal to the converted number.
-        performInequalityComparison(true, true);
+        performInequalityComparison(TypeDescriptor.getNumberType(), true, true);
     }
 
     @Override
     public void visit(BinaryLessEqualsNumberStep step) {
         //Determines if one number is less than or equal to another number.
-        performInequalityComparison(true, true);
+        performInequalityComparison(TypeDescriptor.getNumberType(), true, true);
     }
 
     @Override
     public void visit(BinaryLessEqualsStep step) {
         //Determines if one integer is less than or equal to another integer.
-        performInequalityComparison(true, true);
+        performInequalityComparison(TypeDescriptor.getIntegerType(), true, true);
     }
 
     @Override
     public void visit(BinaryLessEqualsStringStep step) {
         //Determines if one text value is less than or equal to another text value.
-        performInequalityComparison(true, true);
+        //performInequalityComparison(true, true);
+        
+        // TODO: Seriously?
     }
 
     @Override
@@ -1635,7 +1697,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number.
         prepareIntegerNumberOperation(true);
         //then determines if the converted number is less than another number.
-        performInequalityComparison(false, true);
+        performInequalityComparison(TypeDescriptor.getNumberType(), false, true);
     }
 
     @Override
@@ -1643,25 +1705,27 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number
         prepareNumberIntegerOperation();
         //determines if another number is less than the converted number.
-        performInequalityComparison(false, true);
+        performInequalityComparison(TypeDescriptor.getNumberType(), false, true);
     }
 
     @Override
     public void visit(BinaryLessThanNumberStep step) {
         //Determines if one number is less than another number.
-        performInequalityComparison(false, true);
+        performInequalityComparison(TypeDescriptor.getNumberType(), false, true);
     }
 
     @Override
     public void visit(BinaryLessThanStep step) {
         //Determines if one integer is less than another integer.
-        performInequalityComparison(false, true);
+        performInequalityComparison(TypeDescriptor.getIntegerType(), false, true);
     }
 
     @Override
     public void visit(BinaryLessThanStringStep step) {
         //Determines if one text value is less than another text value.
-        performInequalityComparison(false, true);
+        //performInequalityComparison(false, true);
+        
+        // TODO: Seriously?
     }
 
     @Override
@@ -1723,10 +1787,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BinaryNotEqualsBooleanStep step) {
         //Determines if two boolean values are not equal.
-        BytecodeStackValue operand = stack.popConstant();
-        stack.popConstant();
+        stack.popExpressionType(); // only pop off one - both equal
         methodVisitor.visitInsn(IXOR);
-        stack.pushConstant(operand);
     }
 
     @Override
@@ -1744,7 +1806,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //Converts an integer to a number 
         prepareIntegerNumberOperation(false);
         //determines if the converted number is not equal to another number
-        performEqualityComparison(false);
+        performEqualityComparison(TypeDescriptor.getNumberType(), false);
     }
 
     @Override
@@ -1755,30 +1817,28 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BinaryNotEqualsNumberIntegerStep step) {
         prepareNumberIntegerOperation();
-        performEqualityComparison(false);
+        performEqualityComparison(TypeDescriptor.getNumberType(), false);
     }
 
     @Override
     public void visit(BinaryNotEqualsNumberStep step) {
-        performEqualityComparison(false);
+        performEqualityComparison(TypeDescriptor.getNumberType(), false);
     }
 
     @Override
     public void visit(BinaryNotEqualsStep step) {
-        performEqualityComparison(false);
+        performEqualityComparison(TypeDescriptor.getIntegerType(), false);
     }
 
     @Override
     public void visit(BinaryNotEqualsStringStep step) {
-        performEqualityComparison(false);
+        performEqualityComparison(TypeDescriptor.getTextType(), false);
     }
 
     @Override
     public void visit(BinaryOrStep step) {
-        BytecodeStackValue operand = stack.popConstant();
-        stack.popConstant();
+        stack.popExpressionType(); // only need to pop one - both are equal
         methodVisitor.visitInsn(IOR);
-        stack.pushConstant(operand);
     }
 
     @Override
@@ -2118,11 +2178,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(MoveStep step) {
-        BytecodeStackValue bytecodeValue = new BytecodeStackValue();
-        bytecodeValue.setType(step.getValue().getType());
-        bytecodeValue.setResult(step.getValue().getResult());
-        addToMethodVisit(bytecodeValue);
-        stack.pushConstant(bytecodeValue);
+        // Push the appropriate value onto the stack.
+        stack.pushExpressionType(step.getValue().getType());
+        
+        pushConstant(step.getValue().getResult());
     }
 
     @Override
@@ -2166,11 +2225,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         // Insert the appropriate steps for this statement.
         processExpressions();
-        BytecodeStackValue value = stack.popConstant(); // get expression result off stack.
+        
+        TypeDescriptor typeToPrint = stack.popExpressionType();
 
         // Insert the appropriate print opcode for the type.
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println",
-                "(" + value.getByteCodeTypeDescriptor() + ")V");
+                "(" + QuorumConverter.convertTypeToBytecodeString(typeToPrint) + ")V");
     }
 
     @Override
@@ -2186,7 +2246,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (returnType.isVoid()) {
             methodVisitor.visitInsn(RETURN);
         } else {
-            stack.popConstant();
+            stack.popExpressionType();
             if (returnType.isBoolean() || returnType.isInteger()) {
                 methodVisitor.visitInsn(IRETURN);
             } else if (returnType.isNumber()) {
@@ -2224,6 +2284,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryBooleanIntegerCastStep step) {
+        // TODO: Work out later.
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.BOOLEAN);
         castValueToValue(valueType);
@@ -2231,6 +2292,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryBooleanNumberCastStep step) {
+        // TODO: Work out later.
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.BOOLEAN);
         castValueToValue(valueType);
@@ -2238,6 +2300,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryBooleanTextCastStep step) {
+        // TODO: Work out later.
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.BOOLEAN);
         castTextToValue(valueType);
@@ -2245,6 +2308,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryIntegerBooleanCastStep step) {
+        // // TODO: Work out later.
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.INTEGER);
         castValueToValue(valueType);
@@ -2257,6 +2321,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryIntegerNumberCastStep step) {
+        // TODO: Work out later.
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.INTEGER);
         castValueToValue(valueType);
@@ -2264,6 +2329,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryIntegerTextCastStep step) {
+        // TODO: Work out later.
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.INTEGER);
         castTextToValue(valueType);
@@ -2271,14 +2337,16 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryNotStep step) {
-        BytecodeStackValue operand = stack.popConstant();
         methodVisitor.visitInsn(Opcodes.ICONST_1);
         methodVisitor.visitInsn(IXOR);
-        stack.pushConstant(operand);
+        
+        // NOTE: No need to pop and push a boolean type here--a boolean type
+        // is still on the stack.
     }
 
     @Override
     public void visit(UnaryNumberBooleanCastStep step) {
+        // TODO: Work out later
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.NUMBER);
         castValueToValue(valueType);
@@ -2286,6 +2354,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryNumberIntegerCastStep step) {
+        // TODO: Work out later
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.NUMBER);
         castValueToValue(valueType);
@@ -2298,6 +2367,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryNumberTextCastStep step) {
+        // TODO: Work out later.
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.NUMBER);
         castTextToValue(valueType);
@@ -2326,28 +2396,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(VariableInObjectMoveStep step) {
         VariableParameterCommonDescriptor variable = step.getObj();
-        BytecodeStackValue variableValue = stack.getVariable(variable.getVariableNumber());
-        addToMethodVisit(variableValue);
+        pushVariable(variable.getType(), variable.getVariableNumber());
 
         String name = step.getVariableName();
         TypeDescriptor type = step.getVariableType();
         methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getName()),
                 name, QuorumConverter.convertTypeToBytecodeString(type));
 
-        BytecodeStackValue constant = new BytecodeStackValue();
-        TypeDescriptor constantType = new TypeDescriptor();
-        constantType.setName(type.getName());
-        constant.setType(constantType);
-        constant.setName(variable.getType().getName() + ":" + name);
-        constant.setAsConstant();
-        addToMethodVisit(constant);
-        stack.pushConstant(constant);
+        stack.pushExpressionType(type);
 
     }
 
     @Override
     public void visit(VariableMoveStep step) {
-        BytecodeStackValue variable;
+        BytecodeStackValue variable = null;
         String variableType = "";
         BytecodeStackValue constant = new BytecodeStackValue();
         TypeDescriptor constantType = new TypeDescriptor();
@@ -2363,13 +2425,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 int variableNumber = step.getValue().getVariableNumber() - currentClass.getNumberOfVariables();
                 variable = stack.getVariable(variableNumber);
                 variableType = variable.getType().getName();
-                addToMethodVisit(variable);
+                pushVariable(step.getValue().getType(), variableNumber);
             }
         }
-        constantType.setName(variableType);
-        constant.setType(constantType);
-
-        constant.setAsConstant();
-        stack.pushConstant(constant);
+        
+        stack.pushExpressionType(variable.getType());
     }
 }
