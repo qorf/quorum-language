@@ -62,6 +62,7 @@ public class LoopsTester {
 
     @Test
     public void test_repeat_from_to_const_const_bytecode(){
+        fail("causing infinite loop. fix me.");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LOOPS + CompilerTestSuite.PASS + "RepeatFromToConstConst.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -92,6 +93,7 @@ public class LoopsTester {
     
     @Test
     public void test_repeat_from_to_const_var_bytecode(){
+        fail("causing infinite loop. fix me.");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LOOPS + CompilerTestSuite.PASS + "RepeatFromToConstVar.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -122,6 +124,7 @@ public class LoopsTester {
     
     @Test
     public void test_repeat_from_to_nested_const_const_bytecode(){
+        fail("causing infinite loop. fix me.");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LOOPS + CompilerTestSuite.PASS + "RepeatFromToNestedConstConst.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -152,6 +155,7 @@ public class LoopsTester {
     
     @Test
     public void test_repeat_from_to_nested_const_var_bytecode(){
+        fail("causing infinite loop. fix me.");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LOOPS + CompilerTestSuite.PASS + "RepeatFromToNestedConstVar.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -182,6 +186,7 @@ public class LoopsTester {
     
     @Test
     public void test_repeat_from_to_nested_var_const_bytecode(){
+        fail("causing infinite loop. fix me.");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LOOPS + CompilerTestSuite.PASS + "RepeatFromToNestedVarConst.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -212,6 +217,7 @@ public class LoopsTester {
     
     @Test
     public void test_repeat_from_to_nested_var_var_bytecode(){
+        fail("causing infinite loop. fix me.");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LOOPS + CompilerTestSuite.PASS + "RepeatFromToNestedVarVar.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -242,6 +248,7 @@ public class LoopsTester {
   
     @Test
     public void test_repeat_from_to_var_const_bytecode(){
+        fail("causing infinite loop. fix me.");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LOOPS + CompilerTestSuite.PASS + "RepeatFromToVarConst.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -272,6 +279,7 @@ public class LoopsTester {
     
     @Test
     public void test_repeat_from_to_var_var_bytecode(){
+        fail("causing infinite loop. fix me.");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LOOPS + CompilerTestSuite.PASS + "RepeatFromToVarVar.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
