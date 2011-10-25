@@ -16,146 +16,7 @@ import org.objectweb.asm.Opcodes;
 import org.quorum.execution.ExecutionStep;
 import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.NullExecutionStep;
-import org.quorum.steps.AlertStep;
-import org.quorum.steps.AlwaysEndStep;
-import org.quorum.steps.AssignIntegerObjectToNumberAutoBoxLocalStep;
-import org.quorum.steps.AssignIntegerObjectToNumberAutoBoxStep;
-import org.quorum.steps.AssignObjectAutoBoxLocalStep;
-import org.quorum.steps.AssignObjectAutoBoxStep;
-import org.quorum.steps.AssignmentBooleanLocalStep;
-import org.quorum.steps.AssignmentBooleanStep;
-import org.quorum.steps.AssignmentCustomLocalStep;
-import org.quorum.steps.AssignmentCustomStep;
-import org.quorum.steps.AssignmentIntegerLocalStep;
-import org.quorum.steps.AssignmentIntegerStep;
-import org.quorum.steps.AssignmentNumberIntegerLocalStep;
-import org.quorum.steps.AssignmentNumberIntegerStep;
-import org.quorum.steps.AssignmentNumberLocalStep;
-import org.quorum.steps.AssignmentNumberStep;
-import org.quorum.steps.AssignmentStep;
-import org.quorum.steps.AssignmentTextLocalStep;
-import org.quorum.steps.AssignmentTextStep;
-import org.quorum.steps.AutoBoxCreateStep;
-import org.quorum.steps.BeginCheckScopeStep;
-import org.quorum.steps.BeginScopeStep;
-import org.quorum.steps.BinaryAddBooleanTextStep;
-import org.quorum.steps.BinaryAddIntegerNumberStep;
-import org.quorum.steps.BinaryAddIntegerTextStep;
-import org.quorum.steps.BinaryAddNumberIntegerStep;
-import org.quorum.steps.BinaryAddNumberStep;
-import org.quorum.steps.BinaryAddNumberTextStep;
-import org.quorum.steps.BinaryAddStep;
-import org.quorum.steps.BinaryAddTextBooleanStep;
-import org.quorum.steps.BinaryAddTextIntegerStep;
-import org.quorum.steps.BinaryAddTextNumberStep;
-import org.quorum.steps.BinaryAndStep;
-import org.quorum.steps.BinaryConcatenateStep;
-import org.quorum.steps.BinaryDivideIntegerNumberStep;
-import org.quorum.steps.BinaryDivideNumberIntegerStep;
-import org.quorum.steps.BinaryDivideNumberStep;
-import org.quorum.steps.BinaryDivideStep;
-import org.quorum.steps.BinaryEqualsBooleanStep;
-import org.quorum.steps.BinaryEqualsCustomCustomStep;
-import org.quorum.steps.BinaryEqualsCustomNullStep;
-import org.quorum.steps.BinaryEqualsIntegerNumberStep;
-import org.quorum.steps.BinaryEqualsNullCustomStep;
-import org.quorum.steps.BinaryEqualsNumberIntegerStep;
-import org.quorum.steps.BinaryEqualsNumberStep;
-import org.quorum.steps.BinaryEqualsStep;
-import org.quorum.steps.BinaryEqualsStringStep;
-import org.quorum.steps.BinaryGreaterEqualsIntegerNumberStep;
-import org.quorum.steps.BinaryGreaterEqualsNumberIntegerStep;
-import org.quorum.steps.BinaryGreaterEqualsNumberStep;
-import org.quorum.steps.BinaryGreaterEqualsStep;
-import org.quorum.steps.BinaryGreaterEqualsStringStep;
-import org.quorum.steps.BinaryGreaterThanIntegerNumberStep;
-import org.quorum.steps.BinaryGreaterThanNumberIntegerStep;
-import org.quorum.steps.BinaryGreaterThanNumberStep;
-import org.quorum.steps.BinaryGreaterThanStep;
-import org.quorum.steps.BinaryGreaterThanStringStep;
-import org.quorum.steps.BinaryIsACustomCustomStep;
-import org.quorum.steps.BinaryLessEqualsIntegerNumberStep;
-import org.quorum.steps.BinaryLessEqualsNumberIntegerStep;
-import org.quorum.steps.BinaryLessEqualsNumberStep;
-import org.quorum.steps.BinaryLessEqualsStep;
-import org.quorum.steps.BinaryLessEqualsStringStep;
-import org.quorum.steps.BinaryLessThanIntegerNumberStep;
-import org.quorum.steps.BinaryLessThanNumberIntegerStep;
-import org.quorum.steps.BinaryLessThanNumberStep;
-import org.quorum.steps.BinaryLessThanStep;
-import org.quorum.steps.BinaryLessThanStringStep;
-import org.quorum.steps.BinaryModIntegerNumberStep;
-import org.quorum.steps.BinaryModNumberIntegerStep;
-import org.quorum.steps.BinaryModNumberStep;
-import org.quorum.steps.BinaryModStep;
-import org.quorum.steps.BinaryMultiplyIntegerNumberStep;
-import org.quorum.steps.BinaryMultiplyNumberIntegerStep;
-import org.quorum.steps.BinaryMultiplyNumberStep;
-import org.quorum.steps.BinaryMultiplyStep;
-import org.quorum.steps.BinaryNotEqualsBooleanStep;
-import org.quorum.steps.BinaryNotEqualsCustomCustomStep;
-import org.quorum.steps.BinaryNotEqualsCustomNullStep;
-import org.quorum.steps.BinaryNotEqualsIntegerNumberStep;
-import org.quorum.steps.BinaryNotEqualsNullCustomStep;
-import org.quorum.steps.BinaryNotEqualsNumberIntegerStep;
-import org.quorum.steps.BinaryNotEqualsNumberStep;
-import org.quorum.steps.BinaryNotEqualsStep;
-import org.quorum.steps.BinaryNotEqualsStringStep;
-import org.quorum.steps.BinaryOrStep;
-import org.quorum.steps.BinarySubtractIntegerNumberStep;
-import org.quorum.steps.BinarySubtractNumberIntegerStep;
-import org.quorum.steps.BinarySubtractNumberStep;
-import org.quorum.steps.BinarySubtractStep;
-import org.quorum.steps.BooleanAutoBoxStep;
-import org.quorum.steps.CallStep;
-import org.quorum.steps.ClassExecution;
-import org.quorum.steps.ConditionalJumpCheckStep;
-import org.quorum.steps.ConditionalJumpIfStep;
-import org.quorum.steps.ConditionalJumpLoopStep;
-import org.quorum.steps.CreateObjectStep;
-import org.quorum.steps.DataStackPopStep;
-import org.quorum.steps.EndScopeStep;
-import org.quorum.steps.InputStep;
-import org.quorum.steps.IntegerAutoBoxStep;
-import org.quorum.steps.JumpStep;
-import org.quorum.steps.LinearExecution;
-import org.quorum.steps.LoopType;
-import org.quorum.steps.MeVariableMoveStep;
-import org.quorum.steps.MethodExecution;
-import org.quorum.steps.MoveRegistersStep;
-import org.quorum.steps.MoveStep;
-import org.quorum.steps.NullIntermediateStep;
-import org.quorum.steps.NumberAutoBoxStep;
-import org.quorum.steps.ObjectCastStep;
-import org.quorum.steps.ObjectInitParentStep;
-import org.quorum.steps.ObjectInitPopStep;
-import org.quorum.steps.ParentVariableMoveStep;
-import org.quorum.steps.PrintStep;
-import org.quorum.steps.PushStep;
-import org.quorum.steps.ReturnStep;
-import org.quorum.steps.SimpleAlertStep;
-import org.quorum.steps.SpeakStep;
-import org.quorum.steps.TextAutoBoxStep;
-import org.quorum.steps.ThisMoveStep;
-import org.quorum.steps.UnaryBooleanBooleanCastStep;
-import org.quorum.steps.UnaryBooleanIntegerCastStep;
-import org.quorum.steps.UnaryBooleanNumberCastStep;
-import org.quorum.steps.UnaryBooleanTextCastStep;
-import org.quorum.steps.UnaryIntegerBooleanCastStep;
-import org.quorum.steps.UnaryIntegerIntegerCastStep;
-import org.quorum.steps.UnaryIntegerNumberCastStep;
-import org.quorum.steps.UnaryIntegerTextCastStep;
-import org.quorum.steps.UnaryNotStep;
-import org.quorum.steps.UnaryNumberBooleanCastStep;
-import org.quorum.steps.UnaryNumberIntegerCastStep;
-import org.quorum.steps.UnaryNumberNumberCastStep;
-import org.quorum.steps.UnaryNumberTextCastStep;
-import org.quorum.steps.UnaryTextBooleanCastStep;
-import org.quorum.steps.UnaryTextIntegerCastStep;
-import org.quorum.steps.UnaryTextNumberCastStep;
-import org.quorum.steps.UnaryTextTextCastStep;
-import org.quorum.steps.VariableInObjectMoveStep;
-import org.quorum.steps.VariableMoveStep;
+import org.quorum.steps.*;
 import org.quorum.symbols.AccessModifierEnum;
 import org.quorum.symbols.BlueprintDescriptor;
 import org.quorum.symbols.ClassDescriptor;
@@ -617,6 +478,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         this.classWriter = classWriter;
     }
 
+    /**
+     * Add in all parameters as local variables so they can be later referenced
+     * by the JVM. For example, if we are in the method
+     * 
+     * action foo (integer i)
+     * end
+     * 
+     * we can reference 'i' by using iload_1.
+     * 
+     * @param method The method we're in.
+     */
     private void addParametersAsVariables(MethodDescriptor method) {
         for (int i = 1; i <= method.getParameters().size(); i++) {
             TypeDescriptor constantType = new TypeDescriptor();
@@ -876,6 +748,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         stack.pushExpressionType(TypeDescriptor.getTextType());
     }
 
+    /**
+     * Performs an equality comparison.
+     * 
+     * testEqual    | comparison
+     * -------------|------------
+     * true         | =
+     * false        | not=
+     * 
+     * @param operandType
+     * @param testEqual 
+     */
     private void performEqualityComparison(TypeDescriptor operandType, boolean testEqual) {
         //get two values off the stack
         stack.popExpressionType();
@@ -1071,6 +954,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         stack.pushExpressionType(returnType);
     }
 
+    /**
+     * Swap two types on the operand stack.
+     * 
+     * @param topType
+     * @param secondType 
+     */
     private void swapOperandStackValues(TypeDescriptor topType, TypeDescriptor secondType) {
         if (!topType.isNumber() && !secondType.isNumber()) {
             methodVisitor.visitInsn(SWAP);
@@ -1089,6 +978,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
     }
 
+    /**
+     * Cast an arbitrary type to a text value. The type to cast from is popped
+     * off the bytecode stack.
+     */
     private void castValueToText() {
         TypeDescriptor type = stack.popExpressionType();
 
@@ -1097,6 +990,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         stack.pushExpressionType(TypeDescriptor.getTextType());
     }
 
+    /**
+     * Cast a text value to another type, for example, an integer.
+     * 
+     * If we wanted to cast the text value "3" to an integer, in the JVM, we must
+     * call Integer.parseInt(value), which is exactly the code that this method
+     * inserts.
+     * 
+     * @param returnValueType - the type to cast to.
+     */
     private void castTextToValue(TypeDescriptor returnValueType) {
         TypeDescriptor valueType = stack.popExpressionType();
 
@@ -1109,6 +1011,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         stack.pushExpressionType(valueType);
     }
 
+    /**
+     * Cast the current value on the stack to the specified type. The type to
+     * cast from is popped off by the bytecode stack.
+     * 
+     * @param returnValueType the type to cast to.
+     */
     private void castValueToValue(TypeDescriptor returnValueType) {
         TypeDescriptor valueType = stack.popExpressionType();
 
