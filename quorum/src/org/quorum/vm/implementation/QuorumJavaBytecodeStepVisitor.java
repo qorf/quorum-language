@@ -1021,9 +1021,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey)) {
-            return;
-        }
+//        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey)) {
+//            return;
+//        }
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
 
@@ -2046,6 +2046,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitLabel(label1);
             }
         }
+        
     }
 
     @Override
@@ -2068,12 +2069,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 //there are two labels that have been stored from the begging scope, get them.
                 Label label1 = label.getLabel();
                 Label label0 = stack.popLabel().getLabel();
-
+                
                 //create a goto to the beginning of the while loop (label 0)
                 methodVisitor.visitIincInsn(stack.popCounterVariable(), 1);
                 methodVisitor.visitJumpInsn(GOTO, label0);
                 //visit the end of the loop label.
                 methodVisitor.visitLabel(label1);
+                
+
             }
         }
     }
@@ -2085,7 +2088,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(MoveRegistersStep step) {
-        int a = 5;
+        methodVisitor.visitVarInsn(ISTORE, 1);
     }
 
     @Override
