@@ -52,130 +52,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     }
 
     /**
-     * Visiting the class execution will handle bytecode generation necessary 
-     * for generating class headers and visiting subcomponents of the class (by
-     * visiting those items).
-     * 
-     * Some code contained in this method is temporarily used to make testing
-     * of the bytecode generator easier.
-     * 
-     * 
-     * @param clazz 
-     */
-    public void visit(ClassExecution clazz) {
-        //classWriter = new ClassWriter(0);
-
-        //if you need to cheat temporarily, this will compute the maxS
-        //function automatically. This is useful for reverse engineering.
-        classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        String staticKey = clazz.getClassDescriptor().getStaticKey();
-        currentClass = clazz.getClassDescriptor();
-        currentClassExecution = clazz;
-
-        //garbage code to ease debugging, remove for reality.
-//        if(!".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !".Matt".equals(staticKey) && !".Main".equals(staticKey)) {
-//            return;
-//        }
-
-//        if (!".Stefik".equals(staticKey) && !"Libraries.Sound.Speech".equals(staticKey) && 
-//                !".Matt".equals(staticKey) && !".Main".equals(staticKey)
-//                && !"Libraries.Language.Object".equals(staticKey)) {
-//            return;
-//        }
-//
-        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) ) {
-            return;
-        }
-        String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
-        processedClazzName = name;
-
-
-        //this will have to be modified for inheritance conversion
-        classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", null);
-        //first weave in the parents of the class and initialize them          
-        //Add parents as extra behind the scenes fields.        
-        Iterator<ClassDescriptor> parents = currentClass.getFlattenedListOfParents();
-        while (parents.hasNext()) {
-            ClassDescriptor parent = parents.next();
-            String parentKey = parent.getStaticKey();
-            String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
-            String converted = QuorumConverter.convertStaticKeyToBytecodePathTypeName(parentKey);
-            fieldVisitor = classWriter.visitField(ACC_PUBLIC, parentName, converted, null, null);
-            fieldVisitor.visitEnd();
-            fieldSize += 2;
-        }
-
-
-        //Do field visiting for the class.
-        Iterator<VariableDescriptor> classVariables = clazz.getClassDescriptor().getClassVariables();
-        while (classVariables.hasNext()) {
-            VariableDescriptor next = classVariables.next();
-            String varName = next.getName();
-            TypeDescriptor varType = next.getType();
-            String converted = QuorumConverter.convertTypeToBytecodeString(varType);
-            int accessModifier;
-            if (next.getAccessModifier().toString().compareTo(AccessModifierEnum.PUBLIC.toString()) == 0) {
-                accessModifier = ACC_PUBLIC;
-            } else {
-                accessModifier = ACC_PRIVATE;
-            }
-
-            fieldVisitor = classWriter.visitField(accessModifier, varName, converted, null, null);
-            fieldVisitor.visitEnd();
-        }
-
-        //put in an extra plugin field if the class has system actions.
-        int numSystem = currentClass.getNumberSystemActions();
-        if (numSystem > 0) {
-            String converted = QuorumConverter.convertStaticKeyToPluginPathTypeName(currentClass.getStaticKey());
-            fieldVisitor = classWriter.visitField(ACC_PUBLIC, PLUGIN_NAME, converted, null, null);
-            fieldVisitor.visitEnd();
-        }
-
-        //add a constructor that initializes its parents
-        computeConstructor(true);
-        //add a constructor that doesn't
-       // computeConstructor(false);
-
-        
-        //now dump all of the parent methods that 
-        //are not in the base class out as wrapper functions.
-        /*parents = currentClass.getFlattenedListOfParents();
-        while (parents.hasNext()) {
-            ClassDescriptor parent = parents.next();
-            computeParentMethods(parent);
-        }*/
-
-        //now do all methods
-        Iterator<MethodExecution> methods = clazz.getMethods();
-        while (methods.hasNext()) {
-            MethodExecution method = methods.next();
-            visit(method);
-        }
-
-        Iterator<SystemActionDescriptor> systems = clazz.getClassDescriptor().getSystemActions();
-        while (systems.hasNext()) {
-            SystemActionDescriptor sys = systems.next();
-            computeSystemAction(sys);
-        }
-        classWriter.visitEnd();
-    }
-
-    private void computeParentMethods(ClassDescriptor parent) {
-        Collection<MethodDescriptor> methods = parent.getAllMethods(AccessModifierEnum.PUBLIC);
-        Iterator<MethodDescriptor> iterator = methods.iterator();
-        while (iterator.hasNext()) {
-            MethodDescriptor method = iterator.next();
-            MethodDescriptor baseMethod = currentClass.getMethod(method.getStaticKey());
-            //weave in the method into the base class, by composition
-            if (baseMethod == null && !(method instanceof BlueprintDescriptor)) {
-                computeParentMethod(parent, method);
-            }
-        }
-
-    }
-
-    /**
      * This method computes the bytecode for a class's constructor. This method
      * will be called twice, the first time for the current class
      * and the second time for when the current class is initialized
@@ -345,6 +221,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitEnd();
     }
 
+    private void computeParentMethods(ClassDescriptor parent) {
+        Collection<MethodDescriptor> methods = parent.getAllMethods(AccessModifierEnum.PUBLIC);
+        Iterator<MethodDescriptor> iterator = methods.iterator();
+        while (iterator.hasNext()) {
+            MethodDescriptor method = iterator.next();
+            MethodDescriptor baseMethod = currentClass.getMethod(method.getStaticKey());
+            //weave in the method into the base class, by composition
+            if (baseMethod == null && !(method instanceof BlueprintDescriptor)) {
+                computeParentMethod(parent, method);
+            }
+        }
+
+    }
+    
     /**
      * 
      * @param action 
@@ -389,81 +279,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitMaxs(stackSize, varSize);
         methodVisitor.visitEnd();
     }
-
-    /**
-     * Visit the method execution, i.e. each step that needs to be visited for 
-     * each methods execution.
-     * 
-     * @param method 
-     */
-    public void visit(MethodExecution method) {
-        currentMethodExecution = method;
-        boolean main = method.isMainMethod();
-        //add the bytecode for the main method.
-        if (main) {
-            methodVisitor = classWriter.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
-            methodVisitor.visitTypeInsn(NEW, processedClazzName);
-            methodVisitor.visitInsn(DUP);
-            methodVisitor.visitMethodInsn(INVOKESPECIAL, processedClazzName, "<init>", "()V");
-            methodVisitor.visitVarInsn(ASTORE, 1);
-            methodVisitor.visitVarInsn(ALOAD, 1);
-            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, processedClazzName,
-                    method.getMethodDescriptor().getName(),
-                    QuorumConverter.convertMethodDescriptorToBytecodeSignature(method.getMethodDescriptor()));
-            methodVisitor.visitInsn(RETURN);
-            methodVisitor.visitMaxs(2, 2);
-            methodVisitor.visitEnd();
-        }
-
-        //still have to handle parameters here.
-        String name = method.getMethodDescriptor().getName();
-        String params = QuorumConverter.convertMethodDescriptorToBytecodeSignature(method.getMethodDescriptor());
-        methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, params, null, null);
-        stack.startMethod(1);
-        addParametersAsVariables(method.getMethodDescriptor());
-        methodVisitor.visitCode();
-
-        Vector<ExecutionStep> steps = method.getSteps();
-        OpcodeTracker tracker = currentMethodExecution.getTracker();
-        for (int i = 0; i < steps.size(); i++) {//visit each of the steps in the method execution
-            OpcodeType opcodeType = tracker.getOpcodeType(i);
-
-            //if the opcode type is of root expression queue it up for later.
-            if (opcodeType == OpcodeType.ROOT_EXPRESSION) {
-                tracker.addToQueue(i);
-                int finalPosition = tracker.getFinalPosition(i);
-
-                //calculate the final position and jump to it.
-                if (finalPosition >= 0) {
-                    i = finalPosition;
-                }
-            } else {
-
-                //queue up the ending opcodes but still visit them (assignment, print, etc.)
-                if (opcodeType != null) {
-                    tracker.addToQueue(i);
-                }
-
-                //otherwise process each step and let each step decide if it has
-                //queued up steps to visit and in which order they are processed.
-                ExecutionStep step = steps.get(i);
-                step.visit(this);
-            }
-        }
-        //this should be filled out with the number of local variables
-        int numberVariables = stack.getMaxVariablesSize();
-        int stackSize = stack.getMaxSize();
-        //the stack size should also change depending on the 
-        //expressions that need to be processed.
-        methodVisitor.visitMaxs(stackSize + 1, numberVariables + currentClass.getNumberFlatParents() + 1);
-        methodVisitor.visitEnd();
-
-    }
-
-    public void end() {
-        int a = 5;
-    }
-
+    
     /**
      * @return the classWriter
      */
@@ -1103,6 +919,186 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
         }
     }
+        
+    /**
+     * Visiting the class execution will handle bytecode generation necessary 
+     * for generating class headers and visiting subcomponents of the class (by
+     * visiting those items).
+     * 
+     * Some code contained in this method is temporarily used to make testing
+     * of the bytecode generator easier.
+     * 
+     * 
+     * @param clazz 
+     */
+    public void visit(ClassExecution clazz) {
+        //classWriter = new ClassWriter(0);
+
+        //if you need to cheat temporarily, this will compute the maxS
+        //function automatically. This is useful for reverse engineering.
+        classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        String staticKey = clazz.getClassDescriptor().getStaticKey();
+        currentClass = clazz.getClassDescriptor();
+        currentClassExecution = clazz;
+
+        //garbage code to ease debugging, remove for reality.
+//        if(!".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !".Matt".equals(staticKey) && !".Main".equals(staticKey)) {
+//            return;
+//        }
+
+//        if (!".Stefik".equals(staticKey) && !"Libraries.Sound.Speech".equals(staticKey) && 
+//                !".Matt".equals(staticKey) && !".Main".equals(staticKey)
+//                && !"Libraries.Language.Object".equals(staticKey)) {
+//            return;
+//        }
+//
+        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey)) {
+            return;
+        }
+        String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
+        processedClazzName = name;
+
+
+        //this will have to be modified for inheritance conversion
+        classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", null);
+        //first weave in the parents of the class and initialize them          
+        //Add parents as extra behind the scenes fields.        
+        Iterator<ClassDescriptor> parents = currentClass.getFlattenedListOfParents();
+        while (parents.hasNext()) {
+            ClassDescriptor parent = parents.next();
+            String parentKey = parent.getStaticKey();
+            String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
+            String converted = QuorumConverter.convertStaticKeyToBytecodePathTypeName(parentKey);
+            fieldVisitor = classWriter.visitField(ACC_PUBLIC, parentName, converted, null, null);
+            fieldVisitor.visitEnd();
+            fieldSize += 2;
+        }
+
+
+        //Do field visiting for the class.
+        Iterator<VariableDescriptor> classVariables = clazz.getClassDescriptor().getClassVariables();
+        while (classVariables.hasNext()) {
+            VariableDescriptor next = classVariables.next();
+            String varName = next.getName();
+            TypeDescriptor varType = next.getType();
+            String converted = QuorumConverter.convertTypeToBytecodeString(varType);
+            int accessModifier;
+            if (next.getAccessModifier().toString().compareTo(AccessModifierEnum.PUBLIC.toString()) == 0) {
+                accessModifier = ACC_PUBLIC;
+            } else {
+                accessModifier = ACC_PRIVATE;
+            }
+
+            fieldVisitor = classWriter.visitField(accessModifier, varName, converted, null, null);
+            fieldVisitor.visitEnd();
+        }
+
+        //put in an extra plugin field if the class has system actions.
+        int numSystem = currentClass.getNumberSystemActions();
+        if (numSystem > 0) {
+            String converted = QuorumConverter.convertStaticKeyToPluginPathTypeName(currentClass.getStaticKey());
+            fieldVisitor = classWriter.visitField(ACC_PUBLIC, PLUGIN_NAME, converted, null, null);
+            fieldVisitor.visitEnd();
+        }
+
+        //add a constructor that initializes its parents
+        computeConstructor(true);
+        //add a constructor that doesn't
+       // computeConstructor(false);
+
+        
+        //now dump all of the parent methods that 
+        //are not in the base class out as wrapper functions.
+        /*parents = currentClass.getFlattenedListOfParents();
+        while (parents.hasNext()) {
+            ClassDescriptor parent = parents.next();
+            computeParentMethods(parent);
+        }*/
+
+        //now do all methods
+        Iterator<MethodExecution> methods = clazz.getMethods();
+        while (methods.hasNext()) {
+            MethodExecution method = methods.next();
+            visit(method);
+        }
+
+        Iterator<SystemActionDescriptor> systems = clazz.getClassDescriptor().getSystemActions();
+        while (systems.hasNext()) {
+            SystemActionDescriptor sys = systems.next();
+            computeSystemAction(sys);
+        }
+        classWriter.visitEnd();
+    }
+
+    /**
+     * Visit the method execution, i.e. each step that needs to be visited for 
+     * each methods execution.
+     * 
+     * @param method 
+     */
+    public void visit(MethodExecution method) {
+        currentMethodExecution = method;
+        boolean main = method.isMainMethod();
+        //add the bytecode for the main method.
+        if (main) {
+            methodVisitor = classWriter.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
+            methodVisitor.visitTypeInsn(NEW, processedClazzName);
+            methodVisitor.visitInsn(DUP);
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, processedClazzName, "<init>", "()V");
+            methodVisitor.visitVarInsn(ASTORE, 1);
+            methodVisitor.visitVarInsn(ALOAD, 1);
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, processedClazzName,
+                    method.getMethodDescriptor().getName(),
+                    QuorumConverter.convertMethodDescriptorToBytecodeSignature(method.getMethodDescriptor()));
+            methodVisitor.visitInsn(RETURN);
+            methodVisitor.visitMaxs(2, 2);
+            methodVisitor.visitEnd();
+        }
+
+        //still have to handle parameters here.
+        String name = method.getMethodDescriptor().getName();
+        String params = QuorumConverter.convertMethodDescriptorToBytecodeSignature(method.getMethodDescriptor());
+        methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, params, null, null);
+        stack.startMethod(1);
+        addParametersAsVariables(method.getMethodDescriptor());
+        methodVisitor.visitCode();
+
+        Vector<ExecutionStep> steps = method.getSteps();
+        OpcodeTracker tracker = currentMethodExecution.getTracker();
+        for (int i = 0; i < steps.size(); i++) {//visit each of the steps in the method execution
+            OpcodeType opcodeType = tracker.getOpcodeType(i);
+
+            //if the opcode type is of root expression queue it up for later.
+            if (opcodeType == OpcodeType.ROOT_EXPRESSION) {
+                tracker.addToQueue(i);
+                int finalPosition = tracker.getFinalPosition(i);
+
+                //calculate the final position and jump to it.
+                if (finalPosition >= 0) {
+                    i = finalPosition;
+                }
+            } else {
+
+                //queue up the ending opcodes but still visit them (assignment, print, etc.)
+                if (opcodeType != null) {
+                    tracker.addToQueue(i);
+                }
+
+                //otherwise process each step and let each step decide if it has
+                //queued up steps to visit and in which order they are processed.
+                ExecutionStep step = steps.get(i);
+                step.visit(this);
+            }
+        }
+        //this should be filled out with the number of local variables
+        int numberVariables = stack.getMaxVariablesSize();
+        int stackSize = stack.getMaxSize();
+        //the stack size should also change depending on the 
+        //expressions that need to be processed.
+        methodVisitor.visitMaxs(stackSize + 1, numberVariables + currentClass.getNumberFlatParents() + 1);
+        methodVisitor.visitEnd();
+
+    }
 
     @Override
     public void visit(AlertStep step) {
@@ -1455,9 +1451,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BinaryGreaterEqualsStringStep step) {
         //Determines if one text value is greater than or equal to another text value.
-        //performInequalityComparison(true, false);
-        
-        // TODO: Seriously? Seriously.
+        performInequalityComparison(TypeDescriptor.getTextType(), true, false);
     }
 
     @Override
@@ -1491,9 +1485,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BinaryGreaterThanStringStep step) {
         //Determines if one text value is greater than another text value
-        //performInequalityComparison(false, false);
-        
-        // TODO: Seriously? 
+        performInequalityComparison(TypeDescriptor.getTextType(), false, false);
     }
 
     @Override
@@ -1532,9 +1524,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BinaryLessEqualsStringStep step) {
         //Determines if one text value is less than or equal to another text value.
-        //performInequalityComparison(true, true);
-        
-        // TODO: Seriously?
+        performInequalityComparison(TypeDescriptor.getTextType(), true, true);
     }
 
     @Override
@@ -1568,9 +1558,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BinaryLessThanStringStep step) {
         //Determines if one text value is less than another text value.
-        //performInequalityComparison(false, true);
-        
-        // TODO: Seriously?
+        performInequalityComparison(TypeDescriptor.getTextType(), false, true);
     }
 
     @Override
@@ -2129,7 +2117,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryBooleanIntegerCastStep step) {
-        // TODO: Work out later.
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.BOOLEAN);
         castValueToValue(valueType);
@@ -2137,7 +2124,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryBooleanNumberCastStep step) {
-        // TODO: Work out later.
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.BOOLEAN);
         castValueToValue(valueType);
@@ -2145,7 +2131,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryBooleanTextCastStep step) {
-        // TODO: Work out later.
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.BOOLEAN);
         castTextToValue(valueType);
@@ -2153,7 +2138,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryIntegerBooleanCastStep step) {
-        // // TODO: Work out later.
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.INTEGER);
         castValueToValue(valueType);
@@ -2166,7 +2150,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryIntegerNumberCastStep step) {
-        // TODO: Work out later.
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.INTEGER);
         castValueToValue(valueType);
@@ -2174,7 +2157,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryIntegerTextCastStep step) {
-        // TODO: Work out later.
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.INTEGER);
         castTextToValue(valueType);
@@ -2191,7 +2173,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryNumberBooleanCastStep step) {
-        // TODO: Work out later
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.NUMBER);
         castValueToValue(valueType);
@@ -2199,7 +2180,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryNumberIntegerCastStep step) {
-        // TODO: Work out later
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.NUMBER);
         castValueToValue(valueType);
@@ -2212,7 +2192,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryNumberTextCastStep step) {
-        // TODO: Work out later.
         TypeDescriptor valueType = new TypeDescriptor();
         valueType.setName(TypeDescriptor.NUMBER);
         castTextToValue(valueType);
@@ -2240,14 +2219,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(VariableInObjectMoveStep step) {
+        //get the variable from the step and store it
         VariableParameterCommonDescriptor variable = step.getObj();
         pushVariable(variable.getType(), variable.getVariableNumber());
 
+        //visit the field instruction
         String name = step.getVariableName();
         TypeDescriptor type = step.getVariableType();
         methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getName()),
                 name, QuorumConverter.convertTypeToBytecodeString(type));
 
+        //push the type of the variable on the top of the stack
         stack.pushExpressionType(type);
 
     }
@@ -2256,20 +2238,23 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(VariableMoveStep step) {
         TypeDescriptor variable = null;
 
+        //if we have a variable descriptor
         if (step.getValue() instanceof VariableDescriptor) {
+            //if the variable is initialized load the variable and visit the field
             VariableDescriptor varDescriptor = (VariableDescriptor) step.getValue();
             if (varDescriptor != null && varDescriptor.isInitializedClassVariable()) {
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()),
                         varDescriptor.getName(), QuorumConverter.convertTypeToBytecodeString(varDescriptor.getType()));
                 variable = varDescriptor.getType();
-            } else {
+            } else {//otherwise get the variable number and push the new variable onto the bytecode stack
                 int variableNumber = step.getValue().getVariableNumber() - currentClass.getNumberOfVariables();
                 variable = stack.getVariable(variableNumber);
                 pushVariable(step.getValue().getType(), variableNumber);
             }
         }
         
+        //push the type of the variable on the top of the stack
         stack.pushExpressionType(variable);
     }
 }
