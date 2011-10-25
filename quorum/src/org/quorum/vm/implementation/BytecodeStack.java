@@ -23,10 +23,81 @@ public class BytecodeStack {
     private OmniscientStack<LabelStackValue> labels = new OmniscientStack<LabelStackValue>();
     private HashMap<Integer, TypeDescriptor> variables = new HashMap<Integer, TypeDescriptor>();
     private HashMap<Integer, Integer> variableNumberMappings = new HashMap<Integer, Integer>();
+    private Stack<Integer> loopCounterVariables = new Stack<Integer>();
+    private Stack<Integer> loopMaximumVariables = new Stack<Integer>();
     private int maxVariablesSize = 0;
     private int currentVariablesSize = 0;
     private int maxSize = 0;
+    
+    /**
+     * Push an integer counter variable onto the counter stack. Since it is an
+     * integer, the variable size is always one.
+     * @return 
+     */
+    public int pushCounterVariable() {
+        currentVariablesSize += 1;
+        variables.put(currentVariablesSize, TypeDescriptor.getIntegerType());
         
+        int location = currentVariablesSize;
+        
+
+        if(currentVariablesSize > maxVariablesSize) {
+            maxVariablesSize = currentVariablesSize;
+        }
+        
+        loopCounterVariables.add(location);
+        return location;
+    }
+    
+    /**
+     * Get the last counter variable off the stack. Handy for nested loops.
+     * @return 
+     */
+    public int popCounterVariable() {
+        return loopCounterVariables.pop();
+    }
+    
+    /**
+     * Get the counter variable off the stack without consuming it.
+     */
+    public int peekCounterVariable() {
+        return loopCounterVariables.peek();
+    }
+
+    /**
+     * Push an integer maximum variable onto the maximum variable stack. Since it is an
+     * integer, the variable size is always one.
+     * @return 
+     */
+    public int pushMaximumVariable() {
+        currentVariablesSize += 1;
+        variables.put(currentVariablesSize, TypeDescriptor.getIntegerType());
+        
+        int location = currentVariablesSize;
+
+        if(currentVariablesSize > maxVariablesSize) {
+            maxVariablesSize = currentVariablesSize;
+        }
+        
+        loopMaximumVariables.add(location);
+        return location;
+    }
+    
+    /**
+     * Pop the last maximum variable off the stack. Handy for nested loops.
+     * @return 
+     */
+    public int popMaximumVariable() {
+        return loopMaximumVariables.pop();
+    }
+    
+    /**
+     * Get the maximum variable off the stack without consuming it.
+     */
+    public int peekMaximumVariable() {
+        return loopMaximumVariables.peek();
+    }
+    
     /**
      * This method pushes expression types onto the stack.
      * 
@@ -158,6 +229,8 @@ public class BytecodeStack {
         variables.clear();
         labels.clear();
         variableNumberMappings.clear();
+        loopCounterVariables.clear();
+        loopMaximumVariables.clear();
         setMappedStartingVariableNumber(startingVariableNumber);
     }
     

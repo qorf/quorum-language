@@ -919,7 +919,76 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
         }
     }
-        
+    
+    public void processSpecialLoopExpression(LabelTypeEnum loopType) {
+        if(loopType.equals(LabelTypeEnum.FROM)){
+                    OpcodeTracker tracker = null;
+        LinearExecution execution = null;
+
+        if (currentMethodExecution == null) {//if no current method execution
+            tracker = currentClassExecution.getTracker();
+            execution = currentClassExecution;
+        } else {//otherwise look in the method execution
+            tracker = currentMethodExecution.getTracker();
+            execution = currentMethodExecution;
+        }
+
+        //for each item in the queue excluding the last 
+        //item(which is the opcode processing the expressions)
+        for (int j = 0; j < tracker.getQueueSize() - 1; j++) {
+            //check queue for its current value
+            int begin = tracker.removeFromQueue();
+            int end = tracker.peekQueue();
+
+            //loop through all op-codes
+            Vector<ExecutionStep> steps = execution.getSteps();
+            for (int i = begin; i < end; i++) { //visit the expressions
+                //is this step the first parameter to a function call?
+                //if yes, call visitCallSpecial, with the call step 
+                //for that function call
+                boolean funcParam = tracker.containsFunctionParameterMapping(i);
+                if(funcParam) {
+                    int callStepNumber = tracker.getFunctionParameterMapping(i);
+                    ExecutionStep callStep = steps.get(callStepNumber);
+                    if(callStep instanceof CallStep) {
+                        CallStep call = (CallStep) callStep;
+                        //insert the pointer for the object being called upon
+                        visitCallSpecial(call);
+                    }
+                    else {
+                        Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
+                                Level.SEVERE, "Function mapping between opcode parameters "
+                                + "and callsteps results in incorrect values. This is a compiler bug.");
+                    }
+                }//if no, do nothing
+                
+                if(i > begin + 1){
+                    methodVisitor.visitLabel(stack.peekLabel().getLabel());
+                    methodVisitor.visitVarInsn(ILOAD, stack.peekMaximumVariable());
+                    methodVisitor.visitVarInsn(ILOAD, stack.peekCounterVariable());
+                }
+                
+                ExecutionStep step = steps.get(i);
+                step.visit(this);
+                
+                if(i == begin) {
+                    methodVisitor.visitVarInsn(ISTORE, stack.pushMaximumVariable());
+                }
+                else if (i == begin + 1) {
+                    methodVisitor.visitVarInsn(ISTORE, stack.pushCounterVariable());
+                }
+            }
+
+            //clear out the queue at the end of visiting
+            if(!tracker.getOpcodeType(end).equals(OpcodeType.ROOT_EXPRESSION)){
+                tracker.clearQueue();
+            }
+        }
+        }else{
+            processExpressions();
+        }
+    }
+    
     /**
      * Visiting the class execution will handle bytecode generation necessary 
      * for generating class headers and visiting subcomponents of the class (by
@@ -1095,7 +1164,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         int stackSize = stack.getMaxSize();
         //the stack size should also change depending on the 
         //expressions that need to be processed.
-        methodVisitor.visitMaxs(stackSize + 1, numberVariables + currentClass.getNumberFlatParents() + 1);
+        methodVisitor.visitMaxs(1, 1);
         methodVisitor.visitEnd();
 
     }
@@ -1829,6 +1898,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             loopType = LabelTypeEnum.FROM;
             //process all the queued steps
             processExpressions();
+            
+            // At this point, we will have the maximum. Get it off the stack, and
+            // store this into a maximum variable. The bytecode stack will assign us
+            // a number.
+            //methodVisitor.visitVarInsn(ISTORE, 1);
+            //methodVisitor.visitInsn(POP);
+            // TODO: There's going to be an extra value on the stack here. We should probably
+            // pop it off.
         }else if(step.getLoopType().equals(LoopType.TIMES)){
             loopType = LabelTypeEnum.TIMES;
             //process all the queued steps
@@ -1837,7 +1914,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         
         //build the top label
         Label label0 = new Label();
-        methodVisitor.visitLabel(label0);
+        if (step.getLoopType().equals(LoopType.UNTIL) || step.getLoopType().equals(LoopType.WHILE))
+            methodVisitor.visitLabel(label0);
 
         //get thebytecode
         int currentLoopBytecode = 0;
@@ -1850,8 +1928,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         stack.pushLabel(temp);
         
         //process all the queued steps
-        processExpressions();
-
+        processSpecialLoopExpression(loopType);
+        
         //generate the lables and visit as necessary
         Label label1 = new Label();
         methodVisitor.visitJumpInsn(currentLoopBytecode , label1);
@@ -1992,6 +2070,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 Label label0 = stack.popLabel().getLabel();
 
                 //create a goto to the beginning of the while loop (label 0)
+                methodVisitor.visitIincInsn(stack.popCounterVariable(), 1);
                 methodVisitor.visitJumpInsn(GOTO, label0);
                 //visit the end of the loop label.
                 methodVisitor.visitLabel(label1);
