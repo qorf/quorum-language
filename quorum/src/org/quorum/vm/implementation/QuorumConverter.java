@@ -249,4 +249,18 @@ public class QuorumConverter {
             return Opcodes.DSTORE;
         return Opcodes.ASTORE;
     }
+
+    /**
+     * Helper method: determines the size of a type for a variable position number.
+     * 
+     * @param valueType returns 2 if a number and 1 in any other case.
+     * @return 
+     */
+    public static int getSizeOfType(TypeDescriptor valueType){
+        if(valueType.isNumber()){
+            return 2;
+        }else{
+            return 1;
+        }
+    }
 }

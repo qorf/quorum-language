@@ -23,17 +23,10 @@ public class BytecodeStack {
     private OmniscientStack<LabelStackValue> labels = new OmniscientStack<LabelStackValue>();
     private HashMap<Integer, TypeDescriptor> variables = new HashMap<Integer, TypeDescriptor>();
     private HashMap<Integer, Integer> variableNumberMappings = new HashMap<Integer, Integer>();
-    private int currentConditionalBytecode = 0;
     private int maxVariablesSize = 0;
     private int currentVariablesSize = 0;
     private int maxSize = 0;
-    private int currentSize = 0;
-    
-    
-    public void setMappedStartingVariableNumber(int variableNumber) {
-        variableNumberMappings.put(1, variableNumber);
-    }
-    
+        
     /**
      * This method pushes expression types onto the stack.
      * 
@@ -98,6 +91,17 @@ public class BytecodeStack {
     }
     
     /**
+     * is the labels field empty.
+     */
+    public boolean isEmptyLabel() {
+        if(labels.isEmpty()){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
+    /**
      * Pushes a value for a particular variable onto a hash map that can
      * later be queried.
      * 
@@ -108,7 +112,7 @@ public class BytecodeStack {
         int mappedVariableNumber = getMappedVariableNumber(location);
         variables.put(location, valueType);
         
-        int size = getSize(valueType);
+        int size = QuorumConverter.getSizeOfType(valueType);
         
         variableNumberMappings.put(location + 1, mappedVariableNumber + size);
         currentVariablesSize += size;
@@ -126,7 +130,7 @@ public class BytecodeStack {
      */
     public TypeDescriptor removeVariable(int location) {
         TypeDescriptor valueType = variables.remove(location);
-        currentVariablesSize -= getSize(valueType);
+        currentVariablesSize -= QuorumConverter.getSizeOfType(valueType);
         return valueType;
     }
     
@@ -149,7 +153,6 @@ public class BytecodeStack {
      */
     public void startMethod(int startingVariableNumber) {
         maxSize = 0;
-        currentSize = 0;
         maxVariablesSize = 0;
         currentVariablesSize = 0;
         variables.clear();
@@ -169,26 +172,6 @@ public class BytecodeStack {
     }
     
     /**
-     * Returns the current size of the stack.
-     * 
-     * @return 
-     */
-    public int getCurrentSize() {
-        return currentSize;
-    }
-
-    /**
-     * is the labels field empty.
-     */
-    public boolean isEmptyLabel() {
-        if(labels.isEmpty()){
-            return true;
-        }else{
-            return false;
-        }
-    }
-    
-    /**
      * Returns the maximum total size of the variables stored in the stack
      * achieved while processing push and pop values.
      * 
@@ -199,16 +182,16 @@ public class BytecodeStack {
     }
     
     /**
-     * Returns the current total size of the variables stored in the stack
+     * Set the variable number (given by the interpretor).
      * 
-     * @return 
+     * @param variableNumber 
      */
-    public int getCurrentVariablesSize() {
-        return currentVariablesSize;
+    public void setMappedStartingVariableNumber(int variableNumber) {
+        variableNumberMappings.put(1, variableNumber);
     }
-    
+        
     /**
-     * 
+     * Get the mapped variable number for the bytecode.
      * 
      * @param variableNumber
      * @return 
@@ -218,33 +201,5 @@ public class BytecodeStack {
             return variableNumberMappings.get(variableNumber);
         else
             return -1;
-    }
-
-    /**
-     * @return the currentConditionalBytecode
-     */
-    public int getCurrentConditionalBytecode() {
-        return currentConditionalBytecode;
-    }
-
-    /**
-     * @param currentConditionalBytecode the currentConditionalBytecode to set
-     */
-    public void setCurrentConditionalBytecode(int currentIfBytecode) {
-        this.currentConditionalBytecode = currentIfBytecode;
-    }
-    
-    /**
-     * Helper method: determines the size of a type for a variable position number.
-     * 
-     * @param valueType returns 2 if a number and 1 in any other case.
-     * @return 
-     */
-    private int getSize(TypeDescriptor valueType){
-        if(valueType.isNumber()){
-            return 2;
-        }else{
-            return 1;
-        }
     }
 }

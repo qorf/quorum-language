@@ -185,7 +185,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private ClassExecution currentClassExecution = null;
     private MethodExecution currentMethodExecution = null;
     private final String PLUGIN_NAME = "<plugin>";
-    private BytecodeStackValue returnValue = null;
     private int fieldSize = 1;
 
     public QuorumJavaBytecodeStepVisitor() {
@@ -465,7 +464,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
             ParameterDescriptor param = parameters.get(i);
             methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(param.getType()), position);
-            int size = BytecodeStackValue.getSize(param.getType());
+            int size = QuorumConverter.getSizeOfType(param.getType());
             position += size;
         }
 
@@ -510,7 +509,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         for (int i = 0; i < parameters.size(); i++) {
             ParameterDescriptor param = parameters.get(i);
             methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(param.getType()), position);
-            int size = BytecodeStackValue.getSize(param.getType());
+            int size = QuorumConverter.getSizeOfType(param.getType());
             position += size;
         }
 
