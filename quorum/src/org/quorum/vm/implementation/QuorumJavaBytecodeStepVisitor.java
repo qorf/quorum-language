@@ -965,22 +965,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     if (i > begin + 1) {
                         methodVisitor.visitLabel(stack.peekLabel().getLabel());
                         methodVisitor.visitVarInsn(ILOAD, stack.peekCounterVariable());
-                        //DEBUG: Print the maximum variable.
-                        // DEBUG: Print the counter variable.
-                    /*methodVisitor.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-                        
-                        methodVisitor.visitVarInsn(ILOAD, stack.peekMaximumVariable());
-                        // Insert the appropriate print opcode for the type.
-                        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println",
-                        "(I)V");*/
-
-                        // DEBUG: Print the counter variable.
-                    /*methodVisitor.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-                        
-                        methodVisitor.visitVarInsn(ILOAD, stack.peekCounterVariable());
-                        // Insert the appropriate print opcode for the type.
-                        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println",
-                        "(I)V");*/
                         methodVisitor.visitVarInsn(ILOAD, stack.peekMaximumVariable());
                     }
 
@@ -989,8 +973,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
                     if (i == begin) {
                         methodVisitor.visitVarInsn(ISTORE, stack.pushMaximumVariable());
-                    } else if (i == begin + 1) {
-                        //methodVisitor.visitVarInsn(ISTORE, stack.pushCounterVariable());
+                        i = i + 1;
                     }
                 }
 
@@ -1044,8 +1027,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         methodVisitor.visitLabel(stack.peekLabel().getLabel());
                         methodVisitor.visitVarInsn(ILOAD, stack.peekCounterVariable());
                         methodVisitor.visitVarInsn(ILOAD, stack.peekMaximumVariable());
-                    }else if( i == begin ){
-                        //methodVisitor.visitInsn(ICONST_0);
                     }
 
                     ExecutionStep step = steps.get(i);
@@ -1990,17 +1971,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             //process all the queued steps
             processExpressions();
             methodVisitor.visitVarInsn(ISTORE, stack.pushCounterVariable());
-            if(!first){
-                methodVisitor.visitInsn(POP);
-            }else{
-                first = false;
-            }
         }else if(step.getLoopType().equals(LoopType.TIMES)){
-            loopType = LabelTypeEnum.TIMES;
-            if(first){
-                methodVisitor.visitInsn(ICONST_0);
-                first = false;
-            }   
+            loopType = LabelTypeEnum.TIMES;  
         }
         
         //build the top label
