@@ -8,6 +8,7 @@ package org.quorum.symbols;
 /**
  *  Enumeration lists the access modifiers( eg. public, private) available
  *  to change the access to variables and methods.
+ * 
  * @author Melissa Stefik
  */
 public enum AccessModifierEnum {
