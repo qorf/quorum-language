@@ -43,6 +43,34 @@ public class ActionsTester {
     @After
     public void tearDown() {
     }
+    
+    @Test
+    public void test_pass_average_of_five_numbers_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "AverageOfFiveNumbers.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        double a = variableValue.getResult().number;
+        if(a != 337.546) {
+            fail();
+        }
+    }
+
+    @Test
+    public void test_pass_average_of_five_numbers_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "AverageOfFiveNumbers.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("337.546"));
+    }
 
     @Test
     public void test_pass_factorial_execute(){
@@ -71,7 +99,35 @@ public class ActionsTester {
         
         assert(r.getLine(0).equals("120"));
     }
-  
+
+    @Test
+    public void test_pass_fibonacci_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "Fibonacci.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        int a = variableValue.getResult().integer;
+        if(a != 55) {
+            fail();
+        }
+    }
+
+    @Test
+    public void test_pass_fibonacci_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "Fibonacci.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("55"));
+    }
+    
     @Test
     public void test_pass_gcd_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "GCD.quorum"));
@@ -128,18 +184,98 @@ public class ActionsTester {
         
         assert(r.getLine(0).equals("125"));
     }
-    
+
     @Test
-    public void test_simple_one_action_no_params_no_return_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleOneActionNoParamsNoReturn.quorum"));
+    public void test_simple_one_action_change_parameter_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleOneActionChangeParameter.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
         vm.blockRun();
 
-        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
-        int i = variableValue.getResult().integer;
-        if(i != 555) {
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        int a = variableValue.getResult().integer;
+        if(a != 5) {
+            fail();
+        }
+    }
+
+    @Test
+    public void test_simple_one_action_change_parameter_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleOneActionChangeParameter.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+    }
+
+    @Test
+    public void test_simple_one_action_concatenate_text_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleOneActionConcatenateText.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        String a = variableValue.getResult().text;
+        if(a.compareTo("Hello World!") != 0) {
+            fail();
+        }
+    }
+
+    @Test
+    public void test_simple_one_action_concatenate_text_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleOneActionConcatenateText.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+    }
+    
+    @Test
+    public void test_simple_one_action_in_control_expression_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleOneActionInControlExpression.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("result");
+        boolean result = variableValue.getResult().boolean_value;
+        if(result) {
+            fail();
+        }
+    }
+
+    @Test
+    public void test_simple_one_action_in_control_expression_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleOneActionInControlExpression.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+    }
+    
+    @Test
+    public void test_simple_one_action_no_params_no_return_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleOneActionNoParamsNoReturn.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
     }
@@ -244,7 +380,7 @@ public class ActionsTester {
         
         assert(r.getLine(0).equals("15"));
     }
-     /*
+    
     @Test
     public void test_two_actions_different_parameters_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "TwoActionsDifferentParameters.quorum"));
@@ -276,7 +412,7 @@ public class ActionsTester {
         assert(r.getLine(0).equals("true"));
         assert(r.getLine(1).equals("false"));
     }
-    */
+ 
     @Test
     public void test_pass_VTableObjectTest_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "VTableObjectTest.quorum"));
@@ -285,14 +421,10 @@ public class ActionsTester {
         }
         vm.blockRun();
         ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("index");
-        int b = variableValue.getResult().integer;
-        if(b!=0) {
-            fail();
-        }
-
-        variableValue = vm.getDataEnvironment().getVariableValue("index2");
-        b = variableValue.getResult().integer;
-        if(b!=1) {
+        ExpressionValue variableValue2 = vm.getDataEnvironment().getVariableValue("index2");
+        int index = variableValue.getResult().integer;
+        int index2 = variableValue2.getResult().integer;
+        if(index !=0 || index2 !=1) {
             fail();
         }
     }
@@ -303,12 +435,13 @@ public class ActionsTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
-        /*
+        
         RunResult r = CompilerTestSuite.runQuorumFile();
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("i"));
-         */
+        assert(r.getLine(0).equals("0"));
+        assert(r.getLine(1).equals("1"));
+        
     }
 }
