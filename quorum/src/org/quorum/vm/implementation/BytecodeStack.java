@@ -195,18 +195,6 @@ public class BytecodeStack {
         if(currentVariablesSize > maxVariablesSize) {
             maxVariablesSize = currentVariablesSize;
         }
-        
-        /*
-        int mappedVariableNumber = getMappedVariableNumber(location + numberOfHiddenVariables);
-        variables.put(location + numberOfHiddenVariables, valueType);
-        
-        int size = QuorumConverter.getSizeOfType(valueType);
-        
-        variableNumberMappings.put(location + 1, mappedVariableNumber + size);
-        currentVariablesSize += size;
-        if(currentVariablesSize > maxVariablesSize) {
-            maxVariablesSize = currentVariablesSize;
-        }*/
     }
     
     /**

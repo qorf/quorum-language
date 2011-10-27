@@ -927,131 +927,75 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
     }
     
+    /**
+     * Helper method used to process expression for loops with hidden variables,
+     * this includes repeat times and repeat from.
+     * 
+     * @param loopType 
+     */
     public void processSpecialLoopExpression(LabelTypeEnum loopType) {
-        if (loopType.equals(LabelTypeEnum.FROM)) {
-            OpcodeTracker tracker = null;
-            LinearExecution execution = null;
+        OpcodeTracker tracker = null;
+        LinearExecution execution = null;
 
-            if (currentMethodExecution == null) {//if no current method execution
-                tracker = currentClassExecution.getTracker();
-                execution = currentClassExecution;
-            } else {//otherwise look in the method execution
-                tracker = currentMethodExecution.getTracker();
-                execution = currentMethodExecution;
-            }
+        if (currentMethodExecution == null) {//if no current method execution
+            tracker = currentClassExecution.getTracker();
+            execution = currentClassExecution;
+        } else {//otherwise look in the method execution
+            tracker = currentMethodExecution.getTracker();
+            execution = currentMethodExecution;
+        }
 
-            //for each item in the queue excluding the last 
-            //item(which is the opcode processing the expressions)
-            for (int j = 0; j < tracker.getQueueSize() - 1; j++) {
-                //check queue for its current value
-                int begin = tracker.removeFromQueue();
-                int end = tracker.peekQueue();
+        //for each item in the queue excluding the last 
+        //item(which is the opcode processing the expressions)
+        for (int j = 0; j < tracker.getQueueSize() - 1; j++) {
+            //check queue for its current value
+            int begin = tracker.removeFromQueue();
+            int end = tracker.peekQueue();
 
-                //loop through all op-codes
-                Vector<ExecutionStep> steps = execution.getSteps();
-                for (int i = begin; i < end; i++) { //visit the expressions
-                    //is this step the first parameter to a function call?
-                    //if yes, call visitCallSpecial, with the call step 
-                    //for that function call
-                    boolean funcParam = tracker.containsFunctionParameterMapping(i);
-                    if (funcParam) {
-                        int callStepNumber = tracker.getFunctionParameterMapping(i);
-                        ExecutionStep callStep = steps.get(callStepNumber);
-                        if (callStep instanceof CallStep) {
-                            CallStep call = (CallStep) callStep;
-                            //insert the pointer for the object being called upon
-                            visitCallSpecial(call);
-                        } else {
-                            Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
-                                    Level.SEVERE, "Function mapping between opcode parameters "
-                                    + "and callsteps results in incorrect values. This is a compiler bug.");
-                        }
-                    }//if no, do nothing
-
-                    if (i > begin + 1) {
-                        methodVisitor.visitLabel(stack.peekLabel().getLabel());
-                        methodVisitor.visitVarInsn(ILOAD, stack.peekCounterVariable());
-                        methodVisitor.visitVarInsn(ILOAD, stack.peekMaximumVariable());
+            //loop through all op-codes
+            Vector<ExecutionStep> steps = execution.getSteps();
+            for (int i = begin; i < end; i++) { //visit the expressions
+                //is this step the first parameter to a function call?
+                //if yes, call visitCallSpecial, with the call step 
+                //for that function call
+                boolean funcParam = tracker.containsFunctionParameterMapping(i);
+                if (funcParam) {
+                    int callStepNumber = tracker.getFunctionParameterMapping(i);
+                    ExecutionStep callStep = steps.get(callStepNumber);
+                    if (callStep instanceof CallStep) {
+                        CallStep call = (CallStep) callStep;
+                        //insert the pointer for the object being called upon
+                        visitCallSpecial(call);
+                    } else {
+                        Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
+                                Level.SEVERE, "Function mapping between opcode parameters "
+                                + "and callsteps results in incorrect values. This is a compiler bug.");
                     }
+                }//if no, do nothing
 
-                    ExecutionStep step = steps.get(i);
-                    step.visit(this);
-
-                    if (i == begin) {
-                        methodVisitor.visitVarInsn(ISTORE, stack.pushMaximumVariable());
-                        i = i + 1;
-                    }
+                if ((loopType.equals(LabelTypeEnum.FROM) || loopType.equals(LabelTypeEnum.TIMES)) && i > begin + 1) {
+                    methodVisitor.visitLabel(stack.peekLabel().getLabel());
+                    methodVisitor.visitVarInsn(ILOAD, stack.peekCounterVariable());
+                    methodVisitor.visitVarInsn(ILOAD, stack.peekMaximumVariable());
                 }
 
-                //clear out the queue at the end of visiting
-                if (!tracker.getOpcodeType(end).equals(OpcodeType.ROOT_EXPRESSION)) {
-                    tracker.clearQueue();
+                ExecutionStep step = steps.get(i);
+                step.visit(this);
+
+                if (loopType.equals(LabelTypeEnum.FROM) && i == begin) {
+                    methodVisitor.visitVarInsn(ISTORE, stack.pushMaximumVariable());
+                    i = i + 1;
+                } else if (loopType.equals(LabelTypeEnum.TIMES) && i == begin) {
+                    methodVisitor.visitVarInsn(ISTORE, stack.pushMaximumVariable());
+                } else if (loopType.equals(LabelTypeEnum.TIMES) && i == begin + 1) {
+                    methodVisitor.visitVarInsn(ISTORE, stack.pushCounterVariable());
                 }
             }
-            
-        } else if(loopType.equals(LabelTypeEnum.TIMES)){
-            OpcodeTracker tracker = null;
-            LinearExecution execution = null;
 
-            if (currentMethodExecution == null) {//if no current method execution
-                tracker = currentClassExecution.getTracker();
-                execution = currentClassExecution;
-            } else {//otherwise look in the method execution
-                tracker = currentMethodExecution.getTracker();
-                execution = currentMethodExecution;
+            //clear out the queue at the end of visiting
+            if (!tracker.getOpcodeType(end).equals(OpcodeType.ROOT_EXPRESSION)) {
+                tracker.clearQueue();
             }
-
-            //for each item in the queue excluding the last 
-            //item(which is the opcode processing the expressions)
-            for (int j = 0; j < tracker.getQueueSize() - 1; j++) {
-                //check queue for its current value
-                int begin = tracker.removeFromQueue();
-                int end = tracker.peekQueue();
-
-                //loop through all op-codes
-                Vector<ExecutionStep> steps = execution.getSteps();
-                for (int i = begin; i < end; i++) { //visit the expressions
-                    //is this step the first parameter to a function call?
-                    //if yes, call visitCallSpecial, with the call step 
-                    //for that function call
-                    boolean funcParam = tracker.containsFunctionParameterMapping(i);
-                    if (funcParam) {
-                        int callStepNumber = tracker.getFunctionParameterMapping(i);
-                        ExecutionStep callStep = steps.get(callStepNumber);
-                        if (callStep instanceof CallStep) {
-                            CallStep call = (CallStep) callStep;
-                            //insert the pointer for the object being called upon
-                            visitCallSpecial(call);
-                        } else {
-                            Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
-                                    Level.SEVERE, "Function mapping between opcode parameters "
-                                    + "and callsteps results in incorrect values. This is a compiler bug.");
-                        }
-                    }//if no, do nothing
-
-                    if (i > begin + 1) {
-                        methodVisitor.visitLabel(stack.peekLabel().getLabel());
-                        methodVisitor.visitVarInsn(ILOAD, stack.peekCounterVariable());
-                        methodVisitor.visitVarInsn(ILOAD, stack.peekMaximumVariable());
-                    }
-
-                    ExecutionStep step = steps.get(i);
-                    step.visit(this);
-
-                    if (i == begin) {
-                        methodVisitor.visitVarInsn(ISTORE, stack.pushMaximumVariable());
-                    } else if (i == begin + 1) {
-                        methodVisitor.visitVarInsn(ISTORE, stack.pushCounterVariable());
-                    }
-                }
-
-                //clear out the queue at the end of visiting
-                if (!tracker.getOpcodeType(end).equals(OpcodeType.ROOT_EXPRESSION)) {
-                    tracker.clearQueue();
-                }
-            }
-        } else {
-            processExpressions();
         }
     }
 
@@ -1237,9 +1181,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 step.visit(this);
             }
         }
-        //this should be filled out with the number of local variables
-        int numberVariables = stack.getMaxVariablesSize();
-        int stackSize = stack.getMaxSize();
+        
         //the stack size should also change depending on the 
         //expressions that need to be processed.
         methodVisitor.visitMaxs(1, 1);
@@ -1974,7 +1916,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //if this is a from step we need to process the extra root expression.
         if(step.getLoopType().equals(LoopType.FROM)){
             loopType = LabelTypeEnum.FROM;
-            //process all the queued steps
+            //process the first move step of three in a from loop.
+            //only repeat from has this extra move step (cuased by the hidden variable).
             processExpressions();
             methodVisitor.visitVarInsn(ISTORE, stack.pushCounterVariable());
         }else if(step.getLoopType().equals(LoopType.TIMES)){
@@ -1986,13 +1929,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (step.getLoopType().equals(LoopType.UNTIL) || step.getLoopType().equals(LoopType.WHILE))
             methodVisitor.visitLabel(label0);
 
-        //get thebytecode
+        //if we are dealing with an until loop we will need to negate our result using IFNE.
         int currentLoopBytecode = 0;
         if(step.getLoopType().equals(LoopType.UNTIL)){
            currentLoopBytecode = IFNE;
         }else{
            currentLoopBytecode = IFEQ;  
         }
+        
+        //push the label before the loop expression is processed.
         LabelStackValue temp = new LabelStackValue(loopType, currentLoopBytecode, label0);
         stack.pushLabel(temp);
         
@@ -2130,9 +2075,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(JumpStep step) {
-        if (!stack.isEmptyLabel()) {//if the stack has a label
+        //if the stack has a label
+        if (!stack.isEmptyLabel()) {
             LabelStackValue label = stack.peekLabel();
-            if (label.getLabelType().equals(LabelTypeEnum.FROM) || label.getLabelType().equals(LabelTypeEnum.TIMES)) {//if the label is for an if statement
+            //if the label is for a repeat times or repeat from process all the labels here
+            if (label.getLabelType().equals(LabelTypeEnum.FROM) || label.getLabelType().equals(LabelTypeEnum.TIMES)) {
                 stack.popLabel();
 
                 //there are two labels that have been stored from the begging scope, get them.
@@ -2144,7 +2091,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitJumpInsn(GOTO, label0);
                 //visit the end of the loop label.
                 methodVisitor.visitLabel(label1);
-            }else if(label.getLabelType().equals(LabelTypeEnum.LOOP)){
+            }else if(label.getLabelType().equals(LabelTypeEnum.LOOP)){//if the label is for the general loop just pop off the remaining label.
                 stack.popLabel();
             }
         }
