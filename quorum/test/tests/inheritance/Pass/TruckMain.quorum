@@ -1,0 +1,19 @@
+use Truck
+
+class Main 
+
+    action Main
+        Truck truck
+
+        //build the truck
+        truck:build()
+
+        //how many wheels and gallons does the truck have?
+        integer a = truck:getNumberOfWheels()
+        print "Number of wheels: " + a
+
+        integer b = truck:getGallons()
+        print "Size of gas tank (gallons): " + b
+    end
+
+end

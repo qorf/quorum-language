@@ -603,7 +603,7 @@ public class LoopsTester {
 
         ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
         int x = variableValue.getResult().integer;
-        if(x != 0) {
+        if(x != 6) {
             fail();
         }
     }
@@ -620,7 +620,7 @@ public class LoopsTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("0"));
+        assert(r.getLine(0).equals("6"));
     }
     
     @Test
@@ -723,7 +723,7 @@ public class LoopsTester {
 
         ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
         int x = variableValue.getResult().integer;
-        if(x != 0) {
+        if(x != 4) {
             fail();
         }
     }
@@ -740,7 +740,7 @@ public class LoopsTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("0"));
+        assert(r.getLine(0).equals("4"));
     }
     
     @Test
@@ -753,7 +753,7 @@ public class LoopsTester {
 
         ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
         int x = variableValue.getResult().integer;
-        if(x != 0) {
+        if(x != 5) {
             fail();
         }
     }
@@ -770,7 +770,7 @@ public class LoopsTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("0"));
+        assert(r.getLine(0).equals("5"));
     }
     
     @Test
@@ -783,7 +783,7 @@ public class LoopsTester {
 
         ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
         int x = variableValue.getResult().integer;
-        if(x != 0) {
+        if(x != 6) {
             fail();
         }
     }
@@ -800,7 +800,7 @@ public class LoopsTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("0"));
+        assert(r.getLine(0).equals("6"));
     }
     
     @Test

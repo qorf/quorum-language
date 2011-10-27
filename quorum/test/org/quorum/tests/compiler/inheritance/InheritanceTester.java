@@ -6,6 +6,7 @@
 package org.quorum.tests.compiler.inheritance;
 
 
+import org.quorum.execution.RunResult;
 import java.io.File;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -138,6 +139,31 @@ public class InheritanceTester {
     }
 
     @Test
+    public void test_pass_DogTest_bytecode(){
+        File[] files = new File[3];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "DogMain.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "Dog.quorum");
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "Mammal.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("furry");
+        boolean b = variableValue.getResult().boolean_value;
+        if(b!=true) {
+            fail();
+        }
+
+        variableValue = vm.getDataEnvironment().getVariableValue("alive");
+        b = variableValue.getResult().boolean_value;
+        if(b!=true) {
+            fail();
+        }
+    }
+    
+    @Test
     public void test_pass_inherit_templated_methods_execute(){
         File[] files = new File[5];
         files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "InheritTemplatedMethods.quorum");
@@ -175,6 +201,72 @@ public class InheritanceTester {
             fail();
         }
     }
+    
+    @Test
+    public void test_pass_inherit_templated_methods_bytecode(){
+        File[] files = new File[5];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "InheritTemplatedMethods.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "ATemplated.quorum");
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "BTemplated.quorum");
+        files[3] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "CTemplated.quorum");
+        files[4] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "DTemplated.quorum");
 
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+    
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
+        assert(r.getLine(2).equals("1.2"));
+        assert(r.getLine(3).equals("10"));
+    }
+    
+    @Test
+    public void test_pass_TruckTest_execute(){
+        File[] files = new File[4];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "TruckMain.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "Truck.quorum");
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "GasPoweredVehicle.quorum");
+        files[3] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "LandVehicle.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        ExpressionValue variableValue2 = vm.getDataEnvironment().getVariableValue("b");
+        int a = variableValue.getResult().integer;
+        int b = variableValue2.getResult().integer;
+        if(a != 4 || b != 20) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_TruckTest_bytecode(){
+        File[] files = new File[4];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "TruckMain.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "Truck.quorum");
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "GasPoweredVehicle.quorum");
+        files[3] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "LandVehicle.quorum");
+    
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+    
+        assert(r.getLine(0).equals("Number of wheels: 4"));
+        assert(r.getLine(1).equals("Size of gas tank (gallons): 20"));
+    }
 
 }
