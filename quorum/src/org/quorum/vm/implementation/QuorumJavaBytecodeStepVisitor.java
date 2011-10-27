@@ -2349,6 +2349,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 variable = stack.getVariable(variableNumber);
                 pushVariable(step.getValue().getType(), variableNumber);
             }
+        }else if(step.getValue() instanceof ParameterDescriptor){
+//                ParameterDescriptor varDescriptor = (ParameterDescriptor) step.getValue();
+//                int variableNumber = varDescriptor.getVariableNumber();
+//                methodVisitor.visitVarInsn(ALOAD, variableNumber );
+//                //methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()),
+//                //varDescriptor.getName(), QuorumConverter.convertTypeToBytecodeString(varDescriptor.getType()));
+//                variable = varDescriptor.getType();
+            
         }
         
         //push the type of the variable on the top of the stack
