@@ -154,7 +154,11 @@ public class BytecodeStack {
      * @return 
      */
     public LabelStackValue peekLabel() {
-        return labels.peek();
+        if(labels.isEmpty()){
+            return null;
+        }else{
+            return labels.peek();
+        }
     }
     
     /**

@@ -1087,9 +1087,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey)) {
-            return;
-        }
+//        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey)) {
+//            return;
+//        }
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
 
@@ -2107,7 +2107,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
                 //there are two labels that have been stored from the begging scope, get them.
                 Label label1 = label.getLabel();
-                Label label0 = stack.popLabel().getLabel();
+                Label label0 = stack.peekLabel().getLabel();
 
                 //create a goto to the beginning of the while loop (label 0)
                 methodVisitor.visitJumpInsn(GOTO, label0);
@@ -2144,6 +2144,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitJumpInsn(GOTO, label0);
                 //visit the end of the loop label.
                 methodVisitor.visitLabel(label1);
+            }else if(label.getLabelType().equals(LabelTypeEnum.LOOP)){
+                stack.popLabel();
             }
         }
     }
