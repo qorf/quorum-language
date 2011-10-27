@@ -21,13 +21,15 @@ import org.quorum.symbols.TypeDescriptor;
 public class BytecodeStack {
     private Stack<TypeDescriptor> expressionTypes = new Stack<TypeDescriptor>();
     private OmniscientStack<LabelStackValue> labels = new OmniscientStack<LabelStackValue>();
+    private HashMap<Integer, Integer> quorumToJavaNumberVariableMap = new HashMap<Integer, Integer>();
     private HashMap<Integer, TypeDescriptor> variables = new HashMap<Integer, TypeDescriptor>();
-    private HashMap<Integer, Integer> variableNumberMappings = new HashMap<Integer, Integer>();
     private Stack<Integer> loopCounterVariables = new Stack<Integer>();
     private Stack<Integer> loopMaximumVariables = new Stack<Integer>();
+    private int startingVariable = 0; 
     private int maxVariablesSize = 0;
     private int currentVariablesSize = 0;
     private int maxSize = 0;
+    private int numberOfHiddenVariables = 0;
     
     /**
      * Push an integer counter variable onto the counter stack. Since it is an
@@ -35,11 +37,11 @@ public class BytecodeStack {
      * @return 
      */
     public int pushCounterVariable() {
+        numberOfHiddenVariables++;
         currentVariablesSize += 1;
         variables.put(currentVariablesSize, TypeDescriptor.getIntegerType());
         
         int location = currentVariablesSize;
-        
 
         if(currentVariablesSize > maxVariablesSize) {
             maxVariablesSize = currentVariablesSize;
@@ -70,6 +72,7 @@ public class BytecodeStack {
      * @return 
      */
     public int pushMaximumVariable() {
+        numberOfHiddenVariables++;
         currentVariablesSize += 1;
         variables.put(currentVariablesSize, TypeDescriptor.getIntegerType());
         
@@ -180,8 +183,18 @@ public class BytecodeStack {
      * @param value 
      */
     public void setVariable(int location, TypeDescriptor valueType) {
-        int mappedVariableNumber = getMappedVariableNumber(location);
-        variables.put(location, valueType);
+        int size = QuorumConverter.getSizeOfType(valueType);
+        quorumToJavaNumberVariableMap.put(location, startingVariable + currentVariablesSize);
+        variables.put(startingVariable + currentVariablesSize, valueType);
+        currentVariablesSize += size;
+ 
+        if(currentVariablesSize > maxVariablesSize) {
+            maxVariablesSize = currentVariablesSize;
+        }
+        
+        /*
+        int mappedVariableNumber = getMappedVariableNumber(location + numberOfHiddenVariables);
+        variables.put(location + numberOfHiddenVariables, valueType);
         
         int size = QuorumConverter.getSizeOfType(valueType);
         
@@ -189,7 +202,7 @@ public class BytecodeStack {
         currentVariablesSize += size;
         if(currentVariablesSize > maxVariablesSize) {
             maxVariablesSize = currentVariablesSize;
-        }
+        }*/
     }
     
     /**
@@ -209,11 +222,11 @@ public class BytecodeStack {
     /**
      * Returns a value from a hash map storing variable values.
      * 
-     * @param location
+     * @param JVMNumber
      * @return 
      */
-    public TypeDescriptor getVariable(int location) {
-        return variables.get(location);
+    public TypeDescriptor getVariable(int JVMNumber) {
+        return variables.get(JVMNumber);
     }
     
     /**
@@ -228,10 +241,10 @@ public class BytecodeStack {
         currentVariablesSize = 0;
         variables.clear();
         labels.clear();
-        variableNumberMappings.clear();
+        quorumToJavaNumberVariableMap.clear();
         loopCounterVariables.clear();
         loopMaximumVariables.clear();
-        setMappedStartingVariableNumber(startingVariableNumber);
+        setStartingVariableNumber(startingVariableNumber);
     }
     
     /**
@@ -257,21 +270,21 @@ public class BytecodeStack {
     /**
      * Set the variable number (given by the interpretor).
      * 
-     * @param variableNumber 
+     * @param quorumLocation
      */
-    public void setMappedStartingVariableNumber(int variableNumber) {
-        variableNumberMappings.put(1, variableNumber);
+    public void setStartingVariableNumber(int quorumLocation) {
+        startingVariable = quorumLocation;
     }
         
     /**
      * Get the mapped variable number for the bytecode.
      * 
-     * @param variableNumber
+     * @param quorumLocation
      * @return 
      */
-    public int getMappedVariableNumber(int variableNumber) {
-        if (variableNumberMappings.get(variableNumber) != null)
-            return variableNumberMappings.get(variableNumber);
+    public int getMappedVariableNumber(int quorumLocation) {
+        if (quorumToJavaNumberVariableMap.get(quorumLocation) != null)
+            return quorumToJavaNumberVariableMap.get(quorumLocation);
         else
             return -1;
     }

@@ -419,11 +419,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      */
     private void performLocalAssignment(TypeDescriptor valueType, AssignmentStep step) {
         int variableNumber = step.getVariable().getVariableNumber() - currentClass.getNumberOfVariables();
-        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
 
+        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+        
+        // Is it defined yet?
+        if (mappedVariableNumber == -1) {
+            stack.setVariable(variableNumber, valueType);
+            mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+        }
         //processExpressions();
         methodVisitor.visitVarInsn(QuorumConverter.getStoreOpcode(valueType), mappedVariableNumber);
-        stack.setVariable(variableNumber, valueType);
+        //stack.setVariable(variableNumber, valueType);
     }
 
     /**
