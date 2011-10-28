@@ -58,21 +58,24 @@ public class IntermediateExecutionBuilder {
      */
     public void addStepLabel(OpcodeType stepType){
         int position = -1;
+        OpcodeTracker tracker = null;
         if(getCurrentMethod() == null){
             ClassExecution clazz = this.getCurrentClass();
+            tracker = clazz.getTracker();
             position = clazz.getStepCount();
             if(stepType.equals(OpcodeType.ROOT_EXPRESSION)){
-                clazz.getTracker().addBeginIndex(position, stepType);
+                tracker.addBeginIndex(position, stepType);
             }else{
-                clazz.getTracker().addBeginIndex(position - 1, stepType);
+                tracker.addBeginIndex(position - 1, stepType);
             }
         }else{
             MethodExecution method = this.getCurrentMethod();
+            tracker = method.getTracker();
             position = method.getStepCount();
             if(stepType.equals(OpcodeType.ROOT_EXPRESSION)){
-                method.getTracker().addBeginIndex(position, stepType);
+                tracker.addBeginIndex(position, stepType);
             }else{
-                method.getTracker().addBeginIndex(position - 1, stepType);
+                tracker.addBeginIndex(position - 1, stepType);
             }
         }
     }
@@ -248,14 +251,18 @@ public class IntermediateExecutionBuilder {
      * @param method
      */
     public void begin(MethodDescriptor method) {
-        MethodExecution builder = new MethodExecution();
-        builder.setMethodDescriptor(method);
-        builder.setVm(vm);
-        if(this.getCurrentMethod() == null){
-            builder.setTracker(getCurrentClass().getTracker());
-        }else{
-            builder.setTracker(getCurrentMethod().getTracker());
+        MethodExecution builder;
+        if(currentClass.getMethod(method.getStaticKey()) != null) {
+            builder = currentClass.getMethod(method.getStaticKey());
+            builder.setMethodDescriptor(method);
+            builder.setVm(vm);
         }
+        else {
+            builder = new MethodExecution();
+            builder.setMethodDescriptor(method);
+            builder.setVm(vm);
+            currentClass.add(builder);
+        }        
         currentMethod = builder;
 
     }

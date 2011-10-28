@@ -25,7 +25,7 @@ public class LinearExecution {
     private AbstractVirtualMachine vm;
     private SymbolTable symbolTable;
     private HashMap<String, Integer> labels;
-    private OpcodeTracker tracker = new OpcodeTracker();
+    private OpcodeTracker tracker;
     private boolean built;
     private int address;
 
@@ -160,12 +160,5 @@ public class LinearExecution {
      */
     public OpcodeTracker getTracker() {
         return tracker;
-    }
-
-    /**
-     * @param tracker the tracker to set
-     */
-    public void setTracker(OpcodeTracker tracker) {
-        this.tracker = tracker;
     }
 }
