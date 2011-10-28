@@ -1031,9 +1031,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-//        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey)) {
-//            return;
-//        }
+        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey)) {
+            return;
+        }
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
 
@@ -1832,6 +1832,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         String converted = "";
         if (!step.IsObjectCall()) {
             converted = processedClazzName;
+            
+            // It's a call on the 'this' object.
+            methodVisitor.visitVarInsn(ALOAD, 0);
         }
         else {
             VariableParameterCommonDescriptor var = step.getParentObject();

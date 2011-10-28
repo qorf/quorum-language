@@ -10,6 +10,7 @@ import java.util.Vector;
 import org.quorum.vm.interfaces.AbstractVirtualMachine;
 import org.quorum.execution.ExecutionStep;
 import org.quorum.symbols.*;
+import org.quorum.vm.implementation.OpcodeTracker;
 import org.quorum.vm.implementation.OpcodeType;
 
 /**
@@ -250,6 +251,11 @@ public class IntermediateExecutionBuilder {
         MethodExecution builder = new MethodExecution();
         builder.setMethodDescriptor(method);
         builder.setVm(vm);
+        if(this.getCurrentMethod() == null){
+            builder.setTracker(getCurrentClass().getTracker());
+        }else{
+            builder.setTracker(getCurrentMethod().getTracker());
+        }
         currentMethod = builder;
 
     }

@@ -1113,6 +1113,12 @@ public class StepFactory {
                     me = new MethodExecution();
                     me.setMethodDescriptor(method);
                     me.setVm(machine);
+                    if(machine.getBuilder().getCurrentMethod() == null){
+                        me.setTracker(machine.getBuilder().getCurrentClass().getTracker());
+                    }else{
+                        me.setTracker(machine.getBuilder().getCurrentMethod().getTracker());
+                    }
+                    
                     ce.add(me);
                 }
             }
@@ -1349,6 +1355,11 @@ public class StepFactory {
                         me = new MethodExecution();
                         me.setMethodDescriptor(method);
                         me.setVm(machine);
+                        if(machine.getBuilder().getCurrentMethod() == null){
+                            me.setTracker(machine.getBuilder().getCurrentClass().getTracker());
+                        }else{
+                            me.setTracker(machine.getBuilder().getCurrentMethod().getTracker());
+                        }
                         ce.add(me);
                     }
 

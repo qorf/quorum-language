@@ -32,6 +32,7 @@ public class LinearExecution {
     public LinearExecution() {
         steps = new Vector<ExecutionStep>();
         labels = new HashMap<String, Integer>();
+        tracker = new OpcodeTracker();
     }
 
     /**
@@ -159,5 +160,12 @@ public class LinearExecution {
      */
     public OpcodeTracker getTracker() {
         return tracker;
+    }
+
+    /**
+     * @param tracker the tracker to set
+     */
+    public void setTracker(OpcodeTracker tracker) {
+        this.tracker = tracker;
     }
 }
