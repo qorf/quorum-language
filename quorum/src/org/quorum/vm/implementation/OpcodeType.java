@@ -19,7 +19,8 @@ public enum OpcodeType {
     FROM,
     TIMES,
     IF, 
-    PRINT;
+    PRINT, 
+    RETURN;
     //fill in other categories as/if needed.
 }
 

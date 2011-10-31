@@ -850,6 +850,7 @@ return_statement
 
                 symbol.addStatementFlagToCurrentFile(step.getBeginLine());
 		stepFactory.addReturnStep(location, $root_expression.eval, $root_expression.step);
+		builder.addStepLabel(OpcodeType.RETURN);
 	}
 	| NOW 
 	{
@@ -862,6 +863,7 @@ return_statement
 
                 symbol.addStatementFlagToCurrentFile($RETURN.getLine());
 		stepFactory.addReturnStep(location, null, null);
+		builder.addStepLabel(OpcodeType.RETURN);
 	}
 	)
 	;
