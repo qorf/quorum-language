@@ -1031,9 +1031,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey)) {
-            return;
-        }
+//        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey)) {
+//            return;
+//        }
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
 
@@ -1156,16 +1156,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 if (finalPosition >= 0) {
                     i = finalPosition;
                 }
-            } else if (opcodeType == OpcodeType.METHOD_CALL) {
+            } else if (opcodeType == OpcodeType.METHOD_CALL) {//if we have a method call in an expression(never a solo method call).
                 int lookahead = 0;
-                tracker.addToQueue(i);
                 
-                do {
-                    opcodeType = tracker.getOpcodeType(i + lookahead + 1);
+                do {//find the final position indicated by any opcode type other than null or another method call.
                     lookahead++;
-                } while (opcodeType == null);
+                    opcodeType = tracker.getOpcodeType(i + lookahead);
+                } while (opcodeType == null || opcodeType == OpcodeType.METHOD_CALL);
                 
                 i = (lookahead) + i;
+                
+                //mark the end of the visits
+                tracker.addToQueue(i);
+                
+                //visit the final step which should process all the queued up steps.
                 ExecutionStep step = steps.get(i);
                 step.visit(this);
             } else {

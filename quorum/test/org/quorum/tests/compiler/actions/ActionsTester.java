@@ -240,7 +240,7 @@ public class ActionsTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("false"));
+        assert(r.getLine(0).equals("Hello World!"));
     }
     
     @Test
@@ -291,7 +291,7 @@ public class ActionsTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("555"));
+        assert(r.getLine(0).equals("5"));
     }
 
     @Test
@@ -320,7 +320,7 @@ public class ActionsTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("i"));
+        assert(r.getLine(0).equals("5"));
     }
 
     @Test
