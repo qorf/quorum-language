@@ -1,9 +1,15 @@
 class Main
     action Main
+        print foo()
+        number k = foo()
+        print k
         foo()
+        foo()
+        foo()
+        print 2.0 + 4.0
     end
 
-    action foo
-        print "bar"
+    action foo returns number
+        return 7.0
     end
 end

@@ -1599,7 +1599,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		
 		if(fel!=null){
 			builder.addCallLabel(parameterPosition);
-			builder.addStepLabel(OpcodeType.METHOD_CALL);
+			//j builder.addStepLabel(OpcodeType.METHOD_CALL);
 		}
 		
 		ResultTuple result =  stepFactory.addCallStep(info);
@@ -1607,6 +1607,9 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		temp = result.getNextRegister();
 		$eval = result.getValue();
 		$step = result.getStep();
+		if(fel!=null){
+			builder.addStepLabel(OpcodeType.METHOD_CALL);
+		}
 
 	}
 	|	^(QUALIFIED_SOLO_EXPRESSION qualified_name (COLON ID)?)

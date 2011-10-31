@@ -1156,6 +1156,18 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 if (finalPosition >= 0) {
                     i = finalPosition;
                 }
+            } else if (opcodeType == OpcodeType.METHOD_CALL) {
+                int lookahead = 0;
+                tracker.addToQueue(i);
+                
+                do {
+                    opcodeType = tracker.getOpcodeType(i + lookahead + 1);
+                    lookahead++;
+                } while (opcodeType == null);
+                
+                i = (lookahead) + i;
+                ExecutionStep step = steps.get(i);
+                step.visit(this);
             } else {
 
                 //queue up the ending opcodes but still visit them (assignment, print, etc.)
@@ -1839,10 +1851,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         else {
             VariableParameterCommonDescriptor var = step.getParentObject();
             converted = QuorumConverter.convertStaticKeyToBytecodePath(var.getType().getStaticKey());
-        }   
+        }
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted,
                     callee.getName(),
                     QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));
+        
+        // Is the method return type void? If not, push its return type onto the stack.
+        if (!step.getMethodCallee().getReturnType().isVoid()) {
+            stack.pushExpressionType(step.getMethodCallee().getReturnType());
+        }
         
        /* MethodDescriptor callee = step.getMethodCallee();
         //NOTE: step.isThisCall is not what you want here, that's different
