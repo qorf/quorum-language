@@ -351,6 +351,35 @@ public class ActionsTester {
         
         assert(r.getLine(0).equals("5.0"));
     }
+        
+    @Test
+    public void test_simple_one_action_no_params_return_number_concatenate_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleOneActionNoParamsReturnNumberConcatenate.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("result");
+        double d = variableValue.getResult().number;
+        if(d != 24.0) {
+            fail();
+        }
+    }
+
+    @Test
+    public void test_simple_one_action_no_params_return_number_concatenate_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleOneActionNoParamsReturnNumberConcatenate.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("36.0"));
+    }
     
     @Test
     public void test_simple_one_action_two_params_return_int_execute(){
