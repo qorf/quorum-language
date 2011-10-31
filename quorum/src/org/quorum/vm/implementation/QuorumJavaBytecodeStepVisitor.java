@@ -312,7 +312,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             ParameterDescriptor parameter = method.getParameters().get(i - 1);
             constantType.setName(parameter.getType().getName());
             
-            stack.setVariable(i, constantType);
+            stack.addParameter(parameter.getName(), parameter.getType());
         }
     }
 
@@ -1850,7 +1850,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             converted = processedClazzName;
             
             // It's a call on the 'this' object.
-            methodVisitor.visitVarInsn(ALOAD, 0);
+            if (callee.getParameters().isEmpty())
+                methodVisitor.visitVarInsn(ALOAD, 0);
         }
         else {
             VariableParameterCommonDescriptor var = step.getParentObject();
@@ -2375,13 +2376,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 pushVariable(step.getValue().getType(), variableNumber);
             }
         }else if(step.getValue() instanceof ParameterDescriptor){
-//                ParameterDescriptor varDescriptor = (ParameterDescriptor) step.getValue();
-//                int variableNumber = varDescriptor.getVariableNumber();
-//                methodVisitor.visitVarInsn(ALOAD, variableNumber );
-//                //methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()),
-//                //varDescriptor.getName(), QuorumConverter.convertTypeToBytecodeString(varDescriptor.getType()));
-//                variable = varDescriptor.getType();
-            
+                ParameterDescriptor varDescriptor = (ParameterDescriptor) step.getValue();
+                int variableNumber = stack.getParameterNumber(varDescriptor.getName());
+                methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(step.getValue().getType()), variableNumber);
+                //methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()),
+                //varDescriptor.getName(), QuorumConverter.convertTypeToBytecodeString(varDescriptor.getType()));            
         }
         
         //push the type of the variable on the top of the stack

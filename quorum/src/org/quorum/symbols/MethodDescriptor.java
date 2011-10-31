@@ -114,6 +114,7 @@ public class MethodDescriptor extends Descriptor implements Scopable {
             return error;
         } else {
             variables.put(d.getName(), d);
+           // d.setVariableNumber(getNumberOfVariables());
             return null;
         }
     }

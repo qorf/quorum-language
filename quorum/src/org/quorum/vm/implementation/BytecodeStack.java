@@ -23,6 +23,7 @@ public class BytecodeStack {
     private OmniscientStack<LabelStackValue> labels = new OmniscientStack<LabelStackValue>();
     private HashMap<Integer, Integer> quorumToJavaNumberVariableMap = new HashMap<Integer, Integer>();
     private HashMap<Integer, TypeDescriptor> variables = new HashMap<Integer, TypeDescriptor>();
+    private HashMap<String, Integer> methodParametersMap = new HashMap<String, Integer>();
     private Stack<Integer> loopCounterVariables = new Stack<Integer>();
     private Stack<Integer> loopMaximumVariables = new Stack<Integer>();
     private int startingVariable = 0; 
@@ -236,6 +237,7 @@ public class BytecodeStack {
         quorumToJavaNumberVariableMap.clear();
         loopCounterVariables.clear();
         loopMaximumVariables.clear();
+        methodParametersMap.clear();
         setStartingVariableNumber(startingVariableNumber);
     }
     
@@ -279,5 +281,33 @@ public class BytecodeStack {
             return quorumToJavaNumberVariableMap.get(quorumLocation);
         else
             return -1;
+    }
+
+    /**
+     * Add a parameter to the local variable pool.
+     * 
+     * **MUST** be called before any other variables are added.
+     * 
+     * @param name
+     * @param type
+     */
+    public void addParameter(String name, TypeDescriptor type) {
+        int size = QuorumConverter.getSizeOfType(type);
+        methodParametersMap.put(name, currentVariablesSize + 1);
+        currentVariablesSize += size;
+        
+        if(currentVariablesSize > maxVariablesSize) {
+            maxVariablesSize = currentVariablesSize;
+        }
+    }
+    
+    /**
+     * Get the number (in the local variable pool) of the given parameter.
+     * 
+     * @param name
+     * @return 
+     */
+    public int getParameterNumber(String name) {
+        return methodParametersMap.get(name);
     }
 }
