@@ -1087,6 +1087,7 @@ assignment_statement
 			stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, isLocal);
 		}
                 else { // are we are trying to instantiate an object?
+                	builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
                     	stepFactory.addAssignmentStep(location, $ID.text, isLocal);
                 }
                 builder.addStepLabel(OpcodeType.ASSIGNMENT);

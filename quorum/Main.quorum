@@ -1,9 +1,23 @@
 class Main
     action Main
-        print foo(0.0, 1.0)
+       integer a = 10
+       boolean result
+       if odd(a) then
+            result = true
+       end
+       else then
+            result = false
+       end
+
+       print result
     end
 
-    action foo(number man, number choo) returns number
-        return man + choo
+    action odd (integer a) returns boolean
+        if a mod 2 = 0 then
+            return false
+        end
+        else then
+            return true
+        end
     end
 end
