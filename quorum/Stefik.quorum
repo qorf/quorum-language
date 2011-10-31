@@ -14,13 +14,13 @@ java -cp "../../../dependencies/phonemic.jar:./" quorum.Stefik
 
 
 */
-class Stefik
+class Stefik is a StefikGrand
     action Main
-        //integer i = GetHashCode()
-        print "Hello, World!"
-        //print i
+        integer a = monkey()
+        print a
     end
 
-    system action JeffSmells
-    //system action GetHashCode() returns integer
+    action monkey returns integer
+        return 0
+    end
 end

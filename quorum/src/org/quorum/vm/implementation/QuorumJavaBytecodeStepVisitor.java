@@ -94,21 +94,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         if (isParent) {
             //initialize all of the parent objects as fields
-            Iterator<ClassDescriptor> parents = currentClass.getFlattenedListOfParents();
-            while (parents.hasNext()) {
-                ClassDescriptor parent = parents.next();
-                String parentKey = parent.getStaticKey();
-                String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
-                String converted = QuorumConverter.convertStaticKeyToBytecodePath(parentKey);
+//            Iterator<ClassDescriptor> parents = currentClass.getFlattenedListOfParents();
+//            while (parents.hasNext()) {
+//                ClassDescriptor parent = parents.next();
+//                String parentKey = parent.getStaticKey();
+//                String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
+//                String converted = QuorumConverter.convertStaticKeyToBytecodePath(parentKey);
 //                methodVisitor.visitVarInsn(ALOAD, THIS);
 //                methodVisitor.visitTypeInsn(NEW, converted);
 //                methodVisitor.visitInsn(DUP);
 //                //push a boolean onto the stack
 //                methodVisitor.visitInsn(ICONST_0);
-//                fieldSize++;
 //                methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "(Z)V");
 //                methodVisitor.visitFieldInsn(PUTFIELD, name, parentName, QuorumConverter.convertStaticKeyToBytecodePathTypeName(parentKey));
-            }
+//            }
             
             //now that all parents have been instantiated, get 
             //their parents and set them appropriately
@@ -117,7 +116,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //                ClassDescriptor parent = parents.next();
 //                String parentKey = parent.getStaticKey();
 //                String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
-//                String converted = QuorumConverter.convertStaticKeyToBytecodePath(parentKey);
+//                String convertedParentName = QuorumConverter.convertStaticKeyToBytecodePath(parentKey);
 //                
 //                Iterator<ClassDescriptor> grandParents = parent.getFlattenedListOfParents();
 //                while(grandParents.hasNext()) {
@@ -126,11 +125,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //                    String grandParentName = QuorumConverter.convertParentStaticKeyToValidName(grandParent.getStaticKey());
 //                    String convertedGrandParent = QuorumConverter.convertStaticKeyToBytecodePath(grandParentKey);
 //                    
-//                    
-//                    
-//                    //GET the field for the parent
-//                    
-//                    //PUT the appropriate grand parent field in its place
+//                    //load the this pointer
+//                    methodVisitor.visitVarInsn(ALOAD, 0);
+//                    //get the current object's parent field
+//                    methodVisitor.visitFieldInsn(GETFIELD, this.processedClazzName, grandParentName, convertedGrandParent);
+//                    //put it into the appropriate parent
+//                    methodVisitor.visitFieldInsn(PUTFIELD, convertedParentName, grandParentName, convertedGrandParent);
 //                }
 //            }
         }
@@ -1083,16 +1083,16 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //add a constructor that initializes its parents
         computeConstructor(true);
         //add a constructor that doesn't
-       // computeConstructor(false);
+//        computeConstructor(false);
 
         
         //now dump all of the parent methods that 
         //are not in the base class out as wrapper functions.
-        /*parents = currentClass.getFlattenedListOfParents();
-        while (parents.hasNext()) {
-            ClassDescriptor parent = parents.next();
-            computeParentMethods(parent);
-        }*/
+//        parents = currentClass.getFlattenedListOfParents();
+//        while (parents.hasNext()) {
+//            ClassDescriptor parent = parents.next();
+//            computeParentMethods(parent);
+//        }
 
         //now do all methods
         Iterator<MethodExecution> methods = clazz.getMethods();
