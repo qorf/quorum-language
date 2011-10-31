@@ -73,6 +73,34 @@ public class ActionsTester {
     }
 
     @Test
+    public void test_pass_call_object_action_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "CallObjectAction.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("toPrint");
+        String toPrint = variableValue.getResult().text;
+        if(toPrint.compareTo("I went") != 0) {
+            fail();
+        }
+    }
+
+    @Test
+    public void test_pass_call_object_action_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "CallObjectAction.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("I went"));
+    }
+    
+    @Test
     public void test_pass_factorial_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "Factorial.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -295,6 +323,35 @@ public class ActionsTester {
     }
 
     @Test
+    public void test_simple_one_action_no_params_return_boolean_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleOneActionNoParamsReturnBoolean.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("d");
+        boolean d = variableValue.getResult().boolean_value;
+        if(d) {
+            fail();
+        }
+    }
+
+    @Test
+    public void test_simple_one_action_no_params_return_boolean_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleOneActionNoParamsReturnBoolean.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+    }
+    
+    @Test
     public void test_simple_one_action_no_params_return_int_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleOneActionNoParamsReturnInt.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -379,6 +436,35 @@ public class ActionsTester {
             fail();
         
         assert(r.getLine(0).equals("36.0"));
+    }
+    
+    @Test
+    public void test_simple_one_action_no_params_return_text_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleOneActionNoParamsReturnText.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("d");
+        String d = variableValue.getResult().text;
+        if(d.compareTo("5.0") != 0) {
+            fail();
+        }
+    }
+
+    @Test
+    public void test_simple_one_action_no_params_return_text_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleOneActionNoParamsReturnText.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5.0"));
     }
     
     @Test
