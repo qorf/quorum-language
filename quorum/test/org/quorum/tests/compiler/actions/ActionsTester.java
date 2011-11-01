@@ -185,6 +185,202 @@ public class ActionsTester {
     }
     
     @Test
+    public void test_pass_multiple_nested_function_calls_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "MultipleNestedFunctionCalls.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        int a = variableValue.getResult().integer;
+        if(a != 65536) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_multiple_nested_function_calls_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "MultipleNestedFunctionCalls.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("65536"));
+    }
+    
+    @Test
+    public void test_pass_multiple_nested_function_calls_double_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "MultipleNestedFunctionCallsDouble.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        double a = variableValue.getResult().number;
+        if(a != 65536.0) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_multiple_nested_function_calls_double_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "MultipleNestedFunctionCallsDouble.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("65536.0"));
+    }
+    
+    @Test
+    public void test_pass_multiple_nested_function_calls_in_solo_call_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "MultipleNestedFunctionCallsInSoloCall.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("toPrint");
+        int a = variableValue.getResult().integer;
+        if(a != 65536) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_multiple_nested_function_calls_in_solo_call_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "MultipleNestedFunctionCallsInSoloCall.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("65536"));
+    }
+    
+    @Test
+    public void test_pass_multiple_nested_function_calls_with_assignments_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "MultipleNestedFunctionCallsWithAssignments.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        int a = variableValue.getResult().integer;
+        if(a != 65536) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_multiple_nested_function_calls_with_assignments_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "MultipleNestedFunctionCallsWithAssignments.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("65536"));
+    }
+    
+    @Test
+    public void test_pass_multiple_nested_function_calls_with_assignments_double_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "MultipleNestedFunctionCallsWithAssignmentsDouble.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        double a = variableValue.getResult().number;
+        if(a != 65536.0) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_multiple_nested_function_calls_with_assignments_double_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "MultipleNestedFunctionCallsWithAssignmentsDouble.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("65536.0"));
+    }
+    
+    @Test
+    public void test_pass_nested_function_call_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "NestedFunctionCall.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        int a = variableValue.getResult().integer;
+        if(a != 300) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_nested_function_call_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "NestedFunctionCall.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("300"));
+    }
+    
+    @Test
+    public void test_pass_nested_function_call_double_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "NestedFunctionCallDouble.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        double a = variableValue.getResult().number;
+        if(a != 300.0) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_nested_function_call_double_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "NestedFunctionCallDouble.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("300.0"));
+    }
+    
+    @Test
     public void test_simple_nested_actions_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleNestedActions.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
