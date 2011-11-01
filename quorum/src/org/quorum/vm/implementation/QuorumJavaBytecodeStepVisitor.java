@@ -48,6 +48,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private final String PLUGIN_NAME = "<plugin>";
     private int fieldSize = 1;
     private boolean first = true;
+    private boolean nestedMethodCall = false;
     
     public QuorumJavaBytecodeStepVisitor() {
     }
@@ -890,6 +891,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //for each item in the queue excluding the last 
         //item(which is the opcode processing the expressions)
         for (int j = 0; j < tracker.getQueueSize() - 1; j++) {
+            nestedMethodCall = false;
+            
             //check queue for its current value
             int begin = tracker.removeFromQueue();
             int end = tracker.peekQueue();
@@ -918,6 +921,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 
                 ExecutionStep step = steps.get(i);
                 step.visit(this);
+                
+                if (step instanceof CallStep && ((CallStep)step).isNested())
+                    nestedMethodCall = true;
+                else if (step instanceof CallStep && !((CallStep)step).isNested()) {
+                    nestedMethodCall = false;
+                }
             }
 
             //clear out the queue at the end of visiting
@@ -925,6 +934,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 tracker.clearQueue();
             }
         }
+        
+        
     }
     
     /**
@@ -1031,9 +1042,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)) {
+        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey)) {//&& !"Libraries.Language.Object".equals(staticKey)) {
             return;
         }
+        
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
 
@@ -1850,13 +1862,22 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             converted = processedClazzName;
             
             // It's a call on the 'this' object.
-            if (callee.getParameters().isEmpty())
+            if (callee.getParameters().isEmpty() && !step.isSoloMethodCall()) {
                 methodVisitor.visitVarInsn(ALOAD, 0);
+            }
+            else if (step.isSoloMethodCall()) {
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                processExpressions();
+            }
         }
         else {
             VariableParameterCommonDescriptor var = step.getParentObject();
             converted = QuorumConverter.convertStaticKeyToBytecodePath(var.getType().getStaticKey());
         }
+        
+        if (nestedMethodCall)
+            methodVisitor.visitInsn(SWAP);
+        
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted,
                     callee.getName(),
                     QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));
@@ -2378,6 +2399,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }else if(step.getValue() instanceof ParameterDescriptor){
                 ParameterDescriptor varDescriptor = (ParameterDescriptor) step.getValue();
                 int variableNumber = stack.getParameterNumber(varDescriptor.getName());
+                variable = varDescriptor.getType();
                 methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(step.getValue().getType()), variableNumber);
                 //methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()),
                 //varDescriptor.getName(), QuorumConverter.convertTypeToBytecodeString(varDescriptor.getType()));            

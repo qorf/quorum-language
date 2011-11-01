@@ -48,6 +48,7 @@ public class CallStep extends IntermediateStep {
     protected int previousThisPointer;
     private VariableParameterCommonDescriptor parentObject;
     private boolean isThisCall = false;
+    private boolean isSoloMethodCall = false;
     /**
      * This value represents the object hash for the parent of this
      * call. In other words, it represents which object the call step
@@ -56,6 +57,8 @@ public class CallStep extends IntermediateStep {
      */
     protected int objectHashParent = -1;
     protected Stack<Integer> objectParentStack = new Stack<Integer>();
+    private boolean isNested = false;
+    
 
     @Override
     public void execute() {
@@ -463,5 +466,30 @@ public class CallStep extends IntermediateStep {
     @Override
     public void visit(ExecutionStepVisitor visitor) {
         visitor.visit(this);
+    }
+
+    /**
+     * @return the isSoloMethodCall
+     */
+    public boolean isSoloMethodCall() {
+        return isSoloMethodCall;
+    }
+
+    /**
+     * @param isSoloMethodCall the isSoloMethodCall to set
+     */
+    public void setIsSoloMethodCall(boolean isSoloMethodCall) {
+        this.isSoloMethodCall = isSoloMethodCall;
+    }
+
+    public void setIsNestedMethodCall(boolean nested) {
+        this.isNested = nested;
+    }
+
+    /**
+     * @return the isNested
+     */
+    public boolean isNested() {
+        return isNested;
     }
 }

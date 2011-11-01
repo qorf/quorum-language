@@ -1,23 +1,16 @@
+// b should evaluate to 120
+
 class Main
     action Main
-       integer a = 10
-       boolean result
-       if odd(a) then
-            result = true
-       end
-       else then
-            result = false
-       end
-
-       print result
+       integer b = factorial(5)
+       print b
     end
 
-    action odd (integer a) returns boolean
-        if a mod 2 = 0 then
-            return false
-        end
-        else then
-            return true
-        end
+    action factorial(integer num) returns integer
+        /*if num <= 1 then
+            return 1
+        end else then*/
+            return factorial(num - 1) * num
+        //end
     end
 end

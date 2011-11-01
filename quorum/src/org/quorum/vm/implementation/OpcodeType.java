@@ -20,7 +20,8 @@ public enum OpcodeType {
     TIMES,
     IF, 
     PRINT, 
-    RETURN;
+    RETURN,
+    SOLO_METHOD_CALL;
     //fill in other categories as/if needed.
 }
 

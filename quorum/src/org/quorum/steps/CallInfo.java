@@ -71,4 +71,15 @@ public class CallInfo {
      * Determines if this was a call explicitly made on the "this" pointer.
      */
     public boolean isThisCall = false;
+    
+    /**
+     * True if this call is a solo method call determined by the symbol table
+     * walker.
+     */
+    public boolean isSoloMethod = false;
+    
+    /**
+     * Is this method a parameter to another method?
+     */
+    public boolean isNested = false;
 }

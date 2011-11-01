@@ -38,7 +38,8 @@ import java.util.Enumeration;
 	//used to create unique label hashes
 	static int labelCounter = 0;
 	static int sub_counter = 0;
-
+	boolean inCallStep = false;
+	
 	//the register number, used to place values into fake registers in the computer
 	static int temp = 0;
 	public void setQuorumVirtualMachine(QuorumVirtualMachine m) {
@@ -349,7 +350,10 @@ solo_method_call
 	Vector<String> types = new Vector<String>();
 	Vector<TypeDescriptor> argumentTypes = new Vector<TypeDescriptor>();
 }
-	:	
+	:	{
+			inCallStep = true;
+			builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+		}
 		^(SOLO_FUNCTION_CALL qualified_name (COLON ID)? LEFT_PAREN (
 		e = expression 
 		{
@@ -400,10 +404,13 @@ solo_method_call
 		info.argumentTypes = argumentTypes;
 		info.methodName = myMethodName;
 		info.isObjectCall = ($ID != null);
+		info.isSoloMethod = true;
 		
 		ResultTuple result =  stepFactory.addCallStep(info);
+		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL);		
 		
 		temp = result.getNextRegister();
+		inCallStep = false;
 		}
 	|	^(SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN 
 		(e = expression
@@ -453,8 +460,10 @@ solo_method_call
 		info.argumentTypes = argumentTypes;
 		info.methodName = myMethodName;
 		info.isObjectCall = ($ID != null);
+		info.isSoloMethod = true;
 		
 		ResultTuple result =  stepFactory.addParentCallStep(info);
+		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL);
 		
 		temp = result.getNextRegister();
 		}
@@ -505,9 +514,10 @@ solo_method_call
 		info.argumentTypes = argumentTypes;
 		info.methodName = myMethodName;
 		info.isObjectCall = ($ID != null);
+		info.isSoloMethod = true;
 		
 		ResultTuple result =  stepFactory.addCallStep(info);
-		
+		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL);
 		temp = result.getNextRegister();
 		}
 	;
@@ -1544,7 +1554,17 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		$eval = result.getValue();
 		$step = result.getStep();
 	}
-	|	^(FUNCTION_CALL qualified_name(COLON ID)? LEFT_PAREN fel = function_expression_list RIGHT_PAREN) //the id is non-null example: Animal.Dog:walk(50), null walk(50)
+	|	^(FUNCTION_CALL qualified_name(COLON ID)? LEFT_PAREN
+	{
+		boolean unsetFlag = false;
+		boolean nested = inCallStep;
+		if (!inCallStep) {
+			// We are now inside a call step--set the flag appropriately.
+			inCallStep = true;
+			unsetFlag = true;
+		}
+	}
+		 fel = function_expression_list RIGHT_PAREN) //the id is non-null example: Animal.Dog:walk(50), null walk(50)
 	{							//Dog.walk(50) should be dissallowed during semantic analysis
 		LineInformation location = new LineInformation();
                 location.setEndColumn($qualified_name.type.getColumnEnd());
@@ -1597,6 +1617,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		info.argumentTypes = argumentTypes;
 		info.methodName = myMethodName;
 		info.isObjectCall = ($ID != null);
+		info.isNested = nested;
 		
 		if(fel!=null){
 			builder.addCallLabel(parameterPosition);
@@ -1611,6 +1632,9 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		if(fel!=null){
 			builder.addStepLabel(OpcodeType.METHOD_CALL);
 		}
+		
+		if (unsetFlag)
+			inCallStep = false;
 
 	}
 	|	^(QUALIFIED_SOLO_EXPRESSION qualified_name (COLON ID)?)

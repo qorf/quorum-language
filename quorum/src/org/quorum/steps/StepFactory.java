@@ -1137,6 +1137,8 @@ public class StepFactory {
             CallStep step = new CallStep();
             step.setIsObjectCall(info.isObjectCall);
             step.setIsThisCall(info.isThisCall);
+            step.setIsSoloMethodCall(info.isSoloMethod);
+            step.setIsNestedMethodCall(info.isNested);
             if (info.isObjectCall) {
                 step.setParentObject(machine.getSymbolTable().getCurrentScope().getVariable(info.variable.getName()));
             }

@@ -65,7 +65,12 @@ public class IntermediateExecutionBuilder {
             position = clazz.getStepCount();
             if(stepType.equals(OpcodeType.ROOT_EXPRESSION)){
                 tracker.addBeginIndex(position, stepType);
-            }else{
+            } else if (stepType.equals(OpcodeType.SOLO_METHOD_CALL)) {
+                // We need to go "over" the DataStackPopStep, otherwise, we
+                // skip the CallStep.
+                tracker.addBeginIndex(position - 2, stepType);
+            }
+            else{
                 tracker.addBeginIndex(position - 1, stepType);
             }
         }else{
@@ -74,7 +79,12 @@ public class IntermediateExecutionBuilder {
             position = method.getStepCount();
             if(stepType.equals(OpcodeType.ROOT_EXPRESSION)){
                 tracker.addBeginIndex(position, stepType);
-            }else{
+            } else if (stepType.equals(OpcodeType.SOLO_METHOD_CALL)) {
+                // We need to go "over" the DataStackPopStep, otherwise, we
+                // skip the CallStep.
+                tracker.addBeginIndex(position - 2, stepType);
+            }
+            else{
                 tracker.addBeginIndex(position - 1, stepType);
             }
         }
