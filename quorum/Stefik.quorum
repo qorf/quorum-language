@@ -14,13 +14,13 @@ java -cp "../../../dependencies/phonemic.jar:./" quorum.Stefik
 
 
 */
-class Stefik is a StefikGrand
+class Stefik //is a StefikGrand
     action Main
-        integer a = monkey()
+        boolean a = monkey()
         print a
     end
 
-    action monkey returns integer
-        return 0
+    action monkey returns boolean
+        return 1 = 2
     end
 end
