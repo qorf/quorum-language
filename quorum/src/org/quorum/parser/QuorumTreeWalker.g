@@ -362,6 +362,7 @@ solo_method_call
 			registers.add($e.eval.getRegister());
 			types.add($e.eval.getType().getStaticKey());
                 	argumentTypes.add($e.eval.getType());
+                	inCallStep = false;
 		}
 		(COMMA e = expression 
 		{
@@ -410,7 +411,6 @@ solo_method_call
 		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL);		
 		
 		temp = result.getNextRegister();
-		inCallStep = false;
 		}
 	|	^(SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN 
 		(e = expression
@@ -420,6 +420,7 @@ solo_method_call
 			registers.add($e.eval.getRegister());
 			types.add($e.eval.getType().getStaticKey());
                 	argumentTypes.add($e.eval.getType());
+                	inCallStep = false;
 		} (COMMA e = expression
 		{
 			values.add($e.eval);
@@ -466,6 +467,7 @@ solo_method_call
 		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL);
 		
 		temp = result.getNextRegister();
+		inCallStep = false;
 		}
 	|	^(SOLO_FUNCTION_CALL_THIS ME COLON qualified_name (COLON ID)? LEFT_PAREN 
 		(e = expression 
@@ -475,6 +477,7 @@ solo_method_call
 			registers.add($e.eval.getRegister());
 			types.add($e.eval.getType().getStaticKey());
                 	argumentTypes.add($e.eval.getType());
+                	inCallStep = false;
 		}(COMMA e = expression
 		{
 			values.add($e.eval);
@@ -1978,7 +1981,13 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 function_expression_list returns [List list, int firstParam]
 @init{$list = new ArrayList(); $firstParam = -1;}
 	:
-	^(FUNCTION_EXPRESSION_LIST (e = expression 
+	^(FUNCTION_EXPRESSION_LIST (
+	{
+		if($list.size() >= 1){
+			inCallStep = false;
+		}
+	}
+	e = expression 
 	{
 		$list.add(e);
 		if($list.size() == 1){

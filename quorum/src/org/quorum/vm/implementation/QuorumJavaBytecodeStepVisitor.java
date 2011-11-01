@@ -1829,7 +1829,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visitCallSpecial(CallStep step) {
         MethodDescriptor callee = step.getMethodCallee();
         if (!step.IsObjectCall()) { //it's a this call, so load it
+            TypeDescriptor secondType = TypeDescriptor.getVoidType();
+            if(!stack.isExpressionTypeEmpty()){
+                secondType = stack.peekExpressionType();
+            }
             methodVisitor.visitVarInsn(ALOAD, THIS);
+            if (nestedMethodCall){
+                swapOperandStackValues(TypeDescriptor.getSystemObject(), secondType);
+                nestedMethodCall = false;
+            }
         }
         else { //handle the case where we are pushing the reference on 
                //to the stack from 
@@ -1874,9 +1882,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             VariableParameterCommonDescriptor var = step.getParentObject();
             converted = QuorumConverter.convertStaticKeyToBytecodePath(var.getType().getStaticKey());
         }
-        
-        if (nestedMethodCall)
-            methodVisitor.visitInsn(SWAP);
         
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted,
                     callee.getName(),

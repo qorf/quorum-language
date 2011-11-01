@@ -128,6 +128,10 @@ public class BytecodeStack {
         return expressionTypes.peek();
     }
     
+    public boolean isExpressionTypeEmpty(){
+        return expressionTypes.isEmpty();
+    }
+    
     /**
      * Push a label onto the label stack.
      * 

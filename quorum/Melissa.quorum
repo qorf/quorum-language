@@ -1,11 +1,16 @@
 class Melissa
+    integer toPrint = 0
+
     action Main
-       //number result = average(1.0) + average(1.0)
-       //print average(1.0)
-       average(1.2)
+        GetMultipliedResult(multiply(2,3))
+        print toPrint
     end
 
-    action average(number t) //returns number
-        //return 7.0 + 5
+    action multiply(integer a, integer b) returns integer
+        return a * b
+    end
+
+    action GetMultipliedResult(integer a)
+        toPrint = a 
     end
 end
