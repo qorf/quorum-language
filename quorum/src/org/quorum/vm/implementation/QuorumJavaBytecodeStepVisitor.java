@@ -1934,10 +1934,19 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), classNameSupplement);
             }
             else { //determine the local variable number and load it
-                //I don't recall exactly how to do that
-                int number = var.getVariableNumber();
-                int mapped = stack.getMappedVariableNumber(number);
-                methodVisitor.visitVarInsn(ALOAD, mapped);
+                if(var instanceof ParameterDescriptor){
+                    //we are now calling a method on a variable (aka object). If it 
+                    //is a parameter that we are calling on then load that parameter.
+                    ParameterDescriptor varDescriptor = (ParameterDescriptor) var;
+                    int number = stack.getParameterNumber(varDescriptor.getName());
+                    methodVisitor.visitVarInsn(ALOAD, number);
+                }else{
+                    //Otherwise, load the variable from the mapped variable on the
+                    //stack.
+                    int number = var.getVariableNumber();
+                    int mapped = stack.getMappedVariableNumber(number);
+                    methodVisitor.visitVarInsn(ALOAD, mapped);
+                }
             }
         }
     }
@@ -1974,10 +1983,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), classNameSupplement);
             }
             else { //determine the local variable number and load it
-                //I don't recall exactly how to do that
-                int number = var.getVariableNumber();
-                int mapped = stack.getMappedVariableNumber(number);
-                methodVisitor.visitVarInsn(ALOAD, mapped);
+                
+                //we are now calling a method on a variable (aka object). If it 
+                //is a parameter that we are calling on then load that parameter.
+                if(var instanceof ParameterDescriptor){
+                    ParameterDescriptor varDescriptor = (ParameterDescriptor) var;
+                    int number = stack.getParameterNumber(varDescriptor.getName());
+                    methodVisitor.visitVarInsn(ALOAD, number);
+                }else{
+                    //Otherwise, load the variable from the mapped variable on the
+                    //stack.
+                    int number = var.getVariableNumber();
+                    int mapped = stack.getMappedVariableNumber(number);
+                    methodVisitor.visitVarInsn(ALOAD, mapped);
+                }
             }
         }
         
@@ -2118,9 +2137,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //        if (variableNumber == -1) {
 //            return; //it's a field and we don't handle these yet.
 //        }
-
-        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
-
 //        BytecodeStackValue value = new BytecodeStackValue();
         TypeDescriptor type = new TypeDescriptor();
         type.setName(variable.getType().getName());
@@ -2141,8 +2157,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //        }
 
         stack.setVariable(variableNumber, type);
-
-
+        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
         if (mappedVariableNumber != -1) {
             methodVisitor.visitVarInsn(ASTORE, mappedVariableNumber);
         }
