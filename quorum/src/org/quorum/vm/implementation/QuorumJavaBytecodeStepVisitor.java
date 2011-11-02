@@ -873,6 +873,21 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     }
 
     /**
+     * Returns the current opcode tracker from the system.
+     * 
+     * @return 
+     */
+    public OpcodeTracker getCurrentTracker() {
+        OpcodeTracker tracker = null;
+
+        if (currentMethodExecution == null) {//if no current method execution
+            tracker = currentClassExecution.getTracker();
+        } else {//otherwise look in the method execution
+            tracker = currentMethodExecution.getTracker();
+        }
+        return tracker;
+    }
+    /**
      * Helper method: process the cached expressions whenever they need to be
      * processed. eg. while loops should be identified then the expressions are
      * inserted.
@@ -1077,9 +1092,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-//        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey)){// && !"Libraries.Language.Object".equals(staticKey)) {
-//            return;
-//        }
+        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
+                && !"Libraries.Language.Support.CompareResult".equals(staticKey)) {
+            return;
+        }
         
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
@@ -1918,8 +1934,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), classNameSupplement);
             }
             else { //determine the local variable number and load it
-                   //I don't recall exactly how to do that
-                
+                //I don't recall exactly how to do that
+                int number = var.getVariableNumber();
+                int mapped = stack.getMappedVariableNumber(number);
+                methodVisitor.visitVarInsn(ALOAD, mapped);
             }
         }
     }
@@ -1947,7 +1965,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         else {
             VariableParameterCommonDescriptor var = step.getParentObject();
-            converted = QuorumConverter.convertStaticKeyToBytecodePath(var.getType().getStaticKey());
+            boolean field = var.isFieldVariable();
+            if(field) {
+                String key = currentClass.getStaticKey();
+                String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
+                String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), classNameSupplement);
+            }
+            else { //determine the local variable number and load it
+                //I don't recall exactly how to do that
+                int number = var.getVariableNumber();
+                int mapped = stack.getMappedVariableNumber(number);
+                methodVisitor.visitVarInsn(ALOAD, mapped);
+            }
         }
         
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted,
