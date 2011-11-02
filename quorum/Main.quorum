@@ -1,16 +1,9 @@
-// b should evaluate to 120
-
 class Main
     action Main
-       integer b = factorial(5)
-       print b
+       print z(2 - 3)
     end
 
-    action factorial(integer num) returns integer
-        /*if num <= 1 then
-            return 1
-        end else then*/
-            return factorial(num - 1) * num
-        //end
+    action z(integer k) returns integer
+        return k
     end
 end
