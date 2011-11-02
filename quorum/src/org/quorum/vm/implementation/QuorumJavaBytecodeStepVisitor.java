@@ -48,7 +48,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private final String PLUGIN_NAME = "<plugin>";
     private int fieldSize = 1;
     private boolean first = true;
-    private boolean nestedMethodCall = false;
     
     public QuorumJavaBytecodeStepVisitor() {
     }
@@ -893,8 +892,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //for each item in the queue excluding the last 
         //item(which is the opcode processing the expressions)
         for (int j = 0; j < tracker.getQueueSize() - 1; j++) {
-            nestedMethodCall = false;
-            
             //check queue for its current value
             int begin = tracker.removeFromQueue();
             int end = tracker.peekQueue();
@@ -907,28 +904,24 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 //for that function call
                 boolean funcParam = tracker.containsFunctionParameterMapping(i);
                 if(funcParam) {
-                    int callStepNumber = tracker.getFunctionParameterMapping(i);
-                    ExecutionStep callStep = steps.get(callStepNumber);
-                    if(callStep instanceof CallStep) {
-                        CallStep call = (CallStep) callStep;
-                        //insert the pointer for the object being called upon
-                        visitCallSpecial(call);
-                    }
-                    else {
-                        Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
-                                Level.SEVERE, "Function mapping between opcode parameters "
-                                + "and callsteps results in incorrect values. This is a compiler bug.");
+                    ArrayList<Integer> callLocations = tracker.getFunctionParameterMapping(i);
+                    for(int k = 0; k < callLocations.size(); k++){
+                        ExecutionStep callStep = steps.get(callLocations.get(k));
+                        if(callStep instanceof CallStep) {
+                            CallStep call = (CallStep) callStep;
+                            //insert the pointer for the object being called upon
+                            visitCallSpecial(call);
+                        }
+                        else {
+                            Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
+                                    Level.SEVERE, "Function mapping between opcode parameters "
+                                    + "and callsteps results in incorrect values. This is a compiler bug.");
+                        }
                     }
                 }//if no, do nothing
                 
                 ExecutionStep step = steps.get(i);
                 step.visit(this);
-                
-                if (step instanceof CallStep && ((CallStep)step).isNested())
-                    nestedMethodCall = true;
-                else if (step instanceof CallStep && !((CallStep)step).isNested()) {
-                    nestedMethodCall = false;
-                }
             }
 
             //clear out the queue at the end of visiting
@@ -973,16 +966,19 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 //for that function call
                 boolean funcParam = tracker.containsFunctionParameterMapping(i);
                 if (funcParam) {
-                    int callStepNumber = tracker.getFunctionParameterMapping(i);
-                    ExecutionStep callStep = steps.get(callStepNumber);
-                    if (callStep instanceof CallStep) {
-                        CallStep call = (CallStep) callStep;
-                        //insert the pointer for the object being called upon
-                        visitCallSpecial(call);
-                    } else {
-                        Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
-                                Level.SEVERE, "Function mapping between opcode parameters "
-                                + "and callsteps results in incorrect values. This is a compiler bug.");
+                    ArrayList<Integer> callLocations = tracker.getFunctionParameterMapping(i);
+                    for(int k = 0; k < callLocations.size(); k++){
+                        ExecutionStep callStep = steps.get(callLocations.get(k));
+                        if(callStep instanceof CallStep) {
+                            CallStep call = (CallStep) callStep;
+                            //insert the pointer for the object being called upon
+                            visitCallSpecial(call);
+                        }
+                        else {
+                            Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
+                                    Level.SEVERE, "Function mapping between opcode parameters "
+                                    + "and callsteps results in incorrect values. This is a compiler bug.");
+                        }
                     }
                 }//if no, do nothing
 
@@ -1032,8 +1028,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //for each item in the queue excluding the last 
         //item(which is the opcode processing the expressions)
         for (int j = 0; j < tracker.getQueueSize() - 1; j++) {
-            nestedMethodCall = false;
-            
             //check queue for its current value
             int begin = tracker.removeFromQueue() - 1;
             int end = tracker.peekQueue() - 1;
@@ -1911,10 +1905,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 secondType = stack.peekExpressionType();
             }
             methodVisitor.visitVarInsn(ALOAD, THIS);
-            if (nestedMethodCall){
-                swapOperandStackValues(TypeDescriptor.getSystemObject(), secondType);
-                nestedMethodCall = false;
-            }
         }
         else { //handle the case where we are pushing the reference on 
                //to the stack from 

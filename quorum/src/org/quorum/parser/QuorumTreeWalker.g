@@ -1622,7 +1622,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		info.isObjectCall = ($ID != null);
 		info.isNested = nested;
 		
-		if(fel!=null){
+		if(fel!=null && !$fel.list.isEmpty()){
 			builder.addCallLabel(parameterPosition);
 			//j builder.addStepLabel(OpcodeType.METHOD_CALL);
 		}
@@ -1986,13 +1986,13 @@ function_expression_list returns [List list, int firstParam]
 		if($list.size() >= 1){
 			inCallStep = false;
 		}
+		if($list.size() == 0){
+			$firstParam = builder.addParameterLabel();
+		}
 	}
 	e = expression 
 	{
 		$list.add(e);
-		if($list.size() == 1){
-			$firstParam = builder.addParameterLabel() - 1;
-		}
 	} )*)
 	;
 	

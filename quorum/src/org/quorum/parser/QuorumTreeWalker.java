@@ -1,4 +1,4 @@
-// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2011-11-01 16:52:56
+// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2011-11-02 15:05:33
 
 
 package org.quorum.parser;
@@ -5286,7 +5286,7 @@ public class QuorumTreeWalker extends TreeParser {
                     		info.isObjectCall = (ID29 != null);
                     		info.isNested = nested;
                     		
-                    		if(fel!=null){
+                    		if(fel!=null && !(fel!=null?fel.list:null).isEmpty()){
                     			builder.addCallLabel(parameterPosition);
                     			//j builder.addStepLabel(OpcodeType.METHOD_CALL);
                     		}
@@ -5929,6 +5929,9 @@ public class QuorumTreeWalker extends TreeParser {
                 	    		if(retval.list.size() >= 1){
                 	    			inCallStep = false;
                 	    		}
+                	    		if(retval.list.size() == 0){
+                	    			retval.firstParam = builder.addParameterLabel();
+                	    		}
                 	    	
                 	    pushFollow(FOLLOW_expression_in_function_expression_list2508);
                 	    e=expression();
@@ -5937,9 +5940,6 @@ public class QuorumTreeWalker extends TreeParser {
 
 
                 	    		retval.list.add(e);
-                	    		if(retval.list.size() == 1){
-                	    			retval.firstParam = builder.addParameterLabel() - 1;
-                	    		}
                 	    	
 
                 	    }

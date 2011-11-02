@@ -1,16 +1,10 @@
 class Melissa
-    integer toPrint = 0
-
     action Main
-        GetMultipliedResult(multiply(2,3))
-        print toPrint
+       integer a = multiply(multiply(2, 2), 2)
+       print a
     end
 
     action multiply(integer a, integer b) returns integer
         return a * b
-    end
-
-    action GetMultipliedResult(integer a)
-        toPrint = a 
     end
 end

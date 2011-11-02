@@ -48,7 +48,7 @@ public class OpcodeTracker {
      * 
      * As such, the mapping here would be 0, 1.
      */
-    private HashMap<Integer, Integer> functionParameterMapping = new HashMap<Integer, Integer>();
+    private HashMap<Integer, ArrayList<Integer>> functionParameterMapping = new HashMap<Integer, ArrayList<Integer>>();
     
     /**
      * This stores a list of opcodes and their types in linear order.
@@ -72,10 +72,17 @@ public class OpcodeTracker {
     
     
     public void addFunctionParameterMapping(int param, int call) {
-        functionParameterMapping.put(param, call);
+        if(functionParameterMapping.containsKey(param)){
+            ArrayList<Integer> calls = functionParameterMapping.get(param);
+            calls.add(call);
+        }else{
+            ArrayList<Integer> calls = new ArrayList<Integer>();
+            calls.add(call);
+            functionParameterMapping.put(param, calls);
+        }
     }
     
-    public int getFunctionParameterMapping(int param) {
+    public ArrayList<Integer> getFunctionParameterMapping(int param) {
         return functionParameterMapping.get(param);
     }
     
