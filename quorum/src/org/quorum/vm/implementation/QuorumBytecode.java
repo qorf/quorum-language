@@ -4,6 +4,8 @@
  */
 package org.quorum.vm.implementation;
 
+import java.io.File;
+
 /**
  *
  * 
@@ -12,7 +14,10 @@ package org.quorum.vm.implementation;
 public class QuorumBytecode {
     
     private byte[] output;
+    private byte[] interfaceOutput;
     private String staticKey;
+    private File classFile;
+    private File interfaceFile;
 
     /**
      * @return the staticKey
@@ -40,6 +45,48 @@ public class QuorumBytecode {
      */
     public void setOutput(byte[] output) {
         this.output = output;
+    }
+
+    /**
+     * @return the interfaceOutput
+     */
+    public byte[] getInterfaceOutput() {
+        return interfaceOutput;
+    }
+
+    /**
+     * @param interfaceOutput the interfaceOutput to set
+     */
+    public void setInterfaceOutput(byte[] interfaceOutput) {
+        this.interfaceOutput = interfaceOutput;
+    }
+
+    /**
+     * @return the classFile
+     */
+    public File getClassFile() {
+        return classFile;
+    }
+
+    /**
+     * @param classFile the classFile to set
+     */
+    public void setClassFile(File classFile) {
+        this.classFile = classFile;
+    }
+
+    /**
+     * @return the interfaceFile
+     */
+    public File getInterfaceFile() {
+        return interfaceFile;
+    }
+
+    /**
+     * @param interfaceFile the interfaceFile to set
+     */
+    public void setInterfaceFile(File interfaceFile) {
+        this.interfaceFile = interfaceFile;
     }
     
 }

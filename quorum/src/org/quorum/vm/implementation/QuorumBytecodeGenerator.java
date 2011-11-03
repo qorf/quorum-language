@@ -62,6 +62,11 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         QuorumJavaBytecodeStepVisitor visitor = new QuorumJavaBytecodeStepVisitor();
         visitor.visit(clazz);
         ClassWriter classWriter = visitor.getClassWriter();
+        ClassWriter interfaceWriter = visitor.getInterfaceWriter();
+        
+        //get the final bytecode for the name mangled interface
+        byte[] interfaceBytes = interfaceWriter.toByteArray();
+        code.setInterfaceOutput(interfaceBytes);
         
         //get the final bytecode and hash it away.
         byte[] b = classWriter.toByteArray();
@@ -86,16 +91,21 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         Iterator<QuorumBytecode> iterator = classHash.values().iterator();
         while(iterator.hasNext()) {
             QuorumBytecode code = iterator.next();
-            byte[] bites = code.getOutput();
-            File location = prepareFolder(code);
-            writeBytes(location, bites);
+            prepareFolder(code);
+            writeBytes(code.getClassFile(), code.getOutput());
+            writeBytes(code.getInterfaceFile(), code.getInterfaceOutput());
         }
     }
     
-    private File prepareFolder(QuorumBytecode code) throws IOException {
+    private void prepareFolder(QuorumBytecode code) throws IOException {
         File file;
+        File interfaceFile;
         String path = QuorumConverter.convertStaticKeyToBytecodePath(code.getStaticKey());
+        String interfacePath = QuorumConverter.convertClassNameToInterfaceName(path);
+        
+        
         String fullPath = buildFolder + "/" + path + ".class";
+        String interfaceFullPath = buildFolder + "/" + interfacePath + ".class";
         String[] split = fullPath.split("/");
         
         String valueWithoutName = "";        
@@ -106,17 +116,22 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         
         File dirs = new File(valueWithoutName);
         boolean mkdirs = dirs.mkdirs();
-        if(mkdirs) {
-            int a = 4;
-        }
         
         file = new File(fullPath);
+        interfaceFile = new File(interfaceFullPath);
         if(file.isFile()) {
             //delete it and remake it
             file.delete();
             file.createNewFile();
         }
-        return file;
+        
+        if(interfaceFile.isFile()) {
+            interfaceFile.delete();
+            interfaceFile.createNewFile();
+        }
+        
+        code.setClassFile(file);
+        code.setInterfaceFile(interfaceFile);       
     }
     
     

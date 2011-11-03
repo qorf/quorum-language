@@ -43,6 +43,16 @@ public class QuorumConverter {
         return null;
     }
     
+    /**
+     * Converts the name of a raw class name to its corresponding interface name.
+     * This does NOT handle conversion of static keys to interface names.
+     * @param name
+     * @return 
+     */
+    public static String convertClassNameToInterfaceName(String name) {
+        return name + "$$$___Interface$$$";
+    }
+    
     public static String convertMethodDescriptorToBytecodeSignature(MethodDescriptor descriptor) {
         String result = "";
         TypeDescriptor ret = descriptor.getReturnType();

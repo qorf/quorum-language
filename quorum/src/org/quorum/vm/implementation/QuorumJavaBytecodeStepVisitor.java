@@ -36,6 +36,7 @@ import org.quorum.symbols.VariableParameterCommonDescriptor;
 public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opcodes {
 
     private ClassWriter classWriter;
+    private ClassWriter interfaceWriter;
     private FieldVisitor fieldVisitor;
     private MethodVisitor methodVisitor;
     private AnnotationVisitor annotationVisitor;
@@ -282,6 +283,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     }
     
     /**
+     * This returns a classwriter object that represents an interface for a
+     * Quorum object.
+     * 
+     * @return 
+     */
+    public ClassWriter getInterfaceWriter() {
+        return interfaceWriter;
+    }
+    
+    /**
+     * This returns a classwriter object with the corresponding bits for a
+     * built Quorum class. This class does NOT contain the bits for
+     * its corresponding interface.
+     * 
      * @return the classWriter
      */
     public ClassWriter getClassWriter() {
@@ -1077,6 +1092,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //if you need to cheat temporarily, this will compute the maxS
         //function automatically. This is useful for reverse engineering.
         classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        interfaceWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        
+        
         String staticKey = clazz.getClassDescriptor().getStaticKey();
         currentClass = clazz.getClassDescriptor();
         currentClassExecution = clazz;
@@ -1092,17 +1110,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-//        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
-//                && !"Libraries.Language.Support.CompareResult".equals(staticKey)) {
-//            return;
-//        }
+        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
+                && !"Libraries.Language.Support.CompareResult".equals(staticKey)) {
+            return;
+        }
+        
+        this.visitInterface(clazz);
         
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
 
+        String interfaceName = QuorumConverter.convertClassNameToInterfaceName(name);
 
         //this will have to be modified for inheritance conversion
-        classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", null);
+        classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", new String[] { interfaceName });
         //first weave in the parents of the class and initialize them          
         //Add parents as extra behind the scenes fields.        
         Iterator<ClassDescriptor> parents = currentClass.getFlattenedListOfParents();
@@ -1188,6 +1209,22 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         classWriter.visitEnd();
     }
 
+    public void visitInterface(ClassExecution clazz) {
+        String staticKey = clazz.getClassDescriptor().getStaticKey();
+        String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
+        
+        String interfaceName = QuorumConverter.convertClassNameToInterfaceName(name);
+        
+        
+        //generate a list of parents here
+        
+        
+        //pass these parents into the visit function
+        interfaceWriter.visit(V1_6, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE, interfaceName , null, "java/lang/Object", null);
+        
+        
+        interfaceWriter.visitEnd();
+    }
     /**
      * Visit the method execution, i.e. each step that needs to be visited for 
      * each methods execution.
