@@ -7,10 +7,12 @@ package org.quorum.vm.implementation;
 
 import org.objectweb.asm.Opcodes;
 import org.quorum.execution.ExpressionValue;
+import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.MethodDescriptor;
 import org.quorum.symbols.ParameterDescriptor;
 import org.quorum.symbols.Parameters;
 import org.quorum.symbols.TypeDescriptor;
+import org.quorum.symbols.VariableDescriptor;
 
 /**
  *
@@ -53,6 +55,63 @@ public class QuorumConverter {
         return name + "$$$___Interface$$$";
     }
     
+    
+    /**
+     * This method takes a class descriptor and a variable, then converts that
+     * information into a hidden getter method name for a field variable. 
+     * @param clazz
+     * @param variable
+     * @return 
+     */
+    public static String generateGetterNameFromField(ClassDescriptor clazz, VariableDescriptor variable) {
+        String name = "Get$" + clazz.getStaticKey() + "$" + variable.getName();
+        return name;
+    }
+    
+    /**
+     * This method generates the signature of a getter method from a variable
+     * descriptor. By default, this would have no parameters, (), and have
+     * a return type appropriate to the type of the field variable.
+     * 
+     * @param variable
+     * @return 
+     */
+    public static String generateGetterSignatureFromField(VariableDescriptor variable) {
+        return "()" + QuorumConverter.convertTypeToBytecodeString(variable.getType());
+    }
+    
+    /**
+     * This method takes a class descriptor and a variable, then converts that
+     * information into a hidden setter method name for a field variable. 
+     * @param clazz
+     * @param variable
+     * @return 
+     */
+    public static String generateSetterNameFromField(ClassDescriptor clazz, VariableDescriptor variable) {
+        String name = "Set$" + clazz.getStaticKey() + "$" + variable.getName();
+        return name;
+    }
+    
+    /**
+     * This generates a method signature for a setter method. By default,
+     * the signature for this method will be the variable's type between 
+     * parentheses ( type ), followed by V, for a void return type.
+     * 
+     * @param variable
+     * @return 
+     */
+    public static String generateSetterSignatureFromField(VariableDescriptor variable) {
+        return "("+ QuorumConverter.convertTypeToBytecodeString(variable.getType()) +")" + "V";
+    }
+    
+    
+    /**
+     * This method takes a method descriptor and converts into a signature,
+     * with appropriate parameters in their String bytecode formats.
+     * 
+     * @param descriptor
+     * @return 
+     */
     public static String convertMethodDescriptorToBytecodeSignature(MethodDescriptor descriptor) {
         String result = "";
         TypeDescriptor ret = descriptor.getReturnType();
@@ -161,6 +220,13 @@ public class QuorumConverter {
         }
     }
     
+    /**
+     * This method takes a Quorum type descriptor and converts it into
+     * the name of the type.
+     * 
+     * @param type
+     * @return 
+     */
     public static String convertTypeToJavaTypeEquivalent(TypeDescriptor type) {
         if(type.isBoolean()) {
             return "boolean";
@@ -183,6 +249,13 @@ public class QuorumConverter {
         }    
     }
     
+    /**
+     * This method takes a Quorum type descriptor and converts it into the 
+     * class name of an auto-boxed type.
+     * 
+     * @param type
+     * @return 
+     */
     public static String convertTypeToJavaClassTypeEquivalent(TypeDescriptor type) {
         if(type.isBoolean()) {
             return "java/lang/Boolean";
@@ -201,6 +274,7 @@ public class QuorumConverter {
             return convertStaticKeyToBytecodePath(key);
         }    
     }
+    
     
     public static Object convertTypeToBytecodeType(TypeDescriptor type){
         if(type.isBoolean()){
@@ -247,6 +321,13 @@ public class QuorumConverter {
         }
     }
     
+    /**
+     * Generates the appropriate opcode for loading an item onto the stack
+     * from a given Quorum type descriptor.
+     * 
+     * @param type
+     * @return 
+     */
     public static int getLoadOpcode(TypeDescriptor type) {
         if (type.isInteger() || type.isBoolean())
             return Opcodes.ILOAD;
@@ -255,6 +336,13 @@ public class QuorumConverter {
         return Opcodes.ALOAD;
     }
     
+    /**
+     * Returns the appropriate opcode for storing a particular 
+     * value from the stack, given a Quorum type descriptor.
+     * 
+     * @param type
+     * @return 
+     */
     public static int getStoreOpcode(TypeDescriptor type) {
         if (type.isInteger() || type.isBoolean())
             return Opcodes.ISTORE;

@@ -35,8 +35,10 @@ import org.quorum.symbols.VariableParameterCommonDescriptor;
  */
 public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opcodes {
 
-    private ClassWriter classWriter;
     private ClassWriter interfaceWriter;
+    private MethodVisitor interfaceMethodVisitor;
+    
+    private ClassWriter classWriter;
     private FieldVisitor fieldVisitor;
     private MethodVisitor methodVisitor;
     private AnnotationVisitor annotationVisitor;
@@ -1209,6 +1211,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         classWriter.visitEnd();
     }
 
+    /**
+     * Computes the bytecode for a interface representing the inheritance
+     * hierarchy of the Quorum objects.
+     * 
+     * @param clazz 
+     */
     public void visitInterface(ClassExecution clazz) {
         String staticKey = clazz.getClassDescriptor().getStaticKey();
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
@@ -1232,9 +1240,49 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //pass these parents into the visit function
         interfaceWriter.visit(V1_6, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE, interfaceName , null, "java/lang/Object", parentStrings);
         
+        Iterator<MethodExecution> methods = clazz.getMethods();
+        while (methods.hasNext()) {
+            MethodExecution method = methods.next();
+            visitInterface(method);
+        }
+        
+        //Do field visiting for the class.
+        Iterator<VariableDescriptor> classVariables = clazz.getClassDescriptor().getClassVariables();
+        int j = 0;
+        while (classVariables.hasNext()) {
+            VariableDescriptor var = classVariables.next();
+            
+            //generate the getter
+            String hiddenGetterName = QuorumConverter.generateGetterNameFromField(clazz.getClassDescriptor(), var);
+            String hiddenGetterSignature = QuorumConverter.generateGetterSignatureFromField(var);
+            interfaceMethodVisitor = interfaceWriter.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, hiddenGetterName, hiddenGetterSignature, null, null);
+            interfaceMethodVisitor.visitEnd();
+        
+            //generate the setter
+            String hiddenSetterName = QuorumConverter.generateSetterNameFromField(clazz.getClassDescriptor(), var);
+            String hiddenSetterSignature = QuorumConverter.generateSetterSignatureFromField(var);
+            interfaceMethodVisitor = interfaceWriter.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, hiddenSetterName, hiddenSetterSignature, null, null);
+            interfaceMethodVisitor.visitEnd();
+            
+            j++;
+        }
         
         interfaceWriter.visitEnd();
     }
+    
+    /**
+     * Computes the methods for an interface.
+     * 
+     * @param method 
+     */
+    public void visitInterface(MethodExecution method) {
+        //still have to handle parameters here.
+        String name = method.getMethodDescriptor().getName();
+        String params = QuorumConverter.convertMethodDescriptorToBytecodeSignature(method.getMethodDescriptor());
+        interfaceMethodVisitor = interfaceWriter.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, name, params, null, null);
+        interfaceMethodVisitor.visitEnd();
+    }
+    
     /**
      * Visit the method execution, i.e. each step that needs to be visited for 
      * each methods execution.
