@@ -1214,13 +1214,23 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         
         String interfaceName = QuorumConverter.convertClassNameToInterfaceName(name);
-        
-        
         //generate a list of parents here
+        int numberFlatParents = currentClass.getNumberFlatParents();
+        String[] parentStrings = new String[numberFlatParents];
         
-        
+        int i = 0;
+        Iterator<ClassDescriptor> parents = currentClass.getFlattenedListOfParents();
+        while (parents.hasNext()) {
+            ClassDescriptor parent = parents.next();
+            String parentKey = parent.getStaticKey();
+            String parentFullPath = QuorumConverter.convertStaticKeyToBytecodePath(parentKey);
+            parentFullPath = QuorumConverter.convertClassNameToInterfaceName(parentFullPath);
+            
+            parentStrings[i] = parentFullPath;
+            i++;
+        }
         //pass these parents into the visit function
-        interfaceWriter.visit(V1_6, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE, interfaceName , null, "java/lang/Object", null);
+        interfaceWriter.visit(V1_6, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE, interfaceName , null, "java/lang/Object", parentStrings);
         
         
         interfaceWriter.visitEnd();
