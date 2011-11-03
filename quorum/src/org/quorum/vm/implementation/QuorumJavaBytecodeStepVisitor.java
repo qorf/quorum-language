@@ -1975,6 +1975,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         else {
             VariableParameterCommonDescriptor var = step.getParentObject();
             boolean field = var.isFieldVariable();
+            converted = QuorumConverter.convertTypeToJavaClassTypeEquivalent(var.getType());
             if(field) {
                 String key = currentClass.getStaticKey();
                 String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
