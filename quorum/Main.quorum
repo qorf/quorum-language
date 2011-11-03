@@ -1,9 +1,17 @@
 class Main
+    integer toPrint = 0
     action Main
-       print z(2 - 3)
+        
+        GetMultipliedResult(multiply(multiply(multiply(multiply(2, 2), multiply(2, 2)), multiply(multiply(2, 2), multiply(2, 2))),
+                                     multiply(multiply(multiply(2, 2), multiply(2, 2)), multiply(multiply(2, 2), multiply(2, 2)))))
+        print toPrint
     end
 
-    action z(integer k) returns integer
-        return k
+    action multiply(integer a, integer b) returns integer
+        return a * b
+    end
+
+    action GetMultipliedResult(integer a)
+        toPrint = a
     end
 end

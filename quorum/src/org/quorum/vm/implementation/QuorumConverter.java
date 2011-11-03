@@ -229,8 +229,11 @@ public class QuorumConverter {
         else if(type.isNumber()) {
             return Opcodes.DRETURN;
         }
-        else {
+        else if(type.isInteger() || type.isBoolean()) {
             return Opcodes.IRETURN;
+        }
+        else {
+            return Opcodes.ARETURN;
         }
     }
     
