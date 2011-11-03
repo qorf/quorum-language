@@ -4,11 +4,11 @@ class main
     boolean asdf
 
     action Main
-        playGame()
+        //playGame()
     end
 
     action playGame
-        integer computerScore = 0
+       /* integer computerScore = 0
         integer humanScore = 0
         boolean gameOver = false
         repeat while gameOver = false
@@ -31,11 +31,11 @@ class main
                 gameOver = true
                 asdf = true
             end
-        end
+        end*/
     end
 
     action computerTurn (integer score) returns integer
-        integer currentTurnScore = 0
+        /*integer currentTurnScore = 0
         integer diceRoll = rollDice()
         boolean rollAgain = true
         repeat while rollAgain = true
@@ -51,12 +51,12 @@ class main
             end
             diceRoll = rollDice()
         end
-        score = score + currentTurnScore
+        score = score + currentTurnScore*/
         return score
     end
 
     action humanTurn (integer score) returns integer
-        integer currentTurnScore = 0
+        /*integer currentTurnScore = 0
         integer diceRoll = rollDice()
         text temp
         integer rollAgain = 1
@@ -72,13 +72,13 @@ class main
             end
             diceRoll = rollDice()
         end
-        score = score + currentTurnScore
+        score = score + currentTurnScore*/
         return score
     end
 
     action rollDice returns integer
-        Math math
-        integer diceRoll = math:Random(6)
+        //Math math
+        integer diceRoll = 6//math:Random(6)
         return diceRoll
     end
 end
