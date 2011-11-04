@@ -14,11 +14,12 @@ java -cp "../../../dependencies/phonemic.jar:./" quorum.Stefik
 
 
 */
-class Stefik //is a StefikGrand
+class Stefik is a StefikGrand
 
-    Stefik stefik = undefined
-    integer sup
+    Object stefik
+    integer sup = 0
     action Main
+        sup = sup
         boolean a = monkey()
         print a
     end

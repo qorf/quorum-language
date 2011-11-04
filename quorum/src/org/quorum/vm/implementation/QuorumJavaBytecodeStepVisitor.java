@@ -1139,11 +1139,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //        }
 //
 //        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
-//                && !"Libraries.Language.Support.CompareResult".equals(staticKey)) {
+//                && !"Libraries.Language.Support.CompareResult".equals(staticKey)
+//                && !".StefikGrand".equals(staticKey)) {
 //            return;
 //        }
         
-        this.visitInterface(clazz);
+        
         
         String name = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
         processedClazzName = name;
@@ -1205,6 +1206,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             ClassDescriptor parent = parents.next();
             computeParentMethods(parent);
         }
+        
+        this.visitInterface(clazz);
 
         //now do all methods
         Iterator<MethodExecution> methods = clazz.getMethods();
@@ -1244,6 +1247,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             String parentFullPath = QuorumConverter.convertStaticKeyToBytecodePath(parentKey);
             parentFullPath = QuorumConverter.convertClassNameToInterfaceName(parentFullPath);
             
+            visitFieldVariablesInterface(parent, clazz.getClassDescriptor());
             parentStrings[i] = parentFullPath;
             i++;
         }
@@ -1257,27 +1261,88 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         
         //Do field visiting for the class.
-        Iterator<VariableDescriptor> classVariables = clazz.getClassDescriptor().getClassVariables();
+        visitFieldVariablesInterface(null, clazz.getClassDescriptor());
+        
+        interfaceWriter.visitEnd();
+    }
+    
+    /**
+     * This method computes helper getter and setter methods for a field variable
+     * either in a parent class (parent != null) or in a base class only (parent == null).
+     * 
+     * @param parent
+     * @param clazz 
+     */
+    private void visitFieldVariablesInterface(ClassDescriptor parent, ClassDescriptor clazz) {
+        Iterator<VariableDescriptor> classVariables;
+                
+        if(parent != null) {
+            classVariables = parent.getClassVariables();
+        }
+        else {
+            classVariables = clazz.getClassVariables();
+        }
         int j = 0;
         while (classVariables.hasNext()) {
             VariableDescriptor var = classVariables.next();
             
-            //generate the getter
-            String hiddenGetterName = QuorumConverter.generateGetterNameFromField(clazz.getClassDescriptor(), var);
-            String hiddenGetterSignature = QuorumConverter.generateGetterSignatureFromField(var);
-            interfaceMethodVisitor = interfaceWriter.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, hiddenGetterName, hiddenGetterSignature, null, null);
-            interfaceMethodVisitor.visitEnd();
+            //generate the getter in the interface
+            String hiddenGetterName;
+            String hiddenGetterSignature;
+            
+            if(parent != null) {
+                hiddenGetterName = QuorumConverter.generateGetterNameFromField(parent, var);
+            }
+            else {
+                hiddenGetterName = QuorumConverter.generateGetterNameFromField(clazz, var);
+            }
+            
+            hiddenGetterSignature = QuorumConverter.generateGetterSignatureFromField(var);
+            
+            //we only need to weave this into the parent interface, not the child
+            if(parent == null) {
+                interfaceMethodVisitor = interfaceWriter.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, hiddenGetterName, hiddenGetterSignature, null, null);
+                interfaceMethodVisitor.visitEnd();
+            }
+            
+            
+            //now generate the actual getter in the implementation class
+            MethodVisitor hiddenGetter = classWriter.visitMethod(ACC_PUBLIC, hiddenGetterName, hiddenGetterSignature, null, null);
+            hiddenGetter.visitVarInsn(ALOAD, 0);
+            hiddenGetter.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(clazz.getStaticKey()), 
+                    var.getName(), QuorumConverter.convertTypeToBytecodeString(var.getType()));
+            hiddenGetter.visitInsn(ARETURN);
+            hiddenGetter.visitMaxs(1, 1);
+            hiddenGetter.visitEnd();
         
-            //generate the setter
-            String hiddenSetterName = QuorumConverter.generateSetterNameFromField(clazz.getClassDescriptor(), var);
+            //generate the setter in the interface
+            String hiddenSetterName;
+            if(parent != null) {
+                hiddenSetterName = QuorumConverter.generateSetterNameFromField(parent, var);
+            }
+            else {
+                hiddenSetterName = QuorumConverter.generateSetterNameFromField(clazz, var);
+            }
+            
             String hiddenSetterSignature = QuorumConverter.generateSetterSignatureFromField(var);
-            interfaceMethodVisitor = interfaceWriter.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, hiddenSetterName, hiddenSetterSignature, null, null);
-            interfaceMethodVisitor.visitEnd();
+            if(parent == null) {
+                interfaceMethodVisitor = interfaceWriter.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, hiddenSetterName, hiddenSetterSignature, null, null);
+                interfaceMethodVisitor.visitEnd();
+            }
+            
+            //generate the setter into the bytecode
+            MethodVisitor hiddenSetter = classWriter.visitMethod(ACC_PUBLIC, hiddenSetterName, hiddenSetterSignature, null, null);
+            hiddenSetter.visitVarInsn(ALOAD, 0);
+            hiddenSetter.visitVarInsn(ALOAD, 1);
+            hiddenSetter.visitFieldInsn(PUTFIELD, 
+                    QuorumConverter.convertStaticKeyToBytecodePath(clazz.getStaticKey()), 
+                    var.getName(), QuorumConverter.convertTypeToBytecodeString(var.getType()));
+            hiddenSetter.visitInsn(RETURN);
+            hiddenSetter.visitMaxs(2, 2);
+            hiddenSetter.visitEnd();
             
             j++;
         }
-        
-        interfaceWriter.visitEnd();
     }
     
     /**

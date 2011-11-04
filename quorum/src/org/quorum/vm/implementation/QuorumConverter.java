@@ -190,9 +190,9 @@ public class QuorumConverter {
     /**
      * This method takes a type descriptor and converts it into a valid 
      * type descriptor value in Java bytecode. This conversion copies
-     * largely page 11 of the asm-guide.pdf documentation for ASM.
-     * 
-     * TODO: Finish conversions.
+     * largely page 11 of the asm-guide.pdf documentation for ASM. For example
+     * the type integer would convert to I, while text would convert to
+     * Ljava/lang/String;.
      * 
      * @param type
      * @return 
