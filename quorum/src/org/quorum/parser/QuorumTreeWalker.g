@@ -1697,10 +1697,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		$step = result.getStep();
 		
 	}
-	|	^(QUALIFIED_SOLO_PARENT_EXPRESSON qn1=qualified_name COLON PARENT COLON qn2=qualified_name)
-	{
-		
-	}
+	// s k |	^(QUALIFIED_SOLO_PARENT_EXPRESSON qn1=qualified_name COLON PARENT COLON qn2=qualified_name)
 	|	^(FUNCTION_CALL_PARENT PARENT COLON qn1=qualified_name COLON ID LEFT_PAREN fel = function_expression_list RIGHT_PAREN)
 	{
 		LineInformation location = new LineInformation();

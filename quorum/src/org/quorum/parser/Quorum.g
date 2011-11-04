@@ -1143,8 +1143,8 @@ atom 	:
 			^(FUNCTION_CALL qualified_name (COLON ID)? LEFT_PAREN function_expression_list RIGHT_PAREN)
 	|	selector COLON qualified_name -> 
 			^(QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name)
-	|	qualified_name COLON PARENT COLON qualified_name ->
-			^(QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name)
+	// sdf s |	qualified_name COLON PARENT COLON qualified_name ->
+	//sdfsd		^(QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name)
 	|	PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN ->
 			^(FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN)
 	|	ME COLON qualified_name (COLON ID)? LEFT_PAREN function_expression_list RIGHT_PAREN ->

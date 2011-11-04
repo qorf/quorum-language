@@ -401,7 +401,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 v = value.number;
             else if (value.getType().isText())
                 v = value.text;
-            methodVisitor.visitLdcInsn(v);
+            
+            if (value.getType().isNull())
+                methodVisitor.visitInsn(ACONST_NULL);
+            else
+                methodVisitor.visitLdcInsn(v);
         }
     }
     
@@ -1134,10 +1138,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
-                && !"Libraries.Language.Support.CompareResult".equals(staticKey)) {
-            return;
-        }
+//        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
+//                && !"Libraries.Language.Support.CompareResult".equals(staticKey)) {
+//            return;
+//        }
         
         this.visitInterface(clazz);
         
@@ -1428,12 +1432,16 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AssignmentNumberIntegerLocalStep step) {
         //process the expressions
-        if(!step.getVariable().isFieldVariable())
+        TypeDescriptor pop = null;
+        if(!step.getVariable().isFieldVariable()){
             processExpressions();
+            //prepare the integer as a number.
+            prepareNumberIntegerOperation();
+            pop = stack.popExpressionType();
+        }else{
+            prepareNumberIntegerOperation();
+        }
         
-        //prepare the integer as a number.
-        prepareNumberIntegerOperation();
-        TypeDescriptor pop = stack.popExpressionType();
         //Assigns an integer to a local variable or field of type number.
         performAssignment(pop, step, false);
     }
@@ -1441,12 +1449,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AssignmentNumberIntegerStep step) {
         //process the expressions
-        if(!step.getVariable().isFieldVariable())
+        TypeDescriptor pop = null;
+        if(!step.getVariable().isFieldVariable()){
             processExpressions();
+            prepareNumberIntegerOperation();
+            pop = stack.popExpressionType();
+        }else{
+            prepareNumberIntegerOperation();
+        }
         
-        //prepare the integer as a number.
-        prepareNumberIntegerOperation();
-        TypeDescriptor pop = stack.popExpressionType();
         //Assigns an integer to a field of type number.
         performAssignment(pop, step, true);
     }
@@ -1454,25 +1465,22 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AssignmentBooleanLocalStep step) {
         //Assigns a boolean to a local variable or field of type boolean
-
-        //1. Loop through all expressions and dequeue them
-        //processExpressions(getTopOfQueue())
-        if(!step.getVariable().isFieldVariable())
+        TypeDescriptor pop = null;
+        if(!step.getVariable().isFieldVariable()){
             processExpressions();
-        
-        //2. Now that everything is out of the queue,
-        //do the actual assignment
-        TypeDescriptor pop = stack.popExpressionType();
+            pop = stack.popExpressionType();
+        }
         performAssignment(pop, step, false);
     }
 
     @Override
     public void visit(AssignmentBooleanStep step) {
         //Assigns a boolean to a field of type boolean
-        if(!step.getVariable().isFieldVariable())
+        TypeDescriptor pop = null;
+        if(!step.getVariable().isFieldVariable()){
             processExpressions();
-        
-        TypeDescriptor pop = stack.popExpressionType();
+            pop = stack.popExpressionType();
+        }
         performAssignment(pop, step, true);
     }
 
@@ -1491,40 +1499,44 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AssignmentIntegerStep step) {
         //Assigns an integer to a field of type integer
-        if(!step.getVariable().isFieldVariable())
+        TypeDescriptor pop = null;
+        if(!step.getVariable().isFieldVariable()){
             processExpressions();
-        
-        TypeDescriptor pop = stack.popExpressionType();
+            pop = stack.popExpressionType();
+        }
         performAssignment(pop, step, true);
     }
 
     @Override
     public void visit(AssignmentNumberLocalStep step) {
         //Assigns a number to a local variable or field of type number.
-        if(!step.getVariable().isFieldVariable())
+        TypeDescriptor pop = null;
+        if(!step.getVariable().isFieldVariable()){
             processExpressions();
-        
-        TypeDescriptor pop = stack.popExpressionType();
+            pop = stack.popExpressionType();
+        }
         performAssignment(pop, step, false);
     }
 
     @Override
     public void visit(AssignmentNumberStep step) {
         //Assigns a number to a field of type number.
-        if(!step.getVariable().isFieldVariable())
+        TypeDescriptor pop = null;
+        if(!step.getVariable().isFieldVariable()){
             processExpressions();
-        
-        TypeDescriptor pop = stack.popExpressionType();
+            pop = stack.popExpressionType();
+        }
         performAssignment(pop, step, true);
     }
 
     @Override
     public void visit(AssignmentTextLocalStep step) {
         //Assigns a number to a local variable or field of type text.
-        if(!step.getVariable().isFieldVariable())
+        TypeDescriptor pop = null;
+        if(!step.getVariable().isFieldVariable()){
             processExpressions();
-        
-        TypeDescriptor pop = stack.popExpressionType();
+            pop = stack.popExpressionType();
+        }
         performAssignment(pop, step, false);
     }
 
@@ -1532,10 +1544,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentTextStep step) {
         //remove the constant from the bytecode stack and assign a number to 
         //a field of type text.
-        if(!step.getVariable().isFieldVariable())
+        TypeDescriptor pop = null;
+        if(!step.getVariable().isFieldVariable()){
             processExpressions();
-        
-        TypeDescriptor pop = stack.popExpressionType();
+            pop = stack.popExpressionType();
+        }
         performAssignment(pop, step, true);
     }
 

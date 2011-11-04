@@ -1,4 +1,4 @@
-// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2011-11-04 13:25:58
+// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2011-11-04 15:21:12
 
 
 package org.quorum.parser;
@@ -2034,7 +2034,7 @@ public class QuorumTreeWalker extends TreeParser {
                     int alt30=2;
                     int LA30_0 = input.LA(1);
 
-                    if ( ((LA30_0>=FUNCTION_CALL && LA30_0<=FUNCTION_CALL_THIS)||LA30_0==UNARY_NOT||(LA30_0>=QUALIFIED_SOLO_EXPRESSION && LA30_0<=QUALIFIED_SOLO_PARENT_EXPRESSON)||LA30_0==INHERITS||LA30_0==ME||LA30_0==OR||(LA30_0>=LESS && LA30_0<=GREATER)||LA30_0==EQUALITY||(LA30_0>=AND && LA30_0<=MODULO)||(LA30_0>=CAST && LA30_0<=INPUT)) ) {
+                    if ( ((LA30_0>=FUNCTION_CALL && LA30_0<=FUNCTION_CALL_THIS)||LA30_0==UNARY_NOT||(LA30_0>=QUALIFIED_SOLO_EXPRESSION && LA30_0<=QUALIFIED_SOLO_EXPRESSION_SELECTOR)||LA30_0==INHERITS||LA30_0==ME||LA30_0==OR||(LA30_0>=LESS && LA30_0<=GREATER)||LA30_0==EQUALITY||(LA30_0>=AND && LA30_0<=MODULO)||(LA30_0>=CAST && LA30_0<=INPUT)) ) {
                         alt30=1;
                     }
                     switch (alt30) {
@@ -2162,7 +2162,7 @@ public class QuorumTreeWalker extends TreeParser {
                     int alt32=2;
                     int LA32_0 = input.LA(1);
 
-                    if ( ((LA32_0>=FUNCTION_CALL && LA32_0<=FUNCTION_CALL_THIS)||LA32_0==UNARY_NOT||(LA32_0>=QUALIFIED_SOLO_EXPRESSION && LA32_0<=QUALIFIED_SOLO_PARENT_EXPRESSON)||LA32_0==INHERITS||LA32_0==ME||LA32_0==OR||(LA32_0>=LESS && LA32_0<=GREATER)||LA32_0==EQUALITY||(LA32_0>=AND && LA32_0<=MODULO)||(LA32_0>=CAST && LA32_0<=INPUT)) ) {
+                    if ( ((LA32_0>=FUNCTION_CALL && LA32_0<=FUNCTION_CALL_THIS)||LA32_0==UNARY_NOT||(LA32_0>=QUALIFIED_SOLO_EXPRESSION && LA32_0<=QUALIFIED_SOLO_EXPRESSION_SELECTOR)||LA32_0==INHERITS||LA32_0==ME||LA32_0==OR||(LA32_0>=LESS && LA32_0<=GREATER)||LA32_0==EQUALITY||(LA32_0>=AND && LA32_0<=MODULO)||(LA32_0>=CAST && LA32_0<=INPUT)) ) {
                         alt32=1;
                     }
                     switch (alt32) {
@@ -2308,7 +2308,7 @@ public class QuorumTreeWalker extends TreeParser {
                     int alt35=2;
                     int LA35_0 = input.LA(1);
 
-                    if ( ((LA35_0>=FUNCTION_CALL && LA35_0<=FUNCTION_CALL_THIS)||LA35_0==UNARY_NOT||(LA35_0>=QUALIFIED_SOLO_EXPRESSION && LA35_0<=QUALIFIED_SOLO_PARENT_EXPRESSON)||LA35_0==INHERITS||LA35_0==ME||LA35_0==OR||(LA35_0>=LESS && LA35_0<=GREATER)||LA35_0==EQUALITY||(LA35_0>=AND && LA35_0<=MODULO)||(LA35_0>=CAST && LA35_0<=INPUT)) ) {
+                    if ( ((LA35_0>=FUNCTION_CALL && LA35_0<=FUNCTION_CALL_THIS)||LA35_0==UNARY_NOT||(LA35_0>=QUALIFIED_SOLO_EXPRESSION && LA35_0<=QUALIFIED_SOLO_EXPRESSION_SELECTOR)||LA35_0==INHERITS||LA35_0==ME||LA35_0==OR||(LA35_0>=LESS && LA35_0<=GREATER)||LA35_0==EQUALITY||(LA35_0>=AND && LA35_0<=MODULO)||(LA35_0>=CAST && LA35_0<=INPUT)) ) {
                         alt35=1;
                     }
                     switch (alt35) {
@@ -4729,7 +4729,7 @@ public class QuorumTreeWalker extends TreeParser {
     };
 
     // $ANTLR start "expression"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1453:1: expression returns [ExpressionValue eval, ExecutionStep step] : ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( QUALIFIED_SOLO_PARENT_EXPRESSON qn1= qualified_name COLON PARENT COLON qn2= qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN );
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1453:1: expression returns [ExpressionValue eval, ExecutionStep step] : ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN );
     public final QuorumTreeWalker.expression_return expression() throws RecognitionException {
         QuorumTreeWalker.expression_return retval = new QuorumTreeWalker.expression_return();
         retval.start = input.LT(1);
@@ -4762,8 +4762,6 @@ public class QuorumTreeWalker extends TreeParser {
 
         QuorumTreeWalker.qualified_name_return qn1 = null;
 
-        QuorumTreeWalker.qualified_name_return qn2 = null;
-
         QuorumTreeWalker.expression_return input_expr = null;
 
         QuorumTreeWalker.assignment_declaration_return castqn = null;
@@ -4782,8 +4780,8 @@ public class QuorumTreeWalker extends TreeParser {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1454:2: ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( QUALIFIED_SOLO_PARENT_EXPRESSON qn1= qualified_name COLON PARENT COLON qn2= qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN )
-            int alt62=29;
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1454:2: ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN )
+            int alt62=28;
             alt62 = dfa62.predict(input);
             switch (alt62) {
                 case 1 :
@@ -5423,54 +5421,27 @@ public class QuorumTreeWalker extends TreeParser {
                     }
                     break;
                 case 19 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1700:4: ^( QUALIFIED_SOLO_PARENT_EXPRESSON qn1= qualified_name COLON PARENT COLON qn2= qualified_name )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1701:4: ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
                     {
-                    match(input,QUALIFIED_SOLO_PARENT_EXPRESSON,FOLLOW_QUALIFIED_SOLO_PARENT_EXPRESSON_in_expression2318); 
+                    match(input,FUNCTION_CALL_PARENT,FOLLOW_FUNCTION_CALL_PARENT_in_expression2320); 
 
                     match(input, Token.DOWN, null); 
-                    pushFollow(FOLLOW_qualified_name_in_expression2322);
-                    qn1=qualified_name();
-
-                    state._fsp--;
-
+                    match(input,PARENT,FOLLOW_PARENT_in_expression2322); 
                     match(input,COLON,FOLLOW_COLON_in_expression2324); 
-                    match(input,PARENT,FOLLOW_PARENT_in_expression2326); 
-                    match(input,COLON,FOLLOW_COLON_in_expression2328); 
-                    pushFollow(FOLLOW_qualified_name_in_expression2332);
-                    qn2=qualified_name();
-
-                    state._fsp--;
-
-
-                    match(input, Token.UP, null); 
-
-                    		
-                    	
-
-                    }
-                    break;
-                case 20 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1704:4: ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
-                    {
-                    match(input,FUNCTION_CALL_PARENT,FOLLOW_FUNCTION_CALL_PARENT_in_expression2342); 
-
-                    match(input, Token.DOWN, null); 
-                    match(input,PARENT,FOLLOW_PARENT_in_expression2344); 
-                    match(input,COLON,FOLLOW_COLON_in_expression2346); 
-                    pushFollow(FOLLOW_qualified_name_in_expression2350);
+                    pushFollow(FOLLOW_qualified_name_in_expression2328);
                     qn1=qualified_name();
 
                     state._fsp--;
 
-                    match(input,COLON,FOLLOW_COLON_in_expression2352); 
-                    ID34=(CommonTree)match(input,ID,FOLLOW_ID_in_expression2354); 
-                    match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_expression2356); 
-                    pushFollow(FOLLOW_function_expression_list_in_expression2362);
+                    match(input,COLON,FOLLOW_COLON_in_expression2330); 
+                    ID34=(CommonTree)match(input,ID,FOLLOW_ID_in_expression2332); 
+                    match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_expression2334); 
+                    pushFollow(FOLLOW_function_expression_list_in_expression2340);
                     fel=function_expression_list();
 
                     state._fsp--;
 
-                    match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_expression2364); 
+                    match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_expression2342); 
 
                     match(input, Token.UP, null); 
 
@@ -5531,20 +5502,20 @@ public class QuorumTreeWalker extends TreeParser {
 
                     }
                     break;
-                case 21 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1760:4: ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
+                case 20 :
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1757:4: ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
                     {
-                    match(input,FUNCTION_CALL_THIS,FOLLOW_FUNCTION_CALL_THIS_in_expression2374); 
+                    match(input,FUNCTION_CALL_THIS,FOLLOW_FUNCTION_CALL_THIS_in_expression2352); 
 
                     match(input, Token.DOWN, null); 
-                    match(input,ME,FOLLOW_ME_in_expression2376); 
-                    match(input,COLON,FOLLOW_COLON_in_expression2378); 
-                    pushFollow(FOLLOW_qualified_name_in_expression2380);
+                    match(input,ME,FOLLOW_ME_in_expression2354); 
+                    match(input,COLON,FOLLOW_COLON_in_expression2356); 
+                    pushFollow(FOLLOW_qualified_name_in_expression2358);
                     qualified_name35=qualified_name();
 
                     state._fsp--;
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1760:49: ( COLON ID )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1757:49: ( COLON ID )?
                     int alt59=2;
                     int LA59_0 = input.LA(1);
 
@@ -5553,23 +5524,23 @@ public class QuorumTreeWalker extends TreeParser {
                     }
                     switch (alt59) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1760:50: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1757:50: COLON ID
                             {
-                            match(input,COLON,FOLLOW_COLON_in_expression2383); 
-                            ID36=(CommonTree)match(input,ID,FOLLOW_ID_in_expression2385); 
+                            match(input,COLON,FOLLOW_COLON_in_expression2361); 
+                            ID36=(CommonTree)match(input,ID,FOLLOW_ID_in_expression2363); 
 
                             }
                             break;
 
                     }
 
-                    match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_expression2389); 
-                    pushFollow(FOLLOW_function_expression_list_in_expression2395);
+                    match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_expression2367); 
+                    pushFollow(FOLLOW_function_expression_list_in_expression2373);
                     fel=function_expression_list();
 
                     state._fsp--;
 
-                    match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_expression2397); 
+                    match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_expression2375); 
 
                     match(input, Token.UP, null); 
 
@@ -5639,10 +5610,10 @@ public class QuorumTreeWalker extends TreeParser {
 
                     }
                     break;
-                case 22 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1825:4: BOOLEAN
+                case 21 :
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1822:4: BOOLEAN
                     {
-                    BOOLEAN37=(CommonTree)match(input,BOOLEAN,FOLLOW_BOOLEAN_in_expression2406); 
+                    BOOLEAN37=(CommonTree)match(input,BOOLEAN,FOLLOW_BOOLEAN_in_expression2384); 
 
                     		LineInformation location = new LineInformation (
                     			BOOLEAN37.getLine(),
@@ -5660,10 +5631,10 @@ public class QuorumTreeWalker extends TreeParser {
 
                     }
                     break;
-                case 23 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1840:4: ( MINUS )? DECIMAL
+                case 22 :
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1837:4: ( MINUS )? DECIMAL
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1840:4: ( MINUS )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1837:4: ( MINUS )?
                     int alt60=2;
                     int LA60_0 = input.LA(1);
 
@@ -5672,16 +5643,16 @@ public class QuorumTreeWalker extends TreeParser {
                     }
                     switch (alt60) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1840:5: MINUS
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1837:5: MINUS
                             {
-                            MINUS39=(CommonTree)match(input,MINUS,FOLLOW_MINUS_in_expression2415); 
+                            MINUS39=(CommonTree)match(input,MINUS,FOLLOW_MINUS_in_expression2393); 
 
                             }
                             break;
 
                     }
 
-                    DECIMAL38=(CommonTree)match(input,DECIMAL,FOLLOW_DECIMAL_in_expression2419); 
+                    DECIMAL38=(CommonTree)match(input,DECIMAL,FOLLOW_DECIMAL_in_expression2397); 
 
                     		LineInformation location = new LineInformation (
                     			DECIMAL38.getLine(),
@@ -5715,10 +5686,10 @@ public class QuorumTreeWalker extends TreeParser {
 
                     }
                     break;
-                case 24 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1871:4: ( MINUS )? INT
+                case 23 :
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1868:4: ( MINUS )? INT
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1871:4: ( MINUS )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1868:4: ( MINUS )?
                     int alt61=2;
                     int LA61_0 = input.LA(1);
 
@@ -5727,16 +5698,16 @@ public class QuorumTreeWalker extends TreeParser {
                     }
                     switch (alt61) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1871:5: MINUS
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1868:5: MINUS
                             {
-                            MINUS41=(CommonTree)match(input,MINUS,FOLLOW_MINUS_in_expression2428); 
+                            MINUS41=(CommonTree)match(input,MINUS,FOLLOW_MINUS_in_expression2406); 
 
                             }
                             break;
 
                     }
 
-                    INT40=(CommonTree)match(input,INT,FOLLOW_INT_in_expression2432); 
+                    INT40=(CommonTree)match(input,INT,FOLLOW_INT_in_expression2410); 
 
                     		LineInformation location = new LineInformation (
                     			INT40.getLine(),
@@ -5768,10 +5739,10 @@ public class QuorumTreeWalker extends TreeParser {
 
                     }
                     break;
-                case 25 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1900:4: STRING
+                case 24 :
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1897:4: STRING
                     {
-                    STRING42=(CommonTree)match(input,STRING,FOLLOW_STRING_in_expression2440); 
+                    STRING42=(CommonTree)match(input,STRING,FOLLOW_STRING_in_expression2418); 
 
                     		LineInformation location = new LineInformation (
                     			STRING42.getLine(),
@@ -5788,10 +5759,10 @@ public class QuorumTreeWalker extends TreeParser {
 
                     }
                     break;
-                case 26 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1914:4: NULL
+                case 25 :
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1911:4: NULL
                     {
-                    NULL43=(CommonTree)match(input,NULL,FOLLOW_NULL_in_expression2448); 
+                    NULL43=(CommonTree)match(input,NULL,FOLLOW_NULL_in_expression2426); 
 
                     		LineInformation location = new LineInformation (
                     			NULL43.getLine(),
@@ -5808,10 +5779,10 @@ public class QuorumTreeWalker extends TreeParser {
 
                     }
                     break;
-                case 27 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1928:4: ME
+                case 26 :
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1925:4: ME
                     {
-                    ME44=(CommonTree)match(input,ME,FOLLOW_ME_in_expression2456); 
+                    ME44=(CommonTree)match(input,ME,FOLLOW_ME_in_expression2434); 
 
                     		LineInformation location = new LineInformation (
                     			ME44.getLine(),
@@ -5832,17 +5803,17 @@ public class QuorumTreeWalker extends TreeParser {
 
                     }
                     break;
-                case 28 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1946:4: INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN
+                case 27 :
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1943:4: INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN
                     {
-                    INPUT45=(CommonTree)match(input,INPUT,FOLLOW_INPUT_in_expression2464); 
-                    match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_expression2466); 
-                    pushFollow(FOLLOW_expression_in_expression2470);
+                    INPUT45=(CommonTree)match(input,INPUT,FOLLOW_INPUT_in_expression2442); 
+                    match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_expression2444); 
+                    pushFollow(FOLLOW_expression_in_expression2448);
                     input_expr=expression();
 
                     state._fsp--;
 
-                    RIGHT_PAREN46=(CommonTree)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_expression2472); 
+                    RIGHT_PAREN46=(CommonTree)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_expression2450); 
 
                     		LineInformation location = new LineInformation (
                     			INPUT45.getLine(),
@@ -5863,23 +5834,23 @@ public class QuorumTreeWalker extends TreeParser {
 
                     }
                     break;
-                case 29 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1964:4: CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN
+                case 28 :
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1961:4: CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN
                     {
-                    CAST47=(CommonTree)match(input,CAST,FOLLOW_CAST_in_expression2480); 
-                    match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_expression2482); 
-                    pushFollow(FOLLOW_assignment_declaration_in_expression2486);
+                    CAST47=(CommonTree)match(input,CAST,FOLLOW_CAST_in_expression2458); 
+                    match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_expression2460); 
+                    pushFollow(FOLLOW_assignment_declaration_in_expression2464);
                     castqn=assignment_declaration();
 
                     state._fsp--;
 
-                    match(input,COMMA,FOLLOW_COMMA_in_expression2488); 
-                    pushFollow(FOLLOW_expression_in_expression2492);
+                    match(input,COMMA,FOLLOW_COMMA_in_expression2466); 
+                    pushFollow(FOLLOW_expression_in_expression2470);
                     cast_expr=expression();
 
                     state._fsp--;
 
-                    castrpn=(CommonTree)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_expression2496); 
+                    castrpn=(CommonTree)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_expression2474); 
 
                     		LineInformation location = new LineInformation (
                     			CAST47.getLine(),
@@ -5923,7 +5894,7 @@ public class QuorumTreeWalker extends TreeParser {
     };
 
     // $ANTLR start "function_expression_list"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1985:1: function_expression_list returns [List list, int firstParam] : ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1982:1: function_expression_list returns [List list, int firstParam] : ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) ;
     public final QuorumTreeWalker.function_expression_list_return function_expression_list() throws RecognitionException {
         QuorumTreeWalker.function_expression_list_return retval = new QuorumTreeWalker.function_expression_list_return();
         retval.start = input.LT(1);
@@ -5933,27 +5904,27 @@ public class QuorumTreeWalker extends TreeParser {
 
         retval.list = new ArrayList(); retval.firstParam = -1;
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1987:2: ( ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1988:2: ^( FUNCTION_EXPRESSION_LIST (e= expression )* )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1984:2: ( ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1985:2: ^( FUNCTION_EXPRESSION_LIST (e= expression )* )
             {
-            match(input,FUNCTION_EXPRESSION_LIST,FOLLOW_FUNCTION_EXPRESSION_LIST_in_function_expression_list2520); 
+            match(input,FUNCTION_EXPRESSION_LIST,FOLLOW_FUNCTION_EXPRESSION_LIST_in_function_expression_list2498); 
 
             if ( input.LA(1)==Token.DOWN ) {
                 match(input, Token.DOWN, null); 
-                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1988:29: (e= expression )*
+                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1985:29: (e= expression )*
                 loop63:
                 do {
                     int alt63=2;
                     int LA63_0 = input.LA(1);
 
-                    if ( ((LA63_0>=FUNCTION_CALL && LA63_0<=FUNCTION_CALL_THIS)||LA63_0==UNARY_NOT||(LA63_0>=QUALIFIED_SOLO_EXPRESSION && LA63_0<=QUALIFIED_SOLO_PARENT_EXPRESSON)||LA63_0==INHERITS||LA63_0==ME||LA63_0==OR||(LA63_0>=LESS && LA63_0<=GREATER)||LA63_0==EQUALITY||(LA63_0>=AND && LA63_0<=MODULO)||(LA63_0>=CAST && LA63_0<=INPUT)) ) {
+                    if ( ((LA63_0>=FUNCTION_CALL && LA63_0<=FUNCTION_CALL_THIS)||LA63_0==UNARY_NOT||(LA63_0>=QUALIFIED_SOLO_EXPRESSION && LA63_0<=QUALIFIED_SOLO_EXPRESSION_SELECTOR)||LA63_0==INHERITS||LA63_0==ME||LA63_0==OR||(LA63_0>=LESS && LA63_0<=GREATER)||LA63_0==EQUALITY||(LA63_0>=AND && LA63_0<=MODULO)||(LA63_0>=CAST && LA63_0<=INPUT)) ) {
                         alt63=1;
                     }
 
 
                     switch (alt63) {
                 	case 1 :
-                	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1989:2: e= expression
+                	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1986:2: e= expression
                 	    {
 
                 	    		if(retval.list.size() >= 1){
@@ -5963,7 +5934,7 @@ public class QuorumTreeWalker extends TreeParser {
                 	    			retval.firstParam = builder.addParameterLabel();
                 	    		}
                 	    	
-                	    pushFollow(FOLLOW_expression_in_function_expression_list2532);
+                	    pushFollow(FOLLOW_expression_in_function_expression_list2510);
                 	    e=expression();
 
                 	    state._fsp--;
@@ -6006,7 +5977,7 @@ public class QuorumTreeWalker extends TreeParser {
     };
 
     // $ANTLR start "formal_parameter"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2004:1: formal_parameter returns [TypeDescriptor type, String name] : ^( FPARAM ad= assignment_declaration ID ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2001:1: formal_parameter returns [TypeDescriptor type, String name] : ^( FPARAM ad= assignment_declaration ID ) ;
     public final QuorumTreeWalker.formal_parameter_return formal_parameter() throws RecognitionException {
         QuorumTreeWalker.formal_parameter_return retval = new QuorumTreeWalker.formal_parameter_return();
         retval.start = input.LT(1);
@@ -6016,18 +5987,18 @@ public class QuorumTreeWalker extends TreeParser {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2005:2: ( ^( FPARAM ad= assignment_declaration ID ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2005:6: ^( FPARAM ad= assignment_declaration ID )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2002:2: ( ^( FPARAM ad= assignment_declaration ID ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2002:6: ^( FPARAM ad= assignment_declaration ID )
             {
-            match(input,FPARAM,FOLLOW_FPARAM_in_formal_parameter2561); 
+            match(input,FPARAM,FOLLOW_FPARAM_in_formal_parameter2539); 
 
             match(input, Token.DOWN, null); 
-            pushFollow(FOLLOW_assignment_declaration_in_formal_parameter2565);
+            pushFollow(FOLLOW_assignment_declaration_in_formal_parameter2543);
             ad=assignment_declaration();
 
             state._fsp--;
 
-            ID48=(CommonTree)match(input,ID,FOLLOW_ID_in_formal_parameter2567); 
+            ID48=(CommonTree)match(input,ID,FOLLOW_ID_in_formal_parameter2545); 
 
             match(input, Token.UP, null); 
             	
@@ -6189,24 +6160,24 @@ public class QuorumTreeWalker extends TreeParser {
         }
     }
     static final String DFA62_eotS =
-        "\37\uffff";
+        "\36\uffff";
     static final String DFA62_eofS =
-        "\37\uffff";
+        "\36\uffff";
     static final String DFA62_minS =
-        "\1\4\13\uffff\1\2\22\uffff";
+        "\1\4\13\uffff\1\2\21\uffff";
     static final String DFA62_maxS =
-        "\1\133\13\uffff\1\130\22\uffff";
+        "\1\133\13\uffff\1\130\21\uffff";
     static final String DFA62_acceptS =
         "\1\uffff\1\1\1\2\1\3\1\4\1\5\1\6\1\7\1\10\1\11\1\12\1\13\1\uffff"+
         "\1\15\1\16\1\17\1\20\1\21\1\22\1\23\1\24\1\25\1\26\1\27\1\30\1\31"+
-        "\1\32\1\33\1\34\1\35\1\14";
+        "\1\32\1\33\1\34\1\14";
     static final String DFA62_specialS =
-        "\37\uffff}>";
+        "\36\uffff}>";
     static final String[] DFA62_transitionS = {
-            "\1\20\1\24\1\25\11\uffff\1\1\4\uffff\1\21\1\22\1\23\6\uffff"+
-            "\1\6\15\uffff\1\33\10\uffff\1\11\4\uffff\1\7\1\4\4\uffff\1\2"+
-            "\12\uffff\1\12\1\3\1\5\1\10\1\13\1\14\1\15\1\16\1\17\1\uffff"+
-            "\1\35\1\30\1\26\1\27\1\31\1\32\1\34",
+            "\1\20\1\23\1\24\11\uffff\1\1\4\uffff\1\21\1\22\7\uffff\1\6\15"+
+            "\uffff\1\32\10\uffff\1\11\4\uffff\1\7\1\4\4\uffff\1\2\12\uffff"+
+            "\1\12\1\3\1\5\1\10\1\13\1\14\1\15\1\16\1\17\1\uffff\1\34\1\27"+
+            "\1\25\1\26\1\30\1\31\1\33",
             "",
             "",
             "",
@@ -6218,8 +6189,7 @@ public class QuorumTreeWalker extends TreeParser {
             "",
             "",
             "",
-            "\1\36\123\uffff\1\30\1\uffff\1\27",
-            "",
+            "\1\35\123\uffff\1\27\1\uffff\1\26",
             "",
             "",
             "",
@@ -6269,7 +6239,7 @@ public class QuorumTreeWalker extends TreeParser {
             this.transition = DFA62_transition;
         }
         public String getDescription() {
-            return "1453:1: expression returns [ExpressionValue eval, ExecutionStep step] : ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( QUALIFIED_SOLO_PARENT_EXPRESSON qn1= qualified_name COLON PARENT COLON qn2= qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN );";
+            return "1453:1: expression returns [ExpressionValue eval, ExecutionStep step] : ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN );";
         }
     }
  
@@ -6345,9 +6315,9 @@ public class QuorumTreeWalker extends TreeParser {
     public static final BitSet FOLLOW_qualified_name_in_solo_method_call585 = new BitSet(new long[]{0x0000040800000000L});
     public static final BitSet FOLLOW_COLON_in_solo_method_call588 = new BitSet(new long[]{0x0000000010000000L});
     public static final BitSet FOLLOW_ID_in_solo_method_call590 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call594 = new BitSet(new long[]{0x0C20101040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call594 = new BitSet(new long[]{0x0C20101040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_solo_method_call604 = new BitSet(new long[]{0x0000001080000000L});
-    public static final BitSet FOLLOW_COMMA_in_solo_method_call614 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_COMMA_in_solo_method_call614 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_solo_method_call620 = new BitSet(new long[]{0x0000001080000000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call634 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_SOLO_FUNCTION_CALL_PARENT_in_solo_method_call646 = new BitSet(new long[]{0x0000000000000004L});
@@ -6356,9 +6326,9 @@ public class QuorumTreeWalker extends TreeParser {
     public static final BitSet FOLLOW_qualified_name_in_solo_method_call652 = new BitSet(new long[]{0x0000040000000000L});
     public static final BitSet FOLLOW_COLON_in_solo_method_call654 = new BitSet(new long[]{0x0000000010000000L});
     public static final BitSet FOLLOW_ID_in_solo_method_call656 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call658 = new BitSet(new long[]{0x0C20101040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call658 = new BitSet(new long[]{0x0C20101040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_solo_method_call668 = new BitSet(new long[]{0x0000001080000000L});
-    public static final BitSet FOLLOW_COMMA_in_solo_method_call675 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_COMMA_in_solo_method_call675 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_solo_method_call681 = new BitSet(new long[]{0x0000001080000000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call691 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_SOLO_FUNCTION_CALL_THIS_in_solo_method_call702 = new BitSet(new long[]{0x0000000000000004L});
@@ -6367,13 +6337,13 @@ public class QuorumTreeWalker extends TreeParser {
     public static final BitSet FOLLOW_qualified_name_in_solo_method_call708 = new BitSet(new long[]{0x0000040800000000L});
     public static final BitSet FOLLOW_COLON_in_solo_method_call711 = new BitSet(new long[]{0x0000000010000000L});
     public static final BitSet FOLLOW_ID_in_solo_method_call713 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call717 = new BitSet(new long[]{0x0C20101040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call717 = new BitSet(new long[]{0x0C20101040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_solo_method_call727 = new BitSet(new long[]{0x0000001080000000L});
-    public static final BitSet FOLLOW_COMMA_in_solo_method_call734 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_COMMA_in_solo_method_call734 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_solo_method_call740 = new BitSet(new long[]{0x0000001080000000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call750 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_ALERT_in_alert_statement770 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_alert_statement778 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_alert_statement778 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_alert_statement782 = new BitSet(new long[]{0x0000001000000000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_alert_statement790 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_CHECK_in_check_statement822 = new BitSet(new long[]{0x000000200000A000L});
@@ -6474,49 +6444,49 @@ public class QuorumTreeWalker extends TreeParser {
     public static final BitSet FOLLOW_ROOT_EXPRESSION_in_root_expression1900 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_expression_in_root_expression1902 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_UNARY_NOT_in_expression1924 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_NOT_in_expression1926 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_NOT_in_expression1926 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_expression1932 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_EQUALITY_in_expression1944 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression1950 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_expression_in_expression1950 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_expression1956 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_NOTEQUALS_in_expression1966 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression1972 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_expression_in_expression1972 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_expression1978 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_GREATER_in_expression1988 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression1994 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_expression_in_expression1994 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_expression2000 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_GREATER_EQUAL_in_expression2010 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2016 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_expression_in_expression2016 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_expression2022 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_INHERITS_in_expression2032 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_expression_in_expression2036 = new BitSet(new long[]{0x0000000000000800L});
     public static final BitSet FOLLOW_class_type_in_expression2040 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_LESS_in_expression2050 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2056 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_expression_in_expression2056 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_expression2062 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_LESS_EQUAL_in_expression2072 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2078 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_expression_in_expression2078 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_expression2084 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_OR_in_expression2094 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2100 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_expression_in_expression2100 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_expression2106 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_AND_in_expression2116 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2122 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_expression_in_expression2122 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_expression2128 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_PLUS_in_expression2138 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2144 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_expression_in_expression2144 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_expression2150 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_MINUS_in_expression2160 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2166 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_expression_in_expression2166 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_expression2172 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_MULTIPLY_in_expression2182 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2188 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_expression_in_expression2188 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_expression2194 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_DIVIDE_in_expression2204 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2210 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_expression_in_expression2210 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_expression2216 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_MODULO_in_expression2226 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2232 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_expression_in_expression2232 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_expression2238 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_FUNCTION_CALL_in_expression2248 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_qualified_name_in_expression2250 = new BitSet(new long[]{0x0000040800000000L});
@@ -6533,52 +6503,46 @@ public class QuorumTreeWalker extends TreeParser {
     public static final BitSet FOLLOW_selector_in_expression2304 = new BitSet(new long[]{0x0000040000000000L});
     public static final BitSet FOLLOW_COLON_in_expression2306 = new BitSet(new long[]{0x0000000000000800L});
     public static final BitSet FOLLOW_qualified_name_in_expression2308 = new BitSet(new long[]{0x0000000000000008L});
-    public static final BitSet FOLLOW_QUALIFIED_SOLO_PARENT_EXPRESSON_in_expression2318 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_qualified_name_in_expression2322 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_expression2324 = new BitSet(new long[]{0x0000080000000000L});
-    public static final BitSet FOLLOW_PARENT_in_expression2326 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_expression2328 = new BitSet(new long[]{0x0000000000000800L});
-    public static final BitSet FOLLOW_qualified_name_in_expression2332 = new BitSet(new long[]{0x0000000000000008L});
-    public static final BitSet FOLLOW_FUNCTION_CALL_PARENT_in_expression2342 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_PARENT_in_expression2344 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_expression2346 = new BitSet(new long[]{0x0000000000000800L});
-    public static final BitSet FOLLOW_qualified_name_in_expression2350 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_expression2352 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_expression2354 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2356 = new BitSet(new long[]{0x0000000000000080L});
-    public static final BitSet FOLLOW_function_expression_list_in_expression2362 = new BitSet(new long[]{0x0000001000000000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2364 = new BitSet(new long[]{0x0000000000000008L});
-    public static final BitSet FOLLOW_FUNCTION_CALL_THIS_in_expression2374 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_ME_in_expression2376 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_expression2378 = new BitSet(new long[]{0x0000000000000800L});
-    public static final BitSet FOLLOW_qualified_name_in_expression2380 = new BitSet(new long[]{0x0000040800000000L});
-    public static final BitSet FOLLOW_COLON_in_expression2383 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_expression2385 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2389 = new BitSet(new long[]{0x0000000000000080L});
-    public static final BitSet FOLLOW_function_expression_list_in_expression2395 = new BitSet(new long[]{0x0000001000000000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2397 = new BitSet(new long[]{0x0000000000000008L});
-    public static final BitSet FOLLOW_BOOLEAN_in_expression2406 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MINUS_in_expression2415 = new BitSet(new long[]{0x0000000000000000L,0x0000000001000000L});
-    public static final BitSet FOLLOW_DECIMAL_in_expression2419 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MINUS_in_expression2428 = new BitSet(new long[]{0x0000000000000000L,0x0000000000400000L});
-    public static final BitSet FOLLOW_INT_in_expression2432 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_STRING_in_expression2440 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NULL_in_expression2448 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ME_in_expression2456 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_INPUT_in_expression2464 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2466 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_FUNCTION_CALL_PARENT_in_expression2320 = new BitSet(new long[]{0x0000000000000004L});
+    public static final BitSet FOLLOW_PARENT_in_expression2322 = new BitSet(new long[]{0x0000040000000000L});
+    public static final BitSet FOLLOW_COLON_in_expression2324 = new BitSet(new long[]{0x0000000000000800L});
+    public static final BitSet FOLLOW_qualified_name_in_expression2328 = new BitSet(new long[]{0x0000040000000000L});
+    public static final BitSet FOLLOW_COLON_in_expression2330 = new BitSet(new long[]{0x0000000010000000L});
+    public static final BitSet FOLLOW_ID_in_expression2332 = new BitSet(new long[]{0x0000000800000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2334 = new BitSet(new long[]{0x0000000000000080L});
+    public static final BitSet FOLLOW_function_expression_list_in_expression2340 = new BitSet(new long[]{0x0000001000000000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2342 = new BitSet(new long[]{0x0000000000000008L});
+    public static final BitSet FOLLOW_FUNCTION_CALL_THIS_in_expression2352 = new BitSet(new long[]{0x0000000000000004L});
+    public static final BitSet FOLLOW_ME_in_expression2354 = new BitSet(new long[]{0x0000040000000000L});
+    public static final BitSet FOLLOW_COLON_in_expression2356 = new BitSet(new long[]{0x0000000000000800L});
+    public static final BitSet FOLLOW_qualified_name_in_expression2358 = new BitSet(new long[]{0x0000040800000000L});
+    public static final BitSet FOLLOW_COLON_in_expression2361 = new BitSet(new long[]{0x0000000010000000L});
+    public static final BitSet FOLLOW_ID_in_expression2363 = new BitSet(new long[]{0x0000000800000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2367 = new BitSet(new long[]{0x0000000000000080L});
+    public static final BitSet FOLLOW_function_expression_list_in_expression2373 = new BitSet(new long[]{0x0000001000000000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2375 = new BitSet(new long[]{0x0000000000000008L});
+    public static final BitSet FOLLOW_BOOLEAN_in_expression2384 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_MINUS_in_expression2393 = new BitSet(new long[]{0x0000000000000000L,0x0000000001000000L});
+    public static final BitSet FOLLOW_DECIMAL_in_expression2397 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_MINUS_in_expression2406 = new BitSet(new long[]{0x0000000000000000L,0x0000000000400000L});
+    public static final BitSet FOLLOW_INT_in_expression2410 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_STRING_in_expression2418 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NULL_in_expression2426 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ME_in_expression2434 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_INPUT_in_expression2442 = new BitSet(new long[]{0x0000000800000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2444 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_expression_in_expression2448 = new BitSet(new long[]{0x0000001000000000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2450 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_CAST_in_expression2458 = new BitSet(new long[]{0x0000000800000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2460 = new BitSet(new long[]{0xF000180310000800L});
+    public static final BitSet FOLLOW_assignment_declaration_in_expression2464 = new BitSet(new long[]{0x0000000080000000L});
+    public static final BitSet FOLLOW_COMMA_in_expression2466 = new BitSet(new long[]{0x0C20100040610070L,0x000000000FEFF801L});
     public static final BitSet FOLLOW_expression_in_expression2470 = new BitSet(new long[]{0x0000001000000000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2472 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_CAST_in_expression2480 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2482 = new BitSet(new long[]{0xF000180310000800L});
-    public static final BitSet FOLLOW_assignment_declaration_in_expression2486 = new BitSet(new long[]{0x0000000080000000L});
-    public static final BitSet FOLLOW_COMMA_in_expression2488 = new BitSet(new long[]{0x0C20100040E10070L,0x000000000FEFF801L});
-    public static final BitSet FOLLOW_expression_in_expression2492 = new BitSet(new long[]{0x0000001000000000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2496 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_FUNCTION_EXPRESSION_LIST_in_function_expression_list2520 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_function_expression_list2532 = new BitSet(new long[]{0x0C20100040E10078L,0x000000000FEFF801L});
-    public static final BitSet FOLLOW_FPARAM_in_formal_parameter2561 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_assignment_declaration_in_formal_parameter2565 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_formal_parameter2567 = new BitSet(new long[]{0x0000000000000008L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2474 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_FUNCTION_EXPRESSION_LIST_in_function_expression_list2498 = new BitSet(new long[]{0x0000000000000004L});
+    public static final BitSet FOLLOW_expression_in_function_expression_list2510 = new BitSet(new long[]{0x0C20100040610078L,0x000000000FEFF801L});
+    public static final BitSet FOLLOW_FPARAM_in_formal_parameter2539 = new BitSet(new long[]{0x0000000000000004L});
+    public static final BitSet FOLLOW_assignment_declaration_in_formal_parameter2543 = new BitSet(new long[]{0x0000000010000000L});
+    public static final BitSet FOLLOW_ID_in_formal_parameter2545 = new BitSet(new long[]{0x0000000000000008L});
 
 }
