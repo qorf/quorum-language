@@ -1,0 +1,17 @@
+class Main
+    integer a
+    Main b = undefined
+
+    action Main
+        a = 2
+        Main c
+        b = c
+        print a
+        text t = b:blah()
+        print t
+    end
+
+    action blah returns text
+        return "in blah"
+    end
+end

@@ -537,6 +537,43 @@ public class PublicPrivateTester {
         assert(r.getLine(1).equals("100"));
     }
     
+    @Test
+    public void test_multiple_fields_execute() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "MultipleFields.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        ExpressionValue variableValue2 = vm.getDataEnvironment().getVariableValue("t");
+        int a = variableValue.getResult().integer;
+        String t = variableValue2.getResult().text;
+        if(a != 2 || !t.equals("in blah")) {
+            fail();
+        }        
+    }
+    
+    @Test
+    public void test_multiple_fields_bytecode() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "MultipleFields.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("2"));
+        assert(r.getLine(1).equals("in blah"));
+    }
+    
     /***************************************************************************
      * Fail tests
      * 
