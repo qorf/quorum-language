@@ -1,0 +1,19 @@
+class Main
+    action Main
+        A a
+        B b
+        C c
+
+        text resultA = handleAs(a)
+        text resultB = handleAs(b)
+        text resultC = handleAs(c)
+
+        print resultA
+        print resultB
+        print resultC
+    end
+
+    action handleAs(A a) returns text
+        return a:MethodOfA()
+    end
+end

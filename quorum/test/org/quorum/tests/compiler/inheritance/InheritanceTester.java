@@ -269,4 +269,138 @@ public class InheritanceTester {
         assert(r.getLine(1).equals("Size of gas tank (gallons): 20"));
     }
 
+    @Test
+    public void test_call_inherited_action_execute(){
+        File[] files = new File[4];
+        files[3] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "A.quorum");
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "B.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "C.quorum");
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "CallInheritedAction.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("resultA");
+        ExpressionValue variableValue2 = vm.getDataEnvironment().getVariableValue("resultB");
+        ExpressionValue variableValue3 = vm.getDataEnvironment().getVariableValue("resultC");
+        String resultA = variableValue.getResult().text;
+        String resultB = variableValue2.getResult().text;
+        String resultC = variableValue3.getResult().text;
+
+        if(!resultA.equals("implemented by A") || !resultB.equals("implemented by B") || !resultC.equals("implemented by B")) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_call_inherited_action_bytecode(){
+        File[] files = new File[4];
+        files[3] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "A.quorum");
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "B.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "C.quorum");
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "CallInheritedAction.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+    
+        assert(r.getLine(0).equals("implemented by A"));
+        assert(r.getLine(1).equals("implemented by B"));
+        assert(r.getLine(2).equals("implemented by B"));
+    }
+    
+    @Test
+    public void test_call_method_with_child_type_execute(){
+        File[] files = new File[4];
+        files[3] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "A.quorum");
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "B.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "C.quorum");
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "CallMethodWithChildType.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("resultA");
+        ExpressionValue variableValue2 = vm.getDataEnvironment().getVariableValue("resultB");
+        ExpressionValue variableValue3 = vm.getDataEnvironment().getVariableValue("resultC");
+        String resultA = variableValue.getResult().text;
+        String resultB = variableValue2.getResult().text;
+        String resultC = variableValue3.getResult().text;
+
+        if(!resultA.equals("implemented by A") || !resultB.equals("implemented by B") || !resultC.equals("implemented by B")) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_call_method_with_child_type_bytecode(){
+        File[] files = new File[4];
+        files[3] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "A.quorum");
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "B.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "C.quorum");
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "CallMethodWithChildType.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+    
+        assert(r.getLine(0).equals("implemented by A"));
+        assert(r.getLine(1).equals("implemented by B"));
+        assert(r.getLine(2).equals("implemented by B"));
+    }
+    
+    @Test
+    public void test_simple_cast_execute(){
+        File[] files = new File[4];
+        files[3] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "A.quorum");
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "B.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "C.quorum");
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "SimpleCast.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("result");
+        
+        String result = variableValue.getResult().text;
+        if(!result.equals("implemented by B")) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_simple_cast_bytecode(){
+        File[] files = new File[4];
+        files[3] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "A.quorum");
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "B.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "C.quorum");
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "SimpleCast.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+    
+        assert(r.getLine(0).equals("implemented by B"));
+    }
 }

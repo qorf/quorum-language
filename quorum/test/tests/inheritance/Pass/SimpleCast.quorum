@@ -1,0 +1,13 @@
+class Main
+    C c
+
+    action Main
+        text result = foo(c)
+        print result
+    end
+
+    action foo(A a) returns text
+        C c = cast(C, a)
+        return c:MethodOfA()
+    end
+end
