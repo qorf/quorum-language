@@ -1,0 +1,9 @@
+class SetPublicInheritedHelper is a AWithPublicOnly
+    action SetPublicVariable
+        parent:AWithPublicOnly:aPublicVariable = 2
+    end
+
+    action GetPublicVariable returns integer
+        return parent:AWithPublicOnly:aPublicVariable
+    end
+end

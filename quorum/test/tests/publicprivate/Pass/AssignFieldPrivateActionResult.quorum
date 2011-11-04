@@ -1,0 +1,11 @@
+class AssignFieldActionResult
+    integer k = doSomething()
+
+    action Main
+        print k
+    end
+
+    private action doSomething returns integer
+        return 2
+    end
+end

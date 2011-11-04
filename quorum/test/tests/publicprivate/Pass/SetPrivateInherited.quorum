@@ -1,0 +1,8 @@
+class SetPublicInherited
+    action Main
+        SetPrivateInheritedHelper h
+        h:SetPrivateVariable()
+        integer value = h:GetPrivateVariable()
+        print value
+    end
+end

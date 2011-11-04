@@ -1,0 +1,8 @@
+class SetPublicInherited
+    action Main
+        SetPublicInheritedHelper h
+        h:SetPublicVariable()
+        integer value = h:GetPublicVariable()
+        print value
+    end
+end
