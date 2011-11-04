@@ -500,6 +500,43 @@ public class PublicPrivateTester {
         assert(r.getLine(0).equals("2"));
     }
     
+    @Test
+    public void test_mix_fields_and_locals_execute() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "MixFieldsAndLocals.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("field");
+        ExpressionValue variableValue2 = vm.getDataEnvironment().getVariableValue("local");
+        int field = variableValue.getResult().integer;
+        int local = variableValue2.getResult().integer;
+        if(field != 10 || local != 100) {
+            fail();
+        }        
+    }
+    
+    @Test
+    public void test_mix_fields_and_locals_bytecode() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "MixFieldsAndLocals.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("10"));
+        assert(r.getLine(1).equals("100"));
+    }
+    
     /***************************************************************************
      * Fail tests
      * 

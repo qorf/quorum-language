@@ -755,4 +755,32 @@ public class ActionsTester {
         assert(r.getLine(1).equals("1"));
         
     }
+    
+    @Test
+    public void test_pass_simple_action_pass_object_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleActionPassObject.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("message");
+        String message = variableValue.getResult().text;
+        if(!message.equals("hello world")) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_simple_action_pass_object_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "VTableObjectTest.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("hello world"));        
+    }
 }
