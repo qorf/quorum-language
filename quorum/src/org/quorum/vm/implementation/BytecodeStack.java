@@ -116,8 +116,10 @@ public class BytecodeStack {
      * @return 
      */
     public TypeDescriptor popExpressionType() {
-        TypeDescriptor pop = expressionTypes.pop();
-        return pop;
+        if(!expressionTypes.isEmpty())
+            return expressionTypes.pop();
+        else
+            return null;
     }
     
     /**

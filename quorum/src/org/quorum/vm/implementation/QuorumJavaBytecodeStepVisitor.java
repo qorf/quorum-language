@@ -90,10 +90,28 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //now do field initialization
         stack.startMethod(1);
         Vector<ExecutionStep> steps = this.currentClassExecution.getSteps();
+        OpcodeTracker tracker = currentClassExecution.getTracker();
+ 
+        //loop through and queue up the field variables in the constructor instead
+        //of the class visit.
         for (int i = 0; i < steps.size(); i++) {
             ExecutionStep step = steps.get(i);
-            step.visit(this);
+            OpcodeType opcodeType = tracker.getOpcodeType(i + 1);
+            
+            if(opcodeType == OpcodeType.ROOT_EXPRESSION){
+                tracker.addToQueue(i + 1);
+                int finalPosition = tracker.getFinalPosition(i + 1) - 1;
+
+                //calculate the final position and jump to it.
+                if (finalPosition >= 0) {
+                    i = finalPosition;
+                }
+            }else{
+                tracker.addToQueue(i + 1);
+                step.visit(this);
+            }
         }
+        
 
         if (isParent) {
             //initialize all of the parent objects as fields
@@ -429,6 +447,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             processFieldExpressions();
         else
             processExpressions();
+        
+        //variableType = stack.popExpressionType();
+        
         methodVisitor.visitFieldInsn(PUTFIELD, fieldParent, variableName, QuorumConverter.convertTypeToBytecodeString(variableType));
     }
 
@@ -1112,10 +1133,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
-                && !"Libraries.Language.Support.CompareResult".equals(staticKey)) {
-            return;
-        }
+//        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
+//                && !"Libraries.Language.Support.CompareResult".equals(staticKey)) {
+//            return;
+//        }
         
         this.visitInterface(clazz);
         
@@ -1142,8 +1163,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         //Do field visiting for the class.
         Iterator<VariableDescriptor> classVariables = clazz.getClassDescriptor().getClassVariables();
-        OpcodeTracker tracker = currentClassExecution.getTracker();
-        int i = 1;
         while (classVariables.hasNext()) {
             VariableDescriptor next = classVariables.next();
             String varName = next.getName();
@@ -1156,22 +1175,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 accessModifier = ACC_PRIVATE;
             }
 
-            OpcodeType opcodeType = tracker.getOpcodeType(i);
-
-            //if the opcode type is of root expression queue it up for later.
-            //also queue up the next item (the end) this should always be the
-            //next item because we are talking about class variables only.
-            if (opcodeType == OpcodeType.ROOT_EXPRESSION) {
-                tracker.addToQueue(i);
-                i = tracker.getFinalPosition(i) + 1;
-                tracker.addToQueue(i);
-            }
-
             fieldVisitor = classWriter.visitField(accessModifier, varName, converted, null, null);
             fieldVisitor.visitEnd();
-            
-
-            i++;
         }
 
         //put in an extra plugin field if the class has system actions.
@@ -2221,7 +2226,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(CreateObjectStep step) {
         ClassDescriptor clazz = step.getClazz();
-        this.currentMethodExecution.getTracker().clearQueue();
+        
+        if(currentMethodExecution == null){
+            this.currentClassExecution.getTracker().clearQueue();
+        }else{
+            this.currentMethodExecution.getTracker().clearQueue();
+        }
+        
         //methodVisitor.visitVarInsn(ALOAD, THIS);
         String converted = QuorumConverter.convertStaticKeyToBytecodePath(clazz.getStaticKey());
         methodVisitor.visitTypeInsn(NEW, converted);
