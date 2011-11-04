@@ -433,13 +433,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             fieldParent = QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getName());
             methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(variable.getType()), stack.getMappedVariableNumber(variable.getVariableNumber()));
             variableName = subVariableName;
-            variableType = subVariableType;
+            variableType = stack.popExpressionType();
         } else {//if the sub-variable name does match
             //process and visit the aload variable instruction
             fieldParent = QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey());
             methodVisitor.visitVarInsn(ALOAD, 0);
             variableName = variable.getName();
             variableType = variable.getType();
+            stack.popExpressionType();
         }
 
         //process the expression and put the field
@@ -459,7 +460,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * @param step 
      */
     private void performLocalAssignment(TypeDescriptor valueType, AssignmentStep step) {
-        int variableNumber = step.getVariable().getVariableNumber();
+        int variableNumber = step.getVariable().getVariableNumber() - currentClass.getNumberOfVariables();
 
         int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
         
@@ -1133,10 +1134,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-//        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
-//                && !"Libraries.Language.Support.CompareResult".equals(staticKey)) {
-//            return;
-//        }
+        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
+                && !"Libraries.Language.Support.CompareResult".equals(staticKey)) {
+            return;
+        }
         
         this.visitInterface(clazz);
         
@@ -1478,10 +1479,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AssignmentIntegerLocalStep step) {
         //process the expressions in the queue
-        if(!step.getVariable().isFieldVariable())
+        TypeDescriptor pop = null;
+        if(!step.getVariable().isFieldVariable()){
             processExpressions();
-        
-        TypeDescriptor pop = stack.popExpressionType();
+            pop = stack.popExpressionType();
+        }
         //Assigns an integer to a local variable or field of type integer
         performAssignment(pop, step, false);
     }
@@ -2618,7 +2620,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         varDescriptor.getName(), QuorumConverter.convertTypeToBytecodeString(varDescriptor.getType()));
                 variable = varDescriptor.getType();
             } else {//otherwise get the variable number and push the new variable onto the bytecode stack
-                int variableNumber = step.getValue().getVariableNumber();
+                int variableNumber = step.getValue().getVariableNumber() - currentClass.getNumberOfVariables();
                 variable = stack.getVariable(variableNumber);
                 pushVariable(step.getValue().getType(), variableNumber);
             }
