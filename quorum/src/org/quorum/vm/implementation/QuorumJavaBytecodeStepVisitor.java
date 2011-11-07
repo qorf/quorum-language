@@ -124,6 +124,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitVarInsn(ALOAD, THIS);
                 methodVisitor.visitTypeInsn(NEW, converted);
                 methodVisitor.visitInsn(DUP);
+                //methodVisitor.visitInsn(DUP);
                 //push a boolean onto the stack
                 methodVisitor.visitInsn(ICONST_0);
                 methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "(Z)V");
@@ -138,7 +139,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 String parentKey = parent.getStaticKey();
                 String parentName = QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey());
                 String convertedParentName = QuorumConverter.convertStaticKeyToBytecodePath(parentKey);
-                
+                String convertedParentNameType = QuorumConverter.convertStaticKeyToBytecodePathTypeName(parentKey);
                 Iterator<ClassDescriptor> grandParents = parent.getFlattenedListOfParents();
                 while(grandParents.hasNext()) {
                     ClassDescriptor grandParent = grandParents.next();
@@ -147,6 +148,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     String convertedGrandParent = QuorumConverter.convertStaticKeyToBytecodePathTypeName(grandParentKey);
                     
                     //load the this pointer
+                    methodVisitor.visitVarInsn(ALOAD, 0);
+                    
+                    methodVisitor.visitFieldInsn(GETFIELD, this.processedClazzName, parentName, convertedParentNameType);
                     methodVisitor.visitVarInsn(ALOAD, 0);
                     //get the current object's parent field
                     methodVisitor.visitFieldInsn(GETFIELD, this.processedClazzName, grandParentName, convertedGrandParent);
