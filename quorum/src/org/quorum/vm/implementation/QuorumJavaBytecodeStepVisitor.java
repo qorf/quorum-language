@@ -988,7 +988,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
         }
         
-        
+        if(tracker.getQueueSize() == 1)
+            tracker.clearQueue();
     }
     
     /**
@@ -1336,7 +1337,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             hiddenSetter.visitVarInsn(QuorumConverter.getLoadOpcode(var.getType()), 1);
             hiddenSetter.visitFieldInsn(PUTFIELD, 
                     QuorumConverter.convertStaticKeyToBytecodePath(clazz.getStaticKey()), 
-                    var.getName(), QuorumConverter.convertTypeToBytecodeString(var.getType()));
+                   var.getName(), QuorumConverter.convertTypeToBytecodeString(var.getType()));
             hiddenSetter.visitInsn(RETURN);
             hiddenSetter.visitMaxs(2, 2);
             hiddenSetter.visitEnd();
