@@ -121,7 +121,11 @@ public class QuorumConverter {
         for(int i = 0; i < parameters.size(); i++) {
             ParameterDescriptor param = parameters.get(i);
             TypeDescriptor type = param.getType();
-            parametersString += convertTypeToBytecodeString(type);
+            if (param.getType().isPrimitiveType())
+                parametersString += convertTypeToBytecodeString(type);
+            else {
+                parametersString += "L" + convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey())) + ";";
+            }
         }
         
         parametersString += ")";

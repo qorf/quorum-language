@@ -2133,6 +2133,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     
     @Override
     public void visit(CallStep step) {
+        boolean isParameter = false;
         /**
          * I haven't tested this, as we aren't quite there yet in the build,
          * but it might work or be easily modified to work correctly.
@@ -2171,6 +2172,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     ParameterDescriptor varDescriptor = (ParameterDescriptor) var;
                     int number = stack.getParameterNumber(varDescriptor.getName());
                     methodVisitor.visitVarInsn(ALOAD, number);
+                    isParameter = true;
+                    converted = QuorumConverter.convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(var.getType().getStaticKey()));
                 }else{
                     //Otherwise, load the variable from the mapped variable on the
                     //stack.
@@ -2181,9 +2184,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
         }
         
-        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted,
-                    callee.getName(),
-                    QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));
+        if (!isParameter) {
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted,
+                        callee.getName(),
+                        QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));
+        } else {
+            methodVisitor.visitMethodInsn(INVOKEINTERFACE, converted,
+                    callee.getName(), QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));
+        }
         
         // Is the method return type void? If not, push its return type onto the stack.
         if (!step.getMethodCallee().getReturnType().isVoid()) {

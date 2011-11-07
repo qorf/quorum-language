@@ -772,7 +772,7 @@ public class ActionsTester {
     
     @Test
     public void test_pass_simple_action_pass_object_bytecode(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "VTableObjectTest.quorum"));
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleActionPassObject.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }

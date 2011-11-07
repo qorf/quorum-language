@@ -1,7 +1,15 @@
 class Main
-    integer k = 2
-
     action Main
-        print k
+        Main newMain
+        text message = foo(newMain)
+        print message
+    end
+
+    action foo(Main m) returns text
+        return m:hello()
+    end
+
+    action hello() returns text
+        return "text"
     end
 end
