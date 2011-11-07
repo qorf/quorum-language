@@ -114,6 +114,26 @@ public class ClassExecution extends LinearExecution{
         total++; //to account for the jump
         return total;
     }
+    
+    /**
+     * Determines whether this class has a custom constructor.
+     * 
+     * @return 
+     */
+    public boolean hasConstructor() {
+        return this.classDescriptor.hasConstructor();
+    }
+    
+    /**
+     * If this class has a custom constructor, this class returns the 
+     * execution for it.
+     * 
+     * @return 
+     */
+    public MethodExecution getConstructor() {
+        return this.getMethod("on create");
+    }
+    
 
     /**
      * Return the MethodExecution object that is mapped through the given

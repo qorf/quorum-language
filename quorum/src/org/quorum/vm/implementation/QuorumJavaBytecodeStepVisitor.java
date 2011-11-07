@@ -160,6 +160,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
         }
 
+        
+        //put in the data from the constructor
+        if(currentClassExecution.hasConstructor()) {
+            MethodExecution constructor = currentClassExecution.getConstructor();
+            visit(constructor);
+        }
+        
+        
         final String objectName = "___$$$Calling___$$$___Object$$$___";
         final String javaObjectPath = "Ljava/lang/Object;";
         //initialize the plugin last
@@ -1218,7 +1226,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         Iterator<MethodExecution> methods = clazz.getMethods();
         while (methods.hasNext()) {
             MethodExecution method = methods.next();
-            visit(method);
+            MethodDescriptor methodDescriptor = method.getMethodDescriptor();
+            if(!methodDescriptor.isConstructor()) {
+                visit(method);
+            }
         }
 
         Iterator<SystemActionDescriptor> systems = clazz.getClassDescriptor().getSystemActions();
