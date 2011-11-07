@@ -1311,7 +1311,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             hiddenGetter.visitVarInsn(ALOAD, 0);
             hiddenGetter.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(clazz.getStaticKey()), 
                     var.getName(), QuorumConverter.convertTypeToBytecodeString(var.getType()));
-            hiddenGetter.visitInsn(ARETURN);
+            hiddenGetter.visitInsn(QuorumConverter.convertTypeToReturnOpcode(var.getType()));
             hiddenGetter.visitMaxs(1, 1);
             hiddenGetter.visitEnd();
         
@@ -1333,7 +1333,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             //generate the setter into the bytecode
             MethodVisitor hiddenSetter = classWriter.visitMethod(ACC_PUBLIC, hiddenSetterName, hiddenSetterSignature, null, null);
             hiddenSetter.visitVarInsn(ALOAD, 0);
-            hiddenSetter.visitVarInsn(ALOAD, 1);
+            hiddenSetter.visitVarInsn(QuorumConverter.getLoadOpcode(var.getType()), 1);
             hiddenSetter.visitFieldInsn(PUTFIELD, 
                     QuorumConverter.convertStaticKeyToBytecodePath(clazz.getStaticKey()), 
                     var.getName(), QuorumConverter.convertTypeToBytecodeString(var.getType()));
