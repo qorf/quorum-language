@@ -144,7 +144,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     ClassDescriptor grandParent = grandParents.next();
                     String grandParentKey = grandParent.getStaticKey();
                     String grandParentName = QuorumConverter.convertParentStaticKeyToValidName(grandParent.getStaticKey());
-                    String convertedGrandParent = QuorumConverter.convertStaticKeyToBytecodePath(grandParentKey);
+                    String convertedGrandParent = QuorumConverter.convertStaticKeyToBytecodePathTypeName(grandParentKey);
                     
                     //load the this pointer
                     methodVisitor.visitVarInsn(ALOAD, 0);
