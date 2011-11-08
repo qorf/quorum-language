@@ -185,7 +185,12 @@ public class CompilerTestSuite {
      * @return 
      */
     public static RunResult runQuorumFile() {
-        return runQuorumFile(new File("Main.class"));
+        File[] files = {new File(vm.getCurrentFileBeingExecuted())};
+        return runQuorumFile(new File("Main.class"), files);
+    }
+    
+    public static RunResult runQuorumFiles(File[] files){
+        return runQuorumFile(new File("Main.class"), files);
     }
     
     /**
@@ -195,9 +200,8 @@ public class CompilerTestSuite {
      * @param result
      * @return 
      */
-    public static synchronized RunResult runQuorumFile(File file) {
+    public static synchronized RunResult runQuorumFile(File file, File[] files) {
         RunResult runResult = new RunResult();
-        File[] files = {new File(vm.getCurrentFileBeingExecuted())};
         File dir = new File(systemRoot + "/build/classes/build/");
         
         //setup the VM

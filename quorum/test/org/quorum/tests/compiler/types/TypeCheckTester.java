@@ -124,13 +124,15 @@ public class TypeCheckTester {
 
     @Test
     public void test_pass_ImpAssignBooleanBoolean_bytecode() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignBooleanBoolean.quorum");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignBooleanBoolean.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
-
-        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignBooleanBoolean.class"));
+        
+        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignBooleanBoolean.class"), files);
         if (!r.isSuccessful())
             fail();
         
@@ -238,13 +240,15 @@ public class TypeCheckTester {
 
     @Test
     public void test_pass_ImpAssignIntegerInteger_bytecode() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignIntegerInteger.quorum");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignIntegerInteger.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
 
-        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignIntegerInteger.class"));
+        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignIntegerInteger.class"), files);
         if (!r.isSuccessful())
             fail();
         
@@ -354,13 +358,15 @@ public class TypeCheckTester {
 
     @Test
     public void test_pass_ImpAssignNumberInteger_bytecode() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignNumberInteger.quorum");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignNumberInteger.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
 
-        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignNumberInteger.class"));
+        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignNumberInteger.class"), files);
         if (!r.isSuccessful())
             fail();
         
@@ -442,13 +448,15 @@ public class TypeCheckTester {
 
     @Test
     public void test_pass_ImpAssignNumberNumber_bytecode() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignNumberNumber.quorum");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignNumberNumber.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
 
-        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignNumberNumber.class"));
+        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignNumberNumber.class"), files);
         if (!r.isSuccessful())
             fail();
         
@@ -528,13 +536,15 @@ public class TypeCheckTester {
 
     @Test
     public void test_pass_ImpAssignTextText_bytecode() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignTextText.quorum");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignTextText.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
-
-        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignTextText.class"));
+        
+        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignTextText.class"), files);
         if (!r.isSuccessful())
             fail();
         
