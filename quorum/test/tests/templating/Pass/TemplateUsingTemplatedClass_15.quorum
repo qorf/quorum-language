@@ -1,9 +1,11 @@
-class main
-    action main
+class Main
+    action Main
         Container<Entry<integer>> c
         Entry<integer> e
         e:setEntry(5,"e")
         c:setContents(e)
         integer int = e:getValue()
+
+        print int
     end
 end

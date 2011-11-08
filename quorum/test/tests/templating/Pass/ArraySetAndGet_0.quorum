@@ -1,6 +1,6 @@
 use Libraries.Containers.Array
-class main
-    action main
+class Main
+    action Main
         Array<integer> ints
         ints:SetSize(4)
         ints:Set(0, 34)
@@ -11,5 +11,10 @@ class main
         integer j = ints:Get(1)
         integer k = ints:Get(2)
         integer l = ints:Get(3)
+
+        print i
+        print j
+        print k
+        print l
     end
 end

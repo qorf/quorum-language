@@ -1,15 +1,10 @@
 class Main
+    Main m = undefined
+    on create
+        print "foo"
+        Main g
+        m = g
+     end
     action Main
-        Main newMain
-        text message = foo(newMain)
-        print message
-    end
-
-    action foo(Main m) returns text
-        return m:hello()
-    end
-
-    action hello() returns text
-        return "text"
     end
 end

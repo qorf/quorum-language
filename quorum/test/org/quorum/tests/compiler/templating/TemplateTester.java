@@ -5,6 +5,7 @@
 
 package org.quorum.tests.compiler.templating;
 
+import org.quorum.execution.RunResult;
 import java.io.File;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.tests.compiler.CompilerTestSuite;
@@ -87,6 +88,31 @@ public class TemplateTester {
             fail();
         }
     }
+    
+    @Test
+    public void test_pass_ArraySetAndGet_0_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+
+        try {
+            CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(directory + "ArraySetAndGet_0.quorum"));
+        }
+        catch(Exception e) {
+            fail();
+        }
+        
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("34"));
+        assert(r.getLine(1).equals("16"));
+        assert(r.getLine(2).equals("-62"));
+        assert(r.getLine(3).equals("3"));
+    }
 
     @Test
     public void test_pass_TemplateUsingInteger_1_execute(){
@@ -114,6 +140,31 @@ public class TemplateTester {
     }
 
     @Test
+    public void test_pass_TemplateUsingInteger_1_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Entry_1.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "TemplateUsingInteger_1.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+    }
+    
+    @Test
     public void test_pass_ProgramUsingEntryWithThreeTypes_2_execute(){
         String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
         File[] build = new File[2];
@@ -130,8 +181,35 @@ public class TemplateTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
+        vm.blockRun();
     }
 
+    @Test
+    public void test_pass_ProgramUsingEntryWithThreeTypes_2_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "SimpleEntryUsingThreeTypes_2.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "ProgramUsingEntryWithThreeTypes_2.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("doSomething1"));
+        assert(r.getLine(1).equals("doSomething2"));
+        assert(r.getLine(2).equals("doSomething3"));
+    }
+    
     @Test
     public void test_pass_TemplateUsingTwoIntegers_3_execute(){
         String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
@@ -161,6 +239,32 @@ public class TemplateTester {
             fail();
         }
     }
+    
+    @Test
+    public void test_pass_TemplateUsingTwoIntegers_3_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Entry2_3.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "TemplateUsingTwoIntegers_3.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("10"));
+        assert(r.getLine(1).equals("15"));
+    }
 
     @Test
     public void test_pass_PassIntegerTakesInteger_4_execute(){
@@ -179,6 +283,31 @@ public class TemplateTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
+        vm.blockRun();
+    }
+    
+    @Test
+    public void test_pass_PassIntegerTakesInteger_4_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Test_4.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "PassIntegerTakesInteger_4.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("doSomething"));
     }
 
     @Test
@@ -198,8 +327,33 @@ public class TemplateTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
+        vm.blockRun();
     }
 
+    @Test
+    public void test_pass_PassBooleanTakesBoolean_5_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Test_4.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "PassBooleanTakesBoolean_5.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("doSomething"));
+    }
+    
     @Test
     public void test_pass_PassNumberTakesNumber_6_execute(){
         String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
@@ -217,6 +371,31 @@ public class TemplateTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
+        vm.blockRun();
+    }
+    
+    @Test
+    public void test_pass_PassNumberTakesNumber_6_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Test_4.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "PassNumberTakesNumber_6.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("doSomething"));
     }
 
     @Test
@@ -236,8 +415,33 @@ public class TemplateTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
+        vm.blockRun();
     }
 
+    @Test
+    public void test_pass_PassTextTakesText_7_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Test_4.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "PassTextTakesText_7.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("doSomething"));
+    }
+    
     @Test
     public void test_pass_TempClassHasATempClass_8_execute(){
         String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
@@ -267,6 +471,31 @@ public class TemplateTester {
             fail();
         }
     }
+    
+    @Test
+    public void test_pass_TempClassHasATempClass_8_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[3];
+        build[2] = CompilerTestSuite.getQuorumFile(directory + "Node_8.quorum");
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "LinkedList_8.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "TempClassHasATempClass_8.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+        assert(r.getLine(1).equals("35"));
+    }
 
     @Test
     public void test_pass_ReturnNullWithTemplatedReturnType_9_execute(){
@@ -287,6 +516,27 @@ public class TemplateTester {
         vm.blockRun();
     }
 
+    @Test
+    public void test_pass_ReturnNullWithTemplatedReturnType_9_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Node_8.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "ReturnNullWithTemplatedReturnType_9.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+    }
+    
     @Test
     public void test_pass_TempClassHasTempClassThatInheritsFromTempClass_10_execute(){
         String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
@@ -324,6 +574,34 @@ public class TemplateTester {
     }
 
     @Test
+    public void test_pass_TempClassHasTempClassThatInheritsFromTempClass_10_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[4];
+        build[3] = CompilerTestSuite.getQuorumFile(directory + "Node_8.quorum");
+        build[2] = CompilerTestSuite.getQuorumFile(directory + "DoubleNode_10.quorum");
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "DoubleNodeList_10.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "TempClassHasTempClassThatInheritsFromTempClass_10.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("Slattery"));
+        assert(r.getLine(2).equals("Stefik"));
+    }
+    
+    @Test
     public void test_pass_PassIntegerTakesNumber_11_execute(){
         String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
         File[] build = new File[2];
@@ -339,6 +617,30 @@ public class TemplateTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
+        vm.blockRun();
+    }
+    
+    @Test
+    public void test_pass_PassIntegerTakesNumber_11_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Test_4.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "PassIntegerTakesNumber_11.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("doSomething"));
     }
 
     @Test
@@ -357,8 +659,32 @@ public class TemplateTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
+        vm.blockRun();
     }
 
+    @Test
+    public void test_pass_PassIntegerTakesText_12_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Test_4.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "PassIntegerTakesText_12.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("doSomething"));
+    }
+    
     @Test
     public void test_pass_PassNumberTakesText_13_execute(){
         String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
@@ -375,8 +701,32 @@ public class TemplateTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
+        vm.blockRun();
     }
 
+    @Test
+    public void test_pass_PassNumberTakesText_13_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Test_4.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "PassNumberTakesText_13.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("doSomething"));
+    }
+    
     @Test
     public void test_pass_PassBooleanTakesText_14_execute(){
         String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
@@ -393,6 +743,30 @@ public class TemplateTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
+        vm.blockRun();
+    }
+    
+    @Test
+    public void test_pass_PassBooleanTakesText_14_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Test_4.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "PassBooleanTakesText_14.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("doSomething"));
     }
 
     @Test
@@ -412,6 +786,30 @@ public class TemplateTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
+        vm.blockRun();
+    }
+    
+    @Test
+    public void test_pass_TemplateUsingTemplatedClass_15_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[3];
+        build[2] = CompilerTestSuite.getQuorumFile(directory + "Container_15.quorum");
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Entry_1.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "TemplateUsingTemplatedClass_15.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
     }
 
 
