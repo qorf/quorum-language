@@ -391,7 +391,7 @@ public class PublicPrivateTester {
             fail();
         }
 
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
         
@@ -425,7 +425,7 @@ public class PublicPrivateTester {
             fail();
         }
 
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
         
@@ -459,7 +459,7 @@ public class PublicPrivateTester {
             fail();
         }
 
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
         
@@ -493,7 +493,7 @@ public class PublicPrivateTester {
             fail();
         }
 
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
         
@@ -529,7 +529,7 @@ public class PublicPrivateTester {
             fail();
         }
 
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
         
@@ -566,7 +566,7 @@ public class PublicPrivateTester {
             fail();
         }
 
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
         

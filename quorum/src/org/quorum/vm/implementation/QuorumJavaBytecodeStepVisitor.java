@@ -1549,7 +1549,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentNumberIntegerLocalStep step) {
         //process the expressions
         TypeDescriptor pop = null;
-        if(!step.getVariable().isFieldVariable()){
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()){
             processExpressions();
             //prepare the integer as a number.
             prepareNumberIntegerOperation();
@@ -1566,7 +1566,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentNumberIntegerStep step) {
         //process the expressions
         TypeDescriptor pop = null;
-        if(!step.getVariable().isFieldVariable()){
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()){
             processExpressions();
             prepareNumberIntegerOperation();
             pop = stack.popExpressionType();
@@ -1582,7 +1582,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentBooleanLocalStep step) {
         //Assigns a boolean to a local variable or field of type boolean
         TypeDescriptor pop = null;
-        if(!step.getVariable().isFieldVariable()){
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()){
             processExpressions();
             pop = stack.popExpressionType();
         }
@@ -1593,7 +1593,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentBooleanStep step) {
         //Assigns a boolean to a field of type boolean
         TypeDescriptor pop = null;
-        if(!step.getVariable().isFieldVariable()){
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()){
             processExpressions();
             pop = stack.popExpressionType();
         }
@@ -1604,7 +1604,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentIntegerLocalStep step) {
         //process the expressions in the queue
         TypeDescriptor pop = null;
-        if(!step.getVariable().isFieldVariable()){
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()){
             processExpressions();
             pop = stack.popExpressionType();
         }
@@ -1616,7 +1616,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentIntegerStep step) {
         //Assigns an integer to a field of type integer
         TypeDescriptor pop = null;
-        if(!step.getVariable().isFieldVariable()){
+        
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()){
             processExpressions();
             pop = stack.popExpressionType();
         }
@@ -1627,7 +1628,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentNumberLocalStep step) {
         //Assigns a number to a local variable or field of type number.
         TypeDescriptor pop = null;
-        if(!step.getVariable().isFieldVariable()){
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()){
             processExpressions();
             pop = stack.popExpressionType();
         }
@@ -1638,7 +1639,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentNumberStep step) {
         //Assigns a number to a field of type number.
         TypeDescriptor pop = null;
-        if(!step.getVariable().isFieldVariable()){
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()){
             processExpressions();
             pop = stack.popExpressionType();
         }
@@ -1649,7 +1650,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AssignmentTextLocalStep step) {
         //Assigns a number to a local variable or field of type text.
         TypeDescriptor pop = null;
-        if(!step.getVariable().isFieldVariable()){
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()){
             processExpressions();
             pop = stack.popExpressionType();
         }
@@ -1661,7 +1662,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //remove the constant from the bytecode stack and assign a number to 
         //a field of type text.
         TypeDescriptor pop = null;
-        if(!step.getVariable().isFieldVariable()){
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()){
             processExpressions();
             pop = stack.popExpressionType();
         }
