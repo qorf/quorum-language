@@ -1200,7 +1200,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             if (next.getAccessModifier().toString().compareTo(AccessModifierEnum.PUBLIC.toString()) == 0) {
                 accessModifier = ACC_PUBLIC;
             } else {
-                accessModifier = ACC_PRIVATE;
+                accessModifier = ACC_PROTECTED;
             }
 
             fieldVisitor = classWriter.visitField(accessModifier, varName, converted, null, null);
@@ -2234,13 +2234,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     methodVisitor.visitVarInsn(ALOAD, mapped);
                 }
             }
+            processExpressions();
         }
         
-        if (currentMethodExecution == null) {
-            currentClassExecution.getTracker().clearQueue();
-        } else {
-            currentMethodExecution.getTracker().clearQueue();
-        }
+        
                     
         if (!isParameter) {
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted,
