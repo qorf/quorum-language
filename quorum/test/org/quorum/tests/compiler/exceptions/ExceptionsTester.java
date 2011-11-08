@@ -5,6 +5,7 @@
 
 package org.quorum.tests.compiler.exceptions;
 
+import org.quorum.execution.RunResult;
 import java.io.File;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.symbols.ErrorTypeDescriptor;
@@ -46,7 +47,7 @@ public class ExceptionsTester {
     }
 
     @Test
-    public void test_cast_text_to_integer_exception(){
+    public void test_cast_text_to_integer_exception_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CastTextToIntegerException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -64,7 +65,20 @@ public class ExceptionsTester {
     }
 
     @Test
-    public void test_cast_text_to_number_exception(){
+    public void test_cast_text_to_integer_exception_bytecode(){
+        fail("passing for an incorrect reason - check carefully");
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CastTextToIntegerException.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_cast_text_to_number_exception_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CastTextToNumberException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -82,7 +96,20 @@ public class ExceptionsTester {
     }
 
     @Test
-    public void test_catch_cast_exception(){
+    public void test_cast_text_to_number_exception_bytecode(){
+        fail("passing for an incorrect reason - check carefully");
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CastTextToNumberException.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_catch_cast_exception_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchCastException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -102,7 +129,20 @@ public class ExceptionsTester {
     }
 
     @Test
-    public void test_catch_With_Always_cast_exception(){
+    public void test_catch_cast_exception_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchCastException.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("2"));
+    }
+    
+    @Test
+    public void test_catch_With_Always_cast_exception_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchWithAlwaysCastException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -122,7 +162,20 @@ public class ExceptionsTester {
     }
 
     @Test
-    public void test_generic_catch_cast_exception(){
+    public void test_catch_With_Always_cast_exception_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchWithAlwaysCastException.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("3"));
+    }
+    
+    @Test
+    public void test_generic_catch_cast_exception_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "GenericCatchCastException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -140,9 +193,22 @@ public class ExceptionsTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_generic_catch_cast_exception_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "GenericCatchCastException.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("2"));
+    }
 
     @Test
-    public void test_nested_catch_cast_exception(){
+    public void test_nested_catch_cast_exception_execute(){
         String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
         File[] build = new File[3];
         build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedCatchCastException.quorum");
@@ -166,9 +232,28 @@ public class ExceptionsTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_nested_catch_cast_exception_bytecode(){
+        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
+        File[] build = new File[3];
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedCatchCastException.quorum");
+        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_1.quorum");
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_1.quorum");
+        
+        CompilerTestSuite.build(build);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("3"));
+    }
 
     @Test
-    public void test_uncaught_cast_exception(){
+    public void test_uncaught_cast_exception_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtCastException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -182,7 +267,20 @@ public class ExceptionsTester {
     }
 
     @Test
-    public void test_uncaught_nested_cast_exception(){
+    public void test_uncaught_cast_exception_bytecode(){
+        fail("passing for an incorrect reason - check carefully");
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtCastException.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_uncaught_nested_cast_exception_execute(){
         String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
         File[] build = new File[3];
         build[2] = CompilerTestSuite.getQuorumFile(directory + "A_1.quorum");
@@ -201,9 +299,27 @@ public class ExceptionsTester {
         vm.stop();
     }
 
-
     @Test
-    public void test_catch_cast_alert_exception(){
+    public void test_uncaught_nested_cast_exception_bytecode(){
+        fail("passing for an incorrect reason - check carefully");
+        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
+        File[] build = new File[3];
+        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_1.quorum");
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_1.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedUncaughtCastException.quorum");
+
+        CompilerTestSuite.build(build);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_catch_cast_alert_exception_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchCastAlertException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -223,7 +339,20 @@ public class ExceptionsTester {
     }
 
     @Test
-    public void test_catch_With_Always_cast_alert_exception(){
+    public void test_catch_cast_alert_exception_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchCastAlertException.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("2"));
+    }
+    
+    @Test
+    public void test_catch_With_Always_cast_alert_exception_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchWithAlwaysCastAlertException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -241,9 +370,27 @@ public class ExceptionsTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_catch_With_Always_cast_alert_exception_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchWithAlwaysCastAlertException.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("3"));
+    }
 
     @Test
-    public void test_generic_catch_cast_alert_exception(){
+    public void test_generic_catch_cast_alert_exception_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "GenericCatchCastAlertException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -261,9 +408,27 @@ public class ExceptionsTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_generic_catch_cast_alert_exception_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "GenericCatchCastAlertException.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("2"));
+    }
 
     @Test
-    public void test_nested_catch_cast_alert_exception(){
+    public void test_nested_catch_cast_alert_exception_execute(){
         String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
         File[] build = new File[3];
         build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedCatchCastAlertException.quorum");
@@ -289,7 +454,31 @@ public class ExceptionsTester {
     }
 
     @Test
-    public void test_uncaught_cast_alert_exception(){
+    public void test_nested_catch_cast_alert_exception_bytecode(){
+        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
+        File[] build = new File[3];
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedCatchCastAlertException.quorum");
+        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_2.quorum");
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_2.quorum");
+
+        CompilerTestSuite.build(build);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("3"));
+    }
+    
+    @Test
+    public void test_uncaught_cast_alert_exception_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtCastAlertException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -301,9 +490,22 @@ public class ExceptionsTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_uncaught_cast_alert_exception_bytecode(){
+        fail("passing for an incorrect reason - check carefully");
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtCastAlertException.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (r.isSuccessful())
+            fail();
+    }
 
     @Test
-    public void test_uncaught_nested_cast_alert_exception(){
+    public void test_uncaught_nested_cast_alert_exception_execute(){
         String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
         File[] build = new File[3];
         build[2] = CompilerTestSuite.getQuorumFile(directory + "A_2.quorum");
@@ -323,7 +525,22 @@ public class ExceptionsTester {
     }
 
     @Test
-    public void test_catch_simple_alert_exception(){
+    public void test_uncaught_nested_cast_alert_exception_bytecode(){
+        fail("passing for an incorrect reason - check carefully");
+        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
+        File[] build = new File[3];
+        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_2.quorum");
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_2.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedUncaughtCastAlertException.quorum");
+
+        CompilerTestSuite.build(build);
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_catch_simple_alert_exception_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchCastSimpleAlertException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -341,9 +558,27 @@ public class ExceptionsTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_catch_simple_alert_exception_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchCastSimpleAlertException.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("2"));
+    }
 
     @Test
-    public void test_catch_With_Always_simple_alert_exception(){
+    public void test_catch_With_Always_simple_alert_exception_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchWithAlwaysCastSimpleAlertException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -361,9 +596,22 @@ public class ExceptionsTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_catch_With_Always_simple_alert_exception_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchWithAlwaysCastSimpleAlertException.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("3"));
+    }
 
     @Test
-    public void test_nested_catch_simple_alert_exception(){
+    public void test_nested_catch_simple_alert_exception_execute(){
         String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
         File[] build = new File[3];
         build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedCatchSimpleAlertException.quorum");
@@ -387,9 +635,28 @@ public class ExceptionsTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_nested_catch_simple_alert_exception_bytecode(){
+        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
+        File[] build = new File[3];
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedCatchSimpleAlertException.quorum");
+        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_3.quorum");
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_3.quorum");
+
+        CompilerTestSuite.build(build);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        assert(r.getLine(0).equals("3"));
+    }
 
     @Test
-    public void test_uncaught_simple_alert_exception(){
+    public void test_uncaught_simple_alert_exception_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtSimpleAlertException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -401,9 +668,22 @@ public class ExceptionsTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_uncaught_simple_alert_exception_bytecode(){
+        fail("passing for an incorrect reason - check carefully");
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtSimpleAlertException.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (r.isSuccessful())
+            fail();
+    }
 
     @Test
-    public void test_uncaught_nested_simple_alert_exception(){
+    public void test_uncaught_nested_simple_alert_exception_execute(){
         String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
         File[] build = new File[3];
         build[2] = CompilerTestSuite.getQuorumFile(directory + "A_3.quorum");
@@ -423,7 +703,26 @@ public class ExceptionsTester {
     }
     
     @Test
-    public void test_nested_always_with_exception(){
+    public void test_uncaught_nested_simple_alert_exception_bytecode(){
+        fail("passing for an incorrect reason - check carefully");
+        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
+        File[] build = new File[3];
+        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_3.quorum");
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_3.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedUncaughtSimpleAlertException.quorum");
+
+        CompilerTestSuite.build(build);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_nested_always_with_exception_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "NestedAlwaysWithException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -445,5 +744,22 @@ public class ExceptionsTester {
         }
         
         vm.stop();
+    }
+    
+    @Test
+    public void test_nested_always_with_exception_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "NestedAlwaysWithException.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("X"));
+        assert(r.getLine(1).equals("Y"));
+        assert(r.getLine(2).equals("hi"));
+        assert(r.getLine(3).equals("hi2"));
     }
 }
