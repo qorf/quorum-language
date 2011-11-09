@@ -462,7 +462,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             
             variableName = variable.getName();
             variableType = variable.getType();
-            stack.popExpressionType();
         }
 
         //process the expression and put the field
@@ -2451,7 +2450,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "()V");
         VariableParameterCommonDescriptor variable = step.getVariable();
 
-        int variableNumber = variable.getVariableNumber();
+        int variableNumber = variable.getVariableNumber() - currentClass.getNumberOfVariables();
 //        if (variableNumber == -1) {
 //            return; //it's a field and we don't handle these yet.
 //        }
@@ -2582,7 +2581,24 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(MeVariableMoveStep step) {
-        int a = 5;
+        TypeDescriptor variable = null;
+
+        //if we have a variable descriptor
+        if (step.getValue() instanceof VariableDescriptor) {
+            //if the variable is initialized load the variable and visit the field
+            VariableDescriptor varDescriptor = (VariableDescriptor) step.getValue();
+            if (varDescriptor != null && varDescriptor.isInitializedClassVariable()) {
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                //methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()), QuorumConverter.convertParentStaticKeyToValidName(step.getLocatedInClass().getStaticKey()), QuorumConverter.convertStaticKeyToBytecodePathTypeName(step.getLocatedInClass().getStaticKey()));
+                methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()),
+                        varDescriptor.getName(), QuorumConverter.convertTypeToBytecodeString(varDescriptor.getType()));
+                variable = varDescriptor.getType();
+            }
+            
+        }
+        
+        //push the type of the variable on the top of the stack
+        stack.pushExpressionType(variable);
     }
 
     @Override
