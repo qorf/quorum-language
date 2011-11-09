@@ -149,18 +149,13 @@ public class InheritanceTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
-        vm.blockRun();
-        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("furry");
-        boolean b = variableValue.getResult().boolean_value;
-        if(b!=true) {
+        
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
+        if (!r.isSuccessful())
             fail();
-        }
-
-        variableValue = vm.getDataEnvironment().getVariableValue("alive");
-        b = variableValue.getResult().boolean_value;
-        if(b!=true) {
-            fail();
-        }
+    
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
     }
     
     @Test
@@ -216,7 +211,7 @@ public class InheritanceTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
     
@@ -261,7 +256,7 @@ public class InheritanceTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
     
@@ -307,7 +302,7 @@ public class InheritanceTester {
             fail();
         }
 
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
     
@@ -354,7 +349,7 @@ public class InheritanceTester {
             fail();
         }
 
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
     
@@ -397,7 +392,7 @@ public class InheritanceTester {
             fail();
         }
 
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
     

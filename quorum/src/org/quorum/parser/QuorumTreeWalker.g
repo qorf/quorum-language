@@ -350,11 +350,13 @@ solo_method_call
 	Vector<String> types = new Vector<String>();
 	Vector<TypeDescriptor> argumentTypes = new Vector<TypeDescriptor>();
 }
-	:	{
+	:	
+		^(SOLO_FUNCTION_CALL 
+		{
 			inCallStep = true;
 			builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
 		}
-		^(SOLO_FUNCTION_CALL qualified_name (COLON ID)? LEFT_PAREN (
+		qualified_name (COLON ID)? LEFT_PAREN (
 		e = expression 
 		{
 			values.add($e.eval);
@@ -412,7 +414,12 @@ solo_method_call
 		
 		temp = result.getNextRegister();
 		}
-	|	^(SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN 
+	|	^(SOLO_FUNCTION_CALL_PARENT 
+	{
+		inCallStep = true;
+		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+	}
+	PARENT COLON qualified_name COLON ID LEFT_PAREN 
 		(e = expression
 		{
 			values.add($e.eval);
@@ -469,7 +476,12 @@ solo_method_call
 		temp = result.getNextRegister();
 		inCallStep = false;
 		}
-	|	^(SOLO_FUNCTION_CALL_THIS ME COLON qualified_name (COLON ID)? LEFT_PAREN 
+	|	^(SOLO_FUNCTION_CALL_THIS 
+	{
+		inCallStep = true;
+		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+	}
+	ME COLON qualified_name (COLON ID)? LEFT_PAREN 
 		(e = expression 
 		{
 			values.add($e.eval);
@@ -1698,7 +1710,17 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		
 	}
 	// s k |	^(QUALIFIED_SOLO_PARENT_EXPRESSON qn1=qualified_name COLON PARENT COLON qn2=qualified_name)
-	|	^(FUNCTION_CALL_PARENT PARENT COLON qn1=qualified_name COLON ID LEFT_PAREN fel = function_expression_list RIGHT_PAREN)
+	|	^(FUNCTION_CALL_PARENT PARENT COLON qn1=qualified_name COLON ID LEFT_PAREN 
+	{
+		boolean unsetFlag = false;
+		boolean nested = inCallStep;
+		if (!inCallStep) {
+			// We are now inside a call step--set the flag appropriately.
+			inCallStep = true;
+			unsetFlag = true;
+		}
+	}
+	fel = function_expression_list RIGHT_PAREN)
 	{
 		LineInformation location = new LineInformation();
                 location.setEndColumn($qn1.type.getColumnEnd());
@@ -1719,7 +1741,9 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		Vector<String> types = new Vector<String>();
 		Vector<TypeDescriptor> argumentTypes = new Vector<TypeDescriptor>();
 		
+		int parameterPosition = -1;
 		if(fel != null) {
+			parameterPosition = $fel.firstParam;
 			for(Object o : $fel.list) {
 				expression_return ex = (expression_return)o;
                 		types.add(ex.eval.getType().getName());
@@ -1744,15 +1768,25 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		info.methodName = myMethodName;
 		info.isObjectCall = false;
 		
+		if(fel!=null && !$fel.list.isEmpty()){
+			builder.addCallLabel(parameterPosition);
+			//j builder.addStepLabel(OpcodeType.METHOD_CALL);
+		}
+		
 		ResultTuple result =  stepFactory.addParentCallStep(info);
+		
+		temp = result.getNextRegister();
+		$eval = result.getValue();
+		$step = result.getStep();
 		
 		if(fel!=null){
 			builder.addStepLabel(OpcodeType.METHOD_CALL);
 		}
 		
-		temp = result.getNextRegister();
-		$eval = result.getValue();
-		$step = result.getStep();
+		if (unsetFlag)
+			inCallStep = false;
+		
+		
 	}
 	|	^(FUNCTION_CALL_THIS ME COLON qualified_name (COLON ID)? LEFT_PAREN fel = function_expression_list RIGHT_PAREN)
 	{

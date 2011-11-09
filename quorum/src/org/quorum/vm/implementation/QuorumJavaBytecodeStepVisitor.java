@@ -24,6 +24,7 @@ import org.quorum.symbols.MethodDescriptor;
 import org.quorum.symbols.ParameterDescriptor;
 import org.quorum.symbols.Parameters;
 import org.quorum.symbols.Result;
+import org.quorum.symbols.Scopable;
 import org.quorum.symbols.SystemActionDescriptor;
 import org.quorum.symbols.TypeDescriptor;
 import org.quorum.symbols.VariableDescriptor;
@@ -1248,7 +1249,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             if (next.getAccessModifier().toString().compareTo(AccessModifierEnum.PUBLIC.toString()) == 0) {
                 accessModifier = ACC_PUBLIC;
             } else {
-                accessModifier = ACC_PROTECTED;
+                accessModifier = ACC_PUBLIC;
             }
 
             fieldVisitor = classWriter.visitField(accessModifier, varName, converted, null, null);
@@ -2275,39 +2276,50 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
         }
         else {
-            
             VariableParameterCommonDescriptor var = step.getParentObject();
-            boolean field = var.isFieldVariable();
-            converted = QuorumConverter.convertTypeToJavaClassTypeEquivalent(var.getType());
-            if(field) {
+            
+            //if this is a parent call step then treat it as such and load the parent
+            //before calling ivokevirtual.
+            if(step instanceof ParentCallStep){
+                ParentCallStep parentStep = (ParentCallStep)step;
+                ClassDescriptor parent = (ClassDescriptor)parentStep.getMethodCallee().getParent();
                 String key = currentClass.getStaticKey();
                 String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
-                String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
                 methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), classNameSupplement);
-            }
-            else { //determine the local variable number and load it
-                
-                //we are now calling a method on a variable (aka object). If it 
-                //is a parameter that we are calling on then load that parameter.
-                if(var instanceof ParameterDescriptor){
-                    ParameterDescriptor varDescriptor = (ParameterDescriptor) var;
-                    int number = stack.getParameterNumber(varDescriptor.getName());
-                    methodVisitor.visitVarInsn(ALOAD, number);
-                    isParameter = true;
-                    converted = QuorumConverter.convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(var.getType().getStaticKey()));
-                }else{
-                    //Otherwise, load the variable from the mapped variable on the
-                    //stack.
-                    int number = var.getVariableNumber();
-                    int mapped = stack.getMappedVariableNumber(number);
-                    methodVisitor.visitVarInsn(ALOAD, mapped);
+                methodVisitor.visitFieldInsn(GETFIELD, className, QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey()), QuorumConverter.convertStaticKeyToBytecodePathTypeName(parent.getStaticKey()));
+                converted = QuorumConverter.convertTypeToJavaClassTypeEquivalent(parent.getType());
+            }else{
+                //if this is a standard call step then treat it as such.
+                boolean field = var.isFieldVariable();
+                converted = QuorumConverter.convertTypeToJavaClassTypeEquivalent(var.getType());
+                if(field) {
+                    String key = currentClass.getStaticKey();
+                    String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
+                    String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
+                    methodVisitor.visitVarInsn(ALOAD, 0);
+                    methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), classNameSupplement);
+                }
+                else { //determine the local variable number and load it
+
+                    //we are now calling a method on a variable (aka object). If it 
+                    //is a parameter that we are calling on then load that parameter.
+                    if(var instanceof ParameterDescriptor){
+                        ParameterDescriptor varDescriptor = (ParameterDescriptor) var;
+                        int number = stack.getParameterNumber(varDescriptor.getName());
+                        methodVisitor.visitVarInsn(ALOAD, number);
+                        isParameter = true;
+                        converted = QuorumConverter.convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(var.getType().getStaticKey()));
+                    }else{
+                        //Otherwise, load the variable from the mapped variable on the
+                        //stack.
+                        int number = var.getVariableNumber();
+                        int mapped = stack.getMappedVariableNumber(number);
+                        methodVisitor.visitVarInsn(ALOAD, mapped);
+                    }
                 }
             }
             processExpressions();
         }
-        
-        
                     
         if (!isParameter) {
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted,
@@ -2322,56 +2334,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (!step.getMethodCallee().getReturnType().isVoid()) {
             stack.pushExpressionType(step.getMethodCallee().getReturnType());
         }
-        
-       /* MethodDescriptor callee = step.getMethodCallee();
-        //NOTE: step.isThisCall is not what you want here, that's different
-        if (!step.IsObjectCall()) { //it's a this call, so load it
-            methodVisitor.visitVarInsn(ALOAD, THIS);
-            //push the this pointer on and top it off
-            stack.implicitStackIncrease(currentClass.getType());
-            Parameters parameters = callee.getParameters();
-            for (int i = 0; i < parameters.size(); i++) {
-                int location = parameters.size() - 1 - i;
-                BytecodeStackValue value = stack.getConstantFromTop(location);
-                addToMethodVisit(value);
-            }
-            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, processedClazzName,
-                    callee.getName(),
-                    QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));
-        } else {
-            VariableParameterCommonDescriptor var = step.getParentObject();
-            String staticKey = var.getStaticKey();
-            //int variableNumber = var.getVariableNumber();
-            int variableNumber = 1;
-
-            methodVisitor.visitVarInsn(ALOAD, stack.getMappedVariableNumber(variableNumber));
-
-            //push the this pointer on and pop it off
-            String converted = QuorumConverter.convertStaticKeyToBytecodePath(var.getType().getStaticKey());
-
-            //this is technically the wrong class, but the size is the same, regardless of class type
-            stack.implicitStackIncrease(currentClass.getType());
-            Parameters parameters = callee.getParameters();
-            for (int i = 0; i < parameters.size(); i++) {
-                int location = parameters.size() - 1 - i;
-                BytecodeStackValue value = stack.getConstantFromTop(location);
-                addToMethodVisit(value);
-            }
-            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted,
-                    callee.getName(),
-                    QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));
-        }
-        if (!callee.getReturnType().isVoid()) {
-            BytecodeStackValue returnVal = new BytecodeStackValue();
-            returnVal.setAsConstant();
-            returnVal.setAsReturnValue(true);
-            TypeDescriptor returnType = new TypeDescriptor();
-            returnType.setName(callee.getReturnType().getName());
-            returnVal.setType(returnType);
-            stack.pushConstant(returnVal);
-        }*/
     }
-
+    
     @Override
     public void visit(ConditionalJumpCheckStep step) {
         int a = 5;
