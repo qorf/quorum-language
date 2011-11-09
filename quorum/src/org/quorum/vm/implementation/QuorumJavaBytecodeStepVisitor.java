@@ -1992,7 +1992,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryIsACustomCustomStep step) {
-        int a = 5;
+        TypeDescriptor rhs = step.getRightType();
+        String bytecodePath = QuorumConverter.convertStaticKeyToBytecodePath(rhs.getStaticKey());
+        methodVisitor.visitTypeInsn(INSTANCEOF, QuorumConverter.convertClassNameToInterfaceName(bytecodePath));
+        stack.pushExpressionType(TypeDescriptor.getBooleanType());
     }
 
     @Override
