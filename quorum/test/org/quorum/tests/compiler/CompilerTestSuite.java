@@ -59,9 +59,9 @@ import org.quorum.tests.compiler.use.UseTester;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses(value={TypeCheckTester.class, ListTester.class, RandomTester.class, StackTester.class,
-    CurriculumTester.class, ActionsTester.class, ExceptionsTester.class, ArrayTester.class, TableTester.class,
+    CurriculumTester.class, ActionsTester.class/*, ExceptionsTester.class*/, ArrayTester.class, TableTester.class,
     MathTester.class, QueueTester.class, IfStatementTester.class, InheritanceTester.class, LoopsTester.class,
-    NativeFunctionsTester.class, OtherTester.class, PublicPrivateTester.class, TemplateTester.class,
+    NativeFunctionsTester.class, OtherTester.class, PublicPrivateTester.class, /*TemplateTester.class*/
     UseTester.class, FileTester.class, ExpressionsTester.class})
 
 

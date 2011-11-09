@@ -728,6 +728,55 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //push a boolean result onto the stack
         stack.pushExpressionType(TypeDescriptor.getBooleanType());
     }
+    
+    /**
+     * Performs an equality comparison (custom types only).
+     * 
+     * testEqual    | comparison
+     * -------------|------------
+     * true         | =
+     * false        | not=
+     * 
+     * @param testEqual 
+     */
+    private void performCustomEqualityComparison(boolean testEqual) {
+        //get two values off the stack
+        stack.popExpressionType();
+        stack.popExpressionType();
+
+        //if an integer or boolean is on the stack evaluate it.
+        // Start two labels: One we will jump to if we're not equal, and the
+        // other will jump past that case.
+        Label jumpIfNotEqualLabel = new Label();
+        Label jumpPastLabel = new Label();
+
+
+        // Do the comparison. Are they equal?
+        methodVisitor.visitJumpInsn(IF_ACMPNE, jumpIfNotEqualLabel);
+
+        // If they are, we will fall through to here. We will need to jump past
+        // the next instructions below.
+        if (testEqual) {
+            methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+        } else {
+            methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+        }
+        methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
+
+        // This is where our "jumpIfNotEqualLabel" label begins.
+        methodVisitor.visitLabel(jumpIfNotEqualLabel);
+
+        if (testEqual) {
+            methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+        } else {
+            methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+        }
+        // This is where our "jumpPastLabel" label begins.
+        methodVisitor.visitLabel(jumpPastLabel);
+
+        //push a boolean result onto the stack
+        stack.pushExpressionType(TypeDescriptor.getBooleanType());
+    }
 
     /**
      * Performs an inequality comparison. 
@@ -1537,12 +1586,28 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentCustomLocalStep step) {
-        int a = 5;
+        //process the expressions
+        TypeDescriptor pop = null;
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()) {
+            processExpressions();
+            pop = stack.popExpressionType();
+        }
+        
+        //Assigns an integer to a local variable or field of type number.
+        performAssignment(pop, step, false);
     }
 
     @Override
     public void visit(AssignmentCustomStep step) {
-        int a = 5;
+        //process the expressions
+        TypeDescriptor pop = null;
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()){
+            processExpressions();
+            pop = stack.popExpressionType();
+        }
+        
+        //Assigns an integer to a field of type number.
+        performAssignment(pop, step, true);
     }
 
     @Override
@@ -1809,12 +1874,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryEqualsCustomCustomStep step) {
-        int a = 5;
+        performCustomEqualityComparison(true);
     }
 
     @Override
     public void visit(BinaryEqualsCustomNullStep step) {
-        int a = 5;
+        //determines if the reference is equal to another reference.
+        performCustomEqualityComparison(true);
     }
 
     @Override
@@ -1827,7 +1893,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryEqualsNullCustomStep step) {
-        int a = 5;
+        //determines if the reference is equal to another reference.
+        performCustomEqualityComparison(true);
     }
 
     @Override
@@ -2062,12 +2129,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryNotEqualsCustomCustomStep step) {
-        int a = 5;
+        performCustomEqualityComparison(false);
     }
 
     @Override
     public void visit(BinaryNotEqualsCustomNullStep step) {
-        int a = 5;
+        performCustomEqualityComparison(false);
     }
 
     @Override
@@ -2080,7 +2147,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BinaryNotEqualsNullCustomStep step) {
-        int a = 5;
+        performCustomEqualityComparison(false);
     }
 
     @Override

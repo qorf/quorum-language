@@ -531,6 +531,38 @@ public class ExpressionsTester {
     }
     
     @Test
+    public void test_pass_EqualCustomCustom_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "EqualCustomCustom.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+        assert(r.getLine(1).equals("true"));
+    }
+    
+    @Test
+    public void test_pass_EqualTextText_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "EqualTextText.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+        assert(r.getLine(1).equals("true"));
+    }
+    
+    @Test
     public void test_pass_EqualDoubleDouble_bytecode() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "EqualDoubleDouble.quorum"));
 
@@ -597,6 +629,38 @@ public class ExpressionsTester {
     @Test
     public void test_pass_NotEqualBooleanBoolean_bytecode() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "NotEqualBooleanBoolean.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+        assert(r.getLine(1).equals("true"));
+    }
+    
+    @Test
+    public void test_pass_NotEqualCustomCustom_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "NotEqualCustomCustom.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("false"));
+    }
+    
+    @Test
+    public void test_pass_NotEqualTextText_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "NotEqualTextText.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
