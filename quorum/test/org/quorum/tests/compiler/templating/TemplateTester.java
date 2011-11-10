@@ -157,7 +157,7 @@ public class TemplateTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         
@@ -202,7 +202,7 @@ public class TemplateTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         assert(r.getLine(0).equals("doSomething1"));
@@ -258,7 +258,7 @@ public class TemplateTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         
@@ -304,7 +304,7 @@ public class TemplateTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         assert(r.getLine(0).equals("doSomething"));
@@ -348,7 +348,7 @@ public class TemplateTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         assert(r.getLine(0).equals("doSomething"));
@@ -392,7 +392,7 @@ public class TemplateTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         assert(r.getLine(0).equals("doSomething"));
@@ -436,7 +436,7 @@ public class TemplateTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         assert(r.getLine(0).equals("doSomething"));
@@ -489,7 +489,7 @@ public class TemplateTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         
@@ -532,7 +532,7 @@ public class TemplateTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
     }
@@ -592,7 +592,7 @@ public class TemplateTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         
@@ -637,7 +637,7 @@ public class TemplateTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         assert(r.getLine(0).equals("doSomething"));
@@ -679,7 +679,7 @@ public class TemplateTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         assert(r.getLine(0).equals("doSomething"));
@@ -721,7 +721,7 @@ public class TemplateTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         assert(r.getLine(0).equals("doSomething"));
@@ -763,7 +763,7 @@ public class TemplateTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         assert(r.getLine(0).equals("doSomething"));
@@ -807,7 +807,7 @@ public class TemplateTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
     }

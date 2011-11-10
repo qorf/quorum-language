@@ -783,4 +783,116 @@ public class ActionsTester {
         
         assert(r.getLine(0).equals("hello world"));        
     }
+    
+    @Test
+    public void test_pass_simple_cast_argument_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleCastArgument.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("k");
+        double k = variableValue.getResult().number;
+        if(k != 1.0) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_simple_cast_argument_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "SimpleCastArgument.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1.0"));   
+    }
+    
+    @Test
+    public void test_pass_cast_middle_argument_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "CastMiddleArgument.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("k");
+        double k = variableValue.getResult().number;
+        if(k != 1.0) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_cast_middle_argument_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "CastMiddleArgument.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1.0"));   
+    }
+    
+    @Test
+    public void test_pass_cast_last_argument_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "CastLastArgument.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("k");
+        double k = variableValue.getResult().number;
+        if(k != 1.0) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_cast_last_argument_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "CastLastArgument.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1.0"));   
+    }
+    
+    @Test
+    public void test_pass_cast_return_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "CastReturn.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("k");
+        double k = variableValue.getResult().number;
+        if(k != 1.0) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_cast_return_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "CastReturn.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1.0"));   
+    }
 }
