@@ -35,4 +35,17 @@ public interface CodeGenerator {
      * @param buildFolder the buildFolder to set
      */
     public void setBuildFolder(File buildFolder);
+    
+    /**
+     * The folder that will be used to produce the final executable code.
+     * 
+     * @return 
+     */
+    public File getDistributionFolder();
+    
+    /**
+     * Sets the folder that will create the final executable package.
+     * @param distributionFolder 
+     */
+    public void setDistributionFolder(File distributionFolder);
 }

@@ -28,7 +28,8 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     private IntermediateExecutionBuilder builder;
     private HashMap<String, QuorumBytecode> classHash = new HashMap<String, QuorumBytecode>();
     private File buildFolder;
-            
+    private File distributionFolder;
+    
     /**
      * This method generates java bytecode for all classes on the system.
      * 
@@ -198,5 +199,15 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     @Override
     public void setBuildFolder(File buildFolder) {
         this.buildFolder = buildFolder;
-    }    
+    }
+
+    @Override
+    public File getDistributionFolder() {
+        return this.distributionFolder;
+    }
+
+    @Override
+    public void setDistributionFolder(File distributionFolder) {
+        this.distributionFolder = distributionFolder;
+    }
 }
