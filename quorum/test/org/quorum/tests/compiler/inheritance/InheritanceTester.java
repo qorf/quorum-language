@@ -47,7 +47,7 @@ public class InheritanceTester {
     }
 
     @Test
-    public void test_single_inheritance_simple_one_layer(){
+    public void test_single_inheritance_simple_one_layer_execute(){
         String directory = CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS;
         File[] build = new File[3];
         build[2] = CompilerTestSuite.getQuorumFile(directory + "A.quorum");
@@ -63,10 +63,34 @@ public class InheritanceTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
+        vm.blockRun();
+    }
+    
+    @Test
+    public void test_single_inheritance_simple_one_layer_bytecode(){
+        String directory = CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS;
+        File[] build = new File[3];
+        build[2] = CompilerTestSuite.getQuorumFile(directory + "A.quorum");
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "B.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "SingleInheritanceSimpleOneLayer.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
+        if (!r.isSuccessful())
+            fail();
     }
 
     @Test
-    public void test_pass_inheritance_(){
+    public void test_pass_inheritance_execute(){
         CompilerTestSuite.build(
                 CompilerTestSuite.getQuorumFile(
                 CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "SystemActionInherit.quorum"));
@@ -82,7 +106,21 @@ public class InheritanceTester {
     }
     
     @Test
-    public void test_pass_fully_qualified(){
+    public void test_pass_inheritance_bytecode(){
+        CompilerTestSuite.build(
+                CompilerTestSuite.getQuorumFile(
+                CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "SystemActionInherit.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_pass_fully_qualified_execute(){
         CompilerTestSuite.build(
                 CompilerTestSuite.getQuorumFile(
                 CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "ParentFullyQualified.quorum"));
@@ -98,7 +136,21 @@ public class InheritanceTester {
     }
     
     @Test
-    public void test_pass_action_call(){
+    public void test_pass_fully_qualified_bytecode(){
+        CompilerTestSuite.build(
+                CompilerTestSuite.getQuorumFile(
+                CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "ParentFullyQualified.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_pass_action_call_execute(){
         CompilerTestSuite.build(
                 CompilerTestSuite.getQuorumFile(
                 CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "ParentActionCall.quorum"));
@@ -111,6 +163,20 @@ public class InheritanceTester {
         if(a!=1) {
             fail();
         }
+    }
+    
+    @Test
+    public void test_pass_action_call_bytecode(){
+        CompilerTestSuite.build(
+                CompilerTestSuite.getQuorumFile(
+                CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "ParentActionCall.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
     }
 
     @Test
