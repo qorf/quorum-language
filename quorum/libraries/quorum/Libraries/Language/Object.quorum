@@ -69,16 +69,16 @@ class Object
     */ 
     action Compare(Object object) returns CompareResult
         CompareResult result
-        //integer myHash = me:GetHashCode()
-        //integer oHash = object:GetHashCode()
+        integer myHash = me:GetHashCode()
+        integer oHash = object:GetHashCode()
 
-        /*if(myHash < oHash) then
+        if(myHash < oHash) then
             result:result = result:SMALLER
         end else if myHash = oHash then
             result:result = result:EQUAL
         end else then
             result:result = result:LARGER
-        end*/
+        end
         return result
     end
 end
