@@ -473,16 +473,26 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      */
     private void performLocalAssignment(TypeDescriptor valueType, AssignmentStep step) {
         int variableNumber = step.getVariable().getVariableNumber() - currentClass.getNumberOfVariables();
-
-        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+        String subVariableName = step.getSubVariableName();
+        //if this is an object and we are assigning to a field in that object load it
+        if(!subVariableName.equals("")){
+            TypeDescriptor type = step.getVariable().getType();
+            methodVisitor.visitVarInsn(ALOAD, variableNumber);
+            processExpressions();
+            valueType = stack.popExpressionType();
+            methodVisitor.visitFieldInsn(PUTFIELD, QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey()), subVariableName, QuorumConverter.convertTypeToBytecodeString(valueType));
+        }else{
+            int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
         
-        // Is it defined yet?
-        if (mappedVariableNumber == -1) {
-            stack.setVariable(variableNumber, valueType);
-            mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+            // Is it defined yet?
+            if (mappedVariableNumber == -1) {
+                stack.setVariable(variableNumber, valueType);
+                mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+            }
+            methodVisitor.visitVarInsn(QuorumConverter.getStoreOpcode(valueType), mappedVariableNumber);
         }
-        methodVisitor.visitVarInsn(QuorumConverter.getStoreOpcode(valueType), mappedVariableNumber);
-        //stack.setVariable(variableNumber, valueType);
+
+        
     }
 
     /**
