@@ -206,7 +206,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * @param parent
      * @param action 
      */
-    private void computeParentMethod(ClassDescriptor parent, MethodDescriptor action) {
+    private void computeMethod(MethodDescriptor action) {
+        ClassDescriptor parent = (ClassDescriptor)action.getParent();
         String name = action.getName();
         String params = QuorumConverter.convertMethodDescriptorToBytecodeSignature(action);
         methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, params, null, null);
@@ -253,20 +254,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         methodVisitor.visitMaxs(stackSize, varSize);
         methodVisitor.visitEnd();
-    }
-
-    private void computeParentMethods(ClassDescriptor parent) {
-        Collection<MethodDescriptor> methods = parent.getAllMethods(AccessModifierEnum.PUBLIC);
-        Iterator<MethodDescriptor> iterator = methods.iterator();
-        while (iterator.hasNext()) {
-            MethodDescriptor method = iterator.next();
-            MethodDescriptor baseMethod = currentClass.getMethod(method.getStaticKey());
-            //weave in the method into the base class, by composition
-            if (baseMethod == null && !(method instanceof BlueprintDescriptor)) {
-                computeParentMethod(parent, method);
-            }
-        }
-
     }
     
     /**
@@ -1268,14 +1255,16 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         computeConstructor(true);
         //add a constructor that doesn't
         computeConstructor(false);
-
+        
         
         //now dump all of the parent methods that 
         //are not in the base class out as wrapper functions.
-        parents = currentClass.getFlattenedListOfParents();
-        while (parents.hasNext()) {
-            ClassDescriptor parent = parents.next();
-            computeParentMethods(parent);
+        Iterator<MethodDescriptor> methodIterator = currentClass.getVirtualMethods();
+        while(methodIterator.hasNext()){
+            MethodDescriptor method = methodIterator.next();
+            
+            if(!(method instanceof BlueprintDescriptor))
+                computeMethod(method);
         }
         
         this.visitInterface(clazz);
@@ -2245,7 +2234,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 }else{
                     //Otherwise, load the variable from the mapped variable on the
                     //stack.
-                    int number = var.getVariableNumber();
+                    int number = var.getVariableNumber() - currentClass.getNumberOfVariables();
                     int mapped = stack.getMappedVariableNumber(number);
                     methodVisitor.visitVarInsn(ALOAD, mapped);
                 }
@@ -2312,7 +2301,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     }else{
                         //Otherwise, load the variable from the mapped variable on the
                         //stack.
-                        int number = var.getVariableNumber();
+                        int number = var.getVariableNumber() - currentClass.getNumberOfVariables();
                         int mapped = stack.getMappedVariableNumber(number);
                         methodVisitor.visitVarInsn(ALOAD, mapped);
                     }
