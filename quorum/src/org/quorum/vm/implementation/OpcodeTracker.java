@@ -49,7 +49,7 @@ public class OpcodeTracker {
      * As such, the mapping here would be 0, 1.
      */
     private HashMap<Integer, ArrayList<Integer>> functionParameterMapping = new HashMap<Integer, ArrayList<Integer>>();
-    
+        
     /**
      * This stores a list of opcodes and their types in linear order.
      */
@@ -69,7 +69,6 @@ public class OpcodeTracker {
      * length cannot be computed from the array in the getFinalIndex call.
      */
     private int numberOpcodes = -1;
-    
     
     public void addFunctionParameterMapping(int param, int call) {
         if(functionParameterMapping.containsKey(param)){

@@ -999,6 +999,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         return tracker;
     }
+    
     /**
      * Helper method: process the cached expressions whenever they need to be
      * processed. eg. while loops should be identified then the expressions are
@@ -1019,6 +1020,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //for each item in the queue excluding the last 
         //item(which is the opcode processing the expressions)
         for (int j = 0; j < tracker.getQueueSize() - 1; j++) {
+            
+            ArrayList<Integer> visitedCasts = new ArrayList<Integer>();
             //check queue for its current value
             int begin = tracker.removeFromQueue();
             int end = tracker.peekQueue();
@@ -1026,6 +1029,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             //loop through all op-codes
             Vector<ExecutionStep> steps = execution.getSteps();
             for (int i = begin; i < end; i++) { //visit the expressions
+                // If this is a cast step that we have already visited, ignore
+                // it, so we don't accidentally visit it twice.
+                if (visitedCasts.contains(i)) {
+                    i++;
+                }
+                
                 //is this step the first parameter to a function call?
                 //if yes, call visitCallSpecial, with the call step 
                 //for that function call
@@ -1033,7 +1042,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 if(funcParam) {
                     ArrayList<Integer> callLocations = tracker.getFunctionParameterMapping(i);
                     for(int k = 0; k < callLocations.size(); k++){
-                        ExecutionStep callStep = steps.get(callLocations.get(k));
+                        int opcodeLocation = callLocations.get(k);
+                        ExecutionStep callStep = steps.get(opcodeLocation);
+                        
+                        // Make sure this is actually a CallStep.
+                        while (!(callStep instanceof CallStep)) {
+                            opcodeLocation++;
+                            callStep = steps.get(opcodeLocation);
+                        }
+                        
                         if(callStep instanceof CallStep) {
                             CallStep call = (CallStep) callStep;
                             //insert the pointer for the object being called upon
@@ -1049,6 +1066,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 
                 ExecutionStep step = steps.get(i);
                 step.visit(this);
+                
+                int castStepLocation = step.getCastStepLocation();
+                if(castStepLocation != -1){
+                    step = steps.get(castStepLocation);
+                    step.visit(this);
+                    visitedCasts.add(castStepLocation);
+                }
             }
 
             //clear out the queue at the end of visiting

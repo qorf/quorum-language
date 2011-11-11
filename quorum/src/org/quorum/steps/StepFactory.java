@@ -1415,6 +1415,7 @@ public class StepFactory {
             }
 
             for (int i = 0; i < params.size(); i++) {
+                ExecutionStep arg = info.argumentSteps.get(i);
                 TypeDescriptor specified = params.get(i).getType();
                 TypeDescriptor actual = info.argumentTypes.get(i);
 
@@ -1457,7 +1458,8 @@ public class StepFactory {
                         resultStep.setLineInformation(info.location);
                         resultStep.setRegister(info.argumentRegisters.get(i));
                         resultStep.setResultRegister(info.argumentRegisters.get(i));
-                        machine.getBuilder().add(resultStep);
+                        int position = machine.getBuilder().add(resultStep);
+                        arg.setCastStepLocation(position);
 
                         if(resultStep instanceof AutoBoxCreateStep){
                             result = typeChecker.checkAutobox(actual);

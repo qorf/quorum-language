@@ -185,14 +185,18 @@ public class IntermediateExecutionBuilder {
      * 
      * @param step
      */
-    public void add(IntermediateStep step) {
+    public int add(IntermediateStep step) {
+        int location = -1;
         if (getCurrentMethod() == null) {
+            location = getCurrentClass().getStepCount();
             getCurrentClass().add(step);
         } else {
+            location = getCurrentMethod().getStepCount();
             getCurrentMethod().add(step);
         }
 
         step.setFileKey(currentFileKey);
+        return location;
     }
     
     /**

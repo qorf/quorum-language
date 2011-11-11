@@ -59,6 +59,8 @@ public abstract class ExecutionStep {
     protected int endColumn;
 
     private MethodDescriptor methodDescriptor;
+    
+    private int castStepLocation = -1;
 
     /** Creates a new instance of ExecutionStep */
     public ExecutionStep() {
@@ -395,4 +397,18 @@ public abstract class ExecutionStep {
      * @param visitor 
      */
     public abstract void visit(ExecutionStepVisitor visitor);
+
+    /**
+     * @return the castStepLocation
+     */
+    public int getCastStepLocation() {
+        return castStepLocation;
+    }
+
+    /**
+     * @param castStepLocation the castStepLocation to set
+     */
+    public void setCastStepLocation(int castStepLocation) {
+        this.castStepLocation = castStepLocation;
+    }
 }
