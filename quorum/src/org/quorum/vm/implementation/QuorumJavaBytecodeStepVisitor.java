@@ -474,6 +474,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private void performLocalAssignment(TypeDescriptor valueType, AssignmentStep step) {
         int variableNumber = step.getVariable().getVariableNumber() - currentClass.getNumberOfVariables();
         String subVariableName = step.getSubVariableName();
+        
         //if this is an object and we are assigning to a field in that object load it
         if(!subVariableName.equals("")){
             TypeDescriptor type = step.getVariable().getType();
@@ -482,6 +483,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             valueType = stack.popExpressionType();
             methodVisitor.visitFieldInsn(PUTFIELD, QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey()), subVariableName, QuorumConverter.convertTypeToBytecodeString(valueType));
         }else{
+            //if we are not dealing with an object variable then store it in a local varaiable
             int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
         
             // Is it defined yet?
