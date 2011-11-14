@@ -1032,7 +1032,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 // If this is a cast step that we have already visited, ignore
                 // it, so we don't accidentally visit it twice.
                 if (visitedCasts.contains(i)) {
-                    i++;
+                    continue;
                 }
                 
                 //is this step the first parameter to a function call?
@@ -2544,7 +2544,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(IntegerAutoBoxStep step) {
-        int a = 5;
+        methodVisitor.visitTypeInsn(NEW, "quorum/Libraries/Language/Types/Integer");
+        methodVisitor.visitInsn(DUP);
+        methodVisitor.visitInsn(DUP);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, "quorum/Libraries/Language/Types/Integer", "<init>", "()V");
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "quorum/Libraries/Language/Types/Integer", "SetValue", "(I)V");
     }
 
     @Override
