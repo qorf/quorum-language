@@ -52,7 +52,7 @@ public class QuorumConverter {
      * @return 
      */
     public static String convertClassNameToInterfaceName(String name) {
-        return name + "$$$___Interface$$$";
+        return name + "$Interface";
     }
     
     
@@ -142,7 +142,7 @@ public class QuorumConverter {
      * @return 
      */
     public static String convertParentStaticKeyToValidName(String key) {
-        return "<" + key + ">";
+        return "$" + key;
     }
     
     /**
