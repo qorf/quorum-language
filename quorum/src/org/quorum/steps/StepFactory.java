@@ -1459,9 +1459,10 @@ public class StepFactory {
                         resultStep.setRegister(info.argumentRegisters.get(i));
                         resultStep.setResultRegister(info.argumentRegisters.get(i));
                         int position = machine.getBuilder().add(resultStep);
-                        arg.setCastStepLocation(position);
+                        
 
                         if(resultStep instanceof AutoBoxCreateStep){
+                            arg.setCastStepLocation(position - 1);
                             result = typeChecker.checkAutobox(actual);
                             if(result.getResult() != null){
                                 resultStep = (UnaryOperationStep) result.generateOpcode();
@@ -1470,6 +1471,8 @@ public class StepFactory {
                                 resultStep.setResultRegister(info.argumentRegisters.get(i));
                                 machine.getBuilder().add(resultStep);
                             }
+                        }else{
+                            arg.setCastStepLocation(position);
                         }
                     }
                 } else {
