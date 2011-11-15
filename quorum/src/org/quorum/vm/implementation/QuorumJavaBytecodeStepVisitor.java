@@ -1062,26 +1062,32 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     }
                 }//if no, do nothing
                 
+                //get the next step to be processed and get a cast step location if there is one.
                 ExecutionStep step = steps.get(i);
-                ExecutionStep castStep = null;
-                boolean autoBoxStep = false;
                 int castStepLocation = step.getCastStepLocation();
+                
+                //if there is a cast step associated with the step then process as 
+                //one of two types of casts, autobox or standard cast.
                 if (castStepLocation != -1) {
-                    castStep = steps.get(castStepLocation);
-                    if (castStep instanceof AutoBoxCreateStep) {
-                        autoBoxStep = true;
-                        visitWithAutoBoxStep(step, (AutoBoxCreateStep) castStep);
+                    
+                    //if we are dealing with an autobox we are dealing with 3 steps.
+                    //with a standard cast we will need move the cast step directly after
+                    //the visit of the parameter.
+                    ExecutionStep castStep = steps.get(castStepLocation + 1);
+                    if(castStep instanceof AutoBoxCreateStep){//autobox
+                        visitWithAutoBoxStep(step,(AutoBoxCreateStep) castStep);
+                        visitedCasts.add(castStepLocation);
+                        visitedCasts.add(castStepLocation + 1);
+                        visitedCasts.add(castStepLocation + 2);
+                    }else{//standard cast
+                        step.visit(this);
+                        
+                        step = steps.get(castStepLocation);
+                        step.visit(this);
+                        visitedCasts.add(castStepLocation);
                     }
-                }
-
-                if (!autoBoxStep) {
+                } else {//standard visit of a non casting series of steps.
                     step.visit(this);
-                }
-
-                if (castStep != null && !autoBoxStep) {
-                    step = steps.get(castStepLocation);
-                    step.visit(this);
-                    visitedCasts.add(castStepLocation);
                 }
             }
 
