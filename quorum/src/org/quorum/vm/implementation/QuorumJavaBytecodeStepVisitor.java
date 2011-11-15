@@ -1065,10 +1065,22 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 }//if no, do nothing
                 
                 ExecutionStep step = steps.get(i);
-                step.visit(this);
-                
+                ExecutionStep castStep = null;
+                boolean autoBoxStep = false;
                 int castStepLocation = step.getCastStepLocation();
-                if(castStepLocation != -1){
+                if (castStepLocation != -1) {
+                    castStep = steps.get(castStepLocation);
+                    if (castStep instanceof AutoBoxCreateStep) {
+                        autoBoxStep = true;
+                        visitWithAutoBoxStep(step, (AutoBoxCreateStep) castStep);
+                    }
+                }
+
+                if (!autoBoxStep) {
+                    step.visit(this);
+                }
+
+                if (castStep != null && !autoBoxStep) {
                     step = steps.get(castStepLocation);
                     step.visit(this);
                     visitedCasts.add(castStepLocation);
@@ -1187,7 +1199,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             //loop through all op-codes
             Vector<ExecutionStep> steps = execution.getSteps();
             for (int i = begin; i < end; i++) { //visit the expressions
-                
+
                 ExecutionStep step = steps.get(i);
                 step.visit(this);
             }
@@ -1195,6 +1207,44 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             //clear out the queue at the end of visiting
             tracker.clearQueue();
         }
+    }
+
+    /**
+        * Visit the given expression, performing the appropriate autoboxing.
+        * 
+        * @param step
+        * @param castStep - the autobox step
+        */
+    private void visitWithAutoBoxStep(ExecutionStep step, AutoBoxCreateStep castStep) {
+
+        String autoBoxClassName = null;
+
+        String autoBoxMethodSignature = null;
+
+        if (castStep.getPrimitiveType().isInteger()) {
+            autoBoxClassName = "quorum/Libraries/Language/Types/Integer";
+            autoBoxMethodSignature = "(I)V";
+        } else if (castStep.getPrimitiveType().isNumber()) {
+            autoBoxClassName = "quorum/Libraries/Language/Types/Number";
+            autoBoxMethodSignature = "(D)V";
+        } else if (castStep.getPrimitiveType().isText()) {
+            autoBoxClassName = "quorum/Libraries/Language/Types/Text";
+            autoBoxMethodSignature = "(Ljava/language/String)V";
+        } else if (castStep.getPrimitiveType().isBoolean()) {
+            autoBoxClassName = "quorum/Libraries/Language/Types/BooleanAutoBoxStep";
+            autoBoxMethodSignature = "(Z)V";
+        }
+        // Create a new autoboxed object.
+        methodVisitor.visitTypeInsn(NEW, autoBoxClassName);
+        methodVisitor.visitInsn(DUP);
+        methodVisitor.visitInsn(DUP);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, autoBoxClassName, "<init>", "()V");
+        // Add the expression from the step.
+        step.visit(this);
+
+        // Call SetValue.
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
+                "SetValue", autoBoxMethodSignature);
     }
 
     /**
