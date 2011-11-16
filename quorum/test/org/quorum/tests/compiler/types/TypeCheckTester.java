@@ -53,6 +53,249 @@ public class TypeCheckTester {
     // Tests for things that should pass start here
 
     @Test
+    public void test_pass_CastFieldIntObjDest_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastFieldIntObjDest.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("t");
+        int t = variableValue.getResult().integer;
+        if(t!=5) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_CastFieldIntObjDest_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastFieldIntObjDest.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+    }
+    
+    @Test
+    public void test_pass_CastFieldIntObjSource_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastFieldIntObjSource.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("t");
+        int t = variableValue.getResult().integer;
+        if(t!=5) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_CastFieldIntObjSource_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastFieldIntObjSource.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+    }
+    
+    @Test
+    public void test_pass_CastFieldIntObjSourceDest_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastFieldIntObjSourceDest.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("t");
+        int t = variableValue.getResult().integer;
+        if(t!=5) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_CastFieldIntObjSourceDest_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastFieldIntObjSourceDest.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+    }
+    
+    @Test
+    public void test_pass_CastFieldObjIntDest_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastFieldObjIntDest.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("t");
+        boolean t = variableValue.getResult().boolean_value;
+        if(t!=true) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_CastFieldObjIntDest_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastFieldObjIntDest.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+    }
+    
+    @Test
+    public void test_pass_CastFieldObjIntSource_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastFieldObjIntSource.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("t");
+        boolean t = variableValue.getResult().boolean_value;
+        if(t!=true) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_CastFieldObjIntSource_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastFieldObjIntSource.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+    }
+    
+    @Test
+    public void test_pass_CastFieldObjIntSourceDest_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastFieldObjIntSourceDest.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("t");
+        boolean t = variableValue.getResult().boolean_value;
+        if(t!=true) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_CastFieldObjIntSourceDest_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastFieldObjIntSourceDest.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+    }
+    
+    @Test
+    public void test_pass_CastLocalVarIntObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastLocalVarIntObj.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("t");
+        int t = variableValue.getResult().integer;
+        if(t!=5) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_CastLocalVarIntObj_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastLocalVarIntObj.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+    }
+    
+    @Test
+    public void test_pass_CastParamIntObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastParamIntObj.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("t");
+        int t = variableValue.getResult().integer;
+        if(t!=5) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_CastParamIntObj_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastParamIntObj.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+    }
+    
+    @Test
+    public void test_pass_CastParamObjInt_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastParamObjInt.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("t");
+        int t = variableValue.getResult().integer;
+        if(t!=5) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_CastParamObjInt_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastParamObjInt.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+    }
+    
+    @Test
     public void test_pass_ImpAssignBoolObjBoolObj_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "ImpAssignBoolObjBoolObj.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
