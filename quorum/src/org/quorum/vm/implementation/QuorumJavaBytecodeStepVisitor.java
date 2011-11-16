@@ -451,10 +451,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
 
         //process the expression and put the field
-        if(!isDefined)
+        if(!isDefined){
             processFieldExpressions();
-        else
+            variableType.setBytecodeInterface(true);
+        }else{
             processExpressions();
+        }
         
         //variableType = stack.popExpressionType();
         if(step.getParent() != null && !step.getParent().equals(currentClass)){
@@ -489,7 +491,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 stack.setVariable(variableNumber, valueType);
                 mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
             }else{
-                if(step instanceof AssignmentCustomStep && valueType.isBytecodeInterface()){
+                if(valueType.isBytecodeInterface()){
                     //we need to set the stack variables type to something new or something?
                     stack.setVariableType(mappedVariableNumber, valueType);
                 }
@@ -2399,13 +2401,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     converted = QuorumConverter.convertTypeToJavaClassTypeEquivalent(var.getType());
                 }
                 
-                if(field) {
+                if(field) {//if this is a call on a field object
                     isCalledOnField = true;
                     String key = currentClass.getStaticKey();
                     String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
-                    String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
+                    //String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
+                    String varTypeName = QuorumConverter.convertTypeToBytecodeString(var.getType());
                     methodVisitor.visitVarInsn(ALOAD, 0);
-                    methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), classNameSupplement);
+                    methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), varTypeName);
+                    converted = QuorumConverter.convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(var.getType().getStaticKey()));
                 }
                 else { //determine the local variable number and load it
 

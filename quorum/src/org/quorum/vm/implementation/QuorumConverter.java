@@ -220,6 +220,11 @@ public class QuorumConverter {
         else {
             String key = type.getStaticKey();
             String convert = convertStaticKeyToBytecodePath(key);
+            
+            if(type.isBytecodeInterface()){
+                convert = convertClassNameToInterfaceName(convert);
+            }
+            
             return "L" + convert + ";";
         }
     }
