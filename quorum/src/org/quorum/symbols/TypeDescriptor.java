@@ -27,6 +27,8 @@ public class TypeDescriptor extends Descriptor {
     public static final String OBJECT = "Libraries.Language.Object";
     public static final String NULL = "NULL_TYPE";
 
+    private boolean bytecodeInterface = false;
+    
     private String templateName = null;
     private ArrayList<GenericDescriptor> subTypes = new ArrayList<GenericDescriptor>();
     
@@ -501,5 +503,31 @@ public class TypeDescriptor extends Descriptor {
         if(this.isNumberClass()) {
             super.setName(NUMBER);
         }
+    }
+
+    /**
+     * NOTE: NEVER USE THIS. This method is an artifact of the conversion from 
+     * the bytecode stack using TypeDescriptors instead of a custom class.
+     * This method is meaningless in the interpreter and should be ignored. For
+     * bytecode generation, this method lets us know whether the type is 
+     * an "interface" automatically behind the scenes.
+     * 
+     * @return the bytecodeInterface
+     */
+    public boolean isBytecodeInterface() {
+        return bytecodeInterface;
+    }
+
+    /**
+     * NOTE: NEVER USE THIS. This method is an artifact of the conversion from 
+     * the bytecode stack using TypeDescriptors instead of a custom class.
+     * This method is meaningless in the interpreter and should be ignored. For
+     * bytecode generation, this method sets whether the type is 
+     * an "interface" automatically behind the scenes.
+     * 
+     * @param bytecodeInterface the bytecodeInterface to set
+     */
+    public void setBytecodeInterface(boolean bytecodeInterface) {
+        this.bytecodeInterface = bytecodeInterface;
     }
 }

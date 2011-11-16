@@ -488,7 +488,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             if (mappedVariableNumber == -1) {
                 stack.setVariable(variableNumber, valueType);
                 mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+            }else{
+                if(step instanceof AssignmentCustomStep && valueType.isBytecodeInterface()){
+                    //we need to set the stack variables type to something new or something?
+                    stack.setVariableType(mappedVariableNumber, valueType);
+                }
             }
+            
             methodVisitor.visitVarInsn(QuorumConverter.getStoreOpcode(valueType), mappedVariableNumber);
         }
 
@@ -1321,7 +1327,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             VariableDescriptor next = classVariables.next();
             String varName = next.getName();
             TypeDescriptor varType = next.getType();
-            String converted = QuorumConverter.convertTypeToBytecodeString(varType);
+            String converted = "";
+            
+            if(varType.isPrimitiveType()){
+                converted = QuorumConverter.convertTypeToBytecodeString(varType);
+            }else{
+                converted = QuorumConverter.convertStaticKeyToBytecodePathTypeName(QuorumConverter.convertClassNameToInterfaceName(varType.getStaticKey()));
+            }
+            
             int accessModifier;
             if (next.getAccessModifier().toString().compareTo(AccessModifierEnum.PUBLIC.toString()) == 0) {
                 accessModifier = ACC_PUBLIC;
@@ -2335,6 +2348,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(CallStep step) {
         boolean isParameter = false;
+        boolean isCalledOnField = false;
+        boolean isCalledOnInterface = false;
         /**
          * I haven't tested this, as we aren't quite there yet in the build,
          * but it might work or be easily modified to work correctly.
@@ -2357,6 +2372,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         else {
             VariableParameterCommonDescriptor var = step.getParentObject();
             
+            //grab the variable from storage and check if it is an interface type
+            TypeDescriptor varType = null;
+            if(var != null){
+                varType = stack.getVariable(stack.getMappedVariableNumber(var.getVariableNumber() - currentClass.getNumberOfVariables()));
+                if(varType != null)
+                    isCalledOnInterface = varType.isBytecodeInterface();
+            }
+            
             //if this is a parent call step then treat it as such and load the parent
             //before calling ivokevirtual.
             if(step instanceof ParentCallStep){
@@ -2370,8 +2393,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }else{
                 //if this is a standard call step then treat it as such.
                 boolean field = var.isFieldVariable();
-                converted = QuorumConverter.convertTypeToJavaClassTypeEquivalent(var.getType());
+                if(isCalledOnInterface){
+                    converted = QuorumConverter.convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(var.getType().getStaticKey()));
+                }else{
+                    converted = QuorumConverter.convertTypeToJavaClassTypeEquivalent(var.getType());
+                }
+                
                 if(field) {
+                    isCalledOnField = true;
                     String key = currentClass.getStaticKey();
                     String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
                     String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
@@ -2400,7 +2429,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             processExpressions();
         }
                     
-        if (!isParameter) {
+        if (!isParameter && !isCalledOnField && !isCalledOnInterface) {
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted,
                         callee.getName(),
                         QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));
@@ -2680,7 +2709,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(ObjectCastStep step) {
-        int a = 5;
+        stack.popExpressionType();
+        //make a copy of the type descriptor and set its bytecodeInterface
+        //flag to true. The point here is that the type must be converted to
+        //an interface, and as such, we have to let the bytecode stack know
+        //about that
+        //We are also making a copy, so this never gets sent through to the 
+        //the interpreter accidentally.
+        TypeDescriptor convertedType = new TypeDescriptor(step.getConvertedType());
+        convertedType.setBytecodeInterface(true);
+        methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(convertedType.getStaticKey())));
+        stack.pushExpressionType(convertedType);
     }
 
     @Override
@@ -2889,7 +2928,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(VariableInObjectMoveStep step) {
         //get the variable from the step and store it
         VariableParameterCommonDescriptor variable = step.getObj();
-        pushVariable(variable.getType(), variable.getVariableNumber());
+        pushVariable(variable.getType(), variable.getVariableNumber() - currentClass.getNumberOfVariables());
 
         //visit the field instruction
         String name = step.getVariableName();

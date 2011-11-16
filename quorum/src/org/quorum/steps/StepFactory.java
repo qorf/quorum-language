@@ -1523,11 +1523,14 @@ public class StepFactory {
             resultValue.setType(type);
 
             UnaryOperationStep resultStep = (UnaryOperationStep) typeCheckResult.generateOpcode();
-
+            
             if (resultStep == null) {
                 result.setStep(step);
                 result.setValue(value);
             } else {
+                if(resultStep instanceof ObjectCastStep){
+                    ((ObjectCastStep)resultStep).setConvertedType(type);
+                }
                 resultStep.setLineInformation(location);
                 resultStep.setRegister(value.getRegister());
                 resultStep.setResultRegister(register);

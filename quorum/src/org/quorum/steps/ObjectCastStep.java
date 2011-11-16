@@ -9,13 +9,15 @@ import org.quorum.execution.DataEnvironment;
 import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.symbols.Result;
+import org.quorum.symbols.TypeDescriptor;
 
 /**
  *
  * @author Melissa Stefik
  */
 public class ObjectCastStep extends UnaryOperationStep{
-
+    private TypeDescriptor convertedType = new TypeDescriptor();
+    
     @Override
     public void execute() {
 
@@ -49,5 +51,19 @@ public class ObjectCastStep extends UnaryOperationStep{
     @Override
     public void visit(ExecutionStepVisitor visitor) {
         visitor.visit(this);
+    }
+
+    /**
+     * @return the convertedType
+     */
+    public TypeDescriptor getConvertedType() {
+        return convertedType;
+    }
+
+    /**
+     * @param convertedType the convertedType to set
+     */
+    public void setConvertedType(TypeDescriptor convertedType) {
+        this.convertedType = convertedType;
     }
 }

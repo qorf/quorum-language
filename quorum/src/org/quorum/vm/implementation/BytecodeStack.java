@@ -187,6 +187,18 @@ public class BytecodeStack {
     }
     
     /**
+     * Set the variable type to a new type
+     * @param location
+     * @param valueType 
+     */
+    public void setVariableType(int location, TypeDescriptor valueType){
+        if(variables.containsKey(location)){
+            variables.remove(location);
+            variables.put(location, valueType);
+        }
+    }
+    
+    /**
      * Pushes a value for a particular variable onto a hash map that can
      * later be queried.
      * 
