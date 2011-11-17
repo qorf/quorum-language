@@ -10,6 +10,7 @@ package plugins.quorum.Libraries.Compute;
  * @author Andreas Stefik
  */
 public class Math {
+    public java.lang.Object ___$$$Calling___$$$___Object$$$___ = null;
     public double Floor(double value){
         return java.lang.Math.floor(value); 
     }
