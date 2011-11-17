@@ -1081,9 +1081,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     //if we are dealing with an autobox we are dealing with 3 steps.
                     //with a standard cast we will need move the cast step directly after
                     //the visit of the parameter.
-                    ExecutionStep castStep = steps.get(castStepLocation + 1);
-                    if(castStep instanceof AutoBoxCreateStep){//autobox
-                        visitWithAutoBoxStep(step,(AutoBoxCreateStep) castStep);
+                    ExecutionStep createStep = steps.get(castStepLocation + 1);
+                    if(createStep instanceof AutoBoxCreateStep){//autobox
+                        ExecutionStep castStep = steps.get(i + 1);
+                        if (!(castStep instanceof UnaryOperationStep))
+                            castStep = null;
+                        visitWithAutoBoxStep(step,(AutoBoxCreateStep) createStep, castStep);
                         visitedCasts.add(castStepLocation);
                         visitedCasts.add(castStepLocation + 1);
                         visitedCasts.add(castStepLocation + 2);
@@ -1227,22 +1230,22 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         * @param step
         * @param castStep - the autobox step
         */
-    private void visitWithAutoBoxStep(ExecutionStep step, AutoBoxCreateStep castStep) {
+    private void visitWithAutoBoxStep(ExecutionStep step, AutoBoxCreateStep createStep, ExecutionStep castStep) {
 
         String autoBoxClassName = null;
 
         String autoBoxMethodSignature = null;
 
-        if (castStep.getPrimitiveType().isInteger()) {
+        if (createStep.getPrimitiveType().isInteger()) {
             autoBoxClassName = "quorum/Libraries/Language/Types/Integer";
             autoBoxMethodSignature = "(I)V";
-        } else if (castStep.getPrimitiveType().isNumber()) {
+        } else if (createStep.getPrimitiveType().isNumber()) {
             autoBoxClassName = "quorum/Libraries/Language/Types/Number";
             autoBoxMethodSignature = "(D)V";
-        } else if (castStep.getPrimitiveType().isText()) {
+        } else if (createStep.getPrimitiveType().isText()) {
             autoBoxClassName = "quorum/Libraries/Language/Types/Text";
             autoBoxMethodSignature = "(Ljava/language/String)V";
-        } else if (castStep.getPrimitiveType().isBoolean()) {
+        } else if (createStep.getPrimitiveType().isBoolean()) {
             autoBoxClassName = "quorum/Libraries/Language/Types/Boolean";
             autoBoxMethodSignature = "(Z)V";
         }
@@ -1251,9 +1254,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, autoBoxClassName, "<init>", "()V");
+        
         // Add the expression from the step.
         step.visit(this);
-
+        
+        // Do we need to do a cast?
+        if (castStep != null)
+            castStep.visit(this);
+        
         // Call SetValue.
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
                 "SetValue", autoBoxMethodSignature);
