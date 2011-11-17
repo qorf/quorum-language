@@ -115,7 +115,6 @@ public class QuorumConverter {
     public static String convertMethodDescriptorToBytecodeSignature(MethodDescriptor descriptor) {
         String result = "";
         TypeDescriptor ret = descriptor.getReturnType();
-        String returnString = convertTypeToBytecodeString(ret);
         String parametersString = "(";
         Parameters parameters = descriptor.getParameters();
         for(int i = 0; i < parameters.size(); i++) {
@@ -129,6 +128,12 @@ public class QuorumConverter {
         }
         
         parametersString += ")";
+        
+        String returnString = null;
+        if (ret.isPrimitiveType() || ret.isVoid())
+            returnString = convertTypeToBytecodeString(ret);
+        else
+            returnString = "L" + convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(ret.getStaticKey())) + ";";
         
         result = parametersString + returnString;
         return result;
