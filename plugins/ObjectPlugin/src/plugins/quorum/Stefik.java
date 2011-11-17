@@ -13,4 +13,9 @@ public class Stefik {
     public int GetHashCode() {
         return ___$$$Calling___$$$___Object$$$___.hashCode();
     }
+    
+    public void JeffSmells() {
+        
+        
+    }
 }
