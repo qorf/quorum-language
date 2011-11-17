@@ -1243,7 +1243,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             autoBoxClassName = "quorum/Libraries/Language/Types/Text";
             autoBoxMethodSignature = "(Ljava/language/String)V";
         } else if (castStep.getPrimitiveType().isBoolean()) {
-            autoBoxClassName = "quorum/Libraries/Language/Types/BooleanAutoBoxStep";
+            autoBoxClassName = "quorum/Libraries/Language/Types/Boolean";
             autoBoxMethodSignature = "(Z)V";
         }
         // Create a new autoboxed object.
