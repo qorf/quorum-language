@@ -2514,10 +2514,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(CreateObjectStep step) {
+        boolean isField = false;
         ClassDescriptor clazz = step.getClazz();
         
         if(currentMethodExecution == null){
             this.currentClassExecution.getTracker().clearQueue();
+            isField = true;
+            methodVisitor.visitVarInsn(ALOAD, 0);
+            
         }else{
             this.currentMethodExecution.getTracker().clearQueue();
         }
@@ -2528,6 +2532,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "()V");
         VariableParameterCommonDescriptor variable = step.getVariable();
+        variable.getType().setBytecodeInterface(isField);
 
         int variableNumber = variable.getVariableNumber() - currentClass.getNumberOfVariables();
 //        if (variableNumber == -1) {
@@ -2536,6 +2541,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //        BytecodeStackValue value = new BytecodeStackValue();
         TypeDescriptor type = new TypeDescriptor();
         type.setName(variable.getType().getName());
+        type.setBytecodeInterface(isField);
 //        value.setAsVariable(variableNumber);
 //        value.setType(type);
 //        value.setName(variable.getName());
@@ -2554,11 +2560,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         stack.setVariable(variableNumber, type);
         int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
-        if (mappedVariableNumber != -1) {
+        if (!isField && mappedVariableNumber != -1) {
             methodVisitor.visitVarInsn(ASTORE, mappedVariableNumber);
+        }else if(isField && mappedVariableNumber != -1){
+            methodVisitor.visitFieldInsn(PUTFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClassExecution.getStaticKey()), variable.getName(), QuorumConverter.convertTypeToBytecodeString(type));
         }
         //stack.setVariable(variableNumber, value);
-        int b = 5;
     }
 
     @Override
@@ -2953,7 +2960,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (step.getValue() instanceof VariableDescriptor) {
             //if the variable is initialized load the variable and visit the field
             VariableDescriptor varDescriptor = (VariableDescriptor) step.getValue();
-            if (varDescriptor != null && varDescriptor.isInitializedClassVariable()) {
+            if (varDescriptor != null && varDescriptor.isFieldVariable()) {
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()),
                         varDescriptor.getName(), QuorumConverter.convertTypeToBytecodeString(varDescriptor.getType()));
