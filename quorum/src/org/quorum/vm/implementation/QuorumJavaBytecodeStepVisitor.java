@@ -2646,11 +2646,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(IntegerAutoBoxStep step) {
-        methodVisitor.visitTypeInsn(NEW, "quorum/Libraries/Language/Types/Integer");
-        methodVisitor.visitInsn(DUP);
-        methodVisitor.visitInsn(DUP);
-        methodVisitor.visitMethodInsn(INVOKESPECIAL, "quorum/Libraries/Language/Types/Integer", "<init>", "()V");
-        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "quorum/Libraries/Language/Types/Integer", "SetValue", "(I)V");
     }
 
     @Override
