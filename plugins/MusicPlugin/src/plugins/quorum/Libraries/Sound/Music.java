@@ -4,24 +4,97 @@
  */
 package plugins.quorum.Libraries.Sound;
 
+import java.util.HashMap;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.sound.midi.Instrument;
+import javax.sound.midi.MidiChannel;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Sequence;
+import javax.sound.midi.Sequencer;
+import javax.sound.midi.Soundbank;
+import javax.sound.midi.Synthesizer;
 /**
  *
  * @author jeff
  */
 public class Music {
     public java.lang.Object ___$$$Calling___$$$___Object$$$___ = null;
-    public void  AddNoteForChord(int note) { }
-    public void  PlayChord(double length, double volume, double lengthInSeconds) { }
-    public void  StartSong() { }
-    public void  PlayMidiNative(String path) { }
-    public void  StartTrack(int instrument) { }
-    public void  AddNoteToTrack(int note, double volume, int constantBend, int preBend, int preBendLength, double onPos, double offPos) { }
-    public void  PlaySongNative() { }
-    public int  GetTempoNative() { return 0; }
-    public void  SetTempoNative(int beatsPerMinute) { }
-    public String  GetCurrentInstrumentName() { return null; }
-    public int  GetCurrentInstrumentdouble() { return 0; }
-    public void  SetCurrentInstrument(int index) { }
-    public String  GetInstrumentName(int index) { return null; }
-    public void  StopNative()  { }
+    private QuorumMusic inst = null;
+    private static Synthesizer synthesizer = null;
+    
+    public Music() {
+        // Has the synthesizer been initialized yet?
+        if (synthesizer == null) {
+            try {
+                synthesizer = MidiSystem.getSynthesizer();
+            } catch (MidiUnavailableException ex) {
+                Logger.getLogger(Music.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        inst = new QuorumMusic(synthesizer);
+    }
+    
+    public void Play(int note, double duration, double volume) {
+        inst.Play(note, duration, volume);    
+    }
+    
+    public void AddNoteForChord(int note) {
+        inst.AddNoteForChord(note);
+    }
+    
+    public void PlayChord(double length, double volume, double lengthInSeconds) {
+        inst.PlayChord((long)length, volume, (long)lengthInSeconds);
+    }
+    
+    public void StartSong() {
+        inst.StartSong();
+    }
+    
+    public void PlayMidiNative(String path) {
+        inst.PlayMidi(path);
+    }
+    
+    public void StartTrack(int instrument) {
+        inst.StartTrack(instrument);
+    }
+    
+    public void AddNoteToTrack(int note, double volume, int constantBend, int preBend, int preBendLength, double onPos, double offPos) {
+        inst.AddNoteToTrack(note, volume, constantBend, preBend, preBendLength, (long)onPos, (long)offPos);
+    }
+    
+    public void PlaySongNative() {
+        inst.PlaySong();
+    }
+    
+    public int GetTempoNative() {
+        return inst.getBeatsPerMinute();
+    }
+    
+    public void SetTempoNative(int beatsPerMinute) {
+        inst.setBeatsPerMinute(beatsPerMinute);
+    }
+    
+    public String GetCurrentInstrumentName() {
+        return inst.GetCurrentInstrumentName();
+    }
+    
+    public int GetCurrentInstrumentNumber() {
+        return inst.GetCurrentInstrumentNumber();
+    }
+    
+    public void SetCurrentInstrument(int index) {
+        inst.SetCurrentInstrument(index);
+    }
+    
+    public String GetInstrumentName(int index) {
+        return inst.GetInstrumentName(index);
+    }
+    
+    public void StopNative() {
+        inst.Stop();
+    }
 }
