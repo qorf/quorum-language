@@ -1,7 +1,10 @@
+use Libraries.Language.Errors.Error
 class Melissa
 
 action Main
-    print "hello"
+    Error e
+    e:SetErrorMessage("omg")
+    alert(e)
 end
 
 end

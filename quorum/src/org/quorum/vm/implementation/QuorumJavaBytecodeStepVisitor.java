@@ -15,6 +15,7 @@ import org.objectweb.asm.Opcodes;
 import org.quorum.execution.ExecutionStep;
 import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.NullExecutionStep;
+import org.quorum.plugins.RuntimeError;
 import org.quorum.steps.*;
 import org.quorum.symbols.AccessModifierEnum;
 import org.quorum.symbols.BlueprintDescriptor;
@@ -1304,6 +1305,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //
 //        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
 //                && !"Libraries.Language.Support.CompareResult".equals(staticKey)
+//                && !"Libraries.Containers.Array".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Copyable".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Indexed".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Container".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Addable".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Iterative".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.ArrayBlueprint".equals(staticKey)
+//                && !"Libraries.Language.Errors.Error".equals(staticKey)
 //                && !".StefikGrand".equals(staticKey)) {
 //            return;
 //        }
@@ -1658,7 +1668,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AlertStep step) {
-        int a = 5;
+        RuntimeError runtimeError = step.getRuntimeError();
+        //create the java exception 
+        methodVisitor.visitTypeInsn(NEW, "java/lang/RuntimeException");
+        methodVisitor.visitInsn(DUP);
+        if(runtimeError != null){
+            methodVisitor.visitLdcInsn(runtimeError.getErrorMessage());
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/RuntimeException", "<init>", "(Ljava/lang/String;)V");
+        }else{
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/RuntimeException", "<init>", "()V");
+        }
+        
+        
+        //throw the exception
+        methodVisitor.visitInsn(ATHROW);
     }
 
     @Override
@@ -2394,6 +2417,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             else if (step.isSoloMethodCall()) {
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 processExpressions();
+            }else{
+                processExpressions();
             }
         }
         else {
@@ -2865,7 +2890,22 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(SimpleAlertStep step) {
-        int a = 5;
+        RuntimeError runtimeError = step.getRuntimeError();
+        
+        
+        //create the java exception 
+        methodVisitor.visitTypeInsn(NEW, "java/lang/RuntimeException");
+        methodVisitor.visitInsn(DUP);
+        if(runtimeError != null){
+            methodVisitor.visitLdcInsn(runtimeError.getErrorMessage());
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/RuntimeException", "<init>", "(Ljava/lang/String;)V");
+        }else{
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/RuntimeException", "<init>", "()V");
+        }
+        
+        
+        //throw the exception
+        methodVisitor.visitInsn(ATHROW);
     }
 
     @Override
