@@ -4,21 +4,15 @@
  */
 package plugins.quorum.Libraries.Sound;
 
-import java.util.HashMap;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.midi.Instrument;
-import javax.sound.midi.MidiChannel;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Sequence;
-import javax.sound.midi.Sequencer;
-import javax.sound.midi.Soundbank;
 import javax.sound.midi.Synthesizer;
+
 /**
  *
- * @author jeff
+ * @author Jeff Wilson
  */
 public class Music {
     public java.lang.Object ___$$$Calling___$$$___Object$$$___ = null;
