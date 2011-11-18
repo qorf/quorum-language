@@ -45,7 +45,7 @@ class Random
 
     /*
     This action returns a random integer within the range
-    0 to +2,147,483,647 (lower bound inclusive, upper bound exclusive).
+    0 to +2,147,483,646 (lower bound inclusive, upper bound inclusive).
 
     Attribute: Returns Returns the random number.
 
@@ -84,14 +84,14 @@ class Random
     system action RandomBoolean() returns boolean
 
     on create
-        // Set up on the native side--basically, choose an intelligent default
+        // Set up on the native side--basically, choose a reasonable default
         // seed value.
         InitializeNative()
     end
 
     /*
     This action returns a random integer that is between zero (inclusive) and
-    maximum (exclusive).
+    +2,147,483,646 (inclusive).
     
     Attribute: Parameter maximum - The maximum integer that can be generated.
     Attribute: Returns Returns the random integer.
@@ -111,10 +111,10 @@ class Random
     end
 
     /*
-    This action returns a random integer between minimum and maximum (exclusive).
+    This action returns a random integer between minimum and maximum.
 
-    Attribute: Parameter minimum The minimum number to be generated. (exclusive)
-    Attribute: Parameter maximum The maximum number to be generated. (exclusive)
+    Attribute: Parameter minimum The minimum number to be generated.
+    Attribute: Parameter maximum The maximum number to be generated.
     Attribute: Returns Returns the random integer.
 
     Attribute: Example
@@ -140,12 +140,12 @@ class Random
             alert(e)
         end
 
-        return me:RandomInteger(maximum - minimum - 1) + minimum + 1
+        return me:RandomInteger(maximum - minimum) + minimum + 1
     end
 
     /*
     This action returns a list of randomly generated integers in the range
-    0 to +2,147,483,647 (lower bound inclusive, upper bound exclusive).
+    0 to +2,147,483,646 (lower bound inclusive, upper bound inclusive).
 
     Attribute: Parameter length the length of the list to be generated.
 

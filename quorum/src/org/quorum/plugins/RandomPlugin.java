@@ -103,7 +103,7 @@ public class RandomPlugin implements Plugin {
         else if (action.equals(RANDOM_INTEGER_NATIVE)) {
             ExpressionValue maximumArgument = call.getArgument("maximum");
             int maximum = maximumArgument.getResult().integer;
-            int randomNumber = random.nextInt(maximum);
+            int randomNumber = random.nextInt(maximum + 1);
 
             try {
                 setPluginReturnValue(ret, randomNumber);
