@@ -46,7 +46,9 @@ public class IfStatementInfo {
         elseIfConditionalSteps = new ArrayList<ConditionalJumpIfStep>();
         elseIfLocations = new ArrayList<LineInformation>();
         ifJumpStep = new JumpStep();
+        ifJumpStep.setType(JumpType.IF);
         ifLocation = new LineInformation();
         elseJumpStep = new JumpStep();
+        elseJumpStep.setType(JumpType.IF);
     }
 }

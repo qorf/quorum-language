@@ -11,7 +11,7 @@ package org.quorum.steps;
  */
 public abstract class JumpBaseStep extends IntermediateStep {
 
-   protected int jumpLocation;
+    protected int jumpLocation;
 
     /**
      * @return the jumpLocation

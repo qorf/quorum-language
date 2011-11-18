@@ -118,7 +118,7 @@ public class ErrorPlugin implements Plugin{
                     }
                 }
             }else{
-                Iterator<StackTraceElement> iterator = runtimeError.getStackTrace().iterator();
+                Iterator<StackTraceElement> iterator = runtimeError.getStack().iterator();
                 while(iterator.hasNext()){
                     StackTraceElement next = iterator.next();
                     StackTraceElement item = new StackTraceElement();

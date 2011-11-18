@@ -12,6 +12,7 @@ import org.quorum.execution.ExecutionStepVisitor;
  * @author Andy
  */
 public class JumpStep extends JumpBaseStep {
+    private JumpType type;
     @Override
     public void execute() {
     }
@@ -24,5 +25,19 @@ public class JumpStep extends JumpBaseStep {
     @Override
     public void visit(ExecutionStepVisitor visitor) {
         visitor.visit(this);
+    }
+    
+    /**
+     * @return the type
+     */
+    public JumpType getType() {
+        return type;
+    }
+
+    /**
+     * @param type the type to set
+     */
+    public void setType(JumpType type) {
+        this.type = type;
     }
 }

@@ -138,7 +138,7 @@ public class RuntimeError {
      *
      * @return the stack trace
      */
-    public ArrayList<StackTraceElement> getStackTrace(){
+    public ArrayList<StackTraceElement> getStack(){
         return stackTrace;
     }
 
@@ -147,7 +147,7 @@ public class RuntimeError {
      * 
      * @param stack
      */
-    public void setStackTrace(ArrayList<StackTraceElement> stack){
+    public void setStack(ArrayList<StackTraceElement> stack){
         stackTrace = new ArrayList<StackTraceElement>();
         for(int i = 0; i < stack.size(); i++){
             stackTrace.set(i, stack.get(i));

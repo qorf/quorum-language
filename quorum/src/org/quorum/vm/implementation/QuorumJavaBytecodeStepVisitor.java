@@ -2650,7 +2650,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     methodVisitor.visitLabel(first);
                     stack.popLabel();
 
-                    while (!stack.isEmptyLabel()) {
+                    while (!stack.isEmptyLabel() && stack.peekLabel().getLabelType().equals(LabelTypeEnum.IF)) {
                         first = stack.peekLabel().getLabel();
                         methodVisitor.visitLabel(first);
                         stack.popLabel();
@@ -2711,7 +2711,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(JumpStep step) {
         //if the stack has a label
-        if (!stack.isEmptyLabel()) {
+        if (!stack.isEmptyLabel() && step.getType().equals(JumpType.LOOP)) {
             LabelStackValue label = stack.peekLabel();
             //if the label is for a repeat times or repeat from process all the labels here
             if (label.getLabelType().equals(LabelTypeEnum.FROM) || label.getLabelType().equals(LabelTypeEnum.TIMES)) {

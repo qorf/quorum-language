@@ -667,6 +667,7 @@ scope {
 	    	block[true] 
 	    	{
 	    		JumpStep detectJump = new JumpStep();
+	    		detectJump.setType(JumpType.CHECK);
 		    	detectJump.setBeginColumn($detect_start.getCharPositionInLine());
 			detectJump.setEndColumn($detect_start.getCharPositionInLine() + ($detect_start.text.length()));
 	                detectJump.setEndLine($detect_start.getLine());
@@ -1217,6 +1218,7 @@ scope {
 		b=block[true] 
 		{
 			JumpStep jump = new JumpStep();
+			jump.setType(JumpType.IF);
 			jump.setBeginColumn($begin_else_if.getCharPositionInLine());
 			jump.setEndColumn($begin_else_if.getCharPositionInLine() + ($begin_else_if.text.length()));
 			jump.setEndLine($begin_else_if.getLine());
@@ -1282,6 +1284,7 @@ scope {
 			$REPEAT.text.length() + $REPEAT.getCharPositionInLine());
 		$loop_statement::loop_counter = null;
 		$loop_statement::jumpToTop = new JumpStep();
+		$loop_statement::jumpToTop.setType(JumpType.LOOP);
 		$loop_statement::jumpToTop.setLineInformation($loop_statement::location);
 		symbol.addStatementFlagToCurrentFile($REPEAT.getLine());
 

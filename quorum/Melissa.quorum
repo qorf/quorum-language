@@ -1,10 +1,20 @@
-use Libraries.Language.Errors.Error
+//use Libraries.Containers.Array
 class Melissa
 
 action Main
-    Error e
-    e:SetErrorMessage("omg")
-    alert(e)
+        boolean hasRemoved = false
+        integer count = 0
+        integer size = 5
+        repeat until count < size
+            Object item
+            if item:Equals(item) then
+                
+                hasRemoved = true
+                size = size - 1
+            end else then
+                count = count + 1
+            end
+        end
 end
 
 end
