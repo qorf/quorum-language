@@ -14,7 +14,7 @@ import org.quorum.symbols.Result;
  * 
  * @author Melissa Stefik
  */
-public class BooleanReverseAutoBoxToTextStep extends IntegerReverseAutoBoxStep{
+public class BooleanReverseAutoBoxToTextStep extends BooleanReverseAutoBoxStep{
     @Override
     protected Result calculateOpcode(ExpressionValue value) {
         Result result = new Result();

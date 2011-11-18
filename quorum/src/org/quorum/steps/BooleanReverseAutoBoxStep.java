@@ -27,8 +27,7 @@ public class BooleanReverseAutoBoxStep extends BooleanAutoBoxStep{
         ExpressionValue variable = data.getObject(value.getObjectHash()).getVariable("value");
 
         result.setRegister(getResultRegister());
-        Result res = calculateOpcode(value);
-        res = variable.getResult();
+        Result res = calculateOpcode(variable);
         result.setType(res.getType());
         result.setResult(res);
         data.setRegister(getResultRegister(),result);

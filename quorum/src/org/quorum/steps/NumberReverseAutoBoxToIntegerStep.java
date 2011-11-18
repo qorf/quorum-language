@@ -14,7 +14,7 @@ import org.quorum.symbols.Result;
  * 
  * @author Melissa Stefik
  */
-public class NumberReverseAutoBoxToIntegerStep extends IntegerReverseAutoBoxStep{
+public class NumberReverseAutoBoxToIntegerStep extends NumberReverseAutoBoxStep{
     @Override
     protected Result calculateOpcode(ExpressionValue value) {
         Result result = new Result();

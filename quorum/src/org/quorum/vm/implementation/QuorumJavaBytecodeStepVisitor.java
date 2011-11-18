@@ -1244,7 +1244,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             autoBoxMethodSignature = "(D)V";
         } else if (createStep.getPrimitiveType().isText()) {
             autoBoxClassName = "quorum/Libraries/Language/Types/Text";
-            autoBoxMethodSignature = "(Ljava/language/String)V";
+            autoBoxMethodSignature = "(Ljava/lang/String;)V";
         } else if (createStep.getPrimitiveType().isBoolean()) {
             autoBoxClassName = "quorum/Libraries/Language/Types/Boolean";
             autoBoxMethodSignature = "(Z)V";
@@ -2306,7 +2306,24 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BooleanAutoBoxStep step) {
-        int a = 5;
+        if(step instanceof BooleanReverseAutoBoxStep){
+            TypeDescriptor currentType = stack.popExpressionType();
+            
+            if(currentType.getName().equals("Libraries.Language.Object")){
+                String autoBoxClassName = "quorum/Libraries/Language/Types/Boolean";
+                String autoBoxMethodSignature = "()Z";
+
+                // Create a new autoboxed object.
+               methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(TypeDescriptor.getBooleanObjectType().getStaticKey()));
+
+                // Call SetValue.
+                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
+                        "GetValue", autoBoxMethodSignature);
+                stack.pushExpressionType(TypeDescriptor.getBooleanType());
+            }else{
+                stack.pushExpressionType(currentType);
+            }
+        }
     }
 
     /**
@@ -2646,6 +2663,24 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(IntegerAutoBoxStep step) {
+        if(step instanceof IntegerReverseAutoBoxStep){
+            TypeDescriptor currentType = stack.popExpressionType();
+            
+            if(currentType.getName().equals("Libraries.Language.Object")){
+                String autoBoxClassName = "quorum/Libraries/Language/Types/Integer";
+                String autoBoxMethodSignature = "()I";
+
+                // Create a new autoboxed object.
+               methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(TypeDescriptor.getIntegerObjectType().getStaticKey()));
+
+                // Call SetValue.
+                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
+                        "GetValue", autoBoxMethodSignature);
+                stack.pushExpressionType(TypeDescriptor.getIntegerType());
+            }else{
+                stack.pushExpressionType(currentType);
+            }
+        }
     }
 
     @Override
@@ -2718,7 +2753,24 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(NumberAutoBoxStep step) {
-        int a = 5;
+        if(step instanceof NumberReverseAutoBoxStep){
+            TypeDescriptor currentType = stack.popExpressionType();
+            
+            if(currentType.getName().equals("Libraries.Language.Object")){
+                String autoBoxClassName = "quorum/Libraries/Language/Types/Number";
+                String autoBoxMethodSignature = "()D";
+
+                // Create a new autoboxed object.
+               methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(TypeDescriptor.getNumberObjectType().getStaticKey()));
+
+                // Call SetValue.
+                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
+                        "GetValue", autoBoxMethodSignature);
+                stack.pushExpressionType(TypeDescriptor.getNumberType());
+            }else{
+                stack.pushExpressionType(currentType);
+            }
+        }
     }
 
     @Override
@@ -2823,7 +2875,24 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(TextAutoBoxStep step) {
-        int a = 5;
+        if(step instanceof TextReverseAutoBoxStep){
+            TypeDescriptor currentType = stack.popExpressionType();
+            
+            if(currentType.getName().equals("Libraries.Language.Object")){
+                String autoBoxClassName = "quorum/Libraries/Language/Types/Text";
+                String autoBoxMethodSignature = "()Ljava/lang/String;";
+
+                // Create a new autoboxed object.
+               methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(TypeDescriptor.getTextObjectType().getStaticKey()));
+
+                // Call SetValue.
+                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
+                        "GetValue", autoBoxMethodSignature);
+                stack.pushExpressionType(TypeDescriptor.getTextType());
+            }else{
+                stack.pushExpressionType(currentType);
+            }
+        }
     }
 
     @Override

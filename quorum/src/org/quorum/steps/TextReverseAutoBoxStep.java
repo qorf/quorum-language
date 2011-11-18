@@ -20,15 +20,14 @@ public class TextReverseAutoBoxStep extends TextAutoBoxStep{
 
     @Override
     public void execute() {
-        DataEnvironment data = vm.getDataEnvironment();
+                DataEnvironment data = vm.getDataEnvironment();
         ExpressionValue value = data.getRegister(getRegister());
         ExpressionValue result = new ExpressionValue();
 
         ExpressionValue variable = data.getObject(value.getObjectHash()).getVariable("value");
 
         result.setRegister(getResultRegister());
-        Result res = calculateOpcode(value);
-        res = variable.getResult();
+        Result res = calculateOpcode(variable);
         result.setType(res.getType());
         result.setResult(res);
         data.setRegister(getResultRegister(),result);
