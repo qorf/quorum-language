@@ -5,8 +5,9 @@
 package plugins.quorum.Libraries.Language.Types;
 
 /**
- *
- * @author astefik
+ * A plugin for handling text system functions.
+ * 
+ * @author Andreas Stefik
  */
 public class Text {
     public java.lang.Object ___$$$Calling___$$$___Object$$$___ = null;
