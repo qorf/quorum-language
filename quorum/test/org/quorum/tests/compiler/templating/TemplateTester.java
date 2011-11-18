@@ -263,7 +263,7 @@ public class TemplateTester {
             fail();
         
         assert(r.getLine(0).equals("10"));
-        assert(r.getLine(1).equals("15"));
+        assert(r.getLine(1).equals("5"));
     }
 
     @Test

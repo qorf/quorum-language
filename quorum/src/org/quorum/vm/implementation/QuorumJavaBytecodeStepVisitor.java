@@ -2851,7 +2851,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (returnType.isVoid()) {
             methodVisitor.visitInsn(RETURN);
         } else {
-            processExpressions();
+            //processExpressions();
             stack.popExpressionType();
             if (returnType.isBoolean() || returnType.isInteger()) {
                 methodVisitor.visitInsn(IRETURN);

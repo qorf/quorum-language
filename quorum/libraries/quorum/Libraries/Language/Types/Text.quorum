@@ -147,8 +147,8 @@ class Text is a Object
     action GetCharacter(integer index) returns text
         // Index must be in the range 0 <= x < me:GetLength()
         if index < 0 or index >= me:GetLength() then
-            InvalidLocationError e
-            alert(e)
+        //    InvalidLocationError e
+         //   alert(e)
         end
 
         return GetCharacterNative(index)
@@ -168,8 +168,8 @@ class Text is a Object
     */
     action GetSubstring(integer startIndex, integer endIndex) returns text
         if startIndex = endIndex or startIndex > endIndex or startIndex < 0 or endIndex < 0 or endIndex >= me:GetLength() then
-            InvalidLocationError e
-            alert(e)
+        //   InvalidLocationError e
+        //    alert(e)
         end
         
         return GetSubstringNative(startIndex, endIndex)
@@ -185,8 +185,8 @@ class Text is a Object
     a:SetValue("hello ")
     a:Append("world.")
     */
-    action Append(text value)
-        me:value = me:value + value
+    action Append(text val)
+        me:value = me:value + val
 
         // And update the native side.
         SetValueNative(me:value)
@@ -201,7 +201,7 @@ class Text is a Object
         Attribute: Parameter delimiter The non-empty delimiter to use.
         Attribute: Returns An array of text objects corresponding to the splits by the delimiter.
     */
-    action Split(text delimiter) returns Array<text>
+    /*action Split(text delimiter) returns Array<text>
         // TODO: Rewrite this. it is horrid. There are much more clever ways to do this.
 
 	Array<text> results
@@ -262,5 +262,5 @@ class Text is a Object
         end
 
         return results
-    end
+    end*/
 end
