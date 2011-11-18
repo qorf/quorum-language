@@ -14,8 +14,14 @@ java -cp "../../../dependencies/phonemic.jar:./" quorum.Stefik
 
 
 */
+
+use Libraries.System.Console
+
 class Stefik
     action Main
-        print "Hello, World!"
+        Console console
+        console:Print("Please type a message:")
+        text result = console:Input()
+        print result
     end
 end

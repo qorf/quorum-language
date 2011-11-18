@@ -16,6 +16,7 @@ import org.quorum.execution.Linker;
 import org.quorum.steps.ClassExecution;
 import org.quorum.steps.ContainerExecution;
 import org.quorum.steps.IntermediateExecutionBuilder;
+import org.quorum.symbols.ClassDescriptor;
 import org.quorum.vm.interfaces.CodeGenerator;
 
 /**
@@ -45,13 +46,16 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     
     private void generate(ContainerExecution container) {
         Iterator<ClassExecution> classes = container.getClasses();
+        ClassDescriptor currentClass = null;
         while (classes.hasNext()) {
             try {
                 ClassExecution clazz = classes.next();
+                currentClass = clazz.getClassDescriptor();
                 QuorumBytecode code = generate(clazz);
                 classHash.put(code.getStaticKey(), code);
             }
             catch(Exception e) {
+                System.out.println("Exception in class: " + currentClass.getStaticKey());
                 e.printStackTrace();
             }
         }
