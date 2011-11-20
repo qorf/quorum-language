@@ -48,4 +48,35 @@ public interface CodeGenerator {
      * @param distributionFolder 
      */
     public void setDistributionFolder(File distributionFolder);
+    
+    /**
+     * Returns the name of the final executable that will be created
+     * by the system.
+     * 
+     * @return 
+     */
+    public String getDistributionName();
+    
+    /**
+     * Sets the name of the final executable that will be created by
+     * the system.
+     * @param name 
+     */
+    public void setDistributionName(String name);
+    
+    /**
+     * Returns the file on the system that is to be used as the entry point
+     * for execution.
+     * 
+     * @return 
+     */
+    public File getMainFile();
+    
+    /**
+     * Sets the file on the system that is to be used as the entry point for
+     * execution.
+     * 
+     * @param file 
+     */
+    public void setMainFile(File file);
 }

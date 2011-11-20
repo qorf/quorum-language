@@ -836,6 +836,8 @@ public abstract class AbstractVirtualMachine {
      */
     public void setMain(String main) {
         this.main = main;
+        File file = new File(main);
+        this.getCodeGenerator().setMainFile(file);
     }
 
     /**

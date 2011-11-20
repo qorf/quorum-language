@@ -164,6 +164,20 @@ public class QuorumConverter {
     }
     
     /**
+     * Converts a static key for a class into a standard java path name.
+     * 
+     * @param key
+     * @return 
+     */
+    public static String convertStaticKeyToManifestPath(String key) {
+        if(key.charAt(0) == '.') { //a quorum class in the default package
+            key = key.substring(1);
+        }
+        String result = "quorum." + key;
+        return result;
+    }
+    
+    /**
      * Converts a static key for a class into a full class name. In this case,
      * the type name is converted with additional information, so 
      * quorum/test would be Lquorum/test;

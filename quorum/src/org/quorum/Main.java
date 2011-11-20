@@ -62,6 +62,9 @@ public class Main {
         File build = new File(root.getAbsolutePath() +
                 "/build");
         
+        File distribution = new File(root.getAbsolutePath() +
+                "/distribute");
+        
         if(!build.isDirectory()) {
             build.mkdir();
         }
@@ -90,6 +93,7 @@ public class Main {
             //setup the VM
             vm.setGenerateCode(true);
             vm.getCodeGenerator().setBuildFolder(build);
+            vm.getCodeGenerator().setDistributionFolder(distribution);
             vm.setMain(files[0].getAbsolutePath());
             //build
             vm.build(files);

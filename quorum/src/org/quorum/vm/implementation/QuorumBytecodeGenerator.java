@@ -30,6 +30,9 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     private HashMap<String, QuorumBytecode> classHash = new HashMap<String, QuorumBytecode>();
     private File buildFolder;
     private File distributionFolder;
+    private String distributionName = "Default";
+    private File mainFile;
+    private String manifestMain = "";
     
     /**
      * This method generates java bytecode for all classes on the system.
@@ -51,6 +54,21 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
             try {
                 ClassExecution clazz = classes.next();
                 currentClass = clazz.getClassDescriptor();
+                
+                //grab the file and check to see if the path matches the main file
+                String path = currentClass.getFile().getFile().getAbsolutePath();
+                String mainPath = mainFile.getAbsolutePath();
+                
+                //if this is true, it is the main class
+                //as such, mark it for the manifest.
+                //This assumes only one class per file. If this assumption
+                //changes, then this will no longer work.
+                if(path.compareTo(mainPath) == 0) {
+                    String staticKey = currentClass.getStaticKey();
+                    staticKey = QuorumConverter.convertStaticKeyToManifestPath(staticKey);
+                    manifestMain = staticKey;
+                }
+                
                 QuorumBytecode code = generate(clazz);
                 classHash.put(code.getStaticKey(), code);
             }
@@ -93,13 +111,41 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
             throw new FileNotFoundException("Cannot write to a build folder that does not exist.");
         }
         
+        //prepare jar file for output
+        QuorumJarGenerator jar = new QuorumJarGenerator();
+        
         Iterator<QuorumBytecode> iterator = classHash.values().iterator();
         while(iterator.hasNext()) {
             QuorumBytecode code = iterator.next();
             prepareFolder(code);
             writeBytes(code.getClassFile(), code.getOutput());
             writeBytes(code.getInterfaceFile(), code.getInterfaceOutput());
+            jar.add(code.getClassFile());
+            jar.add(code.getInterfaceFile());
         }
+        
+        
+        
+        //if there's a place to write the jar, write it
+        if(this.distributionFolder != null) {
+            //say where to write the jar
+            this.distributionFolder.mkdirs();
+            String jarName = this.distributionFolder.getAbsolutePath();
+            jarName = jarName + "/" + this.distributionName + ".jar";
+            File loc = new File(jarName);
+            jar.setWriteLocation(loc);
+            
+            //setup the manifest
+            //set the main file
+            jar.setMain(this.manifestMain);
+            
+            //setup any dependencies
+                        
+            //write the jar to disk
+            //jar.writeJarFile();
+        }
+        
+        
     }
     
     private void prepareFolder(QuorumBytecode code) throws IOException {
@@ -158,9 +204,6 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         classHash = new HashMap<String, QuorumBytecode>();
     }
     
-    
-    
-    
     /**
      * @return the linker
      */
@@ -213,5 +256,25 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     @Override
     public void setDistributionFolder(File distributionFolder) {
         this.distributionFolder = distributionFolder;
+    }
+
+    @Override
+    public String getDistributionName() {
+        return this.distributionName;
+    }
+
+    @Override
+    public void setDistributionName(String name) {
+        this.distributionName = name;
+    }
+
+    @Override
+    public File getMainFile() {
+        return mainFile;
+    }
+
+    @Override
+    public void setMainFile(File file) {
+        mainFile = file;
     }
 }
