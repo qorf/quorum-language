@@ -20,7 +20,9 @@ import org.quorum.symbols.ClassDescriptor;
 import org.quorum.vm.interfaces.CodeGenerator;
 
 /**
- *
+ * This Code Generator creates java bytecode and appropriate executable jar
+ * files from Quorum code.
+ * 
  * @author Andreas Stefik
  */
 public class QuorumBytecodeGenerator implements CodeGenerator {
@@ -120,8 +122,6 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
             prepareFolder(code);
             writeBytes(code.getClassFile(), code.getOutput());
             writeBytes(code.getInterfaceFile(), code.getInterfaceOutput());
-            jar.add(code.getClassFile());
-            jar.add(code.getInterfaceFile());
         }
         
         
@@ -139,10 +139,10 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
             //set the main file
             jar.setMain(this.manifestMain);
             
-            //setup any dependencies
+            //TODO: setup any dependencies
                         
             //write the jar to disk
-            //jar.writeJarFile();
+            jar.writeJarFile(this.buildFolder);
         }
         
         

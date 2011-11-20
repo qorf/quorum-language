@@ -4,10 +4,10 @@
  */
 package org.quorum.vm.implementation;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,8 +20,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
- * @author stefika
+ * A program to convert the build directory into an executable jar file.
+ * 
+ * @author Andreas Stefik
  */
 public class QuorumJarGenerator {
     
@@ -30,67 +31,92 @@ public class QuorumJarGenerator {
     private JarOutputStream jar;
     private String main;
     private final String CREATED_BY = "Quorum 1.0";
-    public static int BUFFER_SIZE = 10240;
     public ArrayList<File> files;
+    public File buildDirectory;
+    
     
     public QuorumJarGenerator() {
         files = new ArrayList<File>();
     }
     
-    public void writeJarFile() {
+    public void writeJarFile(File directory) {
+        buildDirectory = directory;
         FileOutputStream stream = null;
-        {
-            JarOutputStream out = null;
+        JarOutputStream target = null;
+        try {
+            createNewManifest();
+            stream = new FileOutputStream(writeLocation);
+            target = new JarOutputStream(stream, manifest);
+            add(directory, target);
+        } catch (Exception ex) {
+            Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        finally {
             try {
-                byte buffer[] = new byte[BUFFER_SIZE];
-                stream = new FileOutputStream(writeLocation);
-                createNewManifest();
-                
-                out = new JarOutputStream(stream, manifest);
-                
-                for(int i = 0; i < this.files.size(); i++) {
-                    File file = files.get(i);
-                    JarEntry entry = new JarEntry(file.getName());
-                    
-                    entry.setTime(file.lastModified());
-                    out.putNextEntry(entry);
-
-                    // Write file to archive
-                    FileInputStream input = new FileInputStream(file);
-                    while (true) {
-                      int nRead = input.read(buffer, 0, buffer.length);
-                      if (nRead <= 0)
-                        break;
-                      out.write(buffer, 0, nRead);
-                    }
-                    input.close();
-                }
-                
-                
-                
-                
-                
+                target.close();
             } catch (IOException ex) {
                 Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
-                try {
-                    stream.close();
-                } catch (IOException ex) {
-                    Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                try {
-                    out.close();
-                } catch (IOException ex) {
-                    Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
-                }
             }
+            try {
+                stream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
         }
-        
-        
     }
     
-    public void add(File file) {
-        files.add(file);
+    private void add(File source, JarOutputStream target) throws IOException {
+        //taken in part from http://stackoverflow.com/questions/1281229/how-to-use-jaroutputstream-to-create-a-jar-file
+        BufferedInputStream in = null;
+        try {
+            if (buildDirectory.getAbsolutePath().compareTo(source.getAbsolutePath()) == 0) {
+                for (File nestedFile : source.listFiles()) {
+                    add(nestedFile, target);
+                }
+            } else {
+                int pathLength = buildDirectory.getAbsolutePath().length();
+                String absolute = source.getAbsolutePath();
+
+                String relative = absolute.substring(pathLength + 1);
+                String name = relative.replace("\\", "/");
+
+                if (source.isDirectory()) {
+                    if (!name.isEmpty()) {
+                        if (!name.endsWith("/")) {
+                            name += "/";
+                        }
+                        JarEntry entry = new JarEntry(name);
+                        entry.setTime(source.lastModified());
+                        target.putNextEntry(entry);
+                        target.closeEntry();
+                    }
+                    for (File nestedFile : source.listFiles()) {
+                        add(nestedFile, target);
+                    }
+                    return;
+                }
+
+                JarEntry entry = new JarEntry(name);
+                entry.setTime(source.lastModified());
+                target.putNextEntry(entry);
+                in = new BufferedInputStream(new FileInputStream(source));
+
+                byte[] buffer = new byte[1024];
+                while (true) {
+                    int count = in.read(buffer);
+                    if (count == -1) {
+                        break;
+                    }
+                    target.write(buffer, 0, count);
+                }
+                target.closeEntry();
+            }
+        } finally {
+            if (in != null) {
+                in.close();
+            }
+        }
     }
 
     public void createNewManifest() {
@@ -108,8 +134,6 @@ public class QuorumJarGenerator {
         }
         
     }
-    
-    
     
     /**
      * Returns where on disk a jar file will be written.
