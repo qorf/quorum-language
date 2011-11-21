@@ -14,6 +14,7 @@ public class LabelStackValue {
     private LabelTypeEnum labelType;
     private int jumpType;
     private Label label;
+    private int currentIfNumber = -1;
 
     LabelStackValue(LabelTypeEnum labelTypeEnum, int jumpType, Label label) {
         labelType = labelTypeEnum;
@@ -61,5 +62,19 @@ public class LabelStackValue {
      */
     public void setLabel(Label label) {
         this.label = label;
+    }
+
+    /**
+     * @return the labelName
+     */
+    public int getIfValue() {
+        return currentIfNumber;
+    }
+
+    /**
+     * @param labelName the labelName to set
+     */
+    public void setIfValue(int ifNumber) {
+        this.currentIfNumber = ifNumber;
     }
 }

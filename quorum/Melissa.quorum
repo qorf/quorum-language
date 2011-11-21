@@ -5,14 +5,21 @@ action Main
         boolean hasRemoved = false
         integer count = 0
         integer size = 5
-        repeat until count < size
+        if count < size then
+            integer p = 3
             Object item
-            if item:Equals(item) then
+            if size not= 5 then
                 
                 hasRemoved = true
                 size = size - 1
             end else then
                 count = count + 1
+            end
+
+            if p = 3 then
+                print "hello"
+            end else if p = 2 then
+                print "World"
             end
         end
 end

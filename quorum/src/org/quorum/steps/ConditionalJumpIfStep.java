@@ -13,6 +13,7 @@ import org.quorum.execution.ExpressionValue;
  */
 public class ConditionalJumpIfStep extends JumpBaseStep{
 
+    private boolean isElseIf = false;
     private int leftRegister = -1;
     private boolean jump;
 
@@ -78,5 +79,19 @@ public class ConditionalJumpIfStep extends JumpBaseStep{
     @Override
     public void visit(ExecutionStepVisitor visitor) {
         visitor.visit(this);
+    }
+
+    /**
+     * @return the isElseIf
+     */
+    public boolean isElseIf() {
+        return isElseIf;
+    }
+
+    /**
+     * @param isElseIf the isElseIf to set
+     */
+    public void setIsElseIf(boolean isElseIf) {
+        this.isElseIf = isElseIf;
     }
 }

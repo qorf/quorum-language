@@ -31,6 +31,7 @@ public class BytecodeStack {
     private int currentVariablesSize = 0;
     private int maxSize = 0;
     private int numberOfHiddenVariables = 0;
+    private int currentNumberIfStatements = 0;
     
     /**
      * Push an integer counter variable onto the counter stack. Since it is an
@@ -327,5 +328,23 @@ public class BytecodeStack {
      */
     public int getParameterNumber(String name) {
         return methodParametersMap.get(name);
+    }
+
+    /**
+     * Add to the counter for the number of if blocks.
+     */
+    public void addIfBlock() {
+        currentNumberIfStatements++;
+    }
+    
+    public void endIfBlock(){
+        currentNumberIfStatements--;
+    }
+    /**
+     * get the number of 
+     * @return 
+     */
+    public int getCurrentNumberOfIfStatements(){
+        return currentNumberIfStatements;
     }
 }

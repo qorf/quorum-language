@@ -1204,6 +1204,7 @@ scope {
 				$else_if_then.text.length() + $else_if_then.getCharPositionInLine()));
 			
 			ConditionalJumpIfStep conditionalStep = new ConditionalJumpIfStep();
+			conditionalStep.setIsElseIf(true);
 			conditionalStep.setEndColumn($else_if_then.text.length() + $else_if_then.getCharPositionInLine());
 			conditionalStep.setEndLine($else_if_then.getLine());
 			conditionalStep.setBeginColumn($else_if_then.getCharPositionInLine());

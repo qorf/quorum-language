@@ -2511,9 +2511,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //generate a new label for the if and visit the jump instruction
         Label label0 = new Label();
         methodVisitor.visitJumpInsn(IFEQ, label0);
-
+        
         //generate the if label add the label to the bytecode stack
         LabelStackValue label = new LabelStackValue(LabelTypeEnum.IF, IFEQ, label0);
+        if(!step.isElseIf()){
+            stack.addIfBlock();
+            label.setIfValue(stack.getCurrentNumberOfIfStatements());
+        }
         stack.pushLabel(label);
 
     }
@@ -2643,18 +2647,21 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     }
 
                     methodVisitor.visitJumpInsn(GOTO, label1);
-                    stack.pushLabel(new LabelStackValue(LabelTypeEnum.IF, GOTO, label1));
+                    LabelStackValue newLabel = new LabelStackValue(LabelTypeEnum.IF, GOTO, label1);
+                    newLabel.setIfValue(stack.getCurrentNumberOfIfStatements());
+                    stack.pushLabel(newLabel);
                     methodVisitor.visitLabel(top);
                 } else if (step.isLastIfScope()) {//jumping out of the if
                     Label first = label.getLabel();
                     methodVisitor.visitLabel(first);
                     stack.popLabel();
 
-                    while (!stack.isEmptyLabel() && stack.peekLabel().getLabelType().equals(LabelTypeEnum.IF)) {
+                    while (!stack.isEmptyLabel() && stack.peekLabel().getIfValue() == stack.getCurrentNumberOfIfStatements()) {
                         first = stack.peekLabel().getLabel();
                         methodVisitor.visitLabel(first);
                         stack.popLabel();
                     }
+                    stack.endIfBlock();
                 } else if (label.getJumpType() == GOTO) {
                     if (step.getBlockTag().equals("elseif")) {
                         stack.undoLabel();
