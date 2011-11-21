@@ -1313,7 +1313,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //                && !"Libraries.Containers.Blueprints.Iterative".equals(staticKey)
 //                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
 //                && !"Libraries.Containers.Blueprints.ArrayBlueprint".equals(staticKey)
-//                && !"Libraries.Language.Errors.Error".equals(staticKey)
+////                && !"Libraries.Language.Errors.Error".equals(staticKey)
 //                && !".StefikGrand".equals(staticKey)) {
 //            return;
 //        }
@@ -1446,6 +1446,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             visitInterface(method);
         }
         
+        Iterator<SystemActionDescriptor> systems = clazz.getClassDescriptor().getSystemActions();
+        while (systems.hasNext()) {
+            SystemActionDescriptor sys = systems.next();
+            visitInterface(sys);
+        }
         //Do field visiting for the class.
         visitFieldVariablesInterface(null, clazz.getClassDescriptor());
         
@@ -1558,6 +1563,19 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //still have to handle parameters here.
         String name = method.getMethodDescriptor().getName();
         String params = QuorumConverter.convertMethodDescriptorToBytecodeSignature(method.getMethodDescriptor());
+        interfaceMethodVisitor = interfaceWriter.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, name, params, null, null);
+        interfaceMethodVisitor.visitEnd();
+    }
+    
+    /**
+     * Computes the methods for an interface.
+     * 
+     * @param method 
+     */
+    public void visitInterface(SystemActionDescriptor method) {
+        //still have to handle parameters here.
+        String name = method.getName();
+        String params = QuorumConverter.convertMethodDescriptorToBytecodeSignature(method);
         interfaceMethodVisitor = interfaceWriter.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, name, params, null, null);
         interfaceMethodVisitor.visitEnd();
     }
@@ -2491,7 +2509,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitMethodInsn(INVOKEINTERFACE, converted,
                     callee.getName(), QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));
         }
-        
+
         // Is the method return type void? If not, push its return type onto the stack.
         if (!step.getMethodCallee().getReturnType().isVoid()) {
             stack.pushExpressionType(step.getMethodCallee().getReturnType());
@@ -2734,6 +2752,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 //visit the end of the loop label.
                 methodVisitor.visitLabel(label1);
             }else if(label.getLabelType().equals(LabelTypeEnum.LOOP)){//if the label is for the general loop just pop off the remaining label.
+                //methodVisitor.visitLabel(label.getLabel());
                 stack.popLabel();
             }
         }
