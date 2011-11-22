@@ -1134,6 +1134,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //for each item in the queue excluding the last 
         //item(which is the opcode processing the expressions)
         for (int j = 0; j < tracker.getQueueSize() - 1; j++) {
+            
+            ArrayList<Integer> visitedCasts = new ArrayList<Integer>();
+            
             //check queue for its current value
             int begin = tracker.removeFromQueue();
             int end = tracker.peekQueue();
@@ -1141,14 +1144,29 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             //loop through all op-codes
             Vector<ExecutionStep> steps = execution.getSteps();
             for (int i = begin; i < end; i++) { //visit the expressions
+                
+                // If this is a cast step that we have already visited, ignore
+                // it, so we don't accidentally visit it twice.
+                if (visitedCasts.contains(i)) {
+                    continue;
+                }
+                
                 //is this step the first parameter to a function call?
                 //if yes, call visitCallSpecial, with the call step 
                 //for that function call
                 boolean funcParam = tracker.containsFunctionParameterMapping(i);
-                if (funcParam) {
+                if(funcParam) {
                     ArrayList<Integer> callLocations = tracker.getFunctionParameterMapping(i);
                     for(int k = 0; k < callLocations.size(); k++){
-                        ExecutionStep callStep = steps.get(callLocations.get(k));
+                        int opcodeLocation = callLocations.get(k);
+                        ExecutionStep callStep = steps.get(opcodeLocation);
+                        
+                        // Make sure this is actually a CallStep.
+                        while (!(callStep instanceof CallStep)) {
+                            opcodeLocation++;
+                            callStep = steps.get(opcodeLocation);
+                        }
+                        
                         if(callStep instanceof CallStep) {
                             CallStep call = (CallStep) callStep;
                             //insert the pointer for the object being called upon
@@ -1168,8 +1186,36 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     methodVisitor.visitVarInsn(ILOAD, stack.peekMaximumVariable());
                 }
 
+                //get the next step to be processed and get a cast step location if there is one.
                 ExecutionStep step = steps.get(i);
-                step.visit(this);
+                int castStepLocation = step.getCastStepLocation();
+                
+                //if there is a cast step associated with the step then process as 
+                //one of two types of casts, autobox or standard cast.
+                if (castStepLocation != -1) {
+                    
+                    //if we are dealing with an autobox we are dealing with 3 steps.
+                    //with a standard cast we will need move the cast step directly after
+                    //the visit of the parameter.
+                    ExecutionStep createStep = steps.get(castStepLocation + 1);
+                    if(createStep instanceof AutoBoxCreateStep){//autobox
+                        ExecutionStep castStep = steps.get(i + 1);
+                        if (!(castStep instanceof UnaryOperationStep))
+                            castStep = null;
+                        visitWithAutoBoxStep(step,(AutoBoxCreateStep) createStep, castStep);
+                        visitedCasts.add(castStepLocation);
+                        visitedCasts.add(castStepLocation + 1);
+                        visitedCasts.add(castStepLocation + 2);
+                    }else{//standard cast
+                        step.visit(this);
+                        
+                        step = steps.get(castStepLocation);
+                        step.visit(this);
+                        visitedCasts.add(castStepLocation);
+                    }
+                } else {//standard visit of a non casting series of steps.
+                    step.visit(this);
+                }
 
                 if (loopType.equals(LabelTypeEnum.FROM) && i == begin) {
                     methodVisitor.visitVarInsn(ISTORE, stack.pushMaximumVariable());
@@ -1186,6 +1232,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 tracker.clearQueue();
             }
         }
+        
+        if(tracker.getQueueSize() == 1)
+            tracker.clearQueue();
     }
     
     /**
@@ -1305,14 +1354,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //
 //        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
 //                && !"Libraries.Language.Support.CompareResult".equals(staticKey)
-//                && !"Libraries.Containers.Array".equals(staticKey)
-//                && !"Libraries.Containers.Blueprints.Copyable".equals(staticKey)
-//                && !"Libraries.Containers.Blueprints.Indexed".equals(staticKey)
-//                && !"Libraries.Containers.Blueprints.Container".equals(staticKey)
-//                && !"Libraries.Containers.Blueprints.Addable".equals(staticKey)
-//                && !"Libraries.Containers.Blueprints.Iterative".equals(staticKey)
-//                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
-//                && !"Libraries.Containers.Blueprints.ArrayBlueprint".equals(staticKey)
+////                && !"Libraries.Containers.Array".equals(staticKey)
+////                && !"Libraries.Containers.Blueprints.Copyable".equals(staticKey)
+////                && !"Libraries.Containers.Blueprints.Indexed".equals(staticKey)
+////                && !"Libraries.Containers.Blueprints.Container".equals(staticKey)
+////                && !"Libraries.Containers.Blueprints.Addable".equals(staticKey)
+////                && !"Libraries.Containers.Blueprints.Iterative".equals(staticKey)
+////                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
+////                && !"Libraries.Containers.Blueprints.ArrayBlueprint".equals(staticKey)
 ////                && !"Libraries.Language.Errors.Error".equals(staticKey)
 //                && !".StefikGrand".equals(staticKey)) {
 //            return;
@@ -2512,7 +2561,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         // Is the method return type void? If not, push its return type onto the stack.
         if (!step.getMethodCallee().getReturnType().isVoid()) {
-            stack.pushExpressionType(step.getMethodCallee().getReturnType());
+            if(step.isSoloMethodCall() ){
+                methodVisitor.visitInsn(POP);
+            }else{
+                stack.pushExpressionType(step.getMethodCallee().getReturnType());
+            }
         }
     }
     
