@@ -1334,6 +1334,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //if you need to cheat temporarily, this will compute the maxS
         //function automatically. This is useful for reverse engineering.
         classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        //classWriter = new ClassWriter(0);
         interfaceWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         
         
@@ -2433,33 +2434,33 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
             methodVisitor.visitVarInsn(ALOAD, THIS);
         }
-        else { //handle the case where we are pushing the reference on 
-               //to the stack from 
-            VariableParameterCommonDescriptor var = step.getParentObject();
-            boolean field = var.isFieldVariable();
-            if(field) {
-                String key = currentClass.getStaticKey();
-                String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
-                String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), classNameSupplement);
-            }
-            else { //determine the local variable number and load it
-                if(var instanceof ParameterDescriptor){
-                    //we are now calling a method on a variable (aka object). If it 
-                    //is a parameter that we are calling on then load that parameter.
-                    ParameterDescriptor varDescriptor = (ParameterDescriptor) var;
-                    int number = stack.getParameterNumber(varDescriptor.getName());
-                    methodVisitor.visitVarInsn(ALOAD, number);
-                }else{
-                    //Otherwise, load the variable from the mapped variable on the
-                    //stack.
-                    int number = var.getVariableNumber() - currentClass.getNumberOfVariables();
-                    int mapped = stack.getMappedVariableNumber(number);
-                    methodVisitor.visitVarInsn(ALOAD, mapped);
-                }
-            }
-        }
+//        else { //handle the case where we are pushing the reference on 
+//               //to the stack from 
+//            VariableParameterCommonDescriptor var = step.getParentObject();
+//            boolean field = var.isFieldVariable();
+//            if(field) {
+//                String key = currentClass.getStaticKey();
+//                String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
+//                String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
+//                methodVisitor.visitVarInsn(ALOAD, 0);
+//                methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), classNameSupplement);
+//            }
+//            else { //determine the local variable number and load it
+//                if(var instanceof ParameterDescriptor){
+//                    //we are now calling a method on a variable (aka object). If it 
+//                    //is a parameter that we are calling on then load that parameter.
+//                    ParameterDescriptor varDescriptor = (ParameterDescriptor) var;
+//                    int number = stack.getParameterNumber(varDescriptor.getName());
+//                    methodVisitor.visitVarInsn(ALOAD, number);
+//                }else{
+//                    //Otherwise, load the variable from the mapped variable on the
+//                    //stack.
+//                    int number = var.getVariableNumber() - currentClass.getNumberOfVariables();
+//                    int mapped = stack.getMappedVariableNumber(number);
+//                    methodVisitor.visitVarInsn(ALOAD, mapped);
+//                }
+//            }
+//        }
     }
     
     @Override
