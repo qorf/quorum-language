@@ -6,6 +6,7 @@
 package org.quorum.plugins;
 
 
+import java.util.HashMap;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,7 +23,6 @@ import org.quorum.symbols.TypeDescriptor;
  */
 public class RandomPlugin implements Plugin {
     public static final String KEY = "Libraries.Compute.Random";
-    private static Random random = new Random();
     private static final String INITIALIZE_NATIVE = "InitializeNative";
     private static final String SET_SEED = "SetSeed:number";
     private static final String RANDOM_INTEGER = "RandomInteger";
@@ -31,6 +31,12 @@ public class RandomPlugin implements Plugin {
     private static final String RANDOM_BOOLEAN = "RandomBoolean";
     private static final Logger logger = Logger.getLogger(RandomPlugin.class.getName());
 
+    protected HashMap<Integer, Random> instances;
+    
+    public RandomPlugin() {
+        instances = new HashMap<Integer, Random>();
+    }
+    
     public PluginReturn debug(PluginCall call) {
         return null;
     }
@@ -72,11 +78,20 @@ public class RandomPlugin implements Plugin {
     }
 
     public void reset() {
+        instances.clear();
     }
 
     public PluginReturn execute(PluginCall call) {
         String action = call.getActionName();
         PluginReturn ret = new PluginReturn();
+        
+        Random random = instances.get(call.getCallingObject().getHashKey());
+        
+        if (random == null) {
+            // This instance hasn't been logged yet. Put it in.
+            random = new Random();
+            instances.put(call.getCallingObject().getHashKey(), random);
+        }
         
         if (action.equals(INITIALIZE_NATIVE)) {
             // Get the current UNIX time in milliseconds and use that as our seed.
