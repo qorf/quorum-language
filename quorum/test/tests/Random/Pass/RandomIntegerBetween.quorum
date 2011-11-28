@@ -4,17 +4,17 @@
  * Tests the RandomIntegerBetween(min, max) function. Tests with a known
  * seed (1101102342).
  *
- * Expected numerical results: All numbers should be 15 < x < 20.
+ * Expected numerical results: All numbers should be 15 < x <= 20.
  * 
- * result0 = 17
+ * result0 = 20
  * result1 = 16
- * result2 = 19
- * result3 = 17
+ * result2 = 20
+ * result3 = 16
  * result4 = 19
- * result5 = 16
- * result6 = 17
- * result7 = 19
- * result8 = 17
+ * result5 = 17
+ * result6 = 21
+ * result7 = 17
+ * result8 = 16
  * result9 = 16
  */
 
@@ -34,5 +34,16 @@ class Main
         integer result7 = random:RandomIntegerBetween(15, 20)
         integer result8 = random:RandomIntegerBetween(15, 20)
         integer result9 = random:RandomIntegerBetween(15, 20)
+
+        print result0
+        print result1
+        print result2
+        print result3
+        print result4
+        print result5
+        print result6
+        print result7
+        print result8
+        print result9
     end
 end

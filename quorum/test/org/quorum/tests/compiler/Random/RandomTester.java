@@ -122,7 +122,7 @@ public class RandomTester {
     @Test
     public void test_RandomIntegerWithMaximum() {
         int numberOfResults = 10;
-        int[] expectedResults = {7, 12, 7, 9, 6, 13, 14, 7, 6, 3};
+        int[] expectedResults = {4, 1, 12, 4, 14, 3, 6, 13, 4, 3};
         
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.PASS + "RandomIntegerWithMaximum.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -144,7 +144,8 @@ public class RandomTester {
     @Test
     public void test_RandomIntegerBetween() {
         int numberOfResults = 10;
-        int[] expectedResults = {17, 16, 19, 17, 19, 16, 17, 19, 17, 16};
+        int[] expectedResults = {20, 16, 20, 16, 19, 17, 21, 17, 16, 16};
+
         
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.PASS + "RandomIntegerBetween.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
