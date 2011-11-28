@@ -1355,14 +1355,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //
 //        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
 //                && !"Libraries.Language.Support.CompareResult".equals(staticKey)
-////                && !"Libraries.Containers.Array".equals(staticKey)
-////                && !"Libraries.Containers.Blueprints.Copyable".equals(staticKey)
-////                && !"Libraries.Containers.Blueprints.Indexed".equals(staticKey)
-////                && !"Libraries.Containers.Blueprints.Container".equals(staticKey)
-////                && !"Libraries.Containers.Blueprints.Addable".equals(staticKey)
-////                && !"Libraries.Containers.Blueprints.Iterative".equals(staticKey)
-////                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
-////                && !"Libraries.Containers.Blueprints.ArrayBlueprint".equals(staticKey)
+//                && !"Libraries.Containers.Array".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Copyable".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Indexed".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Container".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Addable".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Iterative".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.ArrayBlueprint".equals(staticKey)
 ////                && !"Libraries.Language.Errors.Error".equals(staticKey)
 //                && !".StefikGrand".equals(staticKey)) {
 //            return;
@@ -2434,33 +2434,34 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
             methodVisitor.visitVarInsn(ALOAD, THIS);
         }
-//        else { //handle the case where we are pushing the reference on 
-//               //to the stack from 
-//            VariableParameterCommonDescriptor var = step.getParentObject();
-//            boolean field = var.isFieldVariable();
-//            if(field) {
-//                String key = currentClass.getStaticKey();
-//                String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
-//                String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
-//                methodVisitor.visitVarInsn(ALOAD, 0);
-//                methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), classNameSupplement);
-//            }
-//            else { //determine the local variable number and load it
-//                if(var instanceof ParameterDescriptor){
-//                    //we are now calling a method on a variable (aka object). If it 
-//                    //is a parameter that we are calling on then load that parameter.
-//                    ParameterDescriptor varDescriptor = (ParameterDescriptor) var;
-//                    int number = stack.getParameterNumber(varDescriptor.getName());
-//                    methodVisitor.visitVarInsn(ALOAD, number);
-//                }else{
-//                    //Otherwise, load the variable from the mapped variable on the
-//                    //stack.
-//                    int number = var.getVariableNumber() - currentClass.getNumberOfVariables();
-//                    int mapped = stack.getMappedVariableNumber(number);
-//                    methodVisitor.visitVarInsn(ALOAD, mapped);
-//                }
-//            }
-//        }
+        else { //handle the case where we are pushing the reference on 
+            //to the stack from 
+            VariableParameterCommonDescriptor var = step.getParentObject();
+            boolean field = var.isFieldVariable();
+            if(field) {
+                String key = currentClass.getStaticKey();
+                String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
+                String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), classNameSupplement);
+            }
+            else { //determine the local variable number and load it
+                if(var instanceof ParameterDescriptor){
+                    //we are now calling a method on a variable (aka object). If it 
+                    //is a parameter that we are calling on then load that parameter.
+                    ParameterDescriptor varDescriptor = (ParameterDescriptor) var;
+                    int number = stack.getParameterNumber(varDescriptor.getName());
+                    methodVisitor.visitVarInsn(ALOAD, number);
+                }else{
+                    //Otherwise, load the variable from the mapped variable on the
+                    //stack.
+                    int number = var.getVariableNumber() - currentClass.getNumberOfVariables();
+                    int mapped = stack.getMappedVariableNumber(number);
+                    methodVisitor.visitVarInsn(ALOAD, mapped);
+                }
+            }
+        }
+        step.setIsCalleeLoaded(true);
     }
     
     @Override
@@ -2477,21 +2478,21 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         String converted = "";
         if (!step.IsObjectCall()) {
             converted = processedClazzName;
-            
+
             // It's a call on the 'this' object.
-            if (callee.getParameters().isEmpty() && !step.isSoloMethodCall()) {
+            if (callee.getParameters().isEmpty() && !step.isSoloMethodCall() && !step.isCalleeLoaded()) {
                 methodVisitor.visitVarInsn(ALOAD, 0);
             }
-            else if (step.isSoloMethodCall()) {
+            else if (step.isSoloMethodCall() && !step.isCalleeLoaded()) {
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 processExpressions();
-            }else{
+            }else if(!step.isCalleeLoaded()){
                 processExpressions();
             }
         }
         else {
             VariableParameterCommonDescriptor var = step.getParentObject();
-            
+
             //grab the variable from storage and check if it is an interface type
             TypeDescriptor varType = null;
             if(var != null){
@@ -2499,16 +2500,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 if(varType != null)
                     isCalledOnInterface = varType.isBytecodeInterface();
             }
-            
+
             //if this is a parent call step then treat it as such and load the parent
             //before calling ivokevirtual.
             if(step instanceof ParentCallStep){
                 ParentCallStep parentStep = (ParentCallStep)step;
                 ClassDescriptor parent = (ClassDescriptor)parentStep.getMethodCallee().getParent();
-                String key = currentClass.getStaticKey();
-                String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitFieldInsn(GETFIELD, className, QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey()), QuorumConverter.convertStaticKeyToBytecodePathTypeName(parent.getStaticKey()));
+                
+                if(!step.isCalleeLoaded()){
+                    String key = currentClass.getStaticKey();
+                    String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
+                    methodVisitor.visitVarInsn(ALOAD, 0);
+                    methodVisitor.visitFieldInsn(GETFIELD, className, QuorumConverter.convertParentStaticKeyToValidName(parent.getStaticKey()), QuorumConverter.convertStaticKeyToBytecodePathTypeName(parent.getStaticKey()));
+                }
+                
                 converted = QuorumConverter.convertTypeToJavaClassTypeEquivalent(parent.getType());
             }else{
                 //if this is a standard call step then treat it as such.
@@ -2518,15 +2523,19 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 }else{
                     converted = QuorumConverter.convertTypeToJavaClassTypeEquivalent(var.getType());
                 }
-                
+
                 if(field) {//if this is a call on a field object
                     isCalledOnField = true;
-                    String key = currentClass.getStaticKey();
-                    String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
-                    //String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
-                    String varTypeName = QuorumConverter.convertTypeToBytecodeString(var.getType());
-                    methodVisitor.visitVarInsn(ALOAD, 0);
-                    methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), varTypeName);
+                    
+                    if(!step.isCalleeLoaded()){
+                        String key = currentClass.getStaticKey();
+                        String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
+                        //String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
+                        String varTypeName = QuorumConverter.convertTypeToBytecodeString(var.getType());
+                        methodVisitor.visitVarInsn(ALOAD, 0);
+                        methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), varTypeName);
+                    }
+                    
                     converted = QuorumConverter.convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(var.getType().getStaticKey()));
                 }
                 else { //determine the local variable number and load it
@@ -2535,11 +2544,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     //is a parameter that we are calling on then load that parameter.
                     if(var instanceof ParameterDescriptor){
                         ParameterDescriptor varDescriptor = (ParameterDescriptor) var;
-                        int number = stack.getParameterNumber(varDescriptor.getName());
-                        methodVisitor.visitVarInsn(ALOAD, number);
+                        
+                        if(!step.isCalleeLoaded()){
+                            int number = stack.getParameterNumber(varDescriptor.getName());
+                            methodVisitor.visitVarInsn(ALOAD, number);
+                        }
+                        
                         isParameter = true;
                         converted = QuorumConverter.convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(var.getType().getStaticKey()));
-                    }else{
+                    }else if(!step.isCalleeLoaded()){
                         //Otherwise, load the variable from the mapped variable on the
                         //stack.
                         int number = var.getVariableNumber() - currentClass.getNumberOfVariables();
@@ -2548,7 +2561,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     }
                 }
             }
-            processExpressions();
+            if(!step.isCalleeLoaded()){
+                processExpressions();
+            }
         }
                     
         if (!isParameter && !isCalledOnField && !isCalledOnInterface) {

@@ -375,7 +375,7 @@ public class TypeCheckTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile(new File("ImpAssignBooleanBoolean.class"), files);
+        RunResult r = CompilerTestSuite.runQuorumFile(files[0], files);
         if (!r.isSuccessful())
             fail();
         

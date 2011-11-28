@@ -49,6 +49,7 @@ public class CallStep extends IntermediateStep {
     private VariableParameterCommonDescriptor parentObject;
     private boolean isThisCall = false;
     private boolean isSoloMethodCall = false;
+    private boolean isCalleeLoaded = false;
     /**
      * This value represents the object hash for the parent of this
      * call. In other words, it represents which object the call step
@@ -491,5 +492,19 @@ public class CallStep extends IntermediateStep {
      */
     public boolean isNested() {
         return isNested;
+    }
+
+    /**
+     * @return the isCalleeLoaded
+     */
+    public boolean isCalleeLoaded() {
+        return isCalleeLoaded;
+    }
+
+    /**
+     * @param isCalleeLoaded the isCalleeLoaded to set
+     */
+    public void setIsCalleeLoaded(boolean isCalleeLoaded) {
+        this.isCalleeLoaded = isCalleeLoaded;
     }
 }

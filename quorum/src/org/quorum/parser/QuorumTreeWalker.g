@@ -1771,6 +1771,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		info.argumentTypes = argumentTypes;
 		info.methodName = myMethodName;
 		info.isObjectCall = false;
+		info.isNested = nested;
 		
 		if(fel!=null && !$fel.list.isEmpty()){
 			builder.addCallLabel(parameterPosition);
@@ -1792,7 +1793,17 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		
 		
 	}
-	|	^(FUNCTION_CALL_THIS ME COLON qualified_name (COLON ID)? LEFT_PAREN fel = function_expression_list RIGHT_PAREN)
+	|	^(FUNCTION_CALL_THIS ME COLON qualified_name (COLON ID)? LEFT_PAREN 
+	{
+		boolean unsetFlag = false;
+		boolean nested = inCallStep;
+		if (!inCallStep) {
+			// We are now inside a call step--set the flag appropriately.
+			inCallStep = true;
+			unsetFlag = true;
+		}
+	}
+	fel = function_expression_list RIGHT_PAREN)
 	{
 		LineInformation location = new LineInformation();
                 location.setEndColumn($qualified_name.type.getColumnEnd());
@@ -1813,7 +1824,9 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		Vector<String> types = new Vector<String>();
 		Vector<TypeDescriptor> argumentTypes = new Vector<TypeDescriptor>();
 		
+		int parameterPosition = -1;
 		if(fel != null) {
+			parameterPosition = $fel.firstParam;
 			for(Object o : $fel.list) {
 				expression_return ex = (expression_return)o;
                 		types.add(ex.eval.getType().getName());
@@ -1846,16 +1859,24 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		info.methodName = myMethodName;
 		info.isObjectCall = false;
 		info.isThisCall = true;
+		info.isNested = nested;
+		
+		if(fel!=null && !$fel.list.isEmpty()){
+			builder.addCallLabel(parameterPosition);
+		}
 		
 		ResultTuple result =  stepFactory.addCallStep(info);
+		
+		temp = result.getNextRegister();
+		$eval = result.getValue();
+		$step = result.getStep();
 		
 		if(fel!=null){
 			builder.addStepLabel(OpcodeType.METHOD_CALL);
 		}
 		
-		temp = result.getNextRegister();
-		$eval = result.getValue();
-		$step = result.getStep();
+		if (unsetFlag)
+			inCallStep = false;
 	}
 	|	BOOLEAN
 	{
