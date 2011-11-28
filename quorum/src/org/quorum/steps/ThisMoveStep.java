@@ -9,7 +9,7 @@ import org.quorum.execution.DataEnvironment;
 import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.execution.RuntimeObject;
-import org.quorum.symbols.VariableParameterCommonDescriptor;
+import org.quorum.symbols.TypeDescriptor;
 
 /**
  *
@@ -18,6 +18,7 @@ import org.quorum.symbols.VariableParameterCommonDescriptor;
 public class ThisMoveStep extends IntermediateStep{
 
     private int temp;
+    private TypeDescriptor type;
     
     
     @Override
@@ -27,7 +28,8 @@ public class ThisMoveStep extends IntermediateStep{
 
         ExpressionValue value = new ExpressionValue();
         value.setObjectHash(de.getThisPointer());
-        value.setType(ro.getClazz().getType());
+        type = ro.getClazz().getType();
+        value.setType(type);
         value.setRegister(temp);
         vm.getDataEnvironment().setRegister(temp, value);
 
@@ -54,5 +56,12 @@ public class ThisMoveStep extends IntermediateStep{
     @Override
     public void visit(ExecutionStepVisitor visitor) {
         visitor.visit(this);
+    }
+
+    /**
+     * @return the type
+     */
+    public TypeDescriptor getType() {
+        return type;
     }
 }

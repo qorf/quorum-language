@@ -1363,6 +1363,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //                && !"Libraries.Containers.Blueprints.Iterative".equals(staticKey)
 //                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
 //                && !"Libraries.Containers.Blueprints.ArrayBlueprint".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Iterator".equals(staticKey)
+//                && !"Libraries.Containers.Support.ArrayIterator".equals(staticKey)
 ////                && !"Libraries.Language.Errors.Error".equals(staticKey)
 //                && !".StefikGrand".equals(staticKey)) {
 //            return;
@@ -2438,21 +2440,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             //to the stack from 
             VariableParameterCommonDescriptor var = step.getParentObject();
             boolean field = var.isFieldVariable();
-            if(field) {
+            if (field) {
                 String key = currentClass.getStaticKey();
                 String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
                 String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), classNameSupplement);
-            }
-            else { //determine the local variable number and load it
-                if(var instanceof ParameterDescriptor){
+            } else { //determine the local variable number and load it
+                if (var instanceof ParameterDescriptor) {
                     //we are now calling a method on a variable (aka object). If it 
                     //is a parameter that we are calling on then load that parameter.
                     ParameterDescriptor varDescriptor = (ParameterDescriptor) var;
                     int number = stack.getParameterNumber(varDescriptor.getName());
                     methodVisitor.visitVarInsn(ALOAD, number);
-                }else{
+                } else {
                     //Otherwise, load the variable from the mapped variable on the
                     //stack.
                     int number = var.getVariableNumber() - currentClass.getNumberOfVariables();
@@ -3032,7 +3033,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(ThisMoveStep step) {
-        int a = 5;
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        
+        //push the type of the variable on the top of the stack
+        stack.pushExpressionType(currentClassExecution.getClassDescriptor().getType());
     }
 
     @Override
