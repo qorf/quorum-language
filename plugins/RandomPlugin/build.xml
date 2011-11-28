@@ -10,6 +10,11 @@
 <project name="RandomPlugin" default="default" basedir=".">
     <description>Builds, tests, and runs the project RandomPlugin.</description>
     <import file="nbproject/build-impl.xml"/>
+    
+    <target name="-post-compile">
+        <copy file="build/classes/plugins/quorum/Libraries/Compute/Random.class" todir="../../quorum/plugins/quorum/Libraries/Compute"/>
+    </target>
+    
     <!--
 
     There exist several targets which are by default empty and which can be 
