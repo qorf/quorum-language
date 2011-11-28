@@ -5,6 +5,7 @@
 
 package org.quorum.tests.compiler.Random;
 
+import org.quorum.execution.RunResult;
 import java.util.TimeZone;
 import java.util.Date;
 import org.quorum.execution.ExpressionValue;
@@ -45,7 +46,7 @@ public class RandomTester {
     }
 
     @Test
-    public void test_SetSeed() {
+    public void test_SetSeed_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.PASS + "SetSeed.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -53,7 +54,19 @@ public class RandomTester {
     }
     
     @Test
-    public void test_RandomInteger() {
+    public void test_SetSeed_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "SetSeed.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_RandomInteger_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.PASS + "RandomInteger.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -68,7 +81,21 @@ public class RandomTester {
     }
     
     @Test
-    public void test_RandomIntegerWithInvalidMaximum() {
+    public void test_RandomInteger_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "RandomInteger.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("544657192"));
+    }
+    
+    @Test
+    public void test_RandomIntegerWithInvalidMaximum_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.FAIL + "RandomInteger.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -81,7 +108,19 @@ public class RandomTester {
     }
     
     @Test
-    public void test_RandomIntegerBetweenWithSameValues() {
+    public void test_RandomIntegerWithInvalidMaximum_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "RandomIntegerWithInvalidMaximum.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_RandomIntegerBetweenWithSameValues_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.FAIL + "RandomIntegerBetweenWithSameValues.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -94,7 +133,19 @@ public class RandomTester {
     }
     
     @Test
-    public void test_RandomIntegerBetweenWithInvalidRange() {
+    public void test_RandomIntegerBetweenWithSameValues_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "RandomIntegerBetweenWithSameValues.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_RandomIntegerBetweenWithInvalidRange_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.FAIL + "RandomIntegerBetweenWithInvalidRange.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -107,7 +158,19 @@ public class RandomTester {
     }
     
     @Test
-    public void test_RandomIntegerBetweenWithNegativeNumbers() {
+    public void test_RandomIntegerBetweenWithInvalidRange_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "RandomIntegerBetweenWithInvalidRange.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_RandomIntegerBetweenWithNegativeNumbers_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.FAIL + "RandomIntegerBetweenWithNegativeNumbers.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -120,7 +183,19 @@ public class RandomTester {
     }
     
     @Test
-    public void test_RandomIntegerWithMaximum() {
+    public void test_RandomIntegerBetweenWithNegativeNumbers_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "RandomIntegerBetweenWithNegativeNumbers.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_RandomIntegerWithMaximum_execute() {
         int numberOfResults = 10;
         int[] expectedResults = {4, 1, 12, 4, 14, 3, 6, 13, 4, 3};
         
@@ -142,7 +217,28 @@ public class RandomTester {
     }
     
     @Test
-    public void test_RandomIntegerBetween() {
+    public void test_RandomIntegerWithMaximum_bytecode() {
+        int numberOfResults = 10;
+        int[] expectedResults = {4, 1, 12, 4, 14, 3, 6, 13, 4, 3};
+        
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "RandomIntegerWithMaximum.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        // Somewhat hackish: Loop through variable result0 through result9 and make
+        // sure they match the expectedResults.
+        for (int i = 0; i < numberOfResults; i++) {
+            assert(r.getLine(i).equals(Integer.toString(expectedResults[i])));
+        }
+    }
+    
+    @Test
+    public void test_RandomIntegerBetween_execute() {
         int numberOfResults = 10;
         int[] expectedResults = {20, 16, 20, 16, 19, 17, 21, 17, 16, 16};
 
@@ -165,7 +261,29 @@ public class RandomTester {
     }
     
     @Test
-    public void test_RandomListOfNumbers() {
+    public void test_RandomIntegerBetween_bytecode() {
+        int numberOfResults = 10;
+        int[] expectedResults = {20, 16, 20, 16, 19, 17, 21, 17, 16, 16};
+
+        
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "RandomIntegerBetween.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        // Somewhat hackish: Loop through variable result0 through result9 and make
+        // sure they match the expectedResults.
+        for (int i = 0; i < numberOfResults; i++) {
+            assert(r.getLine(i).equals(Integer.toString(expectedResults[i])));
+        }
+    }
+    
+    @Test
+    public void test_RandomListOfNumbers_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.PASS + "RandomListOfNumbers.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -203,7 +321,27 @@ public class RandomTester {
     }
     
     @Test
-    public void test_RandomListOfIntegers() {
+    public void test_RandomListOfNumbers_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "RandomListOfNumbers.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("0.2536257672785417"));
+        assert(r.getLine(1).equals("0.7691565943833395"));
+        assert(r.getLine(2).equals("0.9048039800926115"));
+        assert(r.getLine(3).equals("0.3874507370773981"));
+        assert(r.getLine(4).equals("0.3108243382133744"));
+        assert(r.getLine(5).equals("true"));
+        assert(r.getLine(6).equals("5"));
+    }
+    
+    @Test
+    public void test_RandomListOfIntegers_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.PASS + "RandomListOfIntegers.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -241,7 +379,27 @@ public class RandomTester {
     }
     
     @Test
-    public void test_RandomListOfNumbersWithInvalidLength() {
+    public void test_RandomListOfIntegers_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "RandomListOfIntegers.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("544657192"));
+        assert(r.getLine(1).equals("264551322"));
+        assert(r.getLine(2).equals("1651751212"));
+        assert(r.getLine(3).equals("616702974"));
+        assert(r.getLine(4).equals("1943051751"));
+        assert(r.getLine(5).equals("true"));
+        assert(r.getLine(6).equals("5"));
+    }
+    
+    @Test
+    public void test_RandomListOfNumbersWithInvalidLength_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.FAIL + "RandomListOfNumbersWithInvalidLength.quorum"));
         
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -255,7 +413,19 @@ public class RandomTester {
     }
 
     @Test
-    public void test_RandomListOfIntegersWithInvalidLength() {
+    public void test_RandomListOfNumbersWithInvalidLength_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "RandomListOfNumbersWithInvalidLength.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_RandomListOfIntegersWithInvalidLength_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.FAIL + "RandomListOfIntegersWithInvalidLength.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -266,5 +436,17 @@ public class RandomTester {
         if (!vm.getExceptions().hasAlerts()) {
             fail();
         }
+    }
+    
+    @Test
+    public void test_RandomListOfIntegersWithInvalidLength_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "RandomListOfIntegersWithInvalidLength.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
     }
 }
