@@ -2,20 +2,18 @@ use Libraries.Containers.Array
 class Melissa
 
     action Main
-        Array<integer> ints
-        ints:SetSize(4)
-        ints:Set(0, 34)
-        ints:Set(1, 16)
-        ints:Set(2, -62)
-        ints:Set(3, 3)
-        integer i = ints:Get(0)
-        integer j = ints:Get(1)
-        integer k = ints:Get(2)
-        integer l = ints:Get(3)
-
-        print i
-        print j
-        print k
-        print l
+       Array<integer> a
+        a:SetAutoResize(false)
+        a:Add(12)
+        a:Add(12)
+        a:Add(12)
+        a:Add(12)
+        a:Add(12)
+        a:Add(12)
+        a:Add(12)
+        a:Add(12)
+        a:Add(12)
+        a:Add(12)
+        a:Add(12)
     end
 end

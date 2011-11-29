@@ -454,8 +454,8 @@ public class ArrayTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("12"));
-        assert(r.getLine(1).equals("13"));
+        assert(r.getLine(0).equals("13"));
+        assert(r.getLine(1).equals("12"));
         assert(r.getLine(2).equals("14"));
     }
     
@@ -496,8 +496,8 @@ public class ArrayTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("12"));
-        assert(r.getLine(1).equals("13"));
+        assert(r.getLine(0).equals("13"));
+        assert(r.getLine(1).equals("12"));
         assert(r.getLine(2).equals("14"));
     }
     
@@ -538,8 +538,8 @@ public class ArrayTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("12"));
-        assert(r.getLine(1).equals("13"));
+        assert(r.getLine(0).equals("13"));
+        assert(r.getLine(1).equals("12"));
         assert(r.getLine(2).equals("14"));
     }
     
@@ -662,7 +662,7 @@ public class ArrayTester {
             fail();
         
         assert(r.getLine(0).equals("12"));
-        assert(r.getLine(1).equals("2"));
+        assert(r.getLine(1).equals("1"));
     }
     
     @Test
