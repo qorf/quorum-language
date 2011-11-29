@@ -28,7 +28,7 @@ public class Array {
     }
     
     
-    public Object GetNative(int location) {
+    public Object$Interface GetNative(int location) {
         return array.get(location);
     }
     
@@ -44,7 +44,7 @@ public class Array {
         array.add(value);
     }
     
-    public Object RemoveAtNative(int location) {
+    public Object$Interface RemoveAtNative(int location) {
         return array.remove(location);
     }
     
