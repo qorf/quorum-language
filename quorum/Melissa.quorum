@@ -2,18 +2,20 @@ use Libraries.Containers.Array
 class Melissa
 
     action Main
-        Array<integer> a
-    end
+        Array<integer> ints
+        ints:SetSize(4)
+        ints:Set(0, 34)
+        ints:Set(1, 16)
+        ints:Set(2, -62)
+        ints:Set(3, 3)
+        integer i = ints:Get(0)
+        integer j = ints:Get(1)
+        integer k = ints:Get(2)
+        integer l = ints:Get(3)
 
-    /*action test(Object o) returns boolean
-        repeat 2 times
-            Object i
-            if(i:Equals(o))then
-                return true
-            end else then
-                return false
-            end
-        end
-        return false
-    end*/
+        print i
+        print j
+        print k
+        print l
+    end
 end

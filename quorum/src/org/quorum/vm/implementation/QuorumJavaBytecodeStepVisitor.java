@@ -1353,22 +1353,22 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
-                && !"Libraries.Language.Support.CompareResult".equals(staticKey)
-                && !"Libraries.Containers.Array".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.Copyable".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.Indexed".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.Container".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.Addable".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.Iterative".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.ArrayBlueprint".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.Iterator".equals(staticKey)
-                && !"Libraries.Containers.Support.ArrayIterator".equals(staticKey)
-//                && !"Libraries.Language.Errors.Error".equals(staticKey)
-                && !".StefikGrand".equals(staticKey)) {
-            return;
-        }
+//        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
+//                && !"Libraries.Language.Support.CompareResult".equals(staticKey)
+//                && !"Libraries.Containers.Array".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Copyable".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Indexed".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Container".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Addable".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Iterative".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.ArrayBlueprint".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Iterator".equals(staticKey)
+//                && !"Libraries.Containers.Support.ArrayIterator".equals(staticKey)
+////                && !"Libraries.Language.Errors.Error".equals(staticKey)
+//                && !".StefikGrand".equals(staticKey)) {
+//            return;
+//        }
         
         
         
@@ -1430,7 +1430,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         computeConstructor(true);
         //add a constructor that doesn't
         computeConstructor(false);
-        
         
         //now dump all of the parent methods that 
         //are not in the base class out as wrapper functions.
