@@ -35,6 +35,14 @@
             <fileset dir="plugins"/>
         </copy>
         
+        <!--
+        Copy dependencies over to the classes directory
+        -->
+        <copy file="dependencies/phonemic.jar" todir="build/classes/lib"/>
+        <copy todir="build/classes/lib/jni">
+            <fileset dir="dependencies/jni"/>
+        </copy>        
+        
         <copy file="Main.quorum" todir="build/classes"/>
         <copy file="Stefik.quorum" todir="build/classes"/>
         <copy file="StefikParent.quorum" todir="build/classes"/>

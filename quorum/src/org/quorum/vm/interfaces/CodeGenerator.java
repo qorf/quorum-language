@@ -6,6 +6,7 @@ package org.quorum.vm.interfaces;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 
 /**
  * A CodeGenerator object outputs some kind of raw machine code or bytecode.
@@ -63,6 +64,39 @@ public interface CodeGenerator {
      * @param name 
      */
     public void setDistributionName(String name);
+    
+    /**
+     * Adds a dependency into the distributed code for the target platform.
+     * If the file passed is a folder, the entire folder will be copied 
+     * verbatim to the dependency folder, but no attempt will be made to
+     * write the dependencies into the target execution. As such, dependencies
+     * must be managed individually, but folders (e.g., images or resources), 
+     * can be copied raw.
+     * 
+     * @param file 
+     */
+    public void addDependency(File file);
+    
+    /**
+     * Returns an iterator of all dependencies loaded on the system.
+     * 
+     * @return 
+     */
+    public Iterator<File> getDependencies();
+    
+    /**
+     * Clears out all dependencies on the target system.
+     * 
+     */
+    public void clearDependencies();
+    
+    /**
+     * Returns the number of dependencies currently loaded on the target
+     * platform.
+     * 
+     * @return 
+     */
+    public int getNumberOfDependencies();
     
     /**
      * Returns the file on the system that is to be used as the entry point

@@ -10,6 +10,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import org.objectweb.asm.ClassWriter;
 
 import org.quorum.execution.Linker;
@@ -35,6 +37,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     private String distributionName = "Default";
     private File mainFile;
     private String manifestMain = "";
+    private List<File> dependencies = new LinkedList<File>();
     
     /**
      * This method generates java bytecode for all classes on the system.
@@ -124,8 +127,6 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
             writeBytes(code.getInterfaceFile(), code.getInterfaceOutput());
         }
         
-        
-        
         //if there's a place to write the jar, write it
         if(this.distributionFolder != null) {
             //say where to write the jar
@@ -144,8 +145,6 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
             //write the jar to disk
             jar.writeJarFile(this.buildFolder);
         }
-        
-        
     }
     
     private void prepareFolder(QuorumBytecode code) throws IOException {
@@ -276,5 +275,25 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     @Override
     public void setMainFile(File file) {
         mainFile = file;
+    }
+
+    @Override
+    public void addDependency(File file) {
+        dependencies.add(file);
+    }
+
+    @Override
+    public Iterator<File> getDependencies() {
+        return dependencies.iterator();
+    }
+    
+    @Override
+    public void clearDependencies() {
+        dependencies.clear();
+    }
+    
+    @Override
+    public int getNumberOfDependencies() {
+        return dependencies.size();
     }
 }

@@ -65,6 +65,15 @@ public class Main {
         File distribution = new File(root.getAbsolutePath() +
                 "/distribute");
         
+        File dependencies = new File(root.getAbsolutePath() +
+                "/lib");
+        
+        File phonemic = new File(dependencies.getAbsolutePath() +
+                "/phonemic.jar");
+        
+        File phonemicJNI = new File(dependencies.getAbsolutePath() +
+                "/jni");
+        
         if(!build.isDirectory()) {
             build.mkdir();
         }
@@ -94,6 +103,8 @@ public class Main {
             vm.setGenerateCode(true);
             vm.getCodeGenerator().setBuildFolder(build);
             vm.getCodeGenerator().setDistributionFolder(distribution);
+            vm.getCodeGenerator().addDependency(phonemic);
+            vm.getCodeGenerator().addDependency(phonemicJNI);
             vm.setMain(files[0].getAbsolutePath());
             //build
             vm.build(files);
