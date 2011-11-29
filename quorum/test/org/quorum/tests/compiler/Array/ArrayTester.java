@@ -159,9 +159,8 @@ public class ArrayTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(0).equals("true"));
         assert(r.getLine(1).equals("1"));
-        assert(r.getLine(2).equals("1"));
     }
     
     @Test
@@ -203,9 +202,8 @@ public class ArrayTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("1.5"));
+        assert(r.getLine(0).equals("true"));
         assert(r.getLine(1).equals("1.5"));
-        assert(r.getLine(2).equals("1.5"));
     }
     
     @Test
@@ -287,9 +285,8 @@ public class ArrayTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("t"));
+        assert(r.getLine(0).equals("true"));
         assert(r.getLine(1).equals("t"));
-        assert(r.getLine(2).equals("t"));
     }
     
     @Test
@@ -371,7 +368,6 @@ public class ArrayTester {
         
         assert(r.getLine(0).equals("true"));
         assert(r.getLine(1).equals("true"));
-        assert(r.getLine(2).equals("true"));
     }
     
     @Test

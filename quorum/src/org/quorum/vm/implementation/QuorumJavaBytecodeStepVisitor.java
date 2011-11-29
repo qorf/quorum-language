@@ -20,10 +20,12 @@ import org.quorum.steps.*;
 import org.quorum.symbols.AccessModifierEnum;
 import org.quorum.symbols.BlueprintDescriptor;
 import org.quorum.symbols.ClassDescriptor;
+import org.quorum.symbols.GenericDescriptor;
 import org.quorum.symbols.MethodDescriptor;
 import org.quorum.symbols.ParameterDescriptor;
 import org.quorum.symbols.Parameters;
 import org.quorum.symbols.Result;
+import org.quorum.symbols.Scopable;
 import org.quorum.symbols.SystemActionDescriptor;
 import org.quorum.symbols.TypeDescriptor;
 import org.quorum.symbols.VariableDescriptor;
@@ -1365,6 +1367,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //                && !"Libraries.Containers.Blueprints.ArrayBlueprint".equals(staticKey)
 //                && !"Libraries.Containers.Blueprints.Iterator".equals(staticKey)
 //                && !"Libraries.Containers.Support.ArrayIterator".equals(staticKey)
+//                && !"Libraries.Language.Types.Integer".equals(staticKey)
+//                && !"Libraries.Language.Types.Number".equals(staticKey)
+//                && !"Libraries.Language.Types.Text".equals(staticKey)
+//                && !"Libraries.Language.Types.Boolean".equals(staticKey)
 ////                && !"Libraries.Language.Errors.Error".equals(staticKey)
 //                && !".StefikGrand".equals(staticKey)) {
 //            return;
@@ -2580,7 +2586,49 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             if(step.isSoloMethodCall() ){
                 methodVisitor.visitInsn(POP);
             }else{
-                stack.pushExpressionType(step.getMethodCallee().getReturnType());
+                TypeDescriptor returnType = step.getMethodCallee().getReturnType();
+                
+                //if we have a return type that is a templated value we will need
+                //to cast from object to the templated type that is defined by the 
+                //variable the method is being called on.
+                if(returnType.isTemplated()){
+                    boolean notFound = true;
+                    String templateName = returnType.getTemplateName();
+                    if(step.getParentObject() != null){
+                        Iterator<GenericDescriptor> templateTypes = step.getParentObject().getTemplateTypes();
+                        while(templateTypes.hasNext() && notFound){
+                            TypeDescriptor next = templateTypes.next().getType();
+                            
+                            //if the type is primitive we need to cast and get the value
+                            //otherwise we will just cast
+                            if(next.getTemplateName().equals(templateName) && next.isPrimitiveType()){
+                                next.convertToClass();
+                                String autoBoxClassName = QuorumConverter.convertStaticKeyToBytecodePathTypeName(next.getStaticKey()); 
+                
+                                // Create a new autoboxed object.
+                                methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(next.getStaticKey()));
+                                
+                                // Call SetValue.
+                                next.convertToPrimitive();
+                                String autoBoxMethodSignature = "()" + QuorumConverter.convertTypeToBytecodeString(next);
+                                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
+                                        "GetValue", autoBoxMethodSignature);
+                                stack.pushExpressionType(next);
+                                notFound = false;
+                            }else if(next.getTemplateName().equals(templateName)){
+                                // Create a new autoboxed object.
+                                methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(next.getStaticKey()));
+                                stack.pushExpressionType(next);
+                                notFound = false;
+                            }
+                        }
+                    }else{
+                       stack.pushExpressionType(returnType); 
+                    }
+                    
+                }else{
+                    stack.pushExpressionType(returnType);
+                }
             }
         }
     }
@@ -2934,7 +2982,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 variable = varDescriptor.getType();
             } else {//otherwise get the variable number and push the new variable onto the bytecode stack
                 int variableNumber = step.getValue().getVariableNumber() - currentClass.getNumberOfVariables();
-                variable = stack.getVariable(variableNumber);
+                int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+                variable = stack.getVariable(mappedVariableNumber);
                 pushVariable(step.getValue().getType(), variableNumber);
             }
         }
@@ -3177,7 +3226,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 variable = varDescriptor.getType();
             } else {//otherwise get the variable number and push the new variable onto the bytecode stack
                 int variableNumber = step.getValue().getVariableNumber() - currentClass.getNumberOfVariables();
-                variable = stack.getVariable(variableNumber);
+                int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+                variable = stack.getVariable(mappedVariableNumber);
                 pushVariable(step.getValue().getType(), variableNumber);
             }
         }else if(step.getValue() instanceof ParameterDescriptor){

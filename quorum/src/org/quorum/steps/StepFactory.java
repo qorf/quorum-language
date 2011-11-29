@@ -1255,6 +1255,7 @@ public class StepFactory {
                 GenericDescriptor templateType = templateVariables.next();
                 if(templateName != null && templateType.getStaticKey().compareTo(templateName) == 0){
                     TypeDescriptor type = callerType.getType();
+                    type.setTemplateName(templateName);
                     //if(type.isPrimitiveType())
                     //    type.convertToClass();
                     value.setType(type);

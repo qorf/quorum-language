@@ -2,18 +2,39 @@ use Libraries.Containers.Array
 class Melissa
 
     action Main
-       Array<integer> a
-        a:SetAutoResize(false)
-        a:Add(12)
-        a:Add(12)
-        a:Add(12)
-        a:Add(12)
-        a:Add(12)
-        a:Add(12)
-        a:Add(12)
-        a:Add(12)
-        a:Add(12)
-        a:Add(12)
-        a:Add(12)
+                Array<number> myArray
+        myArray:SetSize(10)
+        myArray:Set(0,1.5)
+        myArray:Set(1,1.5)
+        myArray:Set(2,1.5)
+        myArray:Set(3,1.5)
+        myArray:Set(4,1.5)
+        myArray:Set(5,1.5)
+        myArray:Set(6,1.5)
+        myArray:Set(7,1.5)
+        myArray:Set(8,1.5)
+        myArray:Set(9,1.5)
+
+        number elementAt0 = myArray:Get(0)
+        number elementAt1 = myArray:Get(1)
+        number elementAt2 = myArray:Get(2)
+        number elementAt3 = myArray:Get(3)
+        number elementAt4 = myArray:Get(4)
+        number elementAt5 = myArray:Get(5)
+        number elementAt6 = myArray:Get(6)
+        number elementAt7 = myArray:Get(7)
+        number elementAt8 = myArray:Get(8)
+        number elementAt9 = myArray:Get(9)
+
+        print elementAt0
+        print elementAt1
+        print elementAt2
+        print elementAt3
+        print elementAt4
+        print elementAt5
+        print elementAt6
+        print elementAt7
+        print elementAt8
+        print elementAt9
     end
 end
