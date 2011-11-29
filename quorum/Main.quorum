@@ -1,49 +1,19 @@
-/**
- * Libraries.Compute.Random test case
- *
- * Tests the RandomIntegerBetween(min, max) function. Tests with a known
- * seed (1101102342).
- *
- * Expected numerical results: All numbers should be 15 < x <= 20.
- * 
- * result0 = 20
- * result1 = 16
- * result2 = 20
- * result3 = 16
- * result4 = 19
- * result5 = 17
- * result6 = 21
- * result7 = 17
- * result8 = 16
- * result9 = 16
- */
-
-use Libraries.Compute.Random
-
+use Libraries.Containers.Array
 class Main
-    action Main
-        Random random
-        random:SetSeed(1101102342)
-        integer result0 = random:RandomIntegerBetween(15, 20)
-        integer result1 = random:RandomIntegerBetween(15, 20)
-        integer result2 = random:RandomIntegerBetween(15, 20)
-        integer result3 = random:RandomIntegerBetween(15, 20)
-        integer result4 = random:RandomIntegerBetween(15, 20)
-        integer result5 = random:RandomIntegerBetween(15, 20)
-        integer result6 = random:RandomIntegerBetween(15, 20)
-        integer result7 = random:RandomIntegerBetween(15, 20)
-        integer result8 = random:RandomIntegerBetween(15, 20)
-        integer result9 = random:RandomIntegerBetween(15, 20)
+    action main
+        Array<Number> myArray
+        myArray:SetSize(1)
 
-        print result0
-        print result1
-        print result2
-        print result3
-        print result4
-        print result5
-        print result6
-        print result7
-        print result8
-        print result9
+        Number eAt0
+        eAt0:SetValue(1.5)
+
+        myArray:Set(0,eAt0)
+
+        Number elementAt0 = myArray:Get(0)
+
+        number value0 = elementAt0:GetValue()
+        print eAt0
+        print elementAt0
+        print value0
     end
 end

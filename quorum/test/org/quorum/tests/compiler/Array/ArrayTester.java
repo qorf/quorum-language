@@ -4,6 +4,7 @@
  */
 package org.quorum.tests.compiler.Array;
 
+import org.quorum.execution.RunResult;
 import org.quorum.execution.ExpressionValue;
 import java.io.File;
 import org.quorum.tests.compiler.CompilerTestSuite;
@@ -46,7 +47,7 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_Array_Of_Type_Integer_Action_Set_Get_Integer_Template() {
+    public void test_pass_Array_Of_Type_Integer_Action_Set_Get_Integer_Template_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeIntegerActionSetGetInteger.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -68,7 +69,22 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_Array_Of_Type_Number_Action_Set_Get_Number_Template() {
+    public void test_pass_Array_Of_Type_Integer_Action_Set_Get_Integer_Template_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeIntegerActionSetGetInteger.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        for (int i = 0; i < 10; i++)
+            assert(r.getLine(i).equals("1"));
+    }
+    
+    @Test
+    public void test_pass_Array_Of_Type_Number_Action_Set_Get_Number_Template_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeNumberActionSetGetNumber.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -90,7 +106,22 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_Array_Of_Type_Integer_Object_Action_Set_Get_Integer_Object_Template() {
+    public void test_pass_Array_Of_Type_Number_Action_Set_Get_Number_Template_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeNumberActionSetGetNumber.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        for (int i = 0; i < 10; i++)
+            assert(r.getLine(i).equals("1.5"));
+    }
+    
+    @Test
+    public void test_pass_Array_Of_Type_Integer_Object_Action_Set_Get_Integer_Object_Template_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeIntegerObjectActionSetGetIntegerObject.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -118,7 +149,23 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_Array_Of_Type_Number_Object_Action_Set_Get_Number_Object_Template() {
+    public void test_pass_Array_Of_Type_Integer_Object_Action_Set_Get_Integer_Object_Template_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeIntegerObjectActionSetGetIntegerObject.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("1"));
+        assert(r.getLine(2).equals("1"));
+    }
+    
+    @Test
+    public void test_pass_Array_Of_Type_Number_Object_Action_Set_Get_Number_Object_Template_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeNumberObjectActionSetGetNumberObject.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -146,7 +193,23 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_Array_Of_Type_Text_Action_Set_Get_Text_Template() {
+    public void test_pass_Array_Of_Type_Number_Object_Action_Set_Get_Number_Object_Template_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeNumberObjectActionSetGetNumberObject.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1.5"));
+        assert(r.getLine(1).equals("1.5"));
+        assert(r.getLine(2).equals("1.5"));
+    }
+    
+    @Test
+    public void test_pass_Array_Of_Type_Text_Action_Set_Get_Text_Template_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeTextActionSetGetText.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -166,9 +229,24 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_Array_Of_Type_Text_Action_Set_Get_Text_Template_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeTextActionSetGetText.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        for (int i = 0; i < 10; i++)
+            assert(r.getLine(i).equals("t"));
+    }
 
     @Test
-    public void test_pass_Array_Of_Type_Text_Object_Action_Set_Get_Text_Object_Template() {
+    public void test_pass_Array_Of_Type_Text_Object_Action_Set_Get_Text_Object_Template_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeTextObjectActionSetGetTextObject.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -196,7 +274,26 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_Array_Of_Type_Boolean_Action_Set_Get_Boolean_Template() {
+    public void test_pass_Array_Of_Type_Text_Object_Action_Set_Get_Text_Object_Template_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeTextObjectActionSetGetTextObject.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("t"));
+        assert(r.getLine(1).equals("t"));
+        assert(r.getLine(2).equals("t"));
+    }
+    
+    @Test
+    public void test_pass_Array_Of_Type_Boolean_Action_Set_Get_Boolean_Template_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeBooleanActionSetGetBoolean.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -218,7 +315,22 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_Array_Of_Type_Boolean_Object_Action_Set_Get_Boolean_Object_Template() {
+    public void test_pass_Array_Of_Type_Boolean_Action_Set_Get_Boolean_Template_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeBooleanActionSetGetBoolean.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        for (int i = 0; i < 10; i++)
+            assert(r.getLine(i).equals("true"));
+    }
+    
+    @Test
+    public void test_pass_Array_Of_Type_Boolean_Object_Action_Set_Get_Boolean_Object_Template_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeBooleanObjectActionSetGetBooleanObject.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -246,7 +358,24 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_Array_Add() {
+    public void test_pass_Array_Of_Type_Boolean_Object_Action_Set_Get_Boolean_Object_Template_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeBooleanObjectActionSetGetBooleanObject.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
+        assert(r.getLine(2).equals("true"));
+    }
+    
+    @Test
+    public void test_pass_Array_Add_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayAdd.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -270,9 +399,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_Array_Add_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayAdd.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("12"));
+        assert(r.getLine(1).equals("12"));
+        assert(r.getLine(2).equals("12"));
+    }
 
     @Test
-    public void test_pass_array_add_at() {
+    public void test_pass_array_add_at_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayAddAt.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -297,8 +442,25 @@ public class ArrayTester {
         vm.stop();
     }
 
+    
     @Test
-    public void test_pass_array_add_to_front() {
+    public void test_pass_array_add_at_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayAddAt.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("12"));
+        assert(r.getLine(1).equals("13"));
+        assert(r.getLine(2).equals("14"));
+    }
+    
+    @Test
+    public void test_pass_array_add_to_front_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayAddToFront.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -324,7 +486,23 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_array_add_to_end() {
+    public void test_pass_array_add_to_front_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayAddToFront.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("12"));
+        assert(r.getLine(1).equals("13"));
+        assert(r.getLine(2).equals("14"));
+    }
+    
+    @Test
+    public void test_pass_array_add_to_end_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayAddToEnd.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -350,7 +528,23 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_array_remove_at() {
+    public void test_pass_array_add_to_end_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayAddToEnd.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("12"));
+        assert(r.getLine(1).equals("13"));
+        assert(r.getLine(2).equals("14"));
+    }
+    
+    @Test
+    public void test_pass_array_remove_at_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayRemoveAt.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -374,9 +568,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_array_remove_at_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayRemoveAt.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("12"));
+        assert(r.getLine(1).equals("14"));
+        assert(r.getLine(2).equals("2"));
+    }
 
     @Test
-    public void test_pass_array_remove() {
+    public void test_pass_array_remove_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayRemove.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -402,7 +612,23 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_array_remove_all() {
+    public void test_pass_array_remove_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayRemove.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("12"));
+        assert(r.getLine(1).equals("13"));
+        assert(r.getLine(2).equals("2"));
+    }
+    
+    @Test
+    public void test_pass_array_remove_all_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayRemoveAll.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -425,7 +651,22 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_array_set_max_size() {
+    public void test_pass_array_remove_all_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayRemoveAll.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("12"));
+        assert(r.getLine(1).equals("2"));
+    }
+    
+    @Test
+    public void test_pass_array_set_max_size_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArraySetMaxSize.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -451,7 +692,23 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_array_get_max_size() {
+    public void test_pass_array_set_max_size_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArraySetMaxSize.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("12"));
+        assert(r.getLine(1).equals("13"));
+        assert(r.getLine(2).equals("20"));
+    }
+    
+    @Test
+    public void test_pass_array_get_max_size_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayGetMaxSize.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -469,9 +726,23 @@ public class ArrayTester {
         }
         vm.stop();
     }
-
+    
     @Test
-    public void test_pass_array_is_empty() {
+    public void test_pass_array_get_max_size_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayGetMaxSize.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("10"));
+    }
+    
+    @Test
+    public void test_pass_array_is_empty_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayIsEmpty.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -492,9 +763,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_array_is_empty_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayIsEmpty.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("false"));
+    }
+    
 
     @Test
-    public void test_pass_array_empty() {
+    public void test_pass_array_empty_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayEmpty.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -515,9 +802,24 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_array_empty_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayEmpty.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
+    }
 
     @Test
-    public void test_pass_array_copy() {
+    public void test_pass_array_copy_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayCopy.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -543,7 +845,23 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_array_get_from_front() {
+    public void test_pass_array_copy_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayCopy.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("13"));
+        assert(r.getLine(1).equals("12"));
+        assert(r.getLine(2).equals("14"));
+    }
+    
+    @Test
+    public void test_pass_array_get_from_front_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayGetFromFront.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -567,9 +885,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_array_get_from_front_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayGetFromFront.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("13"));
+        assert(r.getLine(1).equals("12"));
+        assert(r.getLine(2).equals("14"));
+    }
 
     @Test
-    public void test_pass_array_get_from_end() {
+    public void test_pass_array_get_from_end_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayGetFromEnd.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -593,9 +927,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_array_get_from_end_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayGetFromEnd.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("14"));
+        assert(r.getLine(1).equals("12"));
+        assert(r.getLine(2).equals("13"));
+    }
 
     @Test
-    public void test_pass_array_remove_from_front() {
+    public void test_pass_array_remove_from_front_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayRemoveFromFront.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -619,9 +969,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_array_remove_from_front_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayRemoveFromFront.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("13"));
+        assert(r.getLine(1).equals("12"));
+        assert(r.getLine(2).equals("14"));
+    }
 
     @Test
-    public void test_pass_array_remove_from_end() {
+    public void test_pass_array_remove_from_end_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayRemoveFromEnd.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -645,9 +1011,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_array_remove_from_end_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayRemoveFromEnd.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("14"));
+        assert(r.getLine(1).equals("13"));
+        assert(r.getLine(2).equals("12"));
+    }
 
     @Test
-    public void test_pass_array_set_size() {
+    public void test_pass_array_set_size_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArraySetSize.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -667,7 +1049,21 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_array_get_size() {
+    public void test_pass_array_set_size_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArraySetSize.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("6"));
+    }
+    
+    @Test
+    public void test_pass_array_get_size_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayGetSize.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -687,7 +1083,21 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_vector_add() {
+    public void test_pass_array_get_size_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayGetSize.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("0"));
+    }
+    
+    @Test
+    public void test_pass_vector_add_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorAdd.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -711,9 +1121,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_vector_add_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorAdd.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("12"));
+        assert(r.getLine(1).equals("12"));
+        assert(r.getLine(2).equals("12"));
+    }
 
     @Test
-    public void test_pass_vector_add_at() {
+    public void test_pass_vector_add_at_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorAddAt.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -737,9 +1163,26 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_vector_add_at_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorAddAt.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("13"));
+        assert(r.getLine(1).equals("12"));
+        assert(r.getLine(2).equals("14"));
+    }
+    
 
     @Test
-    public void test_pass_vector_add_to_front() {
+    public void test_pass_vector_add_to_front_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorAddToFront.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -765,7 +1208,23 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_vector_add_to_end() {
+    public void test_pass_vector_add_to_front_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorAddToFront.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("13"));
+        assert(r.getLine(1).equals("12"));
+        assert(r.getLine(2).equals("14"));
+    }
+    
+    @Test
+    public void test_pass_vector_add_to_end_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorAddToEnd.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -789,9 +1248,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_vector_add_to_end_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorAddToEnd.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("13"));
+        assert(r.getLine(1).equals("12"));
+        assert(r.getLine(2).equals("14"));
+    }
 
     @Test
-    public void test_pass_vector_remove_at() {
+    public void test_pass_vector_remove_at_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorRemoveAt.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -815,9 +1290,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_vector_remove_at_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorRemoveAt.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("12"));
+        assert(r.getLine(1).equals("14"));
+        assert(r.getLine(2).equals("2"));
+    }
 
     @Test
-    public void test_pass_vector_remove() {
+    public void test_pass_vector_remove_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorRemove.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -841,9 +1332,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_vector_remove_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorRemove.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("12"));
+        assert(r.getLine(1).equals("13"));
+        assert(r.getLine(2).equals("2"));
+    }
 
     @Test
-    public void test_pass_vector_remove_all() {
+    public void test_pass_vector_remove_all_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorRemoveAll.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -866,7 +1373,22 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_vector_set_max_size() {
+    public void test_pass_vector_remove_all_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorRemoveAll.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("12"));
+        assert(r.getLine(1).equals("1"));
+    }
+    
+    @Test
+    public void test_pass_vector_set_max_size_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorSetMaxSize.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -890,9 +1412,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_vector_set_max_size_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorSetMaxSize.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("12"));
+        assert(r.getLine(1).equals("13"));
+        assert(r.getLine(2).equals("20"));
+    }
 
     @Test
-    public void test_pass_vector_get_max_size() {
+    public void test_pass_vector_get_max_size_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorGetMaxSize.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -912,7 +1450,21 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_vector_is_empty() {
+    public void test_pass_vector_get_max_size_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorGetMaxSize.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("10"));
+    }
+    
+    @Test
+    public void test_pass_vector_is_empty_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorIsEmpty.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -933,9 +1485,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_vector_is_empty_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorIsEmpty.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
+    }
+    
 
     @Test
-    public void test_pass_vector_empty() {
+    public void test_pass_vector_empty_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorEmpty.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -958,7 +1526,22 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_vector_copy() {
+    public void test_pass_vector_empty_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorEmpty.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
+    }
+    
+    @Test
+    public void test_pass_vector_copy_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorCopy.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -982,9 +1565,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_vector_copy_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorCopy.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("13"));
+        assert(r.getLine(1).equals("12"));
+        assert(r.getLine(2).equals("14"));
+    }
 
     @Test
-    public void test_pass_vector_get_from_front() {
+    public void test_pass_vector_get_from_front_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorGetFromFront.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -1008,9 +1607,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_vector_get_from_front_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorGetFromFront.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("13"));
+        assert(r.getLine(1).equals("12"));
+        assert(r.getLine(2).equals("14"));
+    }
 
     @Test
-    public void test_pass_vector_get_from_end() {
+    public void test_pass_vector_get_from_end_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorGetFromEnd.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -1036,7 +1651,23 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_vector_remove_from_front() {
+    public void test_pass_vector_get_from_end_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorGetFromEnd.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("14"));
+        assert(r.getLine(1).equals("12"));
+        assert(r.getLine(2).equals("13"));
+    }
+    
+    @Test
+    public void test_pass_vector_remove_from_front_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorRemoveFromFront.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -1060,9 +1691,25 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_vector_remove_from_front_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorRemoveFromFront.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("13"));
+        assert(r.getLine(1).equals("12"));
+        assert(r.getLine(2).equals("14"));
+    }
 
     @Test
-    public void test_pass_vector_remove_from_end() {
+    public void test_pass_vector_remove_from_end_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorRemoveFromEnd.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -1088,7 +1735,23 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_vector_set_size() {
+    public void test_pass_vector_remove_from_end_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorRemoveFromEnd.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("14"));
+        assert(r.getLine(1).equals("13"));
+        assert(r.getLine(2).equals("12"));
+    }
+    
+    @Test
+    public void test_pass_vector_set_size_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorSetSize.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -1106,9 +1769,24 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_vector_set_size_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorSetSize.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("6"));
+    }
+    
 
     @Test
-    public void test_pass_vector_get_size() {
+    public void test_pass_vector_get_size_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorGetSize.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -1128,7 +1806,21 @@ public class ArrayTester {
     }
 
     @Test
-    public void test_pass_vector_over_max_size() {
+    public void test_pass_vector_get_size_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorGetSize.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("0"));
+    }
+    
+    @Test
+    public void test_pass_vector_over_max_size_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorOverMaxSize.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -1140,7 +1832,19 @@ public class ArrayTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_pass_vector_over_max_size_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "VectorOverMaxSize.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
 
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+    }
+    
     /********************************************************************************/
     @Test
     public void test_fail_Array_Of_Multiple_Template_Types() {
