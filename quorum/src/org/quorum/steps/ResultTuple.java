@@ -16,6 +16,7 @@ public class ResultTuple {
     private ExpressionValue value;
     private ExecutionStep step;
     private int nextRegister;
+    private int stepCount = -1;
 
     /**
      * @return the value
@@ -57,5 +58,19 @@ public class ResultTuple {
      */
     public void setNextRegister(int nextRegister) {
         this.nextRegister = nextRegister;
+    }
+
+    /**
+     * @return the stepCount
+     */
+    public int getStepCount() {
+        return stepCount;
+    }
+
+    /**
+     * @param stepCount the stepCount to set
+     */
+    public void setStepCount(int stepCount) {
+        this.stepCount = stepCount;
     }
 }

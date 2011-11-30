@@ -1,4 +1,4 @@
-// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2011-11-28 12:54:33
+// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2011-11-30 13:10:16
 
 
 package org.quorum.parser;
@@ -2002,7 +2002,7 @@ public class QuorumTreeWalker extends TreeParser {
 
 
                     			inCallStep = true;
-                    			builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+                    			builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
                     		
 
                     match(input, Token.DOWN, null); 
@@ -2136,7 +2136,7 @@ public class QuorumTreeWalker extends TreeParser {
                     		info.isSoloMethod = true;
                     		
                     		ResultTuple result =  stepFactory.addCallStep(info);
-                    		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL);		
+                    		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL, result.getStepCount());		
                     		
                     		temp = result.getNextRegister();
                     		
@@ -2150,7 +2150,7 @@ public class QuorumTreeWalker extends TreeParser {
 
 
                     		inCallStep = true;
-                    		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+                    		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
                     	
 
                     match(input, Token.DOWN, null); 
@@ -2269,7 +2269,7 @@ public class QuorumTreeWalker extends TreeParser {
                     		info.isSoloMethod = true;
                     		
                     		ResultTuple result =  stepFactory.addParentCallStep(info);
-                    		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL);
+                    		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL, result.getStepCount());
                     		
                     		temp = result.getNextRegister();
                     		inCallStep = false;
@@ -2284,7 +2284,7 @@ public class QuorumTreeWalker extends TreeParser {
 
 
                     		inCallStep = true;
-                    		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+                    		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
                     	
 
                     match(input, Token.DOWN, null); 
@@ -2419,7 +2419,7 @@ public class QuorumTreeWalker extends TreeParser {
                     		info.isSoloMethod = true;
                     		
                     		ResultTuple result =  stepFactory.addCallStep(info);
-                    		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL);
+                    		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL, result.getStepCount());
                     		temp = result.getNextRegister();
                     		
 
@@ -3024,7 +3024,7 @@ public class QuorumTreeWalker extends TreeParser {
                             symbol.addStatementFlagToCurrentFile(step.getBeginLine());
                             
             		stepFactory.addPrintStep(location, (root_expression14!=null?root_expression14.eval:null), (root_expression14!=null?root_expression14.step:null));
-            		builder.addStepLabel(OpcodeType.PRINT);
+            		builder.addStepLabel(OpcodeType.PRINT, -1);
             	
 
             }
@@ -3155,7 +3155,7 @@ public class QuorumTreeWalker extends TreeParser {
 
                                     symbol.addStatementFlagToCurrentFile(step.getBeginLine());
                     		stepFactory.addReturnStep(location, (root_expression16!=null?root_expression16.eval:null), (root_expression16!=null?root_expression16.step:null));
-                    		builder.addStepLabel(OpcodeType.RETURN);
+                    		builder.addStepLabel(OpcodeType.RETURN, -1);
                     	
 
                     }
@@ -3174,7 +3174,7 @@ public class QuorumTreeWalker extends TreeParser {
 
                                     symbol.addStatementFlagToCurrentFile(RETURN18.getLine());
                     		stepFactory.addReturnStep(location, null, null);
-                    		builder.addStepLabel(OpcodeType.RETURN);
+                    		builder.addStepLabel(OpcodeType.RETURN, -1);
                     	
 
                     }
@@ -3715,7 +3715,7 @@ public class QuorumTreeWalker extends TreeParser {
                     		symbol.addStatementFlagToCurrentFile((ID19!=null?ID19.getLine():0));
                     		
                     		stepFactory.addAssignmentStep(location, (ID19!=null?ID19.getText():null), (rhs!=null?rhs.eval:null), (rhs!=null?rhs.step:null), false, "", cd);
-                    		builder.addStepLabel(OpcodeType.ASSIGNMENT);
+                    		builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
                     	
 
                     }
@@ -3792,7 +3792,7 @@ public class QuorumTreeWalker extends TreeParser {
                     		}
                     		
                     		stepFactory.addAssignmentStep(location, (obj!=null?obj.type:null).getStaticKey(), (rhs!=null?rhs.eval:null), (rhs!=null?rhs.step:null), isLocal, (ID20!=null?ID20.getText():null), cd);
-                    		builder.addStepLabel(OpcodeType.ASSIGNMENT);
+                    		builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
                     	
 
                     }
@@ -3872,10 +3872,10 @@ public class QuorumTreeWalker extends TreeParser {
                     			stepFactory.addAssignmentStep(location, (name!=null?name.getText():null), (rhs!=null?rhs.eval:null), (rhs!=null?rhs.step:null), isLocal);
                     		}
                                     else { // are we are trying to instantiate an object?
-                                    	builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+                                    	builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
                                         	stepFactory.addAssignmentStep(location, (name!=null?name.getText():null), isLocal);
                                     }
-                                    builder.addStepLabel(OpcodeType.ASSIGNMENT);
+                                    builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
                     	
 
                     }
@@ -4341,7 +4341,7 @@ public class QuorumTreeWalker extends TreeParser {
                     		((loop_statement_scope)loop_statement_stack.peek()).cJumpStep.setLineInformation(((loop_statement_scope)loop_statement_stack.peek()).location);
                     		((loop_statement_scope)loop_statement_stack.peek()).cJumpStep.setLoopType(LoopType.FROM);
                     		builder.add(((loop_statement_scope)loop_statement_stack.peek()).cJumpStep);
-                    		builder.addStepLabel(OpcodeType.FROM);
+                    		builder.addStepLabel(OpcodeType.FROM, -1);
                     		builder.addMarker(((loop_statement_scope)loop_statement_stack.peek()).marker_bottom);
                     		
                     		symbol.enterNextBlock();
@@ -4384,7 +4384,7 @@ public class QuorumTreeWalker extends TreeParser {
                     		((loop_statement_scope)loop_statement_stack.peek()).cJumpStep.setLineInformation(((loop_statement_scope)loop_statement_stack.peek()).location);
                     		((loop_statement_scope)loop_statement_stack.peek()).cJumpStep.setLoopType(LoopType.TIMES);
                     		builder.add(((loop_statement_scope)loop_statement_stack.peek()).cJumpStep);
-                    		builder.addStepLabel(OpcodeType.TIMES);
+                    		builder.addStepLabel(OpcodeType.TIMES, -1);
                     		builder.addMarker(((loop_statement_scope)loop_statement_stack.peek()).marker_bottom);
                     		stepFactory.addBeginScopeStep(((loop_statement_scope)loop_statement_stack.peek()).marker_loop, "loop");
                     		symbol.enterNextBlock();
@@ -4464,7 +4464,7 @@ public class QuorumTreeWalker extends TreeParser {
                     				((loop_statement_scope)loop_statement_stack.peek()).uJumpStep.setLineInformation(((loop_statement_scope)loop_statement_stack.peek()).location);
                     				builder.add(((loop_statement_scope)loop_statement_stack.peek()).uJumpStep);
                     			}
-                    			builder.addStepLabel(OpcodeType.LOOP);
+                    			builder.addStepLabel(OpcodeType.LOOP, -1);
                     			builder.addMarker(((loop_statement_scope)loop_statement_stack.peek()).marker_bottom);
                     			stepFactory.addBeginScopeStep(((loop_statement_scope)loop_statement_stack.peek()).marker_loop, "loop");
                     			symbol.enterNextBlock();
@@ -4704,7 +4704,7 @@ public class QuorumTreeWalker extends TreeParser {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1458:2: ^( ROOT_EXPRESSION expression )
             {
 
-            		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+            		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
             	
             match(input,ROOT_EXPRESSION,FOLLOW_ROOT_EXPRESSION_in_root_expression1916); 
 
@@ -5313,7 +5313,7 @@ public class QuorumTreeWalker extends TreeParser {
                     		retval.eval = result.getValue();
                     		retval.step = result.getStep();
                     		if(fel!=null){
-                    			builder.addStepLabel(OpcodeType.METHOD_CALL);
+                    			builder.addStepLabel(OpcodeType.METHOD_CALL, result.getStepCount());
                     		}
                     		
                     		if (unsetFlag)
@@ -5528,7 +5528,7 @@ public class QuorumTreeWalker extends TreeParser {
                     		retval.step = result.getStep();
                     		
                     		if(fel!=null){
-                    			builder.addStepLabel(OpcodeType.METHOD_CALL);
+                    			builder.addStepLabel(OpcodeType.METHOD_CALL, result.getStepCount());
                     		}
                     		
                     		if (unsetFlag)
@@ -5657,7 +5657,7 @@ public class QuorumTreeWalker extends TreeParser {
                     		retval.step = result.getStep();
                     		
                     		if(fel!=null){
-                    			builder.addStepLabel(OpcodeType.METHOD_CALL);
+                    			builder.addStepLabel(OpcodeType.METHOD_CALL, result.getStepCount());
                     		}
                     		
                     		if (unsetFlag)

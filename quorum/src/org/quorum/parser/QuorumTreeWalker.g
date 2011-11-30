@@ -354,7 +354,7 @@ solo_method_call
 		^(SOLO_FUNCTION_CALL 
 		{
 			inCallStep = true;
-			builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+			builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
 		}
 		qualified_name (COLON ID)? LEFT_PAREN (
 		e = expression 
@@ -410,14 +410,14 @@ solo_method_call
 		info.isSoloMethod = true;
 		
 		ResultTuple result =  stepFactory.addCallStep(info);
-		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL);		
+		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL, result.getStepCount());		
 		
 		temp = result.getNextRegister();
 		}
 	|	^(SOLO_FUNCTION_CALL_PARENT 
 	{
 		inCallStep = true;
-		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
 	}
 	PARENT COLON qualified_name COLON ID LEFT_PAREN 
 		(e = expression
@@ -471,7 +471,7 @@ solo_method_call
 		info.isSoloMethod = true;
 		
 		ResultTuple result =  stepFactory.addParentCallStep(info);
-		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL);
+		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL, result.getStepCount());
 		
 		temp = result.getNextRegister();
 		inCallStep = false;
@@ -479,7 +479,7 @@ solo_method_call
 	|	^(SOLO_FUNCTION_CALL_THIS 
 	{
 		inCallStep = true;
-		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
 	}
 	ME COLON qualified_name (COLON ID)? LEFT_PAREN 
 		(e = expression 
@@ -532,7 +532,7 @@ solo_method_call
 		info.isSoloMethod = true;
 		
 		ResultTuple result =  stepFactory.addCallStep(info);
-		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL);
+		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL, result.getStepCount());
 		temp = result.getNextRegister();
 		}
 	;
@@ -836,7 +836,7 @@ print_statement
                 symbol.addStatementFlagToCurrentFile(step.getBeginLine());
                 
 		stepFactory.addPrintStep(location, $root_expression.eval, $root_expression.step);
-		builder.addStepLabel(OpcodeType.PRINT);
+		builder.addStepLabel(OpcodeType.PRINT, -1);
 	}
 	;
 
@@ -876,7 +876,7 @@ return_statement
 
                 symbol.addStatementFlagToCurrentFile(step.getBeginLine());
 		stepFactory.addReturnStep(location, $root_expression.eval, $root_expression.step);
-		builder.addStepLabel(OpcodeType.RETURN);
+		builder.addStepLabel(OpcodeType.RETURN, -1);
 	}
 	| NOW 
 	{
@@ -889,7 +889,7 @@ return_statement
 
                 symbol.addStatementFlagToCurrentFile($RETURN.getLine());
 		stepFactory.addReturnStep(location, null, null);
-		builder.addStepLabel(OpcodeType.RETURN);
+		builder.addStepLabel(OpcodeType.RETURN, -1);
 	}
 	)
 	;
@@ -1057,7 +1057,7 @@ assignment_statement
 		symbol.addStatementFlagToCurrentFile($ID.line);
 		
 		stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, false, "", cd);
-		builder.addStepLabel(OpcodeType.ASSIGNMENT);
+		builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
 	}
 	|	obj=qualified_name (COLON PARENT COLON parent=qualified_name)? COLON ID rhs=assign_right_hand_side
 	{
@@ -1088,7 +1088,7 @@ assignment_statement
 		}
 		
 		stepFactory.addAssignmentStep(location, $obj.type.getStaticKey(), $rhs.eval, $rhs.step, isLocal, $ID.text, cd);
-		builder.addStepLabel(OpcodeType.ASSIGNMENT);
+		builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
 	}
 	|	modifier = access_modifier? type = assignment_declaration name = ID rhs=assign_right_hand_side?
 	{
@@ -1113,10 +1113,10 @@ assignment_statement
 			stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, isLocal);
 		}
                 else { // are we are trying to instantiate an object?
-                	builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+                	builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
                     	stepFactory.addAssignmentStep(location, $ID.text, isLocal);
                 }
-                builder.addStepLabel(OpcodeType.ASSIGNMENT);
+                builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
 	}
 	;
 assign_right_hand_side returns[ExpressionValue eval, ExecutionStep step]
@@ -1322,7 +1322,7 @@ scope {
 		$loop_statement::cJumpStep.setLineInformation($loop_statement::location);
 		$loop_statement::cJumpStep.setLoopType(LoopType.FROM);
 		builder.add($loop_statement::cJumpStep);
-		builder.addStepLabel(OpcodeType.FROM);
+		builder.addStepLabel(OpcodeType.FROM, -1);
 		builder.addMarker($loop_statement::marker_bottom);
 		
 		symbol.enterNextBlock();
@@ -1345,7 +1345,7 @@ scope {
 		$loop_statement::cJumpStep.setLineInformation($loop_statement::location);
 		$loop_statement::cJumpStep.setLoopType(LoopType.TIMES);
 		builder.add($loop_statement::cJumpStep);
-		builder.addStepLabel(OpcodeType.TIMES);
+		builder.addStepLabel(OpcodeType.TIMES, -1);
 		builder.addMarker($loop_statement::marker_bottom);
 		stepFactory.addBeginScopeStep($loop_statement::marker_loop, "loop");
 		symbol.enterNextBlock();
@@ -1377,7 +1377,7 @@ scope {
 				$loop_statement::uJumpStep.setLineInformation($loop_statement::location);
 				builder.add($loop_statement::uJumpStep);
 			}
-			builder.addStepLabel(OpcodeType.LOOP);
+			builder.addStepLabel(OpcodeType.LOOP, -1);
 			builder.addMarker($loop_statement::marker_bottom);
 			stepFactory.addBeginScopeStep($loop_statement::marker_loop, "loop");
 			symbol.enterNextBlock();
@@ -1456,7 +1456,7 @@ selector returns[ScopeSelector scopeSel]
 root_expression returns[ExpressionValue eval, ExecutionStep step]
 	:	
 	{
-		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION);
+		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
 	}
 	^(ROOT_EXPRESSION expression) 
 	{
@@ -1649,7 +1649,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		$eval = result.getValue();
 		$step = result.getStep();
 		if(fel!=null){
-			builder.addStepLabel(OpcodeType.METHOD_CALL);
+			builder.addStepLabel(OpcodeType.METHOD_CALL, result.getStepCount());
 		}
 		
 		if (unsetFlag)
@@ -1785,7 +1785,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		$step = result.getStep();
 		
 		if(fel!=null){
-			builder.addStepLabel(OpcodeType.METHOD_CALL);
+			builder.addStepLabel(OpcodeType.METHOD_CALL, result.getStepCount());
 		}
 		
 		if (unsetFlag)
@@ -1872,7 +1872,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		$step = result.getStep();
 		
 		if(fel!=null){
-			builder.addStepLabel(OpcodeType.METHOD_CALL);
+			builder.addStepLabel(OpcodeType.METHOD_CALL, result.getStepCount());
 		}
 		
 		if (unsetFlag)

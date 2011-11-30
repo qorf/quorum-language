@@ -1494,7 +1494,7 @@ public class ArrayTester {
             fail();
         
         assert(r.getLine(0).equals("true"));
-        assert(r.getLine(1).equals("true"));
+        assert(r.getLine(1).equals("false"));
     }
     
 

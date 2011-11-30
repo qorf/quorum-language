@@ -56,7 +56,7 @@ public class IntermediateExecutionBuilder {
      * 
      * @param stepType 
      */
-    public void addStepLabel(OpcodeType stepType){
+    public void addStepLabel(OpcodeType stepType, int callStepPosition){
         int position = -1;
         OpcodeTracker tracker = null;
         if(getCurrentMethod() == null){
@@ -68,7 +68,12 @@ public class IntermediateExecutionBuilder {
             } else if (stepType.equals(OpcodeType.SOLO_METHOD_CALL)) {
                 // We need to go "over" the DataStackPopStep, otherwise, we
                 // skip the CallStep.
-                tracker.addBeginIndex(position - 2, stepType);
+                if(callStepPosition != -1 && position - 2 != callStepPosition){
+                    tracker.addBeginIndex(callStepPosition, stepType);
+                    tracker.addBeginIndex(position - 2, null);
+                }else{
+                    tracker.addBeginIndex(position - 2, stepType);
+                }
             }
             else{
                 tracker.addBeginIndex(position - 1, stepType);
@@ -82,7 +87,12 @@ public class IntermediateExecutionBuilder {
             } else if (stepType.equals(OpcodeType.SOLO_METHOD_CALL)) {
                 // We need to go "over" the DataStackPopStep, otherwise, we
                 // skip the CallStep.
-                tracker.addBeginIndex(position - 2, stepType);
+                if(callStepPosition != -1 && position - 2 != callStepPosition){
+                    tracker.addBeginIndex(callStepPosition, stepType);
+                    tracker.addBeginIndex(position - 2, null);
+                }else{
+                    tracker.addBeginIndex(position - 2, stepType);
+                }
             }
             else{
                 tracker.addBeginIndex(position - 1, stepType);

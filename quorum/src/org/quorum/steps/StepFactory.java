@@ -1172,6 +1172,14 @@ public class StepFactory {
 
             value.setRegister(info.register);
             tuple.setNextRegister(info.register);
+            
+            //hack for the bytecode so we can identify the location of the call step
+            if(machine.getBuilder().getCurrentMethod() == null){
+                tuple.setStepCount(machine.getBuilder().getCurrentClass().getStepCount());
+            }else{
+                tuple.setStepCount(machine.getBuilder().getCurrentMethod().getStepCount());
+            }
+            
             machine.getBuilder().add(step);
 
 
@@ -1803,7 +1811,7 @@ public class StepFactory {
         builder.add(conditionalStep);
         builder.addUnresolvedJumpStep(al, conditionalStep);
         
-        machine.getBuilder().addStepLabel(OpcodeType.IF);
+        machine.getBuilder().addStepLabel(OpcodeType.IF, -1);
     }
 
     /**
