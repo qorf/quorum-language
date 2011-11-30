@@ -1,5 +1,6 @@
 package org.quorum.tests.compiler.List;
 
+import org.quorum.execution.RunResult;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.tests.compiler.CompilerTestSuite;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
@@ -41,7 +42,7 @@ public class ListTester {
     }
 
     @Test
-    public void test_Add() {
+    public void test_Add_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Add.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -61,7 +62,21 @@ public class ListTester {
     }
 
     @Test
-    public void test_Append() {
+    public void test_Add_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Add.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("FirstPurpleDinosaurChairWhiteCouchLego"));
+    }
+    
+    @Test
+    public void test_Append_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Append.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -79,9 +94,22 @@ public class ListTester {
         }
         vm.stop();
     }
-
     @Test
-    public void test_Clear() {
+    public void test_Append_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Append.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("ThisIsATestIThinkMaybe"));
+    }
+    
+    @Test
+    public void test_Clear_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Clear.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -99,9 +127,22 @@ public class ListTester {
         }
         vm.stop();
     }
-
     @Test
-    public void test_Contains() {
+    public void test_Clear_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Clear.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("ThisIsATextLinkedList!"));
+    }
+    
+    @Test
+    public void test_Contains_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Contains.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -144,9 +185,28 @@ public class ListTester {
         }
         vm.stop();
     }
-
+    
     @Test
-    public void test_Copy() {
+    public void test_Contains_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Contains.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("false"));
+        assert(r.getLine(2).equals("true"));
+        assert(r.getLine(3).equals("false"));
+        assert(r.getLine(4).equals("true"));
+        assert(r.getLine(5).equals("false"));
+    }
+    
+    @Test
+    public void test_Copy_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Copy.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -166,9 +226,23 @@ public class ListTester {
         }
         vm.stop();
     }
-
+    
     @Test
-    public void test_Get() {
+    public void test_Copy_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Copy.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+    }
+    
+    @Test
+    public void test_Get_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Get.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -188,7 +262,21 @@ public class ListTester {
     }
 
     @Test
-    public void test_GetFirstIndexOf() {
+    public void test_Get_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Get.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("onefivenineoneeightthreeone"));
+    }
+    
+    @Test
+    public void test_GetFirstIndexOf_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "GetFirstIndexOf.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -208,7 +296,21 @@ public class ListTester {
     }
 
     @Test
-    public void test_GetLastIndexOf() {
+    public void test_GetFirstIndexOf_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "GetFirstIndexOf.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("0"));
+    }
+    
+    @Test
+    public void test_GetLastIndexOf_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "GetLastIndexOf.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -228,7 +330,21 @@ public class ListTester {
     }
 
     @Test
-    public void test_IsEmpty() {
+    public void test_GetLastIndexOf_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "GetLastIndexOf.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("4"));
+    }
+    
+    @Test
+    public void test_IsEmpty_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "IsEmpty.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -253,7 +369,22 @@ public class ListTester {
     }
 
     @Test
-    public void test_Set() {
+    public void test_IsEmpty_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "IsEmpty.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("false"));
+    }
+    
+    @Test
+    public void test_Set_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Set.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -271,9 +402,23 @@ public class ListTester {
         }
         vm.stop();
     }
-
+    
     @Test
-    public void test_Size() {
+    public void test_Set_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Set.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("eightthreenineone"));
+    }
+    
+    @Test
+    public void test_Size_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Size.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -293,7 +438,21 @@ public class ListTester {
     }
 
     @Test
-    public void test_Add2() {
+    public void test_Size_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Size.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("28"));
+    }
+    
+    @Test
+    public void test_Add2_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Add2.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -311,9 +470,23 @@ public class ListTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_Add2_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Add2.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("SystemMonsterComputerClock"));
+    }
 
     @Test
-    public void test_RemoveLast() {
+    public void test_RemoveLast_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "RemoveLast.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -333,7 +506,21 @@ public class ListTester {
     }
 
     @Test
-    public void test_RemoveFirst() {
+    public void test_RemoveLast_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "RemoveLast.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("OneFiveNineOneEightThree"));
+    }
+    
+    @Test
+    public void test_RemoveFirst_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "RemoveFirst.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -351,9 +538,23 @@ public class ListTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_RemoveFirst_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "RemoveFirst.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("FiveNineOneEightThreeOne"));
+    }
 
     @Test
-    public void test_RemoveAt() {
+    public void test_RemoveAt_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "RemoveAt.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -373,7 +574,21 @@ public class ListTester {
     }
 
     @Test
-    public void test_RemoveAll() {
+    public void test_RemoveAt_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "RemoveAt.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("FiveNineOneThree"));
+    }
+    
+    @Test
+    public void test_RemoveAll_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "RemoveAll.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -393,7 +608,21 @@ public class ListTester {
     }
 
     @Test
-    public void test_Remove() {
+    public void test_RemoveAll_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "RemoveAll.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("FiveNineOneThree"));
+    }
+    
+    @Test
+    public void test_Remove_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Remove.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -413,7 +642,21 @@ public class ListTester {
     }
 
     @Test
-    public void test_Iterator() {
+    public void test_Remove_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Remove.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("FiveNineOneEightThreeOne"));
+    }
+    
+    @Test
+    public void test_Iterator_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Iterator.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -433,7 +676,21 @@ public class ListTester {
     }
 
     @Test
-    public void test_GetFirst() {
+    public void test_Iterator_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Iterator.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("FirstPurpleDinosaurChairWhiteCouchLego"));
+    }
+    
+    @Test
+    public void test_GetFirst_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "GetFirst.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -453,7 +710,21 @@ public class ListTester {
     }
 
     @Test
-    public void test_GetLast() {
+    public void test_GetFirst_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "GetFirst.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("One"));
+    }
+    
+    @Test
+    public void test_GetLast_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "GetLast.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
             fail();
@@ -470,5 +741,19 @@ public class ListTester {
             }
         }
         vm.stop();
+    }
+    
+    @Test
+    public void test_GetLast_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "GetLast.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("Five"));
     }
 }
