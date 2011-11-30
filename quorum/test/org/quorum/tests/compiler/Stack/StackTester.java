@@ -1,5 +1,6 @@
 package org.quorum.tests.compiler.Stack;
 
+import org.quorum.execution.RunResult;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.tests.compiler.CompilerTestSuite;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
@@ -39,7 +40,7 @@ public class StackTester {
     }
 
     @Test
-    public void test_Add(){
+    public void test_Add_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS + "Add.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -53,9 +54,23 @@ public class StackTester {
         }
         vm.stop();
     }
+    
+    @Test
+    public void test_Add_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS + "Add.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("FiveFourThreeTwoOne"));
+    }
 
     @Test
-    public void test_Push(){
+    public void test_Push_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Push.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -69,8 +84,19 @@ public class StackTester {
         }
         vm.stop();
     }
+    
     @Test
-    public void test_Clear(){
+    public void test_Push_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Push.quorum"));
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("FiveFourThreeTwoOne"));
+    }
+    
+    @Test
+    public void test_Clear_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Empty.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -84,8 +110,23 @@ public class StackTester {
         }
         vm.stop();
     }
+    
     @Test
-    public void test_Contains(){
+    public void test_Clear_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Empty.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("FiveFourThreeTwoOne"));
+    }
+    
+    @Test
+    public void test_Contains_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Contains.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -114,8 +155,26 @@ public class StackTester {
         }
         vm.stop();
     }
+    
     @Test
-    public void test_Copy(){
+    public void test_Contains_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Contains.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("false"));
+        assert(r.getLine(2).equals("true"));
+        assert(r.getLine(3).equals("false"));
+    }
+    
+    @Test
+    public void test_Copy_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Copy.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -128,8 +187,23 @@ public class StackTester {
         }
         vm.stop();
     }
+    
     @Test
-    public void test_IsEmpty(){
+    public void test_Copy_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Copy.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("FiveFourThreeTwoOne"));
+    }
+    
+    @Test
+    public void test_IsEmpty_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"IsEmpty.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -148,8 +222,24 @@ public class StackTester {
         }
         vm.stop();
     }
+    
     @Test
-    public void test_Iterator(){
+    public void test_IsEmpty_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"IsEmpty.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+        assert(r.getLine(1).equals("true"));
+    }
+    
+    @Test
+    public void test_Iterator_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Iterator.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -163,8 +253,23 @@ public class StackTester {
         }
         vm.stop();
     }
+    
     @Test
-    public void test_Peek(){
+    public void test_Iterator_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Iterator.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("SevenSixFiveFourThreeTwoOne"));
+    }
+    
+    @Test
+    public void test_Peek_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Peek.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -178,8 +283,23 @@ public class StackTester {
         }
         vm.stop();
     }
+    
     @Test
-    public void test_RemoveAll(){
+    public void test_Peek_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Peek.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("Five"));
+    }
+    
+    @Test
+    public void test_RemoveAll_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"RemoveAll.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -193,8 +313,23 @@ public class StackTester {
         }
         vm.stop();
     }
+    
     @Test
-    public void test_Pop(){
+    public void test_RemoveAll_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"RemoveAll.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("SixFiveFourTwo"));
+    }
+    
+    @Test
+    public void test_Pop_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Pop.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -208,8 +343,23 @@ public class StackTester {
         }
         vm.stop();
     }
+    
     @Test
-    public void test_RemoveValue(){
+    public void test_Pop_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Pop.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("Six"));
+    }
+    
+    @Test
+    public void test_RemoveValue_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"RemoveValue.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -223,8 +373,23 @@ public class StackTester {
         }
         vm.stop();
     }
+    
     @Test
-    public void test_Size(){
+    public void test_RemoveValue_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"RemoveValue.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("FiveFourTwoOne"));
+    }
+    
+    @Test
+    public void test_Size_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Size.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -237,5 +402,19 @@ public class StackTester {
             fail();
         }
         vm.stop();
+    }
+    
+    @Test
+    public void test_Size_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.STACK + CompilerTestSuite.PASS +"Size.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
     }
 }
