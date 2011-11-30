@@ -72,11 +72,11 @@ public class Array {
         this.resizable = resizable;
     }
     
-    public boolean isEmpty() {
+    public boolean IsEmpty() {
         return array.isEmpty();
     }
 
-    public void empty() {
+    public void Empty() {
         array.clear();
     }
 }
