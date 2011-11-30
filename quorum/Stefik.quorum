@@ -17,9 +17,12 @@ java -cp "../../../dependencies/phonemic.jar:./" quorum.Stefik
 
 use Libraries.System.Console
 use Libraries.Containers.Array
+use Libraries.Sound.Speech
 
 class Stefik
     action Main
         Array<integer> array
+        Speech speech
+        speech:Say("Hello, World!")
     end
 end

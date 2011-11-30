@@ -141,7 +141,8 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
             jar.setMain(this.manifestMain);
             
             //TODO: setup any dependencies
-                        
+            jar.setDependencies(dependencies);            
+            
             //write the jar to disk
             jar.writeJarFile(this.buildFolder);
         }

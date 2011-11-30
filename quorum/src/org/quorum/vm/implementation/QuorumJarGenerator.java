@@ -9,9 +9,13 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -33,7 +37,8 @@ public class QuorumJarGenerator {
     private final String CREATED_BY = "Quorum 1.0";
     public ArrayList<File> files;
     public File buildDirectory;
-    
+    private Collection<File> dependencies;
+    private final String DEPENDENCIES_FOLDER = "libraries";
     
     public QuorumJarGenerator() {
         files = new ArrayList<File>();
@@ -63,6 +68,54 @@ public class QuorumJarGenerator {
                 Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
             }
             
+        }
+        
+        //now write dependencies to disk
+        File dependencyFolder = new File(buildDirectory + "/" + DEPENDENCIES_FOLDER);
+        if(!dependencyFolder.isDirectory()) {
+            dependencyFolder.mkdir();
+        }
+        
+        File writeFolder = new File(writeLocation.getParent() + "/" + DEPENDENCIES_FOLDER);
+        if (!writeFolder.exists()) {
+            writeFolder.mkdir();
+        }
+        try {
+            Iterator<File> it = dependencies.iterator();
+            while(it.hasNext()) {
+                File file = it.next();
+                File dep = new File(writeFolder  + "/" + file.getName());
+                copyFile(file, dep);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void copyFile(File file, File to) throws IOException {
+        if(file.isFile()) { //copy it to the libraries folder
+            to.createNewFile();
+            FileReader reader = new FileReader(file);
+            FileWriter writer = new FileWriter(to);
+
+            int value = reader.read();
+            while(value != -1) {
+                writer.write(value);
+                value = reader.read();
+            }
+            reader.close();
+            writer.close();
+        }
+        else { //copy the whole folder
+            if (!to.exists()) {
+                to.mkdir();
+            }
+            
+            String[] children = file.list();
+            for (int i = 0; i < children.length; i++) {
+                copyFile(new File(file, children[i]),
+                        new File(to, children[i]));
+            }
         }
     }
     
@@ -124,7 +177,19 @@ public class QuorumJarGenerator {
         String version = Attributes.Name.MANIFEST_VERSION + ": 1.0\n";
         String created = "Created-By: " + CREATED_BY + "\n";
         String mainClass = Attributes.Name.MAIN_CLASS + ": " + getMain() + "\n";
-        String total = version + created + mainClass + "\n";
+        
+        String libs = "";
+        if(dependencies != null) {
+            Iterator<File> iterator = dependencies.iterator();
+            while(iterator.hasNext()) {
+                File file = iterator.next();
+                if(file.isFile()) {
+                    libs += Attributes.Name.CLASS_PATH + ": " + DEPENDENCIES_FOLDER + 
+                            "/" + file.getName() + "\n";
+                }
+            }
+        }
+        String total = version + created + libs + mainClass + "\n";
         try {
             InputStream stream = new ByteArrayInputStream(total.getBytes(ENCODING));
             manifest = new Manifest();
@@ -133,6 +198,16 @@ public class QuorumJarGenerator {
             Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }
         
+    }
+    
+    /**
+     * Passes a collection of file dependencies. If an individual element is
+     * a file, a dependency is created. If it is a folder, it is ignored.
+     * 
+     * @param libs 
+     */
+    public void setDependencies(Collection<File> libs) {
+        dependencies = libs;
     }
     
     /**
