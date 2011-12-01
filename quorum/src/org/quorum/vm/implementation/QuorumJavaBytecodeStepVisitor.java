@@ -1945,6 +1945,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     }
 
     @Override
+    public void visit(BeginDetectScopeStep step) {
+        
+    }
+    
+    @Override
     public void visit(BeginScopeStep step) {
     }
 

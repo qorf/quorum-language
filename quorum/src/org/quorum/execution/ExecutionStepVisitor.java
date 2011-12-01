@@ -32,6 +32,7 @@ public interface ExecutionStepVisitor {
     public void visit(AssignmentTextStep step);
     public void visit(AutoBoxCreateStep step);
     public void visit(BeginCheckScopeStep step);
+    public void visit(BeginDetectScopeStep step);
     public void visit(BeginScopeStep step);
     public void visit(BinaryAddBooleanTextStep step);
     public void visit(BinaryAddIntegerNumberStep step);
