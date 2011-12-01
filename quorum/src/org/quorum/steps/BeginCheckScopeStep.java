@@ -18,6 +18,7 @@ import org.quorum.execution.ExecutionStepVisitor;
 public class BeginCheckScopeStep extends IntermediateStep{
 
     private String blockName;
+    private CheckLandingPads landingPads;
 
     @Override
     public void execute() {
@@ -50,5 +51,19 @@ public class BeginCheckScopeStep extends IntermediateStep{
     @Override
     public void visit(ExecutionStepVisitor visitor) {
         visitor.visit(this);
+    }
+
+    /**
+     * @return the landingPads
+     */
+    public CheckLandingPads getLandingPads() {
+        return landingPads;
+    }
+
+    /**
+     * @param landingPads the landingPads to set
+     */
+    public void setLandingPads(CheckLandingPads landingPads) {
+        this.landingPads = landingPads;
     }
 }

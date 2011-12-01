@@ -1,5 +1,6 @@
 package org.quorum.steps;
 
+import java.util.Collection;
 import java.util.HashMap;
 import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.MethodDescriptor;
@@ -50,6 +51,14 @@ public class CheckLandingPads {
         }else{
             return null;
         }
+    }
+    
+    /**
+     * Get all of the detects
+     * @return 
+     */
+    public Collection<DetectInfo>  getAllDetects(){
+        return landingPads.values();
     }
 
     /**

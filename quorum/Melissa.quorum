@@ -1,17 +1,12 @@
-use Libraries.Containers.Array
+use Libraries.Containers.List
 class Melissa
 
     action Main
-        Array<integer> a
-        a:SetAutoResize(false)
-        boolean result1 = a:IsEmpty()
-        a:Add(12)
-        a:Add(13)
-        a:Add(14)
-
-
-        boolean result2 = a:IsEmpty()
-        print result1
-        print result2
+       check
+            print "hello"
+       end
+       detect e
+            print "goodbye"
+       end
     end
 end

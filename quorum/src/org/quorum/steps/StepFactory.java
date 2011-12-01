@@ -1979,7 +1979,7 @@ public class StepFactory {
         this.machine.addCheckLandingPads(info.checkStartLabel, checkLandingPads);
 
         //start check and enter the check block
-        addBeginCheckScopeStep(info.checkStartLabel);
+        addBeginCheckScopeStep(info.checkStartLabel, checkLandingPads);
         
         symbolTable.getControlFlow().checkStart();
         symbolTable.enterNextBlock();
@@ -1991,9 +1991,10 @@ public class StepFactory {
      *
      * @param info
      */
-    public void addBeginCheckScopeStep(String name){
+    public void addBeginCheckScopeStep(String name, CheckLandingPads landingPads){
         BeginCheckScopeStep step = new BeginCheckScopeStep();
         step.setBlockName(name);
+        step.setLandingPads(landingPads);
 
         machine.getBuilder().add(step);
     }

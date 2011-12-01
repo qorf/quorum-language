@@ -6,7 +6,9 @@ package org.quorum.vm.implementation;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.Stack;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -1357,6 +1359,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //
 //        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
 //                && !"Libraries.Language.Support.CompareResult".equals(staticKey)
+////                && !"Libraries.Containers.List".equals(staticKey)
+////                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
 //                && !"Libraries.Containers.Array".equals(staticKey)
 //                && !"Libraries.Containers.Blueprints.Copyable".equals(staticKey)
 //                && !"Libraries.Containers.Blueprints.Indexed".equals(staticKey)
@@ -1761,7 +1765,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AlwaysEndStep step) {
-        int a = 5;
+        LabelStackValue popLabel = stack.popLabel();
+        methodVisitor.visitLabel(popLabel.getLabel());
     }
 
     @Override
@@ -1941,12 +1946,46 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BeginCheckScopeStep step) {
-        int a = 5;
+        Label label0 = new Label();
+        Label label1 = new Label();
+        
+        
+        Stack<LabelStackValue> tempStack = new Stack<LabelStackValue>();
+        Collection<DetectInfo> allDetects = step.getLandingPads().getAllDetects();
+        Iterator<DetectInfo> iterator = allDetects.iterator();
+        //get all of the blocks associated with the try (all detects and always blocks).
+        while(iterator.hasNext()){
+            DetectInfo next = iterator.next();
+            
+            Label label2 = new Label();
+            methodVisitor.visitTryCatchBlock(label0, label1, label2, "java/lang/Exception");
+            tempStack.push(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, label2));
+        }
+        
+        //reverse the order
+        while(!tempStack.isEmpty()){
+            stack.pushLabel(tempStack.pop());
+        }
+        
+        stack.pushLabel(new LabelStackValue(LabelTypeEnum.CHECK, GOTO, label1));
+        //visit the try label
+        methodVisitor.visitLabel(label0);
     }
 
     @Override
     public void visit(BeginDetectScopeStep step) {
-        
+        LabelStackValue popLabel0 = stack.popLabel();
+        LabelStackValue tempLabel = popLabel0;
+        if(popLabel0.getJumpType() == GOTO){
+            methodVisitor.visitJumpInsn(GOTO, popLabel0.getLabel());
+            popLabel0 = stack.popLabel();
+        }else{
+            Label label0 = new Label();
+            methodVisitor.visitJumpInsn(GOTO, label0);
+            tempLabel = new LabelStackValue(LabelTypeEnum.DETECT, GOTO, label0);
+        }
+        methodVisitor.visitLabel(popLabel0.getLabel());
+        stack.pushLabel(tempLabel);
     }
     
     @Override
@@ -2764,7 +2803,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(DataStackPopStep step) {
-        int a = 5;
     }
 
     @Override
@@ -2823,6 +2861,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitJumpInsn(GOTO, label0);
                 //visit the end of the loop label.
                 methodVisitor.visitLabel(label1);
+            } else if (label.getLabelType().equals(LabelTypeEnum.CHECK)) {//end of the loop will mark the goto and visit the end label.
+                stack.popLabel();
+                
+                Label label1 = label.getLabel();
+                methodVisitor.visitLabel(label1);
             }
         }
         
@@ -2858,7 +2901,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(JumpStep step) {
         //if the stack has a label
-        if (!stack.isEmptyLabel() && step.getType().equals(JumpType.LOOP)) {
+        if (step.getType() != null && !stack.isEmptyLabel() && step.getType().equals(JumpType.LOOP)) {
             LabelStackValue label = stack.peekLabel();
             //if the label is for a repeat times or repeat from process all the labels here
             if (label.getLabelType().equals(LabelTypeEnum.FROM) || label.getLabelType().equals(LabelTypeEnum.TIMES)) {

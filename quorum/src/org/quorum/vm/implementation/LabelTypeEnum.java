@@ -9,5 +9,5 @@ package org.quorum.vm.implementation;
  * @author melissa
  */
 public enum LabelTypeEnum {
-    IF, LOOP, CHECK, FROM, TIMES;
+    IF, LOOP, CHECK, FROM, TIMES, DETECT, ALWAYS;
 }
