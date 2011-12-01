@@ -4,6 +4,7 @@
  */
 package org.quorum.tests.compiler.Table;
 
+import org.quorum.execution.RunResult;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -42,7 +43,7 @@ public class TableTester {
     }
 
     @Test
-    public void test_Add_pass(){
+    public void test_Add_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "Add.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -70,7 +71,24 @@ public class TableTester {
     }
     
     @Test
-    public void test_Set_pass(){
+    public void test_Add_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "Add.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("4"));
+        assert(r.getLine(1).equals("3"));
+        assert(r.getLine(2).equals("2"));
+        assert(r.getLine(3).equals("1"));
+    }
+    
+    @Test
+    public void test_Set_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "Set.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -98,7 +116,24 @@ public class TableTester {
     }
     
     @Test
-    public void test_Get_pass(){
+    public void test_Set_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "Set.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("2"));
+        assert(r.getLine(2).equals("3"));
+        assert(r.getLine(3).equals("4"));
+    }
+    
+    @Test
+    public void test_Get_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "Get.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -126,7 +161,24 @@ public class TableTester {
     }
 
     @Test
-    public void test_GetMaxNumberOfColumns_pass(){
+    public void test_Get_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "Get.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("2"));
+        assert(r.getLine(2).equals("3"));
+        assert(r.getLine(3).equals("4"));
+    }
+
+    @Test
+    public void test_GetMaxNumberOfColumns_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetMaxNumberOfColumns.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -148,7 +200,21 @@ public class TableTester {
     }
     
     @Test
-    public void test_GetMaxNumberOfRows_pass(){
+    public void test_GetMaxNumberOfColumns_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetMaxNumberOfColumns.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("10"));
+    }
+    
+    @Test
+    public void test_GetMaxNumberOfRows_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetMaxNumberOfRows.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -170,7 +236,21 @@ public class TableTester {
     }
     
     @Test
-    public void test_SetAutoResize_pass(){
+    public void test_GetMaxNumberOfRows_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetMaxNumberOfRows.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("10"));
+    }
+    
+    @Test
+    public void test_SetAutoResize_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "SetAutoResize.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -191,7 +271,21 @@ public class TableTester {
     }
     
     @Test
-    public void test_GetAutoResize_pass(){
+    public void test_SetAutoResize_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "SetAutoResize.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+    }
+    
+    @Test
+    public void test_GetAutoResize_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetAutoResize.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -212,7 +306,21 @@ public class TableTester {
     }
     
     @Test
-    public void test_GetSizeOfRow_pass(){
+    public void test_GetAutoResize_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetAutoResize.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+    }
+    
+    @Test
+    public void test_GetSizeOfRow_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetSizeOfRow.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -233,7 +341,21 @@ public class TableTester {
     }
     
     @Test
-    public void test_GetNumberOfRows_pass(){
+    public void test_GetSizeOfRow_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetSizeOfRow.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("4"));
+    }
+    
+    @Test
+    public void test_GetNumberOfRows_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetNumberOfRows.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -254,7 +376,21 @@ public class TableTester {
     }
     
     @Test
-    public void test_SetSize_pass(){
+    public void test_GetNumberOfRows_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetNumberOfRows.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+    }
+    
+    @Test
+    public void test_SetSize_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "SetSize.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -281,7 +417,24 @@ public class TableTester {
     }
     
     @Test
-    public void test_SetMaxSize_pass(){
+    public void test_SetSize_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "SetSize.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("3"));
+        assert(r.getLine(1).equals("5"));
+        assert(r.getLine(2).equals("5"));
+        assert(r.getLine(3).equals("5"));
+    }
+    
+    @Test
+    public void test_SetMaxSize_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "SetMaxSize.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -304,7 +457,22 @@ public class TableTester {
     } 
     
     @Test
-    public void test_AddRow_pass(){
+    public void test_SetMaxSize_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "SetMaxSize.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+        assert(r.getLine(1).equals("3"));
+    } 
+    
+    @Test
+    public void test_AddRow_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "AddRow.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -332,7 +500,24 @@ public class TableTester {
     }
     
     @Test
-    public void test_GetRow_pass(){
+    public void test_AddRow_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "AddRow.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("2"));
+        assert(r.getLine(2).equals("3"));
+        assert(r.getLine(3).equals("4"));
+    }
+    
+    @Test
+    public void test_GetRow_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetRow.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -360,7 +545,24 @@ public class TableTester {
     }
     
     @Test
-    public void test_AddToEndOfRow_pass(){
+    public void test_GetRow_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetRow.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("2"));
+        assert(r.getLine(2).equals("3"));
+        assert(r.getLine(3).equals("4"));
+    }
+    
+    @Test
+    public void test_AddToEndOfRow_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "AddToEndOfRow.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -388,7 +590,24 @@ public class TableTester {
     }
     
     @Test
-    public void test_AddToFrontOfRow_pass(){
+    public void test_AddToEndOfRow_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "AddToEndOfRow.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("2"));
+        assert(r.getLine(2).equals("3"));
+        assert(r.getLine(3).equals("4"));
+    }
+    
+    @Test
+    public void test_AddToFrontOfRow_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "AddToFrontOfRow.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -416,7 +635,24 @@ public class TableTester {
     }
     
     @Test
-    public void test_IsEmpty_pass(){
+    public void test_AddToFrontOfRow_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "AddToFrontOfRow.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("2"));
+        assert(r.getLine(2).equals("3"));
+        assert(r.getLine(3).equals("4"));
+    }
+    
+    @Test
+    public void test_IsEmpty_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "IsEmpty.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -439,7 +675,22 @@ public class TableTester {
     } 
     
     @Test
-    public void test_Empty_pass(){
+    public void test_IsEmpty_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "IsEmpty.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("false"));
+    }     
+    
+    @Test
+    public void test_Empty_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "Empty.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -460,8 +711,24 @@ public class TableTester {
         }
         vm.stop();
     }
+    
     @Test
-    public void test_RemoveAt_pass(){
+    public void test_Empty_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "Empty.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("false"));
+    }    
+    
+    @Test
+    public void test_RemoveAt_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "RemoveAt.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -489,7 +756,24 @@ public class TableTester {
     }
     
     @Test
-    public void test_RemoveFromFrontOfRow_pass(){
+    public void test_RemoveAt_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "RemoveAt.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("2"));
+        assert(r.getLine(2).equals("3"));
+        assert(r.getLine(3).equals("4"));
+    }    
+    
+    @Test
+    public void test_RemoveFromFrontOfRow_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "RemoveFromFrontOfRow.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -517,7 +801,24 @@ public class TableTester {
     }
     
     @Test
-    public void test_RemoveFromEndOfRow_pass(){
+    public void test_RemoveFromFrontOfRow_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "RemoveFromFrontOfRow.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("2"));
+        assert(r.getLine(2).equals("3"));
+        assert(r.getLine(3).equals("4"));
+    }    
+    
+    @Test
+    public void test_RemoveFromEndOfRow_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "RemoveFromEndOfRow.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -545,7 +846,24 @@ public class TableTester {
     }
     
     @Test
-    public void test_Remove_pass(){
+    public void test_RemoveFromEndOfRow_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "RemoveFromEndOfRow.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("4"));
+        assert(r.getLine(1).equals("3"));
+        assert(r.getLine(2).equals("2"));
+        assert(r.getLine(3).equals("1"));
+    }    
+    
+    @Test
+    public void test_Remove_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "Remove.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -573,7 +891,24 @@ public class TableTester {
     }
         
     @Test
-    public void test_RemoveAll_pass(){
+    public void test_Remove_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "Remove.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+        assert(r.getLine(1).equals("1"));
+        assert(r.getLine(2).equals("4"));
+        assert(r.getLine(3).equals("2"));
+    }    
+    
+    @Test
+    public void test_RemoveAll_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "RemoveAll.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -599,7 +934,23 @@ public class TableTester {
     }
     
     @Test
-    public void test_Has_pass(){
+    public void test_RemoveAll_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "RemoveAll.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+        assert(r.getLine(1).equals("1"));
+        assert(r.getLine(2).equals("4"));
+    }    
+    
+    @Test
+    public void test_Has_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "Has.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -623,7 +974,22 @@ public class TableTester {
     }
     
     @Test
-    public void test_GetRowIterator_pass(){
+    public void test_Has_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "Has.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("false"));
+    }
+    
+    @Test
+    public void test_GetRowIterator_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetRowIterator.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -651,7 +1017,24 @@ public class TableTester {
     }
     
     @Test
-    public void test_GetFromFrontOfRow_pass(){
+    public void test_GetRowIterator_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetRowIterator.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("2"));
+        assert(r.getLine(2).equals("3"));
+        assert(r.getLine(3).equals("4"));
+    }
+    
+    @Test
+    public void test_GetFromFrontOfRow_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetFromFrontOfRow.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -679,7 +1062,24 @@ public class TableTester {
     }
     
     @Test
-    public void test_GetFromEndOfRow_pass(){
+    public void test_GetFromFrontOfRow_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetFromFrontOfRow.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("1"));
+        assert(r.getLine(2).equals("1"));
+        assert(r.getLine(3).equals("1"));
+    }
+    
+    @Test
+    public void test_GetFromEndOfRow_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetFromEndOfRow.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -707,7 +1107,24 @@ public class TableTester {
     }
     
     @Test
-    public void test_Copy_pass(){
+    public void test_GetFromEndOfRow_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "GetFromEndOfRow.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("4"));
+        assert(r.getLine(1).equals("4"));
+        assert(r.getLine(2).equals("4"));
+        assert(r.getLine(3).equals("4"));
+    }
+    
+    @Test
+    public void test_Copy_pass_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "Copy.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -732,5 +1149,22 @@ public class TableTester {
             }
         }
         vm.stop();
+    }
+    
+    @Test
+    public void test_Copy_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TABLE + CompilerTestSuite.PASS + "Copy.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("2"));
+        assert(r.getLine(2).equals("3"));
+        assert(r.getLine(3).equals("4"));
     }
 }
