@@ -13,6 +13,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -95,16 +96,16 @@ public class QuorumJarGenerator {
     private void copyFile(File file, File to) throws IOException {
         if(file.isFile()) { //copy it to the libraries folder
             to.createNewFile();
-            FileReader reader = new FileReader(file);
-            FileWriter writer = new FileWriter(to);
+            InputStream in = new FileInputStream(file);
+            OutputStream out = new FileOutputStream(to);
 
-            int value = reader.read();
-            while(value != -1) {
-                writer.write(value);
-                value = reader.read();
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
             }
-            reader.close();
-            writer.close();
+            in.close();
+            out.close();
         }
         else { //copy the whole folder
             if (!to.exists()) {
@@ -185,10 +186,14 @@ public class QuorumJarGenerator {
                 File file = iterator.next();
                 if(file.isFile()) {
                     libs += Attributes.Name.CLASS_PATH + ": " + DEPENDENCIES_FOLDER + 
-                            "/" + file.getName() + "\n";
+                            "/" + file.getName();
+                   // libs += Attributes.Name.CLASS_PATH + ": "+
+                   //         file.getAbsolutePath();
                 }
             }
         }
+        
+        libs += "\n";
         String total = version + created + libs + mainClass + "\n";
         try {
             InputStream stream = new ByteArrayInputStream(total.getBytes(ENCODING));
