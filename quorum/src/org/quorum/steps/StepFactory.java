@@ -1999,9 +1999,10 @@ public class StepFactory {
         machine.getBuilder().add(step);
     }
 
-    public void addBeginDetectScopeStep(String name){
+    public void addBeginDetectScopeStep(String name, boolean isFirstDetect){
         BeginDetectScopeStep step = new BeginDetectScopeStep();
         step.setBlockName(name);
+        step.setFirstDetect(isFirstDetect);
 
         machine.getBuilder().add(step);
     }
@@ -2069,6 +2070,7 @@ public class StepFactory {
      * this is in comparison to a particular check statement.
      */
     public void startDetect(ExceptionInfo info, int detectNum) {
+        boolean firstDetect = false;
         //figure out which exception types are caught here
         Iterator<DetectParameter> iterator = info.detectParameters.iterator();
         while(iterator.hasNext()){
@@ -2098,11 +2100,14 @@ public class StepFactory {
             //the final build will need to know how to catch for each and every type
             CheckLandingPads landingPads = this.machine.getCheckLandingPads(info.checkStartLabel);
             if(landingPads != null){
+                if(landingPads.getAllDetects().isEmpty())
+                    firstDetect = true;
+                    
                 landingPads.addLandingPad(paramName, detectInfo);
             }
         }
 
-        this.addBeginDetectScopeStep(info.detectStartLabels.get(0));
+        this.addBeginDetectScopeStep(info.detectStartLabels.get(0), firstDetect);
         SymbolTable symbolTable = this.machine.getSymbolTable();
         symbolTable.getControlFlow().detectStart();
         symbolTable.enterNextBlock();

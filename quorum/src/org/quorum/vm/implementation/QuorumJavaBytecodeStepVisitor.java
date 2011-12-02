@@ -1957,9 +1957,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         while(iterator.hasNext()){
             DetectInfo next = iterator.next();
             
-            Label label2 = new Label();
-            methodVisitor.visitTryCatchBlock(label0, label1, label2, "java/lang/Exception");
-            tempStack.push(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, label2));
+            if(next.getDetectParameter().errorType != null){
+                Label label2 = new Label();
+                methodVisitor.visitTryCatchBlock(label0, label1, label2, "java/lang/Exception");
+                tempStack.push(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, label2));
+            }
         }
         
         //reverse the order
@@ -1976,7 +1978,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(BeginDetectScopeStep step) {
         LabelStackValue popLabel0 = stack.popLabel();
         LabelStackValue tempLabel = popLabel0;
-        if(popLabel0.getJumpType() == GOTO){
+        if(!step.isFirstDetect()){
             methodVisitor.visitJumpInsn(GOTO, popLabel0.getLabel());
             popLabel0 = stack.popLabel();
         }else{
@@ -1985,6 +1987,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             tempLabel = new LabelStackValue(LabelTypeEnum.DETECT, GOTO, label0);
         }
         methodVisitor.visitLabel(popLabel0.getLabel());
+        
+        //store the error
+        //this will have to change for special cases where more than one error is
+        //caught in one spot.
+        methodVisitor.visitVarInsn(ASTORE, 1);
         stack.pushLabel(tempLabel);
     }
     

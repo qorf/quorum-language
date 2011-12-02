@@ -17,6 +17,7 @@ import org.quorum.execution.RuntimeScope;
  */
 public class BeginDetectScopeStep extends BeginScopeStep {
     private ExpressionValue variable;
+    private boolean isFirstDetect = true;
     @Override
     public void execute() {
         DataEnvironment de = vm.getDataEnvironment();
@@ -47,5 +48,13 @@ public class BeginDetectScopeStep extends BeginScopeStep {
     @Override
     public void visit(ExecutionStepVisitor visitor) {
         visitor.visit(this);
+    }
+
+    public boolean isFirstDetect() {
+        return isFirstDetect;
+    }
+    
+    public void setFirstDetect(boolean isFirst){
+        isFirstDetect = isFirst;
     }
 }
