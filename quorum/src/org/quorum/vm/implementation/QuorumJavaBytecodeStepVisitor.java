@@ -1765,8 +1765,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AlwaysEndStep step) {
+        //TODO: Fix the aload and throw so it's not hard coded to work only for always
+        //should also work when always is not used.
         methodVisitor.visitVarInsn(ALOAD, 2);
         methodVisitor.visitInsn(ATHROW);
+        
+        //check detect construct is now ending
         methodVisitor.visitLabel(stack.popCheckDetect().getConstructEnd());
     }
 
@@ -2007,7 +2011,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitLabel(desc.getNextDetectStartLabel());
         
         //store the error
-        //this will have to change for special cases where more than one error is
+        //TODO: this will have to change for special cases where more than one error is
         //caught in one spot.
         methodVisitor.visitVarInsn(ASTORE, 1);
         //stack.pushLabel(tempLabel);
@@ -2021,9 +2025,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if(step.getBlockTag().equals("always")){
             CheckDetectDescriptor desc = stack.peekCheckDetect();
 
-            //Insert 'always' code here *if it's labeled as always*,
-            // make sure to include 'athrow'.
-            //Insert 'always' code here.
+            //Insert 'always' code here *if it's labeled as always*
             int alwaysStartPosition = desc.getAlwaysStartPosition()+2;
             Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
             while(alwaysStartPosition != -1 && !(steps.get(alwaysStartPosition) instanceof AlwaysEndStep)){
@@ -2036,6 +2038,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
 
             methodVisitor.visitLabel(desc.getAlwaysStart());
+            
+            //TODO: this astore needs to be fixed and not hardcoded.
             methodVisitor.visitVarInsn(ASTORE, 2);
             methodVisitor.visitLabel(desc.getAlwaysEnd());
         }
