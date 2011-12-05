@@ -1357,28 +1357,28 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-//        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
-//                && !"Libraries.Language.Support.CompareResult".equals(staticKey)
-////                && !"Libraries.Containers.List".equals(staticKey)
-////                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
-//                && !"Libraries.Containers.Array".equals(staticKey)
-//                && !"Libraries.Containers.Blueprints.Copyable".equals(staticKey)
-//                && !"Libraries.Containers.Blueprints.Indexed".equals(staticKey)
-//                && !"Libraries.Containers.Blueprints.Container".equals(staticKey)
-//                && !"Libraries.Containers.Blueprints.Addable".equals(staticKey)
-//                && !"Libraries.Containers.Blueprints.Iterative".equals(staticKey)
+        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
+                && !"Libraries.Language.Support.CompareResult".equals(staticKey)
+//                && !"Libraries.Containers.List".equals(staticKey)
 //                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
-//                && !"Libraries.Containers.Blueprints.ArrayBlueprint".equals(staticKey)
-//                && !"Libraries.Containers.Blueprints.Iterator".equals(staticKey)
-//                && !"Libraries.Containers.Support.ArrayIterator".equals(staticKey)
-//                && !"Libraries.Language.Types.Integer".equals(staticKey)
-//                && !"Libraries.Language.Types.Number".equals(staticKey)
-//                && !"Libraries.Language.Types.Text".equals(staticKey)
-//                && !"Libraries.Language.Types.Boolean".equals(staticKey)
-////                && !"Libraries.Language.Errors.Error".equals(staticKey)
-//                && !".StefikGrand".equals(staticKey)) {
-//            return;
-//        }
+                && !"Libraries.Containers.Array".equals(staticKey)
+                && !"Libraries.Containers.Blueprints.Copyable".equals(staticKey)
+                && !"Libraries.Containers.Blueprints.Indexed".equals(staticKey)
+                && !"Libraries.Containers.Blueprints.Container".equals(staticKey)
+                && !"Libraries.Containers.Blueprints.Addable".equals(staticKey)
+                && !"Libraries.Containers.Blueprints.Iterative".equals(staticKey)
+                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
+                && !"Libraries.Containers.Blueprints.ArrayBlueprint".equals(staticKey)
+                && !"Libraries.Containers.Blueprints.Iterator".equals(staticKey)
+                && !"Libraries.Containers.Support.ArrayIterator".equals(staticKey)
+                && !"Libraries.Language.Types.Integer".equals(staticKey)
+                && !"Libraries.Language.Types.Number".equals(staticKey)
+                && !"Libraries.Language.Types.Text".equals(staticKey)
+                && !"Libraries.Language.Types.Boolean".equals(staticKey)
+//                && !"Libraries.Language.Errors.Error".equals(staticKey)
+                && !".StefikGrand".equals(staticKey)) {
+            return;
+        }
         
         
         
@@ -1948,28 +1948,29 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(BeginCheckScopeStep step) {
         CheckDetectDescriptor desc = new CheckDetectDescriptor();
         stack.pushCheckDetect(desc);
-        
-        Stack<LabelStackValue> tempStack = new Stack<LabelStackValue>();
-        Collection<DetectInfo> allDetects = step.getLandingPads().getAllDetects();
-        Iterator<DetectInfo> iterator = allDetects.iterator();
+        //Stack<LabelStackValue> tempStack = new Stack<LabelStackValue>();
+        ArrayList<DetectInfo> allDetects = step.getLandingPads().getAllDetects();
         //get all of the blocks associated with the try (all detects and always blocks).
-        while(iterator.hasNext()){
-            DetectInfo next = iterator.next();
+        for(int i = 0; i < allDetects.size(); i++){
+            DetectInfo next = allDetects.get(i);
             
+            //if this is a detect parameter build the visit try catch block calls
             if(next.getDetectParameter().errorType != null){
                 methodVisitor.visitTryCatchBlock(desc.getCheckStart(), desc.getCheckEnd(), desc.pushDetectStartLabel(), "java/lang/Exception");
+                //if there is an always and this is the first detect or
+                //if it's not the first detect generate the try catch block calls
+                if(step.getLandingPads().hasAlwaysBlock() && i == 0){
+                    desc.setHasAlways(true);
+                    methodVisitor.visitTryCatchBlock(desc.getCheckStart(), desc.getCheckEnd(), desc.getAlwaysStart(), null); // null means "catch any type"
+                    methodVisitor.visitTryCatchBlock(desc.peekDetectStartLabel(), desc.pushDetectEndLabel(), desc.getAlwaysStart(), null);
+                }else if(step.getLandingPads().hasAlwaysBlock()){
+                    methodVisitor.visitTryCatchBlock(desc.peekDetectStartLabel(), desc.pushDetectEndLabel(), desc.getAlwaysStart(), null);
+                }
             }
             else if (next.isAlawysBlock()) {
-                desc.setHasAlways(true);
-                desc.setAlwaysStartPosition(next.getLocalLocation());
-                methodVisitor.visitTryCatchBlock(desc.getCheckStart(), desc.getCheckEnd(), desc.getAlwaysStart(), null); // null means "catch any type"
+                methodVisitor.visitTryCatchBlock(desc.getAlwaysStart(), desc.getAlwaysEnd(), desc.getAlwaysStart(), null); // null means "catch any type"
             }
         }
-        
-        //reverse the order
-        //while(!tempStack.isEmpty()){
-        //    stack.pushLabel(tempStack.pop());
-        //}
         
         //stack.pushLabel(new LabelStackValue(LabelTypeEnum.CHECK, GOTO, label1));
         //visit the try label
@@ -1980,7 +1981,22 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(BeginDetectScopeStep step) {
         CheckDetectDescriptor desc = stack.peekCheckDetect();
         
-        // TODO: Insert 'always' code here.
+        //visit end of check if this is the first detect or
+        //visit the end of the previous detect.
+        if(step.isFirstDetect()){
+            methodVisitor.visitLabel(desc.getCheckEnd());
+        }else{
+            methodVisitor.visitLabel(desc.getNextDetectEndLabel());
+        }
+        
+        //Insert 'always' code here.
+        int alwaysStartPosition = desc.getAlwaysStartPosition();
+        Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
+        while(alwaysStartPosition != -1 && !(steps.get(alwaysStartPosition) instanceof AlwaysEndStep)){
+            steps.get(alwaysStartPosition).visit(this);
+            alwaysStartPosition++;
+        }
+        
         
         LabelStackValue popLabel0 = stack.popLabel();
         LabelStackValue tempLabel = popLabel0;
@@ -1990,7 +2006,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitJumpInsn(GOTO, desc.getAlwaysEnd());
         }
         
-        methodVisitor.visitLabel(desc.getCheckEnd());
+        
         methodVisitor.visitLabel(desc.getNextDetectStartLabel());
         
         //store the error

@@ -1,5 +1,6 @@
 package org.quorum.steps;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import org.quorum.symbols.ClassDescriptor;
@@ -16,8 +17,10 @@ import org.quorum.symbols.MethodDescriptor;
  */
 public class CheckLandingPads {
     private HashMap<String,DetectInfo> landingPads = new HashMap<String,DetectInfo>();
+    private ArrayList<DetectInfo> orderedLandingPads = new ArrayList<DetectInfo>();
     private ClassDescriptor clazz;
     private MethodDescriptor method;
+    private boolean alwaysBlock = false;
 
     /**
      * Add a landing pad to the checks. A landing pad is the location information
@@ -34,6 +37,8 @@ public class CheckLandingPads {
      */
     public void addLandingPad(String detectTypeName, DetectInfo detectInfo){
         landingPads.put(detectTypeName, detectInfo);
+        orderedLandingPads.add(detectInfo);
+        setAlwaysBlock(detectInfo.isAlawysBlock());
     }
 
     /**
@@ -57,8 +62,8 @@ public class CheckLandingPads {
      * Get all of the detects
      * @return 
      */
-    public Collection<DetectInfo>  getAllDetects(){
-        return landingPads.values();
+    public ArrayList<DetectInfo>  getAllDetects(){
+        return orderedLandingPads;
     }
 
     /**
@@ -87,6 +92,20 @@ public class CheckLandingPads {
      */
     public void setMethod(MethodDescriptor method) {
         this.method = method;
+    }
+
+    /**
+     * @return the alwaysBlock
+     */
+    public boolean hasAlwaysBlock() {
+        return alwaysBlock;
+    }
+
+    /**
+     * @param alwaysBlock the alwaysBlock to set
+     */
+    private void setAlwaysBlock(boolean alwaysBlock) {
+        this.alwaysBlock = alwaysBlock;
     }
 
 }

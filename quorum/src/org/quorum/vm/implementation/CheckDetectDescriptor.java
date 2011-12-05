@@ -47,8 +47,22 @@ public class CheckDetectDescriptor {
         return detectStarts.pop();
     }
     
+    public Label peekDetectStartLabel(){
+        if(detectStarts.isEmpty()){
+            return null;
+        }
+        return detectStarts.peek();
+    }
+    
     public Label getNextDetectEndLabel() {
         return detectEnds.pop();
+    }
+        
+    public Label peekDetectEndLabel(){
+        if(detectEnds.isEmpty()){
+            return null;
+        }
+        return detectEnds.peek();
     }
     
     /**
