@@ -16,6 +16,7 @@ import org.quorum.execution.RuntimeScope;
  * @author Melissa Stefik
  */
 public class BeginDetectScopeStep extends BeginScopeStep {
+    private CheckLandingPads landingPads;
     private ExpressionValue variable;
     private boolean isFirstDetect = true;
     @Override
@@ -56,5 +57,19 @@ public class BeginDetectScopeStep extends BeginScopeStep {
     
     public void setFirstDetect(boolean isFirst){
         isFirstDetect = isFirst;
+    }
+
+    /**
+     * @return the landingPads
+     */
+    public CheckLandingPads getLandingPads() {
+        return landingPads;
+    }
+
+    /**
+     * @param landingPads the landingPads to set
+     */
+    public void setLandingPads(CheckLandingPads landingPads) {
+        this.landingPads = landingPads;
     }
 }

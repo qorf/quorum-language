@@ -2003,6 +2003,7 @@ public class StepFactory {
         BeginDetectScopeStep step = new BeginDetectScopeStep();
         step.setBlockName(name);
         step.setFirstDetect(isFirstDetect);
+        step.setLandingPads(machine.getCheckLandingPads(name));
 
         machine.getBuilder().add(step);
     }
@@ -2153,7 +2154,7 @@ public class StepFactory {
         builder.addJumpLabelAndResolveSteps(al);
         //build landing pad
         DetectInfo detectInfo = new DetectInfo();
-
+        detectInfo.setAlawysBlock(true);
         if (builder.getCurrentMethod() != null) {
             detectInfo.setLocalLocation(builder.getCurrentMethod().getStepCount() - 1);
             builder.getCurrentMethod().getMethodDescriptor().addDetectType(info.checkStartLabel, ErrorTypeDescriptor.ALWAYS.toString());

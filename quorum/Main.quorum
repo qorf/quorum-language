@@ -1,19 +1,19 @@
-use Libraries.Containers.Array
+use Libraries.Language.Errors.Error
+use Libraries.Language.Errors.CastError
+
 class Main
     action main
-        Array<Number> myArray
-        myArray:SetSize(1)
-
-        Number eAt0
-        eAt0:SetValue(1.5)
-
-        myArray:Set(0,eAt0)
-
-        Number elementAt0 = myArray:Get(0)
-
-        number value0 = elementAt0:GetValue()
-        print eAt0
-        print elementAt0
-        print value0
+        check
+            print "hi"
+        end
+        detect e
+            print "bad news..."
+        end
+        detect k of type CastError
+            print "even worse..."
+        end
+        always
+            print "always"
+        end
     end
 end

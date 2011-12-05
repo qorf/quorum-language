@@ -32,6 +32,19 @@ public class BytecodeStack {
     private int maxSize = 0;
     private int numberOfHiddenVariables = 0;
     private int currentNumberIfStatements = 0;
+    private Stack<CheckDetectDescriptor> checkDetects = new Stack<CheckDetectDescriptor>();
+    
+    public void pushCheckDetect(CheckDetectDescriptor d) {
+        checkDetects.push(d);
+    }
+    
+    public CheckDetectDescriptor popCheckDetect() {
+        return checkDetects.pop();
+    }
+    
+    public CheckDetectDescriptor peekCheckDetect() {
+        return checkDetects.peek();
+    }
     
     /**
      * Push an integer counter variable onto the counter stack. Since it is an

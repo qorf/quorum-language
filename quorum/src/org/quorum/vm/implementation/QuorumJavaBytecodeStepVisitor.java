@@ -1946,9 +1946,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BeginCheckScopeStep step) {
-        Label label0 = new Label();
-        Label label1 = new Label();
-        
+        CheckDetectDescriptor desc = new CheckDetectDescriptor();
+        stack.pushCheckDetect(desc);
         
         Stack<LabelStackValue> tempStack = new Stack<LabelStackValue>();
         Collection<DetectInfo> allDetects = step.getLandingPads().getAllDetects();
@@ -1958,45 +1957,56 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             DetectInfo next = iterator.next();
             
             if(next.getDetectParameter().errorType != null){
-                Label label2 = new Label();
-                methodVisitor.visitTryCatchBlock(label0, label1, label2, "java/lang/Exception");
-                tempStack.push(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, label2));
+                methodVisitor.visitTryCatchBlock(desc.getCheckStart(), desc.getCheckEnd(), desc.pushDetectStartLabel(), "java/lang/Exception");
+            }
+            else if (next.isAlawysBlock()) {
+                desc.setHasAlways(true);
+                desc.setAlwaysStartPosition(next.getLocalLocation());
+                methodVisitor.visitTryCatchBlock(desc.getCheckStart(), desc.getCheckEnd(), desc.getAlwaysStart(), null); // null means "catch any type"
             }
         }
         
         //reverse the order
-        while(!tempStack.isEmpty()){
-            stack.pushLabel(tempStack.pop());
-        }
+        //while(!tempStack.isEmpty()){
+        //    stack.pushLabel(tempStack.pop());
+        //}
         
-        stack.pushLabel(new LabelStackValue(LabelTypeEnum.CHECK, GOTO, label1));
+        //stack.pushLabel(new LabelStackValue(LabelTypeEnum.CHECK, GOTO, label1));
         //visit the try label
-        methodVisitor.visitLabel(label0);
+        methodVisitor.visitLabel(desc.getCheckStart());
     }
 
     @Override
     public void visit(BeginDetectScopeStep step) {
+        CheckDetectDescriptor desc = stack.peekCheckDetect();
+        
+        // TODO: Insert 'always' code here.
+        
         LabelStackValue popLabel0 = stack.popLabel();
         LabelStackValue tempLabel = popLabel0;
         if(!step.isFirstDetect()){
-            methodVisitor.visitJumpInsn(GOTO, popLabel0.getLabel());
-            popLabel0 = stack.popLabel();
+            methodVisitor.visitJumpInsn(GOTO, desc.getAlwaysEnd());
         }else{
-            Label label0 = new Label();
-            methodVisitor.visitJumpInsn(GOTO, label0);
-            tempLabel = new LabelStackValue(LabelTypeEnum.DETECT, GOTO, label0);
+            methodVisitor.visitJumpInsn(GOTO, desc.getAlwaysEnd());
         }
-        methodVisitor.visitLabel(popLabel0.getLabel());
+        
+        methodVisitor.visitLabel(desc.getCheckEnd());
+        methodVisitor.visitLabel(desc.getNextDetectStartLabel());
         
         //store the error
         //this will have to change for special cases where more than one error is
         //caught in one spot.
         methodVisitor.visitVarInsn(ASTORE, 1);
-        stack.pushLabel(tempLabel);
+        //stack.pushLabel(tempLabel);
+        desc.pushDetectStartLabel();
+
+        
     }
     
     @Override
     public void visit(BeginScopeStep step) {
+        // TODO: Insert 'always' code here *if it's labeled as always*,
+        // make sure to include 'athrow'.
     }
 
     @Override

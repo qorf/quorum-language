@@ -11,6 +11,7 @@ package org.quorum.steps;
  * @author Melissa Stefik
  */
 public class DetectInfo {
+    private boolean alawysBlock = false;
     private int globalLocation = -1;
     private int localLocation = -1;
     private DetectParameter detectParam = new DetectParameter();
@@ -55,5 +56,19 @@ public class DetectInfo {
      */
     public void setDetectParameter(DetectParameter detectParam) {
         this.detectParam = detectParam;
+    }
+
+    /**
+     * @return the alawysBlock
+     */
+    public boolean isAlawysBlock() {
+        return alawysBlock;
+    }
+
+    /**
+     * @param alawysBlock the alawysBlock to set
+     */
+    public void setAlawysBlock(boolean alawysBlock) {
+        this.alawysBlock = alawysBlock;
     }
 }
