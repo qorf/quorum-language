@@ -1765,7 +1765,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AlwaysEndStep step) {
-        methodVisitor.visitLabel(stack.popCheckDetect().getAlwaysEnd());
+        methodVisitor.visitVarInsn(ALOAD, 2);
+        methodVisitor.visitInsn(ATHROW);
+        methodVisitor.visitLabel(stack.popCheckDetect().getConstructEnd());
     }
 
     @Override
@@ -1999,7 +2001,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         
         
         //LabelStackValue popLabel0 = stack.popLabel();
-        methodVisitor.visitJumpInsn(GOTO, desc.getAlwaysEnd());
+        methodVisitor.visitJumpInsn(GOTO, desc.getConstructEnd());
         
         
         methodVisitor.visitLabel(desc.getNextDetectStartLabel());
@@ -2030,11 +2032,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
 
             //LabelStackValue popLabel0 = stack.popLabel();
-            methodVisitor.visitJumpInsn(GOTO, desc.getAlwaysEnd());
+            methodVisitor.visitJumpInsn(GOTO, desc.getConstructEnd());
 
 
             methodVisitor.visitLabel(desc.getAlwaysStart());
-            methodVisitor.visitVarInsn(ASTORE, 1);
+            methodVisitor.visitVarInsn(ASTORE, 2);
             methodVisitor.visitLabel(desc.getAlwaysEnd());
         }
         
@@ -2909,7 +2911,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitJumpInsn(GOTO, label0);
                 //visit the end of the loop label.
                 methodVisitor.visitLabel(label1);
-            } else if (label.getLabelType().equals(LabelTypeEnum.CHECK) || label.getLabelType().equals(LabelTypeEnum.DETECT)) {//end of the loop will mark the goto and visit the end label.
+            } else if (!step.getBlockTag().equals("always") && (label.getLabelType().equals(LabelTypeEnum.CHECK) || label.getLabelType().equals(LabelTypeEnum.DETECT))) {//end of the loop will mark the goto and visit the end label.
                 stack.popLabel();
                 
                 Label label1 = label.getLabel();
