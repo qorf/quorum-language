@@ -2148,13 +2148,13 @@ public class StepFactory {
      *
      * @param info
      */
-    public void startAlways(ExceptionInfo info) {
+    public void startAlways(ExceptionInfo info, boolean isAlways) {
         String al = info.alwaysStartLabel;
         IntermediateExecutionBuilder builder = this.machine.getBuilder();
         builder.addJumpLabelAndResolveSteps(al);
         //build landing pad
         DetectInfo detectInfo = new DetectInfo();
-        detectInfo.setAlawysBlock(true);
+        detectInfo.setAlawysBlock(isAlways);
         if (builder.getCurrentMethod() != null) {
             detectInfo.setLocalLocation(builder.getCurrentMethod().getStepCount() - 1);
             builder.getCurrentMethod().getMethodDescriptor().addDetectType(info.checkStartLabel, ErrorTypeDescriptor.ALWAYS.toString());

@@ -1,4 +1,4 @@
-// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2011-11-30 13:10:16
+// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2011-12-05 17:11:20
 
 
 package org.quorum.parser;
@@ -2724,7 +2724,7 @@ public class QuorumTreeWalker extends TreeParser {
 
                             	    		((check_statement_scope)check_statement_stack.peek()).has_always = true;
                             	    		((check_statement_scope)check_statement_stack.peek()).info.hasAlways = true;
-                            	    		stepFactory.startAlways(((check_statement_scope)check_statement_stack.peek()).info);
+                            	    		stepFactory.startAlways(((check_statement_scope)check_statement_stack.peek()).info, true);
                             	    	
                             pushFollow(FOLLOW_block_in_check_statement996);
                             block(true);
@@ -2744,7 +2744,7 @@ public class QuorumTreeWalker extends TreeParser {
 
                     	    		if (((check_statement_scope)check_statement_stack.peek()).has_always == false) {
                     	    			((check_statement_scope)check_statement_stack.peek()).info.hasAlways = false;
-                    	    			stepFactory.startAlways(((check_statement_scope)check_statement_stack.peek()).info);
+                    	    			stepFactory.startAlways(((check_statement_scope)check_statement_stack.peek()).info, false);
                     	    			stepFactory.endAlways(((check_statement_scope)check_statement_stack.peek()).info);
                     	    		}
                     	    	
@@ -2758,7 +2758,7 @@ public class QuorumTreeWalker extends TreeParser {
 
                     	    		((check_statement_scope)check_statement_stack.peek()).has_always = true;
                     	    		((check_statement_scope)check_statement_stack.peek()).info.hasAlways = true;
-                    	    		stepFactory.startAlways(((check_statement_scope)check_statement_stack.peek()).info);
+                    	    		stepFactory.startAlways(((check_statement_scope)check_statement_stack.peek()).info, true);
                     	    	
                     pushFollow(FOLLOW_block_in_check_statement1080);
                     block(true);

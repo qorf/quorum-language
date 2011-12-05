@@ -685,7 +685,7 @@ scope {
 	    	{
 	    		$check_statement::has_always = true;
 	    		$check_statement::info.hasAlways = true;
-	    		stepFactory.startAlways($check_statement::info);
+	    		stepFactory.startAlways($check_statement::info, true);
 	    	}
 	    	block[true] 
 	    	
@@ -697,7 +697,7 @@ scope {
 	    	{
 	    		if ($check_statement::has_always == false) {
 	    			$check_statement::info.hasAlways = false;
-	    			stepFactory.startAlways($check_statement::info);
+	    			stepFactory.startAlways($check_statement::info, false);
 	    			stepFactory.endAlways($check_statement::info);
 	    		}
 	    	}
@@ -706,7 +706,7 @@ scope {
 	    	{
 	    		$check_statement::has_always = true;
 	    		$check_statement::info.hasAlways = true;
-	    		stepFactory.startAlways($check_statement::info);
+	    		stepFactory.startAlways($check_statement::info, true);
 	    	}
 	    
 	    	block[true] END 

@@ -1765,8 +1765,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AlwaysEndStep step) {
-        LabelStackValue popLabel = stack.popLabel();
-        methodVisitor.visitLabel(popLabel.getLabel());
+        methodVisitor.visitLabel(stack.popCheckDetect().getAlwaysEnd());
     }
 
     @Override
@@ -1948,7 +1947,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(BeginCheckScopeStep step) {
         CheckDetectDescriptor desc = new CheckDetectDescriptor();
         stack.pushCheckDetect(desc);
-        //Stack<LabelStackValue> tempStack = new Stack<LabelStackValue>();
+        
+        Stack<LabelStackValue> tempStack = new Stack<LabelStackValue>();
         ArrayList<DetectInfo> allDetects = step.getLandingPads().getAllDetects();
         //get all of the blocks associated with the try (all detects and always blocks).
         for(int i = 0; i < allDetects.size(); i++){
@@ -1963,16 +1963,24 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     desc.setHasAlways(true);
                     methodVisitor.visitTryCatchBlock(desc.getCheckStart(), desc.getCheckEnd(), desc.getAlwaysStart(), null); // null means "catch any type"
                     methodVisitor.visitTryCatchBlock(desc.peekDetectStartLabel(), desc.pushDetectEndLabel(), desc.getAlwaysStart(), null);
+                    tempStack.push(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, desc.peekDetectEndLabel()));
                 }else if(step.getLandingPads().hasAlwaysBlock()){
+                    desc.setHasAlways(true);
                     methodVisitor.visitTryCatchBlock(desc.peekDetectStartLabel(), desc.pushDetectEndLabel(), desc.getAlwaysStart(), null);
                 }
             }
-            else if (next.isAlawysBlock()) {
+            else if(next.isAlawysBlock()) {
                 methodVisitor.visitTryCatchBlock(desc.getAlwaysStart(), desc.getAlwaysEnd(), desc.getAlwaysStart(), null); // null means "catch any type"
+                desc.setAlwaysStartPosition(next.getLocalLocation());
             }
         }
         
-        //stack.pushLabel(new LabelStackValue(LabelTypeEnum.CHECK, GOTO, label1));
+        //reverse and put into label stack
+        while(!tempStack.isEmpty()){
+            stack.pushLabel(tempStack.pop());
+        }   
+        
+        stack.pushLabel(new LabelStackValue(LabelTypeEnum.CHECK, GOTO, desc.getCheckEnd()));
         //visit the try label
         methodVisitor.visitLabel(desc.getCheckStart());
     }
@@ -1981,30 +1989,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(BeginDetectScopeStep step) {
         CheckDetectDescriptor desc = stack.peekCheckDetect();
         
-        //visit end of check if this is the first detect or
-        //visit the end of the previous detect.
-        if(step.isFirstDetect()){
-            methodVisitor.visitLabel(desc.getCheckEnd());
-        }else{
-            methodVisitor.visitLabel(desc.getNextDetectEndLabel());
-        }
-        
         //Insert 'always' code here.
-        int alwaysStartPosition = desc.getAlwaysStartPosition();
+        int alwaysStartPosition = desc.getAlwaysStartPosition()+2;
         Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
-        while(alwaysStartPosition != -1 && !(steps.get(alwaysStartPosition) instanceof AlwaysEndStep)){
+        while(desc.getAlwaysStartPosition() != -1 && !(steps.get(alwaysStartPosition) instanceof AlwaysEndStep)){
             steps.get(alwaysStartPosition).visit(this);
             alwaysStartPosition++;
         }
         
         
-        LabelStackValue popLabel0 = stack.popLabel();
-        LabelStackValue tempLabel = popLabel0;
-        if(!step.isFirstDetect()){
-            methodVisitor.visitJumpInsn(GOTO, desc.getAlwaysEnd());
-        }else{
-            methodVisitor.visitJumpInsn(GOTO, desc.getAlwaysEnd());
-        }
+        //LabelStackValue popLabel0 = stack.popLabel();
+        methodVisitor.visitJumpInsn(GOTO, desc.getAlwaysEnd());
         
         
         methodVisitor.visitLabel(desc.getNextDetectStartLabel());
@@ -2014,15 +2009,35 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //caught in one spot.
         methodVisitor.visitVarInsn(ASTORE, 1);
         //stack.pushLabel(tempLabel);
-        desc.pushDetectStartLabel();
+        //desc.pushDetectStartLabel();
 
         
     }
     
     @Override
     public void visit(BeginScopeStep step) {
-        // TODO: Insert 'always' code here *if it's labeled as always*,
-        // make sure to include 'athrow'.
+        if(step.getBlockTag().equals("always")){
+            CheckDetectDescriptor desc = stack.peekCheckDetect();
+
+            //Insert 'always' code here *if it's labeled as always*,
+            // make sure to include 'athrow'.
+            //Insert 'always' code here.
+            int alwaysStartPosition = desc.getAlwaysStartPosition()+2;
+            Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
+            while(alwaysStartPosition != -1 && !(steps.get(alwaysStartPosition) instanceof AlwaysEndStep)){
+                steps.get(alwaysStartPosition).visit(this);
+                alwaysStartPosition++;
+            }
+
+            //LabelStackValue popLabel0 = stack.popLabel();
+            methodVisitor.visitJumpInsn(GOTO, desc.getAlwaysEnd());
+
+
+            methodVisitor.visitLabel(desc.getAlwaysStart());
+            methodVisitor.visitVarInsn(ASTORE, 1);
+            methodVisitor.visitLabel(desc.getAlwaysEnd());
+        }
+        
     }
 
     @Override
@@ -2894,7 +2909,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitJumpInsn(GOTO, label0);
                 //visit the end of the loop label.
                 methodVisitor.visitLabel(label1);
-            } else if (label.getLabelType().equals(LabelTypeEnum.CHECK)) {//end of the loop will mark the goto and visit the end label.
+            } else if (label.getLabelType().equals(LabelTypeEnum.CHECK) || label.getLabelType().equals(LabelTypeEnum.DETECT)) {//end of the loop will mark the goto and visit the end label.
                 stack.popLabel();
                 
                 Label label1 = label.getLabel();
