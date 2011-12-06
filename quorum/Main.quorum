@@ -1,19 +1,15 @@
-use Libraries.Language.Errors.Error
-use Libraries.Language.Errors.CastError
-
+use Libraries.Containers.List
 class Main
-    action main
-        check
-            print "hi"
-        end
-        detect e
-            print "bad news..."
-        end
-        detect k of type CastError
-            print "even worse..."
-        end
-        always
-            print "always"
-        end
+
+    action Main
+       check
+            print "hello"
+       end
+       detect e
+            print "goodbye"
+       end
+       always
+            print "leave me alone melissa."
+       end
     end
 end

@@ -1357,28 +1357,28 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //            return;
 //        }
 //
-        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
-                && !"Libraries.Language.Support.CompareResult".equals(staticKey)
-//                && !"Libraries.Containers.List".equals(staticKey)
+//        if (!".Main".equals(staticKey) && !".Melissa".equals(staticKey) && !".Stefik".equals(staticKey) && !"Libraries.Language.Object".equals(staticKey)
+//                && !"Libraries.Language.Support.CompareResult".equals(staticKey)
+////                && !"Libraries.Containers.List".equals(staticKey)
+////                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
+//                && !"Libraries.Containers.Array".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Copyable".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Indexed".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Container".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Addable".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Iterative".equals(staticKey)
 //                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
-                && !"Libraries.Containers.Array".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.Copyable".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.Indexed".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.Container".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.Addable".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.Iterative".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.ListBlueprint".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.ArrayBlueprint".equals(staticKey)
-                && !"Libraries.Containers.Blueprints.Iterator".equals(staticKey)
-                && !"Libraries.Containers.Support.ArrayIterator".equals(staticKey)
-                && !"Libraries.Language.Types.Integer".equals(staticKey)
-                && !"Libraries.Language.Types.Number".equals(staticKey)
-                && !"Libraries.Language.Types.Text".equals(staticKey)
-                && !"Libraries.Language.Types.Boolean".equals(staticKey)
-//                && !"Libraries.Language.Errors.Error".equals(staticKey)
-                && !".StefikGrand".equals(staticKey)) {
-            return;
-        }
+//                && !"Libraries.Containers.Blueprints.ArrayBlueprint".equals(staticKey)
+//                && !"Libraries.Containers.Blueprints.Iterator".equals(staticKey)
+//                && !"Libraries.Containers.Support.ArrayIterator".equals(staticKey)
+//                && !"Libraries.Language.Types.Integer".equals(staticKey)
+//                && !"Libraries.Language.Types.Number".equals(staticKey)
+//                && !"Libraries.Language.Types.Text".equals(staticKey)
+//                && !"Libraries.Language.Types.Boolean".equals(staticKey)
+////                && !"Libraries.Language.Errors.Error".equals(staticKey)
+//                && !".StefikGrand".equals(staticKey)) {
+//            return;
+//        }
         
         
         
@@ -1647,8 +1647,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * @param method 
      */
     public void visitBlock(MethodExecution method, OpcodeTracker tracker){
+        visitAllSteps(method, 0, method.getSteps().size(), tracker);
+    }
+    
+    /**
+     * Executes the steps between start and end.
+     * 
+     * @param method
+     * @param start
+     * @param end
+     * @param tracker 
+     */
+    public void visitAllSteps(MethodExecution  method, int start, int end, OpcodeTracker tracker) {
         Vector<ExecutionStep> steps = method.getSteps();
-        for (int i = 0; i < steps.size(); i++) {//visit each of the steps in the method execution
+        for (int i = start; i < end; i++) {//visit each of the steps in the method execution
             OpcodeType opcodeType = tracker.getOpcodeType(i);
 
             //if the opcode type is of root expression queue it up for later.
@@ -1702,7 +1714,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
         }
     }
-    
     /**
      * Visit the method execution, i.e. each step that needs to be visited for 
      * each methods execution.
@@ -1997,23 +2008,24 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         
         //Insert 'always' code here.
         int alwaysStartPosition = desc.getAlwaysStartPosition()+2;
+        int alwaysEndPosition = alwaysStartPosition;
         Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
-        while(desc.getAlwaysStartPosition() != -1 && !(steps.get(alwaysStartPosition) instanceof AlwaysEndStep)){
-            steps.get(alwaysStartPosition).visit(this);
-            alwaysStartPosition++;
+        while(desc.getAlwaysStartPosition() != -1 && !(steps.get(alwaysEndPosition) instanceof AlwaysEndStep)){
+            alwaysEndPosition++;
         }
         
-        
+        visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
+
         //LabelStackValue popLabel0 = stack.popLabel();
         methodVisitor.visitJumpInsn(GOTO, desc.getConstructEnd());
         
         
         methodVisitor.visitLabel(desc.getNextDetectStartLabel());
         
-        //store the error
-        //TODO: this will have to change for special cases where more than one error is
-        //caught in one spot.
+        // Store the error. This is essentially a "hidden" variable.
+        
         methodVisitor.visitVarInsn(ASTORE, 1);
+        
         //stack.pushLabel(tempLabel);
         //desc.pushDetectStartLabel();
 
@@ -2027,11 +2039,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
             //Insert 'always' code here *if it's labeled as always*
             int alwaysStartPosition = desc.getAlwaysStartPosition()+2;
+            int alwaysEndPosition = alwaysStartPosition;
             Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
-            while(alwaysStartPosition != -1 && !(steps.get(alwaysStartPosition) instanceof AlwaysEndStep)){
-                steps.get(alwaysStartPosition).visit(this);
-                alwaysStartPosition++;
+            while(desc.getAlwaysStartPosition() != -1 && !(steps.get(alwaysEndPosition) instanceof AlwaysEndStep)){
+                alwaysEndPosition++;
             }
+        
+            visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
 
             //LabelStackValue popLabel0 = stack.popLabel();
             methodVisitor.visitJumpInsn(GOTO, desc.getConstructEnd());
