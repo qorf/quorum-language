@@ -1389,8 +1389,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         String interfaceName = QuorumConverter.convertClassNameToInterfaceName(name);
 
-        //this will have to be modified for inheritance conversion
-        classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", new String[] { interfaceName });
+        if(currentClass.getStaticKey().equals("Libraries.Language.Errors.Error") || currentClass.getParent("Libraries.Language.Errors.Error") != null){
+            classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Throwable", new String[] { interfaceName });
+        }else{
+            //this will have to be modified for inheritance conversion
+            classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", new String[] { interfaceName });
+        }
         //first weave in the parents of the class and initialize them          
         //Add parents as extra behind the scenes fields.        
         Iterator<ClassDescriptor> parents = currentClass.getFlattenedListOfParents();
@@ -1760,16 +1764,16 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AlertStep step) {
-        RuntimeError runtimeError = step.getRuntimeError();
+//        RuntimeError runtimeError = step.getRuntimeError();
         //create the java exception 
-        methodVisitor.visitTypeInsn(NEW, "java/lang/RuntimeException");
-        methodVisitor.visitInsn(DUP);
-        if(runtimeError != null){
-            methodVisitor.visitLdcInsn(runtimeError.getErrorMessage());
-            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/RuntimeException", "<init>", "(Ljava/lang/String;)V");
-        }else{
-            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/RuntimeException", "<init>", "()V");
-        }
+        //methodVisitor.visitTypeInsn(NEW, "java/lang/RuntimeException");
+//        methodVisitor.visitInsn(DUP);
+//        if(runtimeError != null){
+//            methodVisitor.visitLdcInsn(runtimeError.getErrorMessage());
+//            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Throwable", "<init>", "(Ljava/lang/String;)V");
+//        }else{
+//            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Throwable", "<init>", "()V");
+//        }
         
         
         //throw the exception

@@ -1,9 +1,10 @@
-use Libraries.Containers.List
+use Libraries.Language.Errors.Error
 class Melissa
 
     action Main
-       check
-            print "hello"
+      check
+            Error myError
+            alert(myError)
        end
        detect e
             // astore_1
@@ -11,6 +12,7 @@ class Melissa
        end
        always
             // astore_2
+            print "always"
        end
     end
 end

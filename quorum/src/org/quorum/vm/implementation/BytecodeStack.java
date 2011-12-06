@@ -33,6 +33,16 @@ public class BytecodeStack {
     private int numberOfHiddenVariables = 0;
     private int currentNumberIfStatements = 0;
     private Stack<CheckDetectDescriptor> checkDetects = new Stack<CheckDetectDescriptor>();
+    private Stack<Integer> errorVariableNumber = new Stack<Integer>();
+    
+    
+    public void pushErrorVariable(int varNumber){
+        errorVariableNumber.push(varNumber);
+    }
+    
+    public int popErrorVariable(){
+        return errorVariableNumber.pop();
+    }
     
     public void pushCheckDetect(CheckDetectDescriptor d) {
         checkDetects.push(d);

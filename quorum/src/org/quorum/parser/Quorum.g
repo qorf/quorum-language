@@ -732,7 +732,7 @@ check_statement
        		block.setColumnBegin($check_start.getCharPositionInLine());
        		block.setColumnEnd($check_end.text.length() + $check_end.getCharPositionInLine());
 	}
-	    (  (detect_start=DETECT detect_parameter { block = new BlockDescriptor(); symbol.add(block); }block { symbol.popScope(); }detect_end=END
+	    (  (detect_start=DETECT { block = new BlockDescriptor(); symbol.add(block); } detect_parameter block { symbol.popScope(); }detect_end=END
 	{
        		//set the begin and end line column information in the block descriptors.
        		block.setLineBegin($detect_start.getLine());
