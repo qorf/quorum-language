@@ -19,6 +19,7 @@ public class BeginDetectScopeStep extends BeginScopeStep {
     private CheckLandingPads landingPads;
     private ExpressionValue variable;
     private boolean isFirstDetect = true;
+    private DetectInfo detectInfo;
     @Override
     public void execute() {
         DataEnvironment de = vm.getDataEnvironment();
@@ -71,5 +72,12 @@ public class BeginDetectScopeStep extends BeginScopeStep {
      */
     public void setLandingPads(CheckLandingPads landingPads) {
         this.landingPads = landingPads;
+    }
+
+    public void setDetectInfo(DetectInfo detect) {
+        detectInfo = detect;
+    }
+    public DetectParameter getDetectParameter(){
+        return detectInfo.getDetectParameter();
     }
 }
