@@ -194,7 +194,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //put in the data from the constructor
         if(currentClassExecution.hasConstructor()) {
             MethodExecution constructor = currentClassExecution.getConstructor();
-            visitBlock(constructor, currentClassExecution.getTracker());
+            currentMethodExecution = constructor;
+            visitBlock(constructor, currentMethodExecution.getTracker());
+            currentMethodExecution = null;
         }
         
         methodVisitor.visitInsn(RETURN);
