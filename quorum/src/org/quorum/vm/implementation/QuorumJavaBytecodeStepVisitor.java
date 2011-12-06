@@ -1776,13 +1776,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AlwaysEndStep step) {
-        //TODO: Fix the aload and throw so it's not hard coded to work only for always
-        //should also work when always is not used.
-        methodVisitor.visitVarInsn(ALOAD, 2);
+        CheckDetectDescriptor desc = stack.popCheckDetect();
+
+        methodVisitor.visitVarInsn(ALOAD, desc.getLastDetectVariableNumber());
         methodVisitor.visitInsn(ATHROW);
         
         //check detect construct is now ending
-        methodVisitor.visitLabel(stack.popCheckDetect().getConstructEnd());
+        methodVisitor.visitLabel(desc.getConstructEnd());
     }
 
     @Override
@@ -2023,8 +2023,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitLabel(desc.getNextDetectStartLabel());
         
         // Store the error. This is essentially a "hidden" variable.
+        int variableNumber = step.getDetectParameter().getVariableNumber() - currentClass.getNumberOfVariables();
+        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+        if (mappedVariableNumber == -1) {
+                stack.setVariable(variableNumber, step.getDetectParameter().getType());
+                mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+        }
         
-        methodVisitor.visitVarInsn(ASTORE, 1);
+        desc.setLastDetectVariableNumber(mappedVariableNumber);
+        methodVisitor.visitVarInsn(ASTORE, mappedVariableNumber);
         
         //stack.pushLabel(tempLabel);
         //desc.pushDetectStartLabel();
@@ -2054,7 +2061,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitLabel(desc.getAlwaysStart());
             
             //TODO: this astore needs to be fixed and not hardcoded.
-            methodVisitor.visitVarInsn(ASTORE, 2);
+            methodVisitor.visitVarInsn(ASTORE, desc.getLastDetectVariableNumber());
             methodVisitor.visitLabel(desc.getAlwaysEnd());
         }
         

@@ -27,6 +27,7 @@ public class CheckDetectDescriptor {
     private int startingVariableNumber = 0;
     private int numberOfDetects = 0;
     private int alwaysStartPosition = -1;
+    private int lastDetectVariableNumber = -1;
     private Stack<Label> detectStarts = new Stack<Label>();
     private Stack<Label> detectEnds = new Stack<Label>();
     private boolean hasAlways = false;
@@ -191,5 +192,19 @@ public class CheckDetectDescriptor {
      */
     public void setNumberOfDetects(int numberOfDetects) {
         this.numberOfDetects = numberOfDetects;
+    }
+
+    /**
+     * @return the lastDetectVariableNumber
+     */
+    public int getLastDetectVariableNumber() {
+        return lastDetectVariableNumber;
+    }
+
+    /**
+     * @param lastDetectVariableNumber the lastDetectVariableNumber to set
+     */
+    public void setLastDetectVariableNumber(int lastDetectVariableNumber) {
+        this.lastDetectVariableNumber = lastDetectVariableNumber;
     }
 }
