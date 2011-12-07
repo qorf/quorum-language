@@ -1980,7 +1980,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             
             //if this is a detect parameter build the visit try catch block calls
             if(next.getDetectParameter().errorType != null){
-                methodVisitor.visitTryCatchBlock(desc.getCheckStart(), desc.getCheckEnd(), desc.pushDetectStartLabel(), "java/lang/Exception");
+                methodVisitor.visitTryCatchBlock(desc.getCheckStart(), desc.getCheckEnd(), desc.pushDetectStartLabel(), "java/lang/Throwable");
                 //if there is an always and this is the first detect or
                 //if it's not the first detect generate the try catch block calls
                 if(step.getLandingPads().hasAlwaysBlock() && i == 0){
@@ -3168,13 +3168,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         
         
         //create the java exception 
-        methodVisitor.visitTypeInsn(NEW, "java/lang/RuntimeException");
+        methodVisitor.visitTypeInsn(NEW, "java/lang/Throwable");
         methodVisitor.visitInsn(DUP);
         if(runtimeError != null){
             methodVisitor.visitLdcInsn(runtimeError.getErrorMessage());
-            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/RuntimeException", "<init>", "(Ljava/lang/String;)V");
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Throwable", "<init>", "(Ljava/lang/String;)V");
         }else{
-            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/RuntimeException", "<init>", "()V");
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Throwable", "<init>", "()V");
         }
         
         
