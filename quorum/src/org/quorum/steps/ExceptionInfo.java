@@ -6,6 +6,7 @@
 package org.quorum.steps;
 
 import java.util.ArrayList;
+import org.quorum.symbols.VariableParameterCommonDescriptor;
 import org.quorum.vm.interfaces.LineInformation;
 
 /**

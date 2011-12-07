@@ -1377,7 +1377,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //                && !"Libraries.Language.Types.Number".equals(staticKey)
 //                && !"Libraries.Language.Types.Text".equals(staticKey)
 //                && !"Libraries.Language.Types.Boolean".equals(staticKey)
-////                && !"Libraries.Language.Errors.Error".equals(staticKey)
+//                && !"Libraries.Language.Errors.Error".equals(staticKey)
+//                && !"Libraries.System.StackTraceItem".equals(staticKey)
 //                && !".StefikGrand".equals(staticKey)) {
 //            return;
 //        }
@@ -2029,7 +2030,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitLabel(desc.getNextDetectStartLabel());
         
         // Store the error. This is essentially a "hidden" variable.
-        int variableNumber = step.getDetectParameter().getVariableNumber() - currentClass.getNumberOfVariables();
+        int variableNumber = step.getDetectParameter().getVariableNumber();
         int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
         if (mappedVariableNumber == -1) {
                 stack.setVariable(variableNumber, step.getDetectParameter().getType());

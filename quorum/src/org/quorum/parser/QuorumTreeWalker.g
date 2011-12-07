@@ -645,6 +645,8 @@ scope {
 	    		$check_statement::info.addDetectLabel($detect_start.text + $check_statement::detect_counter
 	    			 + "_" + $check_statement::tempLabelCounter + $check_statement::info.START);
 	    			 symbol.addStatementFlagToCurrentFile($detect_start.getLine());
+	    		symbol.getControlFlow().detectStart();
+	    		symbol.enterNextBlock();
 	    		
 	    	}
 	    	
@@ -652,14 +654,18 @@ scope {
 	    	{
 	    		Iterator<ErrorTypeDescriptor> detectParamIt = det_param.exceptionTypeList.iterator();
 	    		while(detectParamIt.hasNext()){
-		    		DetectParameter d = new DetectParameter();
+		    		VariableParameterCommonDescriptor d = new VariableParameterCommonDescriptor();
+		    		DetectParameter er = new DetectParameter();
 		    		TypeDescriptor t = new TypeDescriptor();
 		    		
-		    		d.errorType = detectParamIt.next();
-		    		t.setName(d.errorType.getName());
-		    		d.setType(t);
-		    		d.setName($det_param.name);
-		    		$check_statement::info.addDetectParameter(d);
+		    		d = symbol.getVariable($det_param.name);
+		    		er.setVariableNumber(d.getVariableNumber());
+		    		er.errorType = detectParamIt.next();
+		    		t.setName(er.errorType.getName());
+		    		er.setType(t);
+		    		er.setName($det_param.name);
+		    		
+		    		$check_statement::info.addDetectParameter(er);
 	    		}
 	    		stepFactory.startDetect($check_statement::info, $check_statement::detect_counter);
 	    	}

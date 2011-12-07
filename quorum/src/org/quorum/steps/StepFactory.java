@@ -2110,9 +2110,6 @@ public class StepFactory {
         }
 
         this.addBeginDetectScopeStep(info.detectStartLabels.get(0), firstDetect, detectInfo);
-        SymbolTable symbolTable = this.machine.getSymbolTable();
-        symbolTable.getControlFlow().detectStart();
-        symbolTable.enterNextBlock();
     }
 
     /**
