@@ -1980,7 +1980,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             
             //if this is a detect parameter build the visit try catch block calls
             if(next.getDetectParameter().errorType != null){
-                methodVisitor.visitTryCatchBlock(desc.getCheckStart(), desc.getCheckEnd(), desc.pushDetectStartLabel(), "java/lang/Throwable");
+                methodVisitor.visitTryCatchBlock(desc.getCheckStart(), desc.getCheckEnd(), desc.pushDetectStartLabel(), "quorum/Libraries/Language/Errors/Error");
                 //if there is an always and this is the first detect or
                 //if it's not the first detect generate the try catch block calls
                 if(step.getLandingPads().hasAlwaysBlock() && i == 0){

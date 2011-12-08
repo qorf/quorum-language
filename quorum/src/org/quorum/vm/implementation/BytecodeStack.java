@@ -281,6 +281,8 @@ public class BytecodeStack {
         loopMaximumVariables.clear();
         methodParametersMap.clear();
         setStartingVariableNumber(startingVariableNumber);
+        checkDetects.clear();
+        errorVariableNumber.clear();
     }
     
     /**
