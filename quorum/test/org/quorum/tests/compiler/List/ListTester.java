@@ -618,7 +618,7 @@ public class ListTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("FiveNineOneThree"));
+        assert(r.getLine(0).equals("FiveNineEightThree"));
     }
     
     @Test
