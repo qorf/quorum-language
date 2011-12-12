@@ -80,6 +80,30 @@ public class QuorumConverter {
         return "()" + QuorumConverter.convertTypeToBytecodeString(variable.getType());
     }
     
+        /**
+     * This method takes a class descriptor and a variable, then converts that
+     * information into a hidden getter method name for a field variable. 
+     * @param clazz
+     * @param variable
+     * @return 
+     */
+    public static String generateGetterNameFromSubField(TypeDescriptor variableType, String variable) {
+        String name = "Get$" + variableType.getStaticKey() + "$" + variable;
+        return name;
+    }
+    
+    /**
+     * This method generates the signature of a getter method from a variable
+     * descriptor. By default, this would have no parameters, (), and have
+     * a return type appropriate to the type of the field variable.
+     * 
+     * @param variable
+     * @return 
+     */
+    public static String generateGetterSignatureFromSubField(TypeDescriptor type) {
+        return "()" + QuorumConverter.convertTypeToBytecodeString(type);
+    }
+    
     /**
      * This method takes a class descriptor and a variable, then converts that
      * information into a hidden setter method name for a field variable. 
@@ -89,6 +113,18 @@ public class QuorumConverter {
      */
     public static String generateSetterNameFromField(ClassDescriptor clazz, VariableDescriptor variable) {
         String name = "Set$" + clazz.getStaticKey() + "$" + variable.getName();
+        return name;
+    }
+    
+    /**
+     * This method takes a class descriptor and a variable name in that class,
+     * then converts that information into a method name for an existing field.
+     * @param clazz
+     * @param variable
+     * @return 
+     */
+    public static String generateSetterNameFromSubField(TypeDescriptor variableType, String variable){
+        String name = "Set$" + variableType.getStaticKey() + "$" + variable;
         return name;
     }
     
@@ -104,6 +140,17 @@ public class QuorumConverter {
         return "("+ QuorumConverter.convertTypeToBytecodeString(variable.getType()) +")" + "V";
     }
     
+    /**
+     * This generates a method signature for a setter method. By default,
+     * the signature for this method will be the variable's type between 
+     * parentheses ( type ), followed by V, for a void return type.
+     * 
+     * @param variable
+     * @return 
+     */
+    public static String generateSetterSignatureFromSubField(TypeDescriptor type) {
+        return "("+ QuorumConverter.convertTypeToBytecodeString(type) +")" + "V";
+    }
     
     /**
      * This method takes a method descriptor and converts into a signature,

@@ -436,12 +436,21 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         String methodParent;
         String variableName;
         TypeDescriptor variableType;
+        boolean assigningToObjectVariable = false;
 
         //if the sub-variable name does not match
         if (!subVariableName.equals("")) {
             //process and visit the variable instruction based on variable type.
             methodParent = QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getName());
-            methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(variable.getType()), stack.getMappedVariableNumber(variable.getVariableNumber()));
+            if(variable.isFieldVariable()){
+                assigningToObjectVariable = true;
+                stack.pushExpressionType(variable.getType());
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()),
+                        variable.getName(), QuorumConverter.convertTypeToBytecodeString(variable.getType()));
+            }else{
+                methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(variable.getType()), stack.getMappedVariableNumber(variable.getVariableNumber()));
+            }
             variableName = subVariableName;
             variableType = stack.popExpressionType();
         } else {//if the sub-variable name does match
@@ -465,9 +474,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             processExpressions();
         }
         
-        //variableType = stack.popExpressionType();
+        //make the assignment
         if(step.getParent() != null && !step.getParent().equals(currentClass)){
             methodVisitor.visitFieldInsn(PUTFIELD, QuorumConverter.convertStaticKeyToBytecodePath(step.getParent().getStaticKey()), variableName, QuorumConverter.convertTypeToBytecodeString(variableType));
+        }else if(assigningToObjectVariable){
+            methodVisitor.visitMethodInsn(INVOKEINTERFACE, methodParent + "$Interface",
+                    QuorumConverter.generateSetterNameFromSubField(variable.getType(), variableName), QuorumConverter.generateSetterSignatureFromSubField(variableType));
         }else{
             methodVisitor.visitFieldInsn(PUTFIELD, methodParent, variableName, QuorumConverter.convertTypeToBytecodeString(variableType));
         }
@@ -485,22 +497,42 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //if this is an object and we are assigning to a field in that object load it
         if(!subVariableName.equals("")){
             TypeDescriptor type = step.getVariable().getType();
+            
+            if (step.getVariable() instanceof ParameterDescriptor) {
+                //we are now assigning to a parameter variable
+                ParameterDescriptor varDescriptor = (ParameterDescriptor) step.getVariable();
+                variableNumber = stack.getParameterNumber(varDescriptor.getName());
+            }
+            
             methodVisitor.visitVarInsn(ALOAD, variableNumber);
             processExpressions();
             valueType = stack.popExpressionType();
-            methodVisitor.visitFieldInsn(PUTFIELD, QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey()), subVariableName, QuorumConverter.convertTypeToBytecodeString(valueType));
+            
+            if(!valueType.isPrimitiveType()) {
+                valueType.setBytecodeInterface(true);
+            }
+             
+            methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey() + "$Interface"),
+                        QuorumConverter.generateSetterNameFromSubField(type, subVariableName),QuorumConverter.generateSetterSignatureFromSubField(valueType));
         }else{
-            //if we are not dealing with an object variable then store it in a local varaiable
-            int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
-        
-            // Is it defined yet?
-            if (mappedVariableNumber == -1) {
-                stack.setVariable(variableNumber, valueType);
-                mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+            int mappedVariableNumber = -1;
+            if (step.getVariable() instanceof ParameterDescriptor) {
+                    //we are now assigning to a parameter variable
+                    ParameterDescriptor varDescriptor = (ParameterDescriptor) step.getVariable();
+                    mappedVariableNumber = stack.getParameterNumber(varDescriptor.getName());
             }else{
-                if(valueType.isBytecodeInterface()){
-                    //we need to set the stack variables type to something new or something?
-                    stack.setVariableType(mappedVariableNumber, valueType);
+                //if we are not dealing with an object variable then store it in a local varaiable
+                mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+
+                // Is it defined yet?
+                if (mappedVariableNumber == -1) {
+                    stack.setVariable(variableNumber, valueType);
+                    mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
+                }else{
+                    if(valueType.isBytecodeInterface()){
+                        //we need to set the stack variables type to something new or something?
+                        stack.setVariableType(mappedVariableNumber, valueType);
+                    }
                 }
             }
             
@@ -1373,6 +1405,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 //                && !"Libraries.Containers.Blueprints.ArrayBlueprint".equals(staticKey)
 //                && !"Libraries.Containers.Blueprints.Iterator".equals(staticKey)
 //                && !"Libraries.Containers.Support.ArrayIterator".equals(staticKey)
+//                && !"Libraries.Containers.Support.ListNode".equals(staticKey)
 //                && !"Libraries.Language.Types.Integer".equals(staticKey)
 //                && !"Libraries.Language.Types.Number".equals(staticKey)
 //                && !"Libraries.Language.Types.Text".equals(staticKey)
@@ -3328,13 +3361,33 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(VariableInObjectMoveStep step) {
         //get the variable from the step and store it
         VariableParameterCommonDescriptor variable = step.getObj();
-        pushVariable(variable.getType(), variable.getVariableNumber() - currentClass.getNumberOfVariables());
+        boolean isFieldInObject = false;
+        if(variable.isFieldVariable()){
+            methodVisitor.visitVarInsn(ALOAD, 0);
+            methodVisitor.visitFieldInsn(GETFIELD,  QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()),
+                variable.getName(), QuorumConverter.convertTypeToBytecodeString(variable.getType()));
+            isFieldInObject = true;
+        }else if(step.getObj() instanceof ParameterDescriptor){
+            ParameterDescriptor param = (ParameterDescriptor)step.getObj();
+            int variableNumber = stack.getParameterNumber(param.getName());
+            param.getType().setBytecodeInterface(true);
+            methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(param.getType()), variableNumber);
+            isFieldInObject = true;
+        }else{
+            pushVariable(variable.getType(), variable.getVariableNumber() - currentClass.getNumberOfVariables());
+        }
 
         //visit the field instruction
         String name = step.getVariableName();
         TypeDescriptor type = step.getVariableType();
-        methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getName()),
-                name, QuorumConverter.convertTypeToBytecodeString(type));
+        if(isFieldInObject){
+            methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getStaticKey() + "$Interface"),
+                    QuorumConverter.generateGetterNameFromSubField(type, name), QuorumConverter.generateGetterSignatureFromSubField(variable.getType()));
+        }else{
+            type.setBytecodeInterface(true);
+            methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getStaticKey() + "$Interface"),
+                    QuorumConverter.generateGetterNameFromSubField(variable.getType(), name), QuorumConverter.generateGetterSignatureFromSubField(type));
+        }
 
         //push the type of the variable on the top of the stack
         stack.pushExpressionType(type);
