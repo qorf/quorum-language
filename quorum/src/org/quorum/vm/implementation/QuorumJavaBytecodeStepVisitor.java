@@ -509,6 +509,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             valueType = stack.popExpressionType();
             
             if(!valueType.isPrimitiveType()) {
+                if(valueType.isNull()){
+                    valueType = step.getSubVariableType();
+                }
                 valueType.setBytecodeInterface(true);
             }
              
@@ -3380,14 +3383,16 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //visit the field instruction
         String name = step.getVariableName();
         TypeDescriptor type = step.getVariableType();
-        if(isFieldInObject){
-            methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getStaticKey() + "$Interface"),
-                    QuorumConverter.generateGetterNameFromSubField(type, name), QuorumConverter.generateGetterSignatureFromSubField(variable.getType()));
+        if(type.isPrimitiveType()){
+            //methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getStaticKey() + "$Interface"),
+             //       QuorumConverter.generateGetterNameFromSubField(type, name), QuorumConverter.generateGetterSignatureFromSubField(type));
         }else{
             type.setBytecodeInterface(true);
-            methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getStaticKey() + "$Interface"),
-                    QuorumConverter.generateGetterNameFromSubField(variable.getType(), name), QuorumConverter.generateGetterSignatureFromSubField(type));
+            //methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getStaticKey() + "$Interface"),
+            //        QuorumConverter.generateGetterNameFromSubField(variable.getType(), name), QuorumConverter.generateGetterSignatureFromSubField(type));
         }
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getStaticKey() + "$Interface"),
+                    QuorumConverter.generateGetterNameFromSubField(variable.getType(), name), QuorumConverter.generateGetterSignatureFromSubField(type));
 
         //push the type of the variable on the top of the stack
         stack.pushExpressionType(type);

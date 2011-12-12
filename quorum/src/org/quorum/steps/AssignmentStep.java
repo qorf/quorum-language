@@ -12,6 +12,7 @@ import org.quorum.execution.RuntimeObject;
 import org.quorum.symbols.ErrorTypeDescriptor;
 import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.Result;
+import org.quorum.symbols.TypeDescriptor;
 
 /**
  * When execute() is called this step copies the value in a specified register into
@@ -35,6 +36,8 @@ public abstract class AssignmentStep extends IntermediateStep {
      * optional variable contained in an object "variable".
      */
     protected String subVariableName;
+    
+    protected TypeDescriptor subVariableType;
     
     /**
      * The parent which contains the variable being assigned a value. optional 
@@ -203,12 +206,17 @@ public abstract class AssignmentStep extends IntermediateStep {
         return IntermediateConstants.ASSIGNMENT_STEP.getName();
     }
 
-    public void setSubVariable(String variableInObjectName) {
+    public void setSubVariable(String variableInObjectName, TypeDescriptor variableType) {
         subVariableName = variableInObjectName;
+        subVariableType = variableType;
     }
 
     public String getSubVariableName() {
         return subVariableName;
+    }
+    
+    public TypeDescriptor getSubVariableType(){
+        return subVariableType;
     }
     
     /**

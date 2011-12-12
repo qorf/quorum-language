@@ -873,7 +873,7 @@ public class StepFactory {
                     asStep.setLineInformation(info.location);
                     asStep.setVariable(vd);
                     asStep.setParent(info.parent);
-                    asStep.setSubVariable(info.variableInObjectName);
+                    asStep.setSubVariable(info.variableInObjectName, leftType);
                     asStep.setRegister(info.rightValue.getRegister());
                     machine.getBuilder().add(asStep);
                     if(info.rightStep != null) {
