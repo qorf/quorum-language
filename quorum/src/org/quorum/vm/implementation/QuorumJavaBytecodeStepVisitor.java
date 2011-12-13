@@ -273,28 +273,18 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, params, null, null);
         methodVisitor.visitCode();
 
-        //names
-        String key = currentClass.getStaticKey();
-        String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
-        String converted = QuorumConverter.convertStaticKeyToPluginPath(key);
-        String convertedSupplement = QuorumConverter.convertStaticKeyToPluginPathTypeName(key);
-        String signature = QuorumConverter.convertMethodDescriptorToBytecodeSignature(blueprint);
-
-        methodVisitor.visitVarInsn(ALOAD, 0);
-        methodVisitor.visitFieldInsn(GETFIELD, className, PLUGIN_NAME, convertedSupplement);
-        //load parameters
-        Parameters parameters = blueprint.getParameters();
         int position = 1;
-        for (int i = 0; i < parameters.size(); i++) {
-            ParameterDescriptor param = parameters.get(i);
-            methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(param.getType()), position);
-            int size = QuorumConverter.getSizeOfType(param.getType());
-            position += size;
-        }
+        
+        stack.pushExpressionType(returnType);
+        
+        if(!returnType.isPrimitiveType() || returnType.isText())
+            methodVisitor.visitInsn(ACONST_NULL);
+        else if(returnType.isNumber())
+            methodVisitor.visitInsn(DCONST_0);
+        else 
+            methodVisitor.visitInsn(ICONST_0);
 
-        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted, blueprint.getName(), signature);
-
-        int returnOpcode = QuorumConverter.convertTypeToReturnOpcode(blueprint.getReturnType());
+        int returnOpcode = QuorumConverter.convertTypeToReturnOpcode(returnType);
         methodVisitor.visitInsn(returnOpcode);
 
         int stackSize = position;

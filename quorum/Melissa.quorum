@@ -16,6 +16,7 @@ class Melissa
        text textTotal = "asdf"
        Iterator<text> it = textList:GetIterator()
        print textList:GetSize()
+       print it:HasNext()
        repeat while it:HasNext()
             textTotal = textTotal + it:Next()
        end

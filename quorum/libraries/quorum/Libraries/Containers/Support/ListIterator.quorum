@@ -40,10 +40,10 @@ class ListIterator<Type> is a Iterator<Type>
         listIterator:Set(myList, head, tail)
 
     */
-    action Set(List<Type> list, ListNode<Type> head, ListNode<Type> tail)
-        me:list = list
-        me:head = head
-        me:tail = tail
+    action Set(List<Type> newList, ListNode<Type> newHead, ListNode<Type> newTail)
+        me:list = newList
+        me:head = newHead
+        me:tail = newTail
         me:current = undefined
     end
 
