@@ -901,7 +901,7 @@ public class TableTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("false"));
+        assert(r.getLine(0).equals("true"));
         assert(r.getLine(1).equals("1"));
         assert(r.getLine(2).equals("4"));
         assert(r.getLine(3).equals("2"));
