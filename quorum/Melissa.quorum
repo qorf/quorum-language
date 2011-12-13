@@ -1,26 +1,18 @@
-use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Array
+//use Libraries.Containers.Blueprints.Iterator
 class Melissa
-    action Main
-       List<text> textList
+    action main
+        Array<integer> a
+        a:Add(12)
+        a:Add(12)
+        a:Add(12)
 
-       textList:Add("First")
-       textList:Add("Purple")
-       textList:Add("Dinosaur")
-       textList:Add("Chair")
-       textList:Add("White")
-       textList:Add("Couch")
-       textList:Add("Lego")
+        integer result1 = a:Get(0)
+        integer result2 = a:Get(1)
+        integer result3 = a:Get(2)
 
-
-       text textTotal = "asdf"
-       Iterator<text> it = textList:GetIterator()
-       print textList:GetSize()
-       print it:HasNext()
-       repeat while it:HasNext()
-            textTotal = textTotal + it:Next()
-       end
-
-       print textTotal
+        print result1
+        print result2
+        print result3
     end
 end

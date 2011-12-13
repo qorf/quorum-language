@@ -2633,14 +2633,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             TypeDescriptor currentType = stack.popExpressionType();
             
             if(currentType.getName().equals("Libraries.Language.Object")){
-                String autoBoxClassName = "quorum/Libraries/Language/Types/Boolean";
+                String autoBoxClassName = "quorum/Libraries/Language/Types/Boolean$Interface";
                 String autoBoxMethodSignature = "()Z";
 
                 // Create a new autoboxed object.
-               methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(TypeDescriptor.getBooleanObjectType().getStaticKey()));
+               methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(QuorumConverter.convertClassNameToInterfaceName(TypeDescriptor.getBooleanObjectType().getStaticKey())));
 
                 // Call SetValue.
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
+                methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName,
                         "GetValue", autoBoxMethodSignature);
                 stack.pushExpressionType(TypeDescriptor.getBooleanType());
             }else{
@@ -2828,21 +2828,22 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                             //otherwise we will just cast
                             if(next.getTemplateName().equals(templateName) && next.isPrimitiveType()){
                                 next.convertToClass();
-                                String autoBoxClassName = QuorumConverter.convertStaticKeyToBytecodePathTypeName(next.getStaticKey()); 
+                                String autoBoxClassName = QuorumConverter.convertStaticKeyToBytecodePathTypeName(QuorumConverter.convertClassNameToInterfaceName(next.getStaticKey())); 
                 
                                 // Create a new autoboxed object.
-                                methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(next.getStaticKey()));
+                                methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(QuorumConverter.convertClassNameToInterfaceName(next.getStaticKey())));
                                 
                                 // Call SetValue.
                                 next.convertToPrimitive();
                                 String autoBoxMethodSignature = "()" + QuorumConverter.convertTypeToBytecodeString(next);
-                                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
+                                methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName,
                                         "GetValue", autoBoxMethodSignature);
                                 stack.pushExpressionType(next);
                                 notFound = false;
                             }else if(next.getTemplateName().equals(templateName)){
                                 // Create a new autoboxed object.
-                                methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(next.getStaticKey()));
+                                methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(QuorumConverter.convertClassNameToInterfaceName(next.getStaticKey())));
+                                next.setBytecodeInterface(true);
                                 stack.pushExpressionType(next);
                                 notFound = false;
                             }
@@ -3063,14 +3064,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             TypeDescriptor currentType = stack.popExpressionType();
             
             if(currentType.getName().equals("Libraries.Language.Object")){
-                String autoBoxClassName = "quorum/Libraries/Language/Types/Integer";
+                String autoBoxClassName = "quorum/Libraries/Language/Types/Integer$Interface";
                 String autoBoxMethodSignature = "()I";
 
                 // Create a new autoboxed object.
-               methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(TypeDescriptor.getIntegerObjectType().getStaticKey()));
+               methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(QuorumConverter.convertClassNameToInterfaceName(TypeDescriptor.getIntegerObjectType().getStaticKey())));
 
                 // Call SetValue.
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
+                methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName,
                         "GetValue", autoBoxMethodSignature);
                 stack.pushExpressionType(TypeDescriptor.getIntegerType());
             }else{
@@ -3154,14 +3155,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             TypeDescriptor currentType = stack.popExpressionType();
             
             if(currentType.getName().equals("Libraries.Language.Object")){
-                String autoBoxClassName = "quorum/Libraries/Language/Types/Number";
+                String autoBoxClassName = "quorum/Libraries/Language/Types/Number$Interface";
                 String autoBoxMethodSignature = "()D";
 
                 // Create a new autoboxed object.
-               methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(TypeDescriptor.getNumberObjectType().getStaticKey()));
+               methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(QuorumConverter.convertClassNameToInterfaceName(TypeDescriptor.getNumberObjectType().getStaticKey())));
 
                 // Call SetValue.
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
+                methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName,
                         "GetValue", autoBoxMethodSignature);
                 stack.pushExpressionType(TypeDescriptor.getNumberType());
             }else{
@@ -3181,7 +3182,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //the interpreter accidentally.
         TypeDescriptor convertedType = new TypeDescriptor(step.getConvertedType());
         convertedType.setBytecodeInterface(true);
-        methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(convertedType.getStaticKey())));
+        methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(QuorumConverter.convertClassNameToInterfaceName(convertedType.getStaticKey())));
         stack.pushExpressionType(convertedType);
     }
 
@@ -3292,14 +3293,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             TypeDescriptor currentType = stack.popExpressionType();
             
             if(currentType.getName().equals("Libraries.Language.Object")){
-                String autoBoxClassName = "quorum/Libraries/Language/Types/Text";
+                String autoBoxClassName = "quorum/Libraries/Language/Types/Text$Interface";
                 String autoBoxMethodSignature = "()Ljava/lang/String;";
 
                 // Create a new autoboxed object.
-               methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(TypeDescriptor.getTextObjectType().getStaticKey()));
+               methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(QuorumConverter.convertClassNameToInterfaceName(TypeDescriptor.getTextObjectType().getStaticKey())));
 
                 // Call SetValue.
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
+                methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName,
                         "GetValue", autoBoxMethodSignature);
                 stack.pushExpressionType(TypeDescriptor.getTextType());
             }else{
