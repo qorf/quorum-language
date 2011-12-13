@@ -1,18 +1,22 @@
-use Libraries.Containers.Array
+use Libraries.Containers.Stack
 //use Libraries.Containers.Blueprints.Iterator
 class Melissa
-    action main
-        Array<integer> a
-        a:Add(12)
-        a:Add(12)
-        a:Add(12)
+    action Main
+       Stack<text> s1
+       s1:Push("One")
+       s1:Push("Two")
+       s1:Push("Three")
+       s1:Push("Four")
+       s1:Push("Five")
 
-        integer result1 = a:Get(0)
-        integer result2 = a:Get(1)
-        integer result3 = a:Get(2)
+       boolean bool1 = s1:Has("One")
+       boolean bool2 = s1:Has("Six")
+       boolean bool3 = s1:Has("Five")
+       boolean bool4 = s1:Has("Something")
 
-        print result1
-        print result2
-        print result3
+       print bool1
+       print bool2
+       print bool3
+       print bool4
     end
 end

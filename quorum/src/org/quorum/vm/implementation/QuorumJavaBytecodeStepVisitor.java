@@ -2673,7 +2673,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             if (field) {
                 String key = currentClass.getStaticKey();
                 String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
-                String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(key);
+                String classNameSupplement = QuorumConverter.convertStaticKeyToBytecodePathTypeName(QuorumConverter.convertClassNameToInterfaceName(var.getType().getName()));
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitFieldInsn(GETFIELD, className, var.getName(), classNameSupplement);
             } else { //determine the local variable number and load it
