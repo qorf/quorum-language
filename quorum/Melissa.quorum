@@ -1,23 +1,23 @@
 use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
 class Melissa
-action Main
+    action Main
        List<text> textList
 
-       textList:Add("One")
-       textList:Add("Five")
-       textList:Add("Nine")
-       textList:Add("One")
-       textList:Add("Eight")
-       textList:Add("Three")
-       textList:Add("One")
+       textList:Add("First")
+       textList:Add("Purple")
+       textList:Add("Dinosaur")
+       textList:Add("Chair")
+       textList:Add("White")
+       textList:Add("Couch")
+       textList:Add("Lego")
 
-       textList:RemoveFromEnd()
 
-       text textTotal = ""
-       integer i = 0
-       repeat from 0 to 5
-           textTotal = textTotal + textList:Get(i)
-           i = i + 1
+       text textTotal = "asdf"
+       Iterator<text> it = textList:GetIterator()
+       print textList:GetSize()
+       repeat while it:HasNext()
+            textTotal = textTotal + it:Next()
        end
 
        print textTotal

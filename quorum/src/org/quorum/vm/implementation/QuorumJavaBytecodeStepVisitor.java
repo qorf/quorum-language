@@ -260,6 +260,53 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitMaxs(stackSize, varSize);
         methodVisitor.visitEnd();
     }
+
+    /**
+     * Generate a stub method for a blueprint.
+     * 
+     * @param blueprint 
+     */
+    public void computeBlueprint(BlueprintDescriptor blueprint) {
+        String name = blueprint.getName();
+        String params = QuorumConverter.convertMethodDescriptorToBytecodeSignature(blueprint);
+        TypeDescriptor returnType = blueprint.getReturnType();
+        methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, params, null, null);
+        methodVisitor.visitCode();
+
+        //names
+        String key = currentClass.getStaticKey();
+        String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
+        String converted = QuorumConverter.convertStaticKeyToPluginPath(key);
+        String convertedSupplement = QuorumConverter.convertStaticKeyToPluginPathTypeName(key);
+        String signature = QuorumConverter.convertMethodDescriptorToBytecodeSignature(blueprint);
+
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitFieldInsn(GETFIELD, className, PLUGIN_NAME, convertedSupplement);
+        //load parameters
+        Parameters parameters = blueprint.getParameters();
+        int position = 1;
+        for (int i = 0; i < parameters.size(); i++) {
+            ParameterDescriptor param = parameters.get(i);
+            methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(param.getType()), position);
+            int size = QuorumConverter.getSizeOfType(param.getType());
+            position += size;
+        }
+
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted, blueprint.getName(), signature);
+
+        int returnOpcode = QuorumConverter.convertTypeToReturnOpcode(blueprint.getReturnType());
+        methodVisitor.visitInsn(returnOpcode);
+
+        int stackSize = position;
+        int varSize = position;
+
+        if (blueprint.getReturnType().isNumber()) {
+            stackSize += 1;
+        }
+
+        methodVisitor.visitMaxs(stackSize, varSize);
+        methodVisitor.visitEnd();
+    }
     
     /**
      * 
@@ -1427,7 +1474,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         String interfaceName = QuorumConverter.convertClassNameToInterfaceName(name);
 
         if(currentClass.getStaticKey().equals("Libraries.Language.Errors.Error") || currentClass.getParent("Libraries.Language.Errors.Error") != null){
-            classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Throwable", new String[] { interfaceName });
+                classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Throwable", new String[] { interfaceName });
         }else{
             //this will have to be modified for inheritance conversion
             classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", new String[] { interfaceName });
@@ -1505,6 +1552,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 visit(method);
             }
         }
+        
+        //insert stub methods for all the blueprints
+        Iterator<BlueprintDescriptor> blueprints = clazz.getClassDescriptor().getBlueprints();
+        while (blueprints.hasNext()) {
+            BlueprintDescriptor blueprint = blueprints.next();
+            computeBlueprint(blueprint);
+        }
 
         Iterator<SystemActionDescriptor> systems = clazz.getClassDescriptor().getSystemActions();
         while (systems.hasNext()) {
@@ -1543,6 +1597,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         //pass these parents into the visit function
         interfaceWriter.visit(V1_6, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE, interfaceName , null, "java/lang/Object", parentStrings);
+        
+        Iterator<BlueprintDescriptor> blueprints = clazz.getClassDescriptor().getBlueprints();
+        while (blueprints.hasNext()) {
+            BlueprintDescriptor bPrints = blueprints.next();
+            visitInterface(bPrints);
+        }
         
         Iterator<MethodExecution> methods = clazz.getMethods();
         while (methods.hasNext()) {
@@ -1667,6 +1727,19 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //still have to handle parameters here.
         String name = method.getMethodDescriptor().getName();
         String params = QuorumConverter.convertMethodDescriptorToBytecodeSignature(method.getMethodDescriptor());
+        interfaceMethodVisitor = interfaceWriter.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, name, params, null, null);
+        interfaceMethodVisitor.visitEnd();
+    }
+    
+    /**
+     * Computes the methods for an interface.
+     * 
+     * @param method 
+     */
+    public void visitInterface(BlueprintDescriptor method) {
+        //still have to handle parameters here.
+        String name = method.getName();
+        String params = QuorumConverter.convertMethodDescriptorToBytecodeSignature(method);
         interfaceMethodVisitor = interfaceWriter.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, name, params, null, null);
         interfaceMethodVisitor.visitEnd();
     }

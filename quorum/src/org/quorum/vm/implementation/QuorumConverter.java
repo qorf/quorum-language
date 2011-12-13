@@ -171,16 +171,19 @@ public class QuorumConverter {
                 parametersString += convertTypeToBytecodeString(type);
             else {
                 parametersString += "L" + convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey())) + ";";
+                type.setBytecodeInterface(true);
             }
         }
         
         parametersString += ")";
         
         String returnString = null;
-        if (ret.isPrimitiveType() || ret.isVoid())
+        if (ret.isPrimitiveType() || ret.isVoid()){
             returnString = convertTypeToBytecodeString(ret);
-        else
+        }else{
             returnString = "L" + convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(ret.getStaticKey())) + ";";
+            ret.setBytecodeInterface(true);
+        }
         
         result = parametersString + returnString;
         return result;
