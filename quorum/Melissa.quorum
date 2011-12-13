@@ -1,19 +1,18 @@
-use Libraries.Containers.Stack
+use Libraries.Containers.Queue
 //use Libraries.Containers.Blueprints.Iterator
 class Melissa
-    action Main
-       Stack<text> s1
-       s1:Push("One")
-       s1:Push("Two")
-       s1:Push("Three")
-       s1:Push("Four")
-       s1:Push("Five")
+    action main
+       Queue<text> s1
+       s1:Add("One")
+       s1:Add("Two")
+       s1:Add("Three")
+       s1:Add("Four")
+       s1:Add("Five")
 
        boolean bool1 = s1:Has("One")
        boolean bool2 = s1:Has("Six")
        boolean bool3 = s1:Has("Five")
        boolean bool4 = s1:Has("Something")
-
        print bool1
        print bool2
        print bool3

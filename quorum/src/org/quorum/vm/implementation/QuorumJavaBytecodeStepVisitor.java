@@ -3447,13 +3447,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //visit the field instruction
         String name = step.getVariableName();
         TypeDescriptor type = step.getVariableType();
-        if(type.isPrimitiveType()){
-            //methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getStaticKey() + "$Interface"),
-             //       QuorumConverter.generateGetterNameFromSubField(type, name), QuorumConverter.generateGetterSignatureFromSubField(type));
-        }else{
+        
+        if(!type.isPrimitiveType()){
             type.setBytecodeInterface(true);
-            //methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getStaticKey() + "$Interface"),
-            //        QuorumConverter.generateGetterNameFromSubField(variable.getType(), name), QuorumConverter.generateGetterSignatureFromSubField(type));
         }
         methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getStaticKey() + "$Interface"),
                     QuorumConverter.generateGetterNameFromSubField(variable.getType(), name), QuorumConverter.generateGetterSignatureFromSubField(type));
