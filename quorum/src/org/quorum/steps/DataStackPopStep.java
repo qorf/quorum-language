@@ -16,6 +16,7 @@ import org.quorum.execution.ExecutionStepVisitor;
 public class DataStackPopStep  extends IntermediateStep {
 
     private int register;
+    private CallStep call;
 
     @Override
     public void execute() {
@@ -49,5 +50,13 @@ public class DataStackPopStep  extends IntermediateStep {
     @Override
     public void visit(ExecutionStepVisitor visitor) {
         visitor.visit(this);
+    }
+
+    public void setMatchingCall(CallStep call) {
+        this.call = call;
+    }
+    
+    public void setCastStepLocation(int castStepLocation) {
+        call.setCastStepLocation(castStepLocation);
     }
 }

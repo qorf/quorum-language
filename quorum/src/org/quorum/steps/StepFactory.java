@@ -991,11 +991,12 @@ public class StepFactory {
         return result;
     }
 
-    private ResultTuple addStackMoveStep(int register, LineInformation location) {
+    private ResultTuple addStackMoveStep(int register, LineInformation location, CallStep call) {
         ResultTuple result = new ResultTuple();
         result.setNextRegister(register + 1);
 
         DataStackPopStep step = new DataStackPopStep();
+        step.setMatchingCall(call);
         step.setLineInformation(location);
         step.setRegister(register);
         result.setStep(step);
@@ -1212,7 +1213,7 @@ public class StepFactory {
             }
 
             //finally, setup the result for the rest of the expression parsing
-            ResultTuple sms = addStackMoveStep(info.register, info.location);
+            ResultTuple sms = addStackMoveStep(info.register, info.location, step);
             tuple.setValue(value);
             tuple.setStep(sms.getStep());
             tuple.setNextRegister(sms.getNextRegister());
@@ -1398,7 +1399,7 @@ public class StepFactory {
                 machine.getBuilder().add(step);
 
                 //finally, setup the result for the rest of the expression parsing
-                ResultTuple sms = addStackMoveStep(info.register, info.location);
+                ResultTuple sms = addStackMoveStep(info.register, info.location, step);
                 tuple.setValue(value);
                 tuple.setStep(sms.getStep());
                 tuple.setNextRegister(sms.getNextRegister());

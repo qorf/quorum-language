@@ -147,8 +147,8 @@ class Text is a Object
     action GetCharacter(integer index) returns text
         // Index must be in the range 0 <= x < me:GetLength()
         if index < 0 or index >= me:GetLength() then
-        //    InvalidLocationError e
-         //   alert(e)
+            InvalidLocationError e
+            alert(e)
         end
 
         return GetCharacterNative(index)
@@ -168,8 +168,8 @@ class Text is a Object
     */
     action GetSubstring(integer startIndex, integer endIndex) returns text
         if startIndex = endIndex or startIndex > endIndex or startIndex < 0 or endIndex < 0 or endIndex >= me:GetLength() then
-        //   InvalidLocationError e
-        //    alert(e)
+            InvalidLocationError e
+            alert(e)
         end
         
         return GetSubstringNative(startIndex, endIndex)
