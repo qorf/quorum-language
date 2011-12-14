@@ -109,7 +109,7 @@ public class RandomTester {
     
     @Test
     public void test_RandomIntegerWithInvalidMaximum_bytecode() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.PASS + "RandomIntegerWithInvalidMaximum.quorum"));
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.FAIL + "RandomInteger.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
@@ -134,7 +134,7 @@ public class RandomTester {
     
     @Test
     public void test_RandomIntegerBetweenWithSameValues_bytecode() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.PASS + "RandomIntegerBetweenWithSameValues.quorum"));
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.FAIL + "RandomIntegerBetweenWithSameValues.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
@@ -159,7 +159,7 @@ public class RandomTester {
     
     @Test
     public void test_RandomIntegerBetweenWithInvalidRange_bytecode() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.PASS + "RandomIntegerBetweenWithInvalidRange.quorum"));
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.FAIL + "RandomIntegerBetweenWithInvalidRange.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
@@ -184,7 +184,7 @@ public class RandomTester {
     
     @Test
     public void test_RandomIntegerBetweenWithNegativeNumbers_bytecode() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.PASS + "RandomIntegerBetweenWithNegativeNumbers.quorum"));
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.FAIL + "RandomIntegerBetweenWithNegativeNumbers.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
@@ -414,7 +414,7 @@ public class RandomTester {
 
     @Test
     public void test_RandomListOfNumbersWithInvalidLength_bytecode() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.PASS + "RandomListOfNumbersWithInvalidLength.quorum"));
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.FAIL + "RandomListOfNumbersWithInvalidLength.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
@@ -440,13 +440,13 @@ public class RandomTester {
     
     @Test
     public void test_RandomListOfIntegersWithInvalidLength_bytecode() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.PASS + "RandomListOfIntegersWithInvalidLength.quorum"));
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.FAIL + "RandomListOfIntegersWithInvalidLength.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
 
         RunResult r = CompilerTestSuite.runQuorumFile();
-        if (!r.isSuccessful())
+        if (r.isSuccessful())
             fail();
     }
 }
