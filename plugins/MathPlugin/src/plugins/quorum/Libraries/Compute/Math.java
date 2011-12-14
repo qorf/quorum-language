@@ -14,7 +14,7 @@ public class Math {
     public double Floor(double value){
         return java.lang.Math.floor(value); 
     }
-    private double Ceiling(double value){ 
+    public double Ceiling(double value){ 
         return java.lang.Math.ceil(value); 
     }
 
