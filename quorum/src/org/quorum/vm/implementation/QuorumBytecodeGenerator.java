@@ -306,6 +306,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         Dependency dep = new Dependency();
         dep.setFile(file);
         dep.setRelativePath(relativePath);
+        dep.setExecutionDependency(false);
         dependencies.add(dep);
     }
 }

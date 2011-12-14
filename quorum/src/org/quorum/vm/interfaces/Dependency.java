@@ -8,12 +8,14 @@ import java.io.File;
 
 /**
  * A class representing a dependency on the system.
+ * 
  * @author Andreas Stefik
  */
 public class Dependency {
     private File file;
-    private String relativePath;
-
+    private String relativePath = "";
+    private boolean isExecutionDependency = true;
+    
     /**
      * @return the file
      */
@@ -40,5 +42,22 @@ public class Dependency {
      */
     public void setRelativePath(String relativePath) {
         this.relativePath = relativePath;
+    }
+
+    /**
+     * Returns true if this dependency should be taken into account when
+     * writing a system's executable.
+     * 
+     * @return the isExecutionDependency
+     */
+    public boolean isExecutionDependency() {
+        return isExecutionDependency;
+    }
+
+    /**
+     * @param isExecutionDependency the isExecutionDependency to set
+     */
+    public void setExecutionDependency(boolean isExecutionDependency) {
+        this.isExecutionDependency = isExecutionDependency;
     }
 }

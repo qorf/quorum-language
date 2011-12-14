@@ -85,8 +85,11 @@ public class QuorumJarGenerator {
         try {
             Iterator<Dependency> it = dependencies.iterator();
             while(it.hasNext()) {
-                File file = it.next().getFile();
-                File dep = new File(writeFolder  + "/" + file.getName());
+                Dependency next = it.next();
+                File file = next.getFile();
+                
+                String relativePath = next.getRelativePath();
+                File dep = new File(writeFolder  + "/" + relativePath + file.getName());
                 copyFile(file, dep);
             }
         } catch (IOException ex) {
@@ -184,12 +187,11 @@ public class QuorumJarGenerator {
         if(dependencies != null) {
             Iterator<Dependency> iterator = dependencies.iterator();
             while(iterator.hasNext()) {
-                File file = iterator.next().getFile();
-                if(file.isFile()) {
+                Dependency next = iterator.next();
+                File file = next.getFile();
+                if(file.isFile() && next.isExecutionDependency()) {
                     libs += Attributes.Name.CLASS_PATH + ": " + DEPENDENCIES_FOLDER + 
                             "/" + file.getName();
-                   // libs += Attributes.Name.CLASS_PATH + ": "+
-                   //         file.getAbsolutePath();
                 }
             }
         }
