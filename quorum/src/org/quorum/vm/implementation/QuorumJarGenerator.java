@@ -4,6 +4,7 @@
  */
 package org.quorum.vm.implementation;
 
+import org.quorum.vm.interfaces.Dependency;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -38,7 +39,7 @@ public class QuorumJarGenerator {
     private final String CREATED_BY = "Quorum 1.0";
     public ArrayList<File> files;
     public File buildDirectory;
-    private Collection<File> dependencies;
+    private Collection<Dependency> dependencies;
     private final String DEPENDENCIES_FOLDER = "libraries";
     
     public QuorumJarGenerator() {
@@ -82,9 +83,9 @@ public class QuorumJarGenerator {
             writeFolder.mkdir();
         }
         try {
-            Iterator<File> it = dependencies.iterator();
+            Iterator<Dependency> it = dependencies.iterator();
             while(it.hasNext()) {
-                File file = it.next();
+                File file = it.next().getFile();
                 File dep = new File(writeFolder  + "/" + file.getName());
                 copyFile(file, dep);
             }
@@ -181,9 +182,9 @@ public class QuorumJarGenerator {
         
         String libs = "";
         if(dependencies != null) {
-            Iterator<File> iterator = dependencies.iterator();
+            Iterator<Dependency> iterator = dependencies.iterator();
             while(iterator.hasNext()) {
-                File file = iterator.next();
+                File file = iterator.next().getFile();
                 if(file.isFile()) {
                     libs += Attributes.Name.CLASS_PATH + ": " + DEPENDENCIES_FOLDER + 
                             "/" + file.getName();
@@ -211,7 +212,7 @@ public class QuorumJarGenerator {
      * 
      * @param libs 
      */
-    public void setDependencies(Collection<File> libs) {
+    public void setDependencies(Collection<Dependency> libs) {
         dependencies = libs;
     }
     

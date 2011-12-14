@@ -4,6 +4,7 @@
  */
 package org.quorum.vm.implementation;
 
+import org.quorum.vm.interfaces.Dependency;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -37,7 +38,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     private String distributionName = "Default";
     private File mainFile;
     private String manifestMain = "";
-    private List<File> dependencies = new LinkedList<File>();
+    private List<Dependency> dependencies = new LinkedList<Dependency>();
     
     /**
      * This method generates java bytecode for all classes on the system.
@@ -280,11 +281,13 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
 
     @Override
     public void addDependency(File file) {
-        dependencies.add(file);
+        Dependency dep = new Dependency();
+        dep.setFile(file);
+        dependencies.add(dep);
     }
 
     @Override
-    public Iterator<File> getDependencies() {
+    public Iterator<Dependency> getDependencies() {
         return dependencies.iterator();
     }
     
@@ -296,5 +299,13 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     @Override
     public int getNumberOfDependencies() {
         return dependencies.size();
+    }
+
+    @Override
+    public void addDependency(File file, String relativePath) {
+        Dependency dep = new Dependency();
+        dep.setFile(file);
+        dep.setRelativePath(relativePath);
+        dependencies.add(dep);
     }
 }

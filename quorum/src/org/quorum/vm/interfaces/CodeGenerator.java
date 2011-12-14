@@ -78,11 +78,23 @@ public interface CodeGenerator {
     public void addDependency(File file);
     
     /**
+     * This method allows the user to add a dependency into a folder of the 
+     * user's choice. No attempt will be made to inject these dependencies
+     * into the target's execution (e.g., a jar file's manifest). This is useful
+     * if you want to copy a series of files, one-by-one, into a specified
+     * folder.
+     * 
+     * @param file
+     * @param relativePath 
+     */
+    public void addDependency(File file, String relativePath);
+    
+    /**
      * Returns an iterator of all dependencies loaded on the system.
      * 
      * @return 
      */
-    public Iterator<File> getDependencies();
+    public Iterator<Dependency> getDependencies();
     
     /**
      * Clears out all dependencies on the target system.
