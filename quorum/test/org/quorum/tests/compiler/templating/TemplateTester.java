@@ -964,27 +964,27 @@ public class TemplateTester {
             fail();
         }
     }
-
-    @Test
-    public void test_fail_DiamondProblemWithTwoTypes_9_execute(){
-        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.FAIL;
-        File[] build = new File[5];
-        build[4] = CompilerTestSuite.getQuorumFile(directory + "D_9.quorum");
-        build[3] = CompilerTestSuite.getQuorumFile(directory + "B_9.quorum");
-        build[2] = CompilerTestSuite.getQuorumFile(directory + "C_9.quorum");
-        build[1] = CompilerTestSuite.getQuorumFile(directory + "A_9.quorum");
-        build[0] = CompilerTestSuite.getQuorumFile(directory + "DiamondProblemWithTwoTypes_9.quorum");
-
-        try {
-            CompilerTestSuite.build(build);
-        }
-        catch(Exception e) {
-            fail();
-        }
-        if (vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-    }
+//
+//    @Test
+//    public void test_fail_DiamondProblemWithTwoTypes_9_execute(){
+//        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.FAIL;
+//        File[] build = new File[5];
+//        build[4] = CompilerTestSuite.getQuorumFile(directory + "D_9.quorum");
+//        build[3] = CompilerTestSuite.getQuorumFile(directory + "B_9.quorum");
+//        build[2] = CompilerTestSuite.getQuorumFile(directory + "C_9.quorum");
+//        build[1] = CompilerTestSuite.getQuorumFile(directory + "A_9.quorum");
+//        build[0] = CompilerTestSuite.getQuorumFile(directory + "DiamondProblemWithTwoTypes_9.quorum");
+//
+//        try {
+//            CompilerTestSuite.build(build);
+//        }
+//        catch(Exception e) {
+//            fail();
+//        }
+//        if (vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//    }
 
     @Test
     public void test_fail_DefneTypeOfUntemplatedClass_10_execute(){

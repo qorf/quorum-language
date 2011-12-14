@@ -1,7 +1,8 @@
-use Libraries.Compute.Random
+use Libraries.Compute.Math
 class Melissa
     action Main
-        Random random
-        random:SetSeed(1101102342)
+        Math math
+        number result = math:Round(2.96, 1)
+        print result
     end
 end
