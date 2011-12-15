@@ -224,6 +224,17 @@ public class Speech {
         }
     }
     
+    /**
+     * Instructs the system to speak a particular phrase through the current
+     * text-to-speech engine. This method is used for the compiler
+     * to call a static say function when the "say" command is issued
+     * in Quorum.
+     * 
+     * @param value 
+     */
+    public static void StaticSay(String value) {
+        speech.speak(value);
+    }
     
     /**
      * @param args the command line arguments
