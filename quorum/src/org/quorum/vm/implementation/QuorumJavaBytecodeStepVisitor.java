@@ -3198,12 +3198,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(NullIntermediateStep step) {
-        int a = 5;
     }
 
     @Override
     public void visit(NullExecutionStep step) {
-        int a = 5;
     }
 
     @Override
@@ -3245,12 +3243,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(ObjectInitParentStep step) {
-        int a = 5;
     }
 
     @Override
     public void visit(ObjectInitPopStep step) {
-        int a = 5;
     }
 
     @Override
@@ -3295,7 +3291,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(PushStep step) {
-        int a = 5;
     }
 
     @Override
@@ -3382,7 +3377,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryBooleanBooleanCastStep step) {
-        int a = 5;
     }
 
     @Override
@@ -3415,7 +3409,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryIntegerIntegerCastStep step) {
-        int a = 5;
     }
 
     @Override
@@ -3457,7 +3450,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryNumberNumberCastStep step) {
-        int a = 5;
     }
 
     @Override
@@ -3484,7 +3476,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryTextTextCastStep step) {
-        int a = 5;
     }
 
     @Override
