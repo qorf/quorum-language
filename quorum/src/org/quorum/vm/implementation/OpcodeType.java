@@ -19,7 +19,8 @@ public enum OpcodeType {
     FROM,
     TIMES,
     IF, 
-    PRINT, 
+    PRINT,
+    SAY,
     RETURN,
     SOLO_METHOD_CALL;
     //fill in other categories as/if needed.

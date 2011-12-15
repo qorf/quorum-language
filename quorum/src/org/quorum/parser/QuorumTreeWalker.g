@@ -862,7 +862,7 @@ speak_statement
 
                 symbol.addStatementFlagToCurrentFile(step.getBeginLine());
 		stepFactory.addSpeakStep(location, $root_expression.eval, $root_expression.step);
-	
+		builder.addStepLabel(OpcodeType.SAY, -1);
 	}
 	;
 

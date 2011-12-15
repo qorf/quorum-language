@@ -3341,7 +3341,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(SpeakStep step) {
-        int a = 5;
+        // Insert the appropriate steps for this statement.
+        processExpressions();
+        TypeDescriptor typeToPrint = stack.popExpressionType();
+
+        // Insert the appropriate say opcode for the type.
+        methodVisitor.visitMethodInsn(INVOKESTATIC, "plugins/quorum/Libraries/Sound/Speech", "StaticSay",
+                "(" + QuorumConverter.convertTypeToBytecodeString(typeToPrint) + ")V");
     }
 
     @Override
