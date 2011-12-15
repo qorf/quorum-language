@@ -1151,26 +1151,32 @@ public class StepFactory {
             step.setLineInformation(info.location);
             ExpressionValue value = new ExpressionValue();
             
+            TypeDescriptor returnType = method.getReturnType();
             //set type depending on whether we are dealing with a templated type
             if(vd != null){
-                TypeDescriptor returnType = method.getReturnType();
                 if(returnType.getTemplateName() != null){
                     MethodDescriptor resolvedTypeVirtualMethod = clazz.getResolvedTypeVirtualMethod(method.getStaticKey());
                     if(resolvedTypeVirtualMethod != null && resolvedTypeVirtualMethod.getReturnType() != null){
                         value = setReturnTemplateType(resolvedTypeVirtualMethod.getReturnType().getTemplateName(), resolvedTypeVirtualMethod.getReturnType(), clazz, vd);
+                        method.addMappedTemplateType(value.getType().getTemplateName(), returnType);
                     }else{ //there were no virtual methods of resolved type
                         value = setReturnTemplateType(returnType.getTemplateName(), returnType, clazz, vd);
+                        method.addMappedTemplateType(value.getType().getTemplateName(), returnType);
                     }
                 }else if(returnType.hasSubTypes()){
                     TypeDescriptor newType = new TypeDescriptor(returnType);
                     value.setType(setReturnTemplateType(newType,clazz,vd));
+                    method.addMappedTemplateType(value.getType().getTemplateName(), returnType);
                 }else{
-                    value.setType(method.getReturnType());
+                    value.setType(returnType);
                 }
             } else {
-              value.setType(method.getReturnType());
+              value.setType(returnType);
             }
-
+            
+            if(value != null && value.getType() != null && value.getType().getTemplateName() != null)
+                method.addMappedTemplateType(value.getType().getTemplateName(), returnType);
+            
             value.setRegister(info.register);
             tuple.setNextRegister(info.register);
             

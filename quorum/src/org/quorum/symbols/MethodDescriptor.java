@@ -25,6 +25,7 @@ public class MethodDescriptor extends Descriptor implements Scopable {
     private int currentBlock;
     private String key = "";
     private TypeDescriptor returnType;
+    private HashMap<String, TypeDescriptor> mappedTemplateType = new HashMap<String, TypeDescriptor>();
     private Scopable parent;
     private AccessModifierEnum accessModifier;
     private MethodLocation location;
@@ -510,5 +511,19 @@ public class MethodDescriptor extends Descriptor implements Scopable {
     @Override
     public int getNumberOfVariables() {
         return parent.getNumberOfVariables() + getVariables().size();
+    }
+
+    /**
+     * @return the mappedTemplateType
+     */
+    public TypeDescriptor getMappedTemplateType(String templateName) {
+        return mappedTemplateType.get(templateName);
+    }
+
+    /**
+     * @param mappedTemplateType the mappedTemplateType to set
+     */
+    public void addMappedTemplateType(String templateName, TypeDescriptor type) {
+        this.mappedTemplateType.put(templateName, type);
     }
 }

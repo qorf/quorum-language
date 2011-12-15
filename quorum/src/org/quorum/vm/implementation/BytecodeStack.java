@@ -158,6 +158,10 @@ public class BytecodeStack {
         return expressionTypes.isEmpty();
     }
     
+    public int getExpressionStackSize(){
+        return expressionTypes.size();
+    }
+
     /**
      * Push a label onto the label stack.
      * 

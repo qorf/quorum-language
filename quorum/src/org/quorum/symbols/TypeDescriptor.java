@@ -258,6 +258,7 @@ public class TypeDescriptor extends Descriptor {
         if(type.getTemplateName() != null) {
             setTemplateName(type.getTemplateName());
         }
+        
         Iterator<GenericDescriptor> st = type.getSubTypes();
         while(st.hasNext()){
             GenericDescriptor next = new GenericDescriptor(st.next());

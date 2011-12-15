@@ -1864,18 +1864,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AlertStep step) {
-//        RuntimeError runtimeError = step.getRuntimeError();
-        //create the java exception 
-        //methodVisitor.visitTypeInsn(NEW, "java/lang/RuntimeException");
-//        methodVisitor.visitInsn(DUP);
-//        if(runtimeError != null){
-//            methodVisitor.visitLdcInsn(runtimeError.getErrorMessage());
-//            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Throwable", "<init>", "(Ljava/lang/String;)V");
-//        }else{
-//            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Throwable", "<init>", "()V");
-//        }
-        
-        
         //throw the exception
         methodVisitor.visitInsn(ATHROW);
     }
@@ -1893,22 +1881,110 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignIntegerObjectToNumberAutoBoxLocalStep step) {
-        int a = 5;
+        //TODO:make test cases for these
+        //process the expressions
+        TypeDescriptor pop = null;
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()) {
+            processExpressions();
+            pop = stack.popExpressionType();
+            
+            //convert object to primitive
+            String autoBoxClassName = QuorumConverter.convertTypeToBytecodeString(pop);
+            pop.convertToPrimitive();
+            String autoBoxMethodSignature = QuorumConverter.generateGetterSignatureFromSubField(pop);
+
+            // Call SetValue.
+            methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName, "GetValue", autoBoxMethodSignature);
+            
+            //push the int onto the expression stack and calculate the cast to number
+            stack.pushExpressionType(pop);
+            TypeDescriptor valueType = new TypeDescriptor();
+            valueType.setName(TypeDescriptor.NUMBER);
+            castValueToValue(valueType);
+            stack.popExpressionType();
+            
+            pop = valueType;
+        }
+        
+        //Assigns an integer to a local variable or field of type number.
+        performAssignment(pop, step, false);
     }
 
     @Override
     public void visit(AssignIntegerObjectToNumberAutoBoxStep step) {
-        int a = 5;
+        //TODO:make test cases for these
+        //process the expressions
+        TypeDescriptor pop = null;
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()){
+            processExpressions();
+            pop = stack.popExpressionType();
+            
+            //convert object to primitive
+            String autoBoxClassName = QuorumConverter.convertTypeToBytecodeString(pop);
+            pop.convertToPrimitive();
+            String autoBoxMethodSignature = QuorumConverter.generateGetterSignatureFromSubField(pop);
+            
+            // Call SetValue.
+            methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName, "GetValue", autoBoxMethodSignature);
+            
+            //push the int onto the expression stack and calculate the cast to number
+            stack.pushExpressionType(pop);
+            TypeDescriptor valueType = new TypeDescriptor();
+            valueType.setName(TypeDescriptor.NUMBER);
+            castValueToValue(valueType);
+            stack.popExpressionType();
+            
+            pop = valueType;
+        }
+        
+        //Assigns an integer to a field of type number.
+        performAssignment(pop, step, true);
     }
 
     @Override
     public void visit(AssignObjectAutoBoxLocalStep step) {
-        int a = 5;
+        //TODO:Check to make sure this only triggers on a primitive/Object pair
+        //if it fires on a Object/Parent pair we need to modify this solution.
+        //process the expressions
+        TypeDescriptor pop = null;
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()) {
+            processExpressions();
+            pop = stack.popExpressionType();
+            
+            //convert object to primitive
+            String autoBoxClassName = QuorumConverter.convertTypeToBytecodeString(pop);
+            pop.convertToPrimitive();
+            String autoBoxMethodSignature = QuorumConverter.generateGetterSignatureFromSubField(pop);
+
+            // Call SetValue.
+            methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName, "GetValue", autoBoxMethodSignature);
+        }
+        
+        //Assigns an integer to a local variable or field of type number.
+        performAssignment(pop, step, false);
     }
 
     @Override
     public void visit(AssignObjectAutoBoxStep step) {
-        int a = 5;
+        //TODO:Check to make sure this only triggers on a primitive/Object pair
+        //if it fires on a Object/Parent pair we need to modify this solution.
+        //process the expressions
+        TypeDescriptor pop = null;
+        if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()){
+            processExpressions();
+            pop = stack.popExpressionType();
+            
+            //convert object to primitive
+            String autoBoxClassName = QuorumConverter.convertTypeToBytecodeString(pop);
+            pop.convertToPrimitive();
+            String autoBoxMethodSignature = QuorumConverter.generateGetterSignatureFromSubField(pop);
+
+            // Call SetValue.
+            methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName, "GetValue", autoBoxMethodSignature);
+        }
+        
+        //Assigns an integer to a field of type number.
+        performAssignment(pop, step, true);
     }
 
     @Override
@@ -2823,10 +2899,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         Iterator<GenericDescriptor> templateTypes = step.getParentObject().getTemplateTypes();
                         while(templateTypes.hasNext() && notFound){
                             TypeDescriptor next = templateTypes.next().getType();
-                            
                             //if the type is primitive we need to cast and get the value
                             //otherwise we will just cast
-                            if(next.getTemplateName().equals(templateName) && next.isPrimitiveType()){
+                            TypeDescriptor mappedTemplateType = step.getMethodCallee().getMappedTemplateType(next.getTemplateName());
+                            if(mappedTemplateType != null && next.isPrimitiveType()){
                                 next.convertToClass();
                                 String autoBoxClassName = QuorumConverter.convertStaticKeyToBytecodePathTypeName(QuorumConverter.convertClassNameToInterfaceName(next.getStaticKey())); 
                 
@@ -2840,7 +2916,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                                         "GetValue", autoBoxMethodSignature);
                                 stack.pushExpressionType(next);
                                 notFound = false;
-                            }else if(next.getTemplateName().equals(templateName)){
+                            }else if(mappedTemplateType != null){
                                 // Create a new autoboxed object.
                                 methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(QuorumConverter.convertClassNameToInterfaceName(next.getStaticKey())));
                                 next.setBytecodeInterface(true);
@@ -2861,7 +2937,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     
     @Override
     public void visit(ConditionalJumpCheckStep step) {
-        int a = 5;
     }
 
     @Override
@@ -2950,28 +3025,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         variable.getType().setBytecodeInterface(isField);
 
         int variableNumber = variable.getVariableNumber() - currentClass.getNumberOfVariables();
-//        if (variableNumber == -1) {
-//            return; //it's a field and we don't handle these yet.
-//        }
-//        BytecodeStackValue value = new BytecodeStackValue();
+
         TypeDescriptor type = new TypeDescriptor();
         type.setName(variable.getType().getName());
         type.setBytecodeInterface(isField);
-//        value.setAsVariable(variableNumber);
-//        value.setType(type);
-//        value.setName(variable.getName());
-        //methodVisitor.visitVarInsn(ASTORE, mappedVariableNumber);
-//        if (value.isConstant()) {
-//            value.setAsVariable(variableNumber);
-//            methodVisitor.visitVarInsn(value.getStoreOpCode(), mappedVariableNumber);
-//            stack.setVariable(variableNumber, value);
-//        }
-//        else {
-//            addToMethodVisit(value);
-//            value.setAsConstant();
-//            methodVisitor.visitVarInsn(value.getStoreOpCode(), mappedVariableNumber);
-//            stack.setVariable(variableNumber, value);
-//        }
 
         stack.setVariable(variableNumber, type);
         int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber);
