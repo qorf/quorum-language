@@ -15,14 +15,21 @@ java -cp "../../../dependencies/phonemic.jar:./" quorum.Stefik
 
 */
 
-use Libraries.System.Console
-use Libraries.Containers.Array
-use Libraries.Sound.Speech
+use Libraries.System.DateTime
 
 class Stefik
     action Main
-        Array<integer> array
-        text test = input("How's life, sir?")
-        say(test)
+        DateTime time
+
+        number begin = time:GetEpochTime()
+        print "Begin: " + begin
+        integer i = 0
+        repeat 100000 times
+            i = i + 1
+        end
+
+        number final = time:GetEpochTime()
+        print "End: " + final
+        print "Total: " + (final - begin)
     end
 end
