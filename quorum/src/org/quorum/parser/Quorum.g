@@ -1185,12 +1185,6 @@ CAST	:	'cast';
 PRINT	:	'print';
 INPUT	:	'input';
 SAY	:	'say';
-LIBRARY_CALL 
-	:	('S' | 's') 'ystem:act';
-CONNECT_TO 
-	:	'connect to';
-SEND_TO 
-	:	'send to';
 NOW	:	'now';
 WHILE	:	'while';
 PACKAGE_NAME :	'package';
@@ -1205,7 +1199,6 @@ RETURN 	:	'return';
 AND	:	'and';
 OR 	:	'or';
 TO	:	'to';
-ON	:	'on';
 NULL	:	'undefined';
 ACTION 
 	:	'action'
@@ -1221,9 +1214,6 @@ TEXT
 BOOLEAN_KEYWORD	
 	:	'boolean';	
 USE 	:	'use'
-	;
-LEFT_ARROW
-	:	'<--'
 	;
 NOT	:	'not' | 'Not';
 NOTEQUALS
@@ -1252,8 +1242,6 @@ RIGHT_PAREN
 	:	')';
 DOUBLE_QUOTE
 	:	'"';
-	
-CALL_FUNCTION_TOKEN :	'act';
 IF	:	'if';
 END	:	'end';
 CLASS	:	'class';
