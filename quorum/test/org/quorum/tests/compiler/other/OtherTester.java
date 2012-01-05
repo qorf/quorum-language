@@ -188,4 +188,19 @@ public class OtherTester {
         if (!r.isSuccessful())
             fail();
     }
+        
+    @Test
+    public void test_pass_me_assignment_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "MeAssignmentAndPrint.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("10.0"));
+    }
 }

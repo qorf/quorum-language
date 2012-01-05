@@ -27,7 +27,7 @@ import java.util.Enumeration;
 	QuorumVirtualMachine vm;
 	AccessModifierEnum accessModifier;
 	SymbolTable symbol;
-	QualifiedNameDescriptor thisPackage = new QualifiedNameDescriptor();;
+	QualifiedNameDescriptor thisPackage = new QualifiedNameDescriptor();
 	String fileName;
 	boolean classWithNoName = false;
 	ClassDescriptor currentClass;
@@ -1038,6 +1038,7 @@ assignment_statement
 	:
 		(sel=selector COLON)? ID rhs=assign_right_hand_side
 	{
+		boolean isMe = false;
 		LineInformation location = new LineInformation (
 			 $ID.line,
 			 0,
@@ -1057,12 +1058,13 @@ assignment_statement
 				cd = scope.getCurrentClass();
 			}else{
 				cd = symbol.getCurrentClass();
+				isMe = true;
 			}
 		}
 		
 		symbol.addStatementFlagToCurrentFile($ID.line);
 		
-		stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, false, "", cd);
+		stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, false, "", cd, isMe);
 		builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
 	}
 	|	obj=qualified_name (COLON PARENT COLON parent=qualified_name)? COLON ID rhs=assign_right_hand_side
@@ -1093,7 +1095,7 @@ assignment_statement
 			}
 		}
 		
-		stepFactory.addAssignmentStep(location, $obj.type.getStaticKey(), $rhs.eval, $rhs.step, isLocal, $ID.text, cd);
+		stepFactory.addAssignmentStep(location, $obj.type.getStaticKey(), $rhs.eval, $rhs.step, isLocal, $ID.text, cd, false);
 		builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
 	}
 	|	modifier = access_modifier? type = assignment_declaration name = ID rhs=assign_right_hand_side?

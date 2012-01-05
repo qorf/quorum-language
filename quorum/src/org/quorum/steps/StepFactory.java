@@ -621,7 +621,7 @@ public class StepFactory {
     public void addAssignmentStep(LineInformation location, String variableName,
             ExpressionValue rightValue, ExecutionStep rightStep, boolean localOnly) {
         AssignmentStepInformation info = generateAssignmentStepInformation(
-                location, variableName, rightValue, rightStep, localOnly, "", null);
+                location, variableName, rightValue, rightStep, localOnly, "", null, false);
         addAssignmentGeneralStep(info);
     }
 
@@ -639,7 +639,7 @@ public class StepFactory {
     private AssignmentStepInformation generateAssignmentStepInformation(
             LineInformation location, String variableName,
             ExpressionValue rightValue, ExecutionStep rightStep,
-            boolean localOnly, String variableInObjectName, ClassDescriptor parentClazz) {
+            boolean localOnly, String variableInObjectName, ClassDescriptor parentClazz, boolean isMe) {
         AssignmentStepInformation info = new AssignmentStepInformation();
         info.location = location;
         info.variableInObjectName = variableInObjectName;
@@ -648,6 +648,7 @@ public class StepFactory {
         info.rightValue = rightValue;
         info.localOnly = localOnly;
         info.parent = parentClazz;
+        info.isAssignedToMe = isMe;
         return info;
     }
 
@@ -658,7 +659,12 @@ public class StepFactory {
      */
     private void addAssignmentGeneralStep(AssignmentStepInformation info) {
         TypeDescriptor leftType = new TypeDescriptor();
-        VariableParameterCommonDescriptor vd = machine.getSymbolTable().getVariable(info.variableName);
+        VariableParameterCommonDescriptor vd  = null;
+        if(info.isAssignedToMe){
+            vd = machine.getSymbolTable().getCurrentClass().getVariable(info.variableName);
+        }else{
+            vd = machine.getSymbolTable().getVariable(info.variableName);
+        }
 
         if(vd == null && info.parent != null){
             ClassDescriptor curClass = machine.getSymbolTable().getCurrentClass();
@@ -906,7 +912,7 @@ public class StepFactory {
      */
     public void addAssignmentStep(LineInformation location, String variableName, boolean localOnly) {
         AssignmentStepInformation info = generateAssignmentStepInformation(
-                location, variableName, null, null, localOnly, "", null);
+                location, variableName, null, null, localOnly, "", null, false);
         addAssignmentGeneralStep(info);
     }
 
@@ -919,9 +925,9 @@ public class StepFactory {
      * @param id
      */
     public void addAssignmentStep(LineInformation location, String variableName,
-            ExpressionValue rightValue, ExecutionStep rightStep, boolean localOnly, String id, ClassDescriptor parent) {
+            ExpressionValue rightValue, ExecutionStep rightStep, boolean localOnly, String id, ClassDescriptor parent, boolean isMe) {
         AssignmentStepInformation info = generateAssignmentStepInformation(
-                location, variableName, rightValue, rightStep, localOnly, id, parent);
+                location, variableName, rightValue, rightStep, localOnly, id, parent, isMe);
         addAssignmentGeneralStep(info);
     }
 
@@ -2417,7 +2423,7 @@ public class StepFactory {
         MeVariableMoveStep step = new MeVariableMoveStep();
         step.setLineInformation(location);
 
-        VariableParameterCommonDescriptor vd = machine.getSymbolTable().getVariable(variableName.getStaticKey());
+        VariableParameterCommonDescriptor vd = machine.getSymbolTable().getCurrentClass().getVariable(variableName.getStaticKey());
 
         ExpressionValue resultValue;
         if (vd == null) {
@@ -2666,5 +2672,6 @@ public class StepFactory {
         ExecutionStep rightStep;
         boolean localOnly;
         ClassDescriptor parent;
+        boolean isAssignedToMe;
     }
 }

@@ -467,7 +467,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * @param subVariableName
      * @param subVariableType 
      */
-    private void performFieldAssignment(AssignmentStep step, TypeDescriptor subVariableType, boolean isDefined) {
+    private void performFieldAssignment(AssignmentStep step, TypeDescriptor subVariableType, boolean isDefined, String conversion) {
         VariableParameterCommonDescriptor variable = step.getVariable();
         String subVariableName = step.getSubVariableName();
         String methodParent;
@@ -509,6 +509,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             variableType.setBytecodeInterface(true);
         }else{
             processExpressions();
+        }
+        
+        //since this is a field we need to process any conversions later        
+        if(conversion!= null && conversion.equals("i2d")){
+            prepareNumberIntegerOperation();
         }
         
         //make the assignment
@@ -589,7 +594,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * @param step The Assignment step being performed.
      * @param isDefined True if the variable being assigned a value was already defined.
      */
-    private void performAssignment(TypeDescriptor valueType, AssignmentStep step, boolean isDefined) {
+    private void performAssignment(TypeDescriptor valueType, AssignmentStep step, boolean isDefined, String conversion) {
         VariableParameterCommonDescriptor variable = step.getVariable();
         if (variable == null) {
             Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
@@ -605,13 +610,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (isDefined) {
             // It is defined--is it a field?
             if (isField) {
-                performFieldAssignment(step, valueType, isDefined);
+                performFieldAssignment(step, valueType, isDefined, conversion);
             } else {
                 performLocalAssignment(valueType, step);
             }
         } else {
             if (isField) {
-                performFieldAssignment(step, valueType, isDefined);
+                performFieldAssignment(step, valueType, isDefined, conversion);
             } else {
                 performLocalAssignment(valueType, step);
 
@@ -1907,7 +1912,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         
         //Assigns an integer to a local variable or field of type number.
-        performAssignment(pop, step, false);
+        performAssignment(pop, step, false, null);
     }
 
     @Override
@@ -1938,7 +1943,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         
         //Assigns an integer to a field of type number.
-        performAssignment(pop, step, true);
+        performAssignment(pop, step, true, null);
     }
 
     @Override
@@ -1961,7 +1966,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         
         //Assigns an integer to a local variable or field of type number.
-        performAssignment(pop, step, false);
+        performAssignment(pop, step, false, null);
     }
 
     @Override
@@ -1984,7 +1989,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         
         //Assigns an integer to a field of type number.
-        performAssignment(pop, step, true);
+        performAssignment(pop, step, true, null);
     }
 
     @Override
@@ -1997,7 +2002,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         
         //Assigns an integer to a local variable or field of type number.
-        performAssignment(pop, step, false);
+        performAssignment(pop, step, false, null);
     }
 
     @Override
@@ -2010,40 +2015,42 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         
         //Assigns an integer to a field of type number.
-        performAssignment(pop, step, true);
+        performAssignment(pop, step, true, null);
     }
 
     @Override
     public void visit(AssignmentNumberIntegerLocalStep step) {
         //process the expressions
         TypeDescriptor pop = null;
+        String conversion = null;
         if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()){
             processExpressions();
             //prepare the integer as a number.
             prepareNumberIntegerOperation();
             pop = stack.popExpressionType();
         }else{
-            prepareNumberIntegerOperation();
+            conversion = "i2d";
         }
         
         //Assigns an integer to a local variable or field of type number.
-        performAssignment(pop, step, false);
+        performAssignment(pop, step, false, conversion);
     }
 
     @Override
     public void visit(AssignmentNumberIntegerStep step) {
         //process the expressions
         TypeDescriptor pop = null;
+        String conversion = null;
         if(step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()){
             processExpressions();
             prepareNumberIntegerOperation();
             pop = stack.popExpressionType();
         }else{
-            prepareNumberIntegerOperation();
+            conversion = "i2d";
         }
         
         //Assigns an integer to a field of type number.
-        performAssignment(pop, step, true);
+        performAssignment(pop, step, true, conversion);
     }
 
     @Override
@@ -2054,7 +2061,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             processExpressions();
             pop = stack.popExpressionType();
         }
-        performAssignment(pop, step, false);
+        performAssignment(pop, step, false, null);
     }
 
     @Override
@@ -2065,7 +2072,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             processExpressions();
             pop = stack.popExpressionType();
         }
-        performAssignment(pop, step, true);
+        performAssignment(pop, step, true, null);
     }
 
     @Override
@@ -2077,7 +2084,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             pop = stack.popExpressionType();
         }
         //Assigns an integer to a local variable or field of type integer
-        performAssignment(pop, step, false);
+        performAssignment(pop, step, false, null);
     }
 
     @Override
@@ -2089,7 +2096,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             processExpressions();
             pop = stack.popExpressionType();
         }
-        performAssignment(pop, step, true);
+        performAssignment(pop, step, true, null);
     }
 
     @Override
@@ -2100,7 +2107,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             processExpressions();
             pop = stack.popExpressionType();
         }
-        performAssignment(pop, step, false);
+        performAssignment(pop, step, false, null);
     }
 
     @Override
@@ -2111,7 +2118,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             processExpressions();
             pop = stack.popExpressionType();
         }
-        performAssignment(pop, step, true);
+        performAssignment(pop, step, true, null);
     }
 
     @Override
@@ -2122,7 +2129,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             processExpressions();
             pop = stack.popExpressionType();
         }
-        performAssignment(pop, step, false);
+        performAssignment(pop, step, false, null);
     }
 
     @Override
@@ -2134,7 +2141,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             processExpressions();
             pop = stack.popExpressionType();
         }
-        performAssignment(pop, step, true);
+        performAssignment(pop, step, true, null);
     }
 
     @Override
