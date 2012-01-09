@@ -694,7 +694,7 @@ public class StepFactory {
             }
 
 
-            if (info.variableInObjectName.compareTo("")!=0) {
+            if (!info.variableInObjectName.equals("")) {
                 ClassDescriptor classDescriptor = machine.getSymbolTable().getClassDescriptor(vd.getType().toString());
                 if(info.parent != null){
                     ClassDescriptor parent = classDescriptor.getParent(info.parent.getStaticKey());

@@ -1,14 +1,17 @@
-use Libraries.Containers.List
-class Main
-    action main
-        List<Integer> d
-
-        Integer int
-        int:SetValue(10)
-        d:Add(int)
-        Object intResult = d:GetFromFront()
-        int = cast(Integer, intResult)
-        print int:GetValue()
+use Libraries.Containers.Support.ListNode
+//use Libraries.Containers.List
+class Melissa
+    ListNode<integer> head = undefined
+    ListNode<integer> tail = undefined
+    integer invalidIndex = -1
+    integer size = 0
+    action Main
+        //List<integer> l
+        
+        ListNode<integer> node
+        Integer i 
+        node:value = 2
+        head:previous = node
         
     end
 end
