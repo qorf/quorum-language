@@ -1,8 +1,14 @@
+use Libraries.Containers.List
+class Main
+    action main
+        List<Integer> d
 
-class Melissa
-    text t = "hello" + "world"
-    action Main
-        print t
+        Integer int
+        int:SetValue(10)
+        d:Add(int)
+        Object intResult = d:GetFromFront()
+        int = cast(Integer, intResult)
+        print int:GetValue()
+        
     end
-
 end

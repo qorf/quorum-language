@@ -1499,6 +1499,14 @@ public class TypeChecker {
             setNoConvertResult(result, TypeDescriptor.getClassType(next));
             result.setOpcodeGenerator(TypeCheckerStepFactory.ASSIGNMENT_CUSTOM_IMPLICIT_CAST);
             results.put(key, result);
+            
+            //implicit class cast
+            result = new TypeCheckerResult();
+            key = this.generateTypeCheckKey(tempType.getName(),
+                    type.getName(), null, true, true);
+            setNoConvertResult(result, TypeDescriptor.getClassType(next));
+            result.setOpcodeGenerator(TypeCheckerStepFactory.ASSIGNMENT_CUSTOM_IMPLICIT_CAST);
+            results.put(key, result);
 
             //implicit class cast
             result = new TypeCheckerResult();
