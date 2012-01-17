@@ -203,6 +203,7 @@ public class Main {
             vm.getCodeGenerator().setDistributionFolder(distribution);
             vm.getCodeGenerator().addDependency(phonemic);
             vm.getCodeGenerator().addDependency(phonemicJNI);
+            vm.getCodeGenerator().setDistributionName(name);
             vm.setMain(files[0].getAbsolutePath());
             //build
             vm.build(files);
