@@ -72,12 +72,6 @@ public class Main {
     private static QuorumVirtualMachine vm;
     
     /**
-     * If this flag is true, any files passed should be compiled internally
-     * and executed in interpreted mode.
-     */
-    private static boolean interpret = false;
-    
-    /**
      * This is the name given to the distribution that Quorum will output.
      */
     private static String name = "Default.jar";
@@ -118,13 +112,17 @@ public class Main {
      */
     private static final String HELP = "-help";
     
-    
-    
-    
-    private static boolean isHelp = false;
+    /**
+     * If this flag is set, code will be interpreted rather than compiled to JVM bytecode.
+     * This is off by default.
+     */
     private static boolean isInterpret = false;
-    private static boolean isCompile = false;
-    private static boolean isDocument = false;
+    
+    /**
+     * Whether or not to generate documentation instead of compiling/interpreting. This is off
+     * by default.
+     */
+    private static boolean isDocumentation = false;
     
     
     /**
@@ -188,25 +186,19 @@ public class Main {
 
         processFlags(args);
         
-        if(isHelp) {
-            outputHelp();
-            System.exit(0);
-        }
-        //now parse the command line arguments
-        //TODO: this will need to be tweaked for command line arguments
-        //and for correct file processing.
+        // Now we will process remaining flags.
         if(args.length >= 1 ) {
-            String value = args[0];
-            File[] files = new File[args.length];
-            
-            for(int i = 0; i < args.length; i++) {
+            File[] files = new File[args.length - argumentIndex];
+            int fileIndex = 0; // file index is different from command line index.
+            for(int i = argumentIndex; i < args.length; i++) {
                 String path = args[i];
                 path = path.replaceAll("\\%20", " ");
                 File next = new File(root + "/" + args[i]);
-                files[i] = next;
+                files[fileIndex] = next;
             }
+            
             //setup the VM
-            vm.setGenerateCode(true);
+            vm.setGenerateCode(!isInterpret);
             vm.getCodeGenerator().setBuildFolder(build);
             vm.getCodeGenerator().setDistributionFolder(distribution);
             vm.getCodeGenerator().addDependency(phonemic);
@@ -224,16 +216,29 @@ public class Main {
                 }
             }
             else {
-                //execute
-                vm.run();
+                // Should we execute or build documentation?
+                
+                if (isDocumentation) {
+                    // Set the documentation directory to the distribution folder.
+                    vm.setDocumentationPath(root.getAbsolutePath() + "/distribute");
+                    vm.generateDocumentation();
+                }
+                else {
+                    vm.run();
+                }
             }
         }
         else {
-            vm.build("say \"Please pass the files you would to compile on the command line. For example, you might type java -jar Quorum.jar Main.quorum.\"");
+            // Tell the user that they need to pass a file to process!
+            System.err.println("Please pass the files you would like to compile on the command line. For example, you might type java -jar Quorum.jar Main.quorum.");
+            vm.build("say \"Please pass the files you would like to compile on the command line. For example, you might type java -jar Quorum.jar Main.quorum.\"");
             vm.run();
         }
     }
     
+    /**
+     * Output help to the user. Note that this will cause Quorum to exit.
+     */
     private static void outputHelp() {
         System.out.println("\n\n"+
   
@@ -292,8 +297,15 @@ public class Main {
   "in wiki-style format.\n"+
   "java -jar Quorum.jar -document Main.quorum"
        );
+ 
+        System.exit(1); // exit with error.
     }
     
+    /**
+     * Process command line flags such as -help and -name {name}.
+     * 
+     * @param args 
+     */
     private static void processFlags(String[] args) {
         int index = 0;
         boolean flagsFinished = false;
@@ -304,21 +316,31 @@ public class Main {
                 return;
             }
             else if(arg.compareTo(HELP) == 0){
-                isHelp = true;
+                outputHelp();
             }
             else if(arg.compareTo(DOCUMENT) == 0){
-                isDocument = true;
+                isDocumentation = true;
             }
             else if(arg.compareTo(INTERPRET) == 0){
                 isInterpret = true;
             }
             else if(arg.compareTo(COMPILE) == 0){
-                isCompile = true;
+                isInterpret = false;
             }
             else if(arg.compareTo(NAME) == 0){
                 if((index + 1) < args.length) {
                     name = args[(index + 1)];
                 }
+                else {
+                    // The user didn't provide a parameter for the `-name' flag...
+                    System.err.println("The `-name' flag requires an argument. For example, -name Hello");
+                    outputHelp();
+                }
+            }
+            else {
+                // Unrecognized command line argument.
+                System.err.println("Unrecognized command line argument: " + arg);
+                outputHelp();
             }
             index++;
         }
