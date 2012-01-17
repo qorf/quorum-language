@@ -331,6 +331,7 @@ public class Main {
             else if(arg.compareTo(NAME) == 0){
                 if((index + 1) < args.length) {
                     name = args[(index + 1)];
+                    index++;
                 }
                 else {
                     // The user didn't provide a parameter for the `-name' flag...
