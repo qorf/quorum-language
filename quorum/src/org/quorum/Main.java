@@ -31,6 +31,7 @@ import org.quorum.vm.interfaces.CompilerErrorManager;
  * 
  * -interpret This causes the VM to run in interpreted mode
  * -compile This causes the VM to compile Quorum code to java bytecode. This is the default setting.
+ *          Code will not be executed in this mode, only compiled.
  * -document This causes the VM to compile Quorum code normally, but instead of outputting
  *          bytecode or interpreting the code, it outputs documentation for the code.
  * -name [String] This sets the name which is output for the corresponding distribution files.
@@ -224,7 +225,7 @@ public class Main {
                     vm.setDocumentationPath(root.getAbsolutePath() + "/distribute");
                     vm.generateDocumentation();
                 }
-                else {
+                else if (isInterpret) {
                     vm.run();
                 }
             }
@@ -263,7 +264,8 @@ public class Main {
   "of files. Legal flags are as follows:\n\n"+
   
   "-interpret This causes the VM to run in interpreted mode.\n\n"+
-  "-compile This causes the VM to compile Quorum code to java bytecode. This is the default setting.\n\n"+
+  "-compile This causes the VM to compile Quorum code to java bytecode. This is the default setting.\n"+
+  "\tCode will not be run in this mode, only compiled.\n\n"+
   "-document This causes the VM to compile Quorum code normally, but instead of outputting"+
   " bytecode or interpreting the code, it outputs documentation for the code.\n\n"+
                 
