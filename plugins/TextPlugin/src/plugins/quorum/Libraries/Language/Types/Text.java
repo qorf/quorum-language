@@ -10,7 +10,7 @@ package plugins.quorum.Libraries.Language.Types;
  * @author Andreas Stefik
  */
 public class Text {
-    public java.lang.Object ___$$$Calling___$$$___Object$$$___ = null;
+    public java.lang.Object $me = null;
     private String text = "";
     
     public void SetValueNative(String value) {
