@@ -2222,8 +2222,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         desc.setLastDetectVariableNumber(mappedVariableNumber);
         methodVisitor.visitVarInsn(ASTORE, mappedVariableNumber);
         
-        //stack.pushLabel(tempLabel);
-        //desc.pushDetectStartLabel();
+        stack.pushLabel(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, desc.peekDetectEndLabel()));
+        desc.pushDetectStartLabel();
 
         
     }
@@ -3111,7 +3111,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 stack.popLabel();
                 
                 Label label1 = label.getLabel();
-                methodVisitor.visitLabel(label1);
+                if(label1 != null){
+                    methodVisitor.visitLabel(label1);
+                }
             }
         }
         
