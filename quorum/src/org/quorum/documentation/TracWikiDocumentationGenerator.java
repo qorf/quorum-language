@@ -77,7 +77,7 @@ public class TracWikiDocumentationGenerator implements DocumentationGenerator {
         
         while(parents.hasNext()) {
             ClassDescriptor parent = parents.next();
-            String pStr = " * [wiki:Hop/HopStandardLibrary/" + 
+            String pStr = " * [wiki:documentation/QuorumStandardLibrary/" + 
                     parent.getStaticKey().replace('.', '/') + " " + parent.getStaticKey() + "]\n";
             parentsString += pStr;
         }
