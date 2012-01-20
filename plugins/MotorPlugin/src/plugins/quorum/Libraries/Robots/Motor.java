@@ -9,5 +9,5 @@ package plugins.quorum.Libraries.Robots;
  * @author
  */
 public class Motor {
-    public java.lang.Object ___$$$Calling___$$$___Object$$$___ = null;
+    public java.lang.Object $me = null;
 }
