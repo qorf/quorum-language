@@ -194,7 +194,7 @@ public class Main {
             for(int i = argumentIndex; i < args.length; i++) {
                 String path = args[i];
                 path = path.replaceAll("\\%20", " ");
-                File next = new File(root + "/" + args[i]);
+                File next = new File(args[i]);
                 files[fileIndex] = next;
             }
             
