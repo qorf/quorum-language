@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  * @author jeff
  */
 public class File {
-    public java.lang.Object ___$$$Calling___$$$___Object$$$___ = null;
+    public java.lang.Object $me = null;
     private QuorumFile inst = new QuorumFile();
     
     /* -- class methods -- */
