@@ -80,7 +80,7 @@ public class QuorumJarGenerator {
         
         File writeFolder = new File(writeLocation.getParent() + "/" + DEPENDENCIES_FOLDER);
         if (!writeFolder.exists()) {
-            writeFolder.mkdir();
+            writeFolder.mkdirs();
         }
         try {
             Iterator<Dependency> it = dependencies.iterator();
@@ -99,7 +99,14 @@ public class QuorumJarGenerator {
     
     private void copyFile(File file, File to) throws IOException {
         if(file.isFile()) { //copy it to the libraries folder
-            to.createNewFile();
+            if (!to.exists()) {
+                to.getParentFile().mkdirs();
+                to.createNewFile();
+            }
+            else {
+                to.delete();
+                to.createNewFile();
+            }
             InputStream in = new FileInputStream(file);
             OutputStream out = new FileOutputStream(to);
 
@@ -113,7 +120,7 @@ public class QuorumJarGenerator {
         }
         else { //copy the whole folder
             if (!to.exists()) {
-                to.mkdir();
+                to.mkdirs();
             }
             
             String[] children = file.list();
