@@ -13,7 +13,7 @@ import quorum.Libraries.Language.Object$Interface;
  * @author Andreas Stefik
  */
 public class Array {
-    public java.lang.Object ___$$$Calling___$$$___Object$$$___ = null;
+    public java.lang.Object $me = null;
     public static final int DEFAULT_CAPACITY = 10;
     protected boolean resizable = true;
     private Vector<Object$Interface> array;
