@@ -11,7 +11,7 @@ import java.util.HashMap;
  * @author Andreas Stefik
  */
 public class Error {
-    public java.lang.Object ___$$$Calling___$$$___Object$$$___ = null;
+    public java.lang.Object $me = null;
     private StackTraceElement[] stackTrace;
     
     public Error() {
