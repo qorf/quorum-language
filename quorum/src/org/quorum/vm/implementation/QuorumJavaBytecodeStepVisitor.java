@@ -165,7 +165,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         
         
-        final String objectName = "___$$$Calling___$$$___Object$$$___";
+        final String objectName = "$me";
         final String javaObjectPath = "Ljava/lang/Object;";
         //initialize the plugin last
         if (numSystem > 0) {
