@@ -17,7 +17,7 @@ import javax.swing.JOptionPane;
  * @author Andreas Stefik
  */
 public class Console {
-    public java.lang.Object ___$$$Calling___$$$___Object$$$___ = null;
+    public java.lang.Object $me = null;
     
     public void Print(String message) {
         System.out.println(message);

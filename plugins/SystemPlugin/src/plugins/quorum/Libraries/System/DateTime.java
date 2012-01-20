@@ -11,7 +11,7 @@ package plugins.quorum.Libraries.System;
  * @author Andreas Stefik
  */
 public class DateTime {
-    public java.lang.Object ___$$$Calling___$$$___Object$$$___ = null;
+    public java.lang.Object $me = null;
     private QuorumDateTime dateTime = new QuorumDateTime();
     
     public int GetYear() {
