@@ -228,12 +228,17 @@ public class Speech {
      * Instructs the system to speak a particular phrase through the current
      * text-to-speech engine. This method is used for the compiler
      * to call a static say function when the "say" command is issued
-     * in Quorum.
+     * in Quorum. By default, say calls are "blocking." The reason they 
+     * are blocking calls by default is because otherwise if a user 
+     * wrote a program like say "Hello, World!" and ran it, phonemic would
+     * , correctly, only have threaded calls remaining, which would allow
+     * the entire program to quit. As such, it would appear as if Quorum
+     * was not doing anything when issuing say calls.
      * 
      * @param value 
      */
     public static void StaticSay(String value) {
-        speech.speak(value);
+        speech.speakBlocking(value);
     }
     
     /**
