@@ -39,6 +39,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     private File mainFile;
     private String manifestMain = "";
     private List<Dependency> dependencies = new LinkedList<Dependency>();
+    private File pluginFolder = null;
     
     /**
      * This method generates java bytecode for all classes on the system.
@@ -127,6 +128,11 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
             writeBytes(code.getClassFile(), code.getOutput());
             writeBytes(code.getInterfaceFile(), code.getInterfaceOutput());
         }
+        //once the class files are written, copy the plugin folder to the
+        //build location
+        File buildParent = this.buildFolder.getParentFile();
+        File pluginWrite = new File(buildParent.getAbsolutePath() + "/build/plugins");
+        jar.copyFile(this.pluginFolder, pluginWrite);
         
         //if there's a place to write the jar, write it
         if(this.distributionFolder != null) {
@@ -308,5 +314,15 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         dep.setRelativePath(relativePath);
         dep.setExecutionDependency(false);
         dependencies.add(dep);
+    }
+    
+    @Override
+    public void setPluginFolder(File file) {
+        pluginFolder = file;
+    }
+
+    @Override
+    public File getPluginFolder() {
+        return pluginFolder;
     }
 }

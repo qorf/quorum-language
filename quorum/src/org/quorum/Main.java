@@ -37,6 +37,9 @@ import org.quorum.vm.interfaces.CompilerErrorManager;
  * -name [String] This sets the name which is output for the corresponding distribution files.
  *                  An example might be -name Music. This would cause Quorum to output a 
  *                  jar file by the name of Music.jar into the folder distribute.
+ * -plugins [Path] This sets an absolute path for the location of plugins to 
+ *                  override the location used by Quorum. By default, if this flag is not
+ *                  set, it is set to a path relative to Quorum.jar/libraries/plugins.
  * -help This causes help to be output to the command line.
  * 
  * After entering any flags desired, a list of files indicates to the compiler
@@ -51,6 +54,11 @@ import org.quorum.vm.interfaces.CompilerErrorManager;
  * file would put class files in the build folder and the file Main.jar into the 
  * distribute folder.
  * java -jar Quorum.jar -name Main Main.quorum
+ * 
+ * The following would compile one file, Main.quorum, down to java bytecode. This
+ * file would put class files in the build folder and the file Main.jar into the 
+ * distribute folder. It would also change the plugin folder on windows.
+ * java -jar Quorum.jar -name Main -plugins C:\plugins Main.quorum
  * 
  * As -compiled is the default setting, this does exactly the same thing as the 
  * previous example.
@@ -75,7 +83,7 @@ public class Main {
     /**
      * This is the name given to the distribution that Quorum will output.
      */
-    private static String name = "Default.jar";
+    private static String name = "Default";
     
     /**
      * A state variable for controlling which command line argument
@@ -106,6 +114,28 @@ public class Main {
      * this would output Hello.jar.
      */
     private static final String NAME = "-name";
+    
+    /**
+     * This flag allows the user to override the folder containing quorum
+     * plugins.
+     */
+    private static final String PLUGINS = "-plugins";
+    
+    /**
+     * This is the default relative path for the plugins directory relative
+     * to Quorum.jar.
+     */
+    private static final String DEFAULT_PLUGIN_PATH = "libraries/plugins";
+    
+    /**
+     * This is an absolute path indicating the location of the plugin directory.
+     */
+    private static File pluginFolder = null;
+    
+    /**
+     * This flags tracks where the default plugin folder has been overriden.
+     */
+    private static boolean pluginOverride = false;
     
     /**
      * Adding in this flag causes all others to be ignored and help
@@ -156,6 +186,9 @@ public class Main {
         File index = new File(root.getAbsolutePath() +
                 "/libraries/indexes/quorum.index");
         
+        pluginFolder = new File(root.getAbsolutePath() + "/" + 
+                DEFAULT_PLUGIN_PATH);
+        
         File library = new File(root.getAbsolutePath() +
                 "/libraries/quorum");
         File build = new File(root.getAbsolutePath() +
@@ -180,7 +213,11 @@ public class Main {
         QuorumStandardLibrary.overrideStandardLibraryPath(library, index);
         vm = new QuorumVirtualMachine();
         
-        //add the default plugins
+        //add the default plugins into the interpreter
+        //Note: This plugin loader is legacy code, with a misleading name
+        //While it is called plugins here, it has nothing to do with the 
+        //-plugins flag and is only used for the interpreted omniscient 
+        //debugger.
         DefaultPluginLoader loader = new DefaultPluginLoader();
         loader.loadIntoVirtualMachine(vm);
         loader.checkConsistency(vm);
@@ -205,6 +242,7 @@ public class Main {
             vm.getCodeGenerator().addDependency(phonemic);
             vm.getCodeGenerator().addDependency(phonemicJNI);
             vm.getCodeGenerator().setDistributionName(name);
+            vm.getCodeGenerator().setPluginFolder(pluginFolder);
             vm.setMain(files[0].getAbsolutePath());
             //build
             vm.build(files);
@@ -273,6 +311,10 @@ public class Main {
   "An example might be -name Music. This would cause Quorum to output a "+
   "jar file by the name of Music.jar into the folder distribute.\n\n"+
                 
+  "-plugins [Path] This sets an absolute path for the location of plugins to "
+  + "override the location used by Quorum. By default, if this flag is not"
+  + "set, it is set to a path relative to Quorum.jar/libraries/plugins.\n\n"+
+                
   "-help This causes help to be output to the command line.\n\n"+
   
   "After entering any flags desired, a list of files indicates to the compiler "+
@@ -288,6 +330,11 @@ public class Main {
   "distribute folder.\n"+
   "java -jar Quorum.jar -name Main Main.quorum\n\n"+
   
+  "The following would compile one file, Main.quorum, down to java bytecode. This "+
+  "file would put class files in the build folder and the file Main.jar into the "+ 
+  "distribute folder. It would also change the plugin folder on windows.\n "+
+  "java -jar Quorum.jar -name Main -plugins C:\\plugins Main.quorum.\n\n"+
+        
   "As -compiled is the default setting, this does exactly the same thing as the "+
   "previous example.\n"+
   "java -jar Quorum.jar -compile -name Main Main.quorum\n\n"+
@@ -301,7 +348,7 @@ public class Main {
   "java -jar Quorum.jar -document Main.quorum"
        );
  
-        System.exit(1); // exit with error.
+        System.exit(0); // exit the system
     }
     
     /**
@@ -330,6 +377,30 @@ public class Main {
             else if(arg.compareTo(COMPILE) == 0){
                 isInterpret = false;
             }
+            else if(arg.compareTo(PLUGINS) == 0){
+                String abs;
+                if((index + 1) < args.length) {
+                    abs = args[(index + 1)];
+                    
+                    //is this a valid folder?
+                    File path = new File(abs);
+                    if(path.exists() && path.isDirectory()) {
+                        //it's valid, keep track of it
+                        pluginOverride = true;
+                        pluginFolder = path;
+                    }
+                    else {
+                        System.err.println("The path passed to -plugins is either "
+                                + "an invalid directory or does not exist.");
+                    }
+                    index++;
+                }
+                else {
+                    // The user didn't provide a parameter for the `-name' flag...
+                    System.err.println("The `-plugins' flag requires an argument. For example, -plugins C:\\plugins");
+                    //outputHelp();
+                }
+            }
             else if(arg.compareTo(NAME) == 0){
                 if((index + 1) < args.length) {
                     name = args[(index + 1)];
@@ -338,13 +409,13 @@ public class Main {
                 else {
                     // The user didn't provide a parameter for the `-name' flag...
                     System.err.println("The `-name' flag requires an argument. For example, -name Hello");
-                    outputHelp();
+                    //outputHelp();
                 }
             }
             else {
                 // Unrecognized command line argument.
                 System.err.println("Unrecognized command line argument: " + arg);
-                outputHelp();
+                //outputHelp();
             }
             index++;
         }

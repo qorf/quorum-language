@@ -90,6 +90,18 @@ public interface CodeGenerator {
     public void addDependency(File file, String relativePath);
     
     /**
+     * Sets the folder which will grab any relevant plugins on the system.
+     * @param file 
+     */
+    public void setPluginFolder(File file);
+    
+    /**
+     * Gets the folder which houses any plugins for the system.
+     * @return 
+     */
+    public File getPluginFolder();
+    
+    /**
      * Returns an iterator of all dependencies loaded on the system.
      * 
      * @return 

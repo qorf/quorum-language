@@ -97,7 +97,7 @@ public class QuorumJarGenerator {
         }
     }
     
-    private void copyFile(File file, File to) throws IOException {
+    public void copyFile(File file, File to) throws IOException {
         if(file.isFile()) { //copy it to the libraries folder
             if (!to.exists()) {
                 to.getParentFile().mkdirs();
