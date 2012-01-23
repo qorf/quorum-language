@@ -13,10 +13,10 @@
 Name "Quorum 1.0"
 
 ; The file to write
-OutFile "QuorumInstaller.exe"
+OutFile "Quorum.exe"
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\Qourum
+InstallDir $PROGRAMFILES\Quorum
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
