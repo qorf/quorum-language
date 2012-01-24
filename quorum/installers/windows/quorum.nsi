@@ -1,6 +1,7 @@
 ; quorum.nsi
 ;
 ; The quorum installation script.
+
 !include "MUI2.nsh"
 !include "winmessages.nsh"
 
@@ -26,14 +27,36 @@ InstallDirRegKey HKLM "Software\Quorum" "Install_Dir"
 RequestExecutionLevel admin
 
 ;--------------------------------
+;Interface Configuration
+
+  !define MUI_WELCOMEFINISHPAGE_BITMAP "Welcome.bmp"
+  !define MUI_HEADERIMAGE
+  !define MUI_HEADERIMAGE_BITMAP "Header.bmp" ; optional
+  !define MUI_ABORTWARNING
+
+;--------------------------------
 ; Pages
 
-Page components
-Page directory
-Page instfiles
+!insertmacro MUI_PAGE_WELCOME
+!insertmacro MUI_PAGE_LICENSE "License.txt"
+!insertmacro MUI_PAGE_COMPONENTS
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_INSTFILES
+  
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
 
-UninstPage uninstConfirm
-UninstPage instfiles
+;Page components
+;Page directory
+;Page instfiles
+
+;UninstPage uninstConfirm
+;UninstPage instfiles
+
+;--------------------------------
+;Languages
+ 
+  !insertmacro MUI_LANGUAGE "English"
 
 ;--------------------------------
 ; The stuff to install
@@ -76,6 +99,8 @@ SectionEnd
 ;--------------------------------
 ; Uninstaller
 Section "Uninstall"
+
+	
   ; Remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum"
   DeleteRegKey HKLM SOFTWARE\Quorum
