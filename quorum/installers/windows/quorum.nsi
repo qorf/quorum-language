@@ -74,7 +74,7 @@ Section "Quorum (required)"
   
   ; Write the uninstall keys for Windows
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum1" "DisplayName" "Quorum 1.0"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Qourum1" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum1" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum1" "NoModify" 1
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum1" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
@@ -84,7 +84,7 @@ Section "Quorum (required)"
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
   
   ; Install the "quorum.bat" file, so users can type "quorum" on the command line.
-  SetOutPath "C:\Windows\System32"
+  SetOutPath $WINDIR
   File "quorum.bat"
 SectionEnd
 
@@ -112,7 +112,7 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\Quorum\*.*"
 
   ; Remove quorum.bat.
-  Delete "C:\Windows\System32\quorum.bat"
+  Delete "$WINDIR\quorum.bat"
   
   ; Remove directories used
   RMDir "$SMPROGRAMS\Quorum"
