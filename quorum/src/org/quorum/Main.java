@@ -24,7 +24,7 @@ import org.quorum.vm.interfaces.CompilerErrorManager;
  * 
  * Command line arguments are as follows:
  * 
- * java -jar Quorum.jar [-flag]* [file]*
+ * quorum [-flag]* [file]*
  * 
  * In other words, any number of flags beginning with a dash and then any number
  * of files. Legal flags are as follows:
@@ -48,29 +48,29 @@ import org.quorum.vm.interfaces.CompilerErrorManager;
  * Examples:
  * 
  * The following would run one file, Main.quorum, in interpreted mode.
- * java -jar Quorum.jar -interpret Main.quorum
+ * quorum -interpret Main.quorum
  * 
  * The following would compile one file, Main.quorum, down to java bytecode. This
  * file would put class files in the build folder and the file Main.jar into the 
  * distribute folder.
- * java -jar Quorum.jar -name Main Main.quorum
+ * quorum -name Main Main.quorum
  * 
  * The following would compile one file, Main.quorum, down to java bytecode. This
  * file would put class files in the build folder and the file Main.jar into the 
  * distribute folder. It would also change the plugin folder on windows.
- * java -jar Quorum.jar -name Main -plugins C:\plugins Main.quorum
+ * quorum -name Main -plugins C:\plugins Main.quorum
  * 
  * As -compiled is the default setting, this does exactly the same thing as the 
  * previous example.
- * java -jar Quorum.jar -compile -name Main Main.quorum
+ * quorum -compile -name Main Main.quorum
  * 
  * In this example, Quorum will compile Main.quorum and Test.quorum to Java bytecode,
  * giving the distribution the name Default.jar.
- * java -jar Quorum.jar Main.quorum Test.quorum
+ * quorum Main.quorum Test.quorum
  * 
  * Instead of compiling, this command causes Quorum to output documentation
  * in wiki-style format.
- * java -jar Quorum.jar -document Main.quorum
+ * quorum -document Main.quorum
  * 
  * @author Andreas Stefik
  */
@@ -191,11 +191,11 @@ public class Main {
         
         File library = new File(root.getAbsolutePath() +
                 "/libraries/quorum");
-        File build = new File(root.getAbsolutePath() +
-                "/build");
         
-        File distribution = new File(root.getAbsolutePath() +
-                "/distribute");
+        // The "build" directory should be in the current directory.
+        File build = new File("./build");
+        
+        File distribution = new File("./distribute");
         
         File dependencies = new File(root.getAbsolutePath() +
                 "/lib");
@@ -233,6 +233,10 @@ public class Main {
                 path = path.replaceAll("\\%20", " ");
                 File next = new File(args[i]);
                 files[fileIndex] = next;
+                
+                // If compiling, show the user some information.
+                if (!isInterpret)
+                    System.out.println("Preparing to build " + files[fileIndex]);
             }
             
             //setup the VM
@@ -245,9 +249,19 @@ public class Main {
             vm.getCodeGenerator().setPluginFolder(pluginFolder);
             vm.setMain(files[0].getAbsolutePath());
             //build
-            vm.build(files);
+            
+            // If compling, let the user know we're building.
+            if (!isInterpret && !isDocumentation) {
+                System.out.print("\nBuilding files...");
+                vm.build(files);
+                System.out.println(" done.");
+            }
+            else if (!isDocumentation) {
+                vm.build(files);
+            }
             
             if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+                System.out.println("Building finished with errors:");
                 CompilerErrorManager compilerErrors = vm.getCompilerErrors();
                 Iterator<CompilerError> errors = compilerErrors.iterator();
                 
@@ -256,22 +270,52 @@ public class Main {
                 }
             }
             else {
-                // Should we execute or build documentation?
-                
+                // Should we execute, build the documentation, or clean up?
                 if (isDocumentation) {
                     // Set the documentation directory to the distribution folder.
                     vm.setDocumentationPath(root.getAbsolutePath() + "/distribute");
+                    
+                    System.out.print("Generating documentation...");
                     vm.generateDocumentation();
+                    System.out.println(" done.");
                 }
                 else if (isInterpret) {
                     vm.run();
+                }
+                else {
+                    // Not generating documentation or running, so we're compiling.
+                    // Clean up the "build" folder, as the user only needs the
+                    // "distribute" folder.
+                    System.out.print("Cleaning up...");
+                    deleteDirectory(build);
+                    System.out.println(" done.");
+                    System.out.println("Build completed successfully.\n");
+
+                    // Tell the user how to run their program.
+                    System.out.println("To run your program, type:\n");
+                    
+                    // Show appropriate pathing.
+                    String pathSep = "/";
+                    if (System.getProperty("os.name").contains("Windows"))
+                        pathSep = "\\";
+                    String fullPath = "distribute" + pathSep + name + ".jar";
+                    
+                    System.out.println("java -jar " + fullPath + "\n");
+                    System.out.println("into this command prompt.");
+                    
+                    // If they used the default name, let them know that they
+                    // can change it.
+                    if (name.equals("Default")) {
+                        System.out.println("(Note that if you want to name your file something other than `Default.jar', " +
+                                "you can do so using the `-name' flag. Type `quorum -help' for details.)");
+                    }
                 }
             }
         }
         else {
             // Tell the user that they need to pass a file to process!
-            System.err.println("Please pass the files you would like to compile on the command line. For example, you might type java -jar Quorum.jar Main.quorum.");
-            vm.build("say \"Please pass the files you would like to compile on the command line. For example, you might type java -jar Quorum.jar Main.quorum.\"");
+            System.err.println("Please pass the files you would like to compile on the command line. For example, you might type quorum Main.quorum.");
+            vm.build("say \"Please pass the files you would like to compile on the command line. For example, you might type quorum Main.quorum.\"");
             vm.run();
         }
     }
@@ -296,7 +340,7 @@ public class Main {
 
 "Below is the command line documentation for the general purpose programming language Quorum:\n\n"+
                 
-  "java -jar Quorum.jar [-flag]* [file]*\n"+
+  "quorum [-flag]* [file]*\n"+
   
   "In other words, any number of flags beginning with a dash and then any number"+
   "of files. Legal flags are as follows:\n\n"+
@@ -305,7 +349,9 @@ public class Main {
   "-compile This causes the VM to compile Quorum code to java bytecode. This is the default setting.\n"+
   "\tCode will not be run in this mode, only compiled.\n\n"+
   "-document This causes the VM to compile Quorum code normally, but instead of outputting"+
-  " bytecode or interpreting the code, it outputs documentation for the code.\n\n"+
+  " bytecode or interpreting the code, it outputs documentation for the code. This feature is currently"+
+  " in the experimental stage and only outputs `wiki' formatted documentation. In the future, HTML output is" +
+  " planned.\n\n"+
                 
   "-name [String] This sets the name which is output for the corresponding distribution files."+
   "An example might be -name Music. This would cause Quorum to output a "+
@@ -323,29 +369,29 @@ public class Main {
   "Examples:\n"+
   
   "The following would run one file, Main.quorum, in interpreted mode.\n"+
-  "java -jar Quorum.jar -interpret Main.quorum\n\n"+
+  "quorum -interpret Main.quorum\n\n"+
   
   "The following would compile one file, Main.quorum, down to java bytecode. This "+
   "file would put class files in the build folder and the file Main.jar into the "+
   "distribute folder.\n"+
-  "java -jar Quorum.jar -name Main Main.quorum\n\n"+
+  "quorum -name Main Main.quorum\n\n"+
   
   "The following would compile one file, Main.quorum, down to java bytecode. This "+
   "file would put class files in the build folder and the file Main.jar into the "+ 
   "distribute folder. It would also change the plugin folder on windows.\n "+
-  "java -jar Quorum.jar -name Main -plugins C:\\plugins Main.quorum.\n\n"+
+  "quorum -name Main -plugins C:\\plugins Main.quorum.\n\n"+
         
   "As -compiled is the default setting, this does exactly the same thing as the "+
   "previous example.\n"+
-  "java -jar Quorum.jar -compile -name Main Main.quorum\n\n"+
+  "quorum -compile -name Main Main.quorum\n\n"+
   
   "In this example, Quorum will compile Main.quorum and Test.quorum to Java bytecode, "+
   "giving the distribution the name Default.jar.\n"+
-  "java -jar Quorum.jar Main.quorum Test.quorum\n"+
+  "quorum Main.quorum Test.quorum\n"+
   
   "Instead of compiling, this command causes Quorum to output documentation "+
   "in wiki-style format.\n"+
-  "java -jar Quorum.jar -document Main.quorum"
+  "quorum -document Main.quorum"
        );
  
         System.exit(0); // exit the system
@@ -419,6 +465,17 @@ public class Main {
             }
             index++;
         }
+    }
+
+    private static void deleteDirectory(File dir) {
+        if (dir.isDirectory()) {
+            String[] children = dir.list();
+            for (int i=0; i<children.length; i++) {
+                deleteDirectory(new File(dir, children[i]));
+            }
+        }
+        
+        dir.delete();
     }
     
 }
