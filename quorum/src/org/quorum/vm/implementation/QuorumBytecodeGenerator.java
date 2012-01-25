@@ -253,6 +253,9 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     @Override
     public void setBuildFolder(File buildFolder) {
         this.buildFolder = buildFolder;
+        if(!buildFolder.exists()) {
+            buildFolder.mkdirs();
+        }
     }
 
     @Override

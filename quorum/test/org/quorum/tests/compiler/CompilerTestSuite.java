@@ -102,6 +102,7 @@ public class CompilerTestSuite {
     public static final String TABLE = "Table"+File.separatorChar;
     private static QuorumVirtualMachine vm;
     private static File systemRoot;
+    private static File pluginFolder;
     private static boolean setup = false;
     
     @BeforeClass
@@ -131,6 +132,8 @@ public class CompilerTestSuite {
                     "/libraries/indexes/quorum.index");
             File root = new File(systemRoot.getAbsolutePath() +
                     "/libraries/quorum/");
+            pluginFolder = new File(systemRoot.getAbsolutePath() + "/" + 
+                "plugins");
             QuorumStandardLibrary.overrideStandardLibraryPath(root, index);
             setup = true;
         }
@@ -208,6 +211,7 @@ public class CompilerTestSuite {
         //setup the VM
         vm.setGenerateCode(true);
         vm.getCodeGenerator().setBuildFolder(dir);
+        vm.getCodeGenerator().setPluginFolder(pluginFolder);
         vm.setMain(files[0].getAbsolutePath());
         //build
         vm.build(files);

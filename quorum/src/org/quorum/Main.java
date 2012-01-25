@@ -125,7 +125,7 @@ public class Main {
      * This is the default relative path for the plugins directory relative
      * to Quorum.jar.
      */
-    private static final String DEFAULT_PLUGIN_PATH = "libraries/plugins";
+    public static final String DEFAULT_PLUGIN_PATH = "libraries/plugins";
     
     /**
      * This is an absolute path indicating the location of the plugin directory.
