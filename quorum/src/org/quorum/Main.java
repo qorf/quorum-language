@@ -261,12 +261,13 @@ public class Main {
             }
             
             if (!vm.getCompilerErrors().isCompilationErrorFree()) {
-                System.out.println("Building finished with errors:");
+                System.out.println("The code did not build correctly, as there were errors:");
                 CompilerErrorManager compilerErrors = vm.getCompilerErrors();
                 Iterator<CompilerError> errors = compilerErrors.iterator();
                 
+                int i = 1;
                 while (errors.hasNext()) {
-                    System.err.println(errors.next().toString());
+                    System.err.println(i + ": " + errors.next().toString());
                 }
             }
             else {

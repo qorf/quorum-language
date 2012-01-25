@@ -67,7 +67,7 @@ import org.quorum.vm.interfaces.CompilerError;
 	}
 	
 	public void emitErrorMessage(String msg) {
-		super.emitErrorMessage(msg);
+		//super.emitErrorMessage(msg);
  	}
 	public void recover(RecognitionException re) {
 		if(vm != null) {
