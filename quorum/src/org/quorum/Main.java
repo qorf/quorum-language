@@ -285,11 +285,6 @@ public class Main {
                 }
                 else {
                     // Not generating documentation or running, so we're compiling.
-                    // Clean up the "build" folder, as the user only needs the
-                    // "distribute" folder.
-                    System.out.print("Cleaning up...");
-                    deleteDirectory(build);
-                    System.out.println(" done.");
                     System.out.println("Build completed successfully.\n");
 
                     // Tell the user how to run their program.
