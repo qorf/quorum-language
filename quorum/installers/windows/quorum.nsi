@@ -33,6 +33,9 @@ RequestExecutionLevel admin
   !define MUI_HEADERIMAGE
   !define MUI_HEADERIMAGE_BITMAP "Header.bmp" ; optional
   !define MUI_ABORTWARNING
+ !define MUI_FINISHPAGE_RUN
+ !define MUI_FINISHPAGE_RUN_TEXT "Open Quorum Getting Started Guide"
+ !define MUI_FINISHPAGE_RUN_FUNCTION "LaunchDocumentation"
 
 ;--------------------------------
 ; Pages
@@ -45,7 +48,8 @@ RequestExecutionLevel admin
   
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
-
+ !insertmacro MUI_PAGE_FINISH
+ 
 ;Page components
 ;Page directory
 ;Page instfiles
@@ -58,9 +62,48 @@ RequestExecutionLevel admin
  
   !insertmacro MUI_LANGUAGE "English"
 
-;--------------------------------
-; The stuff to install
-Section "Quorum (required)"
+;-------------------------------
+Section "Quorum (required)" Quorum_Sec
+  ;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; Pre-installation checks
+  ;;;;;;;;;;;;;;;;;;;;;;;;;
+  
+  ; Check for .NET
+  Call IsDotNETInstalled
+  Pop $R3
+  StrCmp $R3 0 +3
+    Goto dotNetInstalled
+    ; else
+    MessageBox MB_OK "The Microsoft .NET framework was not found on the system, but must be installed prior to installing Quorum. Clicking OK will navigate to the .NET download website."
+	ExecShell "open" "http://www.microsoft.com/download/en/details.aspx?displaylang=en&id=17113"
+	Abort
+  
+  dotNetInstalled:
+  ; Check for Java
+  StrCpy $1 "SOFTWARE\JavaSoft\Java Runtime Environment"
+  StrCpy $2 0
+  ReadRegStr $2 HKLM "$1" "CurrentVersion"
+  StrCmp $2 "" DetectTry2
+  ReadRegStr $5 HKLM "$1\$2" "JavaHome"
+  
+  StrCmp $5 "" DetectTry2
+  Goto done
+
+  DetectTry2:
+  ReadRegStr $2 HKLM "SOFTWARE\JavaSoft\Java Development Kit" "CurrentVersion"
+  StrCmp $2 "" NoJava
+  ReadRegStr $5 HKLM "SOFTWARE\JavaSoft\Java Development Kit\$2" "JavaHome"
+  StrCmp $5 "" NoJava done
+
+  NoJava:
+  MessageBox MB_OK "The Java Runtime environment was not found on the system, but must be installed prior to installing Quorum. Clicking OK will navigate to the Java download website."
+  ExecShell "open" "http://www.java.com/en/download/index.jsp"
+  Abort
+  done:
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; Installation Details
+  ;;;;;;;;;;;;;;;;;;;;;;;;;
   SectionIn RO
   
   ; Set output path to the installation directory.
@@ -90,11 +133,22 @@ SectionEnd
 
 ;--------------------------------
 ; Optional section (can be disabled by the user)
-Section "Start Menu Shortcuts"
+Section "Start Menu Shortcuts" StartMenu_Sec
   CreateDirectory "$SMPROGRAMS\Quorum"
   CreateShortCut "$SMPROGRAMS\Quorum\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
 
 SectionEnd
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Section Descriptions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+LangString DESC_Section1 ${LANG_ENGLISH} "The core Quorum binaries required to compile Quorum applications."
+LangString DESC_Section2 ${LANG_ENGLISH} "A shortcut to the uninstaller will be placed in the Start Menu."
+
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+  !insertmacro MUI_DESCRIPTION_TEXT ${Quorum_Sec} $(DESC_Section1)
+  !insertmacro MUI_DESCRIPTION_TEXT ${StartMenu_Sec} $(DESC_Section2)
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------
 ; Uninstaller
@@ -123,3 +177,58 @@ Section "Uninstall"
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
 SectionEnd
 
+; Function to check for .NET installation
+Function IsDotNETInstalled
+  Push $0
+  Push $1
+  Push $2
+  Push $3
+  Push $4
+ 
+  ReadRegStr $4 HKEY_LOCAL_MACHINE \
+    "Software\Microsoft\.NETFramework" "InstallRoot"
+  # remove trailing back slash
+  Push $4
+  Exch $EXEDIR
+  Exch $EXEDIR
+  Pop $4
+  # if the root directory doesn't exist .NET is not installed
+  IfFileExists $4 0 noDotNET
+ 
+  StrCpy $0 0
+ 
+  EnumStart:
+ 
+    EnumRegKey $2 HKEY_LOCAL_MACHINE \
+      "Software\Microsoft\.NETFramework\Policy"  $0
+    IntOp $0 $0 + 1
+    StrCmp $2 "" noDotNET
+ 
+    StrCpy $1 0
+ 
+    EnumPolicy:
+ 
+      EnumRegValue $3 HKEY_LOCAL_MACHINE \
+        "Software\Microsoft\.NETFramework\Policy\$2" $1
+      IntOp $1 $1 + 1
+       StrCmp $3 "" EnumStart
+        IfFileExists "$4\$2.$3" foundDotNET EnumPolicy
+ 
+  noDotNET:
+    StrCpy $0 0
+    Goto done
+ 
+  foundDotNET:
+    StrCpy $0 1
+ 
+  done:
+    Pop $4
+    Pop $3
+    Pop $2
+    Pop $1
+    Exch $0
+FunctionEnd
+
+Function LaunchDocumentation
+	ExecShell "open" "https://sourceforge.net/apps/trac/quorum/wiki/begin"
+FunctionEnd
