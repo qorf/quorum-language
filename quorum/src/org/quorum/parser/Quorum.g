@@ -110,6 +110,10 @@ import org.quorum.vm.interfaces.CompilerError;
 	public void setGrammarFileNameNoExtension(String name) {
 		fileName = name;
 	}
+	
+	public void emitErrorMessage(String msg) {
+		//super.emitErrorMessage(msg);
+ 	}
 
     @Override
     public String getErrorMessage(RecognitionException re, String[] tokenNames) {
@@ -710,9 +714,6 @@ solo_method_call
 			^(SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN (expression (COMMA expression)*)? RIGHT_PAREN)
 	|	ME COLON qualified_name (COLON ID)? LEFT_PAREN (expression (COMMA expression)*)? RIGHT_PAREN ->
 			^(SOLO_FUNCTION_CALL_THIS ME COLON qualified_name (COLON ID)? LEFT_PAREN (expression (COMMA expression)*)? RIGHT_PAREN)
-	| LIBRARY_CALL LEFT_PAREN expression COMMA expression COMMA expression RIGHT_PAREN
-	| CONNECT_TO LEFT_PAREN expression COMMA expression COMMA expression RIGHT_PAREN
-	| SEND_TO LEFT_PAREN expression COMMA expression COMMA expression COMMA expression RIGHT_PAREN
 	;
 	
 alert_statement 

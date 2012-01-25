@@ -74,7 +74,8 @@ public class CompilerError {
     @Override
     public String toString() {
         if(getLineNumber() != 0) {
-            return getFile() + ": " + getLineNumber() + ": " + getColumn() + getError();
+            return getFile() + ", Line " + getLineNumber() + ", Column " 
+                    + getColumn() + ": " + getError();
         }
         else {
             return getError();

@@ -261,7 +261,7 @@ public class Main {
             }
             
             if (!vm.getCompilerErrors().isCompilationErrorFree()) {
-                System.out.println("The code did not build correctly, as there were errors:");
+                System.out.println("The code did not build correctly. Here is a list of errors:");
                 CompilerErrorManager compilerErrors = vm.getCompilerErrors();
                 Iterator<CompilerError> errors = compilerErrors.iterator();
                 
