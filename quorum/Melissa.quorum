@@ -1,5 +1,24 @@
-use Libraries.System.File
-//use Libraries.Containers.List
+use Libraries.Sound.Music
+use Libraries.Sound.Chord
+use Libraries.Containers.Array
+
 class Melissa
-    File file
+    Array<Chord> a
+    action Main
+        Chord c
+        c:Add(60)
+        c:Add(64)
+        c:Add(67)
+
+        a:Add(c)
+
+        integer i = a:GetSize()
+        repeat from 0 to 10 
+            print "something"
+        end
+        
+    end
+    action GetSomething(integer val) returns integer
+        return val
+    end
 end

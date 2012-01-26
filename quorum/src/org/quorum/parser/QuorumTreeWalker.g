@@ -1432,6 +1432,7 @@ range		returns[ExpressionValue first_value, ExecutionStep first_step, Expression
 			vm.getCompilerErrors().addError(error);
 		}
 
+		
 		$first_value = $first.eval;
 		$first_step = $first.step;
 		$last_value = $last.eval;

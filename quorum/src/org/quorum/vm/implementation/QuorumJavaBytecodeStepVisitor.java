@@ -1226,6 +1226,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
             //loop through all op-codes
             Vector<ExecutionStep> steps = execution.getSteps();
+            boolean countersReady = false;
             for (int i = begin; i < end; i++) { //visit the expressions
                 
                 // If this is a cast step that we have already visited, ignore
@@ -1263,7 +1264,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     }
                 }//if no, do nothing
 
-                if ((loopType.equals(LabelTypeEnum.FROM) || loopType.equals(LabelTypeEnum.TIMES)) && i > begin + 1) {
+                if ((loopType.equals(LabelTypeEnum.FROM) || loopType.equals(LabelTypeEnum.TIMES)) && countersReady) {
                     methodVisitor.visitLabel(stack.peekLabel().getLabel());
                     methodVisitor.visitVarInsn(ILOAD, stack.peekCounterVariable());
                     methodVisitor.visitVarInsn(ILOAD, stack.peekMaximumVariable());
@@ -1303,9 +1304,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 if (loopType.equals(LabelTypeEnum.FROM) && i == begin) {
                     methodVisitor.visitVarInsn(ISTORE, stack.pushMaximumVariable());
                     i = i + 1;
-                } else if (loopType.equals(LabelTypeEnum.TIMES) && i == begin) {
+                    countersReady = true;
+                } else if (loopType.equals(LabelTypeEnum.TIMES) && i == end - 3) {
                     methodVisitor.visitVarInsn(ISTORE, stack.pushMaximumVariable());
-                } else if (loopType.equals(LabelTypeEnum.TIMES) && i == begin + 1) {
+                } else if (loopType.equals(LabelTypeEnum.TIMES) && i == end - 2) {
+                    countersReady = true;
                     methodVisitor.visitVarInsn(ISTORE, stack.pushCounterVariable());
                 }
             }
