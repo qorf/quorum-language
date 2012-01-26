@@ -725,14 +725,19 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
      * @param dir 
      */
     private static void delete(File dir) {
-        if (dir != null && dir.exists() && dir.isDirectory()) {
+        if(dir == null) {
+            return;
+        }
+        
+        if (dir.exists() && dir.isDirectory()) {
             String[] children = dir.list();
             for (int i=0; i<children.length; i++) {
                 delete(new File(dir, children[i]));
             }
         }
-        
-        dir.delete();
+        else {
+            dir.delete();
+        }
     }
 
     @Override

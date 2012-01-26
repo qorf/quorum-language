@@ -155,6 +155,15 @@ public class Main {
      */
     private static boolean isDocumentation = false;
     
+    /**
+     * A folder for the distributions to be placed.
+     */
+    private static final String DISTRIBUTE_DIRECTORY = "Run";
+    
+    /**
+     * A folder for build information, like classes and plugins.
+     */
+    private static final String BUILD_DIRECTORY = "Build";
     
     /**
      * @param args the command line arguments
@@ -193,9 +202,9 @@ public class Main {
                 "/libraries/quorum");
         
         // The "build" directory should be in the current directory.
-        File build = new File("./build");
+        File build = new File("./" + BUILD_DIRECTORY);
         
-        File distribution = new File("./distribute");
+        File distribution = new File("./" + DISTRIBUTE_DIRECTORY);
         
         File dependencies = new File(root.getAbsolutePath() +
                 "/lib");
@@ -274,7 +283,7 @@ public class Main {
                 // Should we execute, build the documentation, or clean up?
                 if (isDocumentation) {
                     // Set the documentation directory to the distribution folder.
-                    vm.setDocumentationPath(root.getAbsolutePath() + "/distribute");
+                    vm.setDocumentationPath(root.getAbsolutePath() + "/" + DISTRIBUTE_DIRECTORY);
                     
                     System.out.print("Generating documentation...");
                     vm.generateDocumentation();
@@ -294,7 +303,7 @@ public class Main {
                     String pathSep = "/";
                     if (System.getProperty("os.name").contains("Windows"))
                         pathSep = "\\";
-                    String fullPath = "distribute" + pathSep + name + ".jar";
+                    String fullPath = "" + DISTRIBUTE_DIRECTORY + pathSep + name + ".jar";
                     
                     System.out.println("java -jar " + fullPath + "\n");
                     System.out.println("into this command prompt.");
@@ -462,16 +471,4 @@ public class Main {
             index++;
         }
     }
-
-    private static void deleteDirectory(File dir) {
-        if (dir.isDirectory()) {
-            String[] children = dir.list();
-            for (int i=0; i<children.length; i++) {
-                deleteDirectory(new File(dir, children[i]));
-            }
-        }
-        
-        dir.delete();
-    }
-    
 }
