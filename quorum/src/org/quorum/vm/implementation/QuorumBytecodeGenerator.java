@@ -47,6 +47,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
      */
     @Override
     public void generate() {
+        classHash.clear();
         Iterator<ContainerExecution> containers = builder.getContainers();
         while (containers.hasNext()) {
             ContainerExecution exe = containers.next();
