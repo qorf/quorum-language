@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.objectweb.asm.ClassWriter;
 
 import org.quorum.execution.Linker;
@@ -40,6 +42,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     private String manifestMain = "";
     private List<Dependency> dependencies = new LinkedList<Dependency>();
     private File pluginFolder = null;
+    private static final Logger logger = Logger.getLogger(QuorumBytecodeGenerator.class.getName());
     
     /**
      * This method generates java bytecode for all classes on the system.
@@ -81,8 +84,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
                 classHash.put(code.getStaticKey(), code);
             }
             catch(Exception e) {
-                System.out.println("Exception in class: " + currentClass.getStaticKey());
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "The Quorum bytecode generator threw an error.", e);
             }
         }
     }
@@ -116,7 +118,8 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         }
         
         if(buildFolder == null || !buildFolder.isDirectory()) {
-            throw new FileNotFoundException("Cannot write to a build folder that does not exist.");
+            logger.log(Level.INFO, "The build directory is invalid or not properly set.");
+            return;
         }
         
         //prepare jar file for output
