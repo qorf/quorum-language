@@ -130,8 +130,8 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         }
         //once the class files are written, copy the plugin folder to the
         //build location
-        File buildParent = this.buildFolder.getParentFile();
-        File pluginWrite = new File(buildParent.getAbsolutePath() + "/build/plugins");
+        //File buildParent = this.buildFolder.getParentFile();
+        File pluginWrite = new File(buildFolder.getPath() + "/plugins");
         jar.copyFile(this.pluginFolder, pluginWrite);
         
         //if there's a place to write the jar, write it
