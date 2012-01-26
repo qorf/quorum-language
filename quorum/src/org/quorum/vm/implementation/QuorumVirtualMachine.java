@@ -711,6 +711,28 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     @Override
     public void clean() {
         resetBuild();
+        
+        //check the build and distribution folders and delete them if they exist
+        File build = this.getCodeGenerator().getBuildFolder();
+        File distribute = this.getCodeGenerator().getDistributionFolder();
+        delete(build);
+        delete(distribute);
+    }
+    
+    /**
+     * This method deletes a folder from the system.
+     * 
+     * @param dir 
+     */
+    private static void delete(File dir) {
+        if (dir != null && dir.exists() && dir.isDirectory()) {
+            String[] children = dir.list();
+            for (int i=0; i<children.length; i++) {
+                delete(new File(dir, children[i]));
+            }
+        }
+        
+        dir.delete();
     }
 
     @Override
