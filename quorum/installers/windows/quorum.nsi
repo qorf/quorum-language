@@ -33,10 +33,14 @@ RequestExecutionLevel admin
   !define MUI_HEADERIMAGE
   !define MUI_HEADERIMAGE_BITMAP "Header.bmp" ; optional
   !define MUI_ABORTWARNING
- !define MUI_FINISHPAGE_RUN
- !define MUI_FINISHPAGE_RUN_TEXT "Open Quorum Getting Started Guide"
- !define MUI_FINISHPAGE_RUN_FUNCTION "LaunchDocumentation"
+  !define MUI_FINISHPAGE_RUN
+  !define MUI_FINISHPAGE_RUN_TEXT "Open Quorum Getting Started Guide"
+  !define MUI_FINISHPAGE_RUN_FUNCTION "LaunchDocumentation"
 
+;------------------------------
+; Bundling configuration
+!define NETInstaller "dotNetFx40_Client_setup.exe" ; must reflect filename in this directory!
+!define JREInstaller "JavaSetup6u27.exe" ; must reflect filename in this directory!
 ;--------------------------------
 ; Pages
 
@@ -48,7 +52,7 @@ RequestExecutionLevel admin
   
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
- !insertmacro MUI_PAGE_FINISH
+!insertmacro MUI_PAGE_FINISH
  
 ;Page components
 ;Page directory
@@ -73,11 +77,12 @@ Section "Quorum (required)" Quorum_Sec
   Pop $R3
   StrCmp $R3 0 +3
     Goto dotNetInstalled
-    ; else
-    MessageBox MB_OK "The Microsoft .NET framework was not found on the system, but must be installed prior to installing Quorum. Clicking OK will navigate to the .NET download website."
-	ExecShell "open" "http://www.microsoft.com/download/en/details.aspx?displaylang=en&id=17113"
-	Abort
-  
+    ; else - install .NET (should be bundled)
+    File /oname=$TEMP\${NETInstaller} ${NETInstaller}
+    DetailPrint "Starting Microsoft .NET Framework Setup..."
+    ExecWait "$TEMP\${NETInstaller}"
+
+  ; dotNET is already installed - check Java.	
   dotNetInstalled:
   ; Check for Java
   StrCpy $1 "SOFTWARE\JavaSoft\Java Runtime Environment"
@@ -93,14 +98,14 @@ Section "Quorum (required)" Quorum_Sec
   ReadRegStr $2 HKLM "SOFTWARE\JavaSoft\Java Development Kit" "CurrentVersion"
   StrCmp $2 "" NoJava
   ReadRegStr $5 HKLM "SOFTWARE\JavaSoft\Java Development Kit\$2" "JavaHome"
-  StrCmp $5 "" NoJava done
+  StrCmp $5 "" NoJava JavaFound
 
   NoJava:
-  MessageBox MB_OK "The Java Runtime environment was not found on the system, but must be installed prior to installing Quorum. Clicking OK will navigate to the Java download website."
-  ExecShell "open" "http://www.java.com/en/download/index.jsp"
-  Abort
-  done:
-
+    File /oname=$TEMP\${JREInstaller} ${JREInstaller}
+    DetailPrint "Starting Java Runtime Environment Installer..."
+    ExecWait "$TEMP\${JREInstaller}"
+  JavaFound:
+  
   ;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; Installation Details
   ;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -229,6 +234,7 @@ Function IsDotNETInstalled
     Exch $0
 FunctionEnd
 
+; Launches appropriate documentation
 Function LaunchDocumentation
 	ExecShell "open" "https://sourceforge.net/apps/trac/quorum/wiki/begin"
 FunctionEnd
