@@ -3,10 +3,14 @@ class Main
         integer k = 1
         integer min = 1
         integer max = 10
-        repeat from min to max
+        repeat max - min + min * Multiply(1) times
             k = k + 1
         end
 
         print k
+    end
+
+    action Multiply(integer a) returns integer
+        return a
     end
 end

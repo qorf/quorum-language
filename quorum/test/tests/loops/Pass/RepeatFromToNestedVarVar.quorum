@@ -1,13 +1,14 @@
 class Main
     action Main
         integer j = 1
+        integer z = 10
         integer toPrint = 1
-        repeat from j to 10
+        repeat 10 times
             integer k = j
-            repeat from k to 10
+            repeat z times
                 toPrint = toPrint + 1
-                k = k + 1
             end
+            z = z - 1
             j = j + 1
         end
 

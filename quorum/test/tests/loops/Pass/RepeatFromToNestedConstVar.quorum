@@ -1,14 +1,18 @@
 class Main
     action Main
-        integer k = 1
+        integer z = 10
         integer toPrint = 1
-        repeat from 1 to 10
-            repeat from k to 10
+        repeat NestMe() times
+            repeat z times
                 toPrint = toPrint + 1
-                k = k + 1
+                z = z - 1
             end
         end
 
         print toPrint
+    end
+
+    action NestMe returns integer
+        return 10
     end
 end

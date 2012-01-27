@@ -1056,24 +1056,25 @@ loop_statement
 		block = new BlockDescriptor();
 		symbol.add(block);
 	}
-		REPEAT ( (OVER ID)
-			{
-				VariableParameterCommonDescriptor desc = symbol.getVariable($ID.text);
-				if(desc == null)
-				{
-					CompilerError error = new CompilerError();
-					error.setError("Variable " + $ID.text + " not defined.");
-					error.setErrorType(ErrorType.MISSING_VARIABLE);
-					error.setLineNumber($ID.line);
-					error.setColumn($ID.getCharPositionInLine());
-					error.setFile(getGrammarFileNameNoExtension());
-					vm.getCompilerErrors().addError(error);
-				} 
-				
-			}
-		|	((FROM range))
-		|	(root_expression TIMES)
-		|	((WHILE | UNTIL) root_expression))  block END
+		REPEAT ( //(OVER ID)
+			//{
+			//	VariableParameterCommonDescriptor desc = symbol.getVariable($ID.text);
+			//	if(desc == null)
+			//	{
+			//		CompilerError error = new CompilerError();
+			//		error.setError("Variable " + $ID.text + " not defined.");
+			//		error.setErrorType(ErrorType.MISSING_VARIABLE);
+			//		error.setLineNumber($ID.line);
+			//		error.setColumn($ID.getCharPositionInLine());
+			//		error.setFile(getGrammarFileNameNoExtension());
+			//		vm.getCompilerErrors().addError(error);
+			//	} 
+			//	
+			//}
+		//|	((FROM range))
+			(root_expression TIMES)
+		|	((WHILE | UNTIL) root_expression)
+			)  block END
 		{
        			//set the begin and end line column information in the block descriptors.
        			block.setLineBegin($REPEAT.getLine());

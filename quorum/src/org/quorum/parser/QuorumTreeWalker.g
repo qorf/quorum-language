@@ -1309,35 +1309,35 @@ scope {
 
 	(
 
-	( OVER ID )
-	{
-		$loop_statement::type = 0;
-	}
-	|	((FROM ran = range)
-	{
-			$loop_statement::first_value = $ran.first_value;
-		$loop_statement::first_step = $ran.first_step;
-		$loop_statement::last_value = $ran.last_value;
-		$loop_statement::last_step = $ran.last_step;
-		
-		$loop_statement::loop_counter = stepFactory.addLoopCounter(temp,$loop_statement::first_value,$loop_statement::location);
-		builder.addLabel($loop_statement::jumpToTop);
-		temp = $loop_statement::loop_counter.getNextRegister();
-		ResultTuple jump_compare = stepFactory.addBinaryLessEqualsStep(temp, $loop_statement::loop_counter.getValue(), $loop_statement::loop_counter.getStep(),  $loop_statement::last_value, $loop_statement::last_step);
-		temp = jump_compare.getNextRegister();
-		$loop_statement::cJumpStep = new ConditionalJumpLoopStep();
-		$loop_statement::cJumpStep.setLeftRegister(jump_compare.getValue().getRegister());
-		$loop_statement::cJumpStep.setLineInformation($loop_statement::location);
-		$loop_statement::cJumpStep.setLoopType(LoopType.FROM);
-		builder.add($loop_statement::cJumpStep);
-		builder.addStepLabel(OpcodeType.FROM, -1);
-		builder.addMarker($loop_statement::marker_bottom);
-		
-		symbol.enterNextBlock();
-		$loop_statement::type = 1;
-		stepFactory.addBeginScopeStep($loop_statement::marker_loop, "loop");
-	})
-	|	(expr = root_expression TIMES)
+	//( OVER ID )
+	//{
+	//	$loop_statement::type = 0;
+	//}
+	//|	((FROM ran = range)
+	//{
+	//		$loop_statement::first_value = $ran.first_value;
+	//	$loop_statement::first_step = $ran.first_step;
+	//	$loop_statement::last_value = $ran.last_value;
+	//	$loop_statement::last_step = $ran.last_step;
+	//	
+	//	$loop_statement::loop_counter = stepFactory.addLoopCounter(temp,$loop_statement::first_value,$loop_statement::location);
+	//	builder.addLabel($loop_statement::jumpToTop);
+	//	temp = $loop_statement::loop_counter.getNextRegister();
+	//	ResultTuple jump_compare = stepFactory.addBinaryLessEqualsStep(temp, $loop_statement::loop_counter.getValue(), $loop_statement::loop_counter.getStep(),  $loop_statement::last_value, $loop_statement::last_step);
+	//	temp = jump_compare.getNextRegister();
+	//	$loop_statement::cJumpStep = new ConditionalJumpLoopStep();
+	//	$loop_statement::cJumpStep.setLeftRegister(jump_compare.getValue().getRegister());
+	//	$loop_statement::cJumpStep.setLineInformation($loop_statement::location);
+	//	$loop_statement::cJumpStep.setLoopType(LoopType.FROM);
+	//	builder.add($loop_statement::cJumpStep);
+	//	builder.addStepLabel(OpcodeType.FROM, -1);
+	//	builder.addMarker($loop_statement::marker_bottom);
+	//	
+	//	symbol.enterNextBlock();
+	//	$loop_statement::type = 1;
+	//	stepFactory.addBeginScopeStep($loop_statement::marker_loop, "loop");
+	//})
+		(expr = root_expression TIMES)
 	{
 		$loop_statement::first_value = $expr.eval;
 		$loop_statement::first_step = $expr.step;

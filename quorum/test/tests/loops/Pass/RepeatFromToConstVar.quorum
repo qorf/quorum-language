@@ -2,10 +2,14 @@ class Main
     action Main
         integer k = 1
         integer max = 10
-        repeat from 1 to max
+        repeat TheMax() times
             k = k + 1
         end
 
         print k
+    end
+
+    action TheMax returns integer
+        return 1 + 5 + 4
     end
 end
