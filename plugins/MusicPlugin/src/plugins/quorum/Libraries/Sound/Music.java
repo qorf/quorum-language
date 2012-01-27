@@ -32,6 +32,14 @@ public class Music {
         inst = new QuorumMusic(synthesizer);
     }
     
+    @Override
+    public void finalize() {
+        inst = null;
+    }
+    
+    public void Close() {
+        inst.Close();
+    }
     public void Play(int note, double duration, double volume) {
         inst.Play(note, duration, volume);    
     }

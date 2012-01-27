@@ -73,6 +73,18 @@ public class QuorumMusic {
         // TODO: Sane alternative for null synthesizer?
     }
     
+    @Override
+    public void finalize() {
+        sequencer.close();
+    }
+    
+    /**
+     * Close the MIDI device.
+     */
+    public void Close() {
+        sequencer.close();
+    }
+    
     /**
      * Get the current instrument's name.
      * @return 
