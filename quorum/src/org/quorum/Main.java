@@ -220,8 +220,7 @@ public class Main {
         File phonemicJNI = new File(dependencies.getAbsolutePath() +
                 "/jni");
         
-        File documentation = new File(root.getAbsolutePath() + "/" + 
-                            DOCUMENTATION_DIRECTORY + "/");
+        File documentation = new File("./" + DOCUMENTATION_DIRECTORY + "/");
         
         if(!build.isDirectory()) {
             build.mkdir();
