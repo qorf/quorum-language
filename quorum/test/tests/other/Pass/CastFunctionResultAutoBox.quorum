@@ -1,0 +1,12 @@
+class Main
+    action Main
+        integer k = cast(integer, Foo())
+        print k
+    end
+
+    action Foo returns Text
+		Text t
+		t:SetValue("5")
+        return t
+    end
+end

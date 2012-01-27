@@ -213,9 +213,8 @@ public class OtherTester {
         }
         vm.blockRun();
 
-        ExpressionValue trueAVal = vm.getDataEnvironment().getVariableValue("note");
-        ExpressionValue trueBVal = vm.getDataEnvironment().getVariableValue("trueB");
-        int note = trueAVal.getResult().integer;
+        ExpressionValue noteVal = vm.getDataEnvironment().getVariableValue("note");
+        int note = noteVal.getResult().integer;
         
         if (note != 72) {
             fail();
@@ -235,5 +234,101 @@ public class OtherTester {
             fail();
         
         assert(r.getLine(0).equals("72"));
+    }
+    
+    @Test
+    public void test_cast_function_result_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "CastFunctionResult.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue val = vm.getDataEnvironment().getVariableValue("k");
+        int k = val.getResult().integer;
+        
+        if (k != 5) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_cast_function_result_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "CastFunctionResult.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+    }
+    
+    @Test
+    public void test_cast_function_result_autobox_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "CastFunctionResultAutoBox.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue val = vm.getDataEnvironment().getVariableValue("k");
+        int k = val.getResult().integer;
+        
+        if (k != 5) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_cast_function_result_autobox_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "CastFunctionResultAutoBox.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+    }
+    
+    @Test
+    public void test_cast_nested_function_result_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "CastNestedFunctionResult.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue val = vm.getDataEnvironment().getVariableValue("k");
+        int k = val.getResult().integer;
+        
+        if (k != 5) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_cast_nested_function_result_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "CastNestedFunctionResult.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
     }
 }
