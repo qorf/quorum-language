@@ -331,4 +331,36 @@ public class OtherTester {
         
         assert(r.getLine(0).equals("5"));
     }
+    
+    @Test
+    public void test_cast_expression_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "CastExpression.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue val = vm.getDataEnvironment().getVariableValue("k");
+        int k = val.getResult().integer;
+        
+        if (k != 5) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_cast_expression_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "CastExpression.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+    }
 }
