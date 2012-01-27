@@ -203,4 +203,37 @@ public class OtherTester {
         
         assert(r.getLine(0).equals("10.0"));
     }
+
+    @Test
+    public void test_cast_with_addition() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "CastWithAddition.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue trueAVal = vm.getDataEnvironment().getVariableValue("note");
+        ExpressionValue trueBVal = vm.getDataEnvironment().getVariableValue("trueB");
+        int note = trueAVal.getResult().integer;
+        
+        if (note != 72) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_cast_with_addition_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "CastWithAddition.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("72"));
+    }
 }
