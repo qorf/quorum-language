@@ -109,6 +109,16 @@ class Music
     */
     public system action Play(integer note, number duration, number volume)
     
+    /*
+        Closes all of the resources being used by the Music instance. This
+        method *must* be called, or the program will not exit properly.
+
+        Attribute: Example
+        Music muse
+        muse:Close()
+    */
+    public system action Close()
+
     on create
         // Populate the instruments list
         integer index = 0
