@@ -166,6 +166,11 @@ public class Main {
     private static final String BUILD_DIRECTORY = "Build";
     
     /**
+     * A folder for documentation to be generated into.
+     */
+    private static final String DOCUMENTATION_DIRECTORY = "Documentation";
+    
+    /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
@@ -215,8 +220,15 @@ public class Main {
         File phonemicJNI = new File(dependencies.getAbsolutePath() +
                 "/jni");
         
+        File documentation = new File(root.getAbsolutePath() + "/" + 
+                            DOCUMENTATION_DIRECTORY + "/");
+        
         if(!build.isDirectory()) {
             build.mkdir();
+        }
+        
+        if(!documentation.isDirectory()) {
+            documentation.mkdirs();
         }
         
         QuorumStandardLibrary.overrideStandardLibraryPath(library, index);
@@ -283,10 +295,10 @@ public class Main {
                 // Should we execute, build the documentation, or clean up?
                 if (isDocumentation) {
                     // Set the documentation directory to the distribution folder.
-                    vm.setDocumentationPath(root.getAbsolutePath() + "/" + DISTRIBUTE_DIRECTORY);
+                    vm.setDocumentationPath(documentation.getAbsolutePath());
                     
                     System.out.print("Generating documentation...");
-                    vm.generateDocumentation();
+                    vm.generateAllDocumentation(files);
                     System.out.println(" done.");
                 }
                 else if (isInterpret) {

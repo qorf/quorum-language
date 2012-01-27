@@ -146,7 +146,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         return true;
     }
     
-    private boolean generateAllDocumentation(File[] files) {
+    public boolean generateAllDocumentation(File[] files) {
         TracWikiDocumentationGenerator doc = new TracWikiDocumentationGenerator();
         this.build(files);
         Iterator<ContainerExecution> containers = this.builder.getContainers();
@@ -178,15 +178,15 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                     current += split[j] + "/";
                     
                 }
-                File folder = new File(root + current);
-                if(!folder.isDirectory()) {
-                    folder.mkdir();
+                File folder = new File(root + "/" + current);
+                if(!folder.exists()) {
+                    folder.mkdirs();
                 }
             }
             
             //write the string to a newly created file, if it does not exist
             try {
-                File result = new File(root + container + "/" + clazz.getName() + ".wiki");
+                File result = new File(root + "/" + container + "/" + clazz.getName() + ".wiki");
                 Writer out = null;
 
                 if(result.isFile()) {
