@@ -1340,6 +1340,11 @@ scope {
 		(expr = root_expression TIMES)
 	{
 		$loop_statement::first_value = $expr.eval;
+		TypeDescriptor type = $expr.eval.getType();
+		if(type == null || !type.isInteger()) {
+			CompilerError error = new CompilerError($TIMES.getLine(), "repeat times requires an integer.", ErrorType.REPEAT_TIMES_NON_INTEGER);
+			vm.getCompilerErrors().addError(error);	
+		}
 		$loop_statement::first_step = $expr.step;
 		$loop_statement::loop_counter = stepFactory.addLoopCounter(temp,$loop_statement::location);
 		builder.addLabel($loop_statement::jumpToTop);

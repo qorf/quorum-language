@@ -42,6 +42,7 @@ public enum ErrorType {
     INVALID_ERROR("Invalid error type"), 
     INVALID_RETURN_NOW("Invalid return now"), 
     METHOD_DUPLICATE("Method already defined"),
+    REPEAT_TIMES_NON_INTEGER("Repeat times non-integer"),
     OTHER("other"); 
 
     String errorType;
