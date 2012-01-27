@@ -92,7 +92,7 @@ Section "Quorum (required)" Quorum_Sec
   ReadRegStr $5 HKLM "$1\$2" "JavaHome"
   
   StrCmp $5 "" DetectTry2
-  Goto done
+  Goto JavaFound
 
   DetectTry2:
   ReadRegStr $2 HKLM "SOFTWARE\JavaSoft\Java Development Kit" "CurrentVersion"
