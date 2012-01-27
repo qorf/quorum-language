@@ -125,9 +125,7 @@ public abstract class AbstractVirtualMachine {
      * Handles type checking on the system.
      */
     protected TypeChecker typeChecker;
-    /**
-     * Manages doing long run execution.
-     */
+
     /** Manages the threaded execution of Quorum programs.
      * 
      */
@@ -555,6 +553,18 @@ public abstract class AbstractVirtualMachine {
     public abstract void removeFromBuild(File file);
 
     /**
+      * This operation builds an internal representation of a program from 
+      *  source. This build operation builds from a collection of source files.
+      * If a boolean value of true
+      * is issued to this function, this function will force the virtual machine
+      * to block on the thread that passed the request.
+     * 
+      * @param source A series of source code files to build. 
+      * @param block 
+      */
+    public abstract void build(File[] source, boolean block);
+    
+    /**
      * This operation builds an internal representation of a program from 
      *  source. This build operation builds from a collection of source files.
      * @param source A series of source code files to build.
@@ -886,6 +896,13 @@ public abstract class AbstractVirtualMachine {
         this.getRuntimeErrors().clear();
     }
 
+    /**
+     * This function cleans the current build. If a boolean value of true
+     * is issued to this function, this function will force the virtual machine
+     * to block on the thread that passed the request.
+     */
+    public abstract void clean(boolean block);
+    
     /**
      * This function cleans the current build.
      */

@@ -273,11 +273,11 @@ public class Main {
             // If compling, let the user know we're building.
             if (!isInterpret && !isDocumentation) {
                 System.out.print("\nBuilding files...");
-                vm.build(files);
+                vm.build(files, true);
                 System.out.println(" done.");
             }
             else if (!isDocumentation) {
-                vm.build(files);
+                vm.build(files, true);
             }
             
             if (!vm.getCompilerErrors().isCompilationErrorFree()) {

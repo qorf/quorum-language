@@ -80,6 +80,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private DocumentationGenerator documentor = DocumentationStyle.getDocumentationGenerator(DocumentationStyle.TRAC_WIKI);
     private static final String USE = "use";
     private static final Logger logger = Logger.getLogger(QuorumVirtualMachine.class.getName());
+    private BuildManager buildManager;
     
     public QuorumVirtualMachine() {
         compilerErrors = new CompilerErrorManager();
@@ -89,6 +90,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         typeChecker = new TypeChecker();
         standardLibrary = new QuorumStandardLibrary();
         generator = new QuorumBytecodeGenerator();
+        buildManager = new BuildManager();
     }
 
     private void resetBuild() {
@@ -420,11 +422,26 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     @Override
     public void build(File[] source) {
-        try {
-            buildActual(source);
+        Build build = new Build();
+        build.source = source;
+        buildManager.add(build);
+//        try {
+//            buildActual(source);
+//        }
+//        catch(Exception exception) {
+//            logger.log(Level.INFO, "The Quorum Compiler threw an exception in build(File[]).", exception);
+//        }
+    }
+    
+    @Override
+    public void build(File[] source, boolean block) {
+        Build build = new Build();
+        build.source = source;        
+        if(block) {
+            build.run();
         }
-        catch(Exception exception) {
-            logger.log(Level.INFO, "The Quorum Compiler threw an exception in build(File[]).", exception);
+        else {
+            buildManager.add(build);
         }
     }
     
@@ -710,13 +727,19 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     @Override
     public void clean() {
-        resetBuild();
-        
-        //check the build and distribution folders and delete them if they exist
-        File build = this.getCodeGenerator().getBuildFolder();
-        File distribute = this.getCodeGenerator().getDistributionFolder();
-        delete(build);
-        delete(distribute);
+        Clean clean = new Clean();
+        buildManager.add(clean);
+//        resetBuild();
+//        //check the build and distribution folders and delete them if they exist
+//        File build = this.getCodeGenerator().getBuildFolder();
+//        File distribute = this.getCodeGenerator().getDistributionFolder();
+//        delete(build);
+//        delete(distribute);
+    }
+
+    @Override
+    public void clean(boolean block) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     /**
@@ -1143,6 +1166,42 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 item.setCompletion(method.getName());
                 result.add(item);
             }
+        }
+    }
+    
+    private class Build implements Runnable{
+        public File[] source;
+        @Override
+        public void run() {
+            try {
+                buildActual(source);
+            }
+            catch(Exception exception) {
+                logger.log(Level.INFO, "The Quorum Compiler threw an exception in build(File[]).", exception);
+            }
+        }
+        
+    }
+    
+    private class Clean implements Runnable {
+        @Override
+        public void run() {
+            resetBuild();
+            //check the build and distribution folders and delete them if they exist
+            File build = getCodeGenerator().getBuildFolder();
+            File distribute = getCodeGenerator().getDistributionFolder();
+            delete(build);
+            delete(distribute);
+        }
+        
+    }
+    
+    private class SetBuildFolder implements Runnable {
+        public File build;
+        
+        @Override
+        public void run() {
+            getCodeGenerator().setBuildFolder(build);
         }
     }
 }
