@@ -1125,6 +1125,38 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     continue;
                 }
                 
+                //if we are in a call step find that call step and check to see if it
+                //is an autobox. If it is insert the autobox.
+                int castStepLocation = -1;
+                ArrayList<Integer> functionParameterMapping = tracker.getFunctionParameterMapping(i);
+                if(functionParameterMapping != null){
+                    int callStepNumber = functionParameterMapping.get(functionParameterMapping.size() - 1);
+                    ExecutionStep callStep = steps.get(callStepNumber);
+                    castStepLocation = callStep.getCastStepLocation();
+                    
+                    //if there is a cast step associated with the step then process as 
+                    //one of two types of casts, autobox or standard cast.
+                    if (castStepLocation != -1 && !visitedCasts.contains(castStepLocation)) {
+                        //if we are dealing with an autobox we are dealing with 3 steps.
+                        //with a standard cast we will need move the cast step directly after
+                        //the visit of the parameter.
+                        ExecutionStep createStep = steps.get(castStepLocation + 1);
+                        if (createStep instanceof AutoBoxCreateStep) {//autobox
+                            ExecutionStep castStep = steps.get(i + 1);
+                            if (!(castStep instanceof UnaryOperationStep)) {
+                                castStep = null;
+                            }
+
+                            visitWithAutoBoxStep(steps, (AutoBoxCreateStep) createStep, castStep, tracker, i, castStepLocation);
+                            visitedCasts.add(castStepLocation);
+                            visitedCasts.add(castStepLocation + 1);
+                            visitedCasts.add(castStepLocation + 2);
+                            i = castStepLocation;
+                        }
+                    }
+                    
+                }
+                
                 //is this step the first parameter to a function call?
                 //if yes, call visitCallSpecial, with the call step 
                 //for that function call
@@ -1156,12 +1188,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 
                 //get the next step to be processed and get a cast step location if there is one.
                 ExecutionStep step = steps.get(i);
-                int castStepLocation = step.getCastStepLocation();
+                castStepLocation = step.getCastStepLocation();
                 
                 //if there is a cast step associated with the step then process as 
                 //one of two types of casts, autobox or standard cast.
-                if (castStepLocation != -1) {
-                    
+                if (castStepLocation != -1 && !visitedCasts.contains(castStepLocation)) {
                     //if we are dealing with an autobox we are dealing with 3 steps.
                     //with a standard cast we will need move the cast step directly after
                     //the visit of the parameter.
@@ -1194,6 +1225,84 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         
         if(tracker.getQueueSize() == 1)
             tracker.clearQueue();
+    }
+    
+    private void processExpression(OpcodeTracker tracker, int begin, int end, Vector<ExecutionStep> steps){
+
+        //loop through all op-codes
+        ArrayList<Integer> visitedCasts = new ArrayList<Integer>();
+        for (int i = begin; i < end; i++) { //visit the expressions
+            // If this is a cast step that we have already visited, ignore
+            // it, so we don't accidentally visit it twice.
+            if (visitedCasts.contains(i)) {
+                continue;
+            }
+
+            //is this step the first parameter to a function call?
+            //if yes, call visitCallSpecial, with the call step 
+            //for that function call
+            boolean funcParam = tracker.containsFunctionParameterMapping(i);
+            if (funcParam) {
+                ArrayList<Integer> callLocations = tracker.getFunctionParameterMapping(i);
+                for (int k = 0; k < callLocations.size(); k++) {
+                    int opcodeLocation = callLocations.get(k);
+                    ExecutionStep callStep = steps.get(opcodeLocation);
+
+                    // Make sure this is actually a CallStep.
+                    while (!(callStep instanceof CallStep)) {
+                        opcodeLocation++;
+                        callStep = steps.get(opcodeLocation);
+                    }
+
+                    if (callStep instanceof CallStep) {
+                        CallStep call = (CallStep) callStep;
+                        //insert the pointer for the object being called upon
+                        visitCallSpecial(call);
+                    } else {
+                        Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
+                                Level.SEVERE, "Function mapping between opcode parameters "
+                                + "and callsteps results in incorrect values. This is a compiler bug.");
+                    }
+                }
+            }//if no, do nothing
+
+            //get the next step to be processed and get a cast step location if there is one.
+            ExecutionStep step = steps.get(i);
+            int castStepLocation = step.getCastStepLocation();
+
+            //if there is a cast step associated with the step then process as 
+            //one of two types of casts, autobox or standard cast.
+            if (castStepLocation != -1) {
+//                ArrayList<ExecutionStep> wrapAroundSteps = new ArrayList<ExecutionStep>();
+//                for (int counter = i; counter < castStepLocation; counter++) {
+//                    wrapAroundSteps.add(steps.get(counter));
+//                }
+//                //if we are dealing with an autobox we are dealing with 3 steps.
+//                //with a standard cast we will need move the cast step directly after
+//                //the visit of the parameter.
+//                ExecutionStep createStep = steps.get(castStepLocation + 1);
+//                if (createStep instanceof AutoBoxCreateStep) {//autobox
+//                    ExecutionStep castStep = steps.get(i + 1);
+//                    if (!(castStep instanceof UnaryOperationStep)) {
+//                        castStep = null;
+//                    }
+//
+//                    visitWithAutoBoxStep(wrapAroundSteps, (AutoBoxCreateStep) createStep, castStep, tracker);
+//                    visitedCasts.add(castStepLocation);
+//                    visitedCasts.add(castStepLocation + 1);
+//                    visitedCasts.add(castStepLocation + 2);
+//                } else {//standard cast
+//                    step.visit(this);
+//
+//                    step = steps.get(castStepLocation);
+//                    step.visit(this);
+//                    visitedCasts.add(castStepLocation);
+//                }
+                step.visit(this);
+            } else {//standard visit of a non casting series of steps.
+                step.visit(this);
+            }
+        }
     }
     
     /**
@@ -1273,11 +1382,19 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 //get the next step to be processed and get a cast step location if there is one.
                 ExecutionStep step = steps.get(i);
                 int castStepLocation = step.getCastStepLocation();
+                                //if we are in a call step find that call step and check to see if it
+                //is an autobox. If it is insert the autobox.
+                ArrayList<Integer> functionParameterMapping = tracker.getFunctionParameterMapping(i);
+                if(functionParameterMapping != null){
+                    int callStepNumber = functionParameterMapping.get(functionParameterMapping.size() - 1);
+                    ExecutionStep callStep = steps.get(callStepNumber);
+                    castStepLocation = callStep.getCastStepLocation();
+                    
+                }
                 
                 //if there is a cast step associated with the step then process as 
                 //one of two types of casts, autobox or standard cast.
-                if (castStepLocation != -1) {
-                    
+                if (castStepLocation != -1 && !visitedCasts.contains(castStepLocation)) {
                     //if we are dealing with an autobox we are dealing with 3 steps.
                     //with a standard cast we will need move the cast step directly after
                     //the visit of the parameter.
@@ -1290,6 +1407,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         visitedCasts.add(castStepLocation);
                         visitedCasts.add(castStepLocation + 1);
                         visitedCasts.add(castStepLocation + 2);
+                        i = castStepLocation - 1;
                     }else{//standard cast
                         step.visit(this);
                         
@@ -1366,8 +1484,43 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         * @param step
         * @param castStep - the autobox step
         */
-    private void visitWithAutoBoxStep(ExecutionStep step, AutoBoxCreateStep createStep, ExecutionStep castStep) {
+    private void visitWithAutoBoxStep(Vector<ExecutionStep> steps, AutoBoxCreateStep createStep, ExecutionStep castStep, OpcodeTracker tracker, int begin, int end) {
 
+        String autoBoxClassName = null;
+
+        String autoBoxMethodSignature = null;
+
+        if (createStep.getPrimitiveType().isInteger()) {
+            autoBoxClassName = "quorum/Libraries/Language/Types/Integer";
+            autoBoxMethodSignature = "(I)V";
+        } else if (createStep.getPrimitiveType().isNumber()) {
+            autoBoxClassName = "quorum/Libraries/Language/Types/Number";
+            autoBoxMethodSignature = "(D)V";
+        } else if (createStep.getPrimitiveType().isText()) {
+            autoBoxClassName = "quorum/Libraries/Language/Types/Text";
+            autoBoxMethodSignature = "(Ljava/lang/String;)V";
+        } else if (createStep.getPrimitiveType().isBoolean()) {
+            autoBoxClassName = "quorum/Libraries/Language/Types/Boolean";
+            autoBoxMethodSignature = "(Z)V";
+        }
+        // Create a new autoboxed object.
+        methodVisitor.visitTypeInsn(NEW, autoBoxClassName);
+        methodVisitor.visitInsn(DUP);
+        methodVisitor.visitInsn(DUP);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, autoBoxClassName, "<init>", "()V");
+        // Add the expression from the step.
+        processExpression(tracker, begin, end, steps);
+        
+        // Do we need to do a cast?
+        if (castStep != null)
+            castStep.visit(this);
+        
+        // Call SetValue.
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
+                "SetValue", autoBoxMethodSignature);
+    }
+    
+    private void visitWithAutoBoxStep(ExecutionStep step, AutoBoxCreateStep createStep, ExecutionStep castStep) {
         String autoBoxClassName = null;
 
         String autoBoxMethodSignature = null;
@@ -1393,11 +1546,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         
         // Add the expression from the step.
         step.visit(this);
-        
+
         // Do we need to do a cast?
-        if (castStep != null)
+        if (castStep != null) {
             castStep.visit(this);
-        
+        }
+
         // Call SetValue.
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
                 "SetValue", autoBoxMethodSignature);

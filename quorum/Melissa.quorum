@@ -1,24 +1,62 @@
-use Libraries.Sound.Music
-use Libraries.Sound.Chord
 use Libraries.Containers.Array
 
 class Melissa
-    Array<Chord> a
     action Main
-        Chord c
-        c:Add(60)
-        c:Add(64)
-        c:Add(67)
-
-        a:Add(c)
-
-        integer i = a:GetSize()
-        repeat from a:GetSize() to GetSomething(a:GetSize()) 
-            print "something"
-        end
+        // This is where the word can be changed for the game
+        text answer = "quorum"
         
-    end
-    action GetSomething(integer val) returns integer
-        return val
+        Text answerText
+        answerText:Append(answer)
+        
+        integer counter = 0
+        Array<text> word
+        integer wordLength = answerText:GetLength()
+        repeat while counter < wordLength
+            text t = answerText:GetCharacter(counter)
+            word:Add(counter, t)
+            counter = counter + 1
+        end
+        counter = 0
+        Array<text> guessedWord
+        repeat while counter < wordLength
+            guessedWord:Add(counter, "*")
+            counter = counter + 1
+        end
+        text guess
+        boolean gameOver = false
+        text displayText
+        repeat while gameOver = false
+            say "So far you have "
+            counter = 0
+            displayText = ""
+            repeat while counter < wordLength
+                displayText = displayText + guessedWord:Get(counter)
+                if counter < wordLength then
+                    displayText = displayText + " "
+                end
+                counter = counter + 1
+            end
+            say displayText
+            guess = input ("Please guess a letter:")
+            counter = 0
+            repeat while counter < wordLength
+                if word:Get(counter) = guess then
+                    text k = word:Get(counter)
+                    guessedWord:Set(counter, k)
+                end
+                counter = counter + 1
+            end
+            gameOver = true
+            counter = 0
+            repeat while counter < wordLength
+                if guessedWord:Get(counter) = "*" then
+                    gameOver = false
+                end
+                counter = counter + 1
+            end
+            if gameOver = true then
+                say "Hooray! The word is " + answer
+            end
+        end
     end
 end
