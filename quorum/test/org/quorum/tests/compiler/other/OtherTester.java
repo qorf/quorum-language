@@ -587,4 +587,36 @@ public class OtherTester {
         
         assert(r.getLine(0).equals("Hello"));
     }
+    
+    @Test
+    public void test_two_param_nested_autobox_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "TwoParamNestedAutoBox.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue val = vm.getDataEnvironment().getVariableValue("k");
+        String k = val.getResult().text;
+        
+        if (!"Hello".equals(k)) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_two_param_nested_autobox_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "TwoParamNestedAutoBox.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("Hello"));
+    }
 }
