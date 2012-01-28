@@ -261,12 +261,12 @@ public class Main {
             
             //setup the VM
             vm.setGenerateCode(!isInterpret);
-            vm.getCodeGenerator().setBuildFolder(build);
-            vm.getCodeGenerator().setDistributionFolder(distribution);
-            vm.getCodeGenerator().addDependency(phonemic);
-            vm.getCodeGenerator().addDependency(phonemicJNI);
-            vm.getCodeGenerator().setDistributionName(name);
-            vm.getCodeGenerator().setPluginFolder(pluginFolder);
+            vm.setBuildFolder(build);
+            vm.setDistributionFolder(distribution);
+            vm.addDependency(phonemic);
+            vm.addDependency(phonemicJNI);
+            vm.setDistributionName(name);
+            vm.setPluginFolder(pluginFolder);
             vm.setMain(files[0].getAbsolutePath());
             //build
             

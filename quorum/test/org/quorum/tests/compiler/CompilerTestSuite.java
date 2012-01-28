@@ -210,8 +210,8 @@ public class CompilerTestSuite {
         
         //setup the VM
         vm.setGenerateCode(true);
-        vm.getCodeGenerator().setBuildFolder(dir);
-        vm.getCodeGenerator().setPluginFolder(pluginFolder);
+        vm.setBuildFolder(dir);
+        vm.setPluginFolder(pluginFolder);
         vm.setMain(files[0].getAbsolutePath());
         //build
         vm.build(files);

@@ -85,7 +85,8 @@ public abstract class AbstractVirtualMachine {
      * This action is looked up in a general hash behind the scenes to determine
      * where in the total execution the main is located.
      */
-    private String main = "";
+    protected String main = "";
+    
     /** This is a symbol table that represents and collects any static and
      * dynamic analysis for the system. This includes storing variables,
      * methods, classes, values, types, and the relationships between
@@ -844,11 +845,7 @@ public abstract class AbstractVirtualMachine {
      *
      * @param main the main to set
      */
-    public void setMain(String main) {
-        this.main = main;
-        File file = new File(main);
-        this.getCodeGenerator().setMainFile(file);
-    }
+    public abstract void setMain(String main);
 
     /**
      * The Symbol Table stores all relevant information about the compile. This
@@ -1005,10 +1002,109 @@ public abstract class AbstractVirtualMachine {
     /**
      * @return the generator
      */
-    public CodeGenerator getCodeGenerator() {
+    protected CodeGenerator getCodeGenerator() {
         return generator;
     }
 
+    /**
+     * @return the buildFolder
+     */
+    public File getBuildFolder() {
+        return getCodeGenerator().getBuildFolder();
+    }
+
+    /**
+     * @param buildFolder the buildFolder to set
+     */
+    public abstract void setBuildFolder(File buildFolder);
+    
+    /**
+     * The folder that will be used to produce the final executable code.
+     * 
+     * @return 
+     */
+    public File getDistributionFolder() {
+        return getCodeGenerator().getDistributionFolder();
+    }
+    
+    /**
+     * Sets the folder that will create the final executable package.
+     * @param distributionFolder 
+     */
+    public abstract void setDistributionFolder(File distributionFolder);
+    
+    /**
+     * Returns the name of the final executable that will be created
+     * by the system.
+     * 
+     * @return 
+     */
+    public String getDistributionName() {
+        return getCodeGenerator().getDistributionName();
+    }
+    
+    /**
+     * Sets the name of the final executable that will be created by
+     * the system.
+     * @param name 
+     */
+    public abstract void setDistributionName(String name);
+    
+    
+    /**
+     * Adds a dependency into the distributed code for the target platform.
+     * If the file passed is a folder, the entire folder will be copied 
+     * verbatim to the dependency folder, but no attempt will be made to
+     * write the dependencies into the target execution. As such, dependencies
+     * must be managed individually, but folders (e.g., images or resources), 
+     * can be copied raw.
+     * 
+     * @param file 
+     */
+    public abstract void addDependency(File file);
+    
+    /**
+     * This method allows the user to add a dependency into a folder of the 
+     * user's choice. No attempt will be made to inject these dependencies
+     * into the target's execution (e.g., a jar file's manifest). This is useful
+     * if you want to copy a series of files, one-by-one, into a specified
+     * folder.
+     * 
+     * @param file
+     * @param relativePath 
+     */
+    public abstract void addDependency(File file, String relativePath);
+    
+    /**
+     * Clears out all dependencies on the target system.
+     * 
+     */
+    public abstract void clearDependencies();
+    
+    /**
+     * Returns the number of dependencies currently loaded on the target
+     * platform.
+     * 
+     * @return 
+     */
+    public int getNumberOfDependencies() {
+        return getCodeGenerator().getNumberOfDependencies();
+    }
+    
+    /**
+     * Sets the folder which will grab any relevant plugins on the system.
+     * @param file 
+     */
+    public abstract void setPluginFolder(File file);
+    
+    /**
+     * Gets the folder which houses any plugins for the system.
+     * @return 
+     */
+    public File getPluginFolder() {
+        return getCodeGenerator().getPluginFolder();
+    }
+    
     /**
      * @return the generateCode
      */

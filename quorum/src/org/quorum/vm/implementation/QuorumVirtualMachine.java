@@ -159,12 +159,12 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 ClassExecution classExec = classes.next();
                 ClassDescriptor clazz = classExec.getClassDescriptor();
                 String result = doc.generate(clazz);
-                docuemntationToFile(clazz, result);
+                documentationToFile(clazz, result);
             }
         }
         return true;
     }
-    private void docuemntationToFile(ClassDescriptor clazz, String string){
+    private void documentationToFile(ClassDescriptor clazz, String string){
         String root = documentationPath;
         
         String container = clazz.getContainer().getContainer();
@@ -431,6 +431,19 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 //        catch(Exception exception) {
 //            logger.log(Level.INFO, "The Quorum Compiler threw an exception in build(File[]).", exception);
 //        }
+    }
+    
+    private class Build implements Runnable{
+        public File[] source;
+        @Override
+        public void run() {
+            try {
+                buildActual(source);
+            }
+            catch(Exception exception) {
+                logger.log(Level.INFO, "The Quorum Compiler threw an exception in build(File[]).", exception);
+            }
+        }
     }
     
     @Override
@@ -736,10 +749,28 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 //        delete(build);
 //        delete(distribute);
     }
+    
+    private class Clean implements Runnable {
+        @Override
+        public void run() {
+            resetBuild();
+            //check the build and distribution folders and delete them if they exist
+            File build = getCodeGenerator().getBuildFolder();
+            File distribute = getCodeGenerator().getDistributionFolder();
+            delete(build);
+            delete(distribute);
+        }
+    }
 
     @Override
     public void clean(boolean block) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Clean clean = new Clean();
+        if(block) {
+            clean.run();
+        }
+        else {
+            buildManager.add(clean);
+        }
     }
     
     /**
@@ -1168,32 +1199,12 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             }
         }
     }
-    
-    private class Build implements Runnable{
-        public File[] source;
-        @Override
-        public void run() {
-            try {
-                buildActual(source);
-            }
-            catch(Exception exception) {
-                logger.log(Level.INFO, "The Quorum Compiler threw an exception in build(File[]).", exception);
-            }
-        }
-        
-    }
-    
-    private class Clean implements Runnable {
-        @Override
-        public void run() {
-            resetBuild();
-            //check the build and distribution folders and delete them if they exist
-            File build = getCodeGenerator().getBuildFolder();
-            File distribute = getCodeGenerator().getDistributionFolder();
-            delete(build);
-            delete(distribute);
-        }
-        
+
+    @Override
+    public void setBuildFolder(File buildFolder) {
+        SetBuildFolder folder = new SetBuildFolder();
+        folder.build = buildFolder;
+        this.buildManager.add(folder);
     }
     
     private class SetBuildFolder implements Runnable {
@@ -1202,6 +1213,114 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         @Override
         public void run() {
             getCodeGenerator().setBuildFolder(build);
+        }
+    }
+    
+    @Override
+    public void setPluginFolder(File file) {
+        SetPluginFolder folder = new SetPluginFolder();
+        folder.plugin = file;
+        buildManager.add(folder);
+    }
+    
+    private class SetPluginFolder implements Runnable {
+        public File plugin;
+        
+        @Override
+        public void run() {
+            getCodeGenerator().setPluginFolder(plugin);
+        }
+    }
+    
+    @Override
+    public void setDistributionName(String name) {
+        SetDistributionName myName = new SetDistributionName();
+        myName.name = name;
+        buildManager.add(myName);
+    }
+    
+    private class SetDistributionName implements Runnable {
+        public String name;
+        
+        @Override
+        public void run() {
+            getCodeGenerator().setDistributionName(name);
+        }
+    }
+    
+    @Override
+    public void addDependency(File file) {
+        AddDependency dep = new AddDependency();
+        dep.file = file;
+        buildManager.add(dep);
+    }
+    
+    @Override
+    public void addDependency(File file, String relativePath) {
+        AddDependency dep = new AddDependency();
+        dep.file = file;
+        dep.path = relativePath;
+        buildManager.add(dep);
+    }
+    
+    private class AddDependency implements Runnable{
+        private File file;
+        private String path;
+
+        @Override
+        public void run() {
+            if(path == null) {
+                getCodeGenerator().addDependency(file);
+            }
+            else {
+                getCodeGenerator().addDependency(file, path);
+            }
+        }
+    }
+    
+    @Override
+    public void clearDependencies() {
+        ClearDependencies dep = new ClearDependencies();
+        buildManager.add(dep);
+    }
+    
+    private class ClearDependencies implements Runnable{
+        @Override
+        public void run() {
+            getCodeGenerator().clearDependencies();
+        }
+    }
+    
+    @Override
+    public void setMain(String main) {
+        SetMain m = new SetMain();
+        m.path = main;
+        buildManager.add(m);
+    }
+    
+    private class SetMain implements Runnable {
+        String path;
+        @Override
+        public void run() {
+            main = path;
+            File file = new File(main);
+            getCodeGenerator().setMainFile(file);
+        }
+    }
+    
+    @Override
+    public void setDistributionFolder(File file) {
+        SetDistributionFolder folder = new SetDistributionFolder();
+        folder.distribution = file;
+        this.buildManager.add(folder);
+    }
+    
+    private class SetDistributionFolder implements Runnable {
+        public File distribution;
+        
+        @Override
+        public void run() {
+            getCodeGenerator().setDistributionFolder(distribution);
         }
     }
 }
