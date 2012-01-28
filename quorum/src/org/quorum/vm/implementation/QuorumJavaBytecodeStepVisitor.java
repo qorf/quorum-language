@@ -1016,7 +1016,55 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 "toString", "(" + QuorumConverter.convertTypeToBytecodeString(type) + ")Ljava/lang/String;");
         stack.pushExpressionType(TypeDescriptor.getTextType());
     }
+    
+    /**
+     * Helper method to (in bytecode) get the text value from an text object.
+     */
+    private void getTextFromTextObject(){
+        stack.popExpressionType();
+        String autoBoxClassName = "quorum/Libraries/Language/Types/Text$Interface";
+        String autoBoxMethodSignature = "()Ljava/lang/String;";
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName,
+                "GetValue", autoBoxMethodSignature);
+        stack.pushExpressionType(TypeDescriptor.getTextType());
+    }
+    
+    /**
+     * Helper method: get a boolean value from a Boolean object.
+     */
+    private void getBooleanFromBooleanObject(){
+        stack.popExpressionType();
+        String autoBoxClassName = "quorum/Libraries/Language/Types/Boolean$Interface";
+        String autoBoxMethodSignature = "()Z";
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName,
+                "GetValue", autoBoxMethodSignature);
+        stack.pushExpressionType(TypeDescriptor.getBooleanType());
+    }
+    
+    /**
+     * Helper method: get a integer value from a Integer object.
+     */
+    private void getIntegerFromIntegerObject(){
+        stack.popExpressionType();
+        String autoBoxClassName = "quorum/Libraries/Language/Types/Integer$Interface";
+        String autoBoxMethodSignature = "()I";
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName,
+                "GetValue", autoBoxMethodSignature);
+        stack.pushExpressionType(TypeDescriptor.getIntegerType());
+    }
 
+    /**
+     * Helper method: get a boolean value from a Boolean object.
+     */
+    private void getNumberFromNumberObject(){
+        stack.popExpressionType();
+        String autoBoxClassName = "quorum/Libraries/Language/Types/Number$Interface";
+        String autoBoxMethodSignature = "()D";
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName,
+                "GetValue", autoBoxMethodSignature);
+        stack.pushExpressionType(TypeDescriptor.getNumberType());
+    }
+    
     /**
      * Cast a text value to another type, for example, an integer.
      * 
@@ -2884,18 +2932,28 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         "GetValue", autoBoxMethodSignature);
                 stack.pushExpressionType(TypeDescriptor.getBooleanType());
             }else{
-                //if(step instanceof BooleanReverseAutoBoxToIntegerStep){
-                    //getBooleanFromBooleanObject();
-                    //castValueToValue(TypeDescriptor.getIntegerType());
-                //}else if(step instanceof BooleanReverseAutoBoxToNumberStep){
-                    //getBooleanFromBooleanObject();
-                    //castValueToValue(TypeDescriptor.getNumberType());
-                //}else if(step instanceof BooleanReverseAutoBoxToTextStep){
-                    //getBooleanFromBooleanObject();
-                    //castValueToText();
-                //}else{
+                if(step instanceof BooleanReverseAutoBoxToIntegerStep){
+                    getBooleanFromBooleanObject();
+                    
+                    //pop the boolean off and replace the type with integer
+                    stack.popExpressionType();
+                    stack.pushExpressionType(TypeDescriptor.getIntegerType());
+                    
+                }else if(step instanceof BooleanReverseAutoBoxToNumberStep){
+                    getBooleanFromBooleanObject();
+                    
+                    //pop the boolean off and replace the type with integer
+                    stack.popExpressionType();
+                    stack.pushExpressionType(TypeDescriptor.getIntegerType());
+                    
+                    castValueToValue(TypeDescriptor.getNumberType());
+                    
+                }else if(step instanceof BooleanReverseAutoBoxToTextStep){
+                    getBooleanFromBooleanObject();
+                    castValueToText();
+                }else{
                     stack.pushExpressionType(currentType);
-                //}
+                }
             }
         }
     }
@@ -3315,8 +3373,21 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName,
                         "GetValue", autoBoxMethodSignature);
                 stack.pushExpressionType(TypeDescriptor.getIntegerType());
-            }else{
-                stack.pushExpressionType(currentType);
+            }else{//reverse autobox subclasses
+                if(step instanceof IntegerReverseAutoBoxToTextStep){
+                    getIntegerFromIntegerObject();
+                    castValueToText();
+                }else if(step instanceof IntegerReverseAutoBoxToNumberStep){
+                    getIntegerFromIntegerObject();
+                    castValueToValue(TypeDescriptor.getNumberType());
+                }else if(step instanceof IntegerReverseAutoBoxToBooleanStep){
+                    getIntegerFromIntegerObject();
+                    //pop integer off stack and change to boolean
+                    stack.popExpressionType();
+                    stack.pushExpressionType(TypeDescriptor.getBooleanType());
+                }else{
+                    stack.pushExpressionType(currentType);
+                }
             }
         }
     }
@@ -3404,8 +3475,22 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName,
                         "GetValue", autoBoxMethodSignature);
                 stack.pushExpressionType(TypeDescriptor.getNumberType());
-            }else{
-                stack.pushExpressionType(currentType);
+            }else{//reverse autobox subclasses
+                if(step instanceof NumberReverseAutoBoxToTextStep){
+                    getNumberFromNumberObject();
+                    castValueToText();
+                }else if(step instanceof NumberReverseAutoBoxToIntegerStep){
+                    getNumberFromNumberObject();
+                    castValueToValue(TypeDescriptor.getIntegerType());
+                }else if(step instanceof NumberReverseAutoBoxToBooleanStep){
+                    getNumberFromNumberObject();
+                    castValueToValue(TypeDescriptor.getIntegerType());
+                    //pop integer off stack and change to boolean
+                    stack.popExpressionType();
+                    stack.pushExpressionType(TypeDescriptor.getBooleanType());
+                }else{
+                    stack.pushExpressionType(currentType);
+                }
             }
         }
     }
@@ -3560,18 +3645,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 }
             }
         }
-    }
-    
-    /**
-     * Helper method to (in bytecode) get the text value from an text object.
-     */
-    private void getTextFromTextObject(){
-        stack.popExpressionType();
-        String autoBoxClassName = "quorum/Libraries/Language/Types/Text$Interface";
-        String autoBoxMethodSignature = "()Ljava/lang/String;";
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName,
-                "GetValue", autoBoxMethodSignature);
-        stack.pushExpressionType(TypeDescriptor.getTextType());
     }
 
     @Override
