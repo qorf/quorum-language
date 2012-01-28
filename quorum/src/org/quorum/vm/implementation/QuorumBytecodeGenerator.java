@@ -117,9 +117,12 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
             return;
         }
         
-        if(buildFolder == null || !buildFolder.isDirectory()) {
+        if(buildFolder == null) {
             logger.log(Level.INFO, "The build directory is invalid or not properly set.");
             return;
+        }
+        else if(!buildFolder.exists()) {
+            buildFolder.mkdirs();
         }
         
         //prepare jar file for output
