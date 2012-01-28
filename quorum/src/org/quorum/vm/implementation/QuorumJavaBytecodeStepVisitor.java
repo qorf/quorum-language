@@ -1035,7 +1035,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertTypeToJavaClassTypeEquivalent(returnValueType),
                 "parse" + type, "(Ljava/lang/String;)" + QuorumConverter.convertTypeToBytecodeString(returnValueType));
-        stack.pushExpressionType(valueType);
+        stack.pushExpressionType(returnValueType);
     }
 
     /**
@@ -1071,7 +1071,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitInsn(opcode);
         }
 
-        stack.pushExpressionType(valueType);
+        stack.pushExpressionType(returnValueType);
     }
 
     /**

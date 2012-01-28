@@ -1,4 +1,21 @@
-use Libraries.Containers.Array
+use Libraries.Compute.Math
+
+class Melissa
+    action Main
+        integer k = cast(integer, Foo())
+        print k
+    end
+
+    action Foo returns text
+        return "5"
+    end
+end
+
+
+
+
+
+/*use Libraries.Containers.Array
 
 class Melissa
     action Main
@@ -7,13 +24,14 @@ class Melissa
         
         Text answerText
         answerText:Append(answer)
+        Array<integer> c
         
         integer counter = 0
         Array<text> word
         integer wordLength = answerText:GetLength()
         repeat while counter < wordLength
-            text t = answerText:GetCharacter(counter)
-            word:Add(counter, t)
+            c:Add(counter)
+            word:Add(counter, answerText:GetCharacter(c:Get(counter)))
             counter = counter + 1
         end
         counter = 0
@@ -59,4 +77,4 @@ class Melissa
             end
         end
     end
-end
+end*/
