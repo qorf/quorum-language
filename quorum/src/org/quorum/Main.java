@@ -334,6 +334,7 @@ public class Main {
             vm.build("say \"Please pass the files you would like to compile on the command line. For example, you might type quorum Main.quorum.\"");
             vm.run();
         }
+        System.exit(0);
     }
     
     /**
