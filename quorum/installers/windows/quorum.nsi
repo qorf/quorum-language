@@ -68,6 +68,16 @@ RequestExecutionLevel admin
 
 ;-------------------------------
 Section "Quorum (required)" Quorum_Sec
+  ; Work with the appropriate registry.
+  IfFileExists $WINDIR\SYSWOW64\*.* Is64bit Is32bit
+  Is32bit:
+    SetRegView 32
+    GOTO End32Bitvs64BitCheck
+ 
+  Is64bit:
+    SetRegView 64
+   
+  End32Bitvs64BitCheck:
   ;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; Pre-installation checks
   ;;;;;;;;;;;;;;;;;;;;;;;;;
