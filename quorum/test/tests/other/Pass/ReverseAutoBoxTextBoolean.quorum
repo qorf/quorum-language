@@ -1,0 +1,12 @@
+class Main
+    action Main
+        boolean k = cast(boolean, Foo())
+        print k
+    end
+
+    action Foo returns Text
+		Text t
+		t:SetValue("true")
+        return t
+    end
+end

@@ -619,4 +619,36 @@ public class OtherTester {
         
         assert(r.getLine(0).equals("Hello"));
     }
+    
+    @Test
+    public void test_reverse_autobox_text_boolean_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ReverseAutoBoxTextBoolean.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue val = vm.getDataEnvironment().getVariableValue("k");
+        boolean k = val.getResult().boolean_value;
+        
+        if (k != true) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_reverse_autobox_text_boolean_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ReverseAutoBoxTextBoolean.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+    }
 }
