@@ -717,7 +717,7 @@ public class OtherTester {
     }
     
     @Test
-    public void test_reverse_autobox_boolean_text_execute() {
+    public void test_reverse_autobox_number_boolean_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ReverseAutoBoxNumberBoolean.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
@@ -832,6 +832,102 @@ public class OtherTester {
     @Test
     public void test_reverse_autobox_integer_boolean_bytecode() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ReverseAutoBoxIntegerBoolean.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+    }
+    
+    @Test
+    public void test_reverse_autobox_boolean_integer_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ReverseAutoBoxBooleanInteger.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue val = vm.getDataEnvironment().getVariableValue("k");
+        int k = val.getResult().integer;
+        
+        if (k != 1) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_reverse_autobox_boolean_integer_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ReverseAutoBoxBooleanInteger.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+    }
+    
+    @Test
+    public void test_reverse_autobox_boolean_number_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ReverseAutoBoxBooleanNumber.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue val = vm.getDataEnvironment().getVariableValue("k");
+        double k = val.getResult().number;
+        
+        if (k != 1.0) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_reverse_autobox_boolean_number_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ReverseAutoBoxBooleanNumber.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1.0"));
+    }
+    
+    @Test
+    public void test_reverse_autobox_boolean_text_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ReverseAutoBoxBooleanText.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue val = vm.getDataEnvironment().getVariableValue("k");
+        String k = val.getResult().text;
+        
+        if (!"true".equals(k)) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_reverse_autobox_boolean_text_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ReverseAutoBoxBooleanText.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
