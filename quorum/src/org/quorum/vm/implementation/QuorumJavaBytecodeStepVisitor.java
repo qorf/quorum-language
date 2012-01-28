@@ -2884,7 +2884,18 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         "GetValue", autoBoxMethodSignature);
                 stack.pushExpressionType(TypeDescriptor.getBooleanType());
             }else{
-                stack.pushExpressionType(currentType);
+                //if(step instanceof BooleanReverseAutoBoxToIntegerStep){
+                    //getBooleanFromBooleanObject();
+                    //castValueToValue(TypeDescriptor.getIntegerType());
+                //}else if(step instanceof BooleanReverseAutoBoxToNumberStep){
+                    //getBooleanFromBooleanObject();
+                    //castValueToValue(TypeDescriptor.getNumberType());
+                //}else if(step instanceof BooleanReverseAutoBoxToTextStep){
+                    //getBooleanFromBooleanObject();
+                    //castValueToText();
+                //}else{
+                    stack.pushExpressionType(currentType);
+                //}
             }
         }
     }
@@ -3535,9 +3546,32 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         "GetValue", autoBoxMethodSignature);
                 stack.pushExpressionType(TypeDescriptor.getTextType());
             }else{
-                stack.pushExpressionType(currentType);
+                if(step instanceof TextReverseAutoBoxToIntegerStep){
+                    getTextFromTextObject();
+                    castTextToValue(TypeDescriptor.getIntegerType());
+                }else if(step instanceof TextReverseAutoBoxToNumberStep){
+                    getTextFromTextObject();
+                    castTextToValue(TypeDescriptor.getNumberType());
+                }else if(step instanceof TextReverseAutoBoxToBooleanStep){
+                    getTextFromTextObject();
+                    castTextToValue(TypeDescriptor.getBooleanType());
+                }else{
+                    stack.pushExpressionType(currentType);
+                }
             }
         }
+    }
+    
+    /**
+     * Helper method to (in bytecode) get the text value from an text object.
+     */
+    private void getTextFromTextObject(){
+        stack.popExpressionType();
+        String autoBoxClassName = "quorum/Libraries/Language/Types/Text$Interface";
+        String autoBoxMethodSignature = "()Ljava/lang/String;";
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName,
+                "GetValue", autoBoxMethodSignature);
+        stack.pushExpressionType(TypeDescriptor.getTextType());
     }
 
     @Override

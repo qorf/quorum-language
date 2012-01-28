@@ -2,13 +2,16 @@ use Libraries.Compute.Math
 
 class Melissa
     action Main
-        integer k = cast(integer, Foo())
+        Text t
+        t:SetValue("44")
+        integer k = cast(integer, t)
         print k
     end
 
-    action Foo returns text
-        return "5"
+    action Foo(text t) returns text
+        return t
     end
+
 end
 
 
