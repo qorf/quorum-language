@@ -1,0 +1,12 @@
+class Main
+    action Main
+        boolean k = cast(boolean, Foo())
+        print k
+    end
+
+    action Foo returns Number
+		Number t
+		t:SetValue(62.9)
+        return t
+    end
+end
