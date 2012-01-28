@@ -377,7 +377,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private void throwBuildEvent() {
         VirtualMachineEvent event = new VirtualMachineEvent(null, this, false);
         event.setBuildEvent(true);
-
+        event.setBuildSuccessful(this.compilerErrors.isCompilationErrorFree());
+        
         if(buildAllEvent){
             event.setBuildAllEvent(true);
             buildAllEvent = false;

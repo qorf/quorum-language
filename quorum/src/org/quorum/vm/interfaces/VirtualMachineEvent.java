@@ -38,6 +38,8 @@ public class VirtualMachineEvent {
     private boolean buildEvent = false;
     private boolean buildAllEvent = false;
 
+    private boolean buildSuccessful = false;
+    
     /**
      * A key that is used to represent an abstract event of some kind
      * that may be unrelated to a specific virtual machine event.
@@ -166,5 +168,19 @@ public class VirtualMachineEvent {
 
     public boolean isErrorStateEvent(){
         return false;
+    }
+
+    /**
+     * @return the buildSuccessful
+     */
+    public boolean isBuildSuccessful() {
+        return buildSuccessful;
+    }
+
+    /**
+     * @param buildSuccessful the buildSuccessful to set
+     */
+    public void setBuildSuccessful(boolean buildSuccessful) {
+        this.buildSuccessful = buildSuccessful;
     }
 }
