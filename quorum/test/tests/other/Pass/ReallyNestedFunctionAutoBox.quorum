@@ -1,0 +1,14 @@
+class Main
+    action AutoBoxMe(Object o) returns text
+        return "Hello"
+    end
+
+    action joe (Object o)
+    end
+
+    action Main
+        joe(AutoBoxMe(AutoBoxMe(AutoBoxMe(AutoBoxMe(AutoBoxMe(AutoBoxMe(AutoBoxMe(AutoBoxMe("Hello")))))))))
+        text k = "EvenThisHorribleCaseWorked.com"
+        print k
+    end
+end
