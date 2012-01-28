@@ -214,7 +214,7 @@ public class CompilerTestSuite {
         vm.setPluginFolder(pluginFolder);
         vm.setMain(files[0].getAbsolutePath());
         //build
-        vm.build(files);
+        vm.build(files, true);
         
         ProcessBuilder pb = new ProcessBuilder("java", "quorum." + file.getName().split("\\.")[0]);
         pb.directory(dir);
