@@ -1211,7 +1211,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 boolean funcParam = tracker.containsFunctionParameterMapping(i);
                 if(funcParam) {
                     ArrayList<Integer> callLocations = tracker.getFunctionParameterMapping(i);
-                    for(int k = 0; k < callLocations.size(); k++){
+                    for(int k = callLocations.size() - 1; k >= 0; k--){
                         int opcodeLocation = callLocations.get(k);
                         ExecutionStep callStep = steps.get(opcodeLocation);
                         
@@ -1245,19 +1245,28 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     //with a standard cast we will need move the cast step directly after
                     //the visit of the parameter.
                     ExecutionStep createStep = steps.get(castStepLocation + 1);
+                    ExecutionStep castStep = steps.get(castStepLocation);
                     if(createStep instanceof AutoBoxCreateStep){//autobox
-                        ExecutionStep castStep = steps.get(i + 1);
+                        castStep = steps.get(i + 1);
                         if (!(castStep instanceof UnaryOperationStep))
                             castStep = null;
                         visitWithAutoBoxStep(step,(AutoBoxCreateStep) createStep, castStep);
                         visitedCasts.add(castStepLocation);
                         visitedCasts.add(castStepLocation + 1);
                         visitedCasts.add(castStepLocation + 2);
-                    }else{//standard cast
+                    }else if(!(castStep instanceof IntegerReverseAutoBoxStep) &&
+                                !(castStep instanceof NumberReverseAutoBoxStep) &&
+                                !(castStep instanceof TextReverseAutoBoxStep) &&
+                                !(castStep instanceof BooleanReverseAutoBoxStep)){//standard cast
                         step.visit(this);
                         
                         step = steps.get(castStepLocation);
                         step.visit(this);
+                        visitedCasts.add(castStepLocation);
+                    }else{//visit reverse autoboxes on returns
+                        castStep.setModifiedReturn(true);
+                        step.visit(this);
+                        castStep.visit(this);
                         visitedCasts.add(castStepLocation);
                     }
                 } else {//standard visit of a non casting series of steps.
@@ -2951,6 +2960,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 }else if(step instanceof BooleanReverseAutoBoxToTextStep){
                     getBooleanFromBooleanObject();
                     castValueToText();
+                }else if(step instanceof BooleanReverseAutoBoxStep && step.hasModifiedReturn()){
+                    getBooleanFromBooleanObject();
                 }else{
                     stack.pushExpressionType(currentType);
                 }
@@ -3385,6 +3396,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     //pop integer off stack and change to boolean
                     stack.popExpressionType();
                     stack.pushExpressionType(TypeDescriptor.getBooleanType());
+                }else if(step instanceof IntegerReverseAutoBoxStep  && step.hasModifiedReturn()){
+                    getIntegerFromIntegerObject();
                 }else{
                     stack.pushExpressionType(currentType);
                 }
@@ -3488,6 +3501,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     //pop integer off stack and change to boolean
                     stack.popExpressionType();
                     stack.pushExpressionType(TypeDescriptor.getBooleanType());
+                }else if(step instanceof NumberReverseAutoBoxStep  && step.hasModifiedReturn()){
+                    getNumberFromNumberObject();
                 }else{
                     stack.pushExpressionType(currentType);
                 }
@@ -3640,6 +3655,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 }else if(step instanceof TextReverseAutoBoxToBooleanStep){
                     getTextFromTextObject();
                     castTextToValue(TypeDescriptor.getBooleanType());
+                }else if(step instanceof TextReverseAutoBoxStep && step.hasModifiedReturn()){
+                    getTextFromTextObject();
                 }else{
                     stack.pushExpressionType(currentType);
                 }

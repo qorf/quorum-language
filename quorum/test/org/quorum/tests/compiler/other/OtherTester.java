@@ -939,4 +939,68 @@ public class OtherTester {
         
         assert(r.getLine(0).equals("true"));
     }
+    
+    @Test
+    public void test_nested_reverse_autobox_function_return_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "NestedReverseAutoBoxFunctionReturn.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue val = vm.getDataEnvironment().getVariableValue("result");
+        String k = val.getResult().text;
+        
+        if (!"e".equals(k)) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_nested_reverse_autobox_function_return_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "NestedReverseAutoBoxFunctionReturn.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("e"));
+    }
+        
+    @Test
+    public void test_nested_reverse_autobox_multi_param_function_return_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "NestedReverseAutoBoxMultiParamFunctionReturn.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue val = vm.getDataEnvironment().getVariableValue("result");
+        String k = val.getResult().text;
+        
+        if (!"e".equals(k)) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_nested_reverse_autobox_multi_param_function_return_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "NestedReverseAutoBoxMultiParamFunctionReturn.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("e"));
+    }
 }

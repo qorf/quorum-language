@@ -1,13 +1,13 @@
 use Libraries.Containers.Array
-class Melissa
+class Main
     action Main
         Text myText
         myText:SetValue("hello")
-        text result = myText:GetCharacter(test(test(test(1))))
+        text result = myText:GetCharacter(test(test(0,1), test(1 ,1)))
         print result
     end
 
-    action test(integer n) returns Integer
+    action test(integer b, integer n) returns Integer
         Integer i
         i:SetValue(n)
         return i

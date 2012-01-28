@@ -31,6 +31,7 @@ public abstract class ExecutionStep {
     protected RuntimeScope callStateBeforeException;
 
     protected RuntimeError runtimeError;
+    private boolean modifiedReturn = false;
 
     /** The absolute path to the file this op-code is relative too
      * 
@@ -410,5 +411,19 @@ public abstract class ExecutionStep {
      */
     public void setCastStepLocation(int castStepLocation) {
         this.castStepLocation = castStepLocation;
+    }
+
+    /**
+     * @return the modifiesReturn
+     */
+    public boolean hasModifiedReturn() {
+        return modifiedReturn;
+    }
+
+    /**
+     * @param modifiesReturn the modifiesReturn to set
+     */
+    public void setModifiedReturn(boolean modifiedReturn) {
+        this.modifiedReturn = modifiedReturn;
     }
 }
