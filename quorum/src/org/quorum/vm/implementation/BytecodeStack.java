@@ -7,6 +7,7 @@ package org.quorum.vm.implementation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.Stack;
 import org.quorum.execution.OmniscientStack;
 import org.quorum.symbols.TypeDescriptor;
@@ -328,11 +329,35 @@ public class BytecodeStack {
      * @param quorumLocation
      * @return 
      */
-    public int getMappedVariableNumber(int quorumLocation) {
-        if (quorumToJavaNumberVariableMap.get(quorumLocation) != null)
-            return quorumToJavaNumberVariableMap.get(quorumLocation);
-        else
+    public int getMappedVariableNumber(int quorumLocation, TypeDescriptor type) {
+        Integer get = quorumToJavaNumberVariableMap.get(quorumLocation);
+        if (get != null){
+            TypeDescriptor currentType = variables.get(get);
+            if(QuorumConverter.getSizeOfType(currentType) == QuorumConverter.getSizeOfType(type)){
+                return get;
+            }else{
+                setVariableType(get, type);
+                currentVariablesSize -= QuorumConverter.getSizeOfType(currentType);
+                currentVariablesSize += QuorumConverter.getSizeOfType(type);
+                
+                ArrayList<Integer> newSet = new ArrayList<Integer>(quorumToJavaNumberVariableMap.keySet());
+                Iterator<Integer> iterator = newSet.iterator();
+                while(iterator.hasNext()){
+                    Integer next = iterator.next();
+                    if(next > quorumLocation){
+                        Integer removedValue = quorumToJavaNumberVariableMap.remove(next);
+                        TypeDescriptor remove = variables.remove(removedValue);
+                        currentVariablesSize -= QuorumConverter.getSizeOfType(remove);
+                    }
+                }
+                if(currentVariablesSize > maxVariablesSize) {
+                    maxVariablesSize = currentVariablesSize;
+                }
+                return get;
+            }
+        }else{
             return -1;
+        }
     }
 
     /**
