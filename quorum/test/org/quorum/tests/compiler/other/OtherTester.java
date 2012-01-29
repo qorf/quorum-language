@@ -1003,4 +1003,36 @@ public class OtherTester {
         
         assert(r.getLine(0).equals("e"));
     }
+    
+    @Test
+    public void test_strange_registry_error_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "StrangeRegistryError.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        ExpressionValue val = vm.getDataEnvironment().getVariableValue("hotelPrice");
+        double k = val.getResult().number;
+        
+        if (k != 0.0) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_strange_registry_error_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "StrangeRegistryError.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("0.0"));
+    }
 }
