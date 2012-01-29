@@ -80,7 +80,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private DocumentationGenerator documentor = DocumentationStyle.getDocumentationGenerator(DocumentationStyle.TRAC_WIKI);
     private static final String USE = "use";
     private static final Logger logger = Logger.getLogger(QuorumVirtualMachine.class.getName());
-    private BuildManager buildManager;
+    //private BuildManager buildManager;
     
     public QuorumVirtualMachine() {
         compilerErrors = new CompilerErrorManager();
@@ -90,7 +90,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         typeChecker = new TypeChecker();
         standardLibrary = new QuorumStandardLibrary();
         generator = new QuorumBytecodeGenerator();
-        buildManager = new BuildManager();
+        //buildManager = new BuildManager();
     }
 
     private void resetBuild() {
@@ -254,6 +254,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     @Override
     public void buildSingle(File file) {
+        if(building) {
+            return;
+        }
         try {
             //phase 1, 2 lexing and parsing
             removeFromBuild(file);
@@ -288,6 +291,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
      * @param text
      */
     public void buildSingle(File file, String text) {
+        if(building) {
+            return;
+        }
         try {
             //phase 1, 2 lexing and parsing
             removeFromBuild(file);
@@ -425,7 +431,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     public void build(File[] source) {
         Build build = new Build();
         build.source = source;
-        buildManager.add(build);
+        executionManager.add(build);
 //        try {
 //            buildActual(source);
 //        }
@@ -455,7 +461,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             build.run();
         }
         else {
-            buildManager.add(build);
+            executionManager.add(build);
         }
     }
     
@@ -529,7 +535,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         buildActual(source);
     }
 
+    private boolean building = false;
     private void buildActual(File[] source) {
+        building = true;
         resetBuild();
         //first parse the files and fill up the symbol table
         for (int i = 0; i < source.length; i++) {
@@ -576,6 +584,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
         buildAllEvent = true;
         throwBuildEvent();
+        building = false;
     }
     /**
      * Determines whether the current file has already been parsed.
@@ -742,7 +751,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     @Override
     public void clean() {
         Clean clean = new Clean();
-        buildManager.add(clean);
+        executionManager.add(clean);
 //        resetBuild();
 //        //check the build and distribution folders and delete them if they exist
 //        File build = this.getCodeGenerator().getBuildFolder();
@@ -770,7 +779,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             clean.run();
         }
         else {
-            buildManager.add(clean);
+            executionManager.add(clean);
         }
     }
     
@@ -1205,7 +1214,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     public void setBuildFolder(File buildFolder) {
         SetBuildFolder folder = new SetBuildFolder();
         folder.build = buildFolder;
-        this.buildManager.add(folder);
+        this.executionManager.add(folder);
     }
     
     private class SetBuildFolder implements Runnable {
@@ -1221,7 +1230,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     public void setPluginFolder(File file) {
         SetPluginFolder folder = new SetPluginFolder();
         folder.plugin = file;
-        buildManager.add(folder);
+        executionManager.add(folder);
     }
     
     private class SetPluginFolder implements Runnable {
@@ -1237,7 +1246,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     public void setDistributionName(String name) {
         SetDistributionName myName = new SetDistributionName();
         myName.name = name;
-        buildManager.add(myName);
+        executionManager.add(myName);
     }
     
     private class SetDistributionName implements Runnable {
@@ -1253,7 +1262,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     public void addDependency(File file) {
         AddDependency dep = new AddDependency();
         dep.file = file;
-        buildManager.add(dep);
+        executionManager.add(dep);
     }
     
     @Override
@@ -1261,7 +1270,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         AddDependency dep = new AddDependency();
         dep.file = file;
         dep.path = relativePath;
-        buildManager.add(dep);
+        executionManager.add(dep);
     }
     
     private class AddDependency implements Runnable{
@@ -1282,7 +1291,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     @Override
     public void clearDependencies() {
         ClearDependencies dep = new ClearDependencies();
-        buildManager.add(dep);
+        executionManager.add(dep);
     }
     
     private class ClearDependencies implements Runnable{
@@ -1296,7 +1305,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     public void setMain(String main) {
         SetMain m = new SetMain();
         m.path = main;
-        buildManager.add(m);
+        executionManager.add(m);
     }
     
     private class SetMain implements Runnable {
@@ -1313,7 +1322,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     public void setDistributionFolder(File file) {
         SetDistributionFolder folder = new SetDistributionFolder();
         folder.distribution = file;
-        this.buildManager.add(folder);
+        this.executionManager.add(folder);
     }
     
     private class SetDistributionFolder implements Runnable {

@@ -1116,7 +1116,17 @@ public abstract class AbstractVirtualMachine {
      * @param generateCode the generateCode to set
      */
     public void setGenerateCode(boolean generateCode) {
-        this.generateCode = generateCode;
+        SetGenerateCode code = new SetGenerateCode();
+        code.generate = generateCode;
+        this.executionManager.add(code);
+    }
+    
+    private class SetGenerateCode implements Runnable{
+        private boolean generate;
+        @Override
+        public void run() {
+            generateCode = generate;
+        }
     }
 
     private class Run implements Runnable {

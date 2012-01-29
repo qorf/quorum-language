@@ -16,7 +16,6 @@ public class ExecutionManager{
     ExecutorService service;
 
     public ExecutionManager() {
-
         service = getExecutorService();
     }
 
