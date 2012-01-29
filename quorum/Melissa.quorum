@@ -1,15 +1,14 @@
-use Libraries.Containers.Array
 class Melissa
-    action Main
-        Text myText
-        myText:SetValue("hello")
-        text result = myText:GetCharacter(test(test(test(1))))
-        print result
+    action AutoBoxMe(Object o) returns text
+        return "Hello"
     end
 
-    action test(integer n) returns Integer
-        Integer i
-        i:SetValue(n)
-        return i
+    action joe (Object o)
+    end
+
+    action Main
+        joe(AutoBoxMe(AutoBoxMe("Hello")))
+        text k = "EvenThisCaseWorked.com"
+        print k
     end
 end
