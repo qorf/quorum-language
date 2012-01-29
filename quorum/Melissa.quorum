@@ -1,14 +1,15 @@
-class Melissa
-    action AutoBoxMe(Object o) returns text
-        return "Hello"
-    end
+use Libraries.Containers.Array
 
-    action joe (Object o)
-    end
+class Main
+    action main
+        Array<integer> a
+        a:SetAutoResize(false)
+        a:Add(13)
+        a:Add(12)
+        a:Add(14)
 
-    action Main
-        joe(AutoBoxMe(AutoBoxMe("Hello")))
-        text k = "EvenThisCaseWorked.com"
-        print k
+        integer result1 = a:GetFromEnd()
+        a:RemoveFromEnd()
+        print result1
     end
 end

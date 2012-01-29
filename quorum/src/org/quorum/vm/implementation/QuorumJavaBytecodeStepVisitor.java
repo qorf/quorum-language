@@ -629,10 +629,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 } else {
                     fieldSize += 1;
                 }
-
             }
-
         }
+        stack.clearExpressionTypeStack();
     }
 
     /**
@@ -1012,18 +1011,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     }
 
     /**
-     * Cast an arbitrary type to a text value. The type to cast from is popped
-     * off the bytecode stack.
-     */
-    private void castValueToText() {
-        TypeDescriptor type = stack.popExpressionType();
-
-        methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertTypeToJavaClassTypeEquivalent(type),
-                "toString", "(" + QuorumConverter.convertTypeToBytecodeString(type) + ")Ljava/lang/String;");
-        stack.pushExpressionType(TypeDescriptor.getTextType());
-    }
-
-    /**
      * Helper method to (in bytecode) get the text value from an text object.
      */
     private void getTextFromTextObject() {
@@ -1069,6 +1056,18 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitMethodInsn(INVOKEINTERFACE, autoBoxClassName,
                 "GetValue", autoBoxMethodSignature);
         stack.pushExpressionType(TypeDescriptor.getNumberType());
+    }
+        
+    /**
+     * Cast an arbitrary type to a text value. The type to cast from is popped
+     * off the bytecode stack.
+     */
+    private void castValueToText() {
+        TypeDescriptor type = stack.popExpressionType();
+
+        methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertTypeToJavaClassTypeEquivalent(type),
+                "toString", "(" + QuorumConverter.convertTypeToBytecodeString(type) + ")Ljava/lang/String;");
+        stack.pushExpressionType(TypeDescriptor.getTextType());
     }
 
     /**
@@ -2424,6 +2423,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BinaryAddBooleanTextStep step) {
         //Converts a boolean to text.
+        TypeDescriptor popExpressionType = stack.popExpressionType();
+        stack.pushExpressionType(TypeDescriptor.getBooleanType());
+        stack.pushExpressionType(popExpressionType);
         prepareValueTextConcatenation();
         //Concatenates the converted boolean and other text.
         performTextConcatenation();
@@ -2440,6 +2442,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BinaryAddIntegerTextStep step) {
         //Converts an integer to text.
+        TypeDescriptor popExpressionType = stack.popExpressionType();
+        stack.pushExpressionType(TypeDescriptor.getIntegerType());
+        stack.pushExpressionType(popExpressionType);
         prepareValueTextConcatenation();
         //Concatenates the converted integer and text.
         performTextConcatenation();
@@ -2462,6 +2467,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BinaryAddNumberTextStep step) {
         //Converts a number to text.
+        TypeDescriptor popExpressionType = stack.popExpressionType();
+        stack.pushExpressionType(TypeDescriptor.getNumberType());
+        stack.pushExpressionType(popExpressionType);
         prepareValueTextConcatenation();
         //concatenates the converted number and text.
         performTextConcatenation();
@@ -2476,6 +2484,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BinaryAddTextBooleanStep step) {
         //Converts a boolean to text.
+        if(!stack.peekExpressionType().equals(TypeDescriptor.getBooleanType())){
+            stack.popExpressionType();
+            stack.pushExpressionType(TypeDescriptor.getBooleanType());
+        }
         prepareTextValueConcatenation();
         //concatenates a text value and the converted boolean text.
         performTextConcatenation();
@@ -2485,6 +2497,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(BinaryAddTextIntegerStep step) {
         //Converts an integer to text, then concatenates a text value and the converted
         //integer text.
+        if(!stack.peekExpressionType().equals(TypeDescriptor.getIntegerType())){
+            stack.popExpressionType();
+            stack.pushExpressionType(TypeDescriptor.getIntegerType());
+        }
         prepareTextValueConcatenation();
         performTextConcatenation();
     }
@@ -2493,6 +2509,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(BinaryAddTextNumberStep step) {
         //Converts a number to text, then concatenates a text value and the converted
         //number text.
+        if(!stack.peekExpressionType().equals(TypeDescriptor.getNumberType())){
+            stack.popExpressionType();
+            stack.pushExpressionType(TypeDescriptor.getNumberType());
+        }
         prepareTextValueConcatenation();
         performTextConcatenation();
     }
@@ -2877,7 +2897,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(BooleanAutoBoxStep step) {
-        if (step instanceof BooleanReverseAutoBoxStep) {
+        if (step instanceof BooleanReverseAutoBoxStep && !stack.isExpressionTypeEmpty()) {
             TypeDescriptor currentType = stack.popExpressionType();
 
             if (currentType.getName().equals("Libraries.Language.Object")) {
@@ -3319,7 +3339,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(IntegerAutoBoxStep step) {
-        if (step instanceof IntegerReverseAutoBoxStep) {
+        if (step instanceof IntegerReverseAutoBoxStep && !stack.isExpressionTypeEmpty()) {
             TypeDescriptor currentType = stack.popExpressionType();
 
             if (currentType.getName().equals("Libraries.Language.Object")) {
@@ -3423,7 +3443,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(NumberAutoBoxStep step) {
-        if (step instanceof NumberReverseAutoBoxStep) {
+        if (step instanceof NumberReverseAutoBoxStep && !stack.isExpressionTypeEmpty()) {
             TypeDescriptor currentType = stack.popExpressionType();
 
             if (currentType.getName().equals("Libraries.Language.Object")) {
@@ -3580,7 +3600,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(TextAutoBoxStep step) {
-        if (step instanceof TextReverseAutoBoxStep) {
+        if (step instanceof TextReverseAutoBoxStep  && !stack.isExpressionTypeEmpty()) {
             TypeDescriptor currentType = stack.popExpressionType();
 
             if (currentType.getName().equals("Libraries.Language.Object")) {
@@ -3627,30 +3647,25 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryBooleanIntegerCastStep step) {
-        TypeDescriptor valueType = new TypeDescriptor();
-        valueType.setName(TypeDescriptor.BOOLEAN);
-        castValueToValue(valueType);
+        stack.pushExpressionType(TypeDescriptor.getIntegerType());
+        castValueToValue(TypeDescriptor.getBooleanType());
     }
 
     @Override
     public void visit(UnaryBooleanNumberCastStep step) {
-        TypeDescriptor valueType = new TypeDescriptor();
-        valueType.setName(TypeDescriptor.BOOLEAN);
-        castValueToValue(valueType);
+        stack.pushExpressionType(TypeDescriptor.getNumberType());
+        castValueToValue(TypeDescriptor.getBooleanType());
     }
 
     @Override
     public void visit(UnaryBooleanTextCastStep step) {
-        TypeDescriptor valueType = new TypeDescriptor();
-        valueType.setName(TypeDescriptor.BOOLEAN);
-        castTextToValue(valueType);
+        castTextToValue(TypeDescriptor.getBooleanType());
     }
 
     @Override
     public void visit(UnaryIntegerBooleanCastStep step) {
-        TypeDescriptor valueType = new TypeDescriptor();
-        valueType.setName(TypeDescriptor.INTEGER);
-        castValueToValue(valueType);
+        stack.pushExpressionType(TypeDescriptor.getBooleanType());
+        castValueToValue(TypeDescriptor.getIntegerType());
     }
 
     @Override
@@ -3659,16 +3674,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryIntegerNumberCastStep step) {
-        TypeDescriptor valueType = new TypeDescriptor();
-        valueType.setName(TypeDescriptor.INTEGER);
-        castValueToValue(valueType);
+        stack.pushExpressionType(TypeDescriptor.getNumberType());
+        castValueToValue(TypeDescriptor.getIntegerType());
     }
 
     @Override
     public void visit(UnaryIntegerTextCastStep step) {
-        TypeDescriptor valueType = new TypeDescriptor();
-        valueType.setName(TypeDescriptor.INTEGER);
-        castTextToValue(valueType);
+        castTextToValue(TypeDescriptor.getIntegerType());
     }
 
     @Override
@@ -3682,16 +3694,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryNumberBooleanCastStep step) {
-        TypeDescriptor valueType = new TypeDescriptor();
-        valueType.setName(TypeDescriptor.NUMBER);
-        castValueToValue(valueType);
+        stack.pushExpressionType(TypeDescriptor.getBooleanType());
+        castValueToValue(TypeDescriptor.getNumberType());
     }
 
     @Override
     public void visit(UnaryNumberIntegerCastStep step) {
-        TypeDescriptor valueType = new TypeDescriptor();
-        valueType.setName(TypeDescriptor.NUMBER);
-        castValueToValue(valueType);
+        stack.pushExpressionType(TypeDescriptor.getIntegerType());        
+        castValueToValue(TypeDescriptor.getNumberType());
     }
 
     @Override
@@ -3700,23 +3710,24 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryNumberTextCastStep step) {
-        TypeDescriptor valueType = new TypeDescriptor();
-        valueType.setName(TypeDescriptor.NUMBER);
-        castTextToValue(valueType);
+        castTextToValue(TypeDescriptor.getNumberType());
     }
 
     @Override
     public void visit(UnaryTextBooleanCastStep step) {
+        stack.pushExpressionType(TypeDescriptor.getBooleanType());
         castValueToText();
     }
 
     @Override
     public void visit(UnaryTextIntegerCastStep step) {
+        stack.pushExpressionType(TypeDescriptor.getIntegerType());
         castValueToText();
     }
 
     @Override
     public void visit(UnaryTextNumberCastStep step) {
+        stack.pushExpressionType(TypeDescriptor.getNumberType());
         castValueToText();
     }
 
