@@ -1999,6 +1999,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //add the bytecode for the main method.
         if (main) {
             methodVisitor = classWriter.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
+            methodVisitor.visitMethodInsn(INVOKESTATIC, "plugins/quorum/Libraries/System/Quorum", "Load",
+                "()V");
             methodVisitor.visitTypeInsn(NEW, processedClazzName);
             methodVisitor.visitInsn(DUP);
             methodVisitor.visitMethodInsn(INVOKESPECIAL, processedClazzName, "<init>", "()V");
@@ -2007,6 +2009,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, processedClazzName,
                     method.getMethodDescriptor().getName(),
                     QuorumConverter.convertMethodDescriptorToBytecodeSignature(method.getMethodDescriptor()));
+            methodVisitor.visitMethodInsn(INVOKESTATIC, "plugins/quorum/Libraries/System/Quorum", "Unload",
+                "()V");
             methodVisitor.visitInsn(RETURN);
             methodVisitor.visitMaxs(2, 2);
             methodVisitor.visitEnd();
