@@ -18,7 +18,22 @@ import javax.swing.JOptionPane;
  */
 public class Console {
     public java.lang.Object $me = null;
+    private static JOptionPane optionPane = new JOptionPane();;
+    private static JDialog dialog;
     
+    static {
+        //initialize an input dialog that can be used application wide.
+        optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
+        optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
+        optionPane.setWantsInput(true);
+        dialog = optionPane.createDialog("Input Dialog");
+        dialog.setModalityType(ModalityType.APPLICATION_MODAL);
+        dialog.pack();
+    }
+    
+    public Console() {
+        
+    }
     public void Print(String message) {
         System.out.println(message);
     }
@@ -58,24 +73,22 @@ public class Console {
      */
     public static String StaticInput(String text) {
         String answer = "";
-        JOptionPane optionPane = new JOptionPane();
-        optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
-        optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
-        optionPane.setWantsInput(true);
         optionPane.setMessage(text);
-
-        //roll our own JDialog and make it Document Modal, so
-        //you can still stop the debugger.
-        JDialog dialog = optionPane.createDialog("Input Dialog");
-        dialog.setModalityType(ModalityType.DOCUMENT_MODAL);
-        dialog.setVisible(true);
-
+        dialog.setVisible(true); 
         answer = (String) optionPane.getInputValue();
-        dialog.dispose();
         return answer;
+    }
+
+    public static void Load() {
+    }
+    
+    public static void Unload() {
+        dialog.dispose();
     }
     
     public static void main(String args[]) {
+        Load();
         StaticInput("Hello, World!");
+        Unload();
     }
 }
