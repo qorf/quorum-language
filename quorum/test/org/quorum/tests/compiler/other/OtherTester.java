@@ -997,11 +997,11 @@ public class OtherTester {
             fail();
         }
 
-        RunResult r = CompilerTestSuite.runQuorumFile();
-        if (!r.isSuccessful())
+        RunResult t = CompilerTestSuite.runQuorumFile();
+        if (!t.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("0.0"));
+        assert(t.getLine(0).equals("0.0"));
     }
         
     @Test
