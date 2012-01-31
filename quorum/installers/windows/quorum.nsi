@@ -40,7 +40,13 @@ RequestExecutionLevel admin
 ;------------------------------
 ; Bundling configuration
 !define NETInstaller "dotNetFx40_Client_setup.exe" ; must reflect filename in this directory!
-!define JREInstaller "JavaSetup6u27.exe" ; must reflect filename in this directory!
+!define JREInstaller32 "jre-6u30-windows-i586-iftw.exe" ; must reflect filename in this directory!
+!define JREInstaller64 "jre-6u30-windows-x64.exe" ; must reflect filename in this directory!
+
+;--------------------------------
+; Variables
+Var JREInstallerActual ; this flag is to the actual JRE installer
+
 ;--------------------------------
 ; Pages
 
@@ -72,11 +78,12 @@ Section "Quorum (required)" Quorum_Sec
   IfFileExists $WINDIR\SYSWOW64\*.* Is64bit Is32bit
   Is32bit:
     SetRegView 32
+	StrCpy $JREInstallerActual ${JREInstaller32}
     GOTO End32Bitvs64BitCheck
  
   Is64bit:
     SetRegView 64
-   
+    StrCpy $JREInstallerActual ${JREInstaller64}
   End32Bitvs64BitCheck:
   ;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; Pre-installation checks
@@ -111,9 +118,10 @@ Section "Quorum (required)" Quorum_Sec
   StrCmp $5 "" NoJava JavaFound
 
   NoJava:
-    File /oname=$TEMP\${JREInstaller} ${JREInstaller}
+    File /oname=$TEMP\${JREInstaller32} ${JREInstaller32}
+	File /oname=$TEMP\${JREInstaller64} ${JREInstaller64}
     DetailPrint "Starting Java Runtime Environment Installer..."
-    ExecWait "$TEMP\${JREInstaller}"
+    ExecWait "$TEMP\${JREInstallerActual}"
   JavaFound:
   
   ;;;;;;;;;;;;;;;;;;;;;;;;;
