@@ -1161,7 +1161,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     castStep = null;
                 }
                 visitWithAutoBoxStep(step, (AutoBoxCreateStep) createStep, castStep);
-                //visitedCasts.add(castStepLocation);
+                if(castStep != null){
+                    visitedCasts.add(castStepLocation);
+                }
                 visitedCasts.add(castStepLocation + 1);
                 visitedCasts.add(castStepLocation + 2);
             } else if (!(castStep instanceof IntegerReverseAutoBoxStep)
