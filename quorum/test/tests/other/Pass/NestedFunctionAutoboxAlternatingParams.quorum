@@ -1,0 +1,10 @@
+class Main
+    action AutoBoxMe(Object o, Object c) returns text
+        return "Hello"
+    end
+
+    action Main
+        text k = AutoBoxMe(AutoBoxMe("Hi", 5), 2)
+        print k
+    end
+end
