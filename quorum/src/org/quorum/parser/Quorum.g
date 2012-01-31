@@ -1087,7 +1087,7 @@ loop_statement
 	}
 		;
 
-range	:	(root_expression) TO (root_expression) -> ^(TO root_expression root_expression);
+//range	:	(root_expression) TO (root_expression) -> ^(TO root_expression root_expression);
 
 selector	returns[ScopeSelector scopeSel]
 	:	PARENT COLON qn=qualified_name
@@ -1190,7 +1190,7 @@ SAY	:	'say';
 NOW	:	'now';
 WHILE	:	'while';
 PACKAGE_NAME :	'package';
-FROM	:	'from';
+// FROM	:	'from';
 TIMES	:	'times';
 REPEAT	:	'repeat';
 OVER	:	'over';
@@ -1200,7 +1200,7 @@ RETURNS :	'returns';
 RETURN 	:	'return';
 AND	:	'and';
 OR 	:	'or';
-TO	:	'to';
+// TO	:	'to';
 NULL	:	'undefined';
 ACTION 
 	:	'action'

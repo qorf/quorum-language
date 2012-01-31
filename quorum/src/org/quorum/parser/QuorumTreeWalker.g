@@ -1425,26 +1425,26 @@ scope {
 	}
 		;
 
-range		returns[ExpressionValue first_value, ExecutionStep first_step, ExpressionValue last_value, ExecutionStep last_step]
-	:	^(
-		TO first = root_expression{} last = root_expression
-	{
-		TypeCheckerResult result = typeChecker.check($first.eval.getType(), $last.eval.getType(), OperationEnum.RANGE, false);
-
-		if(result.getResult() == null)
-		{
-			CompilerError error = new CompilerError($TO.getLine(), result.getErrorMessage(), result.getErrorType());
-			vm.getCompilerErrors().addError(error);
-		}
-
-		
-		$first_value = $first.eval;
-		$first_step = $first.step;
-		$last_value = $last.eval;
-		$last_step = $last.step;
-	}
-		)
-	;
+//range		returns[ExpressionValue first_value, ExecutionStep first_step, ExpressionValue last_value, ExecutionStep last_step]
+//	:	^(
+//		TO first = root_expression{} last = root_expression
+//	{
+//		TypeCheckerResult result = typeChecker.check($first.eval.getType(), $last.eval.getType(), OperationEnum.RANGE, false);
+//
+//		if(result.getResult() == null)
+//		{
+//			CompilerError error = new CompilerError($TO.getLine(), result.getErrorMessage(), result.getErrorType());
+//			vm.getCompilerErrors().addError(error);
+//		}
+//
+//		
+//		$first_value = $first.eval;
+//		$first_step = $first.step;
+//		$last_value = $last.eval;
+//		$last_step = $last.step;
+//	}
+//		)
+//	;
 selector returns[ScopeSelector scopeSel]
 	:	^(PARENT qualified_name)
 	{

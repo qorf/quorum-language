@@ -1,10 +1,17 @@
+use Libraries.Containers.Array
 class Melissa
     action AutoBoxMe(Object o, Object c) returns text
-        return "Hello"
+        return "Yellow"
     end
 
     action Main
-        text k = AutoBoxMe(AutoBoxMe("Hi", 5), 2)
+        Array<Integer> myArray
+        myArray:Add(2)
+        text k = AutoBoxMe(myArray:Get(0), AutoBoxMe(AutoBoxMe("yo", 3), myArray:Get(0)))
         print k
+    end
+
+    action test returns number
+        return 1.2
     end
 end
