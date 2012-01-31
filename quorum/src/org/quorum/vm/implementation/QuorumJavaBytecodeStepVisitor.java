@@ -1170,13 +1170,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     && !(castStep instanceof NumberReverseAutoBoxStep)
                     && !(castStep instanceof TextReverseAutoBoxStep)
                     && !(castStep instanceof BooleanReverseAutoBoxStep) 
+                    && !(createStep instanceof AutoBoxCreateStep)
                     && !visitedCasts.contains(castStepLocation)) {//standard cast
                 step.visit(this);
 
                 step = steps.get(castStepLocation);
                 step.visit(this);
                 visitedCasts.add(castStepLocation);
-            } else if(!visitedCasts.contains(castStepLocation)) {//visit reverse autoboxes on returns
+            } else if(!(createStep instanceof AutoBoxCreateStep) && !visitedCasts.contains(castStepLocation)) {//visit reverse autoboxes on returns
                 castStep.setModifiedReturn(true);
                 step.visit(this);
                 castStep.visit(this);
@@ -1203,13 +1204,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     castStep = null;
                 }
 
-                visitedCasts.add(castStepLocation);
+                if(castStep != null)
+                    visitedCasts.add(castStepLocation);
+                
                 visitedCasts.add(castStepLocation + 1);
                 visitedCasts.add(castStepLocation + 2);
 
-                visitWithAutoBoxStep(steps, (AutoBoxCreateStep) createStep, castStep, tracker, i, callStepLocation, visitedCasts);
+                visitWithAutoBoxStep(steps, (AutoBoxCreateStep) createStep, castStep, tracker, i, callStepLocation + 1, visitedCasts);
 
-                i = callStepLocation;
+                i = callStepLocation + 1;
             }
         }
         return i;
@@ -1260,7 +1263,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         //loop through all op-codes
         for (int i = begin; i < end; i++) { //visit the expressions
-            int previousValue = i;
             // If this is a cast step that we have already visited, ignore
             // it, so we don't accidentally visit it twice.
             if (visitedCasts.contains(i)) {
@@ -1314,7 +1316,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                                 castStepLocation = call.getCastStepLocation();
                                 
                                 
-                                i = processAutoBox(steps, i, castStepLocation, opcodeLocation + 1, visitedCasts, tracker);
+                                i = processAutoBox(steps, i, castStepLocation, opcodeLocation, visitedCasts, tracker);
 
                             }
 
