@@ -180,7 +180,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitVarInsn(ALOAD, THIS);
             methodVisitor.visitFieldInsn(GETFIELD, name, PLUGIN_NAME, convertedSupplement);
             methodVisitor.visitVarInsn(ALOAD, THIS);
-            methodVisitor.visitFieldInsn(PUTFIELD, convertedSupplement, objectName, javaObjectPath);
+            methodVisitor.visitFieldInsn(PUTFIELD, converted, objectName, javaObjectPath);
             fieldSize += 2;
         }
 
