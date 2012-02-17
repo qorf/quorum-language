@@ -27,6 +27,7 @@ public class CompilerError {
     public CompilerError() {
         lineNumber = 0;
         error = "";
+        errorType = ErrorType.OTHER;
     }
     
     public CompilerError(int line, String error, ErrorType errorType) {

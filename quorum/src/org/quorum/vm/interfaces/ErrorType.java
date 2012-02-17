@@ -45,7 +45,7 @@ public enum ErrorType {
     REPEAT_TIMES_NON_INTEGER("Repeat times non-integer"),
     OTHER("other"); 
 
-    String errorType;
+    String errorType = "";
     ErrorType(String st) {
         errorType = st;
     }
