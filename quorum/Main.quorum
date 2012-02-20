@@ -1,65 +1,9 @@
-use Libraries.Containers.Array
+use Libraries.Robots.Motor
 
- class Melissa
+ class Main
     action Main
-        // This is where the word can be changed for the game
-        text answer = "quorum"
-
-        Text answerText
-        answerText:Append(answer)
-
-        integer counter = 0
-        Array<text> word
-        integer wordLength = answerText:GetLength()
-        repeat while counter < wordLength
-            word:Add(counter, answerText:GetCharacter(counter))
-            counter = counter + 1
-        end
-
-        counter = 0
-        Array<text> guessedWord
-        repeat while counter < wordLength
-            guessedWord:Add(counter, "*")
-            counter = counter + 1
-        end
-
-        text guess
-        boolean gameOver = false
-        text displayText
-        repeat while gameOver = false
-            say "So far you have "
-            counter = 0
-            displayText = ""
-
-            repeat while counter < wordLength
-                displayText = displayText + guessedWord:Get(counter)
-                if counter < wordLength then
-                    displayText = displayText + " "
-                end
-                counter = counter + 1
-            end
-
-            say displayText
-
-            guess = input("Please guess a letter:")
-            counter = 0
-            repeat while counter < wordLength
-                if word:Get(counter) = guess then
-                    guessedWord:Set(counter, word:Get(counter))
-                end
-                counter = counter + 1
-            end
-            gameOver = true
-            counter = 0
-            repeat while counter < wordLength
-                if guessedWord:Get(counter) = "*" then
-                    gameOver = false
-                end
-                counter = counter + 1
-            end
-            if gameOver = true then
-                say "Hooray! The word is " + answer
-            end
-        end
+        print "Running main class from QUORUM! Motors should start."
+        Motor m
+        m:Go() // test all motors
     end
- end
+end
