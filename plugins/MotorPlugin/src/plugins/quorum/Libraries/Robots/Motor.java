@@ -25,4 +25,12 @@ public class Motor {
         m.moveRelativePosition(500, 5000);
         m.waitForDone();
     }
+    
+    public void Move(double speed) {
+        
+    }
+    
+    public void Move(double speed, boolean forward) {
+        
+    }
 }
