@@ -60,9 +60,7 @@ public class Motor {
      
     public void Move(int speed, boolean forward)
     {
-        //cbccore.motors.Motor m = new cbccore.motors.Motor(motorInteger);
-        
-        speed = speed * 100;
+        speed = speed / 100;
         if (forward == true)
             m.moveAtVelocity(speed);
         else
@@ -71,16 +69,14 @@ public class Motor {
     
     public void MoveToPosition(int speed, int position)
     {
-        //cbccore.motors.Motor m = new cbccore.motors.Motor(motorInteger);
-        //speed = speed * 100;
+        speed = speed / 100;
         m.moveToPosition(speed, position);
         motorPosition = position;
     }
     
-    public void MoveFromHere(int motorInt, int speed, int position)
+    public void MoveFromHere(int speed, int position)
     {
-        //cbccore.motors.Motor m = new cbccore.motors.Motor(motorInt);
-        //speed = speed * 100;
+        speed = speed / 100;
         m.moveToPosition(speed, position);
         motorPosition = motorPosition + position;
     }
