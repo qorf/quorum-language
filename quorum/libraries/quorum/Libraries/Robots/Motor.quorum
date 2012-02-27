@@ -1,9 +1,15 @@
 package Libraries.Robots
 
 class Motor
-    system action Go()
-
-
-    system action Move(number speed)
-    system action Move(number speed, boolean forward)
+    system action SetConnection(integer motorInteger)
+    system action GetConnection() returns integer
+    system action ResetPosition()
+    system action GetPosition() returns integer
+    system action Move(integer speed, boolean forward)
+    system action MoveToPosition(integer speed, integer position)
+    system action MoveFromHere(integer speed, integer position)
+    system action Off()
+    system action Off(integer motorInteger)
+    system action Wait()
+    system action IsMotionComplete() returns boolean
 end

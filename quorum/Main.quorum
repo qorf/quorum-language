@@ -1,9 +1,44 @@
-use Libraries.Robots.Motor
+use Libraries.Robots.Robot
+
+ class Main
+    action Main
+        print "Running main class from QUORUM! Robot should start."
+        Robot r
+        r:SetConnection(1)
+    end
+end
+
+
+/*use Libraries.Robots.Motor
 
  class Main
     action Main
         print "Running main class from QUORUM! Motors should start."
-        Motor m
-        m:Go() // test all motors
+        Motor m 
+        m:SetConnection(1)
+        m:MoveFromHere(500, 5000)
+        m:Wait()
+        integer mc = m:GetConnection()
+        print "Motor is set at port" +mc
+        boolean success 
+        success = m:IsMotionComplete()
+        m:Off(1)
+        if success = true
+        then print "Motor has completed the motion"
+        end
+        else
+        then print "Motor has not completed the motion"
+        end
+        mc = m:GetConnection()
+        print "Motor is set at port" + mc
+        integer mp = m:GetPosition()
+        print "Motor position is at:" + mp
+        m:ResetPosition()
+        mp = m:GetPosition()
+        print "Motor position is at: " + mp
+        m:MoveToPosition(200, 2000)
+        mp = m:GetPosition()
+        m:Wait()
+        print "Motor position is at: " + mp //This is giving a value 0. Check this.
     end
-end
+end*/
