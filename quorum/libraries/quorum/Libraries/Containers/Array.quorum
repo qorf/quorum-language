@@ -52,9 +52,9 @@ class Array <Type> is a ArrayBlueprint<Type>
     */
     action Set(integer location, Type value)
         integer size = GetSize()
-        if location < size and location >= 0 then
+        if location < size and location >= 0
             SetNative(location, value)
-        end else then
+        else
             InvalidLocationError error
             alert(error)
         end
@@ -77,9 +77,9 @@ class Array <Type> is a ArrayBlueprint<Type>
     */
     action Get(integer location) returns Type
         integer size = GetSize()
-        if location < size and location >= 0 then
+        if location < size and location >= 0
             return GetNative(location)
-        end else then
+        else
             InvalidLocationError error
             alert(error)
         end
@@ -124,10 +124,10 @@ class Array <Type> is a ArrayBlueprint<Type>
         myArray:SetSize(10)
     */
     action SetSize(integer size)
-        if size < 0 then
+        if size < 0
             InvalidLocationError error
             alert(error)
-        end else then
+        else
             SetSizeNative(size)
         end
             
@@ -189,15 +189,15 @@ class Array <Type> is a ArrayBlueprint<Type>
         integer size = GetSize()
         integer capacity = GetMaxSize()
         
-        if not GetAutoResize() and size = capacity then
+        if not GetAutoResize() and size = capacity
             InvalidLocationError error
             error:SetErrorMessage("Invalid Location Error: cannot add to the array because the max size has been reached")
             alert(error)
         end
         
-        if location <= size and location >= 0 then
+        if location <= size and location >= 0
             AddNative(location, value)
-        end else then
+        else
             InvalidLocationError error
             alert(error)
             
@@ -218,15 +218,15 @@ class Array <Type> is a ArrayBlueprint<Type>
         integer size = GetSize()
         integer capacity = GetMaxSize()
         
-        if not GetAutoResize() and size = capacity then
+        if not GetAutoResize() and size = capacity
             InvalidLocationError error
             error:SetErrorMessage("Invalid Location Error: cannot add to the array because the max size has been reached")
             alert(error)
         end
         
-        if size <= capacity then
+        if size <= capacity
             AddNative(value)
-        end else then
+        else
             InvalidLocationError error
             alert(error)
         end
@@ -255,7 +255,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         integer counter = 0
         repeat while counter < size
             Type temp = me:Get(counter)
-            if(value:Equals(temp)) then
+            if value:Equals(temp)
                 return counter
             end
             counter = counter + 1
@@ -287,7 +287,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         repeat until size <= 0
             size = size - 1
             Type temp = me:Get(size)
-            if(value:Equals(temp)) then
+            if value:Equals(temp)
                 return size
             end
         end
@@ -404,9 +404,9 @@ class Array <Type> is a ArrayBlueprint<Type>
     */
     action RemoveAt(integer location) returns Type
         integer size = GetSize()
-        if location < size and location >= 0 then
+        if location < size and location >= 0
             return RemoveAtNative(location)
-        end else then
+        else
             InvalidLocationError error
             alert(error)
         end
@@ -458,7 +458,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         integer size = GetSize()
         repeat while count < size
             Type item = Get(count)
-            if value:Equals(item) then
+            if value:Equals(item)
                 return true
             end
             count = count + 1
@@ -488,7 +488,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         integer size = GetSize()
         repeat while count < size
             Type item = Get(count)
-            if value:Equals(item) then
+            if value:Equals(item)
                 RemoveAt(count)
                 return true
             end
@@ -520,11 +520,11 @@ class Array <Type> is a ArrayBlueprint<Type>
         integer size = GetSize()
         repeat while count < size
             Type item = Get(count)
-            if value:Equals(item) then
+            if value:Equals(item)
                 RemoveAt(count)
                 hasRemoved = true
                 size = size - 1
-            end else then
+            else
                 count = count + 1
             end
         end

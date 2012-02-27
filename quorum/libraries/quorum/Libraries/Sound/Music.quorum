@@ -208,7 +208,7 @@ class Music
     public action Play(text path)
         File f
         
-        if not f:IsFile(path) then
+        if (not f:IsFile(path))
             InvalidArgumentError e
             e:SetErrorMessage("The MIDI file " + path + " is not a valid file. It either doesn't exist or points to a directory.")
             alert(e)
@@ -279,7 +279,7 @@ class Music
                 MusicEvent event = events:Next()
 
                 // Handle playable events first.
-                if event is a Playable then
+                if event is a Playable
                     Playable p = cast(Playable, event)
                     
                     // We must keep track of the current time to convert
@@ -287,13 +287,12 @@ class Music
                     // the Java MIDI library requires.
                     currentTime = currentTime + p:GetStartTime()
 
-                    if event is a Note then
+                    if event is a Note
                         // Single notes can just be dumped directly into the track.
                         Note n = cast(Note, event)
 
                         AddNoteToTrack(n:GetPitch(), n:GetVolume(), n:GetConstantPitchBend(), n:GetPrePitchBend(), n:GetPrePitchBendLength(), currentTime, currentTime + n:GetLength())
-                    end
-                    else if event is a Chord then
+                    elseif event is a Chord
                         // Chords must be dumped one note at a time. All notes
                         // start at the same time, so advancing the time is
                         // not required.

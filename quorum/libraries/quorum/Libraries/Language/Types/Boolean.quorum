@@ -118,13 +118,11 @@ class Boolean is a Object
 
         boolean other = b:GetValue()
 
-        if thisOne = other then
+        if thisOne = other
             result:result = result:EQUAL
-        end
-        else if thisOne = false and other = true then
+        elseif thisOne = false and other = true
             result:result = result:SMALLER
-        end
-        else then
+        else
             result:result = result:LARGER
         end
         return result

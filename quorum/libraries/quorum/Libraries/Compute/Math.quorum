@@ -287,13 +287,13 @@ class Math
     action Round(number value, boolean roundUp) returns number
         number round = 0.0
 
-        if roundUp then
+        if roundUp
             return Round(value)
-        end else then
+        else
             number remains = AbsoluteValue(value) mod 1.0
-            if remains < 0.5 then
+            if remains < 0.5
                 return Ceiling(value)
-            end else then
+            else
                 return Floor(value)
             end
         end
@@ -315,15 +315,13 @@ class Math
     */
     action Round(number value, integer decimalPlace) returns number
         
-        if value = 0 then
+        if value = 0 
             return 0
         end
         
-        if decimalPlace = 0 then
+        if decimalPlace = 0
             return cast(number, me:Round(value, true))
-        end
-        else
-        if decimalPlace > 15 then
+        elseif decimalPlace > 15
             decimalPlace = 15
         end
 
@@ -359,15 +357,13 @@ class Math
     */
     action Round(number value, integer decimalPlace, boolean roundUp) returns number
                 
-        if value = 0 then
+        if value = 0
             return 0
         end
         
-        if decimalPlace = 0 then
+        if decimalPlace = 0
             return cast(number, me:Round(value, true))
-        end
-        else
-        if decimalPlace > 15 then
+        elseif decimalPlace > 15
             decimalPlace = 15
         end
 
@@ -416,10 +412,9 @@ class Math
 
     */
     action AbsoluteValue(integer value)returns integer
-        if(value < 0) then
+        if value < 0
             return value * -1
-        end
-        else then
+        else
             return value
         end
     end
@@ -438,10 +433,9 @@ class Math
 
     */
     action AbsoluteValue(number value)returns number
-        if(value < 0) then
+        if value < 0
             return value * -1
-        end
-        else then
+        else
             return value
         end
     end

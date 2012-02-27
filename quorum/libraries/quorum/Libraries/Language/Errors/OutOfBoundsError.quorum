@@ -27,7 +27,7 @@ end
 */
 class OutOfBoundsError is a Error
     on create
-        if(GetErrorMessage() = "") then
+        if GetErrorMessage() = ""
             SetErrorMessage("The specified parameters were outside of the required range.")
         end
     end

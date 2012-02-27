@@ -13,7 +13,7 @@ class Main
    action Main
       Object o
       Object i
-      if o:Equals(i) then
+      if o:Equals(i)
          print "Equal objects"
       end
    end
@@ -72,11 +72,11 @@ class Object
         integer myHash = me:GetHashCode()
         integer oHash = object:GetHashCode()
 
-        if(myHash < oHash) then
+        if myHash < oHash
             result:result = result:SMALLER
-        end else if myHash = oHash then
+        elseif myHash = oHash
             result:result = result:EQUAL
-        end else then
+        else
             result:result = result:LARGER
         end
         return result

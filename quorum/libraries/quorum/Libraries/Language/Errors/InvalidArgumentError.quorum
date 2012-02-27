@@ -26,7 +26,7 @@ end
 */
 class InvalidArgumentError is a Error
     on create
-        if(GetErrorMessage() = "") then
+        if GetErrorMessage() = ""
             SetErrorMessage("InvalidArgumentError: An argument passed to the action action is invalid.")
         end
     end

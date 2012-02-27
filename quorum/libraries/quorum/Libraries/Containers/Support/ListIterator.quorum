@@ -89,19 +89,19 @@ class ListIterator<Type> is a Iterator<Type>
         
         Iterator<List<integer>> listIterator = myList:GetIterator()
         
-        if listIterator:HasNext() then
+        if listIterator:HasNext()
             listIterator:Next()
         end
     */
     action HasNext returns boolean
 
-        if head = undefined then
+        if head = undefined
             return false
-        end else if current = undefined and head not= undefined then
+        elseif current = undefined and head not= undefined
             return true
-        end else then
+        else
             ListNode<Type> next = current:next
-            if next not= undefined then
+            if next not= undefined
                 return true
             end
             return false
@@ -120,9 +120,9 @@ class ListIterator<Type> is a Iterator<Type>
 
     */
     action Next returns Type
-        if current = undefined then
+        if current = undefined
             current = head
-        end else then
+        else
             current = current:next
         end
         return current:value
@@ -135,7 +135,7 @@ class ListIterator<Type> is a Iterator<Type>
         
         Iterator<List<integer>> listIterator = myList:GetIterator()
         
-        if listIterator:HasNext() then
+        if listIterator:HasNext()
             listIterator:Next()
         end
 

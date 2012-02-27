@@ -47,10 +47,10 @@ class List <Type> is a ListBlueprint<Type>
     action Add(Type value)
         ListNode<Type> node
         node:value = value
-        if head = undefined then
+        if head = undefined
             head = node
             tail = node
-        end else then
+        else
             tail:next = node
             node:previous = tail
             tail = node
@@ -74,11 +74,11 @@ class List <Type> is a ListBlueprint<Type>
         ListNode<Type> node
         node:value = value
 
-        if location < 0 or location > size then
+        if location < 0 or location > size
             InvalidLocationError error
             error:SetErrorMessage("The location: " + location + " is not valid.")
             alert(error)
-        end else if location = size then //it's just a tail add, do it fast
+        elseif location = size //it's just a tail add, do it fast
             AddToEnd(value)
             return now
         end
@@ -86,12 +86,12 @@ class List <Type> is a ListBlueprint<Type>
 
         integer i = 0
         repeat while current not= undefined
-            if i = location then
-                if current = head then //first element
+            if i = location
+                if current = head //first element
                     node:next = current
                     current:previous = node
                     head = node
-                end else then
+                else
                     ListNode<Type> prev = current:previous
                     prev:next = node
                     node:previous = prev
@@ -117,10 +117,10 @@ class List <Type> is a ListBlueprint<Type>
         myList:AddToEnd(12)
     */
     action AddToEnd(Type value)
-        if tail = undefined then
+        if tail = undefined
             Add(value)
             return now
-        end else then
+        else
             ListNode<Type> node
             node:value = value
 
@@ -142,10 +142,10 @@ class List <Type> is a ListBlueprint<Type>
         myList:AddToFront(12)
     */
     action AddToFront(Type value)
-        if head = undefined then
+        if head = undefined
             Add(value)
             return now
-        end else then
+        else
             ListNode<Type> node
             node:value = value
 
@@ -214,11 +214,11 @@ class List <Type> is a ListBlueprint<Type>
     */
     action Get(integer location) returns Type
         Type result = undefined
-        if location < 0 or location >= size then
+        if location < 0 or location >= size
             InvalidLocationError error
             error:SetErrorMessage("The location: " + location + " is not valid.")
             alert(error)
-        end else then
+        else
             ListNode<Type> current = head
             //technically, this would be faster if we checked if
             //location is greater than size/2, then pulled from the tail
@@ -252,18 +252,18 @@ class List <Type> is a ListBlueprint<Type>
         ListNode<Type> current = head
         repeat while current not= undefined
             Type type = current:value
-            if value:Equals(type) then
+            if value:Equals(type)
                 current = undefined
                 found = true
-            end else then
+            else
                 current = current:next
                 i = i + 1
             end
         end
 
-        if found then
+        if found
             return i
-        end else then
+        else
             return invalidIndex
         end
     end
@@ -290,18 +290,18 @@ class List <Type> is a ListBlueprint<Type>
         ListNode<Type> current = tail
         repeat while current not= undefined
             Type type = current:value
-            if value:Equals(type) then
+            if value:Equals(type)
                 current = undefined
                 found = true
-            end else then
+            else
                 current = current:previous
                 i = i - 1
             end
         end
 
-        if found then
+        if found 
             return i
-        end else then
+        else
             return invalidIndex
         end
     end
@@ -320,7 +320,7 @@ class List <Type> is a ListBlueprint<Type>
         integer value = myList:GetFromFront()
     */
     action GetFromFront returns Type
-        if head not= undefined then
+        if head not= undefined
             return head:value
         end
 
@@ -341,7 +341,7 @@ class List <Type> is a ListBlueprint<Type>
         integer value = myList:GetFromEnd()
     */
     action GetFromEnd returns Type
-        if tail not= undefined then
+        if tail not= undefined
             return tail:value
         end
 
@@ -402,7 +402,7 @@ class List <Type> is a ListBlueprint<Type>
         ListNode<Type> current = head
         repeat while current not= undefined
             Type type = current:value
-            if value:Equals(type) then
+            if value:Equals(type)
                 return true
             end
             current = current:next
@@ -418,7 +418,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Example
 
         List<integer> myList
-        if(myList:IsEmpty()) then
+        if myList:IsEmpty()
             print "List is empty."
         end
     */
@@ -445,7 +445,7 @@ class List <Type> is a ListBlueprint<Type>
         ListNode<Type> current = head
         repeat while current not= undefined
             Type type = current:value
-            if value:Equals(type) then
+            if value:Equals(type)
                 RemoveNode(current)
                 return true
             end
@@ -473,7 +473,7 @@ class List <Type> is a ListBlueprint<Type>
         ListNode<Type> current = head
         repeat while current not= undefined
             Type type = current:value
-            if value:Equals(type) then
+            if value:Equals(type)
                 RemoveNode(current)
             end
             current = current:next
@@ -482,19 +482,19 @@ class List <Type> is a ListBlueprint<Type>
     end
 
     private action RemoveNode(ListNode<Type> node)
-        if node = head and GetSize() = 1 then
+        if node = head and GetSize() = 1
             head = undefined
             tail = undefined
-        end else if node = head then
+        elseif node = head
             node:next = head:next
             ListNode<Type> myNext = head:next
             myNext:previous = undefined
             head = myNext
-        end else if node = tail then
+        elseif node = tail
             ListNode<Type> prev = tail:previous
             prev:next = undefined
             tail = prev
-        end else then
+        else
             ListNode<Type> prev = node:previous
             ListNode<Type> myNext = node:next
             prev:next = myNext
@@ -506,11 +506,11 @@ class List <Type> is a ListBlueprint<Type>
 
     private action GetNodeAtLocation(integer location) returns ListNode<Type>
         ListNode<Type> result = undefined
-        if location < 0 or location >= size then
+        if location < 0 or location >= size
             InvalidLocationError error
             error:SetErrorMessage("The location: " + location + " is not valid.")
             alert(error)
-        end else then
+        else
             ListNode<Type> current = head
             repeat location times
                 current = current:next
@@ -528,19 +528,19 @@ class List <Type> is a ListBlueprint<Type>
         repeat while current not= undefined
             Type type = current:value
             integer hash = type:GetHashCode()
-            if value:GetHashCode() = hash then
+            if value:GetHashCode() = hash
                 result = current
                 current = undefined
                 found = true
-            end else then
+            else
                 current = current:next
                 i = i + 1
             end
         end
 
-        if found then
+        if found
             return result
-        end else then
+        else
             return undefined
         end
     end
@@ -581,7 +581,7 @@ class List <Type> is a ListBlueprint<Type>
         integer removed = myList:RemoveFromEnd()
     */
     action RemoveFromEnd returns Type
-        if tail = undefined then
+        if tail = undefined
             return undefined
         end
 
@@ -604,7 +604,7 @@ class List <Type> is a ListBlueprint<Type>
         integer removed = myList:RemoveFromFront()
     */
     action RemoveFromFront returns Type
-        if head = undefined then
+        if head = undefined
             return undefined
         end
 
@@ -628,9 +628,9 @@ class List <Type> is a ListBlueprint<Type>
         myList:Set(22, 2)
     */
     action Set(integer location, Type value)
-        if location = size then
+        if location = size
             Add(value)
-        end else then
+        else
             ListNode<Type> node = GetNodeAtLocation(location)
             node:value = value
         end

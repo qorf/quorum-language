@@ -101,7 +101,7 @@ class Random
     integer randomNumber = random:RandomInteger(5)
     */
     action RandomInteger(integer maximum) returns integer
-        if maximum <= 0 then
+        if maximum <= 0
             OutOfBoundsError e
             e:SetErrorMessage("The maximum number must be a positive integer.")
             alert(e)
@@ -124,15 +124,15 @@ class Random
 
     */
     action RandomIntegerBetween(integer minimum, integer maximum) returns integer
-        if minimum >= maximum then
+        if minimum >= maximum
             OutOfBoundsError e
             e:SetErrorMessage("The minimum number must be smaller than the maximum number.")
             alert(e)
-        end else if minimum < 0 or maximum < 0 then
+        elseif minimum < 0 or maximum < 0
             OutOfBoundsError e
             e:SetErrorMessage("The minimum and maximum numbers must be greater than or equal to zero.")
             alert(e)
-        end else if (maximum - minimum - 1) <= 0 then
+        elseif (maximum - minimum - 1) <= 0
             // Covers the case of someone calling random:RandomIntegerBetween(0, 1)
             // -- there is no integer between these two values.
             OutOfBoundsError e
@@ -159,7 +159,7 @@ class Random
 
     */
     action RandomListOfIntegers(integer length) returns List<integer>
-        if length <= 0 then
+        if length <= 0
             OutOfBoundsError e
             e:SetErrorMessage("The list length must be a positive integer.")
             alert(e)
@@ -192,7 +192,7 @@ class Random
 
     */
     action RandomListOfNumbers(integer length) returns List<number>
-        if length <= 0 then
+        if length <= 0
             OutOfBoundsError e
             e:SetErrorMessage("The list length must be a positive integer.")
             alert(e)

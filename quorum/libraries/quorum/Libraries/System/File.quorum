@@ -476,11 +476,10 @@ class File
     myFile:Close()
     */
     action ReadLines() returns Array<text>
-        if me:IsEndOfFile() then
+        if me:IsEndOfFile()
             EndOfFileError e
             alert(e)
-        end
-        else if me:GetMode() not= READ_MODE and me:GetMode() not= RANDOM_ACCESS_MODE then
+        elseif me:GetMode() not= READ_MODE and me:GetMode() not= RANDOM_ACCESS_MODE
             // Can't do it! Must be in read or random access mode.
             InputOutputError e
             e:SetErrorMessage("InputOutputError: ReadLines() requires a file open in read or random access mode.")
@@ -523,7 +522,7 @@ class File
 
         repeat until me:IsEndOfFile() or totalReadLines = amount
             text line = me:ReadLine()
-            if not me:IsEndOfFile() then
+            if not me:IsEndOfFile()
                 lines:Add(line)
                 totalReadLines = totalReadLines + 1
             end

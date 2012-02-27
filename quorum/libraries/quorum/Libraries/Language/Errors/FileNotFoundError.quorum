@@ -25,7 +25,7 @@ end
 */
 class FileNotFoundError is a Error
     on create
-        if(GetErrorMessage() = "") then
+        if GetErrorMessage() = ""
             SetErrorMessage("FileNotFoundError: The requested file was not found on disk.")
         end
     end

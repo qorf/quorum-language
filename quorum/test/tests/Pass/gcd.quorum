@@ -11,9 +11,9 @@ class Hop
     end
 
     action GreatestCommonDivisor(integer x, integer y) returns integer
-        if  y = 0 then
+        if  y = 0
             return x
-        end else
+        else
             return GreatestCommonDivisor(y, x mod y)
         end
     end

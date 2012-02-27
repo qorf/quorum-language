@@ -4,19 +4,17 @@
 
 class Main
     action fibMethodA(integer n) returns integer
-        if n <= 2 then
+        if n <= 2 
             return 1
-        end
-        else then
+        else 
             return fibMethodA(n - 1) + fibMethodA(n - 2)
         end
     end
 
     action fibMethodB(integer n) returns integer
-        if n <= 2 then
+        if n <= 2 
             return 1
-        end
-        else then
+        else 
             integer x = fibMethodB(n - 1)
             integer y = fibMethodB(n - 2)
             return x + y

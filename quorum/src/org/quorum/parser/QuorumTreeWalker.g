@@ -1141,9 +1141,11 @@ if_statement
 scope {
 	IfStatementInfo info;
 	int else_if_counter;
+	String endMatch;
 }
 		:	begin_if = IF
 		{
+			$if_statement::endMatch = "if";
 			$if_statement::info = new IfStatementInfo();
 			$if_statement::else_if_counter = 0;
 			$if_statement::info.endLabel = $begin_if.text + labelCounter + $if_statement::info.END;
@@ -1152,23 +1154,23 @@ scope {
 			symbol.addStatementFlagToCurrentFile($begin_if.getLine());
 			labelCounter++;		
 		}
-			condition = root_expression if_then = THEN
+			condition = root_expression 
 		{
 			stepFactory.assertBooleanExpression($condition.eval.getType(),
 			    $condition.step,
 			    getGrammarFileNameNoExtension());
 			    
 			$if_statement::info.ifLocation = new LineInformation(
-				$if_then.getLine(),
-				$if_then.getLine(),
-				$if_then.getCharPositionInLine(),
-				$if_then.text.length() + $if_then.getCharPositionInLine());
+				$begin_if.getLine(),
+				$begin_if.getLine(),
+				$begin_if.getCharPositionInLine(),
+				$begin_if.text.length() + $begin_if.getCharPositionInLine());
 				
 			ConditionalJumpIfStep ifConditionalStep = new ConditionalJumpIfStep();
-			ifConditionalStep.setEndColumn($if_then.text.length() + $if_then.getCharPositionInLine());
-			ifConditionalStep.setEndLine($if_then.getLine());
-			ifConditionalStep.setBeginColumn($if_then.getCharPositionInLine());
-			ifConditionalStep.setBeginLine($if_then.getLine());
+			ifConditionalStep.setEndColumn($begin_if.text.length() + $begin_if.getCharPositionInLine());
+			ifConditionalStep.setEndLine($begin_if.getLine());
+			ifConditionalStep.setBeginColumn($begin_if.getCharPositionInLine());
+			ifConditionalStep.setBeginLine($begin_if.getLine());
 
 			ifConditionalStep.setLeftRegister($condition.eval.getRegister());
 			$if_statement::info.ifConditionalStep = ifConditionalStep;
@@ -1184,39 +1186,48 @@ scope {
 	                $if_statement::info.ifJumpStep.setEndLine($begin_if.getLine());
 			stepFactory.addIfEndJumpStep($if_statement::info);
 			
-		}
-		if_end = END 
-		{
-			$if_statement::info.ifJumpStep.setBeginLine($if_end.getLine());
-			stepFactory.endIf($if_statement::info);									
 		}		
-		((begin_else_if = ELSE second_if = IF 
+		(begin_else_if = ELSE_IF 
 		{
-			$if_statement::info.elseIfEndLabels.add($begin_else_if.text + $second_if.text + labelCounter + $if_statement::info.END + $if_statement::else_if_counter);
-			$if_statement::info.elseIfFalseLabels.add($begin_else_if.text + $second_if.text + labelCounter + $if_statement::info.FALSE + $if_statement::else_if_counter);
-			$if_statement::info.elseIfStartLabels.add($begin_else_if.text + $second_if.text + labelCounter + $if_statement::info.START + $if_statement::else_if_counter);	
+			
+			if($if_statement::endMatch.equals("if"))
+			{
+				$if_statement::info.ifJumpStep.setBeginLine($begin_else_if.getLine());
+				stepFactory.endIf($if_statement::info);
+			}
+			else
+			{
+				$if_statement::info.elseIfJumpSteps.get($if_statement::else_if_counter).setBeginLine($begin_else_if.getLine());
+				stepFactory.endElseIf($if_statement::info, $if_statement::else_if_counter);
+				$if_statement::else_if_counter = $if_statement::else_if_counter + 1;
+			}
+			$if_statement::endMatch = "elseif";
+			
+			$if_statement::info.elseIfEndLabels.add($begin_else_if.text  + labelCounter + $if_statement::info.END + $if_statement::else_if_counter);
+			$if_statement::info.elseIfFalseLabels.add($begin_else_if.text + labelCounter + $if_statement::info.FALSE + $if_statement::else_if_counter);
+			$if_statement::info.elseIfStartLabels.add($begin_else_if.text + + labelCounter + $if_statement::info.START + $if_statement::else_if_counter);	
 			
 			symbol.addStatementFlagToCurrentFile($begin_else_if.getLine());		
 			labelCounter++;					
 		}
-		condition2 = root_expression else_if_then = THEN
+		condition2 = root_expression
 		{
 			stepFactory.assertBooleanExpression($condition2.eval.getType(),
 			    $condition2.step,
 			    getGrammarFileNameNoExtension());
 			    
 			$if_statement::info.elseIfLocations.add(new LineInformation(
-				$else_if_then.getLine(),
-				$else_if_then.getLine(),
-				$else_if_then.getCharPositionInLine(),
-				$else_if_then.text.length() + $else_if_then.getCharPositionInLine()));
+				$begin_else_if.getLine(),
+				$begin_else_if.getLine(),
+				$begin_else_if.getCharPositionInLine(),
+				$begin_else_if.text.length() + $begin_else_if.getCharPositionInLine()));
 			
 			ConditionalJumpIfStep conditionalStep = new ConditionalJumpIfStep();
 			conditionalStep.setIsElseIf(true);
-			conditionalStep.setEndColumn($else_if_then.text.length() + $else_if_then.getCharPositionInLine());
-			conditionalStep.setEndLine($else_if_then.getLine());
-			conditionalStep.setBeginColumn($else_if_then.getCharPositionInLine());
-			conditionalStep.setBeginLine($else_if_then.getLine());
+			conditionalStep.setEndColumn($begin_else_if.text.length() + $begin_else_if.getCharPositionInLine());
+			conditionalStep.setEndLine($begin_else_if.getLine());
+			conditionalStep.setBeginColumn($begin_else_if.getCharPositionInLine());
+			conditionalStep.setBeginLine($begin_else_if.getLine());
 
 			conditionalStep.setLeftRegister($condition2.eval.getRegister());
 			
@@ -1234,26 +1245,50 @@ scope {
 			$if_statement::info.elseIfJumpSteps.add(jump);
 			
 			stepFactory.addElseIfEndJumpStep($if_statement::info, $if_statement::else_if_counter);	
-		}				
-		else_if_end = END
+		}
 		{
-			$if_statement::info.elseIfJumpSteps.get($if_statement::else_if_counter).setBeginLine($else_if_end.getLine());
-			stepFactory.endElseIf($if_statement::info, $if_statement::else_if_counter);
-			$if_statement::else_if_counter = $if_statement::else_if_counter + 1;					
+								
 		}					
-		))*					
-		(begin_else = ELSE THEN
+		)*					
+		(begin_else = ELSE
 		{
+			if($if_statement::endMatch.equals("if"))
+			{
+				$if_statement::info.ifJumpStep.setBeginLine($begin_else.getLine());
+				stepFactory.endIf($if_statement::info);
+			}
+			else
+			{
+				$if_statement::info.elseIfJumpSteps.get($if_statement::else_if_counter).setBeginLine($begin_else.getLine());
+				stepFactory.endElseIf($if_statement::info, $if_statement::else_if_counter);
+				$if_statement::else_if_counter = $if_statement::else_if_counter + 1;
+			}
+			$if_statement::endMatch = "else";
+			
 			$if_statement::info.elseStartLabel = $begin_else.text + labelCounter + $if_statement::info.START;	
 			$if_statement::info.hasElse = true;
 			labelCounter++;	
 			stepFactory.startElse($if_statement::info);	
 		}
-		b=block[true] END
+		b=block[true])?
+		end=END
 		{
-			stepFactory.endElse();																					
-		})?
-		{
+			if($if_statement::endMatch.equals("if"))
+			{
+				$if_statement::info.ifJumpStep.setBeginLine($end.getLine());
+				stepFactory.endIf($if_statement::info);
+			}
+			else if($if_statement::endMatch.equals("elseif"))
+			{
+				$if_statement::info.elseIfJumpSteps.get($if_statement::else_if_counter).setBeginLine($end.getLine());
+				stepFactory.endElseIf($if_statement::info, $if_statement::else_if_counter);
+				// $if_statement::else_if_counter = $if_statement::else_if_counter + 1;
+			}
+			else
+			{
+				stepFactory.endElse();
+			}
+			
 			stepFactory.endIfBlock($if_statement::info);
   																		
 		}		

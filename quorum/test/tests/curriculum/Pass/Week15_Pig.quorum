@@ -14,19 +14,18 @@ class main
         repeat while gameOver = false
             computerScore = computerTurn(computerScore)
             humanScore = computerTurn(humanScore)
-            if humanScore >= 100 then
-                if computerScore < 100 then
+            if humanScore >= 100
+                if computerScore < 100 
                     say "You won"
                     gameOver = true
                     asdf = true
-                end
-                else then
+                
+                else
                     say "Tie"
                     gameOver = true
                     asdf = true
                 end
-            end
-            else if computerScore >= 100 then
+            elseif computerScore >= 100
                 say "Computer won"
                 gameOver = true
                 asdf = true
@@ -39,13 +38,13 @@ class main
         integer diceRoll = rollDice()
         boolean rollAgain = true
         repeat while rollAgain = true
-            if diceRoll = 1 then
+            if diceRoll = 1 
                 rollAgain = false
                 currentTurnScore = 0
-            end
-            else then
+            
+            else 
                 currentTurnScore = currentTurnScore + diceRoll
-                if currentTurnScore > 20 then
+                if currentTurnScore > 20 
                     rollAgain = false
                 end
             end
@@ -61,11 +60,11 @@ class main
         text temp
         integer rollAgain = 1
         repeat while rollAgain = 1
-            if diceRoll = 1 then
+            if diceRoll = 1 
                 rollAgain = 0
                 currentTurnScore = 0
-            end
-            else then
+            
+            else 
                 currentTurnScore = currentTurnScore + diceRoll
                 temp = input ("Your current score is " + currentTurnScore + ". Enter 1 to roll again or 2 to add your turn score to your total.")
                 rollAgain = cast(integer, temp)

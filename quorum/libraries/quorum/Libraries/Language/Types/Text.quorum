@@ -107,13 +107,11 @@ class Text is a Object
 
         integer nativeResult = CompareInt(thisOne, other)
 
-        if nativeResult = 0 then
+        if nativeResult = 0
             result:result = result:EQUAL
-        end
-        else if nativeResult < 0 then
+        elseif nativeResult < 0
             result:result = result:SMALLER
-        end
-        else then
+        else
             result:result = result:LARGER
         end
         return result
@@ -146,7 +144,7 @@ class Text is a Object
     */
     action GetCharacter(integer index) returns text
         // Index must be in the range 0 <= x < me:GetLength()
-        if index < 0 or index >= me:GetLength() then
+        if index < 0 or index >= me:GetLength()
             InvalidLocationError e
             alert(e)
         end
@@ -167,7 +165,7 @@ class Text is a Object
         print a:GetSubstring(0, 5)
     */
     action GetSubstring(integer startIndex, integer endIndex) returns text
-        if startIndex = endIndex or startIndex > endIndex or startIndex < 0 or endIndex < 0 or endIndex >= me:GetLength() then
+        if startIndex = endIndex or startIndex > endIndex or startIndex < 0 or endIndex < 0 or endIndex >= me:GetLength()
             InvalidLocationError e
             alert(e)
         end
@@ -215,12 +213,11 @@ class Text is a Object
 
 	repeat while pos < length
             // If this doesn't start the delimiter, add it to the new string.
-            if me:GetCharacter(pos) not= delim:GetCharacter(0) then
+            if me:GetCharacter(pos) not= delim:GetCharacter(0)
                 newString = newString + me:GetCharacter(pos)
                 pos = pos + 1
                 afterDelim = false
-            end
-            else then
+            else
                 // Matches start of delimiter. Keep track and bail if we don't match the delimiter
                 text tmpString = ""
                 integer delimPos = 0
@@ -233,21 +230,20 @@ class Text is a Object
                     delimPos = delimPos + 1 // keep going through delimiter
                     pos = pos + 1 // and keep moving ahead in main string
                     
-                    if pos < length then
+                    if pos < length
                         currentChar = me:GetCharacter(pos)
                     end
 
-                    if delimPos < delimLength then
+                    if delimPos < delimLength
                         currentDelimChar = delim:GetCharacter(delimPos)
                     end
                 end
 
-                if delimPos not= delimLength then
+                if delimPos not= delimLength
                     // We didn't reach the end of the delimiter, so add this temporary string and keep moving.
                     tmpString = tmpString + newString
                     afterDelim = false
-                end
-                else then
+                else
                     // Delimiter hit. Store the result.
                     results:Add(newString)
                     newString = ""  
@@ -257,7 +253,7 @@ class Text is a Object
 	end
 
 
-        if not afterDelim then
+        if not afterDelim
             results:Add(newString)
         end
 

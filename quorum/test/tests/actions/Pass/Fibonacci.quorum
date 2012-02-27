@@ -5,13 +5,13 @@ class Main
     end
 
     action fibonacci(integer a) returns integer
-        if a = 0 then
+        if a = 0 
             return 0
-        end 
-        else if a = 1 then
+         
+        elseif a = 1 
             return 1
-        end
-        else then
+        
+        else
             return fibonacci(a - 1) + fibonacci(a - 2)
         end
     end

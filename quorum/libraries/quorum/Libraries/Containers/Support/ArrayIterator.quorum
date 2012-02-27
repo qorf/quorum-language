@@ -68,9 +68,9 @@ class ArrayIterator<Type> is a Iterator<Type>
 
     */
     action GetCurrent returns Type
-        if count = 0 then
+        if count = 0
             return undefined
-        end else then
+        else
             return array:Get(count - 1)
         end
     end
@@ -86,15 +86,15 @@ class ArrayIterator<Type> is a Iterator<Type>
         
         Iterator<Array<integer>> arrayIterator = myArray:GetIterator()
         
-        if arrayIterator:HasNext() then
+        if arrayIterator:HasNext()
             arrayIterator:Next()
         end
     */
     action HasNext returns boolean
         integer size = array:GetSize()
-        if count >= size then
+        if count >= size
             return false
-        end else then
+        else
             return true
         end
     end
@@ -123,7 +123,7 @@ class ArrayIterator<Type> is a Iterator<Type>
         
         Iterator<Array<integer>> arrayIterator = myArray:GetIterator()
         
-        if arrayIterator:HasNext() then
+        if arrayIterator:HasNext()
             arrayIterator:Next()
         end
 

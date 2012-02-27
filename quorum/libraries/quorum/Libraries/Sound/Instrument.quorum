@@ -34,7 +34,7 @@ class Instrument
         Attribute: Parameter name the name to set.
     */
     public action SetName(text name)
-        if not nameSet then
+        if not nameSet
             me:name = name
             nameSet = true
         end
@@ -56,7 +56,7 @@ class Instrument
         Attribute: Parameter value the number to set.
     */
     public action SetValue(integer value)
-        if not valueSet then
+        if not valueSet
             me:value = value
         end
     end

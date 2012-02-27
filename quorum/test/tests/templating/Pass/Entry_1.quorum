@@ -12,7 +12,7 @@ class Entry<type>
 
     action setValue(type v) returns boolean
         value = v
-        if (value = v) then
+        if value = v
             return true
         end
         return false
@@ -24,7 +24,7 @@ class Entry<type>
 
     action setEntry(type v, text k) returns boolean
         setKey(k)
-        if setValue(v) then
+        if setValue(v)
             return true
         end
         return false

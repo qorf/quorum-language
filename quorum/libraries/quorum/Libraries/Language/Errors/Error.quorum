@@ -32,10 +32,9 @@ class Error
         integer size = GetStackSize()
 
         //set the size of the stack trace
-        if(size > 20) then
+        if size > 20
             stackTrace:SetSize(20)
-        end
-        else then
+        else
             stackTrace:SetSize(size)
         end
 

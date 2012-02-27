@@ -1019,32 +1019,48 @@ if_statement
 	BlockDescriptor block;
 }
 	:
-	firstif = IF root_expression THEN { block = new BlockDescriptor(); symbol.add(block); } block { symbol.popScope(); } firstend = END 
-	{
+	firstif = IF root_expression { block = new BlockDescriptor(); symbol.add(block); } 
+	block 
+	{ 
+		symbol.popScope(); 
        		//set the begin and end line column information in the block descriptors.
        		block.setLineBegin($firstif.getLine());
-       		block.setLineEnd($firstend.getLine());
        		block.setColumnBegin($firstif.getCharPositionInLine());
-       		block.setColumnEnd($firstend.text.length() + $firstend.getCharPositionInLine());
 	}
-	((firstelse = ELSE IF root_expression THEN { block = new BlockDescriptor(); symbol.add(block); } block { symbol.popScope(); } secondend = END 
+	(firstelse = ELSE_IF 
 	{
+		block.setLineEnd($firstelse.getLine());
+		block.setColumnEnd($firstelse.text.length() + $firstelse.getCharPositionInLine());
+	} 
+	root_expression { block = new BlockDescriptor(); symbol.add(block); } 
+	block 
+	{ 
+		symbol.popScope(); 
        		//set the begin and end line column information in the block descriptors.
        		block.setLineBegin($firstelse.getLine());
-       		block.setLineEnd($secondend.getLine());
        		block.setColumnBegin($firstelse.getCharPositionInLine());
-       		block.setColumnEnd($secondend.text.length() + $secondend.getCharPositionInLine());
 	}
-	))*  //else if blocks
-	((secondelse = ELSE THEN { block = new BlockDescriptor(); symbol.add(block); } block { symbol.popScope(); } thirdend = END
-	{
+	)*  //else if blocks
+	(secondelse = ELSE 
+	{ 
+		block.setLineEnd($secondelse.getLine());
+		block.setColumnEnd($secondelse.text.length() + $secondelse.getCharPositionInLine());
+		block = new BlockDescriptor(); 
+		symbol.add(block); 
+	} 
+	block 
+	{ 
+		symbol.popScope(); 
        		//set the begin and end line column information in the block descriptors.
        		block.setLineBegin($secondelse.getLine());
-       		block.setLineEnd($thirdend.getLine());
        		block.setColumnBegin($secondelse.getCharPositionInLine());
-       		block.setColumnEnd($thirdend.text.length() + $thirdend.getCharPositionInLine());
 	}
-	) )? 
+	)? 
+	end = END
+	{
+		block.setLineEnd($end.getLine());
+		block.setColumnEnd($end.text.length() + $end.getCharPositionInLine());
+	}
 	;
 
 loop_statement
@@ -1166,6 +1182,7 @@ function_expression_list
 	(expression (COMMA expression)*)?	
 	-> ^(FUNCTION_EXPRESSION_LIST expression*)
 	;
+ELSE_IF :	'elseif';
 ME	:	'me';
 UNTIL	:	'until';
 ON_DESTROY
@@ -1194,7 +1211,6 @@ PACKAGE_NAME :	'package';
 TIMES	:	'times';
 REPEAT	:	'repeat';
 OVER	:	'over';
-THEN 	:	'then';
 ELSE 	:	'else';
 RETURNS :	'returns';
 RETURN 	:	'return';

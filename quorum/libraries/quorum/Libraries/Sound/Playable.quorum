@@ -137,10 +137,9 @@ class Playable is a MusicEvent
         Attribute: Parameter vol the volume of the note. (0.0 to 1.0).
     */
     public action SetVolume(number vol)
-        if vol < 0.0 then
+        if vol < 0.0
             vol = 0.0
-        end
-        else if vol > 1.0 then
+        elseif vol > 1.0
             vol = 1.0
         end
 

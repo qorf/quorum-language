@@ -111,7 +111,7 @@ class StackTraceItem
     item:Equals(item2)
     */
     action Equals(Object o) returns boolean
-        if( o is a StackTraceItem) then
+        if o is a StackTraceItem
             StackTraceItem item = cast(StackTraceItem, o)
 
             text clazz = item:GetClassName()
@@ -119,15 +119,12 @@ class StackTraceItem
             text file = item:GetFileName()
             integer line = item:GetLineNumber()
 
-            if(clazz = className and method = methodName and file = fileName and line = lineNumber)then
+            if clazz = className and method = methodName and file = fileName and line = lineNumber
                 return true
-            end
-            else then
+            else
                 return false
             end
-
-        end
-        else then
+        else
             return false
         end
     end

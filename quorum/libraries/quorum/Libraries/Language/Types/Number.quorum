@@ -118,13 +118,11 @@ class Number is a Object
 
         number other = b:GetValue()
 
-        if thisOne = other then
+        if thisOne = other
             result:result = result:EQUAL
-        end
-        else if thisOne < other then
+        elseif thisOne < other 
             result:result = result:SMALLER
-        end
-        else then
+        else
             result:result = result:LARGER
         end
         return result

@@ -5,9 +5,9 @@ class Main
     end
 
     action gcd(integer a, integer b) returns integer
-        if b = 0 then
+        if b = 0
             return a
-        end else then
+        else 
             return gcd(b, a mod b)
         end
     end

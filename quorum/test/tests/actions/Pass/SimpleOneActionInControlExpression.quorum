@@ -2,10 +2,9 @@ class Main
     action Main
        integer a = 10
        boolean result
-       if odd(a) then
+       if odd(a) 
             result = true
-       end
-       else then
+       else
             result = false
        end
 
@@ -13,10 +12,9 @@ class Main
     end
 
     action odd (integer a) returns boolean
-        if a mod 2 = 0 then
+        if a mod 2 = 0 
             return false
-        end
-        else then
+        else
             return true
         end
     end

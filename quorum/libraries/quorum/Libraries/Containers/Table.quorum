@@ -55,17 +55,17 @@ class Table<Type> is a TableBlueprint<Type>
     */
     action Set(integer row, integer column, Type value)
         integer size = table:GetSize()
-        if row < size and row >= 0 then
+        if row < size and row >= 0
             Array<Type> rowArray = table:Get(row)
             size = rowArray:GetSize()
-            if column < size and column >= 0 then
+            if column < size and column >= 0
                 rowArray:Set(column, value)
-            end else then
+            else
                 InvalidLocationError error
                 error:SetErrorMessage("Invalid Location Error: the column location is invalid.")
                 alert(error)
             end
-        end else then
+        else
             InvalidLocationError error
             error:SetErrorMessage("Invalid Location Error: the row location is invalid.")
             alert(error)
@@ -91,17 +91,17 @@ class Table<Type> is a TableBlueprint<Type>
     */
     action Get(integer row, integer column) returns Type
         integer size = table:GetSize()
-        if row < size and row >= 0 then
+        if row < size and row >= 0
             Array<Type> rowArray = table:Get(row)
             size = rowArray:GetSize()
-            if column < size and column >= 0 then
+            if column < size and column >= 0
                 return rowArray:Get(column)
-            end else then
+            else
                 InvalidLocationError error
                 error:SetErrorMessage("Invalid Location Error: the column location is invalid.")
                 alert(error)
             end
-        end else then
+        else
             InvalidLocationError error
             error:SetErrorMessage("Invalid Location Error: the row location is invalid.")
             alert(error)
@@ -152,9 +152,9 @@ class Table<Type> is a TableBlueprint<Type>
     */
     action SetMaxSize(integer row, integer column)
         table:SetMaxSize(row)
-        if table:IsEmpty() then
+        if table:IsEmpty()
             columnSize = column
-        end else then
+        else
             columnSize = column
             integer actualSize = column
             Iterator<Array<Type>> it = table:GetIterator()
@@ -162,12 +162,12 @@ class Table<Type> is a TableBlueprint<Type>
                 Array<Type> rowArray = it:Next()
                 rowArray:SetMaxSize(column)
                 integer temp = rowArray:GetMaxSize()
-                if temp > actualSize then
+                if temp > actualSize
                     actualSize = temp
                 end
             end
 
-            if columnSize not= actualSize then
+            if columnSize not= actualSize
                 columnSize = actualSize
                 Iterator<Array<Type>> secondIt = table:GetIterator()
                 repeat while secondIt:HasNext()
@@ -193,10 +193,10 @@ class Table<Type> is a TableBlueprint<Type>
         myTable:SetSize(10,10)
     */
     action SetSize(integer row, integer column)
-        if row < 0 or column < 0 then
+        if row < 0 or column < 0
             InvalidLocationError error
             alert(error)
-        end else then
+        else
             table:SetSize(row)
             integer size = table:GetSize()
             integer counter = 0
@@ -235,10 +235,10 @@ class Table<Type> is a TableBlueprint<Type>
     */
     action GetSizeOfRow(integer row) returns integer
         integer size = table:GetSize()
-        if row >= 0 or row < size then
+        if row >= 0 or row < size
             Array<Type> rowArray = table:Get(row)
             return rowArray:GetSize()
-        end else then
+        else
             InvalidLocationError error
             error:SetErrorMessage("Invalid Location Error: the row location is invalid.")
             alert(error)
@@ -303,14 +303,14 @@ class Table<Type> is a TableBlueprint<Type>
         integer size = table:GetSize()
         integer capacity = table:GetMaxSize()
         
-        if not table:GetAutoResize() and size = capacity then
+        if not table:GetAutoResize() and size = capacity
             InvalidLocationError error
             error:SetErrorMessage("Invalid Location Error: cannot add to the table because the row size has been reached")
             alert(error)
         end
         
-        if row <= size and row >= 0 then
-            if row = size then
+        if row <= size and row >= 0
+            if row = size
                 Array<Type> newArray
                 newArray:SetMaxSize(columnSize)
                 newArray:SetAutoResize(table:GetAutoResize())
@@ -318,7 +318,7 @@ class Table<Type> is a TableBlueprint<Type>
             end
 
             Array<Type> rowArray = table:Get(row)
-            if rowArray = undefined then
+            if rowArray = undefined
                 Array<Type> newArray
                 newArray:SetMaxSize(columnSize)
                 newArray:SetAutoResize(table:GetAutoResize())
@@ -328,24 +328,23 @@ class Table<Type> is a TableBlueprint<Type>
             size = rowArray:GetSize()
             capacity = rowArray:GetMaxSize()
 
-            if not rowArray:GetAutoResize() and size = capacity then
+            if not rowArray:GetAutoResize() and size = capacity
                 InvalidLocationError error
                 error:SetErrorMessage("Invalid Location Error: cannot add to the table because the column size has been reached")
                 alert(error)
             end
 
-            if column <= size and column >= 0 then
+            if column <= size and column >= 0
                 rowArray:Add(column, value)
-            end else then
+            else
                 InvalidLocationError error
                 error:SetErrorMessage("Invalid Location Error: cannot add to the table because the column location is invalid.")
                 alert(error)
             end
-        end else then
+        else
             InvalidLocationError error
             error:SetErrorMessage("Invalid Location Error: cannot add to the table because the row location is invalid.")
             alert(error)
-            
         end
     end
 
@@ -401,14 +400,14 @@ class Table<Type> is a TableBlueprint<Type>
     */
     action AddToEndOfRow(integer row, Type value)
         integer size = table:GetSize()
-        if row < size and row >= 0 then
+        if row < size and row >= 0
             Array<Type> rowArray = table:Get(row)
-            if rowArray = undefined then
+            if rowArray = undefined
                 me:Add(row,0,value)
-            end else then
+            else
                 me:Add(row, rowArray:GetSize(), value)
             end
-        end else then
+        else
             me:Add(row, 0, value)
         end 
     end
@@ -475,9 +474,9 @@ class Table<Type> is a TableBlueprint<Type>
     */
     action GetFromFrontOfRow(integer row) returns Type
         Array<Type> rowArray = table:Get(row)
-        if rowArray not= undefined then
+        if rowArray not= undefined
             return rowArray:Get(0)
-        end else then
+        else
             return undefined
         end
     end
@@ -499,9 +498,9 @@ class Table<Type> is a TableBlueprint<Type>
     */
     action GetFromEndOfRow(integer row) returns Type
         Array<Type> rowArray = table:Get(row)
-        if rowArray not= undefined then
+        if rowArray not= undefined
             return rowArray:Get(rowArray:GetSize() - 1)
-        end else then
+        else
             return undefined
         end
     end
@@ -527,18 +526,18 @@ class Table<Type> is a TableBlueprint<Type>
     */
     action RemoveAt(integer row, integer column) returns Type
         integer size = table:GetSize()
-        if row < size and row >= 0 then
+        if row < size and row >= 0
             Array<Type> rowArray = table:Get(row)
-            if rowArray not= undefined then
+            if rowArray not= undefined
                 size = rowArray:GetSize()
-                if column < size and column >= 0 then
+                if column < size and column >= 0
                     return rowArray:RemoveAt(column)
-                end else then
+                else
                     InvalidLocationError error
                     alert(error)
                 end
             end
-        end else then
+        else
             InvalidLocationError error
             alert(error)
         end
@@ -588,7 +587,7 @@ class Table<Type> is a TableBlueprint<Type>
         integer size = table:GetSize()
         repeat while count < size
             Array<Type> item = table:Get(count)
-            if item:Has(value) then
+            if item:Has(value)
                 return true
             end
             count = count + 1
@@ -619,7 +618,7 @@ class Table<Type> is a TableBlueprint<Type>
         repeat while count < size
             Array<Type> item = table:Get(count)
             boolean removedItem = item:Remove(value)
-            if removedItem then
+            if removedItem
                 return true
             end
             count = count + 1
@@ -650,10 +649,10 @@ class Table<Type> is a TableBlueprint<Type>
         integer size = table:GetSize()
         repeat while count < size
             Array<Type> item = table:Get(count)
-            if item:RemoveAll(value) then
+            if item:RemoveAll(value)
                 hasRemoved = true
                 size = size - 1
-            end else then
+            else
                 count = count + 1
             end
         end
