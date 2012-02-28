@@ -15,17 +15,13 @@ class Main
 
         check
             alert("X")
-        end
         detect e
             XText = e:GetErrorMessage()
-        end
         always
             check
                 alert("Y")
-            end
             detect e
                 YText = e:GetErrorMessage()
-            end
             always
                 hiText = "hi"
             end

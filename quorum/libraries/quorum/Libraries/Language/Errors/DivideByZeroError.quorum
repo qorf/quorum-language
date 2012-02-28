@@ -13,7 +13,6 @@ class Main
    action Main
       check
         integer i = 12 / 0
-      end
       detect e of type DivideByZeroError
         print "Error detected: " + e:GetErrorMessage()
       end

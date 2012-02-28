@@ -493,7 +493,6 @@ class File
             check
                 text line = me:ReadLine()
                 lines:Add(line)
-            end
             detect e of type EndOfFileError
                 // End of file has been reached. Break loop.
                 eof = true

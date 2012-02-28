@@ -18,7 +18,6 @@ class Main
       Random random
       check
         integer myNumber = random:RandomInteger(-5) // requires >= 0.
-      end
       detect e of type OutOfBoundsError
         print "Error detected: " + e:GetErrorMessage()
       end

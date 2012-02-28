@@ -21,7 +21,6 @@ class Main
             myArray:Get(i)
             i = i + 1
         end
-      end
       detect e of type InvalidLocationError
         print "Error detected: " + e:GetErrorMessage()
       end

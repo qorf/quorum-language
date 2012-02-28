@@ -17,7 +17,6 @@ class Main
       File file
       check
         file:OpenForRead("")
-      end
       detect e of type InvalidArgumentError
         print "Bad argument: " + e:GetErrorMessage()
       end

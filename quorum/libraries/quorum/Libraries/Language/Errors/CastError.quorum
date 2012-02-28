@@ -12,7 +12,6 @@ class Main
    action Main
       check
         integer i = cast(integer, "1.4")
-      end
       detect e of type CastError
         print "Error detected: " + e:GetErrorMessage()
       end

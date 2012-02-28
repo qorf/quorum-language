@@ -725,41 +725,64 @@ check_statement
 @init{
 	BlockDescriptor block;
 }
-	:   check_start=CHECK { block = new BlockDescriptor(); symbol.add(block); }block { symbol.popScope(); }check_end=END
-	{
+	:   check_start=CHECK { block = new BlockDescriptor(); symbol.add(block); }block 
+	{ 
+		symbol.popScope(); 
        		//set the begin and end line column information in the block descriptors.
        		block.setLineBegin($check_start.getLine());
-       		block.setLineEnd($check_end.getLine());
        		block.setColumnBegin($check_start.getCharPositionInLine());
-       		block.setColumnEnd($check_end.text.length() + $check_end.getCharPositionInLine());
 	}
-	    (  (detect_start=DETECT { block = new BlockDescriptor(); symbol.add(block); } detect_parameter block { symbol.popScope(); }detect_end=END
+	    ((detect_start=DETECT 
+	{ 
+		block.setLineEnd($detect_start.getLine());
+		block.setColumnEnd($detect_start.text.length() + $detect_start.getCharPositionInLine());
+		
+		block = new BlockDescriptor(); 
+		symbol.add(block); 
+	} 
+	    detect_parameter block { symbol.popScope(); }
 	{
        		//set the begin and end line column information in the block descriptors.
        		block.setLineBegin($detect_start.getLine());
-       		block.setLineEnd($detect_end.getLine());
        		block.setColumnBegin($detect_start.getCharPositionInLine());
-       		block.setColumnEnd($detect_end.text.length() + $detect_end.getCharPositionInLine());
 	}
 	    )+ 
-	    (always_start=ALWAYS { block = new BlockDescriptor(); symbol.add(block); }block { symbol.popScope(); }always_end=END
-	{
+	    (always_start=ALWAYS 
+	{ 
+		block.setLineEnd($always_start.getLine()); 
+		block.setColumnEnd($always_start.text.length() + $always_start.getCharPositionInLine()); 
+		
+		block = new BlockDescriptor(); 
+		symbol.add(block); 
+	}
+	    block 
+	{ 
+		symbol.popScope(); 
        		//set the begin and end line column information in the block descriptors.
        		block.setLineBegin($always_start.getLine());
-       		block.setLineEnd($always_end.getLine());
        		block.setColumnBegin($always_start.getCharPositionInLine());
-       		block.setColumnEnd($always_end.text.length() + $always_end.getCharPositionInLine());
 	}
 	    )? 
-	    |   always_start_2=ALWAYS { block = new BlockDescriptor(); symbol.add(block); }block { symbol.popScope(); }always_end_2=END
-	{
+	|   always_start_2=ALWAYS 
+	{ 
+		block.setLineEnd($always_start_2.getLine()); 
+		block.setColumnEnd($always_start_2.text.length() + $always_start_2.getCharPositionInLine());
+		
+		block = new BlockDescriptor(); 
+		symbol.add(block); 
+	}
+	    block 
+	{ 
+		symbol.popScope();
        		//set the begin and end line column information in the block descriptors.
        		block.setLineBegin($always_start_2.getLine());
-       		block.setLineEnd($always_end_2.getLine());
        		block.setColumnBegin($always_start_2.getCharPositionInLine());
-       		block.setColumnEnd($always_end_2.text.length() + $always_end_2.getCharPositionInLine());
 	}
-	    )    
+	    ) end=END   
+	{
+		block.setLineEnd($end.getLine());
+		block.setColumnEnd($end.text.length() + $end.getCharPositionInLine());
+	}
 	 ;	
     
 detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionTypeList]

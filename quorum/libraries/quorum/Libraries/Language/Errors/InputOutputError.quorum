@@ -20,7 +20,6 @@ class Main
       file:OpenForRead("myfile.txt")
       check
         file:WriteLine("This is an illegal operation!")
-      end
       detect e of type InputOutputError
         print "Error detected: " + e:GetErrorMessage()
       end

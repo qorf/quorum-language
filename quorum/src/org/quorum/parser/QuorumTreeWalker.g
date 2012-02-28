@@ -606,9 +606,12 @@ scope {
 	int tempLabelCounter;
 	boolean has_always;
 	LineInformation location;
+	String startSymbol;
+	JumpStep detectJump;
 }
 	:   
 	{	
+		$check_statement::detectJump = new JumpStep();
 		$check_statement::info = new ExceptionInfo();
 		$check_statement::detect_counter = 0;
 		$check_statement::has_always = false;
@@ -627,6 +630,7 @@ scope {
 			$CHECK.text.length() + $CHECK.getCharPositionInLine());
 		$check_statement::info.checkStartLabel = builder.getCurrentClass().getStaticKey() + "_" + $check.text + $check_statement::tempLabelCounter + $check_statement::info.START;
 		stepFactory.startCheck($check_statement::info);
+		$check_statement::startSymbol = "check";
 	} block[true] 
 	{
 		$check_statement::info.checkJump.setBeginColumn($check.getCharPositionInLine());
@@ -634,19 +638,24 @@ scope {
                 $check_statement::info.checkJump.setEndLine($check.getLine());
 		stepFactory.addCheckEndJumpStep($check_statement::info);
 	}
-	check_end = END
-	{
-		$check_statement::info.checkJump.setBeginLine($check_end.getLine());
-		stepFactory.endCheck($check_statement::info);
-	}
 	(	//detect statement with optional always  
 	    	(detect_start = DETECT
 	    	{
+	    		if($check_statement::startSymbol.equals("check")){
+		    		$check_statement::info.checkJump.setBeginLine($detect_start.getLine());
+				stepFactory.endCheck($check_statement::info);
+			}else{
+				$check_statement::detectJump.setBeginLine($detect_start.getLine());
+		    		stepFactory.endDetect($check_statement::info, $check_statement::detect_counter);
+		    		$check_statement::detect_counter = $check_statement::detect_counter + 1;
+			}
+	    		
 	    		$check_statement::info.addDetectLabel($detect_start.text + $check_statement::detect_counter
 	    			 + "_" + $check_statement::tempLabelCounter + $check_statement::info.START);
 	    			 symbol.addStatementFlagToCurrentFile($detect_start.getLine());
 	    		symbol.getControlFlow().detectStart();
 	    		symbol.enterNextBlock();
+	    		$check_statement::startSymbol = "detect";
 	    		
 	    	}
 	    	
@@ -672,56 +681,59 @@ scope {
 	    	
 	    	block[true] 
 	    	{
-	    		JumpStep detectJump = new JumpStep();
-	    		detectJump.setType(JumpType.CHECK);
-		    	detectJump.setBeginColumn($detect_start.getCharPositionInLine());
-			detectJump.setEndColumn($detect_start.getCharPositionInLine() + ($detect_start.text.length()));
-	                detectJump.setEndLine($detect_start.getLine());
-	                $check_statement::info.detectJumps.add(detectJump);
-			stepFactory.addDetectEndJumpStep($check_statement::info, detectJump);
-	    	}
-	    	detect_end = END
-	    	{
-	    		detectJump.setBeginLine($detect_end.getLine());
-	    		stepFactory.endDetect($check_statement::info, $check_statement::detect_counter);
-	    		$check_statement::detect_counter = $check_statement::detect_counter + 1;
+	    		$check_statement::detectJump = new JumpStep();
+	    		$check_statement::detectJump.setType(JumpType.CHECK);
+		    	$check_statement::detectJump.setBeginColumn($detect_start.getCharPositionInLine());
+			$check_statement::detectJump.setEndColumn($detect_start.getCharPositionInLine() + ($detect_start.text.length()));
+	                $check_statement::detectJump.setEndLine($detect_start.getLine());
+	                $check_statement::info.detectJumps.add($check_statement::detectJump);
+			stepFactory.addDetectEndJumpStep($check_statement::info, $check_statement::detectJump);
 	    	}
 	    	)+ //ends 1 or more detect statements
 	    	(always = ALWAYS
 	    	{
+	    		$check_statement::detectJump.setBeginLine($always.getLine());
+	    		stepFactory.endDetect($check_statement::info, $check_statement::detect_counter);
+	    		$check_statement::detect_counter = $check_statement::detect_counter + 1;
+	    		
 	    		$check_statement::has_always = true;
 	    		$check_statement::info.hasAlways = true;
 	    		stepFactory.startAlways($check_statement::info, true);
+	    		$check_statement::startSymbol = "always";
 	    	}
-	    	block[true] 
-	    	
-	    	END
-	    	{
-	    		stepFactory.endAlways($check_statement::info);
-	    	}
+	    	block[true]
 	    	)? 
+
+	    |   //always statements with no detect statements.
+	    	always=ALWAYS 
 	    	{
+		    	$check_statement::info.checkJump.setBeginLine($always.getLine());
+			stepFactory.endCheck($check_statement::info);
+			
+	    		$check_statement::has_always = true;
+	    		$check_statement::info.hasAlways = true;
+	    		stepFactory.startAlways($check_statement::info, true);
+	    		$check_statement::startSymbol = "always";
+	    	}
+	    
+	    	block[true]
+	)
+	end=END
+    	{
+    		if($check_statement::startSymbol.equals("always")){
+	    		stepFactory.endAlways($check_statement::info);
+		}else{
+			$check_statement::detectJump.setBeginLine($end.getLine());
+	    		stepFactory.endDetect($check_statement::info, $check_statement::detect_counter);
+	    		$check_statement::detect_counter = $check_statement::detect_counter + 1;
+	    		
 	    		if ($check_statement::has_always == false) {
 	    			$check_statement::info.hasAlways = false;
 	    			stepFactory.startAlways($check_statement::info, false);
 	    			stepFactory.endAlways($check_statement::info);
-	    		}
-	    	}
-	    |   //always statements with no detect statements.
-	    	ALWAYS 
-	    	{
-	    		$check_statement::has_always = true;
-	    		$check_statement::info.hasAlways = true;
-	    		stepFactory.startAlways($check_statement::info, true);
-	    	}
-	    
-	    	block[true] END 
-	    	{
-	    		stepFactory.endAlways($check_statement::info);
-	    	}
-	)
-	    
-	{
+    			}
+		}
+
 		sub_counter--;
 		$check_statement::tempLabelCounter--;
 		if(sub_counter == 0){labelCounter++;}
