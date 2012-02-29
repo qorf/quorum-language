@@ -5,6 +5,8 @@
 package plugins.quorum.Libraries.Robots;
 
 import cbccore.create.CreateConnectException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -26,11 +28,19 @@ public class Robot {
     private int leftCliffAmount;
     private int leftFrontCliffAmount;
             
-    public void SetConnection() throws CreateConnectException
+    public void SetConnection() //throws CreateConnectException
     {
-        r = new cbccore.create.Create();
+        try {
+            r = new cbccore.create.Create();
+        } catch (CreateConnectException ex) {
+            Logger.getLogger(Robot.class.getName()).log(Level.SEVERE, null, ex);
+        }
         c = new cbccore.create.CliffState(rightCliff, rightFrontCliff, leftCliff, leftFrontCliff, rightCliffAmount, rightFrontCliffAmount, leftCliffAmount, leftFrontCliffAmount);
-        r.connect();
+        try {
+            r.connect();
+        } catch (CreateConnectException ex) {
+            Logger.getLogger(Robot.class.getName()).log(Level.SEVERE, null, ex);
+        }
         RuntimeException runtimeException = new RuntimeException("Compiled Code");
         //r.driveDirect(250, 250);
     }
