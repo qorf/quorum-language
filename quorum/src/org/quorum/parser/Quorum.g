@@ -145,7 +145,7 @@ import org.quorum.vm.interfaces.CompilerError;
             if (mte.expecting == Token.EOF) {
                 tokenName = "EOF";
                 if(getTokenErrorDisplay(re.token).equals("'end'")){
-                    message = " The end of the file was reached before all the code was evaluated. There may be an extraneous " + getTokenErrorDisplay(re.token);
+                    message = " The end of the file was reached before all the code was evaluated. There may be an extra " + getTokenErrorDisplay(re.token);
             	    error.setErrorType(ErrorType.EOF);
             	}else{
             	    message = "Missing or invalid statement at " + getTokenErrorDisplay(re.token);
@@ -179,11 +179,11 @@ import org.quorum.vm.interfaces.CompilerError;
                 tokenName = tokenNames[mte.expecting];
                 message = "mismatched input " + getTokenErrorDisplay(re.token)
                            + " expecting " + tokenName;
-                if(tokenName.equals("THEN")){
-                    message = "An 'else if' statement is missing the 'if' at line " + mte.line;
+                if(tokenName.equals("IF")){
+                    message = "An 'elseif' statement is missing the 'if' at line " + mte.line;
                     error.setErrorType(ErrorType.MISSING_IF);
                 }else if(tokenName.equals("END")){
-                    message = "An 'end' is missing.";
+                    message = "A loop, conditional, class, or action statement is missing an 'end'.";
                     error.setErrorType(ErrorType.EXPECTED_CLOSURE);
                 }else{
                     error.setErrorType(ErrorType.OTHER);
@@ -201,11 +201,11 @@ import org.quorum.vm.interfaces.CompilerError;
                     + " expecting " + tokenName;
             error.setErrorType(ErrorType.OTHER);
         } else if (re instanceof NoViableAltException) {
-            //NoViableAltException nvae = (NoViableAltException)e;
+            //NoViableAltException nvae = (NoViableAltException)re;
             // for development, can add "decision=<<"+nvae.grammarDecisionDescription+">>"
             // and "(decision="+nvae.decisionNumber+") and
             // "state "+nvae.stateNumber
-            message = "no viable alternative at input " + getTokenErrorDisplay(re.token);
+            message = "Incomplete or invalid statement at " + getTokenErrorDisplay(re.token);
             error.setErrorType(ErrorType.OTHER);
         } else if (re instanceof EarlyExitException) {
             //EarlyExitException eee = (EarlyExitException)e;
