@@ -23,9 +23,9 @@ public class File {
     private QuorumFile inst = new QuorumFile();
     
     /* -- class methods -- */
-    public double GetLastModifiedNative(String path) {
+    public double GetLastModifiedNative() {
         try {
-            return inst.GetLastModified(path);
+            return inst.GetLastModified();
         } catch (FileNotFoundException ex) {
             Logger.getLogger(File.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -33,75 +33,82 @@ public class File {
         return -1;
     }
     
-    public String GetDirectoryListingNative(String path) {
-        return inst.GetDirectoryListing(path);
+    public String GetDirectoryListingNative() {
+        return inst.GetDirectoryListing();
     }
     
     public int GetMode() {
         return inst.GetMode();
     }
     
-    public boolean IsDirectory(String path) {
-        return inst.IsDirectory(path);
+    public boolean IsDirectory() {
+        return inst.IsDirectory();
     }
     
-    public boolean IsHidden(String path) {
-        return inst.IsHidden(path);
+    public boolean IsHidden() {
+        return inst.IsHidden();
     }
     
-    public boolean Exists(String path) {
-        return inst.Exists(path);
+    public boolean Exists() {
+        return inst.Exists();
     }
     
-    public String GetName(String path) {
-        return inst.GetName(path);
+    public String GetName() {
+        return inst.GetName();
     }
     
-    public String GetExtension(String path) {
-        return inst.GetExtension(path);
+    public String GetExtension() {
+        return inst.GetExtension();
     }
     
-    public String GetParent(String path) {
-        return inst.GetParent(path);
+    public String GetParent() {
+        return inst.GetParent();
     }
     
-    public String GetURI(String path) {
-        return inst.GetURI(path);
+    public String GetURI() {
+        return inst.GetURI();
     }
     
-    public double GetFileSize(String path) {
-        return inst.GetFileSize(path);
+    public double GetFileSize() {
+        return inst.GetFileSize();
     }
     
-    public double GetFreeSpace(String path) {
-        return inst.GetFreeSpace(path);
+    public double GetFreeSpace() {
+        return inst.GetFreeSpace();
     }
     
-    public double GetTotalDiskSpace(String path) {
-        return inst.GetTotalDiskSpace(path);
+    public double GetTotalSpace() {
+        return inst.GetTotalSpace();
     }
     
-    public boolean CreateDirectory(String path) {
-        return inst.CreateDirectory(path);
+    public boolean CreateDirectory() {
+        return inst.CreateDirectory();
     }
     
-    public boolean Delete(String path) {
-        return inst.Delete(path);
+    public boolean Delete() {
+        return inst.Delete();
     }
     
-    public boolean Move(String oldPath, String newPath) {
-        return inst.Move(oldPath, newPath);
+    public boolean Move(String newPath) {
+        return inst.Move(newPath);
     }
     
     public String GetSystemNewline() {
         return System.getProperty("line.separator");
     }
     
+    public void SetPath(String path) {
+        inst.SetPath(path);
+    }
+    
+    public String GetPath() {
+        return inst.GetPath();
+    }
     
     /* -- instance methods -- */
-    public void OpenNative(String path, int mode, boolean append, boolean write) {
+    public void OpenNative(int mode, boolean append, boolean write) {
         try {
-            inst.Open(path, mode, append, write);
+            inst.Open(mode, append, write);
         } catch (FileNotFoundException ex) {
             Logger.getLogger(File.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {

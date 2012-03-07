@@ -30,6 +30,7 @@ public class QuorumFile implements QuorumFileInterface {
     protected int openMode = INVALID_MODE;
     protected boolean randomAccessWritable = false;
     protected File openFile;
+    protected File currentFile;
     protected long openFileLength = 0;
     protected boolean eof = false;
     protected BufferedReader reader;
@@ -37,56 +38,55 @@ public class QuorumFile implements QuorumFileInterface {
     protected RandomAccessFile randomAccess; // for random access mode only
     
     /* -- class methods -- */
-    public boolean IsDirectory(String path) {
-        File f = new File(path);
-        return f.isDirectory();
+    public void SetPath(String path){
+        currentFile = new File(path);
     }
     
-    public boolean IsFile(String path) {
-        File f = new File(path);
-        return f.isFile();
+    public String GetPath(){
+        return currentFile.getPath();
     }
     
-    public boolean IsHidden(String path) {
-        File f = new File(path);
-        return f.isHidden();
+    public boolean IsDirectory() {
+        return currentFile.isDirectory();
     }
     
-    public boolean Exists(String path) {
-        File f = new File(path);
-        return f.exists();
+    public boolean IsFile() {
+        return currentFile.isFile();
     }
     
-    public String GetName(String path) {
-        File f = new File(path);
-        return f.getName();
+    public boolean IsHidden() {
+        return currentFile.isHidden();
     }
     
-    public String GetExtension(String path) {
-        File f = new File(path);
+    public boolean Exists() {
+        return currentFile.exists();
+    }
+    
+    public String GetName() {
+        return currentFile.getName();
+    }
+    
+    public String GetExtension() {
         
         // The path may not contain an extension (or may not be a file)
-        if (!path.contains(".") || !f.isFile())
+        if (!currentFile.getPath().contains(".") || !currentFile.isFile())
             return "";
         
-        String name = f.getName();
+        String name = currentFile.getName();
         int pos = name.lastIndexOf('.');
         return name.substring(pos+1);
     }
     
-    public String GetParent(String path) {
-        File f = new File(path);
-        return f.getParent();
+    public String GetParent() {
+        return currentFile.getParent();
     }
     
-    public String GetURI(String path) {
-        File f = new File(path);
-        return f.toURI().toString();
+    public String GetURI() {
+        return currentFile.toURI().toString();
     }
 
-    public long GetFileSize(String path) {
-        File f = new File(path);
-        return f.length();
+    public long GetFileSize() {
+        return currentFile.length();
     }
     
     /**
@@ -95,30 +95,25 @@ public class QuorumFile implements QuorumFileInterface {
      * @param path
      * @return 
      */
-    public long GetLastModified(String path) throws FileNotFoundException {
-        File f = new File(path);
-        
-        if (!f.exists())
+    public long GetLastModified() throws FileNotFoundException {
+        if (!currentFile.exists())
             throw new FileNotFoundException();
         
-        return f.lastModified();
+        return currentFile.lastModified();
     }
     
-    public long GetFreeSpace(String path) {
-        File f = new File(path);
-        return f.getFreeSpace();
+    public long GetFreeSpace() {
+        return currentFile.getFreeSpace();
     }
     
-    public long GetTotalDiskSpace(String path) {
-        File f = new File(path);
-        return f.getTotalSpace();
+    public long GetTotalSpace() {
+        return currentFile.getTotalSpace();
     }
     
-    public String GetDirectoryListing(String path) {
-        File f = new File(path);
+    public String GetDirectoryListing() {
         String listing = "";
         String newline = System.getProperty("line.separator");
-        String[] list = f.list();
+        String[] list = currentFile.list();
         
         for (int x = 0; x < list.length; x++) {
             listing = listing + list[x] + newline;
@@ -127,19 +122,16 @@ public class QuorumFile implements QuorumFileInterface {
         return listing;
     }
     
-    public boolean CreateDirectory(String path) {
-        File f = new File(path);
-        return f.mkdir();
+    public boolean CreateDirectory() {
+        return currentFile.mkdir();
     }
     
-    public boolean Delete(String path) {
-        File f = new File(path);
-        return f.delete();
+    public boolean Delete() {
+        return currentFile.delete();
     }
     
-    public boolean Move(String oldPath, String newPath) {
-        File f = new File(oldPath);
-        return f.renameTo(new File(newPath));
+    public boolean Move(String newPath) {
+        return currentFile.renameTo(new File(newPath));
     }
     
     /* -- instance methods -- */
@@ -152,10 +144,10 @@ public class QuorumFile implements QuorumFileInterface {
      * @param append - if mode is 2 (write), if true file is not erased if it already exists--it is appended to.
      * @return error code. 
      */
-    public void Open(String path, int mode, boolean append, boolean write) throws FileNotFoundException, IOException, IllegalArgumentException {
-        if (path == null)
+    public void Open(int mode, boolean append, boolean write) throws FileNotFoundException, IOException, IllegalArgumentException {
+        if (currentFile.getPath() == null)
             throw new IllegalArgumentException("The path specified is not valid.");
-        else if (path.trim().isEmpty())
+        else if (currentFile.getPath().trim().isEmpty())
             throw new IllegalArgumentException("The path specified is not valid.");
         
         // Do we have a file open already? If so, bail out.
@@ -165,14 +157,14 @@ public class QuorumFile implements QuorumFileInterface {
         // Which mode is it?
         if (mode == READ_MODE) {
             // Open file for reading.
-            openFile = new File(path);
+            openFile = currentFile;
             reader = new BufferedReader(new FileReader(openFile));
             openMode = READ_MODE;
             openFileLength = openFile.length();
         }
         else if (mode == WRITE_MODE) {
             // Open file for writing.
-            openFile = new File(path);
+            openFile = currentFile;
             writer = new BufferedWriter(new FileWriter(openFile, append));
             openMode = WRITE_MODE;
             
@@ -183,7 +175,7 @@ public class QuorumFile implements QuorumFileInterface {
         }
         else if (mode == RANDOM_ACCESS_MODE) {
             // Open file for random access
-            openFile = new File(path);
+            openFile = currentFile;
             randomAccessWritable = write;
             
             if (write)
