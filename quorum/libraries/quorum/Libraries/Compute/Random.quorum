@@ -111,7 +111,8 @@ class Random
     end
 
     /*
-    This action returns a random integer between minimum and maximum.
+    This action returns a random integer between minimum and maximum. Minimum
+    and maximum are inclusive.
 
     Attribute: Parameter minimum The minimum number to be generated.
     Attribute: Parameter maximum The maximum number to be generated.
@@ -132,15 +133,13 @@ class Random
             OutOfBoundsError e
             e:SetErrorMessage("The minimum and maximum numbers must be greater than or equal to zero.")
             alert(e)
-        elseif (maximum - minimum - 1) <= 0
-            // Covers the case of someone calling random:RandomIntegerBetween(0, 1)
-            // -- there is no integer between these two values.
+        elseif (maximum - minimum) <= 0
             OutOfBoundsError e
             e:SetErrorMessage("There is no integer between " + minimum + " and " + maximum + ".")
             alert(e)
         end
 
-        return me:RandomInteger(maximum - minimum) + minimum + 1
+        return me:RandomInteger(maximum - minimum) + minimum
     end
 
     /*

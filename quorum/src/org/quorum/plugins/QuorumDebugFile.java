@@ -57,13 +57,12 @@ public class QuorumDebugFile extends QuorumFile {
     
     /* -- class methods -- */
     @Override
-    public boolean CreateDirectory(String path) {
-        File f = new File(path);
-        boolean result = f.mkdir();
+    public boolean CreateDirectory() {
+        boolean result = currentFile.mkdir();
         
         if (result) {
             // Keep track of this directory, since we created it.
-            directories.add(path);
+            directories.add(currentFile.getPath());
         }
         
         return result;
@@ -114,16 +113,15 @@ public class QuorumDebugFile extends QuorumFile {
      * Disadvantage: If the program terminates improperly, "deleted" files
      * will clutter the disk.
      */
-    public boolean Delete(String path) {
-        String newPath = path + ".quorumdeleted" + System.currentTimeMillis();
+    public boolean Delete() {
+        String newPath = currentFile.getPath() + ".quorumdeleted" + System.currentTimeMillis();
         
-        File f = new File(path);
-        boolean result = f.renameTo(new File(newPath));
+        boolean result = currentFile.renameTo(new File(newPath));
         
         // If this succeeded, store it.
         if (result) {
             MoveRecord rec = new MoveRecord();
-            rec.from = path;
+            rec.from = currentFile.getPath();
             rec.to = newPath;
             deletes.add(rec);
         }
@@ -142,9 +140,9 @@ public class QuorumDebugFile extends QuorumFile {
         
     }
     @Override
-    public boolean Move(String oldPath, String newPath) {
-        File f = new File(oldPath);
-        boolean result = f.renameTo(new File(newPath));
+    public boolean Move(String newPath) {
+        String oldPath = currentFile.getPath();
+        boolean result = currentFile.renameTo(new File(newPath));
         
         // If this succeeded, store it.
         if (result) {
@@ -177,7 +175,8 @@ public class QuorumDebugFile extends QuorumFile {
      * @return error code. 
      */
     @Override
-    public void Open(String path, int mode, boolean append, boolean write) throws FileNotFoundException, IOException, IllegalArgumentException {        
+    public void Open(int mode, boolean append, boolean write) throws FileNotFoundException, IOException, IllegalArgumentException {      
+        String path = currentFile.getPath();
         if (path == null)
             throw new IllegalArgumentException("The path specified is not valid.");
         else if (path.trim().isEmpty())
@@ -239,7 +238,7 @@ public class QuorumDebugFile extends QuorumFile {
         // Did this file exist before we created it? If not, delete it.
         if (((curDescriptor.fileMode == RANDOM_ACCESS_MODE && curDescriptor.writable) ||
                 curDescriptor.fileMode == WRITE_MODE) && !curDescriptor.existed) {
-            Delete(curDescriptor.filePath);
+            curDescriptor.file.delete();
         }
         
         // No file is open now.

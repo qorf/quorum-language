@@ -29,139 +29,129 @@ class File
     private integer RANDOM_ACCESS_MODE = 3
 
     /* -- class methods -- */
-    private system action GetLastModifiedNative(text path) returns number
-    private system action GetDirectoryListingNative(text path) returns text
+    private system action GetLastModifiedNative returns number
+    private system action GetDirectoryListingNative returns text
     private system action GetMode() returns integer
 
     /*
-    This action returns true if the given path is a directory and false if it is not.
-    
-    Attribute: Parameter path The path to an item.
+    This action returns true if the path of a file object is a directory and false if it is not. A directory is a folder on your computers hard disk.
 
     Attribute: Returns Returns true if the path is a directory and false if it is not.
 
     Attribute: Example
     File myFile
-    boolean result = myFile:IsDirectory("/users/melissa/test.txt")
+    myFile:SetPath("/users/melissa/text.txt")
+    boolean result = myFile:IsDirectory()
     */
-    system action IsDirectory(text path) returns boolean
+    system action IsDirectory returns boolean
 
     /*
-    This action returns true if the given path is a hidden file and false if it is not.
-    
-    Attribute: Parameter path The path to an item.
+    This action returns true if the file is a hidden file and false if it is not. Hidden is a property of a file that makes that file invisible to the user.
 
     Attribute: Returns Returns true if the path is hidden and false if it is not.
 
     Attribute: Example
     File myFile
-    boolean result = myFile:IsHidden("/users/melissa/test.txt")
+    myFile:SetPath("/users/melissa/text.txt")
+    boolean result = myFile:IsHidden()
     */
-    system action IsHidden(text pah) returns boolean
+    system action IsHidden returns boolean
 
     /*
-    This action returns true if the given path exists and false if it does not.
-    
-    Attribute: Parameter path The path to an item.
+    This action returns true if the file can be found at the location specified and false if it cannot not.
 
     Attribute: Returns Returns true if the path exists and false if it does not.
 
     Attribute: Example
     File myFile
-    boolean result = myFile:Exists("/users/melissa/test.txt")
+    myFile:SetPath("/users/melissa/text.txt")
+    boolean result = myFile:Exists()
     */
-    system action Exists(text path) returns boolean
+    system action Exists returns boolean
 
     /*
-    This action gets the name of the file.
-    
-    Attribute: Parameter path The path to the file.
+    This action gets the name of the file or directory specified in the path. This is the last node in the path so if your path is "/users/melissa/text.txt" the name is "text.txt".
 
     Attribute: Returns Returns the name of the file.
 
     Attribute: Example
     File myFile
-    text name = myFile:GetName("/users/melissa/test.txt")
+    myFile:SetPath("/users/melissa/text.txt")
+    text name = myFile:GetName()
     */
-    system action GetName(text path) returns text
+    system action GetName returns text
 
     /*
-    This action gets the extension of the file.
-    
-    Attribute: Parameter path The path to the file.
+    This action gets the extension of the file path. For example, if the path is "/users/melissa/text.txt" then "txt" will be returned. If the path is a directory or does not have an extention an empty text value is returned.
 
     Attribute: Returns Returns the extension of the given file.
 
     Attribute: Example
     File myFile
-    text extension = myFile:GetExtension("/users/melissa/test.txt")
+    myFile:SetPath("/users/melissa/text.txt")
+    text extension = myFile:GetExtension()
     */
-    system action GetExtension(text path) returns text
+    system action GetExtension returns text
 
     /*
-    This action gets the parent of the file given as the path.
-    
-    Attribute: Parameter path The path to the file.
+    This action gets the parent of the file given as the path. This means one less node on the absolute path is returned. If there is no parent directory, an empty text value is returned.
 
     Attribute: Returns Returns the parent of the file.
 
     Attribute: Example
     File myFile
-    text parent = myFile:GetParent("/users/melissa/test.txt")
+    myFile:SetPath("/users/melissa/text.txt")
+    text parent = myFile:GetParent()
     */
-    system action GetParent(text path) returns text
+    system action GetParent returns text
 
     /*
     This action gets the URI.
-    
-    Attribute: Parameter path The path to the file.
 
     Attribute: Returns Returns the URI.
 
     Attribute: Example
     File myFile
-    text URI = myFile:GetURI("/users/melissa/test.txt")
+    myFile:SetPath("/users/melissa/text.txt")
+    text URI = myFile:GetURI()
     */
-    system action GetURI(text path) returns text
+    system action GetURI returns text
 
     /*
     This action gets the size of the file in bytes.
-    
-    Attribute: Parameter path The path to the file.
 
     Attribute: Returns Returns file size.
 
     Attribute: Example
     File myFile
-    integer size = myFile:GetFileSize("/users/melissa/test.txt")
+    myFile:SetPath("/users/melissa/text.txt")
+    integer size = myFile:GetFileSize()
     */
-    system action GetFileSize(text path) returns number
+    system action GetFileSize returns number
 
     /*
-    This action gets the free space available in bytes.
-    
-    Attribute: Parameter path The path to the file.
+    This action gets the free space available in bytes in the partition at the given path of the file.
 
     Attribute: Returns Returns the free space.
 
     Attribute: Example
     File myFile
-    integer size = myFile:GetFreeSpace("/users/melissa/test.txt")
+    myFile:SetPath("/users/melissa/text.txt")
+    integer size = myFile:GetFreeSpace()
     */
-    system action GetFreeSpace(text path) returns number
+    system action GetFreeSpace returns number
 
     /*
-    This action gets the total disk space in bytes.
-    
-    Attribute: Parameter path The path to the file.
+    This action gets the total disk space in the partition at the given path of the file, in bytes.
 
     Attribute: Returns Returns the total disk space.
 
     Attribute: Example
     File myFile
-    integer size = myFile:GetTotalDiskSpace("/users/melissa/test.txt")
+    myFile:SetPath("/users/melissa/text.txt")
+    integer size = myFile:GetTotalSpace()
     */
-    system action GetTotalDiskSpace(text path) returns number
+    system action GetTotalSpace returns number
 
     /*
     This action creates a given directory.
@@ -174,7 +164,7 @@ class File
     File myFile
     boolean created = myFile:CreateDirectory("/users/melissa/test.txt")
     */
-    system action CreateDirectory(text path) returns boolean
+    system action CreateDirectory returns boolean
 
     /*
     This action deletes a given file.
@@ -187,7 +177,7 @@ class File
     File myFile
     boolean deleted = myFile:Delete("/users/melissa/test.txt")
     */
-    system action Delete(text path) returns boolean
+    system action Delete returns boolean
 
     /*
     This action moves a given file to another location and returns true if it was moved.
@@ -202,7 +192,7 @@ class File
     File myFile
     boolean moved = myFile:Move("/users/melissa/test.txt", "/users/andy/test.txt")
     */
-    system action Move(text oldPath, text newPath) returns boolean
+    system action Move(text newPath) returns boolean
 
     /*
     This action gets the current systems newline symbol.
@@ -215,7 +205,7 @@ class File
     text newline = myFile:GetSystemNewline()
     myFile:Close()
     */
-    system action GetSystemNewline() returns text
+    system action GetSystemNewline returns text
 
     /*
     This action determines if a path is to a file.
@@ -228,8 +218,8 @@ class File
     File myFile
     boolean result = myFile:IsFile("/users/melissa/test.txt")
     */
-    action IsFile(text path) returns boolean
-        return not IsDirectory(path)
+    action IsFile returns boolean
+        return not IsDirectory()
     end
 
     /*
@@ -243,10 +233,10 @@ class File
     File myFile
     Array<text> results = myFile:GetDirectoryListing("/users/melissa")
     */
-    action GetDirectoryListing(text path) returns Array<text>
+    action GetDirectoryListing returns Array<text>
         Text listingString
         
-        listingString:SetValue(GetDirectoryListingNative(path))
+        listingString:SetValue(GetDirectoryListingNative())
         return listingString:Split(GetSystemNewline())
     end
 
@@ -261,15 +251,15 @@ class File
     File myFile
     DateTime modified = myFile:GetLastModified("/users/melissa/test.txt")
     */
-    action GetLastModified(text path) returns DateTime
+    action GetLastModified returns DateTime
         DateTime date
         
-        date:SetEpochTime(GetLastModifiedNative(path))
+        date:SetEpochTime(GetLastModifiedNative())
         return date
     end
 
     /* -- instance methods -- */
-    private system action OpenNative(text path, integer mode, boolean append, boolean write)
+    private system action OpenNative(integer mode, boolean append, boolean write)
     
     /*
     This action determines if the end of the file has been reached.
@@ -282,7 +272,16 @@ class File
     boolean eof = myFile:IsEndOfFile()
     myFile:Close()
     */
-    system action IsEndOfFile() returns boolean
+    system action IsEndOfFile returns boolean
+
+
+
+    system action GetPath returns text
+    system action SetPath(text path)
+
+
+
+
 
     /*
     This action determines the current position in the file(note: the count is 
@@ -297,7 +296,7 @@ class File
     number position = myFile:GetPosition()
     myFile:Close()
     */
-    system action GetPosition() returns number
+    system action GetPosition returns number
 
     /*
     This action sets the current position in the file(note: the count is 
@@ -324,7 +323,7 @@ class File
     text result = myFile:Read()
     myFile:Close()
     */
-    system action Read() returns text
+    system action Read returns text
 
     /*
     This action reads a given number of characters from a file.
@@ -352,7 +351,7 @@ class File
     text result = myFile:ReadLine()
     myFile:Close()
     */
-    system action ReadLine() returns text
+    system action ReadLine returns text
 
     /*
     This action writes given text to an opened file.
@@ -390,7 +389,7 @@ class File
     myFile:Rewind()
     myFile:Close()
     */
-    system action Rewind()
+    system action Rewind
 
     /*
     The action forces the contents of the file stream to be written to 
@@ -403,7 +402,7 @@ class File
     myFile:Rewind()
     myFile:Close()
     */
-    system action ForceWriteContents()
+    system action ForceWriteContents
 
     /*
     This action closes an opened file.
@@ -415,7 +414,7 @@ class File
     myFile:OpenForRandomAccess("/users/melissa/test.txt", true)
     boolean success = myFile:Close()
     */
-    system action Close() returns boolean
+    system action Close returns boolean
 
     /*
     This action opens a file for read only.
@@ -427,8 +426,8 @@ class File
     myFile:OpenForRead("/users/melissa/test.txt")
     myFile:Close()
     */
-    action OpenForRead(text path)
-        OpenNative(path, READ_MODE, false, false)
+    action OpenForRead
+        OpenNative(READ_MODE, false, false)
     end
     
     /*
@@ -444,8 +443,8 @@ class File
     myFile:OpenForWrite("/users/melissa/test.txt", true)
     myFile:Close()
     */
-    action OpenForWrite(text path, boolean append)
-        OpenNative(path, WRITE_MODE, append, true)
+    action OpenForWrite(boolean append)
+        OpenNative(WRITE_MODE, append, true)
     end
 
     /*
@@ -460,8 +459,8 @@ class File
     myFile:OpenForRandomAccess("/users/melissa/test.txt", true)
     myFile:Close()
     */
-    action OpenForRandomAccess(text path, boolean write)
-        OpenNative(path, RANDOM_ACCESS_MODE, false, write)
+    action OpenForRandomAccess(boolean write)
+        OpenNative(RANDOM_ACCESS_MODE, false, write)
     end
 
     /*
@@ -475,7 +474,7 @@ class File
     Array<text> lines = myFile:ReadLines()
     myFile:Close()
     */
-    action ReadLines() returns Array<text>
+    action ReadLines returns Array<text>
         if me:IsEndOfFile()
             EndOfFileError e
             alert(e)

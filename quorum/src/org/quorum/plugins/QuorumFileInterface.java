@@ -14,23 +14,23 @@ import java.io.IOException;
  */
 public interface QuorumFileInterface {
     /* -- class methods -- */
-    public boolean IsDirectory(String path);
+    public boolean IsDirectory();
     
-    public boolean IsFile(String path);
+    public boolean IsFile();
     
-    public boolean IsHidden(String path);
+    public boolean IsHidden();
     
-    public boolean Exists(String path);
+    public boolean Exists();
     
-    public String GetName(String path);
+    public String GetName();
 
-    public String GetExtension(String path);
+    public String GetExtension();
     
-    public String GetParent(String path);
+    public String GetParent();
     
-    public String GetURI(String path);
+    public String GetURI();
 
-    public long GetFileSize(String path);
+    public long GetFileSize();
     
     /**
      * Returns the unix timestamp of the time the file was last modified.
@@ -38,19 +38,23 @@ public interface QuorumFileInterface {
      * @param path
      * @return 
      */
-    public long GetLastModified(String path) throws FileNotFoundException;
+    public long GetLastModified() throws FileNotFoundException;
     
-    public long GetFreeSpace(String path);
+    public long GetFreeSpace();
     
-    public long GetTotalDiskSpace(String path);
+    public long GetTotalSpace();
     
-    public String GetDirectoryListing(String path);
+    public String GetDirectoryListing();
     
-    public boolean CreateDirectory(String path);
+    public boolean CreateDirectory();
     
-    public boolean Delete(String path);
+    public boolean Delete();
     
-    public boolean Move(String oldPath, String newPath);
+    public boolean Move(String newPath);
+    
+    public void SetPath(String path);
+    
+    public String GetPath();
     
     /* -- instance methods -- */
     
@@ -62,7 +66,7 @@ public interface QuorumFileInterface {
      * @param append - if mode is 2 (write), if true file is not erased if it already exists--it is appended to.
      * @return error code. 
      */
-    public void Open(String path, int mode, boolean append, boolean write) throws FileNotFoundException, IOException, IllegalArgumentException;
+    public void Open(int mode, boolean append, boolean write) throws FileNotFoundException, IOException, IllegalArgumentException;
     
     /**
      * Close the file.

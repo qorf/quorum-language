@@ -29,7 +29,7 @@ public class FilePlugin implements Plugin {
     
     /* -- instance methods -- */
     public static final String GET_MODE = "GetMode";
-    public static final String OPEN_NATIVE = "OpenNative:text:integer:boolean:boolean";
+    public static final String OPEN_NATIVE = "OpenNative:integer:boolean:boolean";
     public static final String CLOSE = "Close";
     public static final String READ = "Read";
     public static final String READ_WITH_AMOUNT = "Read:integer";
@@ -43,22 +43,24 @@ public class FilePlugin implements Plugin {
     public static final String FORCE_WRITE_CONTENTS = "ForceWriteContents";
     
     /* -- class methods -- */
-    public static final String GET_LAST_MODIFIED_NATIVE = "GetLastModifiedNative:text";
-    public static final String GET_DIRECTORY_LISTING_NATIVE = "GetDirectoryListingNative:text";
-    public static final String IS_DIRECTORY = "IsDirectory:text";
-    public static final String IS_HIDDEN = "IsHidden:text";
-    public static final String EXISTS = "Exists:text";
-    public static final String GET_NAME = "GetName:text";
-    public static final String GET_EXTENSION = "GetExtension:text";
-    public static final String GET_PARENT = "GetParent:text";
-    public static final String GET_URI = "GetURI:text";
-    public static final String GET_FILE_SIZE = "GetFileSize:text";
-    public static final String GET_FREE_SPACE = "GetFreeSpace:text";
-    public static final String GET_TOTAL_DISK_SPACE = "GetTotalDiskSpace:text";
-    public static final String CREATE_DIRECTORY = "CreateDirectory:text";
-    public static final String DELETE = "Delete:text";
-    public static final String MOVE = "Move:text:text";
+    public static final String GET_LAST_MODIFIED_NATIVE = "GetLastModifiedNative";
+    public static final String GET_DIRECTORY_LISTING_NATIVE = "GetDirectoryListingNative";
+    public static final String IS_DIRECTORY = "IsDirectory";
+    public static final String IS_HIDDEN = "IsHidden";
+    public static final String EXISTS = "Exists";
+    public static final String GET_NAME = "GetName";
+    public static final String GET_EXTENSION = "GetExtension";
+    public static final String GET_PARENT = "GetParent";
+    public static final String GET_URI = "GetURI";
+    public static final String GET_FILE_SIZE = "GetFileSize";
+    public static final String GET_FREE_SPACE = "GetFreeSpace";
+    public static final String GET_TOTAL_SPACE = "GetTotalSpace";
+    public static final String CREATE_DIRECTORY = "CreateDirectory";
+    public static final String DELETE = "Delete";
+    public static final String MOVE = "Move:text";
     public static final String GET_SYSTEM_NEWLINE = "GetSystemNewline";
+    public static final String GET_PATH = "GetPath";
+    public static final String SET_PATH = "SetPath:text";
     
     protected HashMap<Integer, QuorumFileInterface> instances;
 
@@ -129,12 +131,11 @@ public class FilePlugin implements Plugin {
             setPluginReturnValue(ret, inst.GetMode());
         }
         else if (action.equals(OPEN_NATIVE)) {
-            String path = call.getArgument("path").getResult().text;
             int mode = call.getArgument("mode").getResult().integer;
             boolean append = call.getArgument("append").getResult().boolean_value;
             boolean write = call.getArgument("write").getResult().boolean_value;
             try {
-                inst.Open(path, mode, append, write);
+                inst.Open(mode, append, write);
             } catch (IllegalArgumentException ex) {
                 throwQuorumException("InvalidArgumentError: " + ex.getMessage(), ErrorTypeDescriptor.getInvalidArgumentError());
             } catch (FileNotFoundException ex) {
@@ -241,72 +242,64 @@ public class FilePlugin implements Plugin {
             }
         }
         else if (action.equals(GET_LAST_MODIFIED_NATIVE)) {
-            String path = call.getArgument("path").getResult().text;
             try {
-                long time = inst.GetLastModified(path);
+                long time = inst.GetLastModified();
             } catch (FileNotFoundException ex) {
                 throwQuorumException("FileNotFoundError: The requested file was not found on disk.", ErrorTypeDescriptor.getFileNotFoundError());
             }
         }
         else if (action.equals(GET_DIRECTORY_LISTING_NATIVE)) {
-            String path = call.getArgument("path").getResult().text;
-            setPluginReturnValue(ret, inst.GetDirectoryListing(path));
+            setPluginReturnValue(ret, inst.GetDirectoryListing());
         }
         else if (action.equals(IS_DIRECTORY)) {
-            String path = call.getArgument("path").getResult().text;
-            setPluginReturnValue(ret, inst.IsDirectory(path));
+            setPluginReturnValue(ret, inst.IsDirectory());
         }
         else if (action.equals(IS_HIDDEN)) {
-            String path = call.getArgument("path").getResult().text;
-            setPluginReturnValue(ret, inst.IsHidden(path));
+            setPluginReturnValue(ret, inst.IsHidden());
         }
         else if (action.equals(EXISTS)) {
-            String path = call.getArgument("path").getResult().text;
-            setPluginReturnValue(ret, inst.Exists(path));
+            setPluginReturnValue(ret, inst.Exists());
         }
         else if (action.equals(GET_NAME)) {
-            String path = call.getArgument("path").getResult().text;
-            setPluginReturnValue(ret, inst.GetName(path));
+            setPluginReturnValue(ret, inst.GetName());
         }
         else if (action.equals(GET_EXTENSION)) {
-            String path = call.getArgument("path").getResult().text;
-            setPluginReturnValue(ret, inst.GetExtension(path));
+            setPluginReturnValue(ret, inst.GetExtension());
         }
         else if (action.equals(GET_PARENT)) {
-            String path = call.getArgument("path").getResult().text;
-            setPluginReturnValue(ret, inst.GetParent(path));
+            setPluginReturnValue(ret, inst.GetParent());
         }
         else if (action.equals(GET_URI)) {
-            String path = call.getArgument("path").getResult().text;
-            setPluginReturnValue(ret, inst.GetURI(path));
+            setPluginReturnValue(ret, inst.GetURI());
         }
         else if (action.equals(GET_FILE_SIZE)) {
-            String path = call.getArgument("path").getResult().text;
-            setPluginReturnValue(ret, inst.GetFileSize(path));
+            setPluginReturnValue(ret, inst.GetFileSize());
         }
         else if (action.equals(GET_FREE_SPACE)) {
-            String path = call.getArgument("path").getResult().text;
-            setPluginReturnValue(ret, inst.GetFreeSpace(path));
+            setPluginReturnValue(ret, inst.GetFreeSpace());
         }
-        else if (action.equals(GET_TOTAL_DISK_SPACE)) {
-            String path = call.getArgument("path").getResult().text;
-            setPluginReturnValue(ret, inst.GetTotalDiskSpace(path));
+        else if (action.equals(GET_TOTAL_SPACE)) {
+            setPluginReturnValue(ret, inst.GetTotalSpace());
         }
         else if (action.equals(CREATE_DIRECTORY)) {
-            String path = call.getArgument("path").getResult().text;
-            setPluginReturnValue(ret, inst.CreateDirectory(path));
+            setPluginReturnValue(ret, inst.CreateDirectory());
         }
         else if (action.equals(DELETE)) {
-            String path = call.getArgument("path").getResult().text;
-            setPluginReturnValue(ret, inst.Delete(path));
+            setPluginReturnValue(ret, inst.Delete());
         }
         else if (action.equals(MOVE)) {
-            String oldPath = call.getArgument("oldPath").getResult().text;
             String newPath = call.getArgument("newPath").getResult().text;
-            setPluginReturnValue(ret, inst.Move(oldPath, newPath));
+            setPluginReturnValue(ret, inst.Move(newPath));
         }
         else if (action.equals(GET_SYSTEM_NEWLINE)) {
             setPluginReturnValue(ret, System.getProperty("line.separator"));
+        }
+        else if (action.equals(GET_PATH)){
+            setPluginReturnValue(ret, inst.GetPath());
+        }
+        else if (action.equals(SET_PATH)){
+            String path = call.getArgument("path").getResult().text;
+            inst.SetPath(path);
         }
         return ret;
     }
