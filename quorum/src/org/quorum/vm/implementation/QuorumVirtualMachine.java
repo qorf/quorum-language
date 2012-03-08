@@ -1019,18 +1019,22 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         if(clazz != null) {
             MethodDescriptor method = clazz.getMethodAtLine(request.getLineNumber());
             //if the method is null, it must be a class variable (or garbage)
-            
+            boolean isMe = false;
             if(method != null) {
                 if(split.length == 1) {
                     String left = split[0];
+                    if(left.equals(me)){
+                        isMe = true;
+                    }
                     if(left.equals(me) || result.getFilter().length() > 0) {
-                        addClassToResult(result, clazz);
+                        addClassToResult(result, clazz, isMe);
                     }
                     if(left.equals(parent)) {
                         addParentClasses(result, clazz);
                     }
                     else if(left.matches("\\s*")) {
-                        addClassToResult(result, clazz);
+                        isMe = true;
+                        addClassToResult(result, clazz, isMe);
                     }
                     else {
                         VariableParameterCommonDescriptor variable = method.getVariable(left);
@@ -1054,7 +1058,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                             String resolvedName = clazz.resolveParentName(split[1]);
                             ClassDescriptor par = clazz.getParent(resolvedName);
                             if(par != null) {
-                                addClassToResult(result, par);
+                                addClassToResult(result, par, isMe);
                             }
                         }
                         else if(split.length == 2) {
@@ -1062,7 +1066,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                                 String resolvedName = clazz.resolveParentName(split[1]);
                                 ClassDescriptor par = clazz.getParent(resolvedName);
                                 if(par != null) {
-                                    addClassToResult(result, par);
+                                    addClassToResult(result, par, isMe);
                                 }
                             }
                             else {
@@ -1072,7 +1076,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                         
                     }
                     else if(left.equals(me)) {
-                        addClassToResult(result, clazz);
+                        isMe = true;
+                        addClassToResult(result, clazz, isMe);
                     }
                     else { //This should work until chaining is in place.
                         VariableParameterCommonDescriptor variable = method.getVariable(left);
@@ -1168,13 +1173,18 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 clazz = validatedClassUse;
             }
         }
-        addClassToResult(result, clazz);
+        addClassToResult(result, clazz, false);
     }
     
-    private void addClassToResult(CodeCompletionResult result, ClassDescriptor clazz) {
+    private void addClassToResult(CodeCompletionResult result, ClassDescriptor clazz, boolean isCurrentClass) {
         if(clazz != null) {
             //add all of its methods
             Collection<MethodDescriptor> allMethods = clazz.getAllMethods(AccessModifierEnum.PUBLIC);
+            
+            if(isCurrentClass){
+                allMethods = clazz.getAllMethods();
+            }
+            
             Iterator<MethodDescriptor> iterator = allMethods.iterator();
             while(iterator.hasNext()) {
                 MethodDescriptor method = iterator.next();
