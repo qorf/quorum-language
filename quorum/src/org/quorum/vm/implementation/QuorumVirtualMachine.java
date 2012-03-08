@@ -882,9 +882,12 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         line = line.trim();
         String sub = request.getLine().substring(0, request.getStartOffset());
         boolean isDot = false;
-        char c = sub.charAt(sub.length() - 1);
-        if(c == '.') {
-            isDot = true;
+        
+        if(sub.length() > 0){
+            char c = sub.charAt(sub.length() - 1);
+            if(c == '.') {
+                isDot = true;
+            }
         }
         
         boolean useStart = line.startsWith(USE);
