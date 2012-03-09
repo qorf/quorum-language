@@ -1182,6 +1182,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     
     private void addClassToResult(CodeCompletionResult result, ClassDescriptor clazz, boolean isCurrentClass) {
         if(clazz != null) {
+            addVariablesToResults(result, clazz, isCurrentClass);
+            
             //add all of its methods
             Collection<MethodDescriptor> allMethods = clazz.getAllMethods(AccessModifierEnum.PUBLIC);
             
@@ -1221,7 +1223,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 item.setCompletion(method.getName());
                 result.add(item);
             }
-            addVariablesToResults(result, clazz, isCurrentClass);
         }
     }
     
@@ -1246,8 +1247,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                         displayType = type.getStaticKey();
                     }
                 }
+                String description = variable.getAccessModifier().toString() + " " + displayType + " " + signature;
                 
-                String description = "";
                 String[] paragraphs = Documentation.breakStringIntoParagraphArray(variable.getDocumentation().getDescription());
                 for(int i = 0; i < paragraphs.length; i++) {
                     description += "<p>" + paragraphs[i] + "</p>";
