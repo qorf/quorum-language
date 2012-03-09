@@ -1222,23 +1222,19 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         while (iterator.hasNext()) {
             VariableDescriptor variable = iterator.next();
 
-
             String signature = variable.getName();
             String completionText = signature;
             if (clazz.getVariable(variable.getStaticKey()) != null) {
                 signature = variable.getName();
                 addVariableCompletionItem(variable, signature, result, new CodeCompletionItem());
             } else { //variable is in a parent
-                //Iterator<ClassDescriptor> flattenedListOfParents = clazz.getFlattenedListOfParents();
-                //while (flattenedListOfParents.hasNext()) {
-                 for(int i = 0; i < clazz.getNumFlatParents(); i++) {
+                for (int i = 0; i < clazz.getNumFlatParents(); i++) {
                     ClassDescriptor next = clazz.getFlatParent(i);
                     if (next.getVariable(variable.getStaticKey()) != null) {
                         signature = "parent:" + next.getName() + ":" + variable.getName();
                         addVariableCompletionItem(variable, signature, result, new CodeCompletionItem());
                     }
-                 }
-                //}
+                }
             }
         }
     }
