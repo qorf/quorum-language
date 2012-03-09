@@ -82,7 +82,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private static final String USE = "use";
     private static final Logger logger = Logger.getLogger(QuorumVirtualMachine.class.getName());
     //private BuildManager buildManager;
-    
+
     public QuorumVirtualMachine() {
         compilerErrors = new CompilerErrorManager();
         builder = new IntermediateExecutionBuilder();
@@ -113,50 +113,50 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     @Override
     public boolean generateDocumentation() {
-        if(!(new File(documentationPath)).isDirectory()) {
+        if (!(new File(documentationPath)).isDirectory()) {
             return false;
         }
         Iterator<LibraryIndexEntry> allClasses = this.standardLibrary.findAllClasses();
         HashMap<String, File> files = new HashMap<String, File>();
         File rootFolder = this.standardLibrary.getRootFolder();
         String absolutePath = rootFolder.getAbsolutePath();
-        while(allClasses.hasNext()) {
+        while (allClasses.hasNext()) {
             LibraryIndexEntry next = allClasses.next();
             String path = next.getPath();
             path = absolutePath + "/" + path;
             files.put(path, new File(path));
         }
-        
+
         Iterator<ContainerExecution> containers = this.builder.getContainers();
-        while(containers.hasNext()) {
+        while (containers.hasNext()) {
             ContainerExecution containerExec = containers.next();
             String containerKey = containerExec.getStaticKey();
             Iterator<ClassExecution> classes = containerExec.getClasses();
-            while(classes.hasNext()) {
+            while (classes.hasNext()) {
                 ClassExecution classExec = classes.next();
-                
+
                 ClassDescriptor clazz = classExec.getClassDescriptor();
                 String fileKey = clazz.getFile().getStaticKey();
-                if(!files.containsKey(fileKey)) {
+                if (!files.containsKey(fileKey)) {
                     files.put(fileKey, new File(fileKey));
                 }
             }
         }
         File[] toArray = files.values().toArray(new File[files.size()]);
-        
+
         generateAllDocumentation(toArray);
-        
+
         return true;
     }
-    
+
     public boolean generateAllDocumentation(File[] files) {
         TracWikiDocumentationGenerator doc = new TracWikiDocumentationGenerator();
         this.build(files);
         Iterator<ContainerExecution> containers = this.builder.getContainers();
-        while(containers.hasNext()) {
+        while (containers.hasNext()) {
             ContainerExecution containerExec = containers.next();
             Iterator<ClassExecution> classes = containerExec.getClasses();
-            while(classes.hasNext()) {
+            while (classes.hasNext()) {
                 ClassExecution classExec = classes.next();
                 ClassDescriptor clazz = classExec.getClassDescriptor();
                 String result = doc.generate(clazz);
@@ -165,34 +165,35 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         }
         return true;
     }
-    private void documentationToFile(ClassDescriptor clazz, String string){
+
+    private void documentationToFile(ClassDescriptor clazz, String string) {
         String root = documentationPath;
-        
+
         String container = clazz.getContainer().getContainer();
         container = container.replace('.', '/');
         String[] split = container.split("/");
-        
+
         File file = new File(root);
-        if(file.isDirectory()) {
+        if (file.isDirectory()) {
             //make sure all subfolders are in there
-            for(int i = 0; i < split.length; i++) {
+            for (int i = 0; i < split.length; i++) {
                 String current = "";
-                for(int j = 0; j <= i; j++) {
+                for (int j = 0; j <= i; j++) {
                     current += split[j] + "/";
-                    
+
                 }
                 File folder = new File(root + "/" + current);
-                if(!folder.exists()) {
+                if (!folder.exists()) {
                     folder.mkdirs();
                 }
             }
-            
+
             //write the string to a newly created file, if it does not exist
             try {
                 File result = new File(root + "/" + container + "/" + clazz.getName() + ".wiki");
                 Writer out = null;
 
-                if(result.isFile()) {
+                if (result.isFile()) {
                     result.delete();
                 }
                 //create the file again
@@ -200,17 +201,17 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 result.setWritable(true);
                 result.setReadable(true);
                 out = new OutputStreamWriter(new FileOutputStream(result));
-                
+
                 out.write(string);
                 out.close();
             } catch (IOException exception) {
                 logger.log(Level.INFO, "Could not output documentation to file.", exception);
             }
-            
-            
+
+
         }
     }
-    
+
     /**
      * This test function allows you to run the virtual machine raw,
      * in block mode. It is useful for running tests, but should not
@@ -255,7 +256,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     @Override
     public void buildSingle(File file) {
-        if(building) {
+        if (building) {
             return;
         }
         try {
@@ -277,8 +278,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
             this.compilerErrors.resetToDefaultKey();
             throwBuildEvent();
-        }
-        catch(Exception exception) {
+        } catch (Exception exception) {
             logger.log(Level.INFO, "The Quorum Compiler threw an exception in buildSingle(File).", exception);
         }
     }
@@ -292,7 +292,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
      * @param text
      */
     public void buildSingle(File file, String text) {
-        if(building) {
+        if (building) {
             return;
         }
         try {
@@ -300,7 +300,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             removeFromBuild(file);
             this.compilerErrors.setErrorKey(file.getAbsolutePath());
             parseSingle(file, text);
-            
+
             //phase 2.5 - semantic analysis pre-processing
             computeStandardLibraryFiles();
             getSymbolTable().calculatePackageUseForFile(file.getAbsolutePath());
@@ -314,8 +314,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
             this.compilerErrors.resetToDefaultKey();
             throwBuildEvent();
-        }
-        catch(Exception exception) {
+        } catch (Exception exception) {
             logger.log(Level.INFO, "The Quorum Compiler threw an exception in buildSingle(File).", exception);
         }
     }
@@ -366,8 +365,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             }
         } catch (RecognitionException exception) {
             logger.log(Level.INFO, "Exception thrown while trying to parse file "
-                    + file.getAbsolutePath() + " with source <quorum>" + 
-                    text + "</quorum>", exception);
+                    + file.getAbsolutePath() + " with source <quorum>"
+                    + text + "</quorum>", exception);
             parsed = false;
         }
         return true;
@@ -375,7 +374,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     @Override
     public void parseSingle(File file) {
-        if(!this.parseHash.containsKey(file.getAbsolutePath())) {
+        if (!this.parseHash.containsKey(file.getAbsolutePath())) {
             parse(file);
             getSymbolTable().calculatePackageUseForFile(file.getAbsolutePath());
         }
@@ -385,41 +384,40 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         VirtualMachineEvent event = new VirtualMachineEvent(null, this, false);
         event.setBuildEvent(true);
         event.setBuildSuccessful(this.compilerErrors.isCompilationErrorFree());
-        
-        if(buildAllEvent){
+
+        if (buildAllEvent) {
             event.setBuildAllEvent(true);
             buildAllEvent = false;
         }
-        
+
         this.throwEventToListeners(event);
     }
 
-    
     @Override
     public void removeFromBuild(File file) {
         //remove file from symbol table
         FileDescriptor d = new FileDescriptor();
         d.setFile(file);
         getSymbolTable().remove(d);
-        
+
         //remove file from compiler errors
         this.getCompilerErrors().removeErrorsAtKey(file.getAbsolutePath());
 
         //remove from the parse hash
         parseHash.remove(file.getAbsolutePath());
-        
+
         //matcher.clear();
     }
 
     private void computeStandardLibraryFiles() {
-  
+
         Iterator<File> files = getSymbolTable().getStandardLibraryFiles();
-        while(files.hasNext()) {
+        while (files.hasNext()) {
             //TODO: Fix this to account for recursive File additions.
             //parse all the standard library files
-            while(files.hasNext()) {
+            while (files.hasNext()) {
                 File file = files.next();
-                if(!this.isFileCached(file.getAbsolutePath())) {
+                if (!this.isFileCached(file.getAbsolutePath())) {
                     this.compilerErrors.setErrorKey(file.getAbsolutePath());
                     parse(file);
                 }
@@ -440,32 +438,32 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 //            logger.log(Level.INFO, "The Quorum Compiler threw an exception in build(File[]).", exception);
 //        }
     }
-    
-    private class Build implements Runnable{
+
+    private class Build implements Runnable {
+
         public File[] source;
+
         @Override
         public void run() {
             try {
                 buildActual(source);
-            }
-            catch(Exception exception) {
+            } catch (Exception exception) {
                 logger.log(Level.INFO, "The Quorum Compiler threw an exception in build(File[]).", exception);
             }
         }
     }
-    
+
     @Override
     public void build(File[] source, boolean block) {
         Build build = new Build();
-        build.source = source;        
-        if(block) {
+        build.source = source;
+        if (block) {
             build.run();
-        }
-        else {
+        } else {
             executionManager.add(build);
         }
     }
-    
+
     /**
      * This function builds source code directly from a string that is
      * not necessarily saved to disk. Since quorum requires files be 
@@ -477,9 +475,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     public void build(String source) {
         File main = new File("InvalidNotOnDiskUniqueKey2340238746293141920348293847");
         this.setMain(main.getAbsolutePath());
-        
+
         this.parseSingle(main, source);
-        
+
         computeStandardLibraryFiles();
         getSymbolTable().compilePackageUseTables();
         getSymbolTable().resolveAllMethods();
@@ -489,9 +487,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
         //now do semantic analysis on all of the files
         //if there were no compiler errors
-        if(this.getCompilerErrors().isCompilationErrorFree()) {
+        if (this.getCompilerErrors().isCompilationErrorFree()) {
             Iterator<QuorumFile> it = parseHash.values().iterator();
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 QuorumFile file = it.next();
                 this.compilerErrors.setErrorKey(file.getFile().getAbsolutePath());
                 semanticAnalysis(file);
@@ -500,17 +498,16 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         //if it worked, link it
         link();
     }
-    
-    
+
     private void link() {
-        if(this.getCompilerErrors().isCompilationErrorFree()) {
+        if (this.getCompilerErrors().isCompilationErrorFree()) {
             Linker linker = new Linker();
             linker.setMachine(this);
             linker.link(builder);
             Vector<ExecutionStep> steps = linker.getLinkedSteps();
             vTable = linker.getVTable();
             this.getExecution().addStep(steps);
-            if(this.isGenerateCode()) {
+            if (this.isGenerateCode()) {
                 QuorumBytecodeGenerator gen = (QuorumBytecodeGenerator) this.generator;
                 gen.setLinker(linker);
                 gen.setBuilder(builder);
@@ -518,7 +515,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 try {
                     gen.writeToDisk();
                 } catch (IOException ex) {
-                    Logger.getLogger(QuorumVirtualMachine.class.getName()).log(Level.INFO, 
+                    Logger.getLogger(QuorumVirtualMachine.class.getName()).log(Level.INFO,
                             "Could not write bytecode to disk", ex);
                 }
             }
@@ -535,8 +532,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     public void testBuild(File[] source) {
         buildActual(source);
     }
-
     private boolean building = false;
+
     private void buildActual(File[] source) {
         building = true;
         resetBuild();
@@ -561,9 +558,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
         //now do semantic analysis on all of the files
         //if there were no compiler errors
-        if(this.getCompilerErrors().isCompilationErrorFree()) {
+        if (this.getCompilerErrors().isCompilationErrorFree()) {
             Iterator<QuorumFile> it = parseHash.values().iterator();
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 QuorumFile file = it.next();
                 this.compilerErrors.setErrorKey(file.getFile().getAbsolutePath());
                 semanticAnalysis(file);
@@ -574,9 +571,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
             //Link phase
             link();
-            
+
             it = parseHash.values().iterator();
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 QuorumFile file = it.next();
                 this.compilerErrors.setErrorKey(file.getFile().getAbsolutePath());
                 generateJavaCode(file);
@@ -587,6 +584,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         throwBuildEvent();
         building = false;
     }
+
     /**
      * Determines whether the current file has already been parsed.
      * @param fileKey
@@ -672,7 +670,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         } catch (IOException exception) {
             logger.log(Level.INFO, "Could not do IO operation in file: " + file.getAbsolutePath(), exception);
             parsed = false;
-        } 
+        }
         return true;
     }
 
@@ -707,16 +705,16 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private boolean generateJavaCode(QuorumFile file) {
         if (parsed) {
             /*try{
-                String filename = stripFileName(file.getFile().getName());
-                StringTemplate output = (StringTemplate)file.getTree().getTemplate();
-                FileWriter out = new FileWriter(filename + ".java");
-                if (output != null){
-                    out.write(output.toString());}
-                out.close();
+            String filename = stripFileName(file.getFile().getName());
+            StringTemplate output = (StringTemplate)file.getTree().getTemplate();
+            FileWriter out = new FileWriter(filename + ".java");
+            if (output != null){
+            out.write(output.toString());}
+            out.close();
             } catch (IOException ex) {
-                Exceptions.printStackTrace(ex);
+            Exceptions.printStackTrace(ex);
             } catch (Exception ex) {
-                Exceptions.printStackTrace(ex);
+            Exceptions.printStackTrace(ex);
             }*/
         }
         return true;
@@ -760,8 +758,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 //        delete(build);
 //        delete(distribute);
     }
-    
+
     private class Clean implements Runnable {
+
         @Override
         public void run() {
             resetBuild();
@@ -776,27 +775,26 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     @Override
     public void clean(boolean block) {
         Clean clean = new Clean();
-        if(block) {
+        if (block) {
             clean.run();
-        }
-        else {
+        } else {
             executionManager.add(clean);
         }
     }
-    
+
     /**
      * This method deletes a folder from the system.
      * 
      * @param dir 
      */
     private static void delete(File dir) {
-        if(dir == null || !dir.exists()) {
+        if (dir == null || !dir.exists()) {
             return;
         }
-        
+
         if (dir.isDirectory()) {
             String[] children = dir.list();
-            for (int i=0; i<children.length; i++) {
+            for (int i = 0; i < children.length; i++) {
                 delete(new File(dir, children[i]));
             }
         }
@@ -805,12 +803,11 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     @Override
     public ExpressionValue createExpressionValue(TypeDescriptor type) {
-        
+
         ExpressionValue value = null;
-        if(type.isPrimitiveType()) {
+        if (type.isPrimitiveType()) {
             value = ExpressionValue.getPrimitiveDefault(type);
-        }
-        else {
+        } else {
             value = new ExpressionValue();
 
             //now put this value on the heap
@@ -820,10 +817,10 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             ro.setClazz(clazz);
             DataEnvironment de = this.getDataEnvironment();
             de.callingClassStackPush(de.getThisObject());
-            
+
             ro.setLineInformation(this.getExecution().getCurrentStep().getLineInformation());
             int hash = de.addNewObject(ro);
-            
+
             //now grab the current execution pointer and remember it
             int startPosition = this.getExecution().getExecutionPosition();
             int classStart = clazz.getLocation().getStart();
@@ -836,10 +833,10 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             this.getExecution().setExecutionPosition(classStart);
             Execution execution = this.getExecution();
             boolean finished = false;
-            while(!finished) {
+            while (!finished) {
                 ExecutionStep step = execution.step();
                 ExecutionStep nextStep = execution.getNextStep();
-                if(de.getObject(hash).equals(de.getThisObject()) && ro.isThisMode() && nextStep instanceof ObjectInitPopStep) {
+                if (de.getObject(hash).equals(de.getThisObject()) && ro.isThisMode() && nextStep instanceof ObjectInitPopStep) {
                     //pop appropriately
                     execution.step();
                     finished = true;
@@ -875,7 +872,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         getDataEnvironment().undoCreateObjectOpcode();
     }
 
-    
     @Override
     public CodeCompletionResult requestCodeCompletionResult(CodeCompletionRequest request) {
         CodeCompletionResult result = new CodeCompletionResult();
@@ -883,25 +879,24 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         line = line.trim();
         String sub = request.getLine().substring(0, request.getStartOffset());
         boolean isDot = false;
-        
-        if(sub.length() > 0){
+
+        if (sub.length() > 0) {
             char c = sub.charAt(sub.length() - 1);
-            if(c == '.') {
+            if (c == '.') {
                 isDot = true;
             }
         }
-        
+
         boolean useStart = line.startsWith(USE);
-        if(useStart) {
+        if (useStart) {
             addUseResults(result, request);
-        }
-        else if(!useStart && !isDot) { //if it is a dot request, ignore it.
+        } else if (!useStart && !isDot) { //if it is a dot request, ignore it.
             addExpressionResults(result, request);
         }
-        
+
         return result;
     }
-    
+
     /**
      * This method calculates the possible options for the use statement.
      * 
@@ -913,50 +908,46 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         line = line.substring(USE.length(), line.length());
         line = line.trim();
         String[] split = line.split("\\.");
-        
-        if(split.length > 0  && line.length() != 0) {
-            if(line.charAt(line.length() - 1) == '.') {
+
+        if (split.length > 0 && line.length() != 0) {
+            if (line.charAt(line.length() - 1) == '.') {
                 result.setFilter("");
-            }
-            else {
+            } else {
                 result.setFilter(split[split.length - 1]);
             }
         }
-        
+
         final String root = this.standardLibrary.getStandardLibraryRootName();
-        if(split.length == 1) {
+        if (split.length == 1) {
             String left = split[0];
-            if(left.matches("\\s*") || result.getFilter().length() != 0) {
+            if (left.matches("\\s*") || result.getFilter().length() != 0) {
                 CodeCompletionItem item = new CodeCompletionItem();
                 item.setCompletion(root);
                 item.setDisplayName(root);
                 result.add(item);
-            }
-            else if(left.equals(root)) {
+            } else if (left.equals(root)) {
                 addSubpackagesAndClasses(result, standardLibrary.getStandardLibraryRootName());
             }
-        }
-        else {
+        } else {
             String pack = "";
             int length = split.length;
-            if(result.getFilter().length() != 0) {
+            if (result.getFilter().length() != 0) {
                 length--;
             }
-            for(int i = 0; i < length; i++) {
-                if(i == 0) {
+            for (int i = 0; i < length; i++) {
+                if (i == 0) {
                     pack += split[i];
-                }
-                else {
+                } else {
                     pack += "." + split[i];
                 }
             }
             addSubpackagesAndClasses(result, pack);
         }
     }
-    
+
     private void addSubpackagesAndClasses(CodeCompletionResult result, String name) {
         Iterator<String> subs = standardLibrary.findAllSubpackages(name);
-        while(subs.hasNext()) {
+        while (subs.hasNext()) {
             String next = subs.next();
             CodeCompletionItem item = new CodeCompletionItem();
             item.setCompletion(next);
@@ -964,7 +955,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             result.add(item);
         }
         Iterator<LibraryIndexEntry> classes = standardLibrary.findAllClassesInPackage(name);
-        while(classes.hasNext()) {
+        while (classes.hasNext()) {
             LibraryIndexEntry next = classes.next();
             CodeCompletionItem item = new CodeCompletionItem();
             item.setCompletion(next.getName());
@@ -972,20 +963,20 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             result.add(item);
         }
     }
-    
+
     private void addExpressionResults(CodeCompletionResult result, CodeCompletionRequest request) {
         String expression = request.getLine().substring(0, request.getStartOffset());
-        
+
         int begin = 0;
         int end = 0;
         int index = request.getStartOffset() - (request.getLine().length() - expression.length());
-        if(index >= expression.length()) {
+        if (index >= expression.length()) {
             index = expression.length() - 1;
         }
-        
-        while(index > 0) {
-            if(Character.isWhitespace(expression.charAt(index)) ||
-               expression.charAt(index) == '=') {
+
+        while (index > 0) {
+            if (Character.isWhitespace(expression.charAt(index))
+                    || expression.charAt(index) == '=') {
                 expression = expression.substring(index + 1, request.getStartOffset());
                 expression = expression.trim();
                 index = -1;
@@ -994,24 +985,23 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         }
         //now split the string into pieces
         String[] split = expression.split(":");
-        
-        if(split.length > 0 && expression.length() != 0) {
-            if(expression.charAt(expression.length() - 1) == ':') {
+
+        if (split.length > 0 && expression.length() != 0) {
+            if (expression.charAt(expression.length() - 1) == ':') {
                 result.setFilter("");
-            }
-            else {
+            } else {
                 result.setFilter(split[split.length - 1]);
             }
         }
-        
+
         FileDescriptor file = this.getSymbolTable().getFileDescriptor(request.getFileKey());
         ClassDescriptor clazz = null;
-        if(file != null) {
+        if (file != null) {
             Iterator<ClassDescriptor> classIterator = file.getClassIterator();
-            while(classIterator.hasNext()) {
+            while (classIterator.hasNext()) {
                 ClassDescriptor next = classIterator.next();
-                if( (request.getLineNumber() >= next.getLineBegin() && request.getLineNumber() <= next.getLineEnd())
-                   || (next.getLineBegin() == 1 && next.getLineEnd() == 0) //must be a file with no explicit class definition
+                if ((request.getLineNumber() >= next.getLineBegin() && request.getLineNumber() <= next.getLineEnd())
+                        || (next.getLineBegin() == 1 && next.getLineEnd() == 0) //must be a file with no explicit class definition
                         ) {
                     clazz = next;
                 }
@@ -1019,76 +1009,68 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         }
         final String me = "me";
         final String parent = "parent";
-        
-        if(clazz != null) {
+
+        if (clazz != null) {
             MethodDescriptor method = clazz.getMethodAtLine(request.getLineNumber());
             //if the method is null, it must be a class variable (or garbage)
             boolean isMe = false;
-            if(method != null) {
-                if(split.length == 1) {
+            if (method != null) {
+                if (split.length == 1) {
                     String left = split[0];
-                    if(left.equals(me)){
+                    if (left.equals(me)) {
                         isMe = true;
                     }
-                    if(left.equals(me) || result.getFilter().length() > 0) {
+                    if (left.equals(me) || result.getFilter().length() > 0) {
                         addClassToResult(result, clazz, isMe);
                     }
-                    if(left.equals(parent)) {
+                    if (left.equals(parent)) {
                         addParentClasses(result, clazz);
-                    }
-                    else if(left.matches("\\s*")) {
+                    } else if (left.matches("\\s*")) {
                         isMe = true;
                         addClassToResult(result, clazz, isMe);
-                    }
-                    else {
+                    } else {
                         VariableParameterCommonDescriptor variable = method.getVariable(left);
-                        if(variable == null) {
+                        if (variable == null) {
                             variable = findVariableInBlocks(request, method, left);
                         }
-                        if(variable != null) {
+                        if (variable != null) {
                             String staticKey = variable.getType().getStaticKey();
                             addToCodeCompletionResult(result, staticKey, clazz);
                         }
                     }
-                }
-                else if(split.length == 0) {
+                } else if (split.length == 0) {
                     return;
-                }
-                else { //do fancier parsing
+                } else { //do fancier parsing
                     String left = split[0];
-                    
-                    if(left.equals(parent)) {
-                        if(split.length > 2) {
+
+                    if (left.equals(parent)) {
+                        if (split.length > 2) {
                             String resolvedName = clazz.resolveParentName(split[1]);
                             ClassDescriptor par = clazz.getParent(resolvedName);
-                            if(par != null) {
+                            if (par != null) {
                                 addClassToResult(result, par, isMe);
                             }
-                        }
-                        else if(split.length == 2) {
-                            if(result.getFilter().length() == 0) {
+                        } else if (split.length == 2) {
+                            if (result.getFilter().length() == 0) {
                                 String resolvedName = clazz.resolveParentName(split[1]);
                                 ClassDescriptor par = clazz.getParent(resolvedName);
-                                if(par != null) {
+                                if (par != null) {
                                     addClassToResult(result, par, isMe);
                                 }
-                            }
-                            else {
+                            } else {
                                 addParentClasses(result, clazz);
                             }
                         }
-                        
-                    }
-                    else if(left.equals(me)) {
+
+                    } else if (left.equals(me)) {
                         isMe = true;
                         addClassToResult(result, clazz, isMe);
-                    }
-                    else { //This should work until chaining is in place.
+                    } else { //This should work until chaining is in place.
                         VariableParameterCommonDescriptor variable = method.getVariable(left);
-                        if(variable == null) {
+                        if (variable == null) {
                             variable = findVariableInBlocks(request, method, left);
                         }
-                        if(variable != null) {
+                        if (variable != null) {
                             String staticKey = variable.getType().getStaticKey();
                             addToCodeCompletionResult(result, staticKey, clazz);
                         }
@@ -1097,127 +1079,126 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             }
         }
     }
-    
+
     private void addParentClasses(CodeCompletionResult result, ClassDescriptor clazz) {
         Iterator<ClassDescriptor> parents = clazz.getFlattenedListOfParents();
-        while(parents.hasNext()) {
+        while (parents.hasNext()) {
             ClassDescriptor next = parents.next();
             CodeCompletionItem item = getClassCompletionItem(next);
             result.add(item);
         }
     }
-    
+
     private CodeCompletionItem getClassCompletionItem(ClassDescriptor clazz) {
         CodeCompletionItem item = new CodeCompletionItem();
-                
-                
+
+
         String signature = clazz.getStaticKey();
         String name = clazz.getName();
 
         String description = "";
         description += "<h1>" + signature + "</h1>";
         String[] paragraphs = Documentation.breakStringIntoParagraphArray(clazz.getDocumentation().getDescription());
-        for(int i = 0; i < paragraphs.length; i++) {
+        for (int i = 0; i < paragraphs.length; i++) {
             description += "<p>" + paragraphs[i] + "</p>";
         }
 
-        description += "<h2>" +"Code Example:"+ "</h2>";
-        description += "<PRE><CODE>" + clazz.getDocumentation().getExample() +
-                "</PRE></CODE>";
+        description += "<h2>" + "Code Example:" + "</h2>";
+        description += "<PRE><CODE>" + clazz.getDocumentation().getExample()
+                + "</PRE></CODE>";
 
         item.setDisplayName(name);
         item.setDocumentation(description);
         item.setCompletion(name);
         return item;
     }
-    
+
     private VariableParameterCommonDescriptor findVariableInBlocks(CodeCompletionRequest request, MethodDescriptor method,
             String key) {
         VariableParameterCommonDescriptor variable = null;
         Iterator<BlockDescriptor> children = method.getChildren();
         boolean done = false;
-        while(children.hasNext() && !done) {
+        while (children.hasNext() && !done) {
             BlockDescriptor block = children.next();
-            if(request.getLineNumber() >= block.getLineBegin() 
+            if (request.getLineNumber() >= block.getLineBegin()
                     && request.getLineNumber() <= block.getLineEnd()) {
                 done = true;
                 variable = block.getVariable(key);
-                if(variable == null){
+                if (variable == null) {
                     variable = findVariableInBlocks(request, block, key);
                 }
             }
         }
         return variable;
     }
-    
+
     private VariableParameterCommonDescriptor findVariableInBlocks(CodeCompletionRequest request, BlockDescriptor block,
             String key) {
         VariableParameterCommonDescriptor variable = null;
         Iterator<BlockDescriptor> children = block.getChildren();
         boolean done = false;
-        while(children.hasNext() && !done) {
+        while (children.hasNext() && !done) {
             BlockDescriptor next = children.next();
-            if(request.getLineNumber() >= next.getLineBegin() 
+            if (request.getLineNumber() >= next.getLineBegin()
                     && request.getLineNumber() <= next.getLineEnd()) {
                 done = true;
                 variable = next.getVariable(key);
-                if(variable == null){
+                if (variable == null) {
                     variable = findVariableInBlocks(request, next, key);
                 }
             }
         }
         return variable;
     }
-    
+
     private void addToCodeCompletionResult(CodeCompletionResult result, String classStaticKey, ClassDescriptor containingClass) {
         ClassDescriptor clazz = this.getSymbolTable().getClassDescriptor(classStaticKey);
-        if(clazz == null) { //can the name be resolved from the parser?
-            if(classStaticKey.length() > 0) {
+        if (clazz == null) { //can the name be resolved from the parser?
+            if (classStaticKey.length() > 0) {
                 ClassDescriptor validatedClassUse = containingClass.getValidatedClassUse(classStaticKey);
                 clazz = validatedClassUse;
             }
         }
         addClassToResult(result, clazz, false);
     }
-    
+
     private void addClassToResult(CodeCompletionResult result, ClassDescriptor clazz, boolean isCurrentClass) {
-        if(clazz != null) {
+        if (clazz != null) {
             addVariablesToResults(result, clazz, isCurrentClass);
-            
+
             //add all of its methods
             Collection<MethodDescriptor> allMethods = clazz.getAllMethods(AccessModifierEnum.PUBLIC);
-            
-            if(isCurrentClass){
+
+            if (isCurrentClass) {
                 allMethods = clazz.getAllMethods();
             }
-            
+
             Iterator<MethodDescriptor> iterator = allMethods.iterator();
-            while(iterator.hasNext()) {
+            while (iterator.hasNext()) {
                 MethodDescriptor method = iterator.next();
                 CodeCompletionItem item = new CodeCompletionItem();
-                
-                
+
+
                 String signature = method.getMethodSignature(true);
                 TypeDescriptor returnType = method.getReturnType();
-                if(!returnType.isVoid()) {
-                    if(returnType.isTemplated()) {
+                if (!returnType.isVoid()) {
+                    if (returnType.isTemplated()) {
                         signature += " returns " + returnType.getTemplateName();
-                    }
-                    else {
+                    } else {
                         signature += " returns " + returnType.getStaticKey();
                     }
                 }
-                
+
                 String description = "";
                 String[] paragraphs = Documentation.breakStringIntoParagraphArray(method.getDocumentation().getDescription());
-                for(int i = 0; i < paragraphs.length; i++) {
+                for (int i = 0; i < paragraphs.length; i++) {
                     description += "<p>" + paragraphs[i] + "</p>";
                 }
-                
-                description += "<h2>" +"Code Example:"+ "</h2>";
-                description += "<PRE><CODE>" + method.getDocumentation().getExample() +
-                        "</PRE></CODE>";
-                
+
+                description += "<h2>" + "Code Example:" + "</h2>";
+                description += "<PRE><CODE>" + method.getDocumentation().getExample()
+                        + "</PRE></CODE>";
+
                 item.setDisplayName(signature);
                 item.setDocumentation(description);
                 item.setCompletion(method.getName());
@@ -1225,25 +1206,44 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             }
         }
     }
-    
-    public void addVariablesToResults(CodeCompletionResult result, ClassDescriptor clazz, boolean isCurrentClass){
-            //add all of its methods
-            Collection<VariableDescriptor> allVariables;
-            
-            
-            if(isCurrentClass){
-                allVariables = clazz.getAllClassVariables();
-            }else{
-                allVariables = clazz.getAllClassVariables(AccessModifierEnum.PUBLIC);
+
+    public void addVariablesToResults(CodeCompletionResult result, ClassDescriptor clazz, boolean isCurrentClass) {
+        //add all of its methods
+        Collection<VariableDescriptor> allVariables;
+
+
+        if (isCurrentClass) {
+            allVariables = clazz.getAllClassVariables();
+        } else {
+            allVariables = clazz.getAllClassVariables(AccessModifierEnum.PUBLIC);
+        }
+
+        Iterator<VariableDescriptor> iterator = allVariables.iterator();
+        while (iterator.hasNext()) {
+            VariableDescriptor variable = iterator.next();
+
+
+            String signature = variable.getName();
+            String completionText = signature;
+            if (clazz.getVariable(variable.getStaticKey()) != null) {
+                signature = variable.getName();
+                addVariableCompletionItem(variable, signature, result, new CodeCompletionItem());
+            } else { //variable is in a parent
+                //Iterator<ClassDescriptor> flattenedListOfParents = clazz.getFlattenedListOfParents();
+                //while (flattenedListOfParents.hasNext()) {
+                 for(int i = 0; i < clazz.getNumFlatParents(); i++) {
+                    ClassDescriptor next = clazz.getFlatParent(i);
+                    if (next.getVariable(variable.getStaticKey()) != null) {
+                        signature = "parent:" + next.getName() + ":" + variable.getName();
+                        addVariableCompletionItem(variable, signature, result, new CodeCompletionItem());
+                    }
+                 }
+                //}
             }
-            
-            Iterator<VariableDescriptor> iterator = allVariables.iterator();
-            while(iterator.hasNext()) {
-                VariableDescriptor variable = iterator.next();
-                CodeCompletionItem item = new CodeCompletionItem();
-                
-                
-                String signature = variable.getName();
+        }
+    }
+    
+    private void addVariableCompletionItem(VariableDescriptor variable, String signature, CodeCompletionResult result, CodeCompletionItem item){
                 TypeDescriptor type = variable.getType();
                 String displayType = "";
                 if(!type.isVoid()) {
@@ -1267,9 +1267,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 item.setDisplayName(signature);
                 item.setDisplayType(displayType);
                 item.setDocumentation(description);
-                item.setCompletion(variable.getName());
+                item.setCompletion(signature);
                 result.add(item);
-            }
     }
 
     @Override
@@ -1278,55 +1277,58 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         folder.build = buildFolder;
         this.executionManager.add(folder);
     }
-    
+
     private class SetBuildFolder implements Runnable {
+
         public File build;
-        
+
         @Override
         public void run() {
             getCodeGenerator().setBuildFolder(build);
         }
     }
-    
+
     @Override
     public void setPluginFolder(File file) {
         SetPluginFolder folder = new SetPluginFolder();
         folder.plugin = file;
         executionManager.add(folder);
     }
-    
+
     private class SetPluginFolder implements Runnable {
+
         public File plugin;
-        
+
         @Override
         public void run() {
             getCodeGenerator().setPluginFolder(plugin);
         }
     }
-    
+
     @Override
     public void setDistributionName(String name) {
         SetDistributionName myName = new SetDistributionName();
         myName.name = name;
         executionManager.add(myName);
     }
-    
+
     private class SetDistributionName implements Runnable {
+
         public String name;
-        
+
         @Override
         public void run() {
             getCodeGenerator().setDistributionName(name);
         }
     }
-    
+
     @Override
     public void addDependency(File file) {
         AddDependency dep = new AddDependency();
         dep.file = file;
         executionManager.add(dep);
     }
-    
+
     @Override
     public void addDependency(File file, String relativePath) {
         AddDependency dep = new AddDependency();
@@ -1334,44 +1336,47 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         dep.path = relativePath;
         executionManager.add(dep);
     }
-    
-    private class AddDependency implements Runnable{
+
+    private class AddDependency implements Runnable {
+
         private File file;
         private String path;
 
         @Override
         public void run() {
-            if(path == null) {
+            if (path == null) {
                 getCodeGenerator().addDependency(file);
-            }
-            else {
+            } else {
                 getCodeGenerator().addDependency(file, path);
             }
         }
     }
-    
+
     @Override
     public void clearDependencies() {
         ClearDependencies dep = new ClearDependencies();
         executionManager.add(dep);
     }
-    
-    private class ClearDependencies implements Runnable{
+
+    private class ClearDependencies implements Runnable {
+
         @Override
         public void run() {
             getCodeGenerator().clearDependencies();
         }
     }
-    
+
     @Override
     public void setMain(String main) {
         SetMain m = new SetMain();
         m.path = main;
         executionManager.add(m);
     }
-    
+
     private class SetMain implements Runnable {
+
         String path;
+
         @Override
         public void run() {
             main = path;
@@ -1379,17 +1384,18 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             getCodeGenerator().setMainFile(file);
         }
     }
-    
+
     @Override
     public void setDistributionFolder(File file) {
         SetDistributionFolder folder = new SetDistributionFolder();
         folder.distribution = file;
         this.executionManager.add(folder);
     }
-    
+
     private class SetDistributionFolder implements Runnable {
+
         public File distribution;
-        
+
         @Override
         public void run() {
             getCodeGenerator().setDistributionFolder(distribution);

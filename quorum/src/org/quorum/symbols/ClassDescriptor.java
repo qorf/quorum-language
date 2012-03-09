@@ -1277,11 +1277,32 @@ public class ClassDescriptor extends Descriptor implements Scopable {
      * This method aggregates and returns all variables know to this class,
      * including public parent variables.
      * 
+     * @param accessModifierEnum
+     * @return 
+     */
+    public Collection<VariableDescriptor> getAllParentVariables(AccessModifierEnum access) {
+        ArrayList<VariableDescriptor> allClassVariables = new ArrayList<VariableDescriptor>();
+        
+        Iterator<ClassDescriptor> parents = flatListOfParents.iterator();
+        while(parents.hasNext()){
+            allClassVariables.addAll(parents.next().getAllClassVariables(access));
+        }
+        
+        return allClassVariables;
+    }
+    
+    /**
+     * This method aggregates and returns all variables know to this class,
+     * including public parent variables.
+     * 
      * @return 
      */
     public Collection<VariableDescriptor> getAllClassVariables(){
         ArrayList<VariableDescriptor> allClassVariables = new ArrayList<VariableDescriptor>();
         allClassVariables.addAll(variables.values());
+        
+        allClassVariables.addAll(getAllParentVariables(AccessModifierEnum.PUBLIC));
+        
         return allClassVariables;
     }
     
@@ -1301,6 +1322,9 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                 allVariables.add(next);
             }
         }
+        
+        allVariables.addAll(getAllParentVariables(AccessModifierEnum.PUBLIC));
+        
         return allVariables;
     }
     
@@ -1633,6 +1657,14 @@ public class ClassDescriptor extends Descriptor implements Scopable {
      */
     public Iterator<ClassDescriptor> getFlattenedListOfParents() {
         return flatListOfParents.iterator();
+    }
+    
+    public ClassDescriptor getFlatParent(int index) {
+        return flatListOfParents.get(index);
+    }
+    
+    public int getNumFlatParents() {
+        return flatListOfParents.size();
     }
 
     /**
