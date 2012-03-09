@@ -1273,6 +1273,12 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         return methods.get(key);
     }
     
+    public Collection<VariableDescriptor> getAllClassVariables(){
+        ArrayList<VariableDescriptor> allClassVariables = new ArrayList<VariableDescriptor>();
+        allClassVariables.addAll(variables.values());
+        return allClassVariables;
+    }
+    
     /**
      * This method aggregates and returns all methods known by this class, 
      * including blueprints and system actions.

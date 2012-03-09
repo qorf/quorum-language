@@ -61,6 +61,7 @@ import org.quorum.symbols.MethodDescriptor;
 import org.quorum.symbols.SymbolTable;
 import org.quorum.symbols.TypeChecker;
 import org.quorum.symbols.TypeDescriptor;
+import org.quorum.symbols.VariableDescriptor;
 import org.quorum.symbols.VariableParameterCommonDescriptor;
 
 /**
@@ -1220,7 +1221,47 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 item.setCompletion(method.getName());
                 result.add(item);
             }
+            addVariablesToResults(result, clazz, isCurrentClass);
         }
+    }
+    
+    public void addVariablesToResults(CodeCompletionResult result, ClassDescriptor clazz, boolean isCurrentClass){
+            //add all of its methods
+            Collection<VariableDescriptor> allMethods = clazz.getAllClassVariables();
+            
+            Iterator<VariableDescriptor> iterator = allMethods.iterator();
+            while(iterator.hasNext()) {
+                VariableDescriptor variable = iterator.next();
+                CodeCompletionItem item = new CodeCompletionItem();
+                
+                
+                String signature = variable.getName();
+                TypeDescriptor type = variable.getType();
+                String displayType = "";
+                if(!type.isVoid()) {
+                    if(type.isTemplated()) {
+                        displayType = type.getTemplateName();
+                    }
+                    else {
+                        displayType = type.getStaticKey();
+                    }
+                }
+                
+                String description = "";
+                String[] paragraphs = Documentation.breakStringIntoParagraphArray(variable.getDocumentation().getDescription());
+                for(int i = 0; i < paragraphs.length; i++) {
+                    description += "<p>" + paragraphs[i] + "</p>";
+                }
+                
+                description += "<h2>" +"Code Example:"+ "</h2>";
+                description += "<PRE><CODE>" + variable.getDocumentation().getExample() +
+                        "</PRE></CODE>";
+                item.setDisplayName(signature);
+                item.setDisplayType(displayType);
+                item.setDocumentation(description);
+                item.setCompletion(variable.getName());
+                result.add(item);
+            }
     }
 
     @Override

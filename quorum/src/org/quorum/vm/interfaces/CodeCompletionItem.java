@@ -12,6 +12,7 @@ public class CodeCompletionItem {
     protected String documentation = "";
     protected String completion = "";
     protected String displayName = "";
+    protected String displayType = "";
 
     /**
      * @return the documentation
@@ -53,5 +54,19 @@ public class CodeCompletionItem {
      */
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+    
+    /**
+     * @return the displayType
+     */
+    public String getDisplayType() {
+        return displayType;
+    }
+
+    /**
+     * @param displayName the displayType to set
+     */
+    public void setDisplayType(String displayType) {
+        this.displayType = displayType;
     }
 }
