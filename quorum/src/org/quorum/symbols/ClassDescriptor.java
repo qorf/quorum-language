@@ -1273,10 +1273,35 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         return methods.get(key);
     }
     
+    /**
+     * This method aggregates and returns all variables know to this class,
+     * including public parent variables.
+     * 
+     * @return 
+     */
     public Collection<VariableDescriptor> getAllClassVariables(){
         ArrayList<VariableDescriptor> allClassVariables = new ArrayList<VariableDescriptor>();
         allClassVariables.addAll(variables.values());
         return allClassVariables;
+    }
+    
+    /**
+     * This method aggregates and returns all variables know to this class,
+     * including public parent variables.
+     * 
+     * @param accessModifierEnum
+     * @return 
+     */
+    public Collection<VariableDescriptor> getAllClassVariables(AccessModifierEnum access) {
+        ArrayList<VariableDescriptor> allVariables = new ArrayList<VariableDescriptor>();
+        Iterator<VariableDescriptor> varIt = variables.values().iterator();
+        while(varIt.hasNext()) {
+            VariableDescriptor next = varIt.next();
+            if(next.getAccessModifier() == access) {
+                allVariables.add(next);
+            }
+        }
+        return allVariables;
     }
     
     /**

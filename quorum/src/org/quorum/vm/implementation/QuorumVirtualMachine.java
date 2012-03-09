@@ -1228,9 +1228,16 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     
     public void addVariablesToResults(CodeCompletionResult result, ClassDescriptor clazz, boolean isCurrentClass){
             //add all of its methods
-            Collection<VariableDescriptor> allMethods = clazz.getAllClassVariables();
+            Collection<VariableDescriptor> allVariables;
             
-            Iterator<VariableDescriptor> iterator = allMethods.iterator();
+            
+            if(isCurrentClass){
+                allVariables = clazz.getAllClassVariables();
+            }else{
+                allVariables = clazz.getAllClassVariables(AccessModifierEnum.PUBLIC);
+            }
+            
+            Iterator<VariableDescriptor> iterator = allVariables.iterator();
             while(iterator.hasNext()) {
                 VariableDescriptor variable = iterator.next();
                 CodeCompletionItem item = new CodeCompletionItem();
