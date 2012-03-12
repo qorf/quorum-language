@@ -81,6 +81,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private DocumentationGenerator documentor = DocumentationStyle.getDocumentationGenerator(DocumentationStyle.TRAC_WIKI);
     private static final String USE = "use";
     private static final Logger logger = Logger.getLogger(QuorumVirtualMachine.class.getName());
+    private String inputExpression = "";
     //private BuildManager buildManager;
 
     public QuorumVirtualMachine() {
@@ -966,7 +967,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     private void addExpressionResults(CodeCompletionResult result, CodeCompletionRequest request) {
         String expression = request.getLine().substring(0, request.getStartOffset());
-
+        inputExpression = expression;
+        
         int begin = 0;
         int end = 0;
         int index = request.getStartOffset() - (request.getLine().length() - expression.length());
@@ -1072,7 +1074,14 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                         }
                         if (variable != null) {
                             String staticKey = variable.getType().getStaticKey();
-                            addToCodeCompletionResult(result, staticKey, clazz);
+                            
+                            if(split[split.length - 1].equals(parent)){
+                                clazz = this.getSymbolTable().findClassDescriptorFromCurrentClass(staticKey);
+                                if(clazz != null)
+                                    addParentClasses(result, clazz);
+                            }else{
+                                addToCodeCompletionResult(result, staticKey, clazz);
+                            }
                         }
                     }
                 }
@@ -1223,48 +1232,42 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             VariableDescriptor variable = iterator.next();
 
             String signature = variable.getName();
-            String completionText = signature;
-            if (clazz.getVariable(variable.getStaticKey()) != null) {
-                signature = variable.getName();
-                addVariableCompletionItem(variable, signature, result, new CodeCompletionItem());
-            } else { //variable is in a parent
-                for (int i = 0; i < clazz.getNumFlatParents(); i++) {
-                    ClassDescriptor next = clazz.getFlatParent(i);
-                    if (next.getVariable(variable.getStaticKey()) != null) {
-                        signature = "parent:" + next.getName() + ":" + variable.getName();
-                        addVariableCompletionItem(variable, signature, result, new CodeCompletionItem());
-                    }
+            addVariableCompletionItem(variable, signature, result, new CodeCompletionItem());
+            for (int i = 0; i < clazz.getNumFlatParents(); i++) {
+                ClassDescriptor next = clazz.getFlatParent(i);
+                if (next.getVariable(variable.getStaticKey()) != null) {
+                    signature = "parent:" + next.getName() + ":" + variable.getName();
+                    addVariableCompletionItem(variable, signature, result, new CodeCompletionItem());
                 }
             }
         }
     }
     
-    private void addVariableCompletionItem(VariableDescriptor variable, String signature, CodeCompletionResult result, CodeCompletionItem item){
-                TypeDescriptor type = variable.getType();
-                String displayType = "";
-                if(!type.isVoid()) {
-                    if(type.isTemplated()) {
-                        displayType = type.getTemplateName();
-                    }
-                    else {
-                        displayType = type.getStaticKey();
-                    }
-                }
-                String description = variable.getAccessModifier().toString() + " " + displayType + " " + signature;
-                
-                String[] paragraphs = Documentation.breakStringIntoParagraphArray(variable.getDocumentation().getDescription());
-                for(int i = 0; i < paragraphs.length; i++) {
-                    description += "<p>" + paragraphs[i] + "</p>";
-                }
-                
-                description += "<h2>" +"Code Example:"+ "</h2>";
-                description += "<PRE><CODE>" + variable.getDocumentation().getExample() +
-                        "</PRE></CODE>";
-                item.setDisplayName(signature);
-                item.setDisplayType(displayType);
-                item.setDocumentation(description);
-                item.setCompletion(signature);
-                result.add(item);
+    private void addVariableCompletionItem(VariableDescriptor variable, String signature, CodeCompletionResult result, CodeCompletionItem item) {
+        TypeDescriptor type = variable.getType();
+        String displayType = "";
+        if (!type.isVoid()) {
+            if (type.isTemplated()) {
+                displayType = type.getTemplateName();
+            } else {
+                displayType = type.getStaticKey();
+            }
+        }
+        String description = variable.getAccessModifier().toString() + " " + displayType + " " + signature;
+
+        String[] paragraphs = Documentation.breakStringIntoParagraphArray(variable.getDocumentation().getDescription());
+        for (int i = 0; i < paragraphs.length; i++) {
+            description += "<p>" + paragraphs[i] + "</p>";
+        }
+
+        description += "<h2>" + "Code Example:" + "</h2>";
+        description += "<PRE><CODE>" + variable.getDocumentation().getExample()
+                + "</PRE></CODE>";
+        item.setDisplayName(signature);
+        item.setDisplayType(displayType);
+        item.setDocumentation(description);
+        item.setCompletion(signature);
+        result.add(item);
     }
 
     @Override
