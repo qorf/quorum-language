@@ -240,7 +240,7 @@ public class RandomTester {
     @Test
     public void test_RandomIntegerBetween_execute() {
         int numberOfResults = 10;
-        int[] expectedResults = {20, 16, 20, 16, 19, 17, 21, 17, 16, 16};
+        int[] expectedResults = {19, 15, 19, 15, 18, 16, 20, 16, 15, 15};
 
         
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.PASS + "RandomIntegerBetween.quorum"));
@@ -263,7 +263,7 @@ public class RandomTester {
     @Test
     public void test_RandomIntegerBetween_bytecode() {
         int numberOfResults = 10;
-        int[] expectedResults = {20, 16, 20, 16, 19, 17, 21, 17, 16, 16};
+        int[] expectedResults = {19, 15, 19, 15, 18, 16, 20, 16, 15, 15};
 
         
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.RANDOM + CompilerTestSuite.PASS + "RandomIntegerBetween.quorum"));
