@@ -8,6 +8,7 @@ package org.quorum.steps;
 import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.execution.RuntimeObject;
+import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.TypeDescriptor;
 import org.quorum.symbols.VariableParameterCommonDescriptor;
 
@@ -19,6 +20,7 @@ public class VariableInObjectMoveStep extends IntermediateStep{
 
     private int temp;
     private VariableParameterCommonDescriptor obj;
+    private ClassDescriptor parent;
     private String variableName;
     private TypeDescriptor variableType;
     @Override
@@ -32,8 +34,10 @@ public class VariableInObjectMoveStep extends IntermediateStep{
         if(variableValue != null){
             int objHash = variableValue.getObjectHash();
             RuntimeObject ro = vm.getDataEnvironment().getObject(objHash);
-            if(ro != null)
+            if(ro != null && parent == null)
                 eVal = ro.getVariable(variableName);
+            else if(ro != null)
+                eVal = ro.getVariableFromParent(parent.getStaticKey(), variableName);
         }
 
         if (eVal != null) {
@@ -105,5 +109,9 @@ public class VariableInObjectMoveStep extends IntermediateStep{
     @Override
     public void visit(ExecutionStepVisitor visitor) {
         visitor.visit(this);
+    }
+
+    void setParent(ClassDescriptor parent) {
+        this.parent = parent;
     }
 }

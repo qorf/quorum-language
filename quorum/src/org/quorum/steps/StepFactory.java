@@ -2298,7 +2298,7 @@ public class StepFactory {
      */
     public ResultTuple addVariableInObjectMoveStep(LineInformation location,
             ExpressionValue expressionValue, ExecutionStep expressionStep,
-            int resultRegister, QualifiedNameDescriptor varName, String idVariable) {
+            int resultRegister, QualifiedNameDescriptor varName, String idVariable, ClassDescriptor parent) {
         ResultTuple result = new ResultTuple();
         result.setNextRegister(resultRegister + 1);
 
@@ -2321,6 +2321,10 @@ public class StepFactory {
             //check the variable
             TypeDescriptor type = new TypeDescriptor();
             ClassDescriptor classDescriptor = machine.getSymbolTable().getClassDescriptor(vd.getType().toString());
+            if(parent != null){
+                    classDescriptor = parent;
+            }
+            
             if (classDescriptor != null) {
                 VariableDescriptor variable = classDescriptor.getVariable(idVariable);
                 if (variable == null || (variable.getAccessModifier().equals(variable.getAccessModifier().PRIVATE) &&
@@ -2335,6 +2339,7 @@ public class StepFactory {
             resultValue = StepFactory.createExpressionValue(resultRegister, new Result(), type);
             step.setTemp(resultRegister);
             step.setObj(vd);
+            step.setParent(parent);
             step.setVariableName(idVariable);
             step.setVariableType(type);
             machine.getBuilder().add(step);

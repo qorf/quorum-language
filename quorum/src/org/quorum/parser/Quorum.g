@@ -1180,6 +1180,7 @@ combo_expression
 		
 atom 	: 
 	qualified_name (COLON ID)? -> ^(QUALIFIED_SOLO_EXPRESSION qualified_name (COLON ID)?)
+	|	qualified_name COLON PARENT COLON qualified_name COLON ID -> ^(QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID)
 	|	qualified_name (COLON ID)? LEFT_PAREN function_expression_list RIGHT_PAREN ->
 			^(FUNCTION_CALL qualified_name (COLON ID)? LEFT_PAREN function_expression_list RIGHT_PAREN)
 	|	selector COLON qualified_name -> 

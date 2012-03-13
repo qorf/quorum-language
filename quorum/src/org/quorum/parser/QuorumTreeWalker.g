@@ -1717,13 +1717,13 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 			inCallStep = false;
 
 	}
-	|	^(QUALIFIED_SOLO_EXPRESSION qualified_name (COLON ID)?)
+	|	^(QUALIFIED_SOLO_EXPRESSION var=qualified_name (COLON ID)?)
 	{
 		LineInformation location = new LineInformation (
-			$qualified_name.type.getLineBegin(),
-			$qualified_name.type.getLineEnd(),
-			$qualified_name.type.getColumnBegin(),
-			$qualified_name.type.getColumnEnd()
+			$var.type.getLineBegin(),
+			$var.type.getLineEnd(),
+			$var.type.getColumnBegin(),
+			$var.type.getColumnEnd()
 		);
 		location.setFile(fileName);
                 location.setClassName(symbol.getCurrentClass().getStaticKey());
@@ -1733,11 +1733,12 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
                 }
 
 		ResultTuple result = new ResultTuple();
+		ClassDescriptor cd = null;
 		
 		if($ID != null){
-			result = stepFactory.addVariableInObjectMoveStep(location, null, null, temp, $qualified_name.type, $ID.text);
+			result = stepFactory.addVariableInObjectMoveStep(location, null, null, temp, $var.type, $ID.text, null);
 		}else{
-			result = stepFactory.addVariableMoveStep(location, null, null, temp, $qualified_name.type);
+			result = stepFactory.addVariableMoveStep(location, null, null, temp, $var.type);
 		}
 
 		temp++;
@@ -1745,6 +1746,43 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		$step = result.getStep();
 
 
+	}
+	|	^(QUALIFIED_SOLO_PARENT_EXPRESSON var=qualified_name COLON PARENT COLON par=qualified_name COLON ID)
+	{
+		LineInformation location = new LineInformation (
+			$var.type.getLineBegin(),
+			$var.type.getLineEnd(),
+			$var.type.getColumnBegin(),
+			$var.type.getColumnEnd()
+		);
+		location.setFile(fileName);
+                location.setClassName(symbol.getCurrentClass().getStaticKey());
+                MethodDescriptor curMethod = symbol.getCurrentMethod();
+                if(curMethod != null){
+                	location.setMethodName(curMethod.getStaticKey());
+                }
+
+		ResultTuple result = new ResultTuple();
+		ClassDescriptor cd = null;
+		
+		if($par.type != null){
+			cd = symbol.findClassDescriptorFromCurrentClass($par.type.getStaticKey());
+			
+			if(cd == null){
+				CompilerError error = new CompilerError($PARENT.getLine(), "The class "+ symbol.getCurrentClass().getStaticKey() +" does not have access to " + $par.type.getStaticKey(), ErrorType.MISSING_PARENT);
+				vm.getCompilerErrors().addError(error);
+			}
+		}
+		
+		if($ID != null){
+			result = stepFactory.addVariableInObjectMoveStep(location, null, null, temp, $var.type, $ID.text, cd);
+		}else{
+			result = stepFactory.addVariableMoveStep(location, null, null, temp, $var.type);
+		}
+
+		temp++;
+		$eval = result.getValue();
+		$step = result.getStep();
 	}
 	|	^(QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name)
 	{
