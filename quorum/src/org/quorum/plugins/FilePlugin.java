@@ -21,51 +21,36 @@ import org.quorum.symbols.ErrorTypeDescriptor;
 
 /**
  *
- * @author Elliot Motl
+ * @author Jeff Wilson
  */
 public class FilePlugin implements Plugin {
     protected AbstractVirtualMachine vm;
     public static final String KEY = "Libraries.System.File";
     
-    /* -- instance methods -- */
-    public static final String GET_MODE = "GetMode";
-    public static final String OPEN_NATIVE = "OpenNative:integer:boolean:boolean";
-    public static final String CLOSE = "Close";
-    public static final String READ = "Read";
-    public static final String READ_WITH_AMOUNT = "Read:integer";
-    public static final String READ_LINE = "ReadLine";
-    public static final String IS_EOF = "IsEndOfFile";
-    public static final String WRITE = "Write:text";
-    public static final String WRITE_LINE = "WriteLine:text";
-    public static final String GET_POSITION = "GetPosition";
-    public static final String SET_POSITION = "SetPosition:number";
-    public static final String REWIND = "Rewind";
-    public static final String FORCE_WRITE_CONTENTS = "ForceWriteContents";
-    
     /* -- class methods -- */
     public static final String GET_LAST_MODIFIED_NATIVE = "GetLastModifiedNative";
     public static final String GET_DIRECTORY_LISTING_NATIVE = "GetDirectoryListingNative";
+    public static final String GET_PARENT_DIRECTORY_NATIVE = "GetParentDirectoryNative";
+    public static final String GET_SYSTEM_NEWLINE = "GetSystemNewline";
+    public static final String SET_PATH_NATIVE = "SetPathNative:text";
+    public static final String GET_WORKING_DIRECTORY_NATIVE = "GetSorkingDirectoryNative";
+    public static final String EXISTS = "Exists";
+    public static final String IS_FILE = "IsFile";
     public static final String IS_DIRECTORY = "IsDirectory";
     public static final String IS_HIDDEN = "IsHidden";
-    public static final String EXISTS = "Exists";
-    public static final String GET_NAME = "GetName";
-    public static final String GET_EXTENSION = "GetExtension";
-    public static final String GET_PARENT = "GetParent";
-    public static final String GET_URI = "GetURI";
+    public static final String GET_FILE_NAME = "GetFileName";
+    public static final String GET_FILE_EXTENSION = "GetFileExtension";
+    public static final String GET_FREE_DISK_SPACE = "GetFreeDiskSpace";
+    public static final String GET_TOTAL_DISK_SPACE = "GetTotalDiskSpace";
     public static final String GET_FILE_SIZE = "GetFileSize";
-    public static final String GET_FREE_SPACE = "GetFreeSpace";
-    public static final String GET_TOTAL_SPACE = "GetTotalSpace";
-    public static final String CREATE_DIRECTORY = "CreateDirectory";
     public static final String DELETE = "Delete";
+    public static final String CREATE_DIRECTORY = "CreateDirectory";
     public static final String MOVE = "Move:text";
-    public static final String GET_SYSTEM_NEWLINE = "GetSystemNewline";
-    public static final String GET_PATH = "GetPath";
-    public static final String SET_PATH = "SetPath:text";
     
-    protected HashMap<Integer, QuorumFileInterface> instances;
+    protected HashMap<Integer, QuorumFilePlugin> instances;
 
     public FilePlugin() {
-        instances = new HashMap<Integer, QuorumFileInterface>();
+        instances = new HashMap<Integer, QuorumFilePlugin>();
     }
 
     public PluginReturn debug(PluginCall call) {
@@ -110,146 +95,38 @@ public class FilePlugin implements Plugin {
     }
 
     public void reset() {
-        instances = new HashMap<Integer, QuorumFileInterface>();
+        instances = new HashMap<Integer, QuorumFilePlugin>();
     }
 
     public PluginReturn execute(PluginCall call) {
         String action = call.getActionName();
         PluginReturn ret = new PluginReturn();
         
-        QuorumFileInterface inst = instances.get(call.getCallingObject().getHashKey());
+        QuorumFilePlugin inst = instances.get(call.getCallingObject().getHashKey());
         
         if (inst == null) {
             // This instance hasn't been logged yet. Put it in.
-            inst = new QuorumFile();
+            inst = new QuorumFilePlugin();
             instances.put(call.getCallingObject().getHashKey(), inst);
         }
         
         vm = call.getVirtualMachine();
         
-        if (action.equals(GET_MODE)) {
-            setPluginReturnValue(ret, inst.GetMode());
-        }
-        else if (action.equals(OPEN_NATIVE)) {
-            int mode = call.getArgument("mode").getResult().integer;
-            boolean append = call.getArgument("append").getResult().boolean_value;
-            boolean write = call.getArgument("write").getResult().boolean_value;
-            try {
-                inst.Open(mode, append, write);
-            } catch (IllegalArgumentException ex) {
-                throwQuorumException("InvalidArgumentError: " + ex.getMessage(), ErrorTypeDescriptor.getInvalidArgumentError());
-            } catch (FileNotFoundException ex) {
-                throwQuorumException("FileNotFoundError: The requested file was not found on disk.", ErrorTypeDescriptor.getFileNotFoundError());
-            } catch (IOException ex) {
-                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
-            }
-        }
-        else if (action.equals(CLOSE)) {
-            try {
-                inst.Close();
-            } catch (IOException ex) {
-                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
-            }
-            setPluginReturnValue(ret, true);
-        }
-        else if (action.equals(READ)) {
-            String result = "";
-            try {
-                result = inst.Read();
-            } catch (EOFException ex) {
-                throwQuorumException("EndOfFIleError: The end of the file has been reached.", ErrorTypeDescriptor.getEndOfFileError());
-            } catch (IOException ex) {
-                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
-            }
-            setPluginReturnValue(ret, result);
-        }
-        else if (action.equals(READ_WITH_AMOUNT)) {
-            int amount = call.getArgument("amount").getResult().integer;
-            String result = "";
-            try {
-                result = inst.Read(amount);
-            } catch (EOFException ex) {
-                throwQuorumException("EndOfFIleError: The end of the file has been reached.", ErrorTypeDescriptor.getEndOfFileError());
-            } catch (IOException ex) {
-                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
-            } catch (IllegalArgumentException ex) {
-                throwQuorumException("invalidArgumentError: " + ex.getMessage(), ErrorTypeDescriptor.getInvalidArgumentError());
-            }
-            setPluginReturnValue(ret, result);
-        }
-        else if (action.equals(READ_LINE)) {
-            String result = "";
-            try {
-                result = inst.ReadLine();
-            } catch (EOFException ex) {
-                throwQuorumException("EndOfFileError: The end of the file has been reached.", ErrorTypeDescriptor.getEndOfFileError());
-            } catch (IOException ex) {
-                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
-            }
-            setPluginReturnValue(ret, result);
-        }
-        else if (action.equals(IS_EOF)) {
-            boolean result = inst.IsEOF();
-            setPluginReturnValue(ret, result);
-        }
-        else if (action.equals(WRITE)) {
-            String textToWrite = call.getArgument("textToWrite").getResult().text;
-            try {
-                inst.Write(textToWrite);
-            } catch (IOException ex) {
-                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
-            }
-        }
-        else if (action.equals(WRITE_LINE)) {
-           String textToWrite = call.getArgument("textToWrite").getResult().text;
-            try {
-                inst.WriteLine(textToWrite);
-            } catch (IOException ex) {
-                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
-            }
-        }
-        else if (action.equals(GET_POSITION)) {
-            double position = -1;
-            try {
-                position = inst.GetPosition();
-            } catch (IOException ex) {
-                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
-            }
-            setPluginReturnValue(ret, position);
-        }
-        else if (action.equals(SET_POSITION)) {
-            double position = call.getArgument("position").getResult().number;
-            try {
-                inst.SetPosition((long)position);
-            } catch (IOException ex) {
-                throwQuorumException("InputOutputError:" + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
-            } catch (IllegalArgumentException ex) {
-                throwQuorumException("InvalidArgumentError: " + ex.getMessage(), ErrorTypeDescriptor.getInvalidArgumentError());
-            }
-        }
-        else if (action.equals(REWIND)) {
-            try {
-                inst.Rewind();
-            } catch (IOException ex) {
-                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
-            }
-        }
-        else if (action.equals(FORCE_WRITE_CONTENTS)) {
-            try {
-                inst.ForceWriteContents();
-            } catch (IOException ex) {
-                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
-            }
-        }
-        else if (action.equals(GET_LAST_MODIFIED_NATIVE)) {
-            try {
-                long time = inst.GetLastModified();
-            } catch (FileNotFoundException ex) {
-                throwQuorumException("FileNotFoundError: The requested file was not found on disk.", ErrorTypeDescriptor.getFileNotFoundError());
-            }
+        if (action.equals(GET_LAST_MODIFIED_NATIVE)) {
+            long time = inst.GetLastModifiedNative();
+            setPluginReturnValue(ret, time);
         }
         else if (action.equals(GET_DIRECTORY_LISTING_NATIVE)) {
-            setPluginReturnValue(ret, inst.GetDirectoryListing());
+            setPluginReturnValue(ret, inst.GetDirectoryListingNative());
+        }
+        else if (action.equals(GET_PARENT_DIRECTORY_NATIVE)) {
+            setPluginReturnValue(ret, inst.GetParentDirectoryNative());
+        }
+        else if (action.equals(GET_WORKING_DIRECTORY_NATIVE)) {
+            setPluginReturnValue(ret, inst.GetWorkingDirectoryNative());
+        }
+        else if (action.equals(IS_FILE)) {
+            setPluginReturnValue(ret, inst.IsFile());
         }
         else if (action.equals(IS_DIRECTORY)) {
             setPluginReturnValue(ret, inst.IsDirectory());
@@ -260,26 +137,17 @@ public class FilePlugin implements Plugin {
         else if (action.equals(EXISTS)) {
             setPluginReturnValue(ret, inst.Exists());
         }
-        else if (action.equals(GET_NAME)) {
-            setPluginReturnValue(ret, inst.GetName());
-        }
-        else if (action.equals(GET_EXTENSION)) {
-            setPluginReturnValue(ret, inst.GetExtension());
-        }
-        else if (action.equals(GET_PARENT)) {
-            setPluginReturnValue(ret, inst.GetParent());
-        }
-        else if (action.equals(GET_URI)) {
-            setPluginReturnValue(ret, inst.GetURI());
-        }
         else if (action.equals(GET_FILE_SIZE)) {
             setPluginReturnValue(ret, inst.GetFileSize());
         }
-        else if (action.equals(GET_FREE_SPACE)) {
-            setPluginReturnValue(ret, inst.GetFreeSpace());
+        else if (action.equals(GET_FREE_DISK_SPACE)) {
+            setPluginReturnValue(ret, inst.GetFreeDiskSpace());
         }
-        else if (action.equals(GET_TOTAL_SPACE)) {
-            setPluginReturnValue(ret, inst.GetTotalSpace());
+        else if (action.equals(GET_TOTAL_DISK_SPACE)) {
+            setPluginReturnValue(ret, inst.GetTotalDiskSpace());
+        }
+        else if (action.equals(GET_FILE_EXTENSION)) {
+            setPluginReturnValue(ret, inst.GetFileExtension());
         }
         else if (action.equals(CREATE_DIRECTORY)) {
             setPluginReturnValue(ret, inst.CreateDirectory());
@@ -292,14 +160,11 @@ public class FilePlugin implements Plugin {
             setPluginReturnValue(ret, inst.Move(newPath));
         }
         else if (action.equals(GET_SYSTEM_NEWLINE)) {
-            setPluginReturnValue(ret, System.getProperty("line.separator"));
+            setPluginReturnValue(ret, inst.GetSystemNewline());
         }
-        else if (action.equals(GET_PATH)){
-            setPluginReturnValue(ret, inst.GetPath());
-        }
-        else if (action.equals(SET_PATH)){
+        else if (action.equals(SET_PATH_NATIVE)){
             String path = call.getArgument("path").getResult().text;
-            inst.SetPath(path);
+            inst.SetPathNative(path);
         }
         return ret;
     }

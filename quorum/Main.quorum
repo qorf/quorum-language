@@ -1,44 +1,56 @@
-use Libraries.Robots.Robot
+use Libraries.System.File
 
- class Main
+class Main
     action Main
-        print "Running main class from QUORUM! Robot should start."
-        Robot r
-        r:SetConnection(1)
+        // Check for current dir.
+        File f1
+        print f1:GetPath()
+
+        // Set the path and then get it.
+        File f2
+        f2:SetPath("/Users/jeff")
+        print f2:GetPath()
+
+        // Check some stats on a file.
+        File f3
+        f3:SetPath("/Users/") // one directory above everyone's home dir on OS X
+        print f3:GetPath()
+        print f3:IsFile()
+        print f3:IsDirectory()
+        print f3:Exists()
+        print f3:IsHidden()
+        print f3:GetFreeDiskSpace()
+        print f3:GetTotalDiskSpace()
+        print f3:GetFileName()
+        print f3:GetFileSize()
+        print "The extension is " + f3:GetFileExtension()
+        
+        // Some other stats
+        File f4
+        f4:SetPath("/Users/jeff/i_dont_exist.txt")
+        print f4:IsFile()
+        print f4:Exists()
+        File p = f4:GetParentDirectory()
+        print "f4's parent is " + p:GetPath()
+        print "f4's extension is " + f4:GetFileExtension()
+
+        // Some edge cases -- parent dir for a file that doesn't exist?
+        File f5
+        f5:SetPath("/ksdjfksldfja/kf")
+        File f6 = f5:GetParentDirectory()
+
+        // ... or what if there isn't a parent?!
+        File f7
+        f7:SetPath("/")
+        File f8 = f7:GetParentDirectory()
+        if f8 = undefined
+            print "f7 has no parent. this is correct."
+        end
+
+        // Test file renaming.
+        File f9
+        f9:SetPath("/Users/jeff/rename.txt")
+        f9:Move("/Users/jeff/renamedit.txt")
+        print f9:GetPath()
     end
 end
-
-
-/*use Libraries.Robots.Motor
-
- class Main
-    action Main
-        print "Running main class from QUORUM! Motors should start."
-        Motor m 
-        m:SetConnection(1)
-        m:MoveFromHere(500, 5000)
-        m:Wait()
-        integer mc = m:GetConnection()
-        print "Motor is set at port" +mc
-        boolean success 
-        success = m:IsMotionComplete()
-        m:Off(1)
-        if success = true
-        then print "Motor has completed the motion"
-        end
-        else
-        then print "Motor has not completed the motion"
-        end
-        mc = m:GetConnection()
-        print "Motor is set at port" + mc
-        integer mp = m:GetPosition()
-        print "Motor position is at:" + mp
-        m:ResetPosition()
-        mp = m:GetPosition()
-        print "Motor position is at: " + mp
-        m:MoveToPosition(200, 2000)
-        mp = m:GetPosition()
-        m:Wait()
-        print "Motor position is at: " + mp //This is giving a value 0. Check this.
-    end
-end*/

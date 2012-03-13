@@ -16,7 +16,8 @@ import java.util.Stack;
  * 
  * Many methods here are undocumented -- please see the File.quorum class for
  * specifics on each method.
- * @author jeff
+ * 
+ * @author Jeff Wilson
  */
 public class QuorumFileDebugPlugin extends QuorumFilePlugin {
     /**

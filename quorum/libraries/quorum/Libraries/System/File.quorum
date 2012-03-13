@@ -4,7 +4,7 @@
 
 package Libraries.System
 use Libraries.Containers.Array
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Blueprints.Indexed
 use Libraries.System.Blueprints.FileReaderBlueprint
 use Libraries.System.Blueprints.FileWriterBlueprint
 use Libraries.System.Blueprints.FileRandomAccessBlueprint
@@ -37,18 +37,14 @@ class Main
     end
 */
 class File
-    /*
-     * The file (or directory) path this object represents. By default, this is
-     * the application's working directory.
-     */
-    private text path
 
     /*
-     * Set our path to the application's working directory.
+     * Keep track of each reader/writer/random accessor so that we know which
+     * to handle in Close().
      */
-    on create
-        path = GetWorkingDirectoryNative
-    end
+    private FileReader reader = undefined
+    private FileWriter writer = undefined
+    private FileRandomAccess randomAccess = undefined
 
     /*
      * This action gets the "last modified" date/time from the system in UNIX
@@ -76,6 +72,11 @@ class File
     private system action GetSystemNewline returns text
 
     /*
+     * Get the path on the native side.
+     */
+    private system action GetPathNative returns text
+
+    /*
      * Set the path on the native side.
      */
     private system action SetPathNative(text path)
@@ -87,13 +88,12 @@ class File
 
     // TODO: documentation
     action GetPath returns text
-        return me:path
+        return GetPathNative()
     end
 
     // TODO: documentation
     action SetPath(text path)
-        me:path = path
-        SetPathNative(me:path)
+        SetPathNative(path)
     end
 
     // TODO: documentation
@@ -103,7 +103,7 @@ class File
     system action IsFile returns boolean
 
     // TODO: documentation
-    action IsDirectory returns boolean
+    system action IsDirectory returns boolean
 
     // TODO: documentation
     system action IsHidden returns boolean
@@ -116,10 +116,16 @@ class File
 
     // TODO: documentation
     action GetParentDirectory returns File
-        text parentPath = GetParentDirectoryNative
+        text parentPath = GetParentDirectoryNative()
+        
+        // We can't create a parent object if there is no parent... (e.g., path is "C:\" on windows or "/" on *nix)
+        if parentPath = ""
+            return undefined
+        end
+
         File parentFile
         parentFile:SetPath(parentPath)
-        return parentPath
+        return parentFile
     end
 
     // TODO: documentation
@@ -134,14 +140,14 @@ class File
     // TODO: documentation
     action GetDirectoryListing returns Indexed<text>
         Text listingString
-        listingString:SetValue(GetDirectoryListingNative(path))
-        return listingString:Split(GetSystemNewline)
+        listingString:SetValue(GetDirectoryListingNative())
+        return listingString:Split(GetSystemNewline())
     end
 
     // TODO: documentation
     action GetLastModifiedDate returns DateTime
         DateTime date
-        number unixTimeStamp = GetLastModifiedNative
+        number unixTimeStamp = GetLastModifiedNative()
         date:SetEpochTime(unixTimeStamp)
         return date
     end
@@ -157,35 +163,58 @@ class File
 
     // TODO: documentation
     action OpenForRead returns FileReaderBlueprint
-        FileReader reader
+        FileReader r
+        reader = r
         reader:OpenForRead(me)
         return reader
     end
 
     // TODO: documentation
     action OpenForWrite returns FileWriterBlueprint
-        FileWriter writer
+        FileWriter w
+        writer = w
         writer:OpenForWrite(me)
         return writer
     end
 
     // TODO: documentation
     action OpenForWriteAppend returns FileWriterBlueprint
-        FileWriter writer
+        FileWriter w
+        writer = w
         writer:OpenForWriteAppend(me)
         return writer
     end
 
     // TODO: documentation
     action OpenForRandomAccess returns FileRandomAccessBlueprint
-        FileRandomAccess randomAccess
+        FileRandomAccess ra
+        randomAccess = ra
         randomAccess:OpenForRandomAccess(me)
         return randomAccess
     end
 
     // TODO: documentation
     action OpenForRandomAccessAppend returns FileRandomAccessBlueprint
-        FileRandomAccess randomAccess
+        FileRandomAccess ra
+        randomAccess = ra
         randomAccess:OpenForRandomAccessAppend(me)
+        return randomAccess
+    end
+
+    // TODO: documentation
+    action Close
+        // Close any open readers/writers/accessors. If the user mistakenly
+        // opened up several, we can close them.
+        if reader not= undefined
+            reader:Close()
+        end
+
+        if writer not= undefined
+            writer:Close()
+        end
+
+        if randomAccess not= undefined
+            randomAccess:Close()
+        end
     end
 end

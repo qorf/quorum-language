@@ -5,14 +5,14 @@
 package org.quorum.plugins;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
 /**
  * A plugin for the "File" class in Quorum, located under Libraries.System.File.
  * 
  * Many methods here are undocumented -- please see the File.quorum class for
  * specifics on each method.
- * @author jeff
+ * 
+ * @author Jeff Wilson
  */
 public class QuorumFilePlugin {
     /*
@@ -30,10 +30,7 @@ public class QuorumFilePlugin {
      * This action gets the "last modified" date/time from the system in UNIX
      * timestamp format.
      */
-    public double GetLastModifiedNative() throws FileNotFoundException {
-        if (!file.exists())
-            throw new FileNotFoundException();
-        
+    public long GetLastModifiedNative() {        
         return file.lastModified();
     }
 
@@ -58,10 +55,23 @@ public class QuorumFilePlugin {
      * Get the full-path name of the parent directory as a string.
      */
     public String GetParentDirectoryNative() {
-        return file.getParent();
+        String parentPath = file.getParent();
+        
+        if (parentPath == null) {
+            return "";
+        }
+        
+        return parentPath;
     }
     
 
+    /*
+     * Get the path.
+     */
+    public String GetPathNative() {
+        return this.path;
+    }
+    
     /*
      * Set the path on the native side.
      */
@@ -109,12 +119,13 @@ public class QuorumFilePlugin {
 
     public String GetFileExtension() {
         // The path may not contain an extension (or may not be a file)
-        if (!file.getPath().contains(".") || !file.isFile())
+        if (!path.contains("."))
             return "";
         
         String name = file.getName();
         int pos = name.lastIndexOf('.');
-        return name.substring(pos+1);    }
+        return name.substring(pos+1);    
+    }
 
     public double GetFreeDiskSpace() {
         return file.getFreeSpace();
@@ -138,9 +149,10 @@ public class QuorumFilePlugin {
 
     public boolean Move(String newPath) {
         File newFile = new File(newPath);
-        
         if (file.renameTo(newFile)) {
             this.path = newPath;
+            this.file = new File(this.path);
+
             return true;
         }
         
