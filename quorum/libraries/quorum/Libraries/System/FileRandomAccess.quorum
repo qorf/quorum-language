@@ -1,5 +1,60 @@
-class FileRandomAccess 
+package Libraries.System
+use Libraries.System.Blueprints.FileRandomAccessBlueprint
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Indexed
 
+/*
+Ths class represents a "random access" file reader/writer. It is the standard
+file random access reader/writer used in Quorum. By "random access," we mean
+that it is possible to read (or write) a byte of data at the beginning of the file,
+and then move to a different arbitrary location, such as the end of the file, and
+do the same. This is most commonly used for reading/writing binary files. Unlike
+the reader and writer classes in Quorum, (see FileReader and FileWriter, respectively)
+FileRandomAccess permits both reading and writing to a file simultaneously.
+*/
+class FileRandomAccess is a FileRandomAccessBlueprint
+    /*
+     * The file we have open. Upon creation, this is "undefined" and won't
+     * be set until the user calls one of the "open" methods.
+     */
+    private File file = undefined
 
+    // TODO: Document
+    system action OpenAsNew(File file)
 
+    // TODO: Document
+    system action OpenForAppend(File file)
+
+    // TODO: Document
+    system action Close()
+
+    // TODO: Document
+    system action GetPosition() returns number
+
+    // TODO: Document
+    system action SetPosition(number position)
+
+    // TODO: Document
+    system action GoToBeginning()
+
+    // TODO: Document
+    system action Read() returns text
+
+    // TODO: Document
+    system action Read(number numberOfBytes) returns text
+
+    // TODO: Document
+    system action ReadLine() returns text
+
+    // TODO: Document
+    system action ReadLines() returns Indexed<text>
+
+    // TODO: Document
+    system action Write(text textToWrite)
+
+    // TODO: Document
+    system action WriteLine(text textToWrite)
+
+    // TODO: Document
+    system action PushToDisk()
 end

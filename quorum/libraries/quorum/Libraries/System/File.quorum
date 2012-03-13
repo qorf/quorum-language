@@ -33,14 +33,41 @@ class Main
     end
 */
 class File
+    /*
+     * The file (or directory) path this object represents. By default, this is
+     * the application's working directory.
+     */
     private text path
 
+    /*
+     * Set our path to the application's working directory.
+     */
     on create
         // TODO:
         // Set 'path' to the current working directory.
         path = "/the/current/working/directory"
     end
 
+    /*
+     * This action gets the "last modified" date/time from the system in UNIX
+     * timestamp format.
+     */
+    private system action GetLastModifiedNative(text path) returns number
+
+    /*
+     * This action gets the directory listing from the system delimited by
+     * a pipe symbol. 
+     */
+    private system action GetDirectoryListingNative(text path) returns text
+
+    /*
+     * This action gets the system's newline character. This varies from
+     * platform to platform and is difficult to detect manually. On some
+     * systems, it may simply be "\n" (UNIX), and on others, it may be
+     * "\r\n" (Windows).
+     */
+
+    private system action GetSystemNewline() returns text
     // TODO: documentation
     action GetPath() returns text
         return me:path
