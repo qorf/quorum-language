@@ -3,10 +3,14 @@
  */
 
 package Libraries.System
-use Libraries.Language.Errors.InputOutputError
-use Libraries.Language.Errors.EndOfFileError
 use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.System.Blueprints.FileReaderBlueprint
+use Libraries.System.Blueprints.FileWriterBlueprint
+use Libraries.System.Blueprints.FileRandomAccessBlueprint
+use Libraries.System.FileReader
+use Libraries.System.FileWriter
+use Libraries.System.FileRandomAccess
 use Libraries.System.DateTime
 
 /*
@@ -43,22 +47,25 @@ class File
      * Set our path to the application's working directory.
      */
     on create
-        // TODO:
-        // Set 'path' to the current working directory.
-        path = "/the/current/working/directory"
+        path = GetWorkingDirectoryNative
     end
 
     /*
      * This action gets the "last modified" date/time from the system in UNIX
      * timestamp format.
      */
-    private system action GetLastModifiedNative(text path) returns number
+    private system action GetLastModifiedNative returns number
 
     /*
      * This action gets the directory listing from the system delimited by
      * a pipe symbol. 
      */
-    private system action GetDirectoryListingNative(text path) returns text
+    private system action GetDirectoryListingNative returns text
+
+    /*
+     * Get the full-path name of the parent directory as a string.
+     */
+    private system action GetParentDirectoryNative returns text
 
     /*
      * This action gets the system's newline character. This varies from
@@ -66,85 +73,119 @@ class File
      * systems, it may simply be "\n" (UNIX), and on others, it may be
      * "\r\n" (Windows).
      */
+    private system action GetSystemNewline returns text
 
-    private system action GetSystemNewline() returns text
+    /*
+     * Set the path on the native side.
+     */
+    private system action SetPathNative(text path)
+
+    /*
+     * Get the user's current working directory.
+     */
+    private system action GetWorkingDirectoryNative returns text
+
     // TODO: documentation
-    action GetPath() returns text
+    action GetPath returns text
         return me:path
     end
 
-    // TODO: documentation, verify path ??
+    // TODO: documentation
     action SetPath(text path)
         me:path = path
+        SetPathNative(me:path)
     end
 
-    // TODO: documentation, implement
-    system action Exists() returns boolean
+    // TODO: documentation
+    system action Exists returns boolean
 
-    // TODO: documentation, implement
-    system action IsFile() returns boolean
+    // TODO: documentation
+    system action IsFile returns boolean
 
-    // TODO: documentation, implement
-    action IsDirectory() returns boolean
+    // TODO: documentation
+    action IsDirectory returns boolean
 
-    // TODO: documentation, implement
-    system action IsHidden() returns boolean
+    // TODO: documentation
+    system action IsHidden returns boolean
 
-    // TODO: documentation, implement
-    system action GetFileName() returns text
+    // TODO: documentation
+    system action GetFileName returns text
 
-    // TODO: documentation, implement
-    system action GetFileExtension() returns text
+    // TODO: documentation
+    system action GetFileExtension returns text
 
-    // TODO: documentation, implement
-    system action GetParentDirectory() returns File
-
-    // TODO: documentation, implement
-    system action GetFreeDiskSpace() returns number
-
-    // TODO: documentation, implement
-    system action GetTotalDiskSpace() returns number
-
-    // TODO: documentation, implement
-    system action GetFileSize() returns number
-
-    // TODO: documentation, implement
-    system action GetDirectoryListing() returns Indexed<text>
-
-    // TODO: documentation, implement
-    system action GetLastModifiedDate() returns DateTime
-
-    // TODO: documentation, implement
-    system action Delete()
-
-    // TODO: documentation, implement
-    system action CreateDirectory()
-
-    // TODO: documentation, implement
-    system action Move(text newPath)
-
-    // TODO: documentation, implement
-    action OpenForRead() returns FileReaderBlueprint
-        return undefined
+    // TODO: documentation
+    action GetParentDirectory returns File
+        text parentPath = GetParentDirectoryNative
+        File parentFile
+        parentFile:SetPath(parentPath)
+        return parentPath
     end
 
-    // TODO: documentation, implement
-    action OpenForWrite() returns FileWriterBlueprint
-        return undefined
+    // TODO: documentation
+    system action GetFreeDiskSpace returns number
+
+    // TODO: documentation
+    system action GetTotalDiskSpace returns number
+
+    // TODO: documentation
+    system action GetFileSize returns number
+
+    // TODO: documentation
+    action GetDirectoryListing returns Indexed<text>
+        Text listingString
+        listingString:SetValue(GetDirectoryListingNative(path))
+        return listingString:Split(GetSystemNewline)
     end
 
-    // TODO: documentation, implement
-    action OpenForWriteAppend() returns FileWriterBlueprint
-        return undefined
+    // TODO: documentation
+    action GetLastModifiedDate returns DateTime
+        DateTime date
+        number unixTimeStamp = GetLastModifiedNative
+        date:SetEpochTime(unixTimeStamp)
+        return date
     end
 
-    // TODO: documentation, implement
-    action OpenForRandomAccess() returns FileRandomAccessBlueprint
-        return undefined
+    // TODO: documentation
+    system action Delete returns boolean
+
+    // TODO: documentation
+    system action CreateDirectory returns boolean
+
+    // TODO: documentation
+    system action Move(text newPath) returns boolean
+
+    // TODO: documentation
+    action OpenForRead returns FileReaderBlueprint
+        FileReader reader
+        reader:OpenForRead(me)
+        return reader
     end
 
-    // TODO: documentation, implement
-    action OpenForRandomAccessAppend() returns FileRandomAccessBlueprint
-        return undefined
+    // TODO: documentation
+    action OpenForWrite returns FileWriterBlueprint
+        FileWriter writer
+        writer:OpenForWrite(me)
+        return writer
+    end
+
+    // TODO: documentation
+    action OpenForWriteAppend returns FileWriterBlueprint
+        FileWriter writer
+        writer:OpenForWriteAppend(me)
+        return writer
+    end
+
+    // TODO: documentation
+    action OpenForRandomAccess returns FileRandomAccessBlueprint
+        FileRandomAccess randomAccess
+        randomAccess:OpenForRandomAccess(me)
+        return randomAccess
+    end
+
+    // TODO: documentation
+    action OpenForRandomAccessAppend returns FileRandomAccessBlueprint
+        FileRandomAccess randomAccess
+        randomAccess:OpenForRandomAccessAppend(me)
     end
 end
