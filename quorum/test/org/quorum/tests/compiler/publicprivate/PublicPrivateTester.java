@@ -365,6 +365,44 @@ public class PublicPrivateTester {
     }
     
     @Test
+    public void test_inheritance_access_to_variables_execute(){
+        File[] files = new File[3];
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "APublicVariable.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "BPublicVariable.quorum");
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "InstanceAccessToVariables.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("value");
+        int b = variableValue.getResult().integer;
+        if(b!=7) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_inheritance_access_to_variables_bytecode(){
+        File[] files = new File[3];
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "APublicVariable.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "BPublicVariable.quorum");
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "InstanceAccessToVariables.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("7"));
+    }
+    
+    @Test
     public void test_simple_set_field_execute() {
         File[] files = new File[1];
         files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "SimpleSetField.quorum");
