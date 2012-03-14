@@ -34,7 +34,8 @@ public class Robot {
             r = new cbccore.create.Create();
         } catch (CreateConnectException ex) {
             Logger.getLogger(Robot.class.getName()).log(Level.SEVERE, null, ex);
-        }
+          
+    }
         c = new cbccore.create.CliffState(rightCliff, rightFrontCliff, leftCliff, leftFrontCliff, rightCliffAmount, rightFrontCliffAmount, leftCliffAmount, leftFrontCliffAmount);
         try {
             r.connect();
@@ -46,7 +47,7 @@ public class Robot {
     }
     
     public void Disconnect()
-    {
+    {              
         r.disconnect();
     }
  

@@ -111,6 +111,11 @@ public class Motor {
         sucess = m.getDone();
         return sucess;
     }
+    
+    public void AllMotorOff()
+    {
+        cbccore.motors.Motor.allOff();
+    }
 }
 
 //This has to be moved to the general class
