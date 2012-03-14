@@ -1,7 +1,65 @@
 use Libraries.System.File
+use Libraries.System.FileReader
+use Libraries.System.Blueprints.FileReaderBlueprint
+use Libraries.Containers.Blueprints.Indexed
 
+use Libraries.Containers.Array
 class Main
     action Main
+        print "====== BEGIN FileReader TESTS ======"
+        // Open a file, read all of its contents.
+        File f
+        f:SetPath("/Users/jeff/readMe.txt")
+        FileReaderBlueprint reader0 = f:OpenForRead()
+        print "All file contents:"
+        print reader0:Read() // read all contents.
+        print "End file contents."
+        f:Close()
+        print ""
+        
+        // Read one line at a time.
+        reader0 = f:OpenForRead()
+        print "All file contents:"
+        print reader0:ReadLine()
+        print reader0:ReadLine()
+        print reader0:ReadLine()
+        print "End file contents."
+        f:Close()
+        print ""
+        
+        // Mix up line reading and byte reading.
+        reader0 = f:OpenForRead()
+        print "All file contents:"
+        print reader0:Read(2)
+        print reader0:Read(3)
+        print reader0:ReadLine()
+        print reader0:ReadLine()
+        print reader0:Read(1000) // read well beyond EOF. shouldn't throw an exception.
+        print "End file contents."
+        f:Close()
+        print ""
+
+        // Read some bytes, then just read the rest.
+        reader0 = f:OpenForRead()
+        print "All file contents:"
+        print reader0:Read(9)
+        print reader0:Read()
+        print "End file contents."
+        f:Close()
+        print ""
+        print ""
+        
+        // Finally, test ReadLines().
+        reader0 = f:OpenForRead()
+        Indexed<text> lines = reader0:ReadLines()
+        print "All file contents:"
+        print lines:Get(0)
+        print lines:Get(1)
+        print lines:Get(2)
+        print "End file contents."
+        f:Close()
+
+        print "====== BEGIN FILE TESTS ======"
         // Check for current dir.
         File f1
         print f1:GetPath()

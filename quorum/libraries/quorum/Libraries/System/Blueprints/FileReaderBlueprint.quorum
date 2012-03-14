@@ -21,11 +21,14 @@ class FileReaderBlueprint
     blueprint action Read() returns text
 
     // TODO: Document
-    blueprint action Read(number numberOfBytes) returns text
+    blueprint action Read(integer numberOfBytes) returns text
 
     // TODO: Document
     blueprint action ReadLine() returns text
 
     // TODO: Document
     blueprint action ReadLines() returns Indexed<text>
+
+    // TODO: Document
+    blueprint action IsAtEndOfFile() returns boolean
 end

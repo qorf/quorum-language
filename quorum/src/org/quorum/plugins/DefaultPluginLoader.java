@@ -61,6 +61,12 @@ public class DefaultPluginLoader {
         plugin = new FileDebugPlugin();
         plugins.add(plugin);
 
+        plugin = new FileReaderPlugin();
+        plugins.add(plugin);
+        
+        plugin = new FileReaderDebugPlugin();
+        plugins.add(plugin);
+        
         plugin = new ConsolePlugin();
         plugins.add(plugin);
 

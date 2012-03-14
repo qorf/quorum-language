@@ -2,8 +2,13 @@ package Libraries.System
 use Libraries.System.Blueprints.FileReaderBlueprint
 use Libraries.System.File
 use Libraries.Containers.Blueprints.Indexed
+use Libraries.Containers.Array
+use Libraries.Language.Errors.EndOfFileError
 
 /*
+
+TODO: Check to make sure a file is opened.
+
 This class represents a sequential file reader. It is the standard file reader
 used in Quorum. By "sequential," we mean that it is possible to only move
 forward in the file; re-reading data is not possible. This is most commonly
@@ -18,21 +23,76 @@ class FileReader is a FileReaderBlueprint
      */
     private File file = undefined
 
+    /*
+     * The native side for opening a file. Takes a path only, not a File
+     * object.
+     */
+    private system action OpenForReadNative(text path)
+
+    /*
+     * Read data from file on the native side.
+     */
+    private system action ReadNative() returns text
+
+    /*
+     * Read a certain amount of data from the file on the native side. This
+     * action does *not* error-check "numberOfBytes" to ensure it is greater
+     * than zero.
+     */
+    private system action ReadNative(integer numberOfBytes) returns text
+
+    /*
+     * Read a line from the file on the native side.
+     */
+    private system action ReadLineNative() returns text
+
     // TODO: Document
-    system action OpenForRead(File file)
+    system action IsAtEndOfFile() returns boolean
+
+    // TODO: Document
+    action OpenForRead(File file)
+        OpenForReadNative(file:GetPath())
+    end
 
     // TODO: Document
     system action Close()
 
     // TODO: Document
-    system action Read() returns text
+    action Read() returns text
+        return ReadNative()
+    end
+    
+    // TODO: Document
+    action Read(integer numberOfBytes) returns text
+        // TODO: Error checking
+        return ReadNative(numberOfBytes)
+    end
 
     // TODO: Document
-    system action Read(number numberOfBytes) returns text
+    action ReadLine() returns text
+        return ReadLineNative()
+    end
 
     // TODO: Document
-    system action ReadLine() returns text
+    action ReadLines() returns Indexed<text>
+        if me:IsAtEndOfFile()
+            EndOfFileError e
+            alert(e)
+        end
 
-    // TODO: Document
-    system action ReadLines() returns Indexed<text>
+        boolean eof = false
+        Array<text> lines
+        
+        repeat until eof
+            check
+                text line = me:ReadLine()
+                lines:Add(line)
+            detect e of type EndOfFileError
+                // End of file has been reached. Break loop.
+                eof = true
+            end
+        end
+
+        return lines
+    end
 end
