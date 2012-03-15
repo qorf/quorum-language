@@ -38,7 +38,6 @@ public class QuorumFileReaderDebug extends QuorumFileReader {
     private class FileDescriptor {
         public File file = null;
         public String path = "";
-        public boolean append = false;
         public boolean atEOF = false;
         public Stack<Long> pointers = new Stack<Long>();
         public long pointer = 0;
