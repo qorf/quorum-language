@@ -38,7 +38,12 @@ class FileRandomAccess is a FileRandomAccessBlueprint
     system action GetPosition() returns number
 
     // TODO: Document
-    system action SetPosition(number position)
+    private system action SetPositionNative(number position)
+
+    // TODO: Document
+    action SetPosition(number position)
+        SetPositionNative(position)
+    end
 
     // TOO: Document
     system action IsAtEndOfFile() returns boolean
@@ -49,13 +54,28 @@ class FileRandomAccess is a FileRandomAccessBlueprint
     end
 
     // TODO: Document
-    system action Read() returns text
+    private system action ReadNative() returns text
 
     // TODO: Document
-    system action Read(integer numberOfBytes) returns text
+    private system action ReadNative(integer numberOfBytes) returns text
 
     // TODO: Document
-    system action ReadLine() returns text
+    private system action ReadLineNative() returns text
+
+    // TODO: Document
+    action Read() returns text
+        return ReadNative()
+    end
+
+    // TODO: Document
+    action Read(integer numberOfBytes) returns text
+        return ReadNative(numberOfBytes) // TODO, error check
+    end
+
+    // TODO: Document
+    action ReadLine() returns text
+        return ReadLineNative()
+    end
 
     // TODO: Document
     action ReadLines() returns Indexed<text>
@@ -81,8 +101,18 @@ class FileRandomAccess is a FileRandomAccessBlueprint
     end
 
     // TODO: Document
-    system action Write(text textToWrite)
+    private system action WriteNative(text textToWrite)
 
     // TODO: Document
-    system action WriteLine(text textToWrite)
+    private system action WriteLineNative(text textToWrite)
+
+    // TODO: Document
+    action Write(text textToWrite)
+        WriteNative(textToWrite)
+    end
+
+    // TODO: Document
+    action WriteLine(text textToWrite)
+        WriteLine(textToWrite)
+    end
 end
