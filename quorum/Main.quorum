@@ -2,11 +2,36 @@ use Libraries.System.File
 use Libraries.System.FileReader
 use Libraries.System.Blueprints.FileReaderBlueprint
 use Libraries.System.Blueprints.FileWriterBlueprint
+use Libraries.System.Blueprints.FileRandomAccessBlueprint
 use Libraries.Containers.Blueprints.Indexed
 
 use Libraries.Containers.Array
 class Main
     action Main
+        print "====== BEGIN FileRandomAccess TESTS ======"
+        File fra
+        fra:SetPath("/Users/jeff/readMe.txt")
+        FileRandomAccessBlueprint ra = fra:OpenForRandomAccess()
+        print ra:Read(1)
+        print ra:Read(4)
+        print ra:ReadLine()
+        print ra:Read()
+        fra:Close()
+        
+        ra = fra:OpenForRandomAccess()
+        ra:Write("abcde")
+        ra:WriteLine("oh hello")
+        fra:Close()
+
+        /*ra = fra:OpenForRandomAccess()
+        Indexed<text> lines = ra:ReadLines()
+        print lines:Get(0)
+        print lines:Get(1)
+        print lines:Get(2)
+        fra:Close()*/
+
+        print ""
+        print ""
         print "====== BEGIN FileWriter TESTS ======"
         // Create new file.
         File fw
@@ -81,14 +106,14 @@ class Main
         print ""
         
         // Finally, test ReadLines().
-        reader0 = f:OpenForRead()
-        Indexed<text> lines = reader0:ReadLines()
+        /*reader0 = f:OpenForRead()
+        lines = reader0:ReadLines()
         print "All file contents:"
         print lines:Get(0)
         print lines:Get(1)
         print lines:Get(2)
         print "End file contents."
-        f:Close()
+        f:Close()*/
 
         print "====== BEGIN FILE TESTS ======"
         // Check for current dir.

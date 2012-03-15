@@ -2,6 +2,8 @@ package Libraries.System
 use Libraries.System.Blueprints.FileRandomAccessBlueprint
 use Libraries.System.File
 use Libraries.Containers.Blueprints.Indexed
+use Libraries.Language.Errors.EndOfFileError
+use Libraries.Containers.Array
 
 /*
 Ths class represents a "random access" file reader/writer. It is the standard
@@ -19,11 +21,15 @@ class FileRandomAccess is a FileRandomAccessBlueprint
      */
     private File file = undefined
 
-    // TODO: Document
-    system action OpenForRandomAccess(File file)
+    /*
+     * Open the file on the native side.
+     */
+    private system action OpenForRandomAccessNative(text path)
 
     // TODO: Document
-    system action OpenForRandomAccessAppend(File file)
+    action OpenForRandomAccess(File file)
+        OpenForRandomAccessNative(file:GetPath())
+    end
 
     // TODO: Document
     system action Close()
@@ -34,27 +40,49 @@ class FileRandomAccess is a FileRandomAccessBlueprint
     // TODO: Document
     system action SetPosition(number position)
 
+    // TOO: Document
+    system action IsAtEndOfFile() returns boolean
+
     // TODO: Document
-    system action GoToBeginning()
+    action GoToBeginning()
+        SetPosition(0)
+    end
 
     // TODO: Document
     system action Read() returns text
 
     // TODO: Document
-    system action Read(number numberOfBytes) returns text
+    system action Read(integer numberOfBytes) returns text
 
     // TODO: Document
     system action ReadLine() returns text
 
     // TODO: Document
-    system action ReadLines() returns Indexed<text>
+    action ReadLines() returns Indexed<text>
+        if me:IsAtEndOfFile()
+            EndOfFileError e
+            alert(e)
+        end
+
+        boolean eof = false
+        Array<text> lines
+        
+        repeat until eof
+            check
+                text line = me:ReadLine()
+                lines:Add(line)
+            detect e of type EndOfFileError
+                // End of file has been reached. Break loop.
+                eof = true
+            end
+        end
+
+        return lines
+    end
 
     // TODO: Document
     system action Write(text textToWrite)
 
     // TODO: Document
     system action WriteLine(text textToWrite)
-
-    // TODO: Document
-    system action PushToDisk()
 end

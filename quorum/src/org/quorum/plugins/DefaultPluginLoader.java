@@ -73,6 +73,12 @@ public class DefaultPluginLoader {
         plugin = new FileWriterDebugPlugin();
         plugins.add(plugin);
         
+        plugin = new FileRandomAccessPlugin();
+        plugins.add(plugin);
+        
+        plugin = new FileRandomAccessDebugPlugin();
+        plugins.add(plugin);
+        
         plugin = new ConsolePlugin();
         plugins.add(plugin);
 

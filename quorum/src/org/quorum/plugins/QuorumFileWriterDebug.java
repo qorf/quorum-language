@@ -46,7 +46,6 @@ public class QuorumFileWriterDebug extends QuorumFileWriter {
         public long pointer = 0;
         public long size = 0;
         public RandomAccessFile randomAccess = null;
-        public String mode = null; // "w" or "w+"
     }
     
     /**
@@ -55,7 +54,7 @@ public class QuorumFileWriterDebug extends QuorumFileWriter {
      * @param fd 
      */
     private void openDescriptor(FileDescriptor fd) throws FileNotFoundException, IOException {
-        fd.randomAccess = new RandomAccessFile(fd.file, fd.mode); // read-only mode.
+        fd.randomAccess = new RandomAccessFile(fd.file, "w");
         descriptor = fd; // this is now the open file.
     }
     
@@ -143,7 +142,6 @@ public class QuorumFileWriterDebug extends QuorumFileWriter {
         FileDescriptor fd = new FileDescriptor();
         fd.file = new File(path);
         fd.path = path;
-        fd.mode = "w";
         
         try {
             openDescriptor(fd);
@@ -157,7 +155,6 @@ public class QuorumFileWriterDebug extends QuorumFileWriter {
         FileDescriptor fd = new FileDescriptor();
         fd.file = new File(path);
         fd.path = path;
-        fd.mode = "w+";
         
         try {
             openDescriptor(fd);

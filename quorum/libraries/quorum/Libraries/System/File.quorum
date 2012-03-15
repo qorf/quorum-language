@@ -194,14 +194,6 @@ class File
     end
 
     // TODO: documentation
-    action OpenForRandomAccessAppend returns FileRandomAccessBlueprint
-        FileRandomAccess ra
-        randomAccess = ra
-        randomAccess:OpenForRandomAccessAppend(me)
-        return randomAccess
-    end
-
-    // TODO: documentation
     action Close
         // Close any open readers/writers/accessors. If the user mistakenly
         // opened up several, we can close them.
