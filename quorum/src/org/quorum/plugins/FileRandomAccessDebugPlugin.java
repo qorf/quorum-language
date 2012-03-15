@@ -36,34 +36,58 @@ public class FileRandomAccessDebugPlugin extends FileRandomAccessPlugin {
         vm = call.getVirtualMachine();
         
         if (action.equals(OPEN_FOR_RANDOM_ACCESS_NATIVE)) {
-            // TODO
+            try {
+                inst.unOpenForRandomAccessNative();
+            } catch (IOException ex) {
+                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         else if (action.equals(CLOSE)) {
-            // TODO
-        }
-        else if (action.equals(GET_POSITION)) {
-            // TODO
+            try {
+                inst.unClose();
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         else if (action.equals(SET_POSITION)) {
-            // TODO
-        }
-        else if (action.equals(IS_AT_END_OF_FILE)) {
-            // TODO
+            inst.unSetPositionNative();
         }
         else if (action.equals(READ)) {
-            // TODO
+            try {
+                inst.unReadNative();
+            } catch (IOException ex) {
+                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         else if (action.equals(READ_AMOUNT)) {
-            // TODO
+            try {
+                inst.unReadNative();
+            } catch (IOException ex) {
+                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         else if (action.equals(READ_LINE)) {
-            // TODO
+            try {
+                inst.unReadLineNative();
+            } catch (IOException ex) {
+                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         else if (action.equals(WRITE)) {
-            // TODO
+            try {
+                inst.unWriteNative();
+            } catch (IOException ex) {
+                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         else if (action.equals(WRITE_LINE)) {
-            // TODO
+            try {
+                inst.unWriteNative();
+            } catch (IOException ex) {
+                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }          
         }
         
         return ret;

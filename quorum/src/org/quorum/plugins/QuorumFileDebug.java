@@ -19,7 +19,7 @@ import java.util.Stack;
  * 
  * @author Jeff Wilson
  */
-public class QuorumFileDebugPlugin extends QuorumFilePlugin {
+public class QuorumFileDebug extends QuorumFile {
     /**
      * Represents a Move() or Delete() operation. These can be used later to undo moves and deletes.
      * Deletes can be undone as a "delete" in debug mode is just a rename operation.

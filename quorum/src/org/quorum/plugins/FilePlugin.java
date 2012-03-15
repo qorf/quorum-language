@@ -47,10 +47,10 @@ public class FilePlugin implements Plugin {
     public static final String CREATE_DIRECTORY = "CreateDirectory";
     public static final String MOVE = "Move:text";
     
-    protected HashMap<Integer, QuorumFilePlugin> instances;
+    protected HashMap<Integer, QuorumFile> instances;
 
     public FilePlugin() {
-        instances = new HashMap<Integer, QuorumFilePlugin>();
+        instances = new HashMap<Integer, QuorumFile>();
     }
 
     public PluginReturn debug(PluginCall call) {
@@ -95,18 +95,18 @@ public class FilePlugin implements Plugin {
     }
 
     public void reset() {
-        instances = new HashMap<Integer, QuorumFilePlugin>();
+        instances = new HashMap<Integer, QuorumFile>();
     }
 
     public PluginReturn execute(PluginCall call) {
         String action = call.getActionName();
         PluginReturn ret = new PluginReturn();
         
-        QuorumFilePlugin inst = instances.get(call.getCallingObject().getHashKey());
+        QuorumFile inst = instances.get(call.getCallingObject().getHashKey());
         
         if (inst == null) {
             // This instance hasn't been logged yet. Put it in.
-            inst = new QuorumFilePlugin();
+            inst = new QuorumFile();
             instances.put(call.getCallingObject().getHashKey(), inst);
         }
         

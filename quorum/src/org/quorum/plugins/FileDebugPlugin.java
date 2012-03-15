@@ -22,11 +22,11 @@ public class FileDebugPlugin extends FilePlugin{
         String action = call.getActionName();
         PluginReturn ret = new PluginReturn();
         
-        QuorumFileDebugPlugin inst = (QuorumFileDebugPlugin)instances.get(call.getCallingObject().getHashKey());
+        QuorumFileDebug inst = (QuorumFileDebug)instances.get(call.getCallingObject().getHashKey());
         
         if (inst == null) {
             // This instance hasn't been logged yet. Put it in.
-            inst = new QuorumFileDebugPlugin();
+            inst = new QuorumFileDebug();
             instances.put(call.getCallingObject().getHashKey(), inst);
         }
         

@@ -31,13 +31,13 @@ public class FileRandomAccessPlugin implements Plugin {
     public static final String OPEN_FOR_RANDOM_ACCESS_NATIVE = "OpenForRandomAccessNative:text";
     public static final String CLOSE = "Close";
     public static final String GET_POSITION = "GetPosition";
-    public static final String SET_POSITION = "SetPosition";
+    public static final String SET_POSITION = "SetPositionNative";
     public static final String IS_AT_END_OF_FILE = "IsAtEndOfFile";
-    public static final String READ = "Read";
-    public static final String READ_AMOUNT = "Read:integer";
-    public static final String READ_LINE = "ReadLine";
-    public static final String WRITE = "Write";
-    public static final String WRITE_LINE = "WriteLine";
+    public static final String READ = "ReadNative";
+    public static final String READ_AMOUNT = "ReadNative:integer";
+    public static final String READ_LINE = "ReadLineNative";
+    public static final String WRITE = "WriteNative";
+    public static final String WRITE_LINE = "WriteLineNative";
     
     protected HashMap<Integer, QuorumFileRandomAccess> instances;
 
@@ -105,34 +105,96 @@ public class FileRandomAccessPlugin implements Plugin {
         vm = call.getVirtualMachine();
        
         if (action.equals(OPEN_FOR_RANDOM_ACCESS_NATIVE)) {
-            // TODO
+            ExpressionValue argument = call.getArgument("path");
+            String arg = argument.getResult().text;
+            try {
+                inst.OpenForRandomAccessNative(arg);
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         else if (action.equals(CLOSE)) {
-            // TODO
+            try {
+                inst.Close();
+            } catch (IOException ex) {
+                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         else if (action.equals(GET_POSITION)) {
-            // TODO
+            double result = 0;
+            
+            try {
+                result = inst.GetPosition();
+            } catch (IOException ex) {
+                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            setPluginReturnValue(ret, result);
         }
         else if (action.equals(SET_POSITION)) {
-            // TODO
+            ExpressionValue argument = call.getArgument("position");
+            double arg = argument.getResult().number;
+            try {
+                inst.SetPositionNative((long)arg);
+            } catch (IOException ex) {
+                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         else if (action.equals(IS_AT_END_OF_FILE)) {
-            // TODO
+            boolean result = inst.IsAtEndOfFile();
+            
+            setPluginReturnValue(ret, result);
         }
         else if (action.equals(READ)) {
-            // TODO
+            String result = "";
+            try {
+                result = inst.ReadNative();
+            } catch (IOException ex) {
+                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            setPluginReturnValue(ret, result);
         }
         else if (action.equals(READ_AMOUNT)) {
-            // TODO
+            ExpressionValue argument = call.getArgument("numberOfBytes");
+            int arg = argument.getResult().integer;
+            String result = "";
+            try {
+                result = inst.ReadNative(arg);
+            } catch (IOException ex) {
+                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            setPluginReturnValue(ret, result);        
         }
         else if (action.equals(READ_LINE)) {
-            // TODO
-        }
+            String result = "";
+            try {
+                result = inst.ReadLineNative();
+            } catch (IOException ex) {
+                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            setPluginReturnValue(ret, result);        }
         else if (action.equals(WRITE)) {
-            // TODO
+            ExpressionValue argument = call.getArgument("textToWrite");
+            String arg = argument.getResult().text;
+            String result = "";
+            try {
+                inst.WriteNative(arg);
+            } catch (IOException ex) {
+                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }     
         }
         else if (action.equals(WRITE_LINE)) {
-            // TODO
+            ExpressionValue argument = call.getArgument("textToWrite");
+            String arg = argument.getResult().text;
+            String result = "";
+            try {
+                inst.WriteLineNative(arg);
+            } catch (IOException ex) {
+                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            }             
         }
         return ret;
     }
