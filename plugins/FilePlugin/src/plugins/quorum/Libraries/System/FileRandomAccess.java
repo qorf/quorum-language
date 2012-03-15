@@ -7,6 +7,7 @@ package plugins.quorum.Libraries.System;
 import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import quorum.Libraries.Language.Errors.*;
 
 /**
  *
