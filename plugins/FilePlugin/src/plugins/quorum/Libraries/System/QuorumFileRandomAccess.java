@@ -35,11 +35,11 @@ public class QuorumFileRandomAccess {
         return randomAccess.getFilePointer();
     }
     
-    public void SetPosition(long position) throws IOException {
+    public void SetPositionNative(long position) throws IOException {
         randomAccess.seek(position);
     }
 
-    public String Read() throws IOException {
+    public String ReadNative() throws IOException {
         long currentPos = randomAccess.getFilePointer();
 
         // Gather all our remaining data.
@@ -68,7 +68,7 @@ public class QuorumFileRandomAccess {
         }
     }
 
-    public String Read(int numberOfBytes) throws EOFException, IOException {
+    public String ReadNative(int numberOfBytes) throws EOFException, IOException {
         // Gather all our remaining data.
         StringBuilder stringBuff = new StringBuilder();
         long totalReadBytes = 0;
@@ -99,7 +99,7 @@ public class QuorumFileRandomAccess {
         }
     }
 
-    public String ReadLine() throws IOException {
+    public String ReadLineNative() throws IOException {
        String line = randomAccess.readLine();
 
        if (line == null) {
@@ -113,12 +113,12 @@ public class QuorumFileRandomAccess {
         return line;
     }
 
-    public void Write(String textToWrite) throws IOException {
+    public void WriteNative(String textToWrite) throws IOException {
         byte[] bytes = textToWrite.getBytes();
         randomAccess.write(bytes);
     }
 
-    public void WriteLine(String textToWrite) throws IOException {
+    public void WriteLineNative(String textToWrite) throws IOException {
         byte[] bytes = textToWrite.getBytes();
         byte[] newline = System.getProperty("line.separator").getBytes();
         randomAccess.write(bytes);

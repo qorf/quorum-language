@@ -28,28 +28,28 @@ public class FileRandomAccess {
         return inst.GetPosition();
     }
     
-    public void SetPosition(long position) throws IOException {
-        inst.SetPosition(position);
+    public void SetPositionNative(long position) throws IOException {
+        inst.SetPositionNative(position);
     }
 
-    public String Read() throws IOException {
-        return inst.Read();
+    public String ReadNative() throws IOException {
+        return inst.ReadNative();
     }
 
-    public String Read(int numberOfBytes) throws EOFException, IOException {
-        return inst.Read(numberOfBytes);
+    public String ReadNative(int numberOfBytes) throws EOFException, IOException {
+        return inst.ReadNative(numberOfBytes);
     }
 
-    public String ReadLine() throws IOException {
-        return inst.ReadLine();
+    public String ReadLineNative() throws IOException {
+        return inst.ReadLineNative();
     }
 
-    public void Write(String textToWrite) throws IOException {
-        inst.Write(textToWrite);
+    public void WriteNative(String textToWrite) throws IOException {
+        inst.WriteNative(textToWrite);
     }
 
-    public void WriteLine(String textToWrite) throws IOException {
-        inst.WriteLine(textToWrite);
+    public void WriteLineNative(String textToWrite) throws IOException {
+        inst.WriteLineNative(textToWrite);
     }
     
     public boolean IsAtEndOfFile() {
