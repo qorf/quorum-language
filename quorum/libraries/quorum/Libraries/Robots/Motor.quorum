@@ -1,15 +1,174 @@
 package Libraries.Robots
 
+/*
+The Motor class represents a physical motor. Each motor has a designation, 
+an integer, that says which motor it is (e.g., 0, 1, 2 or 3). In order to use
+a motor we need to set connection with the motor first and then use the motor 
+for other operations.
+
+Attribute: Example
+
+use Libraries.Robots.Motor
+class Main
+   action Main
+        // Declaraing the motor
+        Motor m
+        // Set connection with the motor connected to port 1
+        m:SetConnection(1)
+        // Move the motor to position 2000, with the speed 200 mm/s
+        m:MoveToPosition(200, 2000)
+        // Wait until the motor has completed its movement
+        m:Wait()
+        // Switch off the motor connected to port 1
+        m:Off(1)
+   end
+end
+*/
+
+
 class Motor
-    system action SetConnection(integer motorInteger)
-    system action GetConnection() returns integer
+    /*//correct this
+        This action connects the motor to the specified port.
+        Attribute: Parameter port to which we intend to connect the motor to
+
+        Attribute: Example
+        
+        Motor m
+        m:SetConnection(0)
+        //motor is connected to port 0
+    */
+    system action SetPort(integer port)
+
+    /*//correct this
+        This action returns the port to which the motor is connected to.
+
+        Attribute: Returns the port to which the port is connected to
+
+        Attribute: Example
+        
+        Motor m
+        integer mc = m:GetConnection()
+    */
+    system action GetPort() returns integer
+
+    /*
+        This action sets the position of the motor to 0.
+
+        Attribute: Example
+        
+        Motor m
+        m:SetConnection(0)
+        m:ResetPosition()
+    */
     system action ResetPosition()
+
+    /*
+        This action returns the currnet position of the motor
+
+        Attribute: Returns the current position of the motor
+
+        Attribute: Example
+        
+        Motor m
+        m:SetConnection(0)
+        integer mp = m:GetPosition()
+    */
     system action GetPosition() returns integer
-    system action Move(integer speed, boolean forward)
+
+    /*
+        This action moves the motor either in the forward or the backward direction.
+        The speed at which the motor is moved has to be specified in percentage.
+
+        Attribute: Parameter speed in percentage, forward is the direction 
+        in which the motor has to move. If forward is true, motor moves in forward
+        direction. If forward is false, motor moves in backward direction.
+
+        Attribute: Example
+        
+        Motor m
+        m:SetConnection(0)
+        m:Move(90, true)
+    */
+    system action MoveForward()
+    system action MoveForward(integer speed)
+    system action MoveBackward()
+    system action MoveBackward(integer speed)
+
+    /*
+        This action moves the motor to the specified absolute position at the 
+        specified speed.
+
+        Attribute: Parameter speed in percentage, position to which the motor has 
+        to be moved
+
+        Attribute: Example
+        
+        Motor m
+        m:SetConnection(0)
+        m:MoveToPosition(90, 2000)
+    */
+    system action MoveToPosition(integer position)
     system action MoveToPosition(integer speed, integer position)
+
+    /*//correct this
+        This action moves the motor to the specified relative position at the 
+        specified speed.
+
+        Attribute: Parameter speed in percentage, position to which the motor has 
+        to be moved reltively
+
+        Attribute: Example
+        
+        Motor m
+        m:SetConnection(0)
+        m:MoveFromHere(50, 5000)
+    */
+    system action MoveFromHere(integer position)
     system action MoveFromHere(integer speed, integer position)
+
+    /*//correct this
+        This action switches off the motor. 
+
+        Attribute: Example
+        
+        Motor m
+        m:SetConnection(0)
+        m:MoveFromHere(50, 5000)
+        m:Off()
+    */
     system action Off()
-    system action Off(integer motorInteger)
+
+    /*
+        This action waits until the motor has completed the specified movement.
+        specified speed.
+
+        Attribute: Example
+        
+        Motor m
+        m:SetConnection(0)
+        m:MoveFromHere(50, 5000)
+        m:Wait()
+    */
     system action Wait()
+    
+    /*
+        This action tells if the motor is moving towards the goal position  or not.
+
+        Attribute: Returns true if specified motion is complete otherwise returns
+        false
+
+        Attribute: Example
+        
+        Motor m
+        m:SetConnection(0)
+        m:MoveFromHere(50, 5000)
+        boolean success 
+        success = m:IsMotionComplete()
+        m:Off()
+    */
     system action IsMotionComplete() returns boolean
+
+    system action SetSpeed(integer speed) 
+    system action GetSpeed() returns integer
+
 end
