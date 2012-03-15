@@ -19,20 +19,51 @@ class FileWriter is a FileWriterBlueprint
      */
     private File file = undefined
 
-    // TODO: Document
-    system action OpenForWrite(File file)
+    /*
+     * The native side for opening a file. Takes a path only, not a File
+     * object.
+     */
+    private system action OpenForWriteNative(text path)
+
+    /*
+     * The native side for opening a file (in append mode). Takes a path only, not a File
+     * object.
+     */
+
+    private system action OpenForWriteAppendNative(text path)
+
+    /*
+     * Write data to the file on the native side.
+     */
+    private system action WriteNative(text textToWrite)
+
+    /*
+     * Write a line to the file on the native side.
+     */
+    private system action WriteLineNative(text textToWrite)
 
     // TODO: Document
-    system action OpenForWriteAppend(File file)
+    action OpenForWrite(File file)
+        OpenForWriteNative(file:GetPath())
+    end
+
+    // TODO: Document
+    action OpenForWriteAppend(File file)
+        OpenForWriteAppendNative(file:GetPath())
+    end
 
     // TODO: Document
     system action Close()
 
     // TODO: Document
-    system action Write(text textToWrite)
+    action Write(text textToWrite)
+        WriteNative(textToWrite)
+    end
 
     // TODO: Document
-    system action WriteLine(text textToWrite)
+    action WriteLine(text textToWrite)
+        WriteLineNative(textToWrite)
+    end
 
     // TODO: Document
     system action PushToDisk()

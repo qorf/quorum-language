@@ -1,11 +1,42 @@
 use Libraries.System.File
 use Libraries.System.FileReader
 use Libraries.System.Blueprints.FileReaderBlueprint
+use Libraries.System.Blueprints.FileWriterBlueprint
 use Libraries.Containers.Blueprints.Indexed
 
 use Libraries.Containers.Array
 class Main
     action Main
+        print "====== BEGIN FileWriter TESTS ======"
+        // Create new file.
+        File fw
+        fw:SetPath("/Users/jeff/writeMe.txt")
+        FileWriterBlueprint writer0 = fw:OpenForWrite()
+        writer0:Write("abc")
+        writer0:WriteLine("d")
+        writer0:WriteLine("e")
+        writer0:PushToDisk()
+        fw:Close()
+
+        // Append to the file we just made.
+        writer0 = fw:OpenForWriteAppend()
+        writer0:WriteLine("i just added this line.")
+        writer0:Write("zzz")
+        fw:Close()
+
+        // Append to a file that doesn't exist.
+        fw:SetPath("/Users/jeff/writeMe2.txt")
+        writer0 = fw:OpenForWriteAppend()
+        writer0:Write("this is a")
+        writer0:Write(" new file and i'm")
+        writer0:WriteLine("opening it in append mode.")
+        writer0:WriteLine("blah")
+        writer0:WriteLine("")
+        writer0:Write("")
+        fw:Close()
+
+        print ""
+        print ""
         print "====== BEGIN FileReader TESTS ======"
         // Open a file, read all of its contents.
         File f
