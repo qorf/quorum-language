@@ -14,7 +14,7 @@ import java.io.File;
  * 
  * @author Jeff Wilson
  */
-public class QuorumFilePlugin {
+public class QuorumFile {
     /*
      * The file (or directory) path this object represents. By default, this is
      * the application's working directory.

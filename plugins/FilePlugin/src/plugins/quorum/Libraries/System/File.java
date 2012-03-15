@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  */
 public class File {
     public java.lang.Object $me = null;
-    private QuorumFilePlugin inst = new QuorumFilePlugin();
+    private QuorumFile inst = new QuorumFile();
     
     public long GetLastModifiedNative() {
         return inst.GetLastModifiedNative();
