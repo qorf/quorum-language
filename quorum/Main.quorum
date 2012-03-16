@@ -10,8 +10,20 @@ use Libraries.Language.Errors.FileNotFoundError
 use Libraries.Containers.Array
 class Main
     action Main
+        /*print "====== BEGIN File Read()/Write() TESTS ======"
+        File mf
+        mf:SetPath("/Users/jeff/readMe.txt")
+        print mf:Read()
+        
+        File mf2
+        mf2:SetPath("/Users/jeff/a_file.txt")
+        mf2:Write("blah blahsljslkdjfgds")*/
+
+        print ""
+        print ""
         print "====== BEGIN FileRandomAccess TESTS ======"
         File fra
+        print "after line 16"
         fra:SetPath("/Users/jeff/readMe.txt")
         FileRandomAccessBlueprint ra = fra:OpenForRandomAccess()
         print ra:Read(1)

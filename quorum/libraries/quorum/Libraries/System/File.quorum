@@ -209,4 +209,21 @@ class File
             randomAccess:Close()
         end
     end
+
+    // TODO: Document
+    action Read returns text
+        FileReader r
+        r:OpenForRead(me)
+        text result = r:Read()
+        r:Close()
+        return result
+    end
+
+    // TODO: Document
+    action Write(text textToWrite)
+        FileWriter w
+        w:OpenForWrite(me)
+        w:Write(textToWrite)
+        w:Close()
+    end
 end
