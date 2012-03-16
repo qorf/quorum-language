@@ -1658,8 +1658,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         String interfaceName = QuorumConverter.convertClassNameToInterfaceName(name);
 
-        if (currentClass.getStaticKey().equals("Libraries.Language.Errors.Error") || currentClass.getParent("Libraries.Language.Errors.Error") != null) {
+        if (currentClass.getStaticKey().equals("Libraries.Language.Errors.Error")) {
             classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Throwable", new String[]{interfaceName});
+        } else if (currentClass.getParent("Libraries.Language.Errors.Error") != null) {
+            classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "quorum/Libraries/Language/Errors/Error", new String[]{interfaceName});
         } else {
             //this will have to be modified for inheritance conversion
             classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", new String[]{interfaceName});
