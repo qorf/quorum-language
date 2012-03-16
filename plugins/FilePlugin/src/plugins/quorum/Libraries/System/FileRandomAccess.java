@@ -7,6 +7,8 @@ package plugins.quorum.Libraries.System;
 import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import quorum.Libraries.Language.Errors.*;
 
 /**
@@ -17,40 +19,102 @@ public class FileRandomAccess {
     public java.lang.Object $me = null;
     private QuorumFileRandomAccess inst = new QuorumFileRandomAccess();
     
-    public void OpenForRandomAccessNative(String path) throws FileNotFoundException {
-        inst.OpenForRandomAccessNative(path);
+    public void OpenForRandomAccessNative(String path) throws FileNotFoundError {
+        try {
+            inst.OpenForRandomAccessNative(path);
+        } catch (FileNotFoundException ex) {
+            throw new FileNotFoundError();
+        }
     }
 
-    public void Close() throws IOException {
-        inst.Close();
+    public void Close() throws InputOutputError {
+        try {
+            inst.Close();
+        } catch (IOException ex) {
+            InputOutputError e = new InputOutputError();
+            if (ex.getMessage() != null)
+                e.SetErrorMessage(ex.getMessage());
+            throw e;
+        }
     }
 
-    public long GetPosition() throws IOException {
-        return inst.GetPosition();
+    public long GetPosition() throws InputOutputError {
+        try {
+            return inst.GetPosition();
+        } catch (IOException ex) {
+            InputOutputError e = new InputOutputError();
+            if (ex.getMessage() != null)
+                e.SetErrorMessage(ex.getMessage());
+            throw e;
+        }
     }
     
-    public void SetPositionNative(long position) throws IOException {
-        inst.SetPositionNative(position);
+    public void SetPositionNative(long position) throws InputOutputError {
+        try {
+            inst.SetPositionNative(position);
+        } catch (IOException ex) {
+            InputOutputError e = new InputOutputError();
+            if (ex.getMessage() != null)
+                e.SetErrorMessage(ex.getMessage());
+            throw e;
+        }
     }
 
-    public String ReadNative() throws IOException {
-        return inst.ReadNative();
+    public String ReadNative() throws InputOutputError {
+        try {
+            return inst.ReadNative();
+        } catch (IOException ex) {
+            InputOutputError e = new InputOutputError();
+            if (ex.getMessage() != null)
+                e.SetErrorMessage(ex.getMessage());
+            throw e;
+        }
     }
 
-    public String ReadNative(int numberOfBytes) throws EOFException, IOException {
-        return inst.ReadNative(numberOfBytes);
+    public String ReadNative(int numberOfBytes) throws EndOfFileError, InputOutputError {
+        try {
+            return inst.ReadNative(numberOfBytes);
+        } catch (EOFException ex) {
+            throw new EndOfFileError();
+        } catch (IOException ex) {
+            InputOutputError e = new InputOutputError();
+            if (ex.getMessage() != null)
+                e.SetErrorMessage(ex.getMessage());
+            throw e;
+        }
     }
 
-    public String ReadLineNative() throws IOException {
-        return inst.ReadLineNative();
+    public String ReadLineNative() throws InputOutputError {
+        try {
+            return inst.ReadLineNative();
+        } catch (IOException ex) {
+            InputOutputError e = new InputOutputError();
+            if (ex.getMessage() != null)
+                e.SetErrorMessage(ex.getMessage());
+            throw e;
+        }
     }
 
-    public void WriteNative(String textToWrite) throws IOException {
-        inst.WriteNative(textToWrite);
+    public void WriteNative(String textToWrite) throws InputOutputError {
+        try {
+            inst.WriteNative(textToWrite);
+        } catch (IOException ex) {
+            InputOutputError e = new InputOutputError();
+            if (ex.getMessage() != null)
+                e.SetErrorMessage(ex.getMessage());
+            throw e;
+        }
     }
 
-    public void WriteLineNative(String textToWrite) throws IOException {
-        inst.WriteLineNative(textToWrite);
+    public void WriteLineNative(String textToWrite) throws InputOutputError {
+        try {
+            inst.WriteLineNative(textToWrite);
+        } catch (IOException ex) {
+            InputOutputError e = new InputOutputError();
+            if (ex.getMessage() != null)
+                e.SetErrorMessage(ex.getMessage());
+            throw e;
+        }
     }
     
     public boolean IsAtEndOfFile() {
