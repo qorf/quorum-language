@@ -88,8 +88,18 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "<init>", signature, null, null);
         methodVisitor.visitCode();
         methodVisitor.visitVarInsn(ALOAD, THIS);
-        methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
-
+        
+        // If this is a normal class, we can just initialize by calling java/Lang/Object.<init>().
+        // If it is an exception class, we must initialize by calling java/lang/Throwable.<init>().
+        if (currentClass.getStaticKey().equals("Libraries.Language.Errors.Error") || currentClass.getParent("Libraries.Language.Errors.Error") != null) {
+            // invoke <init> on java/lang/Throwable.
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Throwable", "<init>", "()V");
+        }
+        else {
+            // invoke <init> on java/lang/Object.
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+        }
+        
         //now do field initialization
         stack.startMethod(1);
         Vector<ExecutionStep> steps = this.currentClassExecution.getSteps();
