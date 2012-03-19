@@ -10,46 +10,53 @@ package plugins.quorum.Libraries.Robots;
  */
 public class Button {
     public java.lang.Object $me = null;
-    
+    cbccore.sensors.buttons.AButton A = null;
+    cbccore.sensors.buttons.BButton B = null;
+    cbccore.sensors.buttons.BlackButton Bl = null;
+    cbccore.sensors.buttons.LeftButton l = null;
+    cbccore.sensors.buttons.DownButton d = null;
+    cbccore.sensors.buttons.RightButton r = null;
+    cbccore.sensors.buttons.UpButton u = null;
+            
     public boolean IsAButtonPressed()
     {
-        cbccore.sensors.buttons.AButton b = new cbccore.sensors.buttons.AButton();
-        return b.getValue();
+        A = new cbccore.sensors.buttons.AButton();
+        return A.getValue();
     }
 
     public boolean IsBButtonPressed()
     {
-        cbccore.sensors.buttons.BButton b = new cbccore.sensors.buttons.BButton();
-        return b.getValue();
+        B = new cbccore.sensors.buttons.BButton();
+        return B.getValue();
     }
     
     public boolean IsBlackButtonPressed()
     {
-        cbccore.sensors.buttons.BlackButton b = new cbccore.sensors.buttons.BlackButton();
-        return b.getValue();
+        Bl = new cbccore.sensors.buttons.BlackButton();
+        return Bl.getValue();
     }
     
-    public boolean IsLeftButtonPressed()
+    public boolean IsLeftArrowPressed()
     {
-        cbccore.sensors.buttons.LeftButton b = new cbccore.sensors.buttons.LeftButton();
-        return b.getValue();
+        l = new cbccore.sensors.buttons.LeftButton();
+        return l.getValue();
     }
     
-    public boolean IsDownButtonPressed()
+    public boolean IsDownArrowPressed()
     {
-        cbccore.sensors.buttons.DownButton b = new cbccore.sensors.buttons.DownButton();
-        return b.getValue();
+        d = new cbccore.sensors.buttons.DownButton();
+        return d.getValue();
     }
     
-    public boolean IsRightButtonPressed()
+    public boolean IsRightArrowPressed()
     {
-        cbccore.sensors.buttons.RightButton b = new cbccore.sensors.buttons.RightButton();
-        return b.getValue();
+        r = new cbccore.sensors.buttons.RightButton();
+        return r.getValue();
     }
     
-    public boolean IsUpButtonPressed()
+    public boolean IsUpArrowPressed()
     {
-        cbccore.sensors.buttons.UpButton b = new cbccore.sensors.buttons.UpButton();
-        return b.getValue();
+        u = new cbccore.sensors.buttons.UpButton();
+        return u.getValue();
     }
 }

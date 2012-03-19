@@ -78,9 +78,10 @@ public class Motor {
     
     public void MoveToPosition(int position, int speed)
     {
-        int setspeed = m.getDefaultSpeed();
-        setspeed = 2 * setspeed * (speed / 100);
-        m.moveToPosition(setspeed, position);
+        //convert in meters later
+        //int setspeed = m.getDefaultSpeed();
+        //setspeed = 2 * setspeed * (speed / 100);
+        m.moveToPosition(speed, position);
     }
     
     public void MoveFromHere(int position)
@@ -90,8 +91,9 @@ public class Motor {
     
     public void MoveFromHere(int position, int speed)
     {
-        int setspeed = m.getDefaultSpeed();
-        setspeed = 2 * setspeed * (speed / 100);
+        //convert in meters later
+        //int setspeed = m.getDefaultSpeed();
+        //setspeed = 2 * setspeed * (speed / 100);
         m.moveRelativePosition(speed, position);
     }
     
