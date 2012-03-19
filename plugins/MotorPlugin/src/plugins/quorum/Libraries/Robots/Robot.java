@@ -8,14 +8,76 @@ package plugins.quorum.Libraries.Robots;
  *
  * @author sahana
  */
+
+import cbccore.create.CreateConnectException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+
 public class Robot {
     public java.lang.Object $me = null;
     
-    cbccore.low.Create r;
+    cbccore.create.Create r = null;
+    cbccore.create.CliffState c;
+    cbccore.create.CreateConnectException e;
     
+    private int rightCliff;
+    private int rightFrontCliff;
+    private int leftCliff;
+    private int leftFrontCliff;
+    private int rightCliffAmount;
+    private int rightFrontCliffAmount;
+    private int leftCliffAmount;
+    private int leftFrontCliffAmount;
+            
+    public void SetConnection() //throws CreateConnectException
+    {
+        try {
+            r = new cbccore.create.Create();
+            r.connect();
+        } catch (CreateConnectException ex) {
+            Logger.getLogger(Robot.class.getName()).log(Level.SEVERE, null, ex);
+          
+        }
+        c = new cbccore.create.CliffState(rightCliff, rightFrontCliff, leftCliff, leftFrontCliff, rightCliffAmount, rightFrontCliffAmount, leftCliffAmount, leftFrontCliffAmount);
+        //try {
+          //  r.connect();
+        //} catch (CreateConnectException ex) {
+          //  Logger.getLogger(Robot.class.getName()).log(Level.SEVERE, null, ex);
+        //}
+        RuntimeException runtimeException = new RuntimeException("Compiled Code");
+        //r.driveDirect(250, 250);
+    }
+
+    public void Disconnect()
+    {              
+        r.disconnect();
+    }
+ 
+    public void StopWheels()
+    {
+        r.stop();
+    }
+    
+    public void MoveStraight(int speed)
+    {
+        r.driveStraight(speed);
+    }
+}
+    
+    
+    
+    
+    /*cbccore.low.Create r; 
+     
     public void SetConnection() 
     {
-     r.create_connect();   
+        r = new cbccore.low.Create();
+        r.create_connect();
+        //if (create_connect == 0)
+          //  System.out.println("Connection successfull.");
+        //else
+          //  System.out.println("Not Connected.");
     }
     
     public void Disconnect()
@@ -35,7 +97,7 @@ public class Robot {
     
     public void MoveAsCurve(int speed, int radius)
     {
-        //r. drive(speed, radius);
+        r.create_drive(speed, radius);
     }
     
     public void RotateClockwise(int speed)
@@ -77,11 +139,9 @@ public class Robot {
     {   
         return r.get_create_rbump(lag);
     }
-}
+}*/
 
-//import cbccore.create.CreateConnectException;
-//import java.util.logging.Level;
-//import java.util.logging.Logger;
+
 
 //cbccore.create.Create r;
 //cbccore.create.CliffState c;
