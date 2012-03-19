@@ -1,17 +1,30 @@
 package Libraries.Robots
 
 class Robot 
-    system action SetConnection() 
+    system action SetConnection()
+    system action Disconnect()
     system action StopWheels()
-    system action MoveStriaght(integer speed)
+    system action MoveStraight(integer speed)
+    system action MoveAsCurve(integer speed, integer radius)
+    system action RotateClockwise(integer speed)
+    system action RotateCounterClockwise(integer speed)
+    system action IsLeftSensorTriggered(number lag) returns integer
+    system action IsRightSensorTriggered(number lag) returns integer
+    system action IsLeftFrontSensorTriggered(number lag) returns integer
+    system action IsRightFrontSensorTriggered(number lag) returns integer
+    system action IsLeftBumperPressed(number lag) returns integer
+    system action IsRighttBumperPressed(number lag) returns integer
+end
+    
+
+    /*system action SetConnection() 
+    system action Disconnect() 
+    system action StopWheels()
+    system action MoveStraight(integer speed)
     system action MoveAsCurve(integer speed, integer radius)
     system action RotateClockwise(integer speed)
     system action RotateCounterClockwise(integer speed)
     system action IsLeftSensorTriggered() returns integer
     system action IsRightSensorTriggered() returns integer
     system action IsLeftFrontSensorTriggered() returns integer
-    system action IsRightFrontSensorTriggered() returns integer
-end
-
-
-
+    system action IsRightFrontSensorTriggered() returns integer*/
