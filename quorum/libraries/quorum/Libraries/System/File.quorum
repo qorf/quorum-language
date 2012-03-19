@@ -8,6 +8,7 @@ use Libraries.Containers.Blueprints.Indexed
 use Libraries.System.Blueprints.FileReaderBlueprint
 use Libraries.System.Blueprints.FileWriterBlueprint
 use Libraries.System.Blueprints.FileRandomAccessBlueprint
+use Libraries.System.Path
 use Libraries.System.FileReader
 use Libraries.System.FileWriter
 use Libraries.System.FileRandomAccess
@@ -92,8 +93,26 @@ class File
     end
 
     // TODO: documentation
-    action SetPath(text path)
-        SetPathNative(path)
+    action SetPath(Path path)
+        SetPathNative(path:GetPath())
+    end
+
+    // TODO: documentation
+    action SetAbsolutePath(text path)
+        // Use the Path class to fix up the path and let us know if it's wrong.
+        Path p
+        p:SetAbsolutePath(path)
+
+        SetPathNative(p:GetPath())
+    end
+    
+    // TODO: documentation
+    action SetRelativePath(text path)
+        // Use the Path class to fix up the path and let us know if it's wrong.
+        Path p
+        p:SetRelativePath(path)
+
+        SetPathNative(p:GetPath())
     end
 
     // TODO: documentation
@@ -116,7 +135,7 @@ class File
 
     // TODO: documentation
     action GetParentDirectory returns File
-        text parentPath = GetParentDirectoryNative()
+        text parentPath = GetParentDirectoryNative() // will be an absolute path.
         
         // We can't create a parent object if there is no parent... (e.g., path is "C:\" on windows or "/" on *nix)
         if parentPath = ""
@@ -124,7 +143,7 @@ class File
         end
 
         File parentFile
-        parentFile:SetPath(parentPath)
+        parentFile:SetAbsolutePath(parentPath)
         return parentFile
     end
 

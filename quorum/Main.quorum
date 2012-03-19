@@ -12,11 +12,11 @@ class Main
     action Main
         /*print "====== BEGIN File Read()/Write() TESTS ======"
         File mf
-        mf:SetPath("/Users/jeff/readMe.txt")
+        mf:SetAbsolutePath("/Users/jeff/readMe.txt")
         print mf:Read()
         
         File mf2
-        mf2:SetPath("/Users/jeff/a_file.txt")
+        mf2:SetAbsolutePath("/Users/jeff/a_file.txt")
         mf2:Write("blah blahsljslkdjfgds")*/
 
         print ""
@@ -24,7 +24,7 @@ class Main
         print "====== BEGIN FileRandomAccess TESTS ======"
         File fra
         print "after line 16"
-        fra:SetPath("/Users/jeff/readMe.txt")
+        fra:SetAbsolutePath("/Users/jeff/readMe.txt")
         FileRandomAccessBlueprint ra = fra:OpenForRandomAccess()
         print ra:Read(1)
         print ra:Read(4)
@@ -49,7 +49,7 @@ class Main
         print "====== BEGIN FileWriter TESTS ======"
         // Create new file.
         File fw
-        fw:SetPath("/Users/jeff/writeMe.txt")
+        fw:SetAbsolutePath("/Users/jeff/writeMe.txt")
         FileWriterBlueprint writer0 = fw:OpenForWrite()
         writer0:Write("abc")
         writer0:WriteLine("d")
@@ -64,7 +64,7 @@ class Main
         fw:Close()
 
         // Append to a file that doesn't exist.
-        fw:SetPath("/Users/jeff/writeMe2.txt")
+        fw:SetAbsolutePath("/Users/jeff/writeMe2.txt")
         writer0 = fw:OpenForWriteAppend()
         writer0:Write("this is a")
         writer0:Write(" new file and i'm")
@@ -79,7 +79,7 @@ class Main
         print "====== BEGIN FileReader TESTS ======"
         // Open a file, read all of its contents.
         File f
-        f:SetPath("/Users/jeff/readMe.txt")
+        f:SetAbsolutePath("/Users/jeff/readMe.txt")
         FileReaderBlueprint reader0 = f:OpenForRead()
         print "All file contents:"
         print reader0:Read() // read all contents.
@@ -136,12 +136,12 @@ class Main
 
         // Set the path and then get it.
         File f2
-        f2:SetPath("/Users/jeff")
+        f2:SetAbsolutePath("/Users/jeff")
         print f2:GetPath()
 
         // Check some stats on a file.
         File f3
-        f3:SetPath("/Users/") // one directory above everyone's home dir on OS X
+        f3:SetAbsolutePath("/Users/") // one directory above everyone's home dir on OS X
         print f3:GetPath()
         print f3:IsFile()
         print f3:IsDirectory()
@@ -155,7 +155,7 @@ class Main
         
         // Some other stats
         File f4
-        f4:SetPath("/Users/jeff/i_dont_exist.txt")
+        f4:SetAbsolutePath("/Users/jeff/i_dont_exist.txt")
         print f4:IsFile()
         print f4:Exists()
         File p = f4:GetParentDirectory()
@@ -164,12 +164,12 @@ class Main
 
         // Some edge cases -- parent dir for a file that doesn't exist?
         File f5
-        f5:SetPath("/ksdjfksldfja/kf")
+        f5:SetAbsolutePath("/ksdjfksldfja/kf")
         File f6 = f5:GetParentDirectory()
 
         // ... or what if there isn't a parent?!
         File f7
-        f7:SetPath("/")
+        f7:SetAbsolutePath("/")
         File f8 = f7:GetParentDirectory()
         if f8 = undefined
             print "f7 has no parent. this is correct."
@@ -177,7 +177,7 @@ class Main
 
         // Test file renaming.
         File f9
-        f9:SetPath("/Users/jeff/rename.txt")
+        f9:SetAbsolutePath("/Users/jeff/rename.txt")
         f9:Move("/Users/jeff/renamedit.txt")
         print f9:GetPath()
     end
