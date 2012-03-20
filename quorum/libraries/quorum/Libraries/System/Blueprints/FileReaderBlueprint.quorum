@@ -7,28 +7,19 @@ Inheriting from FileReaderBlueprint provides a standard interface for reading
 files in sequential order.
 
 See the FileReader class for the standard Quorum implementation of this blueprint.
-
-TODO: Example?
 */
 class FileReaderBlueprint 
-    // TODO: Document
     blueprint action OpenForRead(File file)
 
-    // TODO: Document
     blueprint action Close()
 
-    // TODO: Document
     blueprint action Read() returns text
 
-    // TODO: Document
     blueprint action Read(integer numberOfBytes) returns text
 
-    // TODO: Document
     blueprint action ReadLine() returns text
 
-    // TODO: Document
     blueprint action ReadLines() returns Indexed<text>
 
-    // TODO: Document
     blueprint action IsAtEndOfFile() returns boolean
 end

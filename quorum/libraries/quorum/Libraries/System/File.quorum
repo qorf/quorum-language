@@ -13,7 +13,7 @@ use Libraries.System.DateTime
 
 /*
 The File class is used to access and gather information about files on disk.
-This class can represent either a file or a directory, and provides methods for
+This class can represent either a file or a directory, and provides actions for
 both manipulation and gathering of file data (such as file name, last time
 modified, etc). This class is not used for modifying the contents of files,
 but actions are provided that allow this functionality through other classes,
@@ -781,7 +781,7 @@ class File
 
     /*
         Open this file for sequential writing. This differs from the OpenForWrite()
-        method, as the previous contents of the file (if any) are preserved. See
+        action, as the previous contents of the file (if any) are preserved. See
         the documentation of FileWriterBlueprint for more information on sequential
         writing.
 
@@ -889,7 +889,7 @@ class File
 
     /*
         Read all of the contents of a file immediately into a string. When using
-        this method, it is not required to call Close(). If the file does not
+        this action, it is not required to call Close(). If the file does not
         exist, a FileNotFoundError will be raised. If the file cannot be opened
         for other reasons, an InputOutputError will be raised.
 
