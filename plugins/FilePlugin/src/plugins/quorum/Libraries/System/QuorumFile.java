@@ -136,7 +136,11 @@ public class QuorumFile {
     }
 
     public double GetFileSize() {
-        return file.length();
+        if (file.isFile()) {
+            return file.length();
+        }
+        
+        return 0;
     }
 
     public boolean Delete() {
@@ -149,6 +153,7 @@ public class QuorumFile {
 
     public boolean Move(String newPath) {
         File newFile = new File(newPath);
+        
         if (file.renameTo(newFile)) {
             this.path = newPath;
             this.file = new File(this.path);
