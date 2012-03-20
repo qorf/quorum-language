@@ -15,7 +15,25 @@ used in Quorum. By "sequential," we mean that it is possible to only move
 forward in the file; re-reading data is not possible. This is most commonly
 used for reading plain text files.
 
-TODO: Example?
+Attribute: Example
+use Libraries.System.File
+use Libraries.System.FileReader
+
+// Open a file, read all of its contents and close it.
+File f
+f:SetAbsolutePath("/Users/jeff/hello.txt")
+FileReader reader
+reader:OpenForRead(f)
+text fileContents = reader:Read()
+print "The contents are: " + fileContents
+reader:Close()
+
+// Open a file, read the first two lines and close it.
+f:SetRelativePath("./settings.dat")
+reader:OpenForRead(f)
+text line1 = reader:ReadLine()
+text line2 = reader:ReadLine()
+reader:Close()
 */
 class FileReader is a FileReaderBlueprint
     /*
