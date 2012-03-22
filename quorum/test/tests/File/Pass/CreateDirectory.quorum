@@ -5,14 +5,13 @@ class Main
     action Main
         // Create a new directory and delete it.
         File newDir
-        newDir:SetRelativePath("../../../test/tests/File/Resources/DeleteMePlease")
+        newDir:SetRelativePath("../../../test/tests/File/Resources/ANewDirectory")
 
         boolean newDirMade = newDir:CreateDirectory()
 
         // Delete it.
-        
-        boolean dirDeleted = newDir:Delete()
+        newDir:Delete()
 
-        print dirDeleted // should be true.
+        print newDirMade // should be true.
     end
 end

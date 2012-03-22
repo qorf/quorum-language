@@ -1,0 +1,11 @@
+use Libraries.System.File
+use Libraries.System.DateTime
+
+class Main
+    action Main
+        File f
+        f:SetAbsolutePath(".")
+        f:SetAbsolutePath("file.txt")
+        f:SetAbsolutePath("../settings")
+    end
+end

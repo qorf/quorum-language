@@ -2,6 +2,10 @@ package Libraries.System
 use Libraries.System.Blueprints.FileWriterBlueprint
 use Libraries.System.File
 use Libraries.Containers.Blueprints.Indexed
+use Libraries.Language.Errors.InvalidArgumentError
+use Libraries.Language.Errors.EndOfFileError
+use Libraries.Language.Errors.InputOutputError
+use Libraries.Language.Errors.FileNotFoundError
 
 /*
 This class represents a sequential file writer. It is the standard file writer

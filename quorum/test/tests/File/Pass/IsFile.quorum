@@ -1,0 +1,19 @@
+use Libraries.System.File
+use Libraries.System.DateTime
+
+class Main
+    action Main
+        File f
+        
+        // the working dir isn't a file
+        boolean workingDirIsFile = f:IsFile()
+        
+        // Find "RunResult.java" in the test suite; it's a file.
+        File runResult
+        runResult:SetRelativePath("../../../test/org/quorum/execution/RunResult.java")
+        boolean runResultIsFile = runResult:IsFile()
+
+        print workingDirIsFile
+        print runResultIsFile
+    end
+end

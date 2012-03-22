@@ -1,0 +1,16 @@
+use Libraries.System.File
+use Libraries.System.DateTime
+
+class Main
+    action Main
+        File f
+        f:SetRelativePath(".")
+        DateTime dt = f:GetLastModifiedDate()
+
+        boolean gotDateTime = (dt not= undefined)
+        boolean isValidDateTime = (dt:GetEpochTime() > 0) // must be a value after 1970, of course.
+
+        print gotDateTime
+        print isValidDateTime
+    end
+end

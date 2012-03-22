@@ -6,10 +6,12 @@ use Libraries.System.Blueprints.FileRandomAccessBlueprint
 class Main
     action Main
         File f
-        f:SetRelativePath("test/tests/File/Resources/DirectoryToList/a")
-        
+        f:SetRelativePath("../../../test/tests/File/Resources/Write.tmp")
+        f:Write("test text")
         text fileContent = f:Read()
 
-        print fileContent // should be "abcdef"
+        // delete the file
+        f:Delete()
+        print fileContent // should be "test text"
     end
 end

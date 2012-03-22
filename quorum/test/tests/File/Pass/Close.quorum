@@ -1,0 +1,23 @@
+use Libraries.System.File
+use Libraries.System.Blueprints.FileReaderBlueprint
+use Libraries.System.Blueprints.FileWriterBlueprint
+use Libraries.System.Blueprints.FileRandomAccessBlueprint
+
+class Main
+    action Main
+        // Just open a file and close it. should be no output, no exceptions.
+        File f
+        f:SetRelativePath("../../../test/tests/File/Resources/DirectoryToList/empty")
+
+        FileReaderBlueprint r = f:OpenForRead()
+        f:Close()
+
+        FileWriterBlueprint w = f:OpenForWrite()
+        f:Close()
+
+        w = f:OpenForWriteAppend()
+        f:Close()
+        FileRandomAccessBlueprint ra = f:OpenForRandomAccess()
+        f:Close()
+    end
+end

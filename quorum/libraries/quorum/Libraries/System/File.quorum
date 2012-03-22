@@ -76,6 +76,7 @@ class File
     private FileWriter writer = undefined
     private FileRandomAccess randomAccess = undefined
 
+    private system action CalculateListingPrefixNative returns text
     /*
      * This action gets the "last modified" date/time from the system in UNIX
      * timestamp format.
@@ -573,6 +574,7 @@ class File
             // "/Users/jeff/Documents"
             // "/Users/jeff/Music"
             // ... etc ... 
+            
             Array<text> paths = listingString:Split(GetSystemNewline())
             Iterator<text> i = paths:GetIterator()
             Array<File> files
@@ -769,14 +771,14 @@ class File
         f:Close() // we're done with the file, see Close() documentation.
      */
     action OpenForWrite returns FileWriterBlueprint
-        if me:IsFile()
+        if me:IsDirectory()
+            return undefined
+        else
             FileWriter w
             writer = w
             writer:OpenForWrite(me)
             return writer
         end
-
-        return undefined
     end
 
     /*
@@ -804,14 +806,14 @@ class File
         f:Close() // we're done with the file, see Close() documentation.
      */
     action OpenForWriteAppend returns FileWriterBlueprint
-        if me:IsFile()
+        if me:IsDirectory()
+            return undefined
+        else
             FileWriter w
             writer = w
             writer:OpenForWriteAppend(me)
             return writer
         end
-
-        return undefined
     end
 
     /*

@@ -1,0 +1,18 @@
+use Libraries.System.File
+use Libraries.System.DateTime
+
+class Main
+    action Main
+        File f // should have the working directory
+
+        File f2
+        File workDirF = f2:GetWorkingDirectory()
+        text workDir = workDirF:GetPath()
+        text f1Dir = f:GetPath()
+
+        // they should be equal
+        boolean validWorkingDir = (workDir = f1Dir and workDir not= "" and f1Dir not= "")
+
+        print validWorkingDir
+    end
+end

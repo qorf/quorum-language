@@ -1,0 +1,19 @@
+use Libraries.System.File
+use Libraries.System.DateTime
+
+class Main
+    action Main
+        File root
+        root:SetAbsolutePath("/")
+        if not root:Exists()
+            root:SetAbsolutePath("C:\")
+        end
+
+        // While GetFreeDiskSpace() can plausibly return zero, this is extremely
+        // unlikely, so we will only pass if GetFreeDiskSpace() returns something
+        // greater than zero.
+        boolean success = root:GetFreeDiskSpace() > 0
+
+        print success
+    end
+end

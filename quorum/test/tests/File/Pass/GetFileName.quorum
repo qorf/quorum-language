@@ -1,0 +1,27 @@
+use Libraries.System.File
+use Libraries.System.DateTime
+
+class Main
+    action Main
+        File dot
+        dot:SetRelativePath(".")
+        text dotFileName = dot:GetFileName()
+
+        File workingDir
+        text workingDirName = workingDir:GetFileName() // should be "classes"
+
+        File other
+        other:SetAbsolutePath("/this/is/a/long/path/file.exe")
+        text otherName = other:GetFileName()
+
+        File other2
+        other2:SetAbsolutePath("C:\Programs")
+
+        text other2Name = other2:GetFileName()
+
+        print dotFileName // .
+        print workingDirName // build
+        print otherName // file.exe
+        print other2Name // Programs
+    end
+end

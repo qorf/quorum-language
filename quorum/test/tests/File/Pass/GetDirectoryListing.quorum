@@ -1,0 +1,19 @@
+use Libraries.System.File
+use Libraries.System.DateTime
+use Libraries.Containers.Blueprints.Indexed
+class Main
+    action Main
+        File testDir
+        testDir:SetRelativePath("../../../test/tests/File/Resources/DirectoryToList")
+        Indexed<File> list = testDir:GetDirectoryListing()
+
+        // Make sure all the files we expect are here. (should be 3)
+        File f1 = list:Get(0)
+        File f2 = list:Get(1)
+        File f3 = list:Get(2)
+        File f4 = list:Get(3)
+        boolean success = f1:GetFileName() = "a" and f2:GetFileName() = "b" and f3:GetFileName() = "c" and f4:GetFileName() = "empty"
+
+        print success 
+    end
+end

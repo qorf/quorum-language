@@ -1,0 +1,24 @@
+use Libraries.System.File
+use Libraries.System.Blueprints.FileReaderBlueprint
+use Libraries.System.Blueprints.FileWriterBlueprint
+use Libraries.System.Blueprints.FileRandomAccessBlueprint
+
+class Main
+    action Main
+        File f
+        f:SetRelativePath("../../../test/tests/File/Resources/OpenForWrite.tmp")
+        
+        FileWriterBlueprint w = f:OpenForWrite()
+        w:Write("hello world")
+        f:Close()
+
+        FileReaderBlueprint r = f:OpenForRead()
+        text fileContent = r:Read()
+        f:Close()
+
+        // Delete the file
+        f:Delete()
+
+        print fileContent // should be "hello world"
+    end
+end

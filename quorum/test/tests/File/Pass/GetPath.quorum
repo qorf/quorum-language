@@ -1,0 +1,15 @@
+use Libraries.System.File
+use Libraries.System.DateTime
+
+class Main
+    action Main
+        File f
+        f:SetRelativePath(".")
+        text relativePath = f:GetPath()
+        print relativePath
+
+        f:SetAbsolutePath("/Users/")
+        text absolutePath = f:GetPath()
+        print absolutePath
+    end
+end

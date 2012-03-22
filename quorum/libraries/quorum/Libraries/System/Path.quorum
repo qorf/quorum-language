@@ -139,6 +139,7 @@ class Path
 
      */
     action SetAbsolutePath(text path)
+        path = me:FixPathSeparatorsNative(path)
         if not IsPathAbsoluteNative(path)
             InvalidPathError e
             e:SetErrorMessage("InvalidPathError: The given path '" + path + "' is not an absolute path. Please see the 'Path' class documentation for more information.")
@@ -162,7 +163,8 @@ class Path
         p:SetRelativePath("hello.txt") // in current directory
      */
     action SetRelativePath(text path)
-        if not IsPathAbsoluteNative(path)
+        path = me:FixPathSeparatorsNative(path)
+        if IsPathAbsoluteNative(path)
             InvalidPathError e
             e:SetErrorMessage("InvalidPathError: The given path '" + path + "' is not an absolute path. Please see the 'Path' class documentation for more information.")
             alert(e)
