@@ -5,26 +5,20 @@ class Robot
     system action Disconnect()
     system action StopWheels()
     system action MoveStraight(integer speed)
+    system action MoveStraight(integer speed, number distance)
+    system action MoveWithRightLeftSpeed(integer rspeed, integer lspeed)
     system action MoveAsCurve(integer speed, integer radius)
-    system action RotateClockwise(integer speed)
-    system action RotateCounterClockwise(integer speed)
+    system action TurnLeft(integer angle, integer speed) returns integer
+    system action TurnRight(integer angle, integer speed) returns integer
+    system action IsLeftBumperpressed(number lag) returns boolean
+    system action IsRightBumperpressed(number lag) returns boolean
+    system action IsCenterWheelDropped(number lag) returns boolean
+    system action IsLeftWheelDropped(number lag) returns boolean
+    system action IsRightWheelDropped(number lag) returns boolean
+    system action TurnClockwise(integer speed)
+    system action TurnCounterClockwise(integer speed)
     system action IsLeftSensorTriggered(number lag) returns integer
     system action IsRightSensorTriggered(number lag) returns integer
     system action IsLeftFrontSensorTriggered(number lag) returns integer
-    system action IsRightFrontSensorTriggered(number lag) returns integer
-    system action IsLeftBumperPressed(number lag) returns integer
-    system action IsRighttBumperPressed(number lag) returns integer
+    system action IsRightFrontSensorTriggered() returns integer
 end
-    
-
-    /*system action SetConnection() 
-    system action Disconnect() 
-    system action StopWheels()
-    system action MoveStraight(integer speed)
-    system action MoveAsCurve(integer speed, integer radius)
-    system action RotateClockwise(integer speed)
-    system action RotateCounterClockwise(integer speed)
-    system action IsLeftSensorTriggered() returns integer
-    system action IsRightSensorTriggered() returns integer
-    system action IsLeftFrontSensorTriggered() returns integer
-    system action IsRightFrontSensorTriggered() returns integer*/
