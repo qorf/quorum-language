@@ -12,7 +12,7 @@ package plugins.quorum.Libraries.Robots;
 import cbccore.create.CreateConnectException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+import cbccore.Device;
 
 public class Robot {
     public java.lang.Object $me = null;
@@ -40,13 +40,9 @@ public class Robot {
           
         }
         c = new cbccore.create.CliffState(rightCliff, rightFrontCliff, leftCliff, leftFrontCliff, rightCliffAmount, rightFrontCliffAmount, leftCliffAmount, leftFrontCliffAmount);
-        //try {
-          //  r.connect();
-        //} catch (CreateConnectException ex) {
-          //  Logger.getLogger(Robot.class.getName()).log(Level.SEVERE, null, ex);
-        //}
+       
         RuntimeException runtimeException = new RuntimeException("Compiled Code");
-        //r.driveDirect(250, 250);
+        
     }
 
     public void Disconnect()
@@ -62,6 +58,121 @@ public class Robot {
     public void MoveStraight(int speed)
     {
         r.driveStraight(speed);
+    }
+    
+    public void MoveStraight(int speed, double distance)
+    {
+        //distance = distance * 1000;
+        while(r.getDistance() < distance)
+            r.driveStraight(speed);
+    }
+    
+    public void MoveWithRightLeftSpeed(int rspeed, int lspeed)
+    {
+        r.driveDirect(rspeed, lspeed);
+    }
+    
+     public void MoveAsCurve(int speed, int radius)
+    {
+        r.drive(speed, radius);
+    }
+    
+    public int TurnLeft(int angle, int speed) //work on this angle part     
+    {
+        int initialangle = r.getAngle(); 
+        angle = (int)(angle * 2.64);
+        int i = angle * -1;
+        r.driveDirect(angle, i);
+        return (r.getAngle() - initialangle);
+    }
+    
+    public int TurnRight(int angle, int speed)  //work on this angle part   
+    {
+        int initialangle = r.getAngle(); 
+        angle = (int)(angle * 2.64);
+        int i = angle * -1;
+        r.driveDirect(i, angle);
+        return (r.getAngle() - initialangle);
+    }
+    
+    public boolean IsLeftBumperpressed(double lag)
+    {
+        float lag1 = (float)lag;
+        int value = Device.getLowCreateController().get_create_lbump(lag1);
+        if (value == 0)
+            return false;
+        else
+            return true;
+    }
+   
+    public boolean IsRightBumperpressed(double lag)
+    {
+        float lag1 = (float)lag;
+        int value = Device.getLowCreateController().get_create_rbump(lag1);
+        if (value == 0)
+            return false;
+        else
+            return true;
+    }
+    
+    public boolean IsCenterWheelDropped(double lag)
+    {
+        float lag1 = (float)lag;
+        int value = Device.getLowCreateController().get_create_cwdrop (lag1);
+        if (value == 0)
+            return false;
+        else
+            return true;
+    }
+    
+    public boolean IsLeftWheelDropped(double lag)
+    {
+        float lag1 = (float)lag;
+        int value = Device.getLowCreateController().get_create_lwdrop(lag1);
+        if (value == 0)
+            return false;
+        else
+            return true;
+    }
+    
+    public boolean IsRightWheelDropped(double lag)
+    {
+        float lag1 = (float)lag;
+        int value = Device.getLowCreateController().get_create_rwdrop (lag1);
+        if (value == 0)
+            return false;
+        else
+            return true;
+    }
+    
+    public void TurnClockwise(int speed)
+    {
+        r.spinCW(speed);
+    }
+    
+    public void TurnCounterClockwise(int speed)
+    {
+        r.spinCCW(speed);
+    }
+    
+    public int IsLeftSensorTriggered()
+    {
+        return c.getLeftCliff();
+    }
+    
+    public int IsRightSensorTriggered()
+    {
+        return c.getRightCliff();
+    }
+    
+    public int IsLeftFrontSensorTriggered()
+    {
+        return c.getLeftFrontCliff();
+    }
+    
+    public int IsRightFrontSensorTriggered()
+    {
+        return c.getRightFrontCliff();
     }
 }
     
