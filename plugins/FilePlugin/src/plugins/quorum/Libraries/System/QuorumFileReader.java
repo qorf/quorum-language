@@ -21,15 +21,28 @@ public class QuorumFileReader {
     protected BufferedReader bufferedReader = null;
     protected long fileSize = 0; // used for EOF detection.
     protected boolean atEOF = false; // are we at the end of the file?
+    protected long readSoFar = 0; // how much have we read so far?
     
     public void OpenForReadNative(String path) throws FileNotFoundException {
         file = new File(path);
         bufferedReader = new BufferedReader(new FileReader(file));
         fileSize = file.length();
+        readSoFar = 0;
+        
+        // Is the file empty? if so, we're at eof.
+        if (fileSize == 0)
+            atEOF = true;
+        else
+            atEOF = false;
     }
     
     public void Close() throws IOException {
         bufferedReader.close();
+        file = null;
+        bufferedReader = null;
+        fileSize = 0;
+        atEOF = false;
+        readSoFar = 0;
     }
 
     public String ReadNative() throws IOException {
@@ -55,6 +68,7 @@ public class QuorumFileReader {
         {
             // We will have reached the end of the file here. Don't throw an exception this time.
             atEOF = true;
+            readSoFar = fileSize;
             return stringBuff.toString();
         }
         else
@@ -81,7 +95,8 @@ public class QuorumFileReader {
 
         if (numRead > 0)
         {
-            if (numRead >= fileSize) {
+            readSoFar += numRead;
+            if (readSoFar >= fileSize) {
                 // Reached end of file. Don't raise an exception this time.
                 atEOF = true;
             }
@@ -103,6 +118,12 @@ public class QuorumFileReader {
             
             atEOF = true;
             line = "";
+            readSoFar = fileSize;
+        } else {
+            readSoFar += line.length() + System.getProperty("line.separator").length(); // newline is consumed.
+            
+            if (readSoFar >= fileSize)
+                atEOF = true; // don't throw exception this time.
         }
 
         return line;

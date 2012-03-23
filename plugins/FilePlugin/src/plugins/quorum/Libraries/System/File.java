@@ -21,7 +21,7 @@ public class File {
     public java.lang.Object $me = null;
     private QuorumFile inst = new QuorumFile();
     
-    public long GetLastModifiedNative() {
+    public double GetLastModifiedNative() {
         return inst.GetLastModifiedNative();
     }
     

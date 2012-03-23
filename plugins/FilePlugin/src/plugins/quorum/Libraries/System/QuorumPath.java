@@ -19,7 +19,12 @@ public class QuorumPath {
      * @return 
      */
     public static boolean IsPathAbsoluteNative(String path) {
-        return path.matches("[a-zA-Z]:[\\\\/].*") || path.matches("[\\\\/].*");
+        // May be of the form:
+        // /(stuff)
+        // \(stuff)
+        // \\(stuff) (accessing shares on windows)
+        // [a-zA-Z]:(stuff) (drive letters on windows)
+        return path.matches("[a-zA-Z]:[\\\\/].*") || path.matches("[\\\\/].*") || path.matches("\\\\\\\\.*");
     }
     
     /**
