@@ -1,0 +1,34 @@
+use Libraries.System.File
+use Libraries.System.FileReader
+
+class Main
+    action Main
+        // Read contents of single line file, then multi-line file.
+        File f
+        f:SetRelativePath("../../../test/tests/FileReader/Resources/singleLine")
+
+        FileReader r
+        r:OpenForRead(f)
+        text singleLine = r:Read(4)
+        text singleLine2 = r:Read(3)
+        r:Close()
+
+        // now multi-line file
+        f:SetRelativePath("../../../test/tests/FileReader/Resources/multipleLines")
+        r:OpenForRead(f)
+        text multiLine = r:Read(3)
+        text multiLine2 = r:Read(3)
+        r:Close()
+
+        print singleLine
+        print singleLine2
+        print multiLine
+        print multiLine2
+        
+        // output should be...
+        // this
+        //  is
+        // lin
+        // e 1
+    end
+end
