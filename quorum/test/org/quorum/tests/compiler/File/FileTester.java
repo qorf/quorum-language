@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author Elliot
+ * @author Jeff Wilson
  */
 public class FileTester {
     private QuorumVirtualMachine vm;

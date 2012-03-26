@@ -4,7 +4,9 @@ use Libraries.System.FileWriter
 
 class Main
     action Main
-        text textToWrite = "abcdefgh"
+        text line1 = "line 1"
+        text line2 = "line 2"
+        text line3 = "line 3"
         // Write a new file, read its contents and quit.
         File f
         f:SetRelativePath("../../../test/tests/FileWriter/Resources/newFile")
@@ -12,19 +14,23 @@ class Main
         w:OpenForWrite(f)
         
         // Write a ilne.
-        w:Write(textToWrite)
+        w:WriteLine(line1)
+        w:WriteLine(line2)
+        w:WriteLine(line3)
         w:Close()
 
-        // Read the line back in, make sure it's the same.
+        // Read the lines back in, make sure it's the same.
         FileReader r
         r:OpenForRead(f)
-        text readText = r:Read()
+        text readLine1 = r:ReadLine()
+        text readLine2 = r:ReadLine()
+        text readLine3 = r:ReadLine()
         r:Close()
 
         // Delete the file.
         f:Delete()
 
-        boolean success = (readText = textToWrite)
+        boolean success = (line1 = readLine1 and line2 = readLine2 and line3 = readLine3)
 
         print success
     end

@@ -5,6 +5,8 @@ use Libraries.System.FileWriter
 class Main
     action Main
         text textToWrite = "abcdefgh"
+        text lineToWrite = "hello"
+
         // Write a new file, read its contents and quit.
         File f
         f:SetRelativePath("../../../test/tests/FileWriter/Resources/newFile")
@@ -13,18 +15,20 @@ class Main
         
         // Write a ilne.
         w:Write(textToWrite)
+        w:WriteLine(lineToWrite)
+        w:PushToDisk()
         w:Close()
 
         // Read the line back in, make sure it's the same.
         FileReader r
         r:OpenForRead(f)
-        text readText = r:Read()
+        text readLine = r:ReadLine()
         r:Close()
 
         // Delete the file.
         f:Delete()
 
-        boolean success = (readText = textToWrite)
+        boolean success = (readLine = textToWrite + lineToWrite)
 
         print success
     end
