@@ -1,0 +1,37 @@
+use Libraries.System.File
+use Libraries.System.FileReader
+use Libraries.System.FileRandomAccess
+
+class Main
+    action Main
+        text line1 = "line 1"
+        text line2 = "line 2"
+        text line3 = "line 3"
+        // Write a new file, read its contents and quit.
+        File f
+        f:SetRelativePath("../../../test/tests/FileRandomAccess/Resources/newFile")
+        FileRandomAccess w
+        w:OpenForRandomAccess(f)
+        
+        // Write a ilne.
+        w:WriteLine(line1)
+        w:WriteLine(line2)
+        w:WriteLine(line3)
+        w:Close()
+
+        // Read the lines back in, make sure it's the same.
+        FileReader r
+        r:OpenForRead(f)
+        text readLine1 = r:ReadLine()
+        text readLine2 = r:ReadLine()
+        text readLine3 = r:ReadLine()
+        r:Close()
+
+        // Delete the file.
+        f:Delete()
+
+        boolean success = (line1 = readLine1 and line2 = readLine2 and line3 = readLine3)
+
+        print success
+    end
+end

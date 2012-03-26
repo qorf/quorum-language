@@ -1,0 +1,19 @@
+use Libraries.System.File
+use Libraries.System.FileRandomAccess
+
+class Main
+    action Main
+        // There should be no exceptions, no output.
+        // Open file and close it.
+        File f
+        f:SetRelativePath("../../../test/tests/FileReader/Resources/mixReads")
+        FileRandomAccess r
+        r:OpenForRandomAccess(f)
+        
+        // Set position to 2, should print 2
+        r:SetPosition(2)
+        number position = r:GetPosition()
+
+        print position
+    end
+end

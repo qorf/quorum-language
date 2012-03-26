@@ -49,6 +49,7 @@ import org.quorum.tests.compiler.inheritance.InheritanceTester;
 import org.quorum.tests.compiler.loops.LoopsTester;
 import org.quorum.tests.compiler.nativefunctions.NativeFunctionsTester;
 import org.quorum.tests.compiler.Expressions.ExpressionsTester;
+import org.quorum.tests.compiler.File.FileRandomAccessTester;
 import org.quorum.tests.compiler.File.FileReaderTester;
 import org.quorum.tests.compiler.File.FileWriterTester;
 import org.quorum.tests.compiler.other.OtherTester;
@@ -65,13 +66,7 @@ import org.quorum.tests.compiler.use.UseTester;
     CurriculumTester.class, ActionsTester.class/*, ExceptionsTester.class*/, ArrayTester.class, TableTester.class,
     MathTester.class, QueueTester.class, IfStatementTester.class, InheritanceTester.class, LoopsTester.class,
     NativeFunctionsTester.class, OtherTester.class, PublicPrivateTester.class, TemplateTester.class,
-    UseTester.class, FileTester.class, ExpressionsTester.class, FileReaderTester.class, FileWriterTester.class})
-
-
-/*@Suite.SuiteClasses(value={QuorumVirtualMachineTest.class, TypeCheckTester.class, TemplateTester.class, ActionsTester.class, ArraysTester.class,
-    CurriculumTester.class, IfStatementTester.class, InheritanceTester.class, LoopsTester.class, NativeFunctionsTester.class, OtherTester.class,
-    PublicPrivateTester.class, UseTester.class, ExceptionsTester.class, ListTester.class, MathTester.class, FileTester.class, 
-    DateTimeTester.class, StackTester.class, PriorityQueueTester.class, QueueTester.class, TableTester.class})*/
+    UseTester.class, FileTester.class, ExpressionsTester.class, FileReaderTester.class, FileWriterTester.class, FileRandomAccessTester.class})
 
 public class CompilerTestSuite {
     public static final String PASS = "Pass" + File.separatorChar;
@@ -95,6 +90,7 @@ public class CompilerTestSuite {
     public static final String FILE = "File" + File.separatorChar;
     public static final String FILEREADER = "FileReader" + File.separatorChar;
     public static final String FILEWRITER = "FileWriter" + File.separatorChar;
+    public static final String FILERANDOMACCESS = "FileRandomAccess" + File.separatorChar;
     public static final String MATH = "Math" + File.separatorChar;
     public static final String TREESET = "TreeSet" + File.separatorChar;
     public static final String TREEMAP = "TreeMap" + File.separatorChar;

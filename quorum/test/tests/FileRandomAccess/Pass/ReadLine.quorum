@@ -1,0 +1,37 @@
+use Libraries.System.File
+use Libraries.System.FileRandomAccess
+
+class Main
+    action Main
+        // Read contents of single line file, then multi-line file.
+        File f
+        f:SetRelativePath("../../../test/tests/FileReader/Resources/singleLine")
+
+        FileRandomAccess r
+        r:OpenForRandomAccess(f)
+        text singleLine = r:ReadLine()
+
+        // go back to beginning, read again
+        r:GoToBeginning()
+        text singleLineAgain = r:ReadLine()
+        r:Close()
+
+        // now multi-line file
+        f:SetRelativePath("../../../test/tests/FileReader/Resources/multipleLines")
+        r:OpenForRandomAccess(f)
+        text multiLine = r:ReadLine()
+        text multiLine2 = r:ReadLine()
+        r:Close()
+
+        print singleLine
+        print singleLineAgain
+        print multiLine
+        print multiLine2
+        
+        // output should be...
+        // this is a single line
+        // this is a single line
+        // line 1
+        // line 2
+    end
+end

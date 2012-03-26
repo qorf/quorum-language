@@ -3,14 +3,12 @@ use Libraries.System.FileRandomAccess
 
 class Main
     action Main
+        // There should be no exceptions, no output.
+        // Open file and close it.
         File f
-        f:SetRelativePath("test/tests/FileRandomAccess/Resources/readThirdChar")
+        f:SetRelativePath("../../../test/tests/FileReader/Resources/mixReads")
         FileRandomAccess r
         r:OpenForRandomAccess(f)
-        
-        r:SetPosition(1)
-        text thirdChar = r:Read(1)
         r:Close()
-        print thirdChar // should be 'e'
     end
 end

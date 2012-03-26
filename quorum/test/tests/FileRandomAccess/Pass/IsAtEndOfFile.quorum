@@ -1,0 +1,27 @@
+use Libraries.System.File
+use Libraries.System.FileRandomAccess
+
+class Main
+    action Main
+        File f
+        f:SetRelativePath("../../../test/tests/FileRandomAccess/Resources/singleLine")
+        FileRandomAccess r
+        r:OpenForRandomAccess(f)
+        
+        // Read the entire file, should be at end
+        r:Read()
+        boolean atEOF = r:IsAtEndOfFile()
+        
+        // Seek to the end of the file (position 20).
+        r:SetPosition(20)
+        boolean atEOFAfterSeek = r:IsAtEndOfFile()
+        
+        // the beginning isn't end of file...
+        r:GoToBeginning()
+
+        boolean EOFAtBeginning = r:IsAtEndOfFile()
+        print atEOF // true
+        print atEOFAfterSeek // true
+        print EOFAtBeginning // false
+    end
+end

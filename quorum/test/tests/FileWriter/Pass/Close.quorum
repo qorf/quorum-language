@@ -13,8 +13,18 @@ class Main
         
         w:Close()
 
+        // Close again (nothing should happen)
+        w:Close()
+
         // Open a file for append and close it.
         w:OpenForWriteAppend(f)
         w:Close()
+
+        // Close again (nothing should happen)
+        w:Close()
+
+        // Close on an instance that never had an open file (nothing should happen).
+        FileWriter n
+        n:Close()
     end
 end

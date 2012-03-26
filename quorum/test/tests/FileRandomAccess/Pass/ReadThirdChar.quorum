@@ -4,13 +4,13 @@ use Libraries.System.FileRandomAccess
 class Main
     action Main
         File f
-        f:SetRelativePath("test/tests/FileRandomAccess/Resources/readThirdChar")
+        f:SetRelativePath("../../../test/tests/FileRandomAccess/Resources/readThirdChar")
         FileRandomAccess r
         r:OpenForRandomAccess(f)
         
-        r:SetPosition(1)
+        r:SetPosition(2)
         text thirdChar = r:Read(1)
-        r:Close()
+
         print thirdChar // should be 'e'
     end
 end
