@@ -38,7 +38,7 @@ public class FileRandomAccess {
         }
     }
 
-    public long GetPosition() throws InputOutputError {
+    public double GetPosition() throws InputOutputError {
         try {
             return inst.GetPosition();
         } catch (IOException ex) {
@@ -49,9 +49,9 @@ public class FileRandomAccess {
         }
     }
     
-    public void SetPositionNative(long position) throws InputOutputError {
+    public void SetPositionNative(double position) throws InputOutputError {
         try {
-            inst.SetPositionNative(position);
+            inst.SetPositionNative((long)position);
         } catch (IOException ex) {
             InputOutputError e = new InputOutputError();
             if (ex.getMessage() != null)

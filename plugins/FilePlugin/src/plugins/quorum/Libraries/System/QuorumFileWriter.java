@@ -37,7 +37,8 @@ public class QuorumFileWriter {
     }
 
     public void Close() throws IOException {
-        bufferedWriter.close();
+        if (bufferedWriter != null)
+            bufferedWriter.close();
     }
 
     public void PushToDisk() throws IOException {

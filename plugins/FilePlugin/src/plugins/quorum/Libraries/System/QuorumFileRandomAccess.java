@@ -28,7 +28,8 @@ public class QuorumFileRandomAccess {
     }
 
     public void Close() throws IOException {
-        randomAccess.close();
+        if (randomAccess != null)
+            randomAccess.close();
     }
 
     public long GetPosition() throws IOException {
@@ -37,6 +38,10 @@ public class QuorumFileRandomAccess {
     
     public void SetPositionNative(long position) throws IOException {
         randomAccess.seek(position);
+        if (position < fileSize - 1)
+            atEOF = false;
+        else
+            atEOF = true;
     }
 
     public String ReadNative() throws IOException {
@@ -74,8 +79,7 @@ public class QuorumFileRandomAccess {
         long totalReadBytes = 0;
         int numRead = 0;
         byte[] byteBuff = new byte[numberOfBytes];
-
-        numRead = randomAccess.read(byteBuff, 0, numberOfBytes);
+        numRead = randomAccess.read(byteBuff);
 
         if (numRead > 0) {
             totalReadBytes += numRead;

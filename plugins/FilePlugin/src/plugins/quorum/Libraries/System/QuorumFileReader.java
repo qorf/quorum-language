@@ -37,7 +37,8 @@ public class QuorumFileReader {
     }
     
     public void Close() throws IOException {
-        bufferedReader.close();
+        if (bufferedReader != null)
+            bufferedReader.close();
         file = null;
         bufferedReader = null;
         fileSize = 0;
