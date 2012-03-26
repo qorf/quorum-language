@@ -241,4 +241,248 @@ public class FileRandomAccessTester {
         
         assert(r.getLine(0).equals("e"));
     }
+    
+    @Test
+    public void testOpenForRandomAccess_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILERANDOMACCESS + CompilerTestSuite.PASS + "OpenForRandomAccess.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } 
+    }
+    
+    @Test
+    public void testClose_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILERANDOMACCESS + CompilerTestSuite.PASS + "Close.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } 
+    }
+    
+    @Test
+    public void testRead_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILERANDOMACCESS + CompilerTestSuite.PASS + "Read.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String singleLine = vm.getDataEnvironment().getVariableValue("singleLine").getResult().text;
+            String anotherSingleLine = vm.getDataEnvironment().getVariableValue("anotherSingleLine").getResult().text;
+            String multiLine = vm.getDataEnvironment().getVariableValue("multiLine").getResult().text;
+            
+            assert(singleLine.equals("this is a single line"));
+            assert(anotherSingleLine.equals("this is a single line"));
+            assert(multiLine.equals("line 1\nline 2\nline 3\nline 4\n...\nline n"));
+        }
+    }
+    
+    @Test
+    public void testReadAmount_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILERANDOMACCESS + CompilerTestSuite.PASS + "ReadAmount.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String singleLine = vm.getDataEnvironment().getVariableValue("singleLine").getResult().text;
+            String singleLine2 = vm.getDataEnvironment().getVariableValue("singleLine2").getResult().text;
+            String singleLine3 = vm.getDataEnvironment().getVariableValue("singleLine").getResult().text;
+            String multiLine = vm.getDataEnvironment().getVariableValue("multiLine").getResult().text;
+            String multiLine2 = vm.getDataEnvironment().getVariableValue("multiLine2").getResult().text;
+            assert(singleLine.equals("this"));
+            assert(singleLine2.equals(" is"));
+            assert(singleLine3.equals("lin"));
+            assert(multiLine.equals("lin"));
+            assert(multiLine2.equals("e 1"));
+        }
+    }
+    
+    @Test
+    public void testReadLine_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILERANDOMACCESS + CompilerTestSuite.PASS + "ReadLine.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String singleLine = vm.getDataEnvironment().getVariableValue("singleLine").getResult().text;
+            String singleLineAgain = vm.getDataEnvironment().getVariableValue("singleLineAgain").getResult().text;
+            String multiLine = vm.getDataEnvironment().getVariableValue("multiLine").getResult().text;
+            String multiLine2 = vm.getDataEnvironment().getVariableValue("multiLine2").getResult().text;
+            assert(singleLine.equals("this is a single line"));
+            assert(singleLineAgain.equals(" this is a single line"));
+            assert(multiLine.equals("line 1"));
+            assert(multiLine2.equals("line 2"));
+        }
+    }
+    
+    @Test
+    public void testReadLines_execute() {
+        // NOTE: BROKEN due to problem in Error.quorum - analyze later.
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILERANDOMACCESS + CompilerTestSuite.PASS + "ReadLines.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean firstReadOK = vm.getDataEnvironment().getVariableValue("firstReadOK").getResult().boolean_value;
+            boolean secondReadOK = vm.getDataEnvironment().getVariableValue("secondReadOK").getResult().boolean_value;
+            assert(firstReadOK);
+            assert(secondReadOK);
+        }
+    }
+    
+    @Test
+    public void testIsAtEndOfFile_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILERANDOMACCESS + CompilerTestSuite.PASS + "IsAtEndOfFile.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean atEOF = vm.getDataEnvironment().getVariableValue("atEOF").getResult().boolean_value;
+            boolean atEOFAfterSeek = vm.getDataEnvironment().getVariableValue("atEOFAfterSeek").getResult().boolean_value;
+            boolean EOFAtBeginning = vm.getDataEnvironment().getVariableValue("EOFAtBeginning").getResult().boolean_value;
+            
+            assert(atEOF);
+            assert(atEOFAfterSeek);
+            assert(!EOFAtBeginning);
+        }
+    }
+    
+    @Test
+    public void testWrite_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILERANDOMACCESS + CompilerTestSuite.PASS + "Write.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
+            assert(success);
+        }
+    }
+    
+    @Test
+    public void testWriteLine_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILERANDOMACCESS + CompilerTestSuite.PASS + "WriteLine.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
+            assert(success);
+        }
+    }
+    
+    @Test
+    public void testSetPosition_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILERANDOMACCESS + CompilerTestSuite.PASS + "SetPosition.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            double position = vm.getDataEnvironment().getVariableValue("position").getResult().number;
+            assert(position == 2);
+        }
+    }
+    
+    @Test
+    public void testGetPosition_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILERANDOMACCESS + CompilerTestSuite.PASS + "GetPosition.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            double position = vm.getDataEnvironment().getVariableValue("position").getResult().number;
+            double newPosition = vm.getDataEnvironment().getVariableValue("newPosition").getResult().number;
+            assert(position == 21);
+            assert(newPosition == 2);
+        }
+    }
+    
+    @Test
+    public void testGoToBeginning_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILERANDOMACCESS + CompilerTestSuite.PASS + "GoToBeginning.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            double position = vm.getDataEnvironment().getVariableValue("position").getResult().number;
+            assert(position == 0);
+        }
+    }
+    
+    @Test
+    public void testReadThirdChar_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILERANDOMACCESS + CompilerTestSuite.PASS + "ReadThirdChar.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String thirdChar = vm.getDataEnvironment().getVariableValue("thirdChar").getResult().text;
+            assert(thirdChar.equals("e"));
+        }
+    }
 }
