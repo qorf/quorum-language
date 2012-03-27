@@ -26,6 +26,14 @@ public class QuorumFile {
      */
     protected File file = null;
     
+    /**
+     * Set our file to the current directory.
+     */
+    public QuorumFile() {
+        file = new File(System.getProperty("user.dir"));
+        path = file.getPath();
+    }
+    
     /*
      * This action gets the "last modified" date/time from the system in UNIX
      * timestamp format.
@@ -43,8 +51,13 @@ public class QuorumFile {
         String newline = System.getProperty("line.separator");
         String[] list = file.list();
         
+        // Add our current path onto the end of each file name.
+        String prefix = file.getAbsolutePath();
+        if (!path.endsWith(File.separator))
+            prefix = prefix + File.separator;
+        
         for (int x = 0; x < list.length; x++) {
-            listing = listing + list[x] + newline;
+            listing = listing + prefix + list[x] + newline;
         }
         
         return listing;
@@ -119,10 +132,10 @@ public class QuorumFile {
 
     public String GetFileExtension() {
         // The path may not contain an extension (or may not be a file)
-        if (!path.contains("."))
+        String name = file.getName();
+        if (!name.contains("."))
             return "";
         
-        String name = file.getName();
         int pos = name.lastIndexOf('.');
         return name.substring(pos+1);    
     }
@@ -136,7 +149,11 @@ public class QuorumFile {
     }
 
     public double GetFileSize() {
-        return file.length();
+        if (file.isFile()) {
+            return file.length();
+        }
+        
+        return 0;
     }
 
     public boolean Delete() {
@@ -149,6 +166,7 @@ public class QuorumFile {
 
     public boolean Move(String newPath) {
         File newFile = new File(newPath);
+        
         if (file.renameTo(newFile)) {
             this.path = newPath;
             this.file = new File(this.path);

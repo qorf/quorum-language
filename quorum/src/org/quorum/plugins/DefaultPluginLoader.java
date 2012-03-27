@@ -55,6 +55,12 @@ public class DefaultPluginLoader {
         plugin = new ObjectPlugin();
         plugins.add(plugin);
 
+        plugin = new PathPlugin();
+        plugins.add(plugin);
+        
+        plugin = new PathPluginDebug();
+        plugins.add(plugin);
+        
         plugin = new FilePlugin();
         plugins.add(plugin);
 

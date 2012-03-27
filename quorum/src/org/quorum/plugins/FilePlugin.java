@@ -27,13 +27,13 @@ public class FilePlugin implements Plugin {
     protected AbstractVirtualMachine vm;
     public static final String KEY = "Libraries.System.File";
     
-    /* -- class methods -- */
+    public static final String GET_PATH_NATIVE = "GetPathNative";
     public static final String GET_LAST_MODIFIED_NATIVE = "GetLastModifiedNative";
     public static final String GET_DIRECTORY_LISTING_NATIVE = "GetDirectoryListingNative";
     public static final String GET_PARENT_DIRECTORY_NATIVE = "GetParentDirectoryNative";
     public static final String GET_SYSTEM_NEWLINE = "GetSystemNewline";
     public static final String SET_PATH_NATIVE = "SetPathNative:text";
-    public static final String GET_WORKING_DIRECTORY_NATIVE = "GetSorkingDirectoryNative";
+    public static final String GET_WORKING_DIRECTORY_NATIVE = "GetWorkingDirectoryNative";
     public static final String EXISTS = "Exists";
     public static final String IS_FILE = "IsFile";
     public static final String IS_DIRECTORY = "IsDirectory";
@@ -112,7 +112,14 @@ public class FilePlugin implements Plugin {
         
         vm = call.getVirtualMachine();
         
-        if (action.equals(GET_LAST_MODIFIED_NATIVE)) {
+        if (action.equals(GET_FILE_NAME)) {
+            setPluginReturnValue(ret, inst.GetFileName());
+        }
+        else if (action.equals(GET_PATH_NATIVE)) {
+            String path = inst.GetPathNative();
+            setPluginReturnValue(ret, path);
+        }
+        else if (action.equals(GET_LAST_MODIFIED_NATIVE)) {
             long time = inst.GetLastModifiedNative();
             setPluginReturnValue(ret, time);
         }
