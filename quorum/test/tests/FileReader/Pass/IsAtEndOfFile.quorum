@@ -7,14 +7,14 @@ class Main
         // Open empty file, and non-empty files, check IsAtEndOfFile in various spots.
         // Read contents of single line file, then multi-line file.
         File f
-        f:SetRelativePath("../../../test/tests/FileReader/Resources/empty")
+        f:SetRelativePath("test/tests/FileReader/Resources/empty")
 
         FileReader r
         r:OpenForRead(f)
         boolean emptyAtEOF = r:IsAtEndOfFile()
         r:Close()
         
-        f:SetRelativePath("../../../test/tests/FileReader/Resources/singleLine")
+        f:SetRelativePath("test/tests/FileReader/Resources/singleLine")
         r:OpenForRead(f)
         boolean singleStartAtEOF = r:IsAtEndOfFile() // should be false.
         r:Read(2)
@@ -24,7 +24,7 @@ class Main
         r:Close()
 
         // open same file, read a line, should be at eof.
-        f:SetRelativePath("../../../test/tests/FileReader/Resources/singleLine")
+        f:SetRelativePath("test/tests/FileReader/Resources/singleLine")
         r:OpenForRead(f)
         r:ReadLine()
         boolean singleAfterReadLineEOF = r:IsAtEndOfFile() // should be true

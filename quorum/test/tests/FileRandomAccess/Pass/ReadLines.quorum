@@ -6,7 +6,7 @@ class Main
     action Main
         // Read contents of single line file, then multi-line file.
         File f
-        f:SetRelativePath("../../../test/tests/FileRandomAccess/Resources/singleLine")
+        f:SetRelativePath("test/tests/FileRandomAccess/Resources/singleLine")
 
         FileRandomAccess r
         r:OpenForRandomAccess(f)
@@ -15,7 +15,7 @@ class Main
         r:Close()
 
         // now multi-line file
-        f:SetRelativePath("../../../test/tests/FileRandomAccess/Resources/multipleLines")
+        f:SetRelativePath("test/tests/FileRandomAccess/Resources/multipleLines")
         r:OpenForRandomAccess(f)
         lines = r:ReadLines()
         boolean secondReadOK = lines:Get(0) = "line 1" and lines:Get(1) = "line 2" and lines:Get(2) = "line 3" and lines:Get(4) = "line 4" and lines:Get(5) = "..." and lines:Get(6) = "line n"

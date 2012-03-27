@@ -25,7 +25,8 @@ public class QuorumFileRandomAccess {
         fileSize = file.length();
         randomAccess = new RandomAccessFile(file, "rw");
         atEOF = false;
-    }
+        file.getAbsolutePath();
+    } 
 
     public void Close() throws IOException {
         if (randomAccess != null)

@@ -216,8 +216,9 @@ public class CompilerTestSuite {
         //build
         vm.build(files, true);
         
-        ProcessBuilder pb = new ProcessBuilder("java", "quorum." + file.getName().split("\\.")[0]);
-        pb.directory(dir);
+        
+        ProcessBuilder pb = new ProcessBuilder("java", "-classpath", "build/classes/build", "quorum." + file.getName().split("\\.")[0]);
+        pb.directory(systemRoot);
         Process proc = null;
         
         try {

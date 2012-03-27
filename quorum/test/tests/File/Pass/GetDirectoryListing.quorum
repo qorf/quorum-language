@@ -4,7 +4,7 @@ use Libraries.Containers.Blueprints.Indexed
 class Main
     action Main
         File testDir
-        testDir:SetRelativePath("../../../test/tests/File/Resources/DirectoryToList")
+        testDir:SetRelativePath("test/tests/File/Resources/DirectoryToList")
         Indexed<File> list = testDir:GetDirectoryListing()
 
         // Make sure all the files we expect are here. (should be 5)

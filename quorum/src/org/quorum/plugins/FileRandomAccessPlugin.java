@@ -31,13 +31,13 @@ public class FileRandomAccessPlugin implements Plugin {
     public static final String OPEN_FOR_RANDOM_ACCESS_NATIVE = "OpenForRandomAccessNative:text";
     public static final String CLOSE = "Close";
     public static final String GET_POSITION = "GetPosition";
-    public static final String SET_POSITION = "SetPositionNative";
+    public static final String SET_POSITION = "SetPositionNative:number";
     public static final String IS_AT_END_OF_FILE = "IsAtEndOfFile";
     public static final String READ = "ReadNative";
     public static final String READ_AMOUNT = "ReadNative:integer";
     public static final String READ_LINE = "ReadLineNative";
-    public static final String WRITE = "WriteNative";
-    public static final String WRITE_LINE = "WriteLineNative";
+    public static final String WRITE = "WriteNative:text";
+    public static final String WRITE_LINE = "WriteLineNative:text";
     
     protected HashMap<Integer, QuorumFileRandomAccess> instances;
 

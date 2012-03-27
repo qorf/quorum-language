@@ -5,7 +5,7 @@ class Main
     action Main
         // There's a file in the test suite that is only one byte in size (under tests/File/Resources)
         File f
-        f:SetRelativePath("../../../test/tests/File/Resources/OneByteFile.txt")
+        f:SetRelativePath("test/tests/File/Resources/OneByteFile.txt")
 
         number size = f:GetFileSize()
 

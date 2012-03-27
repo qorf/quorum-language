@@ -33,6 +33,7 @@ public class FileReaderPlugin implements Plugin {
     public static final String READ_NATIVE = "ReadNative";
     public static final String READ_AMOUNT_NATIVE = "ReadNative:integer";
     public static final String READ_LINE_NATIVE = "ReadLineNative";
+    public static final String IS_AT_END_OF_FILE = "IsAtEndOfFile";
     
     protected HashMap<Integer, QuorumFileReader> instances;
 
@@ -99,6 +100,9 @@ public class FileReaderPlugin implements Plugin {
         
         vm = call.getVirtualMachine();
        
+        if(action.equals(IS_AT_END_OF_FILE)) {
+            setPluginReturnValue(ret, inst.IsAtEndOfFile());
+        }
         if(action.equals(OPEN_FOR_READ_NATIVE)) {
             ExpressionValue argument = call.getArgument("path");
             String arg = argument.getResult().text;

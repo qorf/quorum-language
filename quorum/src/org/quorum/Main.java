@@ -301,7 +301,7 @@ public class Main {
                     System.out.println(" done.");
                 }
                 else if (isInterpret) {
-                    vm.run();
+                    vm.blockRun();
                 }
                 else {
                     // Not generating documentation or running, so we're compiling.

@@ -6,7 +6,7 @@ use Libraries.System.Blueprints.FileRandomAccessBlueprint
 class Main
     action Main
         File f
-        f:SetRelativePath("../../../test/tests/File/Resources/Write.tmp")
+        f:SetRelativePath("test/tests/File/Resources/Write.tmp")
         f:Write("test text")
         text fileContent = f:Read()
 

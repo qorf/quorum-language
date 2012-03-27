@@ -5,7 +5,7 @@ class Main
     action Main
         // Read contents of single line file, then multi-line file.
         File f
-        f:SetRelativePath("../../../test/tests/FileReader/Resources/singleLine")
+        f:SetRelativePath("test/tests/FileReader/Resources/singleLine")
 
         FileReader r
         r:OpenForRead(f)
@@ -13,7 +13,7 @@ class Main
         r:Close()
 
         // now multi-line file
-        f:SetRelativePath("../../../test/tests/FileReader/Resources/multipleLines")
+        f:SetRelativePath("test/tests/FileReader/Resources/multipleLines")
         r:OpenForRead(f)
         text multiLine = r:Read()
 

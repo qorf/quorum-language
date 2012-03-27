@@ -277,7 +277,7 @@ public class FileTester {
             fail();
         
         assert(r.getLine(0).equals("."));
-        assert(r.getLine(1).equals("build"));
+        assert(r.getLine(1).equals("quorum"));
         assert(r.getLine(2).equals("file.exe"));
         assert(r.getLine(3).equals("Programs"));
     }
@@ -787,7 +787,7 @@ public class FileTester {
             String other2Name = vm.getDataEnvironment().getVariableValue("other2Name").getResult().text;
             
             assert(dotFileName.equals("."));
-            assert(workingDirName.equals("build"));
+            assert(workingDirName.equals("quorum"));
             assert(otherName.equals("file.exe"));
             assert(other2Name.equals("Programs"));
         }

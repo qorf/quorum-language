@@ -5,26 +5,26 @@ class Main
     action Main
         // should be no output, no errors.
         File f
-        f:SetRelativePath("../../../test/tests/FileReader/Resources/empty")
+        f:SetRelativePath("test/tests/FileReader/Resources/empty")
 
         FileReader r
         r:OpenForRead(f)
 
         r:Close()
 
-        f:SetRelativePath("../../../test/tests/FileReader/Resources/mixReads")
+        f:SetRelativePath("test/tests/FileReader/Resources/mixReads")
 
         r:OpenForRead(f)
 
         r:Close()
 
-        f:SetRelativePath("../../../test/tests/FileReader/Resources/multipleLines")
+        f:SetRelativePath("test/tests/FileReader/Resources/multipleLines")
 
         r:OpenForRead(f)
 
         r:Close()
 
-        f:SetRelativePath("../../../test/tests/FileReader/Resources/singleLine")
+        f:SetRelativePath("test/tests/FileReader/Resources/singleLine")
 
         r:OpenForRead(f)
 
