@@ -406,7 +406,6 @@ public class FileTester {
 
     @Test
     public void testOpenForRead_bytecode() {
-        // TODO: Complete me
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "OpenForRead.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -421,7 +420,6 @@ public class FileTester {
     
     @Test
     public void testOpenForWrite_bytecode() {
-        // TODO: Complete me
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "OpenForWrite.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -436,7 +434,6 @@ public class FileTester {
     
     @Test
     public void testOpenForWriteAppend_bytecode() {
-        // TODO: Complete me
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "OpenForWriteAppend.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -451,7 +448,6 @@ public class FileTester {
     
     @Test
     public void testOpenForRandomAccess_bytecode() {
-        // TODO: Complete me
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "OpenForRandomAccess.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -466,7 +462,6 @@ public class FileTester {
     
     @Test
     public void testClose_bytecode() {
-        // TODO: Complete me
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "Close.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -480,7 +475,6 @@ public class FileTester {
     
     @Test
     public void testRead_bytecode() {
-        // TODO: Complete me
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "Read.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -495,7 +489,6 @@ public class FileTester {
     
     @Test
     public void testWrite_bytecode() {
-        // TODO: Complete me
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "Write.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -506,5 +499,565 @@ public class FileTester {
             fail();
         
         assert(r.getLine(0).equals("test text"));
+    }
+    
+    /**
+     * Test of GetLastModifiedNative method, of class File.
+     */
+    @Test
+    public void testGetLastModifiedDate_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "GetLastModifiedDate.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean gotDateTime = vm.getDataEnvironment().getVariableValue("gotDateTime").getResult().boolean_value;
+            boolean isValidDateTime = vm.getDataEnvironment().getVariableValue("isValidDateTime").getResult().boolean_value;
+            
+            assert(gotDateTime && isValidDateTime);
+        }
+    }
+
+    /**
+     * Test of GetDirectoryListingNative method, of class File.
+     */
+    @Test
+    public void testGetDirectoryListing_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "GetDirectoryListing.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
+            
+            assert(success);
+        }  
+    }
+
+    /**
+     * Test of GetParentDirectoryNative method, of class File.
+     */
+    @Test
+    public void testGetParentDirectory_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "GetParentDirectory.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean hasParent = vm.getDataEnvironment().getVariableValue("hasParent").getResult().boolean_value;
+            boolean rootHasParent = vm.getDataEnvironment().getVariableValue("rootHasParent").getResult().boolean_value;
+            
+            assert(hasParent && !rootHasParent);
+        }
+    }
+
+    /**
+     * Test of GetPathNative method, of class File.
+     */
+    @Test
+    public void testGetPath_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "GetPath.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String relativePath = vm.getDataEnvironment().getVariableValue("relativePath").getResult().text;
+            String absolutePath = vm.getDataEnvironment().getVariableValue("absolutePath").getResult().text;
+            
+            assert(relativePath.equals("."));
+            assert(absolutePath.equals("/Users/"));
+        }
+    }
+
+    /**
+     * Test of SetPathNative method, of class File.
+     */
+    @Test
+    public void testSetAbsolutePath_pass_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "SetAbsolutePath.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String path1 = vm.getDataEnvironment().getVariableValue("path1").getResult().text;
+            String path2 = vm.getDataEnvironment().getVariableValue("path2").getResult().text;
+            String path3 = vm.getDataEnvironment().getVariableValue("path3").getResult().text;
+        
+            String s = File.separator;
+            assert(path1.equals(s + "Users" + s + "jeff"));
+            assert(path2.equals("C:" + s + "Program Files" + s));
+            assert(path3.equals(s + "home" + s + "jeff" + s + "file.txt"));
+        }
+    }
+    
+    /**
+     * Test of SetPathNative method, of class File.
+     */
+    @Test
+    public void testSetAbsolutePath_fail_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.FAIL + "SetAbsolutePath.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (!vm.getExceptions().hasExceptions())
+            fail();
+    }
+    
+    /**
+     * Test of SetPathNative method, of class File.
+     */
+    @Test
+    public void testSetRelativePath_pass_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "SetRelativePath.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String path1 = vm.getDataEnvironment().getVariableValue("path1").getResult().text;
+            String path2 = vm.getDataEnvironment().getVariableValue("path2").getResult().text;
+            String path3 = vm.getDataEnvironment().getVariableValue("path3").getResult().text;
+            String s = File.separator;
+            assert(path1.equals("." + s + "Users" + s + "jeff"));
+            assert(path2.equals("Program Files" + s));
+            assert(path3.equals(".." + s + "home" + s + "jeff" + s + "file.txt"));
+        }
+    }
+    
+    /**
+     * Test of SetPathNative method, of class File.
+     */
+    @Test
+    public void testSetRelativePath_fail_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.FAIL + "SetRelativePath.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (!vm.getExceptions().hasExceptions())
+            fail();
+    }
+
+    /**
+     * Test of GetWorkingDirectoryNative method, of class File.
+     */
+    @Test
+    public void testGetWorkingDirectory_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "GetWorkingDirectory.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean validWorkingDir = vm.getDataEnvironment().getVariableValue("validWorkingDir").getResult().boolean_value;
+            assert(validWorkingDir);
+        }
+    }
+
+    /**
+     * Test of Exists method, of class File.
+     */
+    @Test
+    public void testExists_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "Exists.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean workDirExists = vm.getDataEnvironment().getVariableValue("workDirExists").getResult().boolean_value;
+            boolean randomFileExists = vm.getDataEnvironment().getVariableValue("randomFileExists").getResult().boolean_value;
+            
+            assert(workDirExists && !randomFileExists);
+        }
+    }
+
+    /**
+     * Test of IsFile method, of class File.
+     */
+    @Test
+    public void testIsFile_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "IsFile.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean workingDirIsFile = vm.getDataEnvironment().getVariableValue("workingDirIsFile").getResult().boolean_value;
+            boolean runResultIsFile = vm.getDataEnvironment().getVariableValue("runResultIsFile").getResult().boolean_value;
+            
+            assert(!workingDirIsFile && runResultIsFile);
+        }
+    }
+
+    /**
+     * Test of IsDirectory method, of class File.
+     */
+    @Test
+    public void testIsDirectory_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "IsDirectory.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean workingDirIsDir = vm.getDataEnvironment().getVariableValue("workingDirIsDir").getResult().boolean_value;
+            boolean runResultIsDir = vm.getDataEnvironment().getVariableValue("runResultIsDir").getResult().boolean_value;
+            
+            assert(workingDirIsDir && !runResultIsDir);
+        }
+    }
+
+    /**
+     * Test of IsHidden method, of class File.
+     */
+    @Test
+    public void testIsHidden_execute() {
+        // This is highly operating system specific... TODO: Test later?
+    }
+
+    /**
+     * Test of GetFileName method, of class File.
+     */
+    @Test
+    public void testGetFileName_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "GetFileName.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String dotFileName = vm.getDataEnvironment().getVariableValue("dotFileName").getResult().text;
+            String workingDirName = vm.getDataEnvironment().getVariableValue("workingDirName").getResult().text;
+            String otherName = vm.getDataEnvironment().getVariableValue("otherName").getResult().text;
+            String other2Name = vm.getDataEnvironment().getVariableValue("other2Name").getResult().text;
+            
+            assert(dotFileName.equals("."));
+            assert(workingDirName.equals("build"));
+            assert(otherName.equals("file.exe"));
+            assert(other2Name.equals("Programs"));
+        }
+    }
+
+    /**
+     * Test of GetFileExtension method, of class File.
+     */
+    @Test
+    public void testGetFileExtension_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "GetFileExtension.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String dotExtension = vm.getDataEnvironment().getVariableValue("dotExtension").getResult().text;
+            String relDirExtension = vm.getDataEnvironment().getVariableValue("relDirExtension").getResult().text;
+            String noExtExtension = vm.getDataEnvironment().getVariableValue("noExtExtension").getResult().text;
+            String hasExtExtension = vm.getDataEnvironment().getVariableValue("hasExtExtension").getResult().text;
+        
+            assert(dotExtension.equals(""));
+            assert(relDirExtension.equals(""));
+            assert(noExtExtension.equals(""));
+            assert(hasExtExtension.equals("ext"));
+        }
+    }
+
+    /**
+     * Test of GetFreeDiskSpace method, of class File.
+     */
+    @Test
+    public void testGetFreeDiskSpace_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "GetFreeDiskSpace.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
+            assert(success);
+        }
+    }
+
+    /**
+     * Test of GetTotalDiskSpace method, of class File.
+     */
+    @Test
+    public void testGetTotalDiskSpace_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "GetTotalDiskSpace.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
+            assert(success);
+        }
+    }
+
+    /**
+     * Test of GetFileSize method, of class File.
+     */
+    @Test
+    public void testGetFileSize_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "GetFileSize.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            double size = vm.getDataEnvironment().getVariableValue("size").getResult().number;
+            assert(size == 1);
+        }
+    }
+
+    /**
+     * Test of Delete method, of class File.
+     */
+    @Test
+    public void testDelete_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "Delete.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
+            assert(success);
+        }
+    }
+
+    /**
+     * Test of CreateDirectory method, of class File.
+     */
+    @Test
+    public void testCreateDirectory_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "CreateDirectory.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
+            assert(success);
+        }
+    }
+
+    /**
+     * Test of Move method, of class File.
+     */
+    @Test
+    public void testMove_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "Move.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
+            assert(success);
+        }
+    }
+
+    @Test
+    public void testOpenForRead_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "OpenForRead.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String fileContent = vm.getDataEnvironment().getVariableValue("fileContent").getResult().text;
+            
+            assert(fileContent.equals("abcdef"));
+        }
+    }
+    
+    @Test
+    public void testOpenForWrite_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "OpenForWrite.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String fileContent = vm.getDataEnvironment().getVariableValue("fileContent").getResult().text;
+            
+            assert(fileContent.equals("hello world"));
+        }
+    }
+    
+    @Test
+    public void testOpenForWriteAppend_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "OpenForWriteAppend.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String fileContent = vm.getDataEnvironment().getVariableValue("fileContent").getResult().text;
+            
+            assert(fileContent.equals("hello worldzzz"));
+        }
+    }
+    
+    @Test
+    public void testOpenForRandomAccess_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "OpenForRandomAccess.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String fileContent = vm.getDataEnvironment().getVariableValue("fileContent").getResult().text;
+            
+            assert(fileContent.equals("abcdef"));
+        }
+    }
+    
+    @Test
+    public void testClose_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "Close.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        // no output to check for
+    }
+    
+    @Test
+    public void testRead_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "Read.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String fileContent = vm.getDataEnvironment().getVariableValue("fileContent").getResult().text;
+            
+            assert(fileContent.equals("abcdef"));
+        }
+    }
+    
+    @Test
+    public void testWrite_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "Write.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String fileContent = vm.getDataEnvironment().getVariableValue("fileContent").getResult().text;
+            
+            assert(fileContent.equals("test text"));
+        }
     }
 }
