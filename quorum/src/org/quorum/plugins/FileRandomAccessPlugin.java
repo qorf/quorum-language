@@ -110,14 +110,14 @@ public class FileRandomAccessPlugin implements Plugin {
             try {
                 inst.OpenForRandomAccessNative(arg);
             } catch (FileNotFoundException ex) {
-                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("FileNotFoundError: " + ex.getMessage(), ErrorTypeDescriptor.getFileNotFoundError());
             }
         }
         else if (action.equals(CLOSE)) {
             try {
                 inst.Close();
             } catch (IOException ex) {
-                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
         }
         else if (action.equals(GET_POSITION)) {
@@ -126,7 +126,7 @@ public class FileRandomAccessPlugin implements Plugin {
             try {
                 result = inst.GetPosition();
             } catch (IOException ex) {
-                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
             
             setPluginReturnValue(ret, result);
@@ -137,7 +137,7 @@ public class FileRandomAccessPlugin implements Plugin {
             try {
                 inst.SetPositionNative((long)arg);
             } catch (IOException ex) {
-                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
         }
         else if (action.equals(IS_AT_END_OF_FILE)) {
@@ -150,7 +150,7 @@ public class FileRandomAccessPlugin implements Plugin {
             try {
                 result = inst.ReadNative();
             } catch (IOException ex) {
-                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
             
             setPluginReturnValue(ret, result);
@@ -162,7 +162,7 @@ public class FileRandomAccessPlugin implements Plugin {
             try {
                 result = inst.ReadNative(arg);
             } catch (IOException ex) {
-                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
             
             setPluginReturnValue(ret, result);        
@@ -172,7 +172,7 @@ public class FileRandomAccessPlugin implements Plugin {
             try {
                 result = inst.ReadLineNative();
             } catch (IOException ex) {
-                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
             
             setPluginReturnValue(ret, result);        }
@@ -183,7 +183,7 @@ public class FileRandomAccessPlugin implements Plugin {
             try {
                 inst.WriteNative(arg);
             } catch (IOException ex) {
-                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }     
         }
         else if (action.equals(WRITE_LINE)) {
@@ -193,7 +193,7 @@ public class FileRandomAccessPlugin implements Plugin {
             try {
                 inst.WriteLineNative(arg);
             } catch (IOException ex) {
-                Logger.getLogger(FileRandomAccessPlugin.class.getName()).log(Level.SEVERE, null, ex);
+               throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }             
         }
         return ret;

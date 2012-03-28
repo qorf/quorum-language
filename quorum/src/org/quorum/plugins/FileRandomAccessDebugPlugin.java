@@ -39,16 +39,16 @@ public class FileRandomAccessDebugPlugin extends FileRandomAccessPlugin {
             try {
                 inst.unOpenForRandomAccessNative();
             } catch (IOException ex) {
-                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
         }
         else if (action.equals(CLOSE)) {
             try {
                 inst.unClose();
             } catch (FileNotFoundException ex) {
-                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("FileNotFoundError: " + ex.getMessage(), ErrorTypeDescriptor.getFileNotFoundError());
             } catch (IOException ex) {
-                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
         }
         else if (action.equals(SET_POSITION)) {
@@ -58,35 +58,35 @@ public class FileRandomAccessDebugPlugin extends FileRandomAccessPlugin {
             try {
                 inst.unReadNative();
             } catch (IOException ex) {
-                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
         }
         else if (action.equals(READ_AMOUNT)) {
             try {
                 inst.unReadNative();
             } catch (IOException ex) {
-                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
         }
         else if (action.equals(READ_LINE)) {
             try {
                 inst.unReadLineNative();
             } catch (IOException ex) {
-                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
         }
         else if (action.equals(WRITE)) {
             try {
                 inst.unWriteNative();
             } catch (IOException ex) {
-                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
         }
         else if (action.equals(WRITE_LINE)) {
             try {
                 inst.unWriteNative();
             } catch (IOException ex) {
-                Logger.getLogger(FileRandomAccessDebugPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }          
         }
         

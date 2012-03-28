@@ -109,14 +109,14 @@ public class FileReaderPlugin implements Plugin {
             try {
                 inst.OpenForReadNative(arg);
             } catch (FileNotFoundException ex) {
-                Logger.getLogger(FileReaderPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("FileNotFoundError: " + ex.getMessage(), ErrorTypeDescriptor.getFileNotFoundError());
             }
         }
         else if (action.equals(CLOSE)) {
             try {
                 inst.Close();
             } catch (IOException ex) {
-                Logger.getLogger(FileReaderPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
         }
         else if (action.equals(READ_NATIVE)) {
@@ -124,7 +124,7 @@ public class FileReaderPlugin implements Plugin {
             try {
                 result = inst.ReadNative();
             } catch (IOException ex) {
-                Logger.getLogger(FileReaderPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
             
             setPluginReturnValue(ret, result);
@@ -136,9 +136,9 @@ public class FileReaderPlugin implements Plugin {
             try {
                 result = inst.ReadNative(arg);
             } catch (EOFException ex) {
-                Logger.getLogger(FileReaderPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("EndOfFileError: " + ex.getMessage(), ErrorTypeDescriptor.getEndOfFileError());
             } catch (IOException ex) {
-                Logger.getLogger(FileReaderPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
             
             setPluginReturnValue(ret, result);
@@ -148,9 +148,9 @@ public class FileReaderPlugin implements Plugin {
             try {
                 result = inst.ReadLineNative();
             } catch (EOFException ex) {
-                Logger.getLogger(FileReaderPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("EndOfFileError: " + ex.getMessage(), ErrorTypeDescriptor.getEndOfFileError());
             } catch (IOException ex) {
-                Logger.getLogger(FileReaderPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
             
             setPluginReturnValue(ret, result);

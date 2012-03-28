@@ -38,37 +38,37 @@ public class FileWriterDebugPlugin extends FileWriterPlugin{
             try {
                 inst.unOpenForWriteNative();
             } catch (IOException ex) {
-                Logger.getLogger(FileWriterPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
         }
         else if(action.equals(OPEN_FOR_WRITE_APPEND_NATIVE)) {
             try {
                 inst.unOpenForWriteAppendNative();
             } catch (IOException ex) {
-                Logger.getLogger(FileWriterPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
         }
         else if (action.equals(CLOSE)) {
             try {
                 inst.unClose();
             } catch (IOException ex) {
-                Logger.getLogger(FileReaderPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }
         }
         else if (action.equals(WRITE_NATIVE)) {
             try {
                 inst.unWriteNative();
             } catch (IOException ex) {
-                Logger.getLogger(FileReaderPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }            
         }
         else if (action.equals(WRITE_LINE_NATIVE)) {
             try {
                 inst.unWriteLineNative();
             } catch (EOFException ex) {
-                Logger.getLogger(FileReaderPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("EndOfFileError: " + ex.getMessage(), ErrorTypeDescriptor.getEndOfFileError());
             } catch (IOException ex) {
-                Logger.getLogger(FileReaderPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
             }            
         }
         return ret;
