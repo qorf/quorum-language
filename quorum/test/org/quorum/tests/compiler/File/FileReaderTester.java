@@ -121,7 +121,7 @@ public class FileReaderTester {
         assert(r.getLine(2).equals("line 2"));
     }
     
-    /*@Test
+    @Test
     public void testReadLines_bytecode() {
         // NOTE: BROKEN due to problem in Error.quorum - analyze later.
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILEREADER + CompilerTestSuite.PASS + "ReadLines.quorum"));
@@ -135,7 +135,7 @@ public class FileReaderTester {
         
         assert(r.getLine(0).equals("true"));
         assert(r.getLine(1).equals("true"));
-    }*/
+    }
     
     @Test
     public void testIsAtEndOfFile_bytecode() {
@@ -249,9 +249,8 @@ public class FileReaderTester {
         }
     }
     
-    /*@Test
+    @Test
     public void testReadLines_execute() {
-        // NOTE: BROKEN due to problem in Error.quorum - analyze later.
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILEREADER + CompilerTestSuite.PASS + "ReadLines.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -268,7 +267,7 @@ public class FileReaderTester {
             assert(firstReadOK);
             assert(secondReadOK);
         }
-    }*/
+    }
     
     @Test
     public void testIsAtEndOfFile_execute() {

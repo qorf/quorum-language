@@ -1,27 +1,32 @@
 use Libraries.System.File
-use Libraries.System.DateTime
+use Libraries.System.FileReader
+use Libraries.Containers.Blueprints.Indexed
 
 class Main
     action Main
-        File dot
-        dot:SetRelativePath(".")
-        text dotFileName = dot:GetFileName()
+        // Read contents of single line file, then multi-line file.
+        File f
+        f:SetRelativePath("test/tests/FileReader/Resources/singleLine")
 
-        File workingDir
-        text workingDirName = workingDir:GetFileName() // should be "classes"
+        FileReader r
+        r:OpenForRead(f)
+        Indexed<text> lines = r:ReadLines()
+        boolean firstReadOK = lines:Get(0) = "this is a single line"
+        r:Close()
 
-        File other
-        other:SetAbsolutePath("/this/is/a/long/path/file.exe")
-        text otherName = other:GetFileName()
+        // now multi-line file
+        f:SetRelativePath("test/tests/FileReader/Resources/multipleLines")
+        r:OpenForRead(f)
+        lines = r:ReadLines()
 
-        File other2
-        other2:SetAbsolutePath("C:\Programs")
+        boolean secondReadOK = lines:Get(0) = "line 1" and lines:Get(1) = "line 2" and lines:Get(2) = "line 3" and lines:Get(3) = "line 4" and lines:Get(4) = "..." and lines:Get(5) = "line n"
+        r:Close()
 
-        text other2Name = other2:GetFileName()
-
-        print dotFileName // .
-        print workingDirName // build
-        print otherName // file.exe
-        print other2Name // Programs
+        print firstReadOK
+        print secondReadOK
+        
+        // output should be...
+        // true
+        // true
     end
 end

@@ -72,6 +72,16 @@ class FileRandomAccess is a FileRandomAccessBlueprint
     private system action OpenForRandomAccessNative(text path)
 
     /*
+     * Read lines from the file on the native side.
+     */
+    private system action ReadLinesNative() returns text
+
+    /*
+     * Get the newline character(s) on the system.
+     */
+    private system action GetSystemNewline() returns text
+
+    /*
         Open the specified File object for random access. This permits us to
         both read and write to the file. The contents of the file will be preserved if the
         file already exists. When a file is open for random access,
@@ -390,18 +400,11 @@ class FileRandomAccess is a FileRandomAccessBlueprint
             alert(e)
         end
 
-        boolean eof = false
-        Array<text> lines
-        
-        repeat until eof
-            check
-                text line = me:ReadLine()
-                lines:Add(line)
-            detect e of type EndOfFileError
-                // End of file has been reached. Break loop.
-                eof = true
-            end
-        end
+        // Each line in the file is delimited by a newline
+        // character.
+        Text listingString
+        listingString:SetValue(ReadLinesNative())
+        Array<text> lines = listingString:Split(GetSystemNewline())
 
         return lines
     end

@@ -34,6 +34,8 @@ public class FileReaderPlugin implements Plugin {
     public static final String READ_AMOUNT_NATIVE = "ReadNative:integer";
     public static final String READ_LINE_NATIVE = "ReadLineNative";
     public static final String IS_AT_END_OF_FILE = "IsAtEndOfFile";
+    public static final String READ_LINES_NATIVE = "ReadLinesNative";
+    public static final String GET_SYSTEM_NEWLINE = "GetSystemNewline";
     
     protected HashMap<Integer, QuorumFileReader> instances;
 
@@ -100,7 +102,22 @@ public class FileReaderPlugin implements Plugin {
         
         vm = call.getVirtualMachine();
        
-        if(action.equals(IS_AT_END_OF_FILE)) {
+        if (action.equals(READ_LINES_NATIVE)) {
+            String lines = null;
+            try {
+                lines = inst.ReadLinesNative();
+            } catch (EOFException ex) {
+                throwQuorumException("EndOfFileError: " + ex.getMessage(), ErrorTypeDescriptor.getEndOfFileError());
+            } catch (IOException ex) {
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
+            }
+            
+            setPluginReturnValue(ret, lines);
+        }
+        else if(action.equals(GET_SYSTEM_NEWLINE)) {
+            setPluginReturnValue(ret, inst.GetSystemNewline());
+        }
+        else if(action.equals(IS_AT_END_OF_FILE)) {
             setPluginReturnValue(ret, inst.IsAtEndOfFile());
         }
         if(action.equals(OPEN_FOR_READ_NATIVE)) {

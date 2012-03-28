@@ -125,7 +125,7 @@ public class FileRandomAccessTester {
         assert(r.getLine(3).equals("line 2"));
     }
     
-    /*@Test
+    @Test
     public void testReadLines_bytecode() {
         // NOTE: BROKEN due to problem in Error.quorum - analyze later.
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILERANDOMACCESS + CompilerTestSuite.PASS + "ReadLines.quorum"));
@@ -139,7 +139,7 @@ public class FileRandomAccessTester {
         
         assert(r.getLine(0).equals("true"));
         assert(r.getLine(1).equals("true"));
-    }*/
+    }
     
     @Test
     public void testIsAtEndOfFile_bytecode() {
@@ -340,9 +340,8 @@ public class FileRandomAccessTester {
         }
     }
     
-    /*@Test
+    @Test
     public void testReadLines_execute() {
-        // NOTE: BROKEN due to problem in Error.quorum - analyze later.
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILERANDOMACCESS + CompilerTestSuite.PASS + "ReadLines.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
@@ -358,7 +357,7 @@ public class FileRandomAccessTester {
             assert(firstReadOK);
             assert(secondReadOK);
         }
-    }*/
+    }
     
     @Test
     public void testIsAtEndOfFile_execute() {

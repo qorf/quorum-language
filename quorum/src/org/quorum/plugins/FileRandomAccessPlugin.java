@@ -38,6 +38,8 @@ public class FileRandomAccessPlugin implements Plugin {
     public static final String READ_LINE = "ReadLineNative";
     public static final String WRITE = "WriteNative:text";
     public static final String WRITE_LINE = "WriteLineNative:text";
+    public static final String READ_LINES_NATIVE = "ReadLinesNative";
+    public static final String GET_SYSTEM_NEWLINE = "GetSystemNewline";
     
     protected HashMap<Integer, QuorumFileRandomAccess> instances;
 
@@ -104,7 +106,22 @@ public class FileRandomAccessPlugin implements Plugin {
         
         vm = call.getVirtualMachine();
        
-        if (action.equals(OPEN_FOR_RANDOM_ACCESS_NATIVE)) {
+        if (action.equals(READ_LINES_NATIVE)) {
+            String lines = null;
+            try {
+                lines = inst.ReadLinesNative();
+            } catch (EOFException ex) {
+                throwQuorumException("EndOfFileError: " + ex.getMessage(), ErrorTypeDescriptor.getEndOfFileError());
+            } catch (IOException ex) {
+                throwQuorumException("InputOutputError: " + ex.getMessage(), ErrorTypeDescriptor.getInputOutputError());
+            }
+            
+            setPluginReturnValue(ret, lines);
+        }
+        else if(action.equals(GET_SYSTEM_NEWLINE)) {
+            setPluginReturnValue(ret, inst.GetSystemNewline());
+        }
+        else if (action.equals(OPEN_FOR_RANDOM_ACCESS_NATIVE)) {
             ExpressionValue argument = call.getArgument("path");
             String arg = argument.getResult().text;
             try {

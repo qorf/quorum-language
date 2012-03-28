@@ -68,6 +68,15 @@ class FileReader is a FileReaderBlueprint
     private system action ReadLineNative() returns text
 
     /*
+     * Get the newline character(s) on the system.
+     */
+    private system action GetSystemNewline() returns text
+    /*
+     * Read lines from the file on the native side.
+     */
+    private system action ReadLinesNative() returns text
+
+    /*
         Determine whether or not the end of the file has been reached. The
         "end of file" signifies that no further text can be read from the file.
 
@@ -280,18 +289,11 @@ class FileReader is a FileReaderBlueprint
             alert(e)
         end
 
-        boolean eof = false
-        Array<text> lines
-        
-        repeat until eof
-            check
-                text line = me:ReadLine()
-                lines:Add(line)
-            detect e of type EndOfFileError
-                // End of file has been reached. Break loop.
-                eof = true
-            end
-        end
+        // Each line in the file is delimited by a newline
+        // character.
+        Text listingString
+        listingString:SetValue(ReadLinesNative())
+        Array<text> lines = listingString:Split(GetSystemNewline())
 
         return lines
     end
