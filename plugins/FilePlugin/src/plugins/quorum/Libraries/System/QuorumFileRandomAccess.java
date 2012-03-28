@@ -116,6 +116,28 @@ public class QuorumFileRandomAccess {
 
         return line;
     }
+    
+    public String ReadLinesNative() throws EOFException, IOException {
+        String line = null;
+        String lines = "";
+        String newLine = System.getProperty("line.separator");
+        do {
+            line = randomAccess.readLine();
+
+            if (line == null) {
+                if (atEOF) {
+                    throw new EOFException();
+                }
+
+                atEOF = true;
+                line = "";
+            } else {
+                lines += line + newLine;
+            }
+        } while (line != null);
+
+        return lines;
+    }
 
     public void WriteNative(String textToWrite) throws IOException {
         byte[] bytes = textToWrite.getBytes();
@@ -131,5 +153,9 @@ public class QuorumFileRandomAccess {
     
     public boolean IsAtEndOfFile() {
         return this.atEOF;
+    }
+    
+    public String GetSystemNewline() {
+        return System.getProperty("line.separator");
     }
 }

@@ -78,7 +78,6 @@ public class QuorumFileReader {
         }
     }
 
-    // TODO: Document
     public String ReadNative(int numberOfBytes) throws EOFException, IOException {
         if (atEOF)
             throw new EOFException();
@@ -130,7 +129,41 @@ public class QuorumFileReader {
         return line;
     }
     
+    public String ReadLinesNative() throws EOFException, IOException {
+        String line = null;
+        String lines = "";
+        String newLine = System.getProperty("line.separator");
+        
+        do {
+            line = bufferedReader.readLine();
+
+            if (line == null) {
+                if (atEOF) {
+                    throw new EOFException();
+                }
+
+                atEOF = true;
+                line = "";
+                readSoFar = fileSize;
+            } else {
+                lines += line + newLine;
+                readSoFar += line.length() + System.getProperty("line.separator").length(); // newline is consumed.
+
+                if (readSoFar >= fileSize) {
+                    atEOF = true; // don't throw exception this time.
+                    break;
+                }
+            }
+        } while (line != null);
+
+        return lines;
+    }
+    
     public boolean IsAtEndOfFile() {
         return this.atEOF;
+    }
+    
+    public String GetSystemNewline() {
+        return System.getProperty("line.separator");
     }
 }

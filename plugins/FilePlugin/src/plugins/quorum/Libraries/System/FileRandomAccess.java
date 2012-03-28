@@ -95,6 +95,19 @@ public class FileRandomAccess {
         }
     }
 
+    public String ReadLinesNative() throws EndOfFileError, InputOutputError {
+        try {
+            return inst.ReadLinesNative();
+        } catch (EOFException ex) {
+            throw new EndOfFileError();
+        } catch (IOException ex) {
+            InputOutputError e = new InputOutputError();
+            if (ex.getMessage() != null)
+                e.SetErrorMessage(ex.getMessage());
+            throw e;
+        }
+    }
+    
     public void WriteNative(String textToWrite) throws InputOutputError {
         try {
             inst.WriteNative(textToWrite);
@@ -119,5 +132,9 @@ public class FileRandomAccess {
     
     public boolean IsAtEndOfFile() {
         return inst.IsAtEndOfFile();
+    }
+    
+    public String GetSystemNewline() {
+        return System.getProperty("line.separator");
     }
 }

@@ -7,6 +7,8 @@ package plugins.quorum.Libraries.System;
 import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import quorum.Libraries.Language.Errors.*;
 
 /**
@@ -74,7 +76,24 @@ public class FileReader {
         }
     }
     
+    public String ReadLinesNative() throws EndOfFileError, InputOutputError {
+        try {
+            return inst.ReadLinesNative();
+        } catch (EOFException ex) {
+            throw new EndOfFileError();
+        } catch (IOException ex) {
+            InputOutputError e = new InputOutputError();
+            if (ex.getMessage() != null)
+                e.SetErrorMessage(ex.getMessage());
+            throw e;
+        }
+    }
+    
     public boolean IsAtEndOfFile() {
         return inst.IsAtEndOfFile();
+    }
+    
+    public String GetSystemNewline() {
+        return inst.GetSystemNewline();
     }
 }
