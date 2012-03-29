@@ -88,11 +88,12 @@ public class Robot {
     
     public int TurnRight(int angle, int speed)  //work on this angle part   
     {
-        int initialangle = r.getAngle(); 
-        angle = (int)(angle * 2.64);
-        int i = angle * -1;
-        r.driveDirect(i, angle);
-        return (r.getAngle() - initialangle);
+        int finalangle = r.getAngle()+angle; 
+        while(r.getAngle() < finalangle)
+        {
+            r.driveDirect(speed*-1, speed);
+        }
+        return (r.getAngle() -finalangle - angle);
     }
     
     public boolean IsLeftBumperpressed(double lag)
