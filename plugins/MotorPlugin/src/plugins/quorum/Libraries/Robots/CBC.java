@@ -28,7 +28,7 @@ public class CBC {
         catch(InterruptedException ie){}
     }
     
-    //public void RunFor(double seconds)
+    //public void RunFor(double seconds)//emailed KIPR for this
     //{
       //  Device.
                 //LowCreateController().get_create_lbump(lag1);
