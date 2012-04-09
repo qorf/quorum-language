@@ -1,8 +1,77 @@
 package Libraries.Robots
 
+/*
+The Controller class represents the physical Botball. Several functions have 
+been created to assist programmers in creating programs that meet the basic 
+Botball requirements of having robots wait until the starting lights come on 
+and have their programs shut down after a specified amount of time.
+
+Attribute: Example
+
+use Libraries.Robots.Controller
+class Main
+   action Main
+        // Declaraing the Controller
+        Controller cruise
+        // Controller waits for 5 seconds without performing any operation
+        cruise:Wait(5)
+   end
+end
+*/
 class Controller  
+/*
+        This action will kill all the processes and switches off all the motors,
+        after the specified time has elapsed. The Controller is shut down after 
+        the speicified amount of time has elapsed.
+
+        Attribute: Parameter time is in seconds.
+
+        Attribute: Example
+        
+        Controller cruise
+        cruise:ShutDownIn(3)
+        //the controller shuts down after 3 seconds.
+    */
     system action ShutDownIn(number seconds)
+
+/*
+        This action makes the controller wait/sleep for the specified amount of
+        time. The controller does not perform any operation for this time.  
+        
+        Attribute: Parameter time is in seconds.
+
+        Attribute: Example
+        
+        Controller cruise
+        cruise:Wait(2)
+        //the controller waits/sleeps for 2 seconds.
+    */
     system action Wait(number seconds)
+
+/*
+        This action will make the Controller wait until the sensor connected to 
+        the specified port has detected light.
+
+        Attribute: Parameter port is an integer, the port to which the sensor is 
+        connected and waiting to see light.
+
+        Attribute: Example
+        
+        Controller cruise
+        cruise:IsLightInPort(5)
+        //the controller waits until the sensor connected to the port 5 has detected
+        light.
+    */
     system action IsLightInPort(integer port)
+
+/*
+        This action makes the Controller to beep.
+
+        Attribute: Example
+        
+        Controller cruise
+        cruise:Beep()
+        //the controller produces a beep sound
+    */
     system action Beep()
 end

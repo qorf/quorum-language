@@ -1,24 +1,386 @@
 package Libraries.Robots
 
+/*
+The Robot class represents a physical robot. The robot has to be firsted connected
+to the controller. After which we can make the robot perform different actions 
+like moving the robot front, back and in a circle. The robot has two bumpers, 
+left bumper and right bumper namely. The robot has three wheels, left wheel, 
+right wheel and center wheel. It also has four clif sensors namely, left cliff sensor, 
+left front cliff sensor, right cliff sensor, and right front cliff sensor.
+Speed range for all commands is 20-500mm/s
+
+Attribute: Example
+
+use Libraries.Robots.Robot
+class Main
+   action Main
+        // Declaraing the Robot
+        Robot rob
+        // Set connection between the robot and the controller
+        rob:SetConnection()
+        // Move the robot straight, at 200 millimeters per second
+        rob:MoveStraight(200)
+        // The Robot wheels are stopped
+        rob:StopWheels()
+        // Connection between the robot and the controller is broke
+        rob:Disconnect()
+   end
+end
+*/
+
 class Robot 
+    /*
+        This action set a connection between the robot and the controller. 
+        
+        Attribute: Example
+        
+        Robot rob
+        // Set connection between the robot and the controller
+        rob:SetConnection()
+    */
     system action SetConnection()
+    
+    /*
+        This action breaks the connection between the robot and the controller. 
+        
+        Attribute: Example
+        
+        Robot rob
+        rob:SetConnection()
+        rob:TurnLeft(85, 100)
+        //break the connection between the robot and the controller
+        rob:Disconnect()
+    */
+
     system action Disconnect()
+
+    /*
+        This action halts/stops the wheels of the Robot without making any 
+        further movement.
+        
+        Attribute: Example
+        
+        Robot rob
+        rob:SetConnection()
+        rob:TurnLeft(85, 100)
+        //Robot wheels are halted. 
+        rob:StopWheels()
+    */
     system action StopWheels()
+
+    /*
+        This action drives the Robot in a straight line at the specified speed.
+        
+        Attribute: Paramater speed is in millimeters per second, speed with 
+        which the robot will move
+
+        Attribute: Example
+        
+        Robot rob
+        rob:SetConnection()
+        // drives the robot straight, at 100 mm/s
+        rob:MoveStraight(100)
+        rob:StopWheels()
+    */
     system action MoveStraight(integer speed)
+
+    /*
+        This action drives the Robot in a straight line at the specified speed,
+        for a specified distance.
+        
+        Attribute: Paramater speed is in millimeters per second, distance in 
+        millimeters
+
+        Attribute: Example
+        
+        Robot rob
+        rob:SetConnection()
+        // drives the robot straight, at 100 mm/s for 0.5 meters
+        rob:MoveStraight(100, 500)
+        rob:StopWheels()
+    */
     system action MoveStraight(integer speed, number distance)
+
+    /*
+        This action drives the Robot with the left wheel and right wheel speeds 
+        of robot specified. Giving different values for left and right wheel 
+        makes the robot move in a zig zag manner. 
+        
+        Attribute: Paramater rspeed is the speed of the right wheel in 
+        millimeters per second, lspeed is the speed of the left wheel in 
+        millimeters per second.
+
+        Attribute: Example
+        
+        Robot rob
+        rob:SetConnection()
+        // drives the robot front with left wheel at speed 100mm/s and 
+        // right wheel at speed 300 mm/s
+        rob:MoveWithRightLeftSpeed(100, 300)
+        rob:StopWheels()
+    */
     system action MoveWithRightLeftSpeed(integer rspeed, integer lspeed)
+
+    /*
+        This action drives the Robot in an arc/curve whose radius is specified.
+        
+        Attribute: Paramater speed is in millimeters per second, raduis is in 
+        millimeters per second. Raduis is the radius of the arc, along which 
+        the robot moves.
+
+        Attribute: Example
+        
+        Robot rob
+        rob:SetConnection()
+        // drives the robot in an arc at 100 mm/s, arc radius is 150 mm
+        rob:MoveAsCurve(100, 150)
+        rob:StopWheels()
+    */
     system action MoveAsCurve(integer speed, integer radius)
-    system action TurnLeft(integer angle, integer speed) returns integer
-    system action TurnRight(integer angle, integer speed) returns integer
+    /*
+        This action turns the Robot left with the specified angle and speed.
+        
+        Attribute: Paramater angle is in degrees, speed is in mm/s.
+
+        Attribute: Example
+        
+        Robot rob
+        rob:SetConnection()
+        // turns the robot left by 90 degrees at speed 150mm/s
+        rob:TurnLeft(90, 150)
+        rob:StopWheels()
+    */
+    system action TurnLeft(integer angle, integer speed) 
+    /*
+        This action turns the Robot right with the specified angle and speed.
+        
+        Attribute: Paramater angle is in degrees, speed is in mm/s.
+
+        Attribute: Example
+        
+        Robot rob
+        rob:SetConnection()
+        // turns the robot right by 90 degrees at speed 150mm/s
+        rob:TurnRight(90, 150)
+        rob:StopWheels()
+    */
+    system action TurnRight(integer angle, integer speed) 
+
+    /*
+        This action tells if the left bumper of the Robot was pressed or not.
+        
+        Attribute: Paramater lag is in seconds, is the time lag with in which
+        the bumper is checked to see if it is pressed or not.
+
+        Attribute : Returns true if left bumper is pressed, otherwise returns
+        false
+
+        Attribute: Example
+        
+        Robot rob
+        rob:SetConnection()
+        // turns the robot right by 90 degrees at speed 200mm/s if 
+        // left bumper is pressed.
+        if rob:IsLeftBumperpressed(0.1)
+            rob:TurnRight(90, 200)
+        end
+        rob:StopWheels()
+    */
     system action IsLeftBumperpressed(number lag) returns boolean
+    /*
+        This action tells if the right bumper of the Robot was pressed or not.
+        
+        Attribute: Paramater lag is in seconds, is the time lag with in which
+        the bumper is checked to see if it is pressed or not.
+
+        Attribute : Returns true if right bumper is pressed, otherwise returns
+        false
+
+        Attribute: Example
+        
+        Robot rob
+        rob:SetConnection()
+        // turns the robot left by 90 degrees at speed 200mm/s if 
+        // right bumper is pressed.
+        if rob:IsRightBumperpressed(0.1)
+            rob:TurnLeft(90, 200)
+        end
+        rob:StopWheels()
+    */
+
     system action IsRightBumperpressed(number lag) returns boolean
+
+    /*
+        This action checks if the center wheel of the robot is dropped or is 
+        standing safe on land.
+        
+        Attribute: Paramater lag is in seconds, is the time lag with in which
+        the center wheel is checked to see if it is dropped or not.
+
+        Attribute : Returns true if center wheel is drooped, otherwise returns
+        false
+
+        Attribute: Example
+        
+        Robot rob
+        rob:SetConnection()
+        // if center wheel of the robot is dropped, the robot is stopped
+        if rob:IsCenterWheelDropped(0.1)
+            rob:StopWheels()
+            print "Center wheel is dropped."
+        end
+        rob:Disconnect()
+    */
     system action IsCenterWheelDropped(number lag) returns boolean
+
+    /*
+        This action checks if the left wheel of the robot is dropped or is 
+        standing safe on land.
+        
+        Attribute: Paramater lag is in seconds, is the time lag with in which
+        the left wheel is checked to see if it is dropped or not.
+
+        Attribute : Returns true if left wheel is drooped, otherwise returns
+        false
+
+        Attribute: Example
+        
+        Robot rob
+        rob:SetConnection()
+        if rob:IsLeftWheelDropped(0.1)
+            rob:StopWheels()
+            print "Left wheel is dropped."
+        end
+        rob:Disconnect()
+    */
+
     system action IsLeftWheelDropped(number lag) returns boolean
+    
+    /*
+        This action checks if the right wheel of the robot is dropped or is 
+        standing safe on land.
+        
+        Attribute: Paramater lag is in seconds, is the time lag with in which
+        the right wheel is checked to see if it is dropped or not.
+
+        Attribute : Returns true if right wheel is drooped, otherwise returns
+        false
+
+        Attribute: Example
+        
+        Robot rob
+        rob:SetConnection()
+        if rob:IsRightWheelDropped(0.1)
+            rob:StopWheels()
+            print "Right wheel is dropped."
+        end
+        rob:Disconnect()
+    */
     system action IsRightWheelDropped(number lag) returns boolean
+    
+    /*
+        This action makes the robot to spin/rotate in the Clockwise direction at
+        the specified speed continuously.
+        Angle is irrelevant here.
+        
+        Attribute: Paramater speed in mm/s.
+
+        Attribute: Example
+        
+        Robot rob
+        Button b
+        rob:SetConnection()
+        // robot turns in clockwise direction continuously until button A is pressed.
+        repeat while() b:IsAButtonPressed()
+            rob:TurnClockwise(120)
+        end
+        rob:StopWheels()
+        rob:Disconnect()
+    */
     system action TurnClockwise(integer speed)
+    
+    /*
+        This action makes the robot to spin/rotate in the counter Clockwise direction at
+        the specified speed continuously.
+        Angle is irrelevant here.
+        
+        Attribute: Paramater speed in mm/s.
+
+        Attribute: Example
+        
+        Robot rob
+        Button b
+        rob:SetConnection()
+        // robot turns in counter clockwise direction continuously until 
+        // button B is pressed
+        repeat while() b:IsBButtonPressed()
+            rob:TurnCounterClockwise(100)
+        end
+        rob:StopWheels()
+        rob:Disconnect()
+    */
     system action TurnCounterClockwise(integer speed)
-    system action IsLeftSensorTriggered(number lag) returns integer
-    system action IsRightSensorTriggered(number lag) returns integer
-    system action IsLeftFrontSensorTriggered(number lag) returns integer
-    system action IsRightFrontSensorTriggered() returns integer
+
+    /*
+        This action ckecks if the left cliff sensor is over a cliff or over a 
+        black line.
+        
+        Attribute: Paramater lag is in seconds, is the time with in which data is
+        gathered.
+
+        Attribute: Returns true if left cliff sensor is over a cliff or a black 
+        line, otherwise returns false.
+
+        Attribute: Example
+        
+        Robot rob
+        Button b
+        rob:SetConnection()
+        // robot turns in counter clockwise direction continuously until 
+        // left cliff sensor detects a cliff
+        repeat while() rob:IsLeftSensorTriggered(0.1) = false
+            rob:TurnCounterClockwise(100)
+        end
+        rob:StopWheels()
+        rob:Disconnect()
+    */
+    system action IsLeftSensorTriggered(number lag) returns boolean
+    /*
+        This action is similar to the previous function except, it 
+        ckecks if the right cliff sensor is over a cliff or over a 
+        black line.
+        
+        Attribute: Paramater lag is in seconds, is the time with in which data is
+        gathered.
+
+        Attribute: Returns true if right cliff sensor is over a cliff or a black 
+        line, otherwise returns false.
+    */
+    system action IsRightSensorTriggered(number lag) returns boolean
+
+    /*
+        This action is similar to the previous function except, it 
+        ckecks if the left front cliff sensor is over a cliff or over a 
+        black line.
+        
+        Attribute: Paramater lag is in seconds, is the time with in which data is
+        gathered.
+
+        Attribute: Returns true if left front cliff sensor is over a cliff or a 
+        black line, otherwise returns false.
+    */
+    system action IsLeftFrontSensorTriggered(number lag) returns boolean
+    
+    /*
+        This action is similar to the previous function except, it 
+        ckecks if the right front cliff sensor is over a cliff or over a 
+        black line.
+        
+        Attribute: Paramater lag is in seconds, is the time with in which data is
+        gathered.
+
+        Attribute: Returns true if right front cliff sensor is over a cliff or a 
+        black line, otherwise returns false.
+    */
+    system action IsRightFrontSensorTriggered() returns boolean
 end

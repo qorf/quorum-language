@@ -14,13 +14,13 @@ class Main
         // Declaraing the motor
         Motor m
         // Set connection with the motor connected to port 1
-        m:SetConnection(1)
+        m:SetPort(1)
         // Move the motor to position 2000, with the speed 200 mm/s
         m:MoveToPosition(200, 2000)
         // Wait until the motor has completed its movement
         m:Wait()
-        // Switch off the motor connected to port 1
-        m:Off(1)
+        // Switch off the motor 
+        m:Off()
    end
 end
 */
