@@ -5,6 +5,7 @@
 package plugins.quorum.Libraries.Robots;
 
 /**
+ * This class represents a button, as implemented natively through Java.
  *
  * @author sahana
  */
