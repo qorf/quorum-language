@@ -27,19 +27,19 @@ end
 
 
 class Motor
-    /*//correct this
+    /*
         This action connects the motor to the specified port.
         Attribute: Parameter port to which we intend to connect the motor to
 
         Attribute: Example
         
         Motor m
-        m:SetConnection(0)
+        m:SetPort(0)
         //motor is connected to port 0
     */
     system action SetPort(integer port)
 
-    /*//correct this
+    /*
         This action returns the port to which the motor is connected to.
 
         Attribute: Returns the port to which the port is connected to
@@ -47,7 +47,7 @@ class Motor
         Attribute: Example
         
         Motor m
-        integer mc = m:GetConnection()
+        integer mc = m:GetPort()
     */
     system action GetPort() returns integer
 
@@ -57,7 +57,7 @@ class Motor
         Attribute: Example
         
         Motor m
-        m:SetConnection(0)
+        m:SetPort(0)
         m:ResetPosition()
     */
     system action ResetPosition()
@@ -70,26 +70,24 @@ class Motor
         Attribute: Example
         
         Motor m
-        m:SetConnection(0)
+        m:SetPort(0)
         integer mp = m:GetPosition()
     */
     system action GetPosition() returns integer
 
     /*
-        This action moves the motor either in the forward or the backward direction.
-        The speed at which the motor is moved has to be specified in percentage.
-
-        Attribute: Parameter speed in percentage, forward is the direction 
-        in which the motor has to move. If forward is true, motor moves in forward
-        direction. If forward is false, motor moves in backward direction.
+        This action moves the motor in the forward direction. The direction is determined
+        by the plug orientation.
+        The motor moves at the full speed, which is by default 1100 ticks per second.
 
         Attribute: Example
         
         Motor m
-        m:SetConnection(0)
-        m:Move(90, true)
+        m:SetPort(0)
+        m:MoveFoward()
     */
     system action MoveForward()
+
     system action MoveForward(integer speed)
     system action MoveBackward()
     system action MoveBackward(integer speed)
@@ -104,7 +102,7 @@ class Motor
         Attribute: Example
         
         Motor m
-        m:SetConnection(0)
+        m:SetPort(0)
         m:MoveToPosition(90, 2000)
     */
     system action MoveToPosition(integer position)
@@ -120,7 +118,7 @@ class Motor
         Attribute: Example
         
         Motor m
-        m:SetConnection(0)
+        m:SetPort(0)
         m:MoveFromHere(50, 5000)
     */
     system action MoveFromHere(integer position)
@@ -132,7 +130,7 @@ class Motor
         Attribute: Example
         
         Motor m
-        m:SetConnection(0)
+        m:SetPort(0)
         m:MoveFromHere(50, 5000)
         m:Off()
     */
@@ -145,7 +143,7 @@ class Motor
         Attribute: Example
         
         Motor m
-        m:SetConnection(0)
+        m:SetPort(0)
         m:MoveFromHere(50, 5000)
         m:Wait()
     */
@@ -160,7 +158,7 @@ class Motor
         Attribute: Example
         
         Motor m
-        m:SetConnection(0)
+        m:SetPort(0)
         m:MoveFromHere(50, 5000)
         boolean success 
         success = m:IsMotionComplete()
