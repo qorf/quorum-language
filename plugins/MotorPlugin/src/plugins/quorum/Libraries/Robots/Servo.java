@@ -23,7 +23,7 @@ public class Servo {
         s.disable();
     }
     
-    public void SetPosition(int position)
+    public void MoveToPosition(int position)
     {
        s.setPosition(position);
     }
@@ -32,5 +32,4 @@ public class Servo {
     {
        return s.getPosition();
     }
-    
 }

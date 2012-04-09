@@ -77,23 +77,23 @@ public class Robot {
         r.drive(speed, radius);
     }
     
-    public int TurnLeft(int angle, int speed) //work on this angle part     
+    public void TurnLeft(int angle, int speed) //work on this angle part     
     {
         int initialangle = r.getAngle(); 
         angle = (int)(angle * 2.64);
         int i = angle * -1;
         r.driveDirect(angle, i);
-        return (r.getAngle() - initialangle);
+        //return (r.getAngle() - initialangle);
     }
     
-    public int TurnRight(int angle, int speed)  //work on this angle part   
+    public void TurnRight(int angle, int speed)  //work on this angle part   
     {
         int finalangle = r.getAngle()+angle; 
         while(r.getAngle() < finalangle)
         {
             r.driveDirect(speed*-1, speed);
         }
-        return (r.getAngle() -finalangle - angle);
+        //return (r.getAngle() -finalangle - angle);
     }
     
     public boolean IsLeftBumperpressed(double lag)
@@ -156,24 +156,36 @@ public class Robot {
         r.spinCCW(speed);
     }
     
-    public int IsLeftSensorTriggered()
+    public boolean IsLeftSensorTriggered()
     {
-        return c.getLeftCliff();
+        if (c.getLeftCliff() == 1)
+            return true;
+        else
+            return false;
     }
     
-    public int IsRightSensorTriggered()
+    public boolean IsRightSensorTriggered()
     {
-        return c.getRightCliff();
+        if (c.getRightCliff() == 1)
+            return true;
+        else
+            return false;
     }
     
-    public int IsLeftFrontSensorTriggered()
+    public boolean IsLeftFrontSensorTriggered()
     {
-        return c.getLeftFrontCliff();
+        if (c.getLeftFrontCliff() == 1)
+            return true;
+        else
+            return false;
     }
     
-    public int IsRightFrontSensorTriggered()
+    public boolean IsRightFrontSensorTriggered()
     {
-        return c.getRightFrontCliff();
+        if (c.getRightFrontCliff() == 1)
+            return true;
+        else
+            return false;
     }
 }
     
