@@ -10,14 +10,12 @@
  * quorum/Main.class must exist when this wrapper is used.
  * @author jeff
  */
-public class QuorumCBCWrapper {
+public class Wrapper {
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        System.out.println("Wrapper activated. Starting quorum.Main class . . .");
-        quorum.Main k = new quorum.Main();
-        k.Main();
+        quorum.Main.main(args);
     }
 }
