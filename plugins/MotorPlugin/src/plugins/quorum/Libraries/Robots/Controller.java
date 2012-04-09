@@ -20,7 +20,7 @@ public class Controller {
         cbc.shutDownIn(seconds);
     }
     
-    public void Sleep(double s) //tested and works 
+    public void Wait(double s) //tested and works 
     {
         try{
             int seconds = (int) s;
