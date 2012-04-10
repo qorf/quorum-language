@@ -1,0 +1,104 @@
+package Libraries.Robots
+
+/*
+The Analog Sensor class represents a physical analog sensor. Each senor has a 
+designation, an integer, that says which port it is connected to(e.g., 0 to 7). 
+
+Attribute: Example
+
+use Libraries.Robots.AnalogSensor
+class Main
+   action Main
+        // Declaraing an analog sensor    
+        AnalogSensor s
+        // Set connection with the analog sensor connected to port 4
+        s:SetPort(4)
+        integer analog = s:GetValue()
+        if analog > 512
+            print "Sensor detects a light color"
+        else
+            print "Sensor detects a dark color"
+        end
+   end
+end
+*/
+
+
+class AnalogSensor 
+    /*
+        This action connects the sensor to the specified analog port.
+        Attribute: Parameter port to which we intend to connect the sensor to
+        Port values vary from 0 to 7
+
+        Attribute: Example
+        
+        Sensor s
+        s:SetPort(6)
+        //sensor is connected to port 6
+    */
+    system action SetPort(integer port)
+    
+    /*
+        This action returns the analog value of the analog sensor, which is an 
+        integer between 0 to 255
+
+        Attribute: Returns an integer between 0 to 255
+
+        Attribute: Example
+        
+        Sensor s
+        s:SetPort(3)
+        integer analog = s:GetValue()
+        //returns the current value of the sensor connected to port 3
+    */
+    system action GetValue() returns integer
+    
+    /*
+        This action is similar to the previous action, except it is more precise.
+        It returns the 10 bit analog value of the analog sensor, which is an 
+        integer between 0 to 1023
+
+        Attribute: Returns an integer between 0 to 1023
+
+        Attribute: Example
+        
+        Sensor s
+        s:SetPort(4)
+        integer analog = s:GetValue()
+        //returns the current 10 bit analog value of the sensor connected to port 4
+    */  
+    system action Get10BitValue() returns integer
+    
+    //working on this
+    system action SetToFloat(integer mask)
+    
+    /*
+        This action sets the analog sensor to a floating point.
+        Please note that all sensor ports are set to non-floating when the 
+        Controller is rebooted or when a program exits.
+
+        Attribute: Example
+        
+        Sensor s
+        s:SetPort(0)
+        s:SetToFloat()
+        //Analog sensor connected to port 0 is set to floating
+    */ 
+    system action SetToFloat()
+    /*
+        This action returns the approximate distance of the object.  
+        
+        Attribute: Returns the objct distance in millimeter.
+        
+        Attribute: Example
+        
+        Sensor s
+        s:SetPort()
+        //SONAR distance of the object is returned
+        integer distance = s:SonarDistance()
+        print "Sonar Distance is " + distance
+        
+    */
+    system action SonarDistance()returns integer
+
+end

@@ -1,30 +1,9 @@
 package Libraries.Robots
 
-/*
-The Sensor class represents a physical sensor. Each senor has a designation, 
-an integer, that says which port it is connected to(e.g., 0 to 7). 
-
-Attribute: Example
-
-use Libraries.Robots.Sensor
-class Main
-   action Main
-        // Declaraing the motor
-        Motor m
-        // Set connection with the motor connected to port 1
-        m:SetPort(1)
-        // Move the motor to position 2000, with the speed 200 mm/s
-        m:MoveToPosition(200, 2000)
-        // Wait until the motor has completed its movement
-        m:Wait()
-        // Switch off the motor 
-        m:Off()
-   end
-end
-*/
 
 
 class Sensor 
+
     system action SetAnalogPort(integer port)
     system action GetAnalogValue() returns integer
     system action GetAnalog10BitValue() returns integer

@@ -1,0 +1,70 @@
+package Libraries.Robots
+
+/*
+The Analog Sensor class represents a physical digital sensor. Each senor has a 
+designation, an integer, that says which port it is connected to(e.g., 8 to 15). 
+
+Attribute: Example
+
+use Libraries.Robots.DigitalSensor
+class Main
+   action Main
+        // Declaraing a digital sensor    
+        DigitalSensor s
+        // Set connection with the analog sensor connected to port 4
+        s:SetPort(9)
+        integer digital = s:GetValue()
+        if digital = 0
+            print "Digital Sensor swtich is closed"
+        else
+            print "Digital Sensor swtich is open"
+        end
+   end
+end
+*/
+
+class DigitalSensor 
+    /*
+        This action connects the sensor to the specified digital port.
+        Attribute: Parameter port to which we intend to connect the sensor to
+        Port values vary from 8 to 15
+
+        Attribute: Example
+        
+        Sensor s
+        s:SetPort(10)
+        //sensor is connected to digital port 10
+    */
+    system action SetPort(integer port)
+    
+    /*
+        This action returns the digital value of the sensor, which is either 0 
+        or 1
+
+        Attribute: Returns an integer 0 or 1. If the digital sensor switch is 
+        closed 0 is returned, otherwise 1 is returned
+
+        Attribute: Example
+        
+        Sensor s
+        s:SetPort(13)
+        integer digital = s:GetValue()
+        //returns the current value of the sensor connected to port 13
+    */
+    system action GetValue() returns integer
+    
+    /*
+        This action sets the output value for the digital sensor. The output 
+        value can be either 0 or 1.
+
+        Attribute: Parameter value can either be 1 or 0
+
+        Attribute: Example
+        
+        Sensor s
+        s:SetPort(11)
+        s:SetOutputValue(0)
+        //Sets the output of the digital sensor connected to port 11 as 0
+    */
+    system action SetOutput(integer value)
+end
