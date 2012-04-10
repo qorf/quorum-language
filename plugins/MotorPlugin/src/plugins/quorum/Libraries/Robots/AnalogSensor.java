@@ -3,6 +3,7 @@
  * and open the template in the editor.
  */
 package plugins.quorum.Libraries.Robots;
+
 /**
  *
  * @author sahana
@@ -11,7 +12,7 @@ package plugins.quorum.Libraries.Robots;
 import cbccore.Device;
 
 
-public class Sensor {
+public class AnalogSensor {
     public java.lang.Object $me = null;
     cbccore.low.Sensor s = null;
     private int p;
@@ -22,32 +23,22 @@ public class Sensor {
         p=port;
     }
     
-    public int GetAnalogValue()
+    public int GetValue()
     {
         return Device.getLowSensorController().analog(p);
     }
     
-    public int GetAnalog10BitValue()
+    public int Get10BitValue()
     {
         return Device.getLowSensorController().analog10(p);
     }
     
-    public int GetDigitalValue()
-    {
-        return Device.getLowSensorController().digital(p);
-    }
-   
-    public void SetDigitalOutputValue(int value)
-    {
-        Device.getLowSensorController().set_digital_output_value(p, value);
-    }
-    
-    public void SetAnalogToFloat(int mask)
+    public void SetToFloat(int mask)
     {
         Device.getLowSensorController().set_analog_floats(mask);
     } 
     
-    public void SetAnalogToFloat()
+    public void SetToFloat()
     {
         if(p==0)
          Device.getLowSensorController().set_each_analog_state(1,0,0,0,0,0,0,0);
