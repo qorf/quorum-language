@@ -1,7 +1,7 @@
 package Libraries.Robots
 
 /*
-The Robot class represents a physical robot. The robot has to be firsted connected
+The Robot class represents a physical robot. The robot has to be first connected
 to the controller. After which we can make the robot perform different actions 
 like moving the robot front, back and in a circle. The robot has two bumpers, 
 left bumper and right bumper namely. The robot has three wheels, left wheel, 
@@ -12,23 +12,23 @@ Speed range for all commands is 20-500mm/s
 Attribute: Example
 
 use Libraries.Robots.Robot
-class Main
-   action Main
-        // Declaraing the Robot
-        Robot rob
-        // Set connection between the robot and the controller
-        rob:SetConnection()
-        // Move the robot straight, at 200 millimeters per second
-        rob:MoveStraight(200)
-        // The Robot wheels are stopped
-        rob:StopWheels()
-        // Connection between the robot and the controller is broke
-        rob:Disconnect()
-   end
-end
+
+// Declaraing the Robot
+Robot robot
+// Move the robot straight, at 200 millimeters per second
+robot:MoveStraight(200)
+// The Robot wheels are stopped
+robot:StopWheels()
+// Connection between the robot and the controller is broke
+robot:Disconnect()
 */
 
 class Robot 
+
+    on create
+        Connect()
+    end
+
     /*
         This action set a connection between the robot and the controller. 
         
@@ -38,7 +38,7 @@ class Robot
         // Set connection between the robot and the controller
         rob:SetConnection()
     */
-    system action SetConnection()
+    system action Connect()
     
     /*
         This action breaks the connection between the robot and the controller. 
