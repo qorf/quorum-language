@@ -103,9 +103,14 @@ class Robot
     system action MoveStraight(integer speed, number distance)
 
     /*
-        This action moves the Robot with the left wheel and right wheel speeds 
-        of robot specified. Giving different values for left and right wheel 
-        makes the robot move in a zig zag manner. 
+        This action moves the Robot with different speeds for each wheel. The 
+        left wheel and right wheel speeds of the robot are specified. Giving 
+        different values for left and right wheel makes the robot move in a zig 
+        zag manner. Giving same values for left and right wheel makes the robot 
+        move in a striaght line. Giving negative values for the left wheel and
+        positive values for the right wheel makes the robot turn left. Giving 
+        negative values for the right wheel and positive values for the left 
+        wheel makes the robot turn right.
         
         Attribute: Parameter rightWheelspeed is the speed of the right wheel in 
         millimeters per second, leftWheelspeed is the speed of the left wheel in 
@@ -131,8 +136,12 @@ class Robot
         Attribute: Example
         
         Robot robot
-        // drives the robot in an arc at 100 mm/s, arc radius is 150 mm
-        robot:MoveAsCurve(100, 150)
+        Button button
+        repeat while button:IsBlackButtonPressed = false
+            // drives the robot in an arc at 100 mm/s, circle radius is 150 mm  
+            // until black button is pressed.
+            robot:MoveAsCurve(100, 150)
+        end
         robot:StopWheels()
     */
     system action MoveInCirle(integer speed, integer radius)
@@ -164,7 +173,8 @@ class Robot
     system action TurnRight(integer angle, integer speed) 
 
     /*
-        This action tells if the left bumper of the Robot was pressed or not.
+        This action tells if the left bumper of the Robot is currently being 
+        pressed or not.
         
         Attribute: Parameter lag is in seconds, is the time lag with in which
         the bumper is checked to see if it is pressed or not.
@@ -185,7 +195,8 @@ class Robot
     */
     system action IsLeftBumperTriggered(number lag) returns boolean
     /*
-        This action tells if the right bumper of the Robot was pressed or not.
+        This action tells if the right bumper of the Robot is currently being 
+        pressed or not.
         
         Attribute: Parameter lag is in seconds, is the time lag with in which
         the bumper is checked to see if it is pressed or not.
