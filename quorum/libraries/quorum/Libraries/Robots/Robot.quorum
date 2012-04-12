@@ -1,13 +1,14 @@
 package Libraries.Robots
 
 /*
-The Robot class represents a physical robot. The robot has to be first connected
-to the controller. After which we can make the robot perform different actions 
-like moving the robot front, back and in a circle. The robot has two bumpers, 
-left bumper and right bumper namely. The robot has three wheels, left wheel, 
-right wheel and center wheel. It also has four clif sensors namely, left cliff sensor, 
-left front cliff sensor, right cliff sensor, and right front cliff sensor.
-Speed range for all commands is 20-500mm/s
+The Robot class represents a physical robot. When a Robot object is instantiated,
+it is automatically connected to the controller. After which we can make the 
+robot perform different actions like moving the robot front, back and in a circle. 
+The robot has two bumpers, left bumper and right bumper namely. The robot has 
+three wheels, left wheel, right wheel and center wheel. It also has four cliff 
+sensors namely, left cliff sensor, left front cliff sensor, right cliff sensor, 
+and right front cliff sensor. The speed with which the robot moves has to be 
+mentioned. Speed range for all commands is 20-500mm/s.
 
 Attribute: Example
 
@@ -24,32 +25,35 @@ robot:Disconnect()
 */
 
 class Robot 
-
     on create
         Connect()
     end
-
     /*
-        This action set a connection between the robot and the controller. 
+        The robot can be only controlled using the the controller. Inorder to do 
+        so we need to first set a connection between the robot and the controller. 
+        This action sets a connection between the robot and the controller. Once
+        the connection is made, robot can now be controlled by the controller.
         
         Attribute: Example
         
-        Robot rob
+        Robot robot
         // Set connection between the robot and the controller
-        rob:SetConnection()
+        robot:Connect()
     */
     system action Connect()
     
     /*
         This action breaks the connection between the robot and the controller. 
+        Once the connection between the robot and the controller is broken, we 
+        can no longer control the robot. Inorder to control the robot again we 
+        have to make a connection between the robot and the controller again.
         
         Attribute: Example
         
-        Robot rob
-        rob:SetConnection()
-        rob:TurnLeft(85, 100)
+        Robot robot
+        robot:MoveStraight(200)
         //break the connection between the robot and the controller
-        rob:Disconnect()
+        robot:Disconnect()
     */
 
     system action Disconnect()
@@ -60,18 +64,17 @@ class Robot
         
         Attribute: Example
         
-        Robot rob
-        rob:SetConnection()
-        rob:TurnLeft(85, 100)
+        Robot robot
+        robot:MoveStraight(500)
         //Robot wheels are halted. 
-        rob:StopWheels()
+        robot:StopWheels()
     */
     system action StopWheels()
 
     /*
         This action drives the Robot in a straight line at the specified speed.
         
-        Attribute: Paramater speed is in millimeters per second, speed with 
+        Attribute: Parameter speed is in millimeters per second, speed with 
         which the robot will move
 
         Attribute: Example
@@ -88,7 +91,7 @@ class Robot
         This action drives the Robot in a straight line at the specified speed,
         for a specified distance.
         
-        Attribute: Paramater speed is in millimeters per second, distance in 
+        Attribute: Parameter speed is in millimeters per second, distance in 
         millimeters
 
         Attribute: Example
@@ -106,7 +109,7 @@ class Robot
         of robot specified. Giving different values for left and right wheel 
         makes the robot move in a zig zag manner. 
         
-        Attribute: Paramater rspeed is the speed of the right wheel in 
+        Attribute: Parameter rspeed is the speed of the right wheel in 
         millimeters per second, lspeed is the speed of the left wheel in 
         millimeters per second.
 
@@ -124,7 +127,7 @@ class Robot
     /*
         This action drives the Robot in an arc/curve whose radius is specified.
         
-        Attribute: Paramater speed is in millimeters per second, raduis is in 
+        Attribute: Parameter speed is in millimeters per second, raduis is in 
         millimeters per second. Raduis is the radius of the arc, along which 
         the robot moves.
 
@@ -136,11 +139,11 @@ class Robot
         rob:MoveAsCurve(100, 150)
         rob:StopWheels()
     */
-    system action MoveAsCurve(integer speed, integer radius)
+    system action MoveInCirle(integer speed, integer radius)
     /*
         This action turns the Robot left with the specified angle and speed.
         
-        Attribute: Paramater angle is in degrees, speed is in mm/s.
+        Attribute: Parameter angle is in degrees, speed is in mm/s.
 
         Attribute: Example
         
@@ -154,7 +157,7 @@ class Robot
     /*
         This action turns the Robot right with the specified angle and speed.
         
-        Attribute: Paramater angle is in degrees, speed is in mm/s.
+        Attribute: Parameter angle is in degrees, speed is in mm/s.
 
         Attribute: Example
         
@@ -169,7 +172,7 @@ class Robot
     /*
         This action tells if the left bumper of the Robot was pressed or not.
         
-        Attribute: Paramater lag is in seconds, is the time lag with in which
+        Attribute: Parameter lag is in seconds, is the time lag with in which
         the bumper is checked to see if it is pressed or not.
 
         Attribute : Returns true if left bumper is pressed, otherwise returns
@@ -190,7 +193,7 @@ class Robot
     /*
         This action tells if the right bumper of the Robot was pressed or not.
         
-        Attribute: Paramater lag is in seconds, is the time lag with in which
+        Attribute: Parameter lag is in seconds, is the time lag with in which
         the bumper is checked to see if it is pressed or not.
 
         Attribute : Returns true if right bumper is pressed, otherwise returns
@@ -214,7 +217,7 @@ class Robot
         This action checks if the center wheel of the robot is dropped or is 
         standing safe on land.
         
-        Attribute: Paramater lag is in seconds, is the time lag with in which
+        Attribute: Parameter lag is in seconds, is the time lag with in which
         the center wheel is checked to see if it is dropped or not.
 
         Attribute : Returns true if center wheel is drooped, otherwise returns
@@ -237,7 +240,7 @@ class Robot
         This action checks if the left wheel of the robot is dropped or is 
         standing safe on land.
         
-        Attribute: Paramater lag is in seconds, is the time lag with in which
+        Attribute: Parameter lag is in seconds, is the time lag with in which
         the left wheel is checked to see if it is dropped or not.
 
         Attribute : Returns true if left wheel is drooped, otherwise returns
@@ -260,7 +263,7 @@ class Robot
         This action checks if the right wheel of the robot is dropped or is 
         standing safe on land.
         
-        Attribute: Paramater lag is in seconds, is the time lag with in which
+        Attribute: Parameter lag is in seconds, is the time lag with in which
         the right wheel is checked to see if it is dropped or not.
 
         Attribute : Returns true if right wheel is drooped, otherwise returns
@@ -283,7 +286,7 @@ class Robot
         the specified speed continuously.
         Angle is irrelevant here.
         
-        Attribute: Paramater speed in mm/s.
+        Attribute: Parameter speed in mm/s.
 
         Attribute: Example
         
@@ -304,7 +307,7 @@ class Robot
         the specified speed continuously.
         Angle is irrelevant here.
         
-        Attribute: Paramater speed in mm/s.
+        Attribute: Parameter speed in mm/s.
 
         Attribute: Example
         
@@ -325,7 +328,7 @@ class Robot
         This action ckecks if the left cliff sensor is over a cliff or over a 
         black line.
         
-        Attribute: Paramater lag is in seconds, is the time with in which data is
+        Attribute: Parameter lag is in seconds, is the time with in which data is
         gathered.
 
         Attribute: Returns true if left cliff sensor is over a cliff or a black 
@@ -350,7 +353,7 @@ class Robot
         ckecks if the right cliff sensor is over a cliff or over a 
         black line.
         
-        Attribute: Paramater lag is in seconds, is the time with in which data is
+        Attribute: Parameter lag is in seconds, is the time with in which data is
         gathered.
 
         Attribute: Returns true if right cliff sensor is over a cliff or a black 
@@ -363,7 +366,7 @@ class Robot
         ckecks if the left front cliff sensor is over a cliff or over a 
         black line.
         
-        Attribute: Paramater lag is in seconds, is the time with in which data is
+        Attribute: Parameter lag is in seconds, is the time with in which data is
         gathered.
 
         Attribute: Returns true if left front cliff sensor is over a cliff or a 
@@ -376,11 +379,11 @@ class Robot
         ckecks if the right front cliff sensor is over a cliff or over a 
         black line.
         
-        Attribute: Paramater lag is in seconds, is the time with in which data is
+        Attribute: Parameter lag is in seconds, is the time with in which data is
         gathered.
 
         Attribute: Returns true if right front cliff sensor is over a cliff or a 
         black line, otherwise returns false.
     */
-    system action IsRightFrontSensorTriggered() returns boolean
+    system action IsRightFrontSensorTriggered(number lag) returns boolean
 end

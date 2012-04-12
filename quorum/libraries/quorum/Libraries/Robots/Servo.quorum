@@ -14,18 +14,16 @@ the program needs to wait for the servo to get to the desired position.
 Attribute: Example
 
 use Libraries.Robots.Servo
-class Main
-   action Main
-        // Declaraing the servo
-        Servo s
-        // Set connection with the servo connected to port 1
-        s:SetPort(1)
-        // Move the servo to position 2000
-        s:MoveToPosition(2000)
-        // Switch off the servo 
-        s:Off()
-   end
-end
+
+// Declaraing the servo
+Servo s
+// Set connection with the servo connected to port 1
+s:SetPort(1)
+// Move the servo to position 2000
+s:MoveToPosition(2000)
+// Switch off the servo 
+s:Off()
+ 
 */
 
 
@@ -55,7 +53,7 @@ class Servo
         //servo is swtiched off
         s:Off()
 */
-    system action Off()
+    system action Off()//change this to disconnect
 
 /*
         This action moves the servo to the specified position.

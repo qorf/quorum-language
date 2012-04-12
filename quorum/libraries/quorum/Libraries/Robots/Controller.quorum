@@ -1,28 +1,28 @@
 package Libraries.Robots
 
 /*
-The Controller class represents the physical Botball. Several functions have 
-been created to assist programmers in creating programs that meet the basic 
-Botball requirements of having robots wait until the starting lights come on 
-and have their programs shut down after a specified amount of time.
+The Controller class represents the physical Botball Controller. 
+Several functions have been created to assist programmers in creating programs 
+that meet the basic Botball requirements of having robots wait until the starting 
+lights come on and have their programs shut down after a specified amount of time.
+It is with the help of this controller, motors, sensors and the robot 
+connected to the controller are controlled.
 
 Attribute: Example
 
 use Libraries.Robots.Controller
-class Main
-   action Main
-        // Declaraing the Controller
-        Controller cruise
-        // Controller waits for 5 seconds without performing any operation
-        cruise:Wait(5)
-   end
-end
+
+// Declaraing the Controller
+Controller cruise
+// Controller waits for 5 seconds without performing any operation
+cruise:Wait(5)
+  
 */
 class Controller  
-/*
+    /*
         This action will kill all the processes and switches off all the motors,
-        after the specified time has elapsed. The Controller is shut down after 
-        the speicified amount of time has elapsed.
+        after the specified amount of time has elapsed. The Controller is shut 
+        down after the speicified amount of time has elapsed.
 
         Attribute: Parameter time is in seconds.
 
@@ -34,9 +34,9 @@ class Controller
     */
     system action ShutDownIn(number seconds)
 
-/*
+    /*
         This action makes the controller wait/sleep for the specified amount of
-        time. The controller does not perform any operation for this time.  
+        time. The controller does not perform any operation during this time.  
         
         Attribute: Parameter time is in seconds.
 
@@ -48,12 +48,17 @@ class Controller
     */
     system action Wait(number seconds)
 
-/*
-        This action will make the Controller wait until the sensor connected to 
-        the specified port has detected light.
+    /*
+        This action will make the controller wait until the sensor connected to 
+        the specified port has detected light. In order for the sensor to detect
+        light, you need to first Calibrate Light. Once you are ready to Calibrate 
+        light press Left Arrow Button to Calibrate Light ON. Then press B Button 
+        to Calibrate Light OFF. Now light is Calibrated. Press A Button for the
+        controller to wait/detect light by the sensor in the specified port. Once
+        the sensor has detected light, "All done" is printed on the controller.
 
         Attribute: Parameter port is an integer, the port to which the sensor is 
-        connected and waiting to see light.
+        connected and waiting to see/detect light.
 
         Attribute: Example
         
@@ -62,10 +67,10 @@ class Controller
         //the controller waits until the sensor connected to the port 5 has detected
         light.
     */
-    system action IsLightInPort(integer port)
+    system action WaitUntilLightDetectedInPort(integer port)
 
-/*
-        This action makes the Controller to beep.
+    /*
+        This action makes the controller to beep.
 
         Attribute: Example
         
