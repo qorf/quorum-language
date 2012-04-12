@@ -30,7 +30,7 @@ public class Robot {
     private int leftCliffAmount;
     private int leftFrontCliffAmount;
             
-    public void SetConnection() //throws CreateConnectException
+    public void Connect() //throws CreateConnectException
     {
         try {
             r = new cbccore.create.Create();

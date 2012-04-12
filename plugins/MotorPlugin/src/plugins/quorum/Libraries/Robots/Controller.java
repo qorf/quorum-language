@@ -28,7 +28,7 @@ public class Controller {
         catch(InterruptedException ie){}
     }
     
-    public void IsLightInPort(int port) //tested and works 
+    public void WaitUntilLightDetectedInPort(int port) //tested and works 
     {
         s = new cbccore.sensors.analog.Analog(port);
         cbc.waitForLight(s);
