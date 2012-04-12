@@ -96,7 +96,7 @@ public class Robot {
         //return (r.getAngle() -finalangle - angle);
     }
     
-    public boolean IsLeftBumperpressed(double lag)
+    public boolean IsLeftBumperTriggered(double lag)
     {
         float lag1 = (float)lag;
         int value = Device.getLowCreateController().get_create_lbump(lag1);
@@ -106,7 +106,7 @@ public class Robot {
             return true;
     }
    
-    public boolean IsRightBumperpressed(double lag)
+    public boolean IsRightBumperTriggered(double lag)
     {
         float lag1 = (float)lag;
         int value = Device.getLowCreateController().get_create_rbump(lag1);
@@ -116,7 +116,7 @@ public class Robot {
             return true;
     }
     
-    public boolean IsCenterWheelDropped(double lag)
+    public boolean IsCenterWheelTriggered(double lag)
     {
         float lag1 = (float)lag;
         int value = Device.getLowCreateController().get_create_cwdrop (lag1);
@@ -126,7 +126,7 @@ public class Robot {
             return true;
     }
     
-    public boolean IsLeftWheelDropped(double lag)
+    public boolean IsLeftWheelTriggered(double lag)
     {
         float lag1 = (float)lag;
         int value = Device.getLowCreateController().get_create_lwdrop(lag1);
@@ -136,7 +136,7 @@ public class Robot {
             return true;
     }
     
-    public boolean IsRightWheelDropped(double lag)
+    public boolean IsRightWheelTriggered(double lag)
     {
         float lag1 = (float)lag;
         int value = Device.getLowCreateController().get_create_rwdrop (lag1);
