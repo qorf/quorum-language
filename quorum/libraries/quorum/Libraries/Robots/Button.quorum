@@ -3,25 +3,23 @@ package Libraries.Robots
 /*
 The Button class represents the different buttons present on the controller. 
 There are seven different buttons present. The A button, B button, Black button,
-LeftArrow buttin, RightArrow button, UpArrow button, and DownArrow button.
+LeftArrow button, RightArrow button, UpArrow button, and DownArrow button.
 
 Attribute: Example
 
 use Libraries.Robots.Button
-class Main
-   action Main
-        // Declaraing the Button
-        Button button
-        if button:IsAButtonPressed() then
-            print "Button A is Pressed"
-        end
-   end
+
+// Declaraing the Button
+Button button
+if button:IsAButtonPressed() then
+    print "Button A is Pressed"
 end
+  
 */
 
 class Button 
  /*
-        This action tells if A button is pressed or not.
+        This action tells if A button on the controller is pressed or not.
 
         Attribute: Returns true if A button is pressed otherwise returns
         false
@@ -36,7 +34,7 @@ class Button
     system action IsAButtonPressed() returns boolean
 
 /*
-        This action tells if B button is pressed or not.
+        This action tells if B button on the controller is pressed or not.
 
         Attribute: Returns true if B button is pressed otherwise returns
         false
@@ -44,7 +42,7 @@ class Button
     system action IsBButtonPressed() returns boolean
 
 /*
-        This action tells if Black button is pressed or not.
+        This action tells if Black button on the controller is pressed or not.
 
         Attribute: Returns true if Black button is pressed otherwise returns
         false
@@ -52,33 +50,33 @@ class Button
     system action IsBlackButtonPressed() returns boolean
 
 /*
-        This action tells if LeftArrow button is pressed or not.
+        This action tells if LeftArrow button on the controller is pressed or not.
 
-        Attribute: Returns true if Black button is pressed otherwise returns
+        Attribute: Returns true if LeftArrow button is pressed otherwise returns
         false
 */
     system action IsLeftArrowPressed() returns boolean
 
 /*
-        This action tells if RightArrow button is pressed or not.
+        This action tells if RightArrow button on the controller is pressed or not.
 
-        Attribute: Returns true if Black button is pressed otherwise returns
+        Attribute: Returns true if RightArrow button is pressed otherwise returns
         false
 */
     system action IsRightArrowPressed() returns boolean
 
 /*
-        This action tells if UpArrow button is pressed or not.
+        This action tells if UpArrow button on the controller is pressed or not.
 
-        Attribute: Returns true if Black button is pressed otherwise returns
+        Attribute: Returns true if UpArrow button is pressed otherwise returns
         false
 */
     system action IsUpArrowPressed() returns boolean
 
 /*
-        This action tells if DownArrow button is pressed or not.
+        This action tells if DownArrow button on the controller is pressed or not.
 
-        Attribute: Returns true if Black button is pressed otherwise returns
+        Attribute: Returns true if DownArrow button is pressed otherwise returns
         false
 */
     system action IsDownArrowPressed() returns boolean

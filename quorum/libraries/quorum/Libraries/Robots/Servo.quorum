@@ -1,14 +1,16 @@
 package Libraries.Robots
 
 /*
-The Servo class represents a physical servo. Each servo has a designation, 
+The Servo class represents a physical servo. 
+Each servo has a designation, 
 an integer, that says which port this servo is connected to (e.g., 0, 1, 2 or 3). 
 In order to use a servo we need to set connection with the servo first and then 
 use the servo for other operations. A standard servo has a range of about 
 180 degrees and 2048 positions in that range it can be set to. When you first set 
 connection to the servo using SetPort(), if we have not specified a position, 
 all servos will go to the middle position (1024). After setting a servo position, 
-the program needs to wait for the servo to get to the desired position. 
+the program needs to wait for the servo to get to the desired position. Servos 
+are typically used in arms, or claws of the robot that require high precision. 
 
 
 Attribute: Example
@@ -16,16 +18,15 @@ Attribute: Example
 use Libraries.Robots.Servo
 
 // Declaraing the servo
-Servo s
+Servo servo
 // Set connection with the servo connected to port 1
-s:SetPort(1)
+servo:SetPort(1)
 // Move the servo to position 2000
-s:MoveToPosition(2000)
+servo:MoveToPosition(2000)
 // Switch off the servo 
-s:Off()
+servo:Off()
  
 */
-
 
 class Servo 
 
@@ -35,25 +36,25 @@ class Servo
 
         Attribute: Example
         
-        Servo s
+        Servo servo
         //servo is connected to port 0
-        s:SetPort(0)
+        servo:SetPort(0)
         
     */
     system action SetPort(integer port)
 
 /* 
-        This action switches off the servo. 
+        This action switches off the servo. Once the servo is swtiched 
 
         Attribute: Example
         
-        Servo s
-        s:SetPort(1)
-        s:MoveToPosition(210)
+        Servo servo
+        servo:SetPort(1)
+        servo:MoveToPosition(210)
         //servo is swtiched off
-        s:Off()
+        servo:Off()
 */
-    system action Off()//change this to disconnect
+    system action Off()
 
 /*
         This action moves the servo to the specified position.
@@ -68,10 +69,10 @@ class Servo
 
         Attribute: Example
         
-        Servo s
-        s:SetPort(0)
+        Servo servo
+        servo:SetPort(0)
         //servo connected to port 0 is moved to position 1310
-        s:MoveToPosition(1310)
+        servo:MoveToPosition(1310)
     */
 
     system action MoveToPosition(integer position) 
@@ -82,8 +83,8 @@ class Servo
 
         Attribute: Example
         
-        Servo s
-        s:SetPort(0)
+        Servo servo
+        servo:SetPort(0)
         //servo is connected to port 0
         intger position
         // current position of the servo is returned to integer position
