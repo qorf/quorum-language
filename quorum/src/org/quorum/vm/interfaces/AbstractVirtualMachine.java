@@ -1002,7 +1002,7 @@ public abstract class AbstractVirtualMachine {
     /**
      * @return the generator
      */
-    protected CodeGenerator getCodeGenerator() {
+    public CodeGenerator getCodeGenerator() {
         return generator;
     }
 

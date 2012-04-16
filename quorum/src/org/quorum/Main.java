@@ -5,14 +5,23 @@
 package org.quorum;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.quorum.plugins.DefaultPluginLoader;
+import org.quorum.vm.implementation.QuorumClassLoader;
 import org.quorum.vm.implementation.QuorumStandardLibrary;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
+import org.quorum.vm.interfaces.CodeGenerator;
 import org.quorum.vm.interfaces.CompilerError;
 import org.quorum.vm.interfaces.CompilerErrorManager;
 
@@ -260,7 +269,7 @@ public class Main {
             }
             
             //setup the VM
-            vm.setGenerateCode(!isInterpret);
+            vm.setGenerateCode(true);
             vm.setBuildFolder(build);
             vm.setDistributionFolder(distribution);
             vm.addDependency(phonemic);
@@ -301,7 +310,26 @@ public class Main {
                     System.out.println(" done.");
                 }
                 else if (isInterpret) {
-                    vm.blockRun();
+                    // Generate code without dumping to disk.
+                    CodeGenerator g = vm.getCodeGenerator();
+                    g.setCompileToDisk(false);
+                    vm.build(files, true);
+                    
+                    // Load the main quorum class and invoke the static main(String[] args) method with no arguments.
+                    String mainClassName = g.getMainClassName();
+                    QuorumClassLoader classLoader = new QuorumClassLoader();
+                    classLoader.setCodeGenerator(g);
+                    classLoader.setPluginFolder(pluginFolder);
+                    Class quorumClass = null;
+                    try {
+                        quorumClass = classLoader.loadClass(mainClassName.replaceAll("/", "."));
+                        Method declaredMethod = quorumClass.getDeclaredMethod("main", new Class[]{String[].class});
+                        String[] programArguments = {}; // TODO: In the future, this can be used to pass arguments to a program running in interpreted mode.
+                        declaredMethod.invoke(null, (Object)programArguments);
+                    } catch (Exception e) {
+                        // TODO: Handle this in a more friendly manner.
+                        System.err.println("Unable to run interpreter: " + e.getMessage());
+                    }
                 }
                 else {
                     // Not generating documentation or running, so we're compiling.

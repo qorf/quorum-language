@@ -64,7 +64,7 @@ public class QuorumConverter {
      * @return 
      */
     public static String generateGetterNameFromField(ClassDescriptor clazz, VariableDescriptor variable) {
-        String name = "Get$" + clazz.getStaticKey() + "$" + variable.getName();
+        String name = "Get$" + javaSafeKey(clazz.getStaticKey()) + "$" + variable.getName();
         return name;
     }
     
@@ -88,7 +88,7 @@ public class QuorumConverter {
      * @return 
      */
     public static String generateGetterNameFromSubField(TypeDescriptor variableType, String variable) {
-        String name = "Get$" + variableType.getStaticKey() + "$" + variable;
+        String name = "Get$" + javaSafeKey(variableType.getStaticKey()) + "$" + variable;
         return name;
     }
     
@@ -112,7 +112,7 @@ public class QuorumConverter {
      * @return 
      */
     public static String generateSetterNameFromField(ClassDescriptor clazz, VariableDescriptor variable) {
-        String name = "Set$" + clazz.getStaticKey() + "$" + variable.getName();
+        String name = "Set$" + javaSafeKey(clazz.getStaticKey()) + "$" + variable.getName();
         return name;
     }
     
@@ -124,7 +124,7 @@ public class QuorumConverter {
      * @return 
      */
     public static String generateSetterNameFromSubField(TypeDescriptor variableType, String variable){
-        String name = "Set$" + variableType.getStaticKey() + "$" + variable;
+        String name = "Set$" + javaSafeKey(variableType.getStaticKey()) + "$" + variable;
         return name;
     }
     
@@ -197,7 +197,7 @@ public class QuorumConverter {
      * @return 
      */
     public static String convertParentStaticKeyToValidName(String key) {
-        return "$" + key;
+        return "$" + javaSafeKey(key);
     }
     
     /**
@@ -441,5 +441,17 @@ public class QuorumConverter {
         }else{
             return 1;
         }
+    }
+    
+    /**
+     * Convert a static key to a form that is safe to use in a .class file.
+     * This is used when generating method names or variable names in Java
+     * .class files, as a "." cannot be present in a method or variable name.
+     * 
+     * @param key
+     * @return The static key with '.' replaced with '$' (for example, Libraries.Language.Object becomes Libraries$Language$Object). 
+     */
+    private static String javaSafeKey(String key) {
+        return key.replaceAll("\\.", "\\$");
     }
 }

@@ -131,10 +131,42 @@ public interface CodeGenerator {
     public File getMainFile();
     
     /**
+     * Get the fully qualified name of the entry point class (e.g. quorum/Main).
+     * Used by the -interpret flag.
+     * 
+     * @return 
+     */
+    public String getMainClassName();
+    
+    /**
      * Sets the file on the system that is to be used as the entry point for
      * execution.
      * 
      * @param file 
      */
     public void setMainFile(File file);
+    
+    /**
+     * Should generated code be dumped to disk after compilation?
+     * 
+     * @param compileToDisk 
+     */
+    public void setCompileToDisk(boolean compileToDisk);
+    
+    /**
+     * Returns true if generated code is being written to disk after compilation;
+     * false otherwise.
+     * 
+     * @return 
+     */
+    public boolean getCompileToDisk();
+    
+    /**
+     * Load compiled bytes for the given identifier. This identifier may be
+     * a java class name (such as quorum.Main), or in the future, any
+     * arbitrary identifier for a specific architecture.
+     * @param name
+     * @return 
+     */
+    public byte[] load(String name);
 }

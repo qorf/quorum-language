@@ -43,6 +43,8 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     private List<Dependency> dependencies = new LinkedList<Dependency>();
     private File pluginFolder = null;
     private static final Logger logger = Logger.getLogger(QuorumBytecodeGenerator.class.getName());
+    private String mainClassName = "";
+    private boolean compileToDisk = true;
     
     /**
      * This method generates java bytecode for all classes on the system.
@@ -69,6 +71,9 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
                 //grab the file and check to see if the path matches the main file
                 String path = currentClass.getFile().getFile().getAbsolutePath();
                 String mainPath = mainFile.getAbsolutePath();
+                                
+                QuorumBytecode code = generate(clazz);
+                classHash.put(code.getStaticKey(), code);
                 
                 //if this is true, it is the main class
                 //as such, mark it for the manifest.
@@ -76,12 +81,12 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
                 //changes, then this will no longer work.
                 if(path.compareTo(mainPath) == 0) {
                     String staticKey = currentClass.getStaticKey();
+                    mainClassName = QuorumConverter.convertStaticKeyToBytecodePath(staticKey);
+
                     staticKey = QuorumConverter.convertStaticKeyToManifestPath(staticKey);
                     manifestMain = staticKey;
                 }
-                
-                QuorumBytecode code = generate(clazz);
-                classHash.put(code.getStaticKey(), code);
+
             }
             catch(Exception e) {
                 logger.log(Level.SEVERE, "The Quorum bytecode generator threw an error.", e);
@@ -109,10 +114,14 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
 
     /**
      * This method flushes all of the bytecode arrays for the generated
-     * bytecode to disk.
+     * bytecode to disk. If disk compilation is turned off, this method
+     * does nothing.
      */
     @Override
     public void writeToDisk() throws IOException {
+        if (!compileToDisk)
+            return;
+        
         if(classHash == null) {
             return;
         }
@@ -334,5 +343,44 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     @Override
     public File getPluginFolder() {
         return pluginFolder;
+    }
+    
+    @Override
+    public String getMainClassName() {
+            return mainClassName;
+    }
+
+    @Override
+    public void setCompileToDisk(boolean compileToDisk) {
+        this.compileToDisk = compileToDisk;
+    }
+
+    @Override
+    public boolean getCompileToDisk() {
+        return compileToDisk;
+    }
+
+    @Override
+    public byte[] load(String name) {
+        // Strip out 'quorum.'.
+        String quorumName = name.substring(name.indexOf('.') + 1);
+
+        // Does the quorumName contain a '.'? If not, prepend one.
+        if (!quorumName.contains(".")) {
+            quorumName = "." + quorumName;
+        }
+            
+        // Strip out "$Interface", if present.
+        if (quorumName.contains("$Interface"))
+            quorumName = quorumName.substring(0, quorumName.indexOf("$Interface"));
+        
+        QuorumBytecode bytecode = classHash.get(quorumName);
+        if (bytecode != null)
+            if (name.contains("$Interface"))
+                return bytecode.getInterfaceOutput();
+            else
+                return bytecode.getOutput();
+        else
+            return null;
     }
 }
