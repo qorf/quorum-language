@@ -1,14 +1,23 @@
 package Libraries.Robots
 
 /*
-The Robot class represents a physical robot. When a Robot object is instantiated,
-it is automatically connected to the controller. After which we can make the 
-robot perform different actions like moving the robot front, back and in a circle. 
-The robot has two bumpers, left bumper and right bumper namely. The robot has 
-three wheels, left wheel, right wheel and center wheel. It also has four cliff 
-sensors namely, left cliff sensor, left front cliff sensor, right cliff sensor, 
-and right front cliff sensor. The speed with which the robot moves has to be 
-mentioned. Speed range for all commands is 20-500mm/s.
+The Robot class represents a physical iRobot Create. iRobot Create is a primitive
+robot or we can say it is a complete robot development kit that allows you to 
+program some fundamental robot behaviors.
+When a Robot object is instantiated, it is automatically connected to the controller. 
+After which we can make the robot perform different actions like moving the robot 
+front, back and in a circle. The robot has two bumpers, left bumper and right 
+bumper namely. The robot has three wheels, left wheel, right wheel and center wheel. 
+It also has four cliff sensors namely, left cliff sensor, left front cliff sensor, 
+right cliff sensor, and right front cliff sensor. The cliff sensors are nothing 
+but the IR sensors. The speed with which the robot moves has to be mentioned. 
+Speed range for all commands is 20-500millimeters/second.
+
+You can attach and control other hardware and electronic devices to iRobot Create;
+Such as a robotic arm, light display, or a ranging sensor. It can also become a 
+musical instrument! By using some of the song commands. We can write and save up 
+to 16 songs in iRobot Create.
+
 
 Attribute: Example
 
@@ -80,7 +89,7 @@ class Robot
         Attribute: Example
         
         Robot robot
-        // drives the robot straight, at 100 mm/s
+        // drives the robot straight, at 100 millimeters/second
         robot:MoveStraight(100)
         robot:StopWheels()
     */
@@ -96,7 +105,7 @@ class Robot
         Attribute: Example
         
         Robot robot
-        // drives the robot straight, at 100 mm/s for 0.5 meters
+        // drives the robot straight, at 100 millimeters/second for 0.5 meters
         robot:MoveStraight(100, 500)
         robot:StopWheels()
     */
@@ -119,8 +128,8 @@ class Robot
         Attribute: Example
         
         Robot robot
-        // drives the robot front with left wheel at speed 100mm/s and 
-        // right wheel at speed 300 mm/s
+        // drives the robot front with left wheel at speed 100 millimeters/second and 
+        // right wheel at speed 300 millimeters/second
         robot:MoveWithRightLeftSpeed(100, 300)
         robot:StopWheels()
     */
@@ -138,7 +147,8 @@ class Robot
         Robot robot
         Button button
         repeat while button:IsBlackButtonPressed = false
-            // drives the robot in an arc at 100 mm/s, circle radius is 150 mm  
+            // drives the robot in an arc at 100 millimeters/second, 
+            // circle radius is 150 millimeters
             // until black button is pressed.
             robot:MoveAsCurve(100, 150)
         end
@@ -151,6 +161,8 @@ class Robot
         left by 90 degrees(quater turn), we need to say robot:TurnLeft(0.25 ,150) 
         or robot:TurnLeft(90.0/360.0 ,150). However robot:TurnLeft(90/360 ,150)
         does not work.
+        The degrees turned left might not be very precise here, it is 
+        approximately +/-5 degrees.
         
         Attribute: Parameter turn is number of turns, where one turn is 360 degrees, 
                    speed is in millimeters/s.
@@ -158,7 +170,7 @@ class Robot
         Attribute: Example
         
         Robot robot
-        // robot makes 2 complete left turns at speed 150mm/s
+        // robot makes 2 complete left turns at speed 150 millimeters/second
         robot:TurnLeft(720.0/360.0,150)
         robot:StopWheels()
 
@@ -177,6 +189,8 @@ class Robot
         right by 90 degrees(quater turn), we need to say robot:TurnRight(0.25 ,150) 
         or robot:TurnRight(90.0/360.0 ,150). However robot:TurnRight(90/360 ,150)
         does not work.
+        The degrees turned right might not be very precise here, it is 
+        approximately +/-5 degrees.
         
         Attribute: Parameter turn is number of turns, where one turn is 360 degrees, 
                    speed is in millimeters/s.
@@ -184,7 +198,7 @@ class Robot
         Attribute: Example
         
         Robot robot
-        // robot makes 2 complete right turns at speed 150mm/s
+        // robot makes 2 complete right turns at speed 150 millimeters/second
         robot:TurnRight(720.0/360.0,150)
         robot:StopWheels()
 
@@ -210,14 +224,13 @@ class Robot
 
         Attribute: Example
         
-        Robot rob
-        rob:SetConnection()
-        // turns the robot right by 90 degrees at speed 200mm/s if 
+        Robot robot
+        // turns the robot right by 90 degrees at speed 200 millimeters/second if 
         // left bumper is pressed.
-        if rob:IsLeftBumperpressed(0.1)
-            rob:TurnRight(90, 200)
+        if robot:IsLeftBumperpressed(0.1)
+            robot:TurnRight(90.0/360.0, 200)
         end
-        rob:StopWheels()
+        robot:StopWheels()
     */
     system action IsLeftBumperTriggered(number lag) returns boolean
     /*
@@ -232,14 +245,13 @@ class Robot
 
         Attribute: Example
         
-        Robot rob
-        rob:SetConnection()
-        // turns the robot left by 90 degrees at speed 200mm/s if 
+        Robot robot
+        // turns the robot left by 90 degrees at speed 200 millimeters/second if 
         // right bumper is pressed.
-        if rob:IsRightBumperpressed(0.1)
-            rob:TurnLeft(90, 200)
+        if robot:IsRightBumperpressed(0.1)
+            robot:TurnLeft(0.25, 200)
         end
-        rob:StopWheels()
+        robot:StopWheels()
     */
 
     system action IsRightBumperTriggered(number lag) returns boolean
@@ -256,14 +268,14 @@ class Robot
 
         Attribute: Example
         
-        Robot rob
-        rob:SetConnection()
+        Robot robot
         // if center wheel of the robot is dropped, the robot is stopped
-        if rob:IsCenterWheelDropped(0.1)
-            rob:StopWheels()
+        if robot:IsCenterWheelDropped(0.1)
+            robot:StopWheels()
             print "Center wheel is dropped."
         end
-        rob:Disconnect()
+        robot:StopWheels()
+        robot:Disconnect()
     */
     system action IsCenterWheelTriggered(number lag) returns boolean
 
@@ -279,13 +291,13 @@ class Robot
 
         Attribute: Example
         
-        Robot rob
-        rob:SetConnection()
-        if rob:IsLeftWheelDropped(0.1)
-            rob:StopWheels()
+        Robot robot
+        if robot:IsLeftWheelDropped(0.1)
+            robot:StopWheels()
             print "Left wheel is dropped."
         end
-        rob:Disconnect()
+        robot:StopWheels()
+        robot:Disconnect()
     */
 
     system action IsLeftWheelTriggered(number lag) returns boolean
@@ -302,13 +314,13 @@ class Robot
 
         Attribute: Example
         
-        Robot rob
-        rob:SetConnection()
-        if rob:IsRightWheelDropped(0.1)
-            rob:StopWheels()
+        Robot robot
+        if robot:IsRightWheelDropped(0.1)
+            robot:StopWheels()
             print "Right wheel is dropped."
         end
-        rob:Disconnect()
+        robot:StopWheels()
+        robot:Disconnect()
     */
     system action IsRightWheelTriggered(number lag) returns boolean
     
@@ -317,19 +329,18 @@ class Robot
         the specified speed continuously.
         Angle is irrelevant here.
         
-        Attribute: Parameter speed in mm/s.
+        Attribute: Parameter speed in millimeters/second.
 
         Attribute: Example
         
-        Robot rob
-        Button b
-        rob:SetConnection()
+        Robot robot
+        Button button
         // robot turns in clockwise direction continuously until button A is pressed.
         repeat while() b:IsAButtonPressed()
-            rob:TurnClockwise(120)
+            robot:TurnClockwise(120)
         end
-        rob:StopWheels()
-        rob:Disconnect()
+        robot:StopWheels()
+        robot:Disconnect()
     */
     system action TurnClockwise(integer speed)
     
@@ -338,7 +349,7 @@ class Robot
         the specified speed continuously.
         Angle is irrelevant here.
         
-        Attribute: Parameter speed in mm/s.
+        Attribute: Parameter speed in millimeter/second.
 
         Attribute: Example
         
@@ -356,11 +367,9 @@ class Robot
     system action TurnCounterClockwise(integer speed)
 
     /*
-        This action ckecks if the left cliff sensor is over a cliff or over a 
-        black line.
-        
-        Attribute: Parameter lag is in seconds, is the time with in which data is
-        gathered.
+        This action checks if the left cliff sensor is over a cliff or over a 
+        black line. The cliff sensor is an IR sensor. For example if the robot
+        is falling from a table this sensor is triggered.
 
         Attribute: Returns true if left cliff sensor is over a cliff or a black 
         line, otherwise returns false.
@@ -408,8 +417,75 @@ class Robot
         black line, otherwise returns false.
     */
     system action IsRightFrontSensorTriggered() returns boolean
+    
+    /*
+        This action returns the total accumulated angle the robot has turned 
+        since it was turned on or the robot angle was set. 
+        Turning left(or Counter Clockwise) direction increases this value, 
+        while turning right(or Clockwise) direction decreases this value.
+        
+        Attribute: Returns the total accumulated angle in degrees.
 
-
+        Attribute: Example
+        Robot robot
+        robot:TurnRight(90.0/360.0, 100)
+        robot:TurnLeft(180.0/360.0, 100)
+        // the value of angle is -90+180 = +90 degrees
+        // -90 degrees for turning right, +180 degrees for turning left
+        integer angle = robot:GetTotalAngle()
+        robot:StopWheels()
+    */
     system action GetTotalAngle() returns integer
-    system action GetDistance() returns integer
+    
+    /*
+        This action sets the total accumulated angle of the robot to the specified  
+        degrees.
+        
+        Attribute: Parameter angle is in degrees.
+
+        Attribute: Example
+        Robot robot
+        robot:TurnRight(90.0/360.0, 100)
+        robot:TurnLeft(180.0/360.0, 100)
+        // the total accumulated angle is +90 degrees.
+        // the below command sets the total accumulated angle to 0 degrees.
+        integer angle = robot:SetTotalAngle(0)
+        robot:StopWheels()
+    */
+    system action SetTotalAngle(integer angle)
+    
+    //test this
+    /*
+        This action returns the total accumulated distance the robot has moved 
+        since it was turned on or the robot distance was set. 
+        Moving forward increases this value, while moving backwards decreases 
+        this value.
+        
+        Attribute: Returns the total accumulated distance in millimeters.
+
+        Attribute: Example
+        Robot robot
+        // robot moves forward for 500 millimeters at the speed of 
+        // 100 millimters/second
+        repeate while robot:GetTotalDistance() < 500
+            robot:MoveStraight(100)
+        robot:StopWheels()
+    */
+    system action GetTotalDistance() returns integer
+    
+    /*
+        This action sets the total accumulated distance of the robot to the specified  
+        millimeters.
+        
+        Attribute: Parameter distance is in millimeters.
+
+        Attribute: Example
+        Robot robot
+        repeate while robot:GetTotalDistance() < 500
+            robot:MoveStraight(100)
+        // the total accumulated distance of the robot is set to 0 millimeters.
+        robot:SetTotalDistance(0)
+        robot:StopWheels()
+    */
+    system action SetTotalDistance(integer distance)
 end
