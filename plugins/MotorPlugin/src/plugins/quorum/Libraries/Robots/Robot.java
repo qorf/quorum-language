@@ -65,12 +65,12 @@ public class Robot {
             r.driveStraight(speed);
     }
     
-    public void MoveWithRightLeftSpeed(int rspeed, int lspeed)
+    public void MoveWheels(int rspeed, int lspeed)
     {
         r.driveDirect(rspeed, lspeed);
     }
     
-     public void MoveAsCurve(int speed, int radius)
+     public void MoveInCirle(int speed, int radius)
     {
         r.drive(speed, radius);
     }
@@ -84,25 +84,6 @@ public class Robot {
 	{
            r.driveDirect(speed, speedneg);
         }
-        
-        /*int angle = (int)(turn * 360);
-        int finalangle = r.getAngle() + angle;
-        if(finalangle > 359)
-        {
-            finalangle = finalangle - 359;
-        } 
-        int speedneg = speed * -1;
-        while (r.getAngle() != finalangle)
-	{
-           r.driveDirect(speed, speedneg);
-        }*/
-        /*int angle = (int)(turn * 360);
-        int finalangle = Device.getLowCreateController().get_create_total_angle(0f) + angle;
-        int speedneg = speed * -1;
-        while (Device.getLowCreateController().get_create_total_angle(0f) < finalangle)
-	{
-           r.driveDirect(speed, speedneg);
-        }*/
     }
     
     public void TurnRight(double turn, int speed)     
@@ -210,13 +191,22 @@ public class Robot {
     
     public int GetTotalAngle()
     {
-       //return r.getAngle();
        return Device.getLowCreateController().get_create_total_angle(0);
     }
     
-    public int GetDistance()
+    public void SetTotalAngle(int angle)
+    {
+       Device.getLowCreateController().set_create_total_angle(angle);
+    }
+    
+    public int GetTotalDistance()
     {
        return r.getDistance();
+    }
+      
+    public void SetTotalDistance(int distance)
+    {
+       Device.getLowCreateController().set_create_distance(distance);
     }
     
     public void SetAdvanceLed(boolean on)
@@ -224,19 +214,47 @@ public class Robot {
        r.advanceLed(on);
     }
         
-    public void PowerLed(int color, int brightness)
+    public void SetPowerLed(int color, int brightness)
     {
         r.powerLed(color, brightness);
     }
     
-    public void PlayLed(boolean on)
+    public void SetPlayLed(boolean on)
     {
         r.playLed(on);
+    }
+    
+    public void PlaySong(int num)
+    {
+        r.playSong(num);
+    }
+    
+    public void LoadSong(int num)
+    {
+        r.loadSong(num);
     }
 }
     
     
     
+        /*int angle = (int)(turn * 360);
+        int finalangle = r.getAngle() + angle;
+        if(finalangle > 359)
+        {
+            finalangle = finalangle - 359;
+        } 
+        int speedneg = speed * -1;
+        while (r.getAngle() != finalangle)
+	{
+           r.driveDirect(speed, speedneg);
+        }*/
+        /*int angle = (int)(turn * 360);
+        int finalangle = Device.getLowCreateController().get_create_total_angle(0f) + angle;
+        int speedneg = speed * -1;
+        while (Device.getLowCreateController().get_create_total_angle(0f) < finalangle)
+	{
+           r.driveDirect(speed, speedneg);
+        }*/
     
     /*cbccore.low.Create r; 
      
