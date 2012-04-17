@@ -30,7 +30,7 @@ public class Robot {
     private int leftCliffAmount;
     private int leftFrontCliffAmount;
             
-    public void Connect() //throws CreateConnectException
+    public void Connect() 
     {
         try {
             r = new cbccore.create.Create();
@@ -41,8 +41,7 @@ public class Robot {
         }
         c = new cbccore.create.CliffState(rightCliff, rightFrontCliff, leftCliff, leftFrontCliff, rightCliffAmount, rightFrontCliffAmount, leftCliffAmount, leftFrontCliffAmount);
        
-        RuntimeException runtimeException = new RuntimeException("Compiled Code");
-        
+        RuntimeException runtimeException = new RuntimeException("Compiled Code"); 
     }
 
     public void Disconnect()
@@ -62,7 +61,6 @@ public class Robot {
     
     public void MoveStraight(int speed, double distance)
     {
-        //distance = distance * 1000;
         while(r.getDistance() < distance)
             r.driveStraight(speed);
     }
@@ -77,23 +75,45 @@ public class Robot {
         r.drive(speed, radius);
     }
     
-    public void TurnLeft(int angle, int speed) //work on this angle part     
-    {
-        int initialangle = r.getAngle(); 
-        angle = (int)(angle * 2.64);
-        int i = angle * -1;
-        r.driveDirect(angle, i);
-        //return (r.getAngle() - initialangle);
+    public void TurnLeft(double turn, int speed)     
+    {   
+        int angle = (int)(turn * 360);
+        int finalangle = Device.getLowCreateController().get_create_total_angle(0) + angle;
+        int speedneg = speed * -1;
+        while (Device.getLowCreateController().get_create_total_angle(0) < finalangle)
+	{
+           r.driveDirect(speed, speedneg);
+        }
+        
+        /*int angle = (int)(turn * 360);
+        int finalangle = r.getAngle() + angle;
+        if(finalangle > 359)
+        {
+            finalangle = finalangle - 359;
+        } 
+        int speedneg = speed * -1;
+        while (r.getAngle() != finalangle)
+	{
+           r.driveDirect(speed, speedneg);
+        }*/
+        /*int angle = (int)(turn * 360);
+        int finalangle = Device.getLowCreateController().get_create_total_angle(0f) + angle;
+        int speedneg = speed * -1;
+        while (Device.getLowCreateController().get_create_total_angle(0f) < finalangle)
+	{
+           r.driveDirect(speed, speedneg);
+        }*/
     }
     
-    public void TurnRight(int angle, int speed)  //work on this angle part   
+    public void TurnRight(double turn, int speed)     
     {
-        int finalangle = r.getAngle()+angle; 
-        while(r.getAngle() < finalangle)
-        {
-            r.driveDirect(speed*-1, speed);
+        int angle = (int)(turn * 360);
+        int finalangle = Device.getLowCreateController().get_create_total_angle(0) - angle;
+        int speedneg = speed * -1;
+        while (Device.getLowCreateController().get_create_total_angle(0) > finalangle)
+	{
+           r.driveDirect(speedneg, speed);
         }
-        //return (r.getAngle() -finalangle - angle);
     }
     
     public boolean IsLeftBumperTriggered(double lag)
@@ -187,6 +207,32 @@ public class Robot {
         else
             return false;
     }
+    
+    public int GetTotalAngle()
+    {
+       //return r.getAngle();
+       return Device.getLowCreateController().get_create_total_angle(0);
+    }
+    
+    public int GetDistance()
+    {
+       return r.getDistance();
+    }
+    
+    public void SetAdvanceLed(boolean on)
+    {
+       r.advanceLed(on);
+    }
+        
+    public void PowerLed(int color, int brightness)
+    {
+        r.powerLed(color, brightness);
+    }
+    
+    public void PlayLed(boolean on)
+    {
+        r.playLed(on);
+    }
 }
     
     
@@ -227,7 +273,7 @@ public class Robot {
     public void RotateClockwise(int speed)
     {
         r.create_spin_CW(speed);
-    }
+    } 
     
     public void RotateCounterClockwise(int speed)
     {
