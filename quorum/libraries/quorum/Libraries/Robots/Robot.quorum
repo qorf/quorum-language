@@ -146,31 +146,57 @@ class Robot
     */
     system action MoveInCirle(integer speed, integer radius)
     /*
-        This action turns the Robot left with the specified angle and speed.
+        This action turns the Robot left with the specified amount of turn and speed.
+        One turn is considered as 360 degrees. So if we need to turn the robot 
+        left by 90 degrees(quater turn), we need to say robot:TurnLeft(0.25 ,150) 
+        or robot:TurnLeft(90.0/360.0 ,150). However robot:TurnLeft(90/360 ,150)
+        does not work.
         
-        Attribute: Parameter angle is in degrees, speed is in mm/s.
+        Attribute: Parameter turn is number of turns, where one turn is 360 degrees, 
+                   speed is in millimeters/s.
 
         Attribute: Example
         
         Robot robot
-        // turns the robot left by 90 degrees at speed 150mm/s
-        robot:TurnLeft(90, 150)
+        // robot makes 2 complete left turns at speed 150mm/s
+        robot:TurnLeft(720.0/360.0,150)
+        robot:StopWheels()
+
+        Attribute: Example
+        
+        Robot robot
+        // robot does not make any turn, as 90/360 = 0
+        // use 90.0/360.0 to make the robot turn left by 90 degrees
+        robot:TurnLeft(90/360,150)
         robot:StopWheels()
     */
-    system action TurnLeft(integer angle, integer speed) 
+    system action TurnLeft(number turn, integer speed) 
     /*
-        This action turns the Robot right with the specified angle and speed.
+        This action turns the Robot right with the specified amount of turn and speed.
+        One turn is considered as 360 degrees. So if we need to turn the robot 
+        right by 90 degrees(quater turn), we need to say robot:TurnRight(0.25 ,150) 
+        or robot:TurnRight(90.0/360.0 ,150). However robot:TurnRight(90/360 ,150)
+        does not work.
         
-        Attribute: Parameter angle is in degrees, speed is in mm/s.
+        Attribute: Parameter turn is number of turns, where one turn is 360 degrees, 
+                   speed is in millimeters/s.
 
         Attribute: Example
         
         Robot robot
-        // turns the robot right by 90 degrees at speed 150mm/s
-        robot:TurnRight(90, 150)
+        // robot makes 2 complete right turns at speed 150mm/s
+        robot:TurnRight(720.0/360.0,150)
+        robot:StopWheels()
+
+        Attribute: Example
+        
+        Robot robot
+        // robot does not make any turn, as 90/360 = 0
+        // use 90.0/360.0 to make the robot turn right by 90 degrees
+        robot:TurnRight(90/360,150)
         robot:StopWheels()
     */
-    system action TurnRight(integer angle, integer speed) 
+    system action TurnRight(number turn, integer speed) 
 
     /*
         This action tells if the left bumper of the Robot is currently being 
@@ -382,4 +408,8 @@ class Robot
         black line, otherwise returns false.
     */
     system action IsRightFrontSensorTriggered() returns boolean
+
+
+    system action GetTotalAngle() returns integer
+    system action GetDistance() returns integer
 end
