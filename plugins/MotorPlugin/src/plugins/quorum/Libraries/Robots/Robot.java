@@ -9,6 +9,7 @@ package plugins.quorum.Libraries.Robots;
  * @author sahana
  */
 
+import cbccore.create.Create;
 import cbccore.create.CreateConnectException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,6 +21,11 @@ public class Robot {
     cbccore.create.Create r = null;
     cbccore.create.CliffState c;
     cbccore.create.CreateConnectException e;
+   // cbccore.create.Create.Mode m;
+                    
+    /*enum Mode {
+        Full, Passive, Safe, Off;
+    };*/
     
     private int rightCliff;
     private int rightFrontCliff;
@@ -233,9 +239,48 @@ public class Robot {
     {
         r.loadSong(num);
     }
+    
+    //public void SetMode(Mode m)
+    
+    public void SetMode(int mode)
+    {
+        if (mode == 0)
+            r.setMode(Create.Mode.Off);
+        if (mode == 1)
+            r.setMode(Create.Mode.Passive);
+            //Device.getLowCreateController().create_passive();
+        if (mode == 2)
+            r.setMode(Create.Mode.Safe);
+            //Device.getLowCreateController().create_safe();
+        if (mode == 3)
+            r.setMode(Create.Mode.Full);
+            //Device.getLowCreateController().create_full();
+    }
+    
+    public int GetMode()
+    {
+        int cmode = 0;
+        cbccore.create.Create.Mode mode = r.getMode();
+        
+        if (mode == Create.Mode.Off)
+            cmode = 0;
+        if (mode == Create.Mode.Passive)
+            cmode = 1;
+        if (mode == Create.Mode.Safe)
+            cmode =  2;
+        if (mode == Create.Mode.Full)
+            cmode = 3;
+        
+        return cmode;
+    }
+    
+    public void RunDemo(int demo)
+    {
+        r.demo(demo);
+    }
 }
     
-    
+     
     
         /*int angle = (int)(turn * 360);
         int finalangle = r.getAngle() + angle;
