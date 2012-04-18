@@ -278,6 +278,11 @@ public class Robot {
     {
         r.demo(demo);
     }
+    
+    public double GetMaximumSpeed()
+    {
+        return 0.5;
+    }
 }
     
      
