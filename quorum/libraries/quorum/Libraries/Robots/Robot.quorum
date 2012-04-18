@@ -12,7 +12,7 @@ bumper namely. The robot has three wheels, left wheel, right wheel and center wh
 It also has four cliff sensors namely, left cliff sensor, left front cliff sensor, 
 right cliff sensor, and right front cliff sensor. The cliff sensors are nothing 
 but the IR sensors. The speed with which the robot moves has to be mentioned. 
-Speed range for all commands is 20-500millimeters/second.
+Speed range for all commands is 20-500 millimeters/second.
 
 You can attach and control other hardware and electronic devices to iRobot Create;
 Such as a robotic arm, light display, or a ranging sensor. It can also become a 
@@ -30,7 +30,7 @@ Robot robot
 robot:MoveStraight(200)
 // The Robot wheels are stopped
 robot:StopWheels()
-// Connection between the robot and the controller is broke
+// Connection between the robot and the controller is severed
 robot:Disconnect()
 */
 
@@ -54,7 +54,7 @@ class Robot
     
     /*
         This action breaks the connection between the robot and the controller. 
-        Once the connection between the robot and the controller is broken, we 
+        Once the connection between the robot and the controller is severed, we 
         can no longer control the robot. Inorder to control the robot again we 
         have to make a connection between the robot and the controller again.
         
@@ -151,7 +151,7 @@ class Robot
             // drives the robot in an arc at 100 millimeters/second, 
             // circle radius is 150 millimeters
             // until black button is pressed.
-            robot:MoveAsCurve(100, 150)
+            robot:MoveInCirle(100, 150)
         end
         robot:StopWheels()
     */
@@ -607,4 +607,6 @@ class Robot
     
     system action LoadSong(integer num)
     
+    system action GetMaximumSpeed() returns number
+ 
 end
