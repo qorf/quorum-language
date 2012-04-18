@@ -4,7 +4,8 @@ package Libraries.Robots
 The Robot class represents a physical iRobot Create. iRobot Create is a primitive
 robot or we can say it is a complete robot development kit that allows you to 
 program some fundamental robot behaviors.
-When a Robot object is instantiated, it is automatically connected to the controller. 
+When a Robot object is instantiated, it is automatically connected to the controller
+in the safe mode. The robot has four operating modes: Off, Passive, Safe and Full.
 After which we can make the robot perform different actions like moving the robot 
 front, back and in a circle. The robot has two bumpers, left bumper and right 
 bumper namely. The robot has three wheels, left wheel, right wheel and center wheel. 
@@ -454,7 +455,6 @@ class Robot
     */
     system action SetTotalAngle(integer angle)
     
-    //test this
     /*
         This action returns the total accumulated distance the robot has moved 
         since it was turned on or the robot distance was set. 
@@ -488,4 +488,123 @@ class Robot
         robot:StopWheels()
     */
     system action SetTotalDistance(integer distance)
+   
+    /*
+        This action sets color and brightness of the power led button. Color 0 
+        means red and color 255 means green. By giving a value in between 0 and 
+        255 gives different variations of red color(like Amber);
+        brightness 0 means no brightness, brightness 255 means maximum brightness, 
+        giving a value in between 0 and 255 gives different variations of brightness.
+        
+        Attribute: Parameter color is an integer, color 0 is red and 255 green.
+        Parameter brightness is an integer, brightness 0 is off and 255 is full 
+        brightness.
+
+        Attribute: Example
+        Robot robot
+        // Sets the power led to red with full brightness.
+        robot:SetPowerLed(0,255)
+    */
+    system action SetPowerLed(integer color, integer brightness)
+    
+    /*
+        This action is used to switch on and off the Advance led. Passing true 
+        turns on the Advance led on, false turns off the Advance led.
+        
+        Attribute: Parameter on is boolean, true turns the Advance led on, false 
+        turns off the Advance led.
+
+        Attribute: Example
+        Robot robot
+        // Sets off the Advance led.
+        robot:SetAdvanceLed(false)
+    */
+    system action SetAdvanceLed(boolean on)
+    
+    /*
+        This action is used to switch on and off the Play led. Passing true 
+        turns on the Play led on, false turns off the Play led.
+        
+        Attribute: Parameter on is boolean, true turns the Play led on, false 
+        turns off the Play led.
+
+        Attribute: Example
+        Robot robot
+        // Sets on the Play led.
+        robot:SetPlayLed(true)
+    */
+    system action SetPlayLed(boolean on)
+    
+    /*
+        This action sets the mode of the robot. The robot has four operating 
+        modes: Off, Passive, Safe and Full. 0 means off mode, 1 means passive
+        mode, 3 means safe mode and 4 means full mode. By default the robot is 
+        connected in the safe mode. When the robot is in the off mode, as the 
+        name says the robot is off. In passive mode we can request and receive 
+        data from the robot actuators(motors, sensors, lights), but we cannot 
+        control any of these actuators(parameters sent to these actuators).
+        In order to do so we need to switch to either safe mode or full mode.
+        In safe mode we can control robot using all commands, however in this mode,
+        if the robot detects a cliff, or if any of the wheel is dropped, or if 
+        the robot charger is plugged in, the robot stops all motors and reverts 
+        to the passive mode. In full mode we have complete control over the robot.
+        We can make the robot move in any way we wish to, even if its a bad move.
+        For example, the robot will not stop and disconnect, even if it is 
+        picked up(wheel dropped) or if the cliff sensors are triggered.
+
+        Attribute: Parameter mode is an integer. 0 means off mode, 1 means passive
+        mode, 3 means safe mode and 4 means full mode.
+
+        Attribute: Example
+        Robot robot
+        // robot is set in the full mode
+        robot:SetMode(4)
+    */
+    system action SetMode(integer mode)
+   
+     /*
+        This action gets the mode of the robot. The robot has four operating 
+        modes: Off, Passive, Safe and Full. 0 means off mode, 1 means passive
+        mode, 3 means safe mode and 4 means full mode. By default the robot is 
+        connected in the safe mode. When the robot is in the off mode, as the 
+        name says the robot is off. In passive mode we can request and receive 
+        data from the robot actuators(motors, sensors, lights), but we cannot 
+        control any of these actuators(parameters sent to these actuators).
+        In order to do so we need to switch to either safe mode or full mode.
+        In safe mode we can control robot using all commands, however in this mode,
+        if the robot detects a cliff, or if any of the wheel is dropped, or if 
+        the robot charger is plugged in, the robot stops all motors and reverts 
+        to the passive mode. In full mode we have complete control over the robot.
+        We can make the robot move in any way we wish to, even if its a bad move.
+        For example, the robot will not stop and disconnect, even if it is 
+        picked up(wheel dropped) or if the cliff sensors are triggered.
+
+        Attribute: Returns mode which is an integer. 0 means off mode, 1 means 
+        passive mode, 3 means safe mode and 4 means full mode.
+
+        Attribute: Example
+        Robot robot
+        // 3 is returned, as the default mode for the robot is safe mode.
+        integer mode = robot:GetMode()
+    */
+    system action GetMode() returns integer 
+    
+    /*
+        This action starts running a built-in demo. There are 9 built-in demos.
+        Please refer the documentation for more details about the demo.
+
+        Attribute: Parameter demo is an integer; demo can have a value: -1, 0 to 9.
+
+        Attribute: Example
+        Robot robot
+        // demo 4 is a Drive Figure Eight, robot continuously moves in a figure 
+        // 8 pattern
+        robot:RunDemo(4)
+    */
+    system action RunDemo(integer demo)
+
+    system action PlaySong(integer num)
+    
+    system action LoadSong(integer num)
+    
 end
