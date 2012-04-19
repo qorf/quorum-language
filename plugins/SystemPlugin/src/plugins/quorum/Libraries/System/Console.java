@@ -18,29 +18,9 @@ import javax.swing.JOptionPane;
  */
 public class Console {
     public java.lang.Object $me = null;
-    private static JOptionPane optionPane;
-    private static JDialog dialog;
-    private static boolean useDialog = false;
-    
-    static {
-        //initialize an input dialog that can be used application wide.
-        try {
-            optionPane = new JOptionPane();
-            optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
-            optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
-            optionPane.setWantsInput(true);
-            dialog = optionPane.createDialog("Input Dialog");
-            dialog.setModalityType(ModalityType.APPLICATION_MODAL);
-            dialog.pack();
-            
-            // Allow dialog to be used.
-            useDialog = true;
-        } catch (Throwable e) {
-            // If SWING or AWT not available, we will use standard input
-            // only.
-            useDialog = false;
-        }
-    }
+    private static JOptionPane optionPane = null;
+    private static JDialog dialog = null;
+    private static boolean useDialog = true;
     
     public Console() {
         
@@ -83,6 +63,10 @@ public class Console {
      * @return 
      */
     public static String StaticInput(String text) {
+        if (useDialog && optionPane == null || dialog == null) {
+            useDialog = loadConsoleGUI();
+        }
+        
         if (useDialog) {
             String answer = "";
             optionPane.setMessage(text);
@@ -113,8 +97,28 @@ public class Console {
     public static void Load() {
     }
     
+    private static boolean loadConsoleGUI() {
+        //initialize an input dialog that can be used application wide.
+        try {
+            optionPane = new JOptionPane();
+            optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
+            optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
+            optionPane.setWantsInput(true);
+            dialog = optionPane.createDialog("Input Dialog");
+            dialog.setModalityType(ModalityType.APPLICATION_MODAL);
+            dialog.pack();
+            
+            // Allow dialog to be used.
+            return true;
+        } catch (Throwable e) {
+            // If SWING or AWT not available, we will use standard input
+            // only.
+            return false;
+        }
+    }
+    
     public static void Unload() {
-        if (useDialog)
+        if (useDialog && dialog != null)
             dialog.dispose();
     }
     
