@@ -19,8 +19,8 @@ public class Robot {
     public java.lang.Object $me = null;
     
     cbccore.create.Create r = null;
-    cbccore.create.CliffState c;
-    cbccore.create.CreateConnectException e;
+    //cbccore.create.CliffState c;
+    //cbccore.create.CreateConnectException e;
    // cbccore.create.Create.Mode m;
                     
     /*enum Mode {
@@ -45,7 +45,7 @@ public class Robot {
             Logger.getLogger(Robot.class.getName()).log(Level.SEVERE, null, ex);
           
         }
-        c = new cbccore.create.CliffState(rightCliff, rightFrontCliff, leftCliff, leftFrontCliff, rightCliffAmount, rightFrontCliffAmount, leftCliffAmount, leftFrontCliffAmount);
+        //c = new cbccore.create.CliffState(rightCliff, rightFrontCliff, leftCliff, leftFrontCliff, rightCliffAmount, rightFrontCliffAmount, leftCliffAmount, leftFrontCliffAmount);
        
         RuntimeException runtimeException = new RuntimeException("Compiled Code"); 
     }
@@ -60,46 +60,55 @@ public class Robot {
         r.stop();
     }
     
-    public void MoveStraight(int speed)
+    public void MoveStraight(double speed)
     {
-        r.driveStraight(speed);
+        int speed_int = (int)(speed * 500);
+        r.driveStraight(speed_int);
     }
     
-    public void MoveStraight(int speed, double distance)
+    public void MoveStraight(double speed, double distance)
     {
+        int speed_int = (int)(speed * 500);
+        distance = distance * 1000;
         while(r.getDistance() < distance)
-            r.driveStraight(speed);
+            r.driveStraight(speed_int);
     }
     
-    public void MoveWheels(int rspeed, int lspeed)
+    public void MoveWheels(double rightspeed, double leftspeed)
     {
+        int rspeed =(int)(rightspeed * 500);
+        int lspeed =(int)(leftspeed * 500);
         r.driveDirect(rspeed, lspeed);
     }
     
-     public void MoveInCirle(int speed, int radius)
+     public void MoveInCirle(double speed, double radius)
     {
-        r.drive(speed, radius);
+        int radius_int = (int) (radius * 1000);
+        int speed_int = (int)(speed * 500);
+        r.drive(speed_int, radius_int);
     }
     
-    public void TurnLeft(double turn, int speed)     
+    public void TurnLeft(double turn, double speed)     
     {   
+        int speed_int = (int)(speed * 500);
         int angle = (int)(turn * 360);
         int finalangle = Device.getLowCreateController().get_create_total_angle(0) + angle;
-        int speedneg = speed * -1;
+        int speedneg = speed_int * -1;
         while (Device.getLowCreateController().get_create_total_angle(0) < finalangle)
 	{
-           r.driveDirect(speed, speedneg);
+           r.driveDirect(speed_int, speedneg);
         }
     }
     
-    public void TurnRight(double turn, int speed)     
+    public void TurnRight(double turn, double speed)     
     {
+        int speed_int = (int)(speed * 500);
         int angle = (int)(turn * 360);
         int finalangle = Device.getLowCreateController().get_create_total_angle(0) - angle;
-        int speedneg = speed * -1;
+        int speedneg = speed_int * -1;
         while (Device.getLowCreateController().get_create_total_angle(0) > finalangle)
 	{
-           r.driveDirect(speedneg, speed);
+           r.driveDirect(speedneg, speed_int);
         }
     }
     
@@ -153,19 +162,22 @@ public class Robot {
             return true;
     }
     
-    public void TurnClockwise(int speed)
+    public void TurnClockwise(double speed)
     {
-        r.spinCW(speed);
+        int speed_int = (int)(speed * 500);
+        r.spinCW(speed_int);
     }
     
-    public void TurnCounterClockwise(int speed)
+    public void TurnCounterClockwise(double speed)
     {
-        r.spinCCW(speed);
+        int speed_int = (int)(speed * 500);
+        r.spinCCW(speed_int);
     }
     
     public boolean IsLeftSensorTriggered()
     {
-        if (c.getLeftCliff() == 1)
+        //c.getLeftCliff()
+        if ( Device.getLowCreateController().get_create_lcliff(0.1f) == 1)
             return true;
         else
             return false;
@@ -173,7 +185,8 @@ public class Robot {
     
     public boolean IsRightSensorTriggered()
     {
-        if (c.getRightCliff() == 1)
+        //c.getRightCliff();
+        if (Device.getLowCreateController().get_create_rcliff(0.1f) == 1)
             return true;
         else
             return false;
@@ -181,7 +194,8 @@ public class Robot {
     
     public boolean IsLeftFrontSensorTriggered()
     {
-        if (c.getLeftFrontCliff() == 1)
+        //c.getLeftFrontCliff()
+        if (Device.getLowCreateController().get_create_lfcliff(0.1f) == 1)
             return true;
         else
             return false;
@@ -189,7 +203,8 @@ public class Robot {
     
     public boolean IsRightFrontSensorTriggered()
     {
-        if (c.getRightFrontCliff() == 1)
+        //c.getRightFrontCliff();
+        if ( Device.getLowCreateController().get_create_rfcliff(0.1f) == 1)
             return true;
         else
             return false;
@@ -205,17 +220,98 @@ public class Robot {
        Device.getLowCreateController().set_create_total_angle(angle);
     }
     
-    public int GetTotalDistance()
+    public double GetTotalDistance()
     {
-       return r.getDistance();
+       double distance = (double) (r.getDistance()/1000);
+       return distance;
     }
       
-    public void SetTotalDistance(int distance)
+    public void SetTotalDistance(double distance)
     {
-       Device.getLowCreateController().set_create_distance(distance);
+       int distance_int = (int)(distance * 1000); 
+       Device.getLowCreateController().set_create_distance(distance_int);
     }
     
-    public void SetAdvanceLed(boolean on)
+    public void RunDemo(int demo)
+    {
+        r.demo(demo);
+    }
+    
+    public double GetMaximumSpeed()
+    {
+        return 0.5;
+    }
+    
+    public void TurnOff()
+    {
+        r.setMode(Create.Mode.Off);
+    }
+
+    public void TurnSafety(boolean on)
+    {
+        if (on == true)
+            r.setMode(Create.Mode.Safe);
+        else
+            r.setMode(Create.Mode.Full);
+    }
+    
+    public int GetMode()
+    {
+        return Device.getLowCreateController().get_create_mode(0.1f);
+    }
+    
+    public void IsWallDetected(double lag)
+    {
+        float lag_float = (float) lag;
+        Device.getLowCreateController().get_create_wall(lag_float);
+    }
+    
+    public double GetSpeed(double lag) 
+    {
+        float lag_float = (float) lag;
+        int speed_int = Device.getLowCreateController().get_create_requested_velocity(lag_float);
+        double speed = (double)(speed_int/500);
+        return speed;
+    }
+    
+    public double GetRightWheelSpeed(double lag) 
+    {
+        float lag_float = (float) lag;
+        int rspeed_int = Device.getLowCreateController().get_create_requested_right_velocity(lag_float);
+        double rspeed = (double)(rspeed_int/500);
+        return rspeed;
+    }
+    
+    public double GetLeftWheelSpeed(double lag) 
+    {
+        float lag_float = (float) lag;
+        int lspeed_int = Device.getLowCreateController().get_create_requested_left_velocity(lag_float);
+        double lspeed = (double)(lspeed_int/500);
+        return lspeed;
+    }
+    
+    public int GetRightSensorValue()
+    {
+        return Device.getLowCreateController().get_create_rcliff_amt(0.1f);
+    }
+    
+    public int GetRightFrontSensorValue()
+    {
+        return Device.getLowCreateController().get_create_rcliff_amt(0.1f);
+    }
+    
+    public int GetLeftSensorValue()
+    {
+        return Device.getLowCreateController().get_create_rcliff_amt(0.1f);
+    }
+    
+    public int GetLeftFrontSensorValue()
+    {
+        return Device.getLowCreateController().get_create_rcliff_amt(0.1f);
+    }
+}
+    
+      /* public void SetAdvanceLed(boolean on)
     {
        r.advanceLed(on);
     }
@@ -272,20 +368,8 @@ public class Robot {
             cmode = 3;
         
         return cmode;
-    }
+    }*/
     
-    public void RunDemo(int demo)
-    {
-        r.demo(demo);
-    }
-    
-    public double GetMaximumSpeed()
-    {
-        return 0.5;
-    }
-}
-    
-     
     
         /*int angle = (int)(turn * 360);
         int finalangle = r.getAngle() + angle;
