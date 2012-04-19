@@ -87,6 +87,7 @@ public class Console {
             String answer = "";
             optionPane.setMessage(text);
             dialog.setVisible(true); 
+            dialog.requestFocus();
             answer = (String) optionPane.getInputValue();
             return answer;
         } else {
