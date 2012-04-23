@@ -467,7 +467,8 @@ class Robot
         This action returns the total accumulated distance the robot has moved 
         since it was turned on or the robot distance was set. 
         Moving forward increases this value, while moving backwards decreases 
-        this value.
+        this value. The distance returned by this action is not very precise,
+        it is approximately +/- few millimeters of the actual distance.
         
         Attribute: Returns the total accumulated distance in meters.
 
@@ -561,6 +562,8 @@ class Robot
         Attribute: Parameter lag is in seconds, is the time lag with in which
         the speed of the robot is gathered.
 
+        Attribute: Returns speed which is in percentage. 
+
         Attribute: Example
         Robot robot
         // speed of the robot is returned
@@ -573,6 +576,8 @@ class Robot
 
         Attribute: Parameter lag is in seconds, is the time lag with in which
         the left wheel speed of the robot is gathered.
+
+        Attribute: Returns speed of the left wheel, which is in percentage. 
 
         Attribute: Example
         Robot robot
@@ -587,6 +592,8 @@ class Robot
         Attribute: Parameter lag is in seconds, is the time lag with in which
         the right wheel speed of the robot is gathered.
 
+        Attribute: Returns speed of the right wheel, which is in percentage. 
+    
         Attribute: Example
         Robot robot
         // left wheel speed of the robot is returned
