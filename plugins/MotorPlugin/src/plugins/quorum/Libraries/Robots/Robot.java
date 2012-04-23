@@ -26,7 +26,7 @@ public class Robot {
     /*enum Mode {
         Full, Passive, Safe, Off;
     };*/
-    
+    private double robot_speed, robot_rspeed, robot_lspeed;
     private int rightCliff;
     private int rightFrontCliff;
     private int leftCliff;
@@ -64,6 +64,7 @@ public class Robot {
     {
         int speed_int = (int)(speed * 500);
         r.driveStraight(speed_int);
+        robot_speed = speed;
     }
     
     public void MoveStraight(double speed, double distance)
@@ -72,6 +73,7 @@ public class Robot {
         distance = distance * 1000;
         while(r.getDistance() < distance)
             r.driveStraight(speed_int);
+        robot_speed = speed;
     }
     
     public void MoveWheels(double rightspeed, double leftspeed)
@@ -79,6 +81,8 @@ public class Robot {
         int rspeed =(int)(rightspeed * 500);
         int lspeed =(int)(leftspeed * 500);
         r.driveDirect(rspeed, lspeed);
+        robot_rspeed = rightspeed;
+        robot_lspeed = leftspeed;
     }
     
      public void MoveInCirle(double speed, double radius)
@@ -86,6 +90,7 @@ public class Robot {
         int radius_int = (int) (radius * 1000);
         int speed_int = (int)(speed * 500);
         r.drive(speed_int, radius_int);
+        robot_speed = speed;
     }
     
     public void TurnLeft(double turn, double speed)     
@@ -98,6 +103,7 @@ public class Robot {
 	{
            r.driveDirect(speed_int, speedneg);
         }
+        robot_speed = speed;
     }
     
     public void TurnRight(double turn, double speed)     
@@ -110,6 +116,7 @@ public class Robot {
 	{
            r.driveDirect(speedneg, speed_int);
         }
+        robot_speed = speed;
     }
     
     public boolean IsLeftBumperTriggered(double lag)
@@ -135,7 +142,7 @@ public class Robot {
     public boolean IsCenterWheelTriggered(double lag)
     {
         float lag1 = (float)lag;
-        int value = Device.getLowCreateController().get_create_cwdrop (lag1);
+        int value = Device.getLowCreateController().get_create_cwdrop(lag1);
         if (value == 0)
             return false;
         else
@@ -166,12 +173,14 @@ public class Robot {
     {
         int speed_int = (int)(speed * 500);
         r.spinCW(speed_int);
+        robot_speed = speed;
     }
     
     public void TurnCounterClockwise(double speed)
     {
         int speed_int = (int)(speed * 500);
         r.spinCCW(speed_int);
+        robot_speed = speed;
     }
     
     public boolean IsLeftSensorTriggered()
@@ -222,14 +231,13 @@ public class Robot {
     
     public double GetTotalDistance()
     {
-       double distance = (double) (r.getDistance()/1000);
-       return distance;
+       return (double)(r.getDistance() * 0.001);
     }
       
     public void SetTotalDistance(double distance)
     {
        int distance_int = (int)(distance * 1000); 
-       Device.getLowCreateController().set_create_distance(distance_int);
+           Device.getLowCreateController().set_create_distance(distance_int);
     }
     
     public void RunDemo(int demo)
@@ -268,26 +276,29 @@ public class Robot {
     
     public double GetSpeed(double lag) 
     {
-        float lag_float = (float) lag;
-        int speed_int = Device.getLowCreateController().get_create_requested_velocity(lag_float);
-        double speed = (double)(speed_int/500);
-        return speed;
+        //float lag_float = (float) lag;
+        //int speed_int = Device.getLowCreateController().get_create_requested_velocity(lag_float);
+        //double speed = (double)(speed_int/500);
+        //return speed;
+        return robot_speed;
     }
     
     public double GetRightWheelSpeed(double lag) 
     {
-        float lag_float = (float) lag;
+        /*float lag_float = (float) lag;
         int rspeed_int = Device.getLowCreateController().get_create_requested_right_velocity(lag_float);
         double rspeed = (double)(rspeed_int/500);
-        return rspeed;
+        return rspeed;*/
+        return robot_rspeed;
     }
     
     public double GetLeftWheelSpeed(double lag) 
     {
-        float lag_float = (float) lag;
+        /*float lag_float = (float) lag;
         int lspeed_int = Device.getLowCreateController().get_create_requested_left_velocity(lag_float);
         double lspeed = (double)(lspeed_int/500);
-        return lspeed;
+        return lspeed;*/
+        return robot_lspeed;
     }
     
     public int GetRightSensorValue()
