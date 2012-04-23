@@ -320,7 +320,7 @@ public class Main {
                     QuorumClassLoader classLoader = new QuorumClassLoader();
                     classLoader.setCodeGenerator(g);
                     classLoader.setPluginFolder(pluginFolder);
-                    Class quorumClass = null;
+                    Class<?> quorumClass = null;
                     try {
                         quorumClass = classLoader.loadClass(mainClassName.replaceAll("/", "."));
                         Method declaredMethod = quorumClass.getDeclaredMethod("main", new Class[]{String[].class});

@@ -31,7 +31,7 @@ public class QuorumClassLoader extends ClassLoader {
             try {
                 // Strip out the first '.', to remove the plugins prefix.
                 String quorumName = name.substring(name.indexOf(".") + 1);
-                bytes = getBytesFromClassFile(new File(pluginFolder, quorumName.replaceAll("\\.", File.separator) + ".class"));
+                bytes = getBytesFromClassFile(new File(pluginFolder, quorumName.replace('.', File.separatorChar) + ".class"));
             } catch (IOException ex) {
                 // TODO: Report this error in a friendly way.
                 Logger.getLogger(QuorumClassLoader.class.getName()).log(Level.SEVERE, null, ex);
