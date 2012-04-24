@@ -15,7 +15,6 @@ public class Motor {
     cbccore.motors.Motor m;
     private int motorPort;
     private int motorSpeed = 0;
-    //private int motorPosition;
     
     public void SetPort(int port)
     {
@@ -40,7 +39,6 @@ public class Motor {
     
     public void SetSpeed(int speed)
     {
-        m.motor(speed);
         motorSpeed = speed;
     }
     
@@ -56,8 +54,7 @@ public class Motor {
     
     public void MoveForward(int speed)
     {
-        m.motor(speed);
-        m.forward();
+        m.moveAtVelocity(speed);
     }
     
     public void MoveBackward()
@@ -66,9 +63,9 @@ public class Motor {
     }
     
     public void MoveBackward(int speed)
-    {
-        m.motor(speed);
-        m.backward();
+    {   
+        speed = speed * -1;
+        m.moveAtVelocity(speed);
     }
     
     public void MoveToPosition(int position)
@@ -78,9 +75,6 @@ public class Motor {
     
     public void MoveToPosition(int position, int speed)
     {
-        //convert in meters later
-        //int setspeed = m.getDefaultSpeed();
-        //setspeed = 2 * setspeed * (speed / 100);
         m.moveToPosition(speed, position);
     }
     
@@ -91,9 +85,6 @@ public class Motor {
     
     public void MoveFromHere(int position, int speed)
     {
-        //convert in meters later
-        //int setspeed = m.getDefaultSpeed();
-        //setspeed = 2 * setspeed * (speed / 100);
         m.moveRelativePosition(speed, position);
     }
     
@@ -120,26 +111,3 @@ public class Motor {
     }
 }
 
-//This has to be moved to the general class
-    /*public void Off()
-    {
-        cbccore.motors.Motor m = new cbccore.motors.Motor(0);
-        m.off();
-        m = new cbccore.motors.Motor(1);
-        m.off();
-        m = new cbccore.motors.Motor(2);
-        m.off();
-        m = new cbccore.motors.Motor(3);
-        m.off();
-    }*/
-
-    /*public void Move(int speed, boolean forward)
-    {
-        //int setspeed = m.getDefaultSpeed();
-        //setspeed = setspeed * (speed / 100);
-        m.motor(speed);
-        if (forward == true)
-            m.forward();
-        else
-            m.backward();
-    }*/

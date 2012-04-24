@@ -15,12 +15,12 @@ public class Controller {
     cbccore.Botball cbc = new cbccore.Botball();
     cbccore.sensors.analog.Analog s = null;     
     
-    public void ShutDownIn(double seconds)//tested and works 
+    public void ShutDownIn(double seconds) 
     {
         cbc.shutDownIn(seconds);
     }
     
-    public void Wait(double s) //tested and works 
+    public void Wait(double s) 
     {
         try{
             int seconds = (int) s;
@@ -28,7 +28,7 @@ public class Controller {
         catch(InterruptedException ie){}
     }
     
-    public void WaitUntilLightDetectedInPort(int port) //tested and works 
+    public void WaitUntilLightDetectedInPort(int port)  
     {
         s = new cbccore.sensors.analog.Analog(port);
         cbc.waitForLight(s);
