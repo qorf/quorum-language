@@ -4,7 +4,7 @@ package Libraries.Robots
 The Motor class represents a physical motor. Each motor has a designation, 
 an integer, that says which motor it is (e.g., 0, 1, 2 or 3). In order to use
 a motor we need to set connection with the motor first and then use the motor 
-for other operations.
+for other operations. Generally most of the motors have 1 circumference = 1100 ticks.
 
 Attribute: Example
 
@@ -12,15 +12,15 @@ use Libraries.Robots.Motor
 class Main
    action Main
         // Declaraing the motor
-        Motor m
+        Motor motor
         // Set connection with the motor connected to port 1
-        m:SetPort(1)
+        motor:SetPort(1)
         // Move the motor to position 2000, with the speed 200 mm/s
-        m:MoveToPosition(200, 2000)
+        motor:MoveToPosition(200, 2000)
         // Wait until the motor has completed its movement
-        m:Wait()
+        motor:Wait()
         // Switch off the motor 
-        m:Off()
+        motor:Off()
    end
 end
 */
@@ -33,8 +33,8 @@ class Motor
 
         Attribute: Example
         
-        Motor m
-        m:SetPort(0)
+        Motor motor
+        motor:SetPort(0)
         //motor is connected to port 0
     */
     system action SetPort(integer port)
@@ -46,8 +46,8 @@ class Motor
 
         Attribute: Example
         
-        Motor m
-        integer mc = m:GetPort()
+        Motor motor
+        integer mc = motor:GetPort()
     */
     system action GetPort() returns integer
 
@@ -56,83 +56,146 @@ class Motor
 
         Attribute: Example
         
-        Motor m
-        m:SetPort(0)
-        m:ResetPosition()
+        Motor motor
+        motor:SetPort(0)
+        motor:ResetPosition()
     */
     system action ResetPosition()
 
     /*
-        This action returns the currnet position of the motor
+        This action returns the currnet position of the motor.
 
         Attribute: Returns the current position of the motor
 
         Attribute: Example
         
-        Motor m
-        m:SetPort(0)
-        integer mp = m:GetPosition()
+        Motor motor
+        motor:SetPort(0)
+        integer mp = motor:GetPosition()
     */
     system action GetPosition() returns integer
 
     /*
-        This action moves the motor in the forward direction. The direction is determined
-        by the plug orientation.
-        The motor moves at the full speed, which is by default 1100 ticks per second.
+        This action moves the motor in the forward direction. The direction is 
+        determined by the plug orientation.
+        The motor moves at the speed set using SetSpeed() action.
 
         Attribute: Example
         
-        Motor m
-        m:SetPort(0)
-        m:MoveFoward()
+        Motor motor
+        motor:SetPort(0)
+        motor:MoveFoward()
     */
     system action MoveForward()
-
-    system action MoveForward(integer speed)
-    system action MoveBackward()
-    system action MoveBackward(integer speed)
-
     /*
-        This action moves the motor to the specified absolute position at the 
-        specified speed.
+        This action moves the motor in the forward direction at the specified speed. 
+        The direction is determined by the plug orientation.
 
-        Attribute: Parameter speed in percentage, position to which the motor has 
-        to be moved
+        Attribute: Parameter speed is in integer, which is ticks per second.
+    
+        Attribute: Example
+        
+        Motor motor
+        motor:SetPort(0)
+        //motor moves forward at 300 ticks per second
+        motor:MoveFoward(300)
+    */
+    system action MoveForward(integer speed)
+    /*
+        This action moves the motor in the backward direction at the specified speed. 
+        The direction is determined by the plug orientation.
+        The motor moves at the speed set using SetSpeed() action.
 
         Attribute: Example
         
-        Motor m
-        m:SetPort(0)
-        m:MoveToPosition(90, 2000)
+        Motor motor
+        motor:SetPort(0)
+        //motor moves Backward at a previously set speed
+        motor:MoveBackward()
+    */
+    
+    system action MoveBackward()
+    /*
+        This action moves the motor in the backward direction at the specified speed. 
+        The direction is determined by the plug orientation.
+        
+        Attribute: Parameter speed is in integer, which is ticks per second.
+
+        Attribute: Example
+        
+        Motor motor
+        motor:SetPort(0)
+        //motor moves Backward at 300 ticks per second
+        motor:MoveBackward(300)
+    */
+    system action MoveBackward(integer speed)
+    /*
+        This action moves the motor to the specified absolute position at a 
+        previously set speed.
+
+        Attribute: Parameter position to which the motor has to be moved, is in
+                   integer
+
+        Attribute: Example
+        
+        Motor motor
+        motor:SetPort(0)
+        motor:MoveToPosition(2000)
     */
     system action MoveToPosition(integer position)
+    /*
+        This action moves the motor to the specified absolute position at a 
+        previously set speed.
+
+        Attribute: Parameter speed in ticks per second, position to which the 
+                   motor has to be moved is in integer
+
+        Attribute: Example
+        
+        Motor motor
+        motor:SetPort(0)
+        motor:MoveToPosition(500, 2000)
+    */
     system action MoveToPosition(integer speed, integer position)
 
-    /*//correct this
+    /*
         This action moves the motor to the specified relative position at the 
         specified speed.
 
-        Attribute: Parameter speed in percentage, position to which the motor has 
-        to be moved reltively
+        Attribute: Parameter position to which the 
+        motor has to be moved reltively is in integer
 
         Attribute: Example
         
-        Motor m
-        m:SetPort(0)
-        m:MoveFromHere(50, 5000)
+        Motor motor
+        motor:SetPort(0)
+        motor:MoveFromHere(5000)
     */
     system action MoveFromHere(integer position)
+    /*
+        This action moves the motor to the specified relative position at the 
+        specified speed.
+
+        Attribute: Parameter speed in ticks per second, position to which the 
+        motor has to be moved reltively is in integer
+
+        Attribute: Example
+        
+        Motor motor
+        motor:SetPort(0)
+        motor:MoveFromHere(500, 5000)
+    */
     system action MoveFromHere(integer speed, integer position)
 
-    /*//correct this
+    /*
         This action switches off the motor. 
 
         Attribute: Example
         
-        Motor m
-        m:SetPort(0)
-        m:MoveFromHere(50, 5000)
-        m:Off()
+        Motor motor
+        motor:SetPort(0)
+        motor:MoveFromHere(400, 5000)
+        motor:Off()
     */
     system action Off()
 
@@ -142,10 +205,10 @@ class Motor
 
         Attribute: Example
         
-        Motor m
-        m:SetPort(0)
-        m:MoveFromHere(50, 5000)
-        m:Wait()
+        Motor motor
+        motor:SetPort(0)
+        motor:MoveFromHere(50, 5000)
+        motor:Wait()
     */
     system action Wait()
     
@@ -157,17 +220,53 @@ class Motor
 
         Attribute: Example
         
-        Motor m
-        m:SetPort(0)
-        m:MoveFromHere(50, 5000)
+        Motor motor
+        motor:SetPort(0)
+        motor:MoveFromHere(50, 5000)
         boolean success 
-        success = m:IsMotionComplete()
-        m:Off()
+        success = motor:IsMotionComplete()
+        motor:Off()
     */
     system action IsMotionComplete() returns boolean
+    /*
+        This action is used to set the speed of the motor. This speed is used as 
+        the default speed, if speed is not mentioned.
 
+        Attribute: Parameter speed is in ticks per second.
+
+        Attribute: Example
+        
+        Motor motor
+        motor:SetPort(0)
+        motor:SetSpeed(1000)
+    */
     system action SetSpeed(integer speed) 
+    /*
+        This action is used to set the speed of the motor. This speed is used as 
+        the default speed, if speed is not mentioned.
+
+        Attribute: Returns the speed, which is in ticks per second.
+
+        Attribute: Example
+        
+        Motor motor
+        motor:SetPort(0)
+        motor:SetSpeed(500)
+        motor:MoveFromHere(50, 5000)
+        // a value 500 is returned 
+        integer speed = GetSpeed()
+        
+    */
     system action GetSpeed() returns integer
-    
+    /*
+        This action is used to switch off all the motors connected to the controller.
+        
+        Attribute: Example
+        
+        Motor motor
+        motor:SetPort(0)
+        // switches off all the other motors, if any connected
+        motor:AllMotorOff()
+    */
     system action AllMotorOff()
 end

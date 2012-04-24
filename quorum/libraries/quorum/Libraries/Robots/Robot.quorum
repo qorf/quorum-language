@@ -600,113 +600,76 @@ class Robot
         number RightWheelSpeed = robot:GetRightWheelSpeed(0.1)
     */
     system action GetRightWheelSpeed(number lag) returns number
+    /*
+        This action returns 12 bit analog value from right cliff sensor. This 
+        value represents the radiation intensity measured by the cliff sensor.
+        Data has been gathered within 0.1 seconds. 
+
+        Attribute: Returns 12 bit analog value from right cliff sensor, which is 
+                   an integer.
     
+        Attribute: Example
+        Robot robot
+        integer amount
+        if robot:IsRightSensorTriggered() = true
+            amount = robot:GetRightSensorValue()
+            print "RightSensorTriggered" + amount
+        end
+    */
     system action GetRightSensorValue() returns integer
+    /*
+        This action returns 12 bit analog value from right front cliff sensor. This 
+        value represents the radiation intensity measured by the cliff sensor.
+        Data has been gathered within 0.1 seconds. 
+
+        Attribute: Returns 12 bit analog value from right front cliff sensor,   
+                   which is an integer.
+    
+        Attribute: Example
+        Robot robot
+        integer amount
+        if robot:IsRightFrontSensorTriggered() = true
+            amount = robot:GetRightFrontSensorValue()
+            print "RightFrontSensorTriggered" + amount
+        end
+    */
     system action GetRightFrontSensorValue() returns integer
+    /*
+        This action returns 12 bit analog value from left cliff sensor. This 
+        value represents the radiation intensity measured by the cliff sensor.
+        Data has been gathered within 0.1 seconds. 
+
+        Attribute: Returns 12 bit analog value from left cliff sensor,   
+                   which is an integer.
+    
+        Attribute: Example
+        Robot robot
+        integer amount
+        if robot:IsLeftSensorTriggered() = true
+            amount = robot:GetLeftSensorValue()
+            print "LeftSensorTriggered" + amount
+        end
+    */
     system action GetLeftSensorValue() returns integer
+    /*
+        This action returns 12 bit analog value from left front cliff sensor. This 
+        value represents the radiation intensity measured by the cliff sensor.
+        Data has been gathered within 0.1 seconds. 
+
+        Attribute: Returns 12 bit analog value from left front cliff sensor,   
+                   which is an integer.
+    
+        Attribute: Example
+        Robot robot
+        integer amount
+        if robot:IsLeftFrontSensorTriggered() = true
+            amount = robot:GetLeftFrontSensorValue()
+            print "LeftFrontSensorTriggered" + amount
+        end
+    */
     system action GetLeftFrontSensorValue() returns integer
     
+    //This action was developed for testing purpose. 
     system action GetMode() returns integer
 end
 
-/*
-        This action sets the mode of the robot. The robot has four operating 
-        modes: Off, Passive, Safe and Full. 0 means off mode, 1 means passive
-        mode, 3 means safe mode and 4 means full mode. By default the robot is 
-        connected in the safe mode. When the robot is in the off mode, as the 
-        name says the robot is off. In passive mode we can request and receive 
-        data from the robot actuators(motors, sensors, lights), but we cannot 
-        control any of these actuators(parameters sent to these actuators).
-        In order to do so we need to switch to either safe mode or full mode.
-        In safe mode we can control robot using all commands, however in this mode,
-        if the robot detects a cliff, or if any of the wheel is dropped, or if 
-        the robot charger is plugged in, the robot stops all motors and reverts 
-        to the passive mode. In full mode we have complete control over the robot.
-        We can make the robot move in any way we wish to, even if its a bad move.
-        For example, the robot will not stop and disconnect, even if it is 
-        picked up(wheel dropped) or if the cliff sensors are triggered.
-
-        Attribute: Parameter mode is an integer. 0 means off mode, 1 means passive
-        mode, 3 means safe mode and 4 means full mode.
-
-        Attribute: Example
-        Robot robot
-        // robot is set in the full mode
-        robot:SetMode(4)
-    */
-    //system action SetMode(integer mode)
-/*
-        This action gets the mode of the robot. The robot has four operating 
-        modes: Off, Passive, Safe and Full. 0 means off mode, 1 means passive
-        mode, 3 means safe mode and 4 means full mode. By default the robot is 
-        connected in the safe mode. When the robot is in the off mode, as the 
-        name says the robot is off. In passive mode we can request and receive 
-        data from the robot actuators(motors, sensors, lights), but we cannot 
-        control any of these actuators(parameters sent to these actuators).
-        In order to do so we need to switch to either safe mode or full mode.
-        In safe mode we can control robot using all commands, however in this mode,
-        if the robot detects a cliff, or if any of the wheel is dropped, or if 
-        the robot charger is plugged in, the robot stops all motors and reverts 
-        to the passive mode. In full mode we have complete control over the robot.
-        We can make the robot move in any way we wish to, even if its a bad move.
-        For example, the robot will not stop and disconnect, even if it is 
-        picked up(wheel dropped) or if the cliff sensors are triggered.
-
-        Attribute: Returns mode which is an integer. 0 means off mode, 1 means 
-        passive mode, 3 means safe mode and 4 means full mode.
-
-        Attribute: Example
-        Robot robot
-        // 3 is returned, as the default mode for the robot is safe mode.
-        integer mode = robot:GetMode()
-    */
-    //system action GetMode() returns integer 
-    
-    //system action PlaySong(integer num)
-    
-    //system action LoadSong(integer num)
-/*
-        This action sets color and brightness of the power led button. Color 0 
-        means red and color 255 means green. By giving a value in between 0 and 
-        255 gives different variations of red color(like Amber);
-        brightness 0 means no brightness, brightness 255 means maximum brightness, 
-        giving a value in between 0 and 255 gives different variations of brightness.
-        
-        Attribute: Parameter color is an integer, color 0 is red and 255 green.
-        Parameter brightness is an integer, brightness 0 is off and 255 is full 
-        brightness.
-
-        Attribute: Example
-        Robot robot
-        // Sets the power led to red with full brightness.
-        robot:SetPowerLed(0,255)
-    */
-    //system action SetPowerLed(integer color, integer brightness)
-    
-    /*
-        This action is used to switch on and off the Advance led. Passing true 
-        turns on the Advance led on, false turns off the Advance led.
-        
-        Attribute: Parameter on is boolean, true turns the Advance led on, false 
-        turns off the Advance led.
-
-        Attribute: Example
-        Robot robot
-        // Sets off the Advance led.
-        robot:SetAdvanceLed(false)
-    */
-    //system action SetAdvanceLed(boolean on)
-    
-    /*
-        This action is used to switch on and off the Play led. Passing true 
-        turns on the Play led on, false turns off the Play led.
-        
-        Attribute: Parameter on is boolean, true turns the Play led on, false 
-        turns off the Play led.
-
-        Attribute: Example
-        Robot robot
-        // Sets on the Play led.
-        robot:SetPlayLed(true)
-    */
-    //system action SetPlayLed(boolean on) 

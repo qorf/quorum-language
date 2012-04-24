@@ -1,7 +1,8 @@
 package Libraries.Robots
 
 /*
-The Button class represents the different touch screen buttons present on the controller. 
+The Button class represents the different touch screen buttons and the Black button 
+present on the controller. 
 There are seven different buttons present. The A button, B button, Black button,
 LeftArrow button, RightArrow button, UpArrow button, and DownArrow button.
 
@@ -28,7 +29,7 @@ class Button
         
         Button button
         if button:IsAButtonPressed() not= true then
-            print "Button A is not Pressed"
+            print "A Button is not Pressed"
         end
     */
     system action IsAButtonPressed() returns boolean
@@ -38,6 +39,13 @@ class Button
 
         Attribute: Returns true if B button is pressed otherwise returns
         false
+
+        Attribute: Example
+        
+        Button button
+        if button:IsBButtonPressed() not= true then
+            print "B Button is not Pressed"
+        end
 */
     system action IsBButtonPressed() returns boolean
 
@@ -46,6 +54,13 @@ class Button
 
         Attribute: Returns true if Black button is pressed otherwise returns
         false
+        
+        Attribute: Example
+        
+        Button button
+        if button:IsBlackButtonPressed() not= true then
+            print "Black Button is not Pressed"
+        end
 */
     system action IsBlackButtonPressed() returns boolean
 
@@ -54,6 +69,13 @@ class Button
 
         Attribute: Returns true if LeftArrow button is pressed otherwise returns
         false
+        
+        Attribute: Example
+        
+        Button button
+        if button:IsLeftArrowPressed() not= true then
+            print "Left Arrow is not Pressed"
+        end
 */
     system action IsLeftArrowPressed() returns boolean
 
@@ -62,6 +84,13 @@ class Button
 
         Attribute: Returns true if RightArrow button is pressed otherwise returns
         false
+        
+        Attribute: Example
+        
+        Button button
+        if button:IsRightArrowPressed() not= true then
+            print "Right Arrow is not Pressed"
+        end
 */
     system action IsRightArrowPressed() returns boolean
 
@@ -70,6 +99,13 @@ class Button
 
         Attribute: Returns true if UpArrow button is pressed otherwise returns
         false
+        
+        Attribute: Example
+        
+        Button button
+        if button:IsUpArrowPressed() not= true then
+            print "Up Arrow is not Pressed"
+        end
 */
     system action IsUpArrowPressed() returns boolean
 
@@ -78,6 +114,13 @@ class Button
 
         Attribute: Returns true if DownArrow button is pressed otherwise returns
         false
+        
+        Attribute: Example
+        
+        Button button
+        if button:IsDownArrowPressed() not= true then
+            print "Down Arrow is not Pressed"
+        end
 */
     system action IsDownArrowPressed() returns boolean
 end
