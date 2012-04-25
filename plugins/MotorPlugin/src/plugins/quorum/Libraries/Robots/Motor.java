@@ -14,7 +14,7 @@ public class Motor {
     
     cbccore.motors.Motor m;
     private int motorPort;
-    private int motorSpeed = 0;
+    private int motorSpeed = 0; 
     
     public void SetPort(int port)
     {
@@ -39,12 +39,12 @@ public class Motor {
     
     public void SetSpeed(int speed)
     {
-        motorSpeed = speed;
+        motorSpeed = speed * 10;
     }
     
     public int GetSpeed()
     {
-        return motorSpeed;
+        return (motorSpeed/10);
     }
     
     public void MoveForward()
@@ -54,7 +54,7 @@ public class Motor {
     
     public void MoveForward(int speed)
     {
-        m.moveAtVelocity(speed);
+        m.moveAtVelocity(speed*10);
     }
     
     public void MoveBackward()
@@ -65,7 +65,7 @@ public class Motor {
     public void MoveBackward(int speed)
     {   
         speed = speed * -1;
-        m.moveAtVelocity(speed);
+        m.moveAtVelocity(speed*10);
     }
     
     public void MoveToPosition(int position)
@@ -75,7 +75,7 @@ public class Motor {
     
     public void MoveToPosition(int position, int speed)
     {
-        m.moveToPosition(speed, position);
+        m.moveToPosition(speed*10, position);
     }
     
     public void MoveFromHere(int position)
@@ -85,7 +85,7 @@ public class Motor {
     
     public void MoveFromHere(int position, int speed)
     {
-        m.moveRelativePosition(speed, position);
+        m.moveRelativePosition(speed*10, position);
     }
     
     public void Off()
