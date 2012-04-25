@@ -1,5 +1,5 @@
 package Libraries.Robots
-
+use Libraries.Robots.Connectable
 /*
 The Analog Sensor class represents a physical analog sensor. Each senor has a 
 designation, an integer, that says which port it is connected to(e.g., 0 to 7). 
@@ -25,7 +25,7 @@ end
 */
 
 
-class AnalogSensor 
+class AnalogSensor is a Connectable
     /*
         This action connects the sensor to the specified analog port. After the 
         sensor is connected to the port, we can read the values from the sensor.
@@ -40,7 +40,18 @@ class AnalogSensor
         //analog sensor is connected to port 6
     */
     system action SetPort(integer port)
-    
+    /*
+        This action returns the port to which the sensor is connected to.
+
+        Attribute: Returns the port to which the sensor is connected to
+
+        Attribute: Example
+        
+        AnalogSensor analog
+        analog:SetPort(6)
+        integer port = analog:GetPort()
+    */
+    system action GetPort() returns integer
     /*
         This action returns the analog value of the analog sensor, which is an 
         integer between 0 to 255.
@@ -51,7 +62,7 @@ class AnalogSensor
         
         AnalogSensor analog
         analog:SetPort(3)
-        integer analog = analog:GetValue()
+        integer analogValue = analog:GetValue()
         //returns the current value of the analog sensor connected to port 3
     */
     system action GetValue() returns integer
@@ -67,13 +78,14 @@ class AnalogSensor
         
         AnalogSensor analog
         analog:SetPort(4)
-        integer analog = analog:GetValue()
+        integer analogValue = analog:GetValue()
         //returns the current 10 bit analog value of the sensor connected to port 4
     */  
     system action Get10BitValue() returns integer
     
     /*
-        This action sets the analog sensor to a floating point.
+        This action sets the analog sensor to a floating point, i.e. it resets
+        the analog sensor.
         Please note that all sensor ports are set to non-floating when the 
         controller is rebooted or when a program exits. So in order to set the 
         sensor to floating we need to use this action.
@@ -82,10 +94,10 @@ class AnalogSensor
         
         AnalogSensor analog
         analog:SetPort(0)
-        analog:SetToFloat()
+        analog:Reset()
         //Analog sensor connected to port 0 is set to floating
     */ 
-    system action SetToFloat()
+    system action Reset()
     /*
         This action returns the approximate distance of the object using SONAR. 
         SONAR stands for SOund Navigation And Ranging. The SONAR sensor works by 
@@ -100,10 +112,10 @@ class AnalogSensor
         AnalogSensor analog
         analog:SetPort()
         //SONAR distance of the object is returned
-        integer distance = analog:SonarDistance()
+        integer distance = analog:GetDistance()
         print "Sonar Distance is " + distance
         
     */
-    system action SonarDistance()returns integer
+    system action GetDistance()returns integer
 
 end

@@ -1,5 +1,5 @@
 package Libraries.Robots
-
+use Libraries.Robots.Connectable
 /*
 The Motor class represents a physical motor. Each motor has a designation, 
 an integer, that says which motor it is (e.g., 0, 1, 2 or 3). In order to use
@@ -29,7 +29,7 @@ end
 */
 
 
-class Motor
+class Motor is a Connectable
     /*
         This action connects the motor to the specified port.
         Attribute: Parameter port to which we intend to connect the motor to
@@ -45,7 +45,7 @@ class Motor
     /*
         This action returns the port to which the motor is connected to.
 
-        Attribute: Returns the port to which the port is connected to
+        Attribute: Returns the port to which the motor is connected to
 
         Attribute: Example
         

@@ -1,10 +1,11 @@
 package Libraries.Robots
-
+use Libraries.Robots.Connectable
 /*
 The Digital Sensor class represents a physical digital sensor. Each senor has a 
 designation, an integer, that says which port it is connected to(e.g., 8 to 15). 
 Once the sensor is connected to the port, we can get the value read by the digital 
-sensor and we can also output a value to the sensor.
+sensor and we can also output a value to the sensor. Digital Sensors are yypically 
+used for bumpers or limit switches.
 
 Attribute: Example
 
@@ -23,7 +24,7 @@ end
   
 */
 
-class DigitalSensor 
+class DigitalSensor is a Connectable
     /*
         This action connects the sensor to the specified digital port. The sensor 
         can read values only after it is connected to the port.
@@ -38,7 +39,18 @@ class DigitalSensor
         //sensor is connected to digital port 10
     */
     system action SetPort(integer port)
-    
+    /*
+        This action returns the port to which the sensor is connected to.
+
+        Attribute: Returns the port to which the sensor is connected to
+
+        Attribute: Example
+        
+        AnalogSensor digital
+        digital:SetPort(6)
+        integer port = digital:GetPort()
+    */
+    system action GetPort() returns integer
     /*
         This action returns the digital value of the sensor, which is either 0 
         or 1. This value represents if the sensor switch is open or closed. If 
@@ -52,7 +64,7 @@ class DigitalSensor
         
         DigitalSensor digital
         digital:SetPort(13)
-        integer digital = digital:GetValue()
+        integer digitalValue = digital:GetValue()
         //returns the current value of the sensor connected to port 13
     */
     system action GetValue() returns integer

@@ -1,5 +1,5 @@
 package Libraries.Robots
-
+use Libraries.Robots.Connectable
 /*
 The Servo class represents a physical servo. 
 Each servo has a designation, 
@@ -28,7 +28,7 @@ servo:Off()
  
 */
 
-class Servo 
+class Servo is a Connectable
 
 /*
         This action connects the servo to the specified port.
@@ -42,7 +42,18 @@ class Servo
         
     */
     system action SetPort(integer port)
+/*
+        This action returns the port to which the servo is connected to.
 
+        Attribute: Returns the port to which the servo is connected to
+
+        Attribute: Example
+        
+        Servo servo
+        servo:SetPort(0)
+        integer port = servo:GetPort()
+    */
+    system action GetPort() returns integer
 /* 
         This action switches off the servo. Once the servo is swtiched 
 
