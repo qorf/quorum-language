@@ -5,6 +5,9 @@ The Motor class represents a physical motor. Each motor has a designation,
 an integer, that says which motor it is (e.g., 0, 1, 2 or 3). In order to use
 a motor we need to set connection with the motor first and then use the motor 
 for other operations. Generally most of the motors have 1 circumference = 1100 ticks.
+The maximum speed with which the motor can move is at 1000 ticks per second. In 
+order for us to specify the speed at which the motor has to move, speed must be 
+mentioned in terms of the percentage of the maximum speed.
 
 Attribute: Example
 
@@ -15,8 +18,8 @@ class Main
         Motor motor
         // Set connection with the motor connected to port 1
         motor:SetPort(1)
-        // Move the motor to position 2000, with the speed 200 mm/s
-        motor:MoveToPosition(200, 2000)
+        // Move the motor to position 2000, with 100 percent speed(i.e 1000 ticks per second)
+        motor:MoveToPosition(100, 2000)
         // Wait until the motor has completed its movement
         motor:Wait()
         // Switch off the motor 
@@ -91,14 +94,15 @@ class Motor
         This action moves the motor in the forward direction at the specified speed. 
         The direction is determined by the plug orientation.
 
-        Attribute: Parameter speed is in integer, which is ticks per second.
+        Attribute: Parameter speed is in integer, which is the percentage of the 
+                   maximum speed.
     
         Attribute: Example
         
         Motor motor
         motor:SetPort(0)
-        //motor moves forward at 300 ticks per second
-        motor:MoveFoward(300)
+        //motor moves forward at 50% of the maximum speed (i.e. 500 ticks per second)
+        motor:MoveFoward(50)
     */
     system action MoveForward(integer speed)
     /*
@@ -119,14 +123,15 @@ class Motor
         This action moves the motor in the backward direction at the specified speed. 
         The direction is determined by the plug orientation.
         
-        Attribute: Parameter speed is in integer, which is ticks per second.
+        Attribute: Parameter speed is in integer, which is the percentage of the 
+                   maximum speed.
 
         Attribute: Example
         
         Motor motor
         motor:SetPort(0)
-        //motor moves Backward at 300 ticks per second
-        motor:MoveBackward(300)
+        //motor moves Backward at 50% of the maximum speed (i.e. 500 ticks per second)
+        motor:MoveBackward(50)
     */
     system action MoveBackward(integer speed)
     /*
@@ -147,14 +152,15 @@ class Motor
         This action moves the motor to the specified absolute position at a 
         previously set speed.
 
-        Attribute: Parameter speed in ticks per second, position to which the 
-                   motor has to be moved is in integer
+        Attribute: Parameter speed is in integer, which is the percentage of the 
+                   maximum speed; position to which the motor has to be moved is 
+                   in integer.
 
         Attribute: Example
         
         Motor motor
         motor:SetPort(0)
-        motor:MoveToPosition(500, 2000)
+        motor:MoveToPosition(50, 2000)
     */
     system action MoveToPosition(integer speed, integer position)
 
@@ -162,28 +168,29 @@ class Motor
         This action moves the motor to the specified relative position at the 
         specified speed.
 
-        Attribute: Parameter position to which the 
-        motor has to be moved reltively is in integer
+        Attribute: Parameter position to which the motor has to be moved reltively,
+                   is in integer.
 
         Attribute: Example
         
         Motor motor
         motor:SetPort(0)
-        motor:MoveFromHere(5000)
+        motor:MoveFromHere(500)
     */
     system action MoveFromHere(integer position)
     /*
         This action moves the motor to the specified relative position at the 
         specified speed.
 
-        Attribute: Parameter speed in ticks per second, position to which the 
-        motor has to be moved reltively is in integer
+        Attribute: Parameter speed is in integer, which is the percentage of the 
+                   maximum speed;position to which the motor has to be moved 
+                   reltively is in integer.
 
         Attribute: Example
         
         Motor motor
         motor:SetPort(0)
-        motor:MoveFromHere(500, 5000)
+        motor:MoveFromHere(50, 700)
     */
     system action MoveFromHere(integer speed, integer position)
 
@@ -194,7 +201,7 @@ class Motor
         
         Motor motor
         motor:SetPort(0)
-        motor:MoveFromHere(400, 5000)
+        motor:MoveFromHere(40, 500)
         motor:Off()
     */
     system action Off()
@@ -207,7 +214,7 @@ class Motor
         
         Motor motor
         motor:SetPort(0)
-        motor:MoveFromHere(50, 5000)
+        motor:MoveFromHere(50, 600)
         motor:Wait()
     */
     system action Wait()
@@ -222,7 +229,7 @@ class Motor
         
         Motor motor
         motor:SetPort(0)
-        motor:MoveFromHere(50, 5000)
+        motor:MoveFromHere(90, 500)
         boolean success 
         success = motor:IsMotionComplete()
         motor:Off()
@@ -245,15 +252,16 @@ class Motor
         This action is used to set the speed of the motor. This speed is used as 
         the default speed, if speed is not mentioned.
 
-        Attribute: Returns the speed, which is in ticks per second.
+        Attribute: Returns the speed in integer, which is the percentage of the 
+                   maximum speed;
 
         Attribute: Example
         
         Motor motor
         motor:SetPort(0)
         motor:SetSpeed(500)
-        motor:MoveFromHere(50, 5000)
-        // a value 500 is returned 
+        motor:MoveFromHere(50, 900)
+        // a value 50 is returned 
         integer speed = GetSpeed()
         
     */

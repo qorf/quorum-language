@@ -51,11 +51,31 @@ class Controller
     /*
         This action will make the controller wait until the sensor connected to 
         the specified port has detected light. In order for the sensor to detect
-        light, you need to first calibrate the light. Once you are ready to calibrate 
-        the light press left arrow button on the Controller, to Calibrate Light ON. Then press B Button 
-        to Calibrate Light OFF. Now light is Calibrated. Press A Button for the
-        controller to wait/detect light by the sensor in the specified port. Once
-        the sensor has detected light, "All done" is printed on the controller.
+        light, you need to first calibrate the light. 
+        The following message is displayed on the controller:
+        
+        "Press B Button to Calibrate Light OFF
+        Press Left Button to Calibrate Light ON
+        Press A Button to Wait..."
+
+        Once you are ready to calibrate the Light ON, press left arrow button on 
+        the controller. The following message is displayed on the controller:
+
+        "Set ON value to xx
+        Press B Button to Calibrate Light OFF
+        Press Left Button to Calibrate Light ON
+        Press A Button to Wait..."
+
+        Once you are ready to calibrate the Light OFF, press B button on 
+        the controller. The following message is displayed on the controller:
+
+        "Set OFF value to xx
+        Press B Button to Calibrate Light OFF
+        Press Left Button to Calibrate Light ON
+        Press A Button to Wait..."
+
+        Now light is Calibrated. Press A Button for the
+        controller to wait/detect light by the sensor in the specified port. 
 
         Attribute: Parameter port is an integer, the port to which the sensor is 
         connected and waiting to see/detect light.
