@@ -11,11 +11,18 @@ package plugins.quorum.Libraries.Robots;
 public class Servo {
     public java.lang.Object $me = null;
     cbccore.motors.Servo s;
+    private int p=0;
     
     public void SetPort(int port)
     {
         s = new cbccore.motors.Servo(port);
         s.enable();
+        p = port;
+    }
+    
+    public int GetPort()
+    {
+       return p;
     }
     
     public void Off()

@@ -14,12 +14,17 @@ import cbccore.Device;
 public class DigitalSensor {
     public java.lang.Object $me = null;
     cbccore.low.Sensor s = null;
-    private int p;
+    private int p=7;
     
     public void SetPort(int port)
     {
         s = new cbccore.low.Sensor();
         p=port;
+    }
+        
+    public int GetPort()
+    {
+        return p;
     }
     
     public int GetValue()

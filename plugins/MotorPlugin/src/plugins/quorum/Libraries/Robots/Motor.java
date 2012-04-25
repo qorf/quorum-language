@@ -13,7 +13,7 @@ public class Motor {
     public java.lang.Object $me = null;
     
     cbccore.motors.Motor m;
-    private int motorPort;
+    private int motorPort = 0;
     private int motorSpeed = 0; 
     
     public void SetPort(int port)

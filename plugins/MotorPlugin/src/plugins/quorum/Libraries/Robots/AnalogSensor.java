@@ -15,12 +15,17 @@ import cbccore.Device;
 public class AnalogSensor {
     public java.lang.Object $me = null;
     cbccore.low.Sensor s = null;
-    private int p;
+    private int p=0;
     
     public void SetPort(int port)
     {
         s = new cbccore.low.Sensor();
         p=port;
+    }
+   
+    public int GetPort()
+    {
+        return p;
     }
     
     public int GetValue()
@@ -33,7 +38,7 @@ public class AnalogSensor {
         return Device.getLowSensorController().analog10(p);
     }
     
-    public void SetToFloat()
+    public void Reset()
     {
         if(p==0)
          Device.getLowSensorController().set_each_analog_state(1,0,0,0,0,0,0,0);
@@ -53,7 +58,7 @@ public class AnalogSensor {
          Device.getLowSensorController().set_each_analog_state(0,0,0,0,0,0,0,1);
     }  
     
-    public int SonarDistance()
+    public int GetDistance()
     {
         return Device.getLowSensorController().sonar(p);
     }
