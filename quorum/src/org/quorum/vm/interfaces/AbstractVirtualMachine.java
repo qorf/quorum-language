@@ -697,6 +697,21 @@ public abstract class AbstractVirtualMachine {
      */
     public abstract ExecutionStep getNullExecutionStep();
 
+    
+    /**
+     * This method determines whether the debugger should talk.
+     * 
+     * @param isSpeaking 
+     */
+    public abstract void setAuditoryDebugging(boolean isSpeaking);
+    
+    /**
+     * Returns true if the debugger is set to talk.
+     * 
+     * @return 
+     */
+    public abstract boolean getAuditoryDebugging();
+    
     /**
      * Unsteps one piece of execution. Example, a++ becomes a--.
      */

@@ -82,6 +82,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private static final String USE = "use";
     private static final Logger logger = Logger.getLogger(QuorumVirtualMachine.class.getName());
     private String inputExpression = "";
+    private boolean auditoryDebugging = true;
+    
     //private BuildManager buildManager;
 
     public QuorumVirtualMachine() {
@@ -438,6 +440,16 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 //        catch(Exception exception) {
 //            logger.log(Level.INFO, "The Quorum Compiler threw an exception in build(File[]).", exception);
 //        }
+    }
+
+    @Override
+    public void setAuditoryDebugging(boolean isSpeaking) {
+        this.auditoryDebugging = isSpeaking;
+    }
+
+    @Override
+    public boolean getAuditoryDebugging() {
+        return this.auditoryDebugging;
     }
 
     private class Build implements Runnable {

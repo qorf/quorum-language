@@ -25,9 +25,11 @@ public class SodbeansAudioListener implements VirtualMachineListener{
         //for now do nothing, just to test the routing through the architecture
         Action action = map.getAction(event);
         if(action != null) {
-            String message = action.speak();
-            if(message.compareTo("") != 0) { //something needs to be said
-                speech.speak(message, SpeechPriority.MEDIUM);
+            if (event.getVirtualMachine().getAuditoryDebugging()) {
+                String message = action.speak();
+                if(message.compareTo("") != 0) { //something needs to be said
+                    speech.speak(message, SpeechPriority.MEDIUM);
+                }
             }
         }
     }
