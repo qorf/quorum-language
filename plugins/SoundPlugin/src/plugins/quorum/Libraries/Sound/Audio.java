@@ -33,11 +33,12 @@ public class Audio {
     public void PlayNative(String path, boolean block) {
         final String finPath = path;
         if(block) {
+            playThreadShouldRun = true;
             PlayInternal(path);
+            playThreadShouldRun = false;
         }
         else {
             playThread = new Thread(new Runnable() {
-
                 @Override
                 public void run() {
                     playThreadShouldRun = true;
@@ -125,5 +126,7 @@ public class Audio {
      */
     public static void main(String[] args) {
         // TODO code application logic here
+        Audio audio = new Audio();
+        audio.PlayNative("/Users/astefik/Desktop/fart.wav", false);
     }
 }
