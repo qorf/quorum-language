@@ -1,0 +1,62 @@
+package Libraries.Sound
+
+
+use Libraries.System.File
+
+
+class Audio
+
+    File file = undefined
+
+    action Play() 
+        Play(false)
+    end
+
+    action Play(boolean block) 
+        if file = undefined
+            alert("A file must be specified before recording can begin, but file variable in the Audio class was undefined.  Call the SetFile(File file) action before calling Play.")
+        end
+
+
+        text path = file:GetPath()
+        PlayNative(path, block)
+    end
+
+    private system action PlayNative(text path, boolean block)
+
+
+    action StopPlaying
+
+    end
+
+    private system action StopPlayingNative
+
+    action Record()
+        if file = undefined
+            alert("A file must be specified before recording can begin, but file variable in the Audio class was undefined. Call the SetFile(File file) action before calling Record.")
+        end
+    end
+
+    private system action RecordNative(text path)
+
+
+    action StopRecording()
+        StopRecordingNative()
+    end
+
+    private system action StopRecordingNative
+
+    action GetFile() returns File
+        return file
+    end
+
+    action SetFile(File file) 
+        me:file = file
+    end
+
+    action main
+        File file
+        SetFile(file)
+        Play(true)
+    end
+end
