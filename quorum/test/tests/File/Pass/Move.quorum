@@ -5,7 +5,7 @@ class Main
     action Main
         // Create a new directory, rename it, then delete it.
         File newDir
-        newDir:SetRelativePath("test/tests/File/Resources/RenameMe")
+        newDir:SetPath("test/tests/File/Resources/RenameMe")
 
         boolean newDirMade = newDir:CreateDirectory()
 

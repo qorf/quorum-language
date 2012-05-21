@@ -1,5 +1,16 @@
+use Libraries.System.File
+use Libraries.System.DateTime
+
 class Main
     action Main
-        print "Hello, from the CBC!"
+        File f // use current directory
+
+        // Our current directory should have a parent directory.
+        File p = f:GetParentDirectory()
+        boolean hasParent = (p not= undefined)
+
+        rootHasParent = (p not= undefined)
+
+        print hasParent
     end
 end

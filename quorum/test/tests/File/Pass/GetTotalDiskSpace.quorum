@@ -4,10 +4,6 @@ use Libraries.System.DateTime
 class Main
     action Main
         File root
-        root:SetAbsolutePath("/")
-        if not root:Exists()
-            root:SetAbsolutePath("C:\")
-        end
 
         // The capacity of the disk must obviously be greater than zero. This
         // might fail on a windows system where, for some reason, "C" is not

@@ -6,9 +6,8 @@ class Main
         File f // should have the working directory
 
         File f2
-        File workDirF = f2:GetWorkingDirectory()
-        text workDir = workDirF:GetPath()
-        text f1Dir = f:GetPath()
+        text workDir = f:GetWorkingDirectory()
+        text f1Dir = f2:GetWorkingDirectory()
 
         // they should be equal
         boolean validWorkingDir = (workDir = f1Dir and workDir not= "" and f1Dir not= "")

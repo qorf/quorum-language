@@ -4,19 +4,19 @@ use Libraries.System.DateTime
 class Main
     action Main
         File dot
-        dot:SetRelativePath(".")
+        dot:SetPath(".")
         text dotExtension = dot:GetFileExtension() // should be empty string
 
         File relDir
-        relDir:SetRelativePath("./")
+        relDir:SetPath("./")
         text relDirExtension = relDir:GetFileExtension() // should be empty string (as './' is not a file)
 
         File noExt
-        noExt:SetAbsolutePath("/Users/jeff")
+        noExt:SetPath("./Users/jeff")
         text noExtExtension = noExt:GetFileExtension() // should be empty string
 
         File hasExt
-        hasExt:SetAbsolutePath("C:\Program Files\file.ext")
+        hasExt:SetPath("file.ext")
         text hasExtExtension = hasExt:GetFileExtension() // should be "ext"
 
         print dotExtension // 

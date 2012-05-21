@@ -94,7 +94,6 @@ public class FileTester {
             fail();
         
         assert(r.getLine(0).equals("true"));
-        assert(r.getLine(1).equals("false"));
     }
 
     /**
@@ -111,76 +110,8 @@ public class FileTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("."));
-        assert(r.getLine(1).equals("/Users/"));
-    }
-
-    /**
-     * Test of SetPathNative method, of class File.
-     */
-    @Test
-    public void testSetAbsolutePath_pass_bytecode() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "SetAbsolutePath.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-
-        RunResult r = CompilerTestSuite.runQuorumFile();
-        if (!r.isSuccessful())
-            fail();
-        String s = File.separator;
-        assert(r.getLine(0).equals(s + "Users" + s + "jeff"));
-        assert(r.getLine(1).equals("C:" + s + "Program Files" + s));
-        assert(r.getLine(2).equals(s + "home" + s + "jeff" + s + "file.txt"));
-    }
-    
-    /**
-     * Test of SetPathNative method, of class File.
-     */
-    @Test
-    public void testSetAbsolutePath_fail_bytecode() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.FAIL + "SetAbsolutePath.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-
-        RunResult r = CompilerTestSuite.runQuorumFile();
-        if (r.isSuccessful())
-            fail();
-    }
-    
-    /**
-     * Test of SetPathNative method, of class File.
-     */
-    @Test
-    public void testSetRelativePath_pass_bytecode() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "SetRelativePath.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-
-        RunResult r = CompilerTestSuite.runQuorumFile();
-        if (!r.isSuccessful())
-            fail();
-        String s = File.separator;
-        assert(r.getLine(0).equals("." + s + "Users" + s + "jeff"));
-        assert(r.getLine(1).equals("Program Files" + s));
-        assert(r.getLine(2).equals(".." + s + "home" + s + "jeff" + s + "file.txt"));
-    }
-    
-    /**
-     * Test of SetPathNative method, of class File.
-     */
-    @Test
-    public void testSetRelativePath_fail_bytecode() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.FAIL + "SetRelativePath.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-
-        RunResult r = CompilerTestSuite.runQuorumFile();
-        if (r.isSuccessful())
-            fail();
+        assert(r.getLine(0).equals(""));
+        assert(r.getLine(1).equals("jeff"));
     }
 
     /**
@@ -277,9 +208,8 @@ public class FileTester {
             fail();
         
         assert(r.getLine(0).equals("."));
-        assert(r.getLine(1).equals("quorum"));
-        assert(r.getLine(2).equals("file.exe"));
-        assert(r.getLine(3).equals("Programs"));
+        assert(r.getLine(1).equals("file.exe"));
+        assert(r.getLine(2).equals("Program"));
     }
 
     /**
@@ -560,9 +490,8 @@ public class FileTester {
             fail();
         } else {
             boolean hasParent = vm.getDataEnvironment().getVariableValue("hasParent").getResult().boolean_value;
-            boolean rootHasParent = vm.getDataEnvironment().getVariableValue("rootHasParent").getResult().boolean_value;
             
-            assert(hasParent && !rootHasParent);
+            assert(hasParent);
         }
     }
 
@@ -584,92 +513,9 @@ public class FileTester {
             String relativePath = vm.getDataEnvironment().getVariableValue("relativePath").getResult().text;
             String absolutePath = vm.getDataEnvironment().getVariableValue("absolutePath").getResult().text;
             
-            assert(relativePath.equals("."));
-            assert(absolutePath.equals("/Users/"));
+            assert(relativePath.equals(""));
+            assert(absolutePath.equals("jeff"));
         }
-    }
-
-    /**
-     * Test of SetPathNative method, of class File.
-     */
-    @Test
-    public void testSetAbsolutePath_pass_execute() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "SetAbsolutePath.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-
-        vm.blockRun();
-
-        if (vm.getExceptions().hasExceptions()) {
-            fail();
-        } else {
-            String path1 = vm.getDataEnvironment().getVariableValue("path1").getResult().text;
-            String path2 = vm.getDataEnvironment().getVariableValue("path2").getResult().text;
-            String path3 = vm.getDataEnvironment().getVariableValue("path3").getResult().text;
-        
-            String s = File.separator;
-            assert(path1.equals(s + "Users" + s + "jeff"));
-            assert(path2.equals("C:" + s + "Program Files" + s));
-            assert(path3.equals(s + "home" + s + "jeff" + s + "file.txt"));
-        }
-    }
-    
-    /**
-     * Test of SetPathNative method, of class File.
-     */
-    @Test
-    public void testSetAbsolutePath_fail_execute() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.FAIL + "SetAbsolutePath.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-
-        vm.blockRun();
-
-        if (!vm.getExceptions().hasExceptions())
-            fail();
-    }
-    
-    /**
-     * Test of SetPathNative method, of class File.
-     */
-    @Test
-    public void testSetRelativePath_pass_execute() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "SetRelativePath.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-
-        vm.blockRun();
-
-        if (vm.getExceptions().hasExceptions()) {
-            fail();
-        } else {
-            String path1 = vm.getDataEnvironment().getVariableValue("path1").getResult().text;
-            String path2 = vm.getDataEnvironment().getVariableValue("path2").getResult().text;
-            String path3 = vm.getDataEnvironment().getVariableValue("path3").getResult().text;
-            String s = File.separator;
-            assert(path1.equals("." + s + "Users" + s + "jeff"));
-            assert(path2.equals("Program Files" + s));
-            assert(path3.equals(".." + s + "home" + s + "jeff" + s + "file.txt"));
-        }
-    }
-    
-    /**
-     * Test of SetPathNative method, of class File.
-     */
-    @Test
-    public void testSetRelativePath_fail_execute() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.FAIL + "SetRelativePath.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-
-        vm.blockRun();
-
-        if (!vm.getExceptions().hasExceptions())
-            fail();
     }
 
     /**
@@ -782,14 +628,12 @@ public class FileTester {
             fail();
         } else {
             String dotFileName = vm.getDataEnvironment().getVariableValue("dotFileName").getResult().text;
-            String workingDirName = vm.getDataEnvironment().getVariableValue("workingDirName").getResult().text;
             String otherName = vm.getDataEnvironment().getVariableValue("otherName").getResult().text;
             String other2Name = vm.getDataEnvironment().getVariableValue("other2Name").getResult().text;
             
             assert(dotFileName.equals("."));
-            assert(workingDirName.equals("quorum"));
             assert(otherName.equals("file.exe"));
-            assert(other2Name.equals("Programs"));
+            assert(other2Name.equals("Program"));
         }
     }
 

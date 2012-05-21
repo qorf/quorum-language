@@ -4,7 +4,6 @@ use Libraries.System.DateTime
 class Main
     action Main
         File f
-        f:SetRelativePath(".")
         DateTime dt = f:GetLastModifiedDate()
 
         boolean gotDateTime = (dt not= undefined)

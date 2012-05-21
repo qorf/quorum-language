@@ -4,11 +4,11 @@ use Libraries.System.DateTime
 class Main
     action Main
         File f
-        f:SetRelativePath(".")
         text relativePath = f:GetPath()
         print relativePath
 
-        f:SetAbsolutePath("/Users/")
+        f:SetWorkingDirectory("/Users/")
+        f:SetPath("jeff")
         text absolutePath = f:GetPath()
         print absolutePath
     end

@@ -8,21 +8,7 @@ class Main
         // Our current directory should have a parent directory.
         File p = f:GetParentDirectory()
         boolean hasParent = (p not= undefined)
-        boolean rootHasParent = true // will be changed to false below
-
-        // The root of the disk has no parent.
-        File root
-        root:SetAbsolutePath("C:\")
-        if root:Exists()
-            p = root:GetParentDirectory()
-        else
-            root:SetAbsolutePath("/")
-            p = root:GetParentDirectory()
-        end
-
-        rootHasParent = (p not= undefined)
 
         print hasParent
-        print rootHasParent
     end
 end

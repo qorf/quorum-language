@@ -9,6 +9,8 @@ use Libraries.System.Path
 use Libraries.System.FileReader
 use Libraries.System.FileWriter
 use Libraries.System.FileRandomAccess
+use Libraries.Language.Errors.FileNotFoundError
+
 use Libraries.System.DateTime
 
 /*
@@ -118,6 +120,19 @@ class File
     private system action GetWorkingDirectoryNative returns text
 
     /*
+     * Set the working directory for this File object. True is returned if
+     * the new working directory corresponds to an existing directory on
+     * the system.
+     */
+    private system action SetWorkingDirectoryNative(text path) returns boolean
+
+    /*
+     * Compute the absolute path represented by this File object on the native
+     * side.
+     */
+    private system action GetAbsolutePathNative returns text
+    
+    /*
         This action returns the "working directory" of our program. The
         "working directory" is the directory our program looks in by default
         when looking for files that aren't specified by an absolute path. For
@@ -125,7 +140,7 @@ class File
         refer to a file named "dictionary.txt" in our working directory. By
         default, the working directory is the directory where the program is
         stored.
-     
+        TODO: Update
         Attribute: Returns The directory our application is working in.
      
         Attribute: Example
@@ -135,12 +150,17 @@ class File
         File dir = myFileObject:GetWorkingDirectory()
         print "The working directory of this program is " + dir:GetPath()
      */
-    action GetWorkingDirectory() returns File
-        text path = GetWorkingDirectoryNative()
-        File f
-        f:SetAbsolutePath(path)
+    action GetWorkingDirectory() returns text
+        return GetWorkingDirectoryNative()
+    end
 
-        return f
+    action SetWorkingDirectory(text path)
+        boolean result = SetWorkingDirectoryNative(path)
+        if not result
+            FileNotFoundError e
+            e:SetErrorMessage("The working directory specified does not exist, or does not correspond to a directory: " + path)
+            alert(e)
+        end
     end
 
     /*
@@ -170,12 +190,16 @@ class File
         return GetPathNative()
     end
 
+    action GetAbsolutePath returns text
+        return GetAbsolutePathNative()
+    end
+
     /*
         Set the path this File represents from a given Path object. For more
         information on the Path object, see the Path documentation. In most
         cases, it is preferable to use the SetAbsolutePath() or SetRelativePath()
         actions.
-
+        TODO:FIX
         Attribute: Parameter path The path object to get the relative or absolute path from.
 
         Attribute: Example
@@ -189,103 +213,8 @@ class File
         programFilesDir:SetPath(p)
         print "Is it a directory? " + programFilesDir:IsDirectory() // on Windows systems, prints "Is it a directory? true"
      */
-    action SetPath(Path path)
-        SetPathNative(path:GetPath())
-    end
-
-    /*
-        Set the absolute path this file represents. A path is a string that represents
-        where a file exists on the hard drive. An absolute path tells the system
-        exactly where a file lives, relative to no other path. For example, the
-        path
-        
-        C:\Windows\System32
-
-        is an absolute path, as is,
-
-        /Users/jeff
-
-        because the system will begin looking at the top of the hard disk in
-        both cases. If you wish to open a file in the current directory, or
-        in a path relative to the current directory, see SetRelativePath().
-
-        Attribute: Parameter path The absolute path to use. Must be absolute; if it is not,
-        an InvalidPathError will be raised.
-
-        Attribute: Example
-        use Libraries.System.File
-
-        // Construct a File object to refer to the Windows directory.
-        File winDir
-        winDir:SetAbsolutePath("C:\Windows")
-        print "Is C:\Windows a directory? " + winDir:IsDirectory() // On Windows, prints "Is C:\Windows a directory? true"
-
-        // Construct a File object to refer to the root of the hard disk on Unix or Mac OS X.
-        File rootDir
-        rootDir:SetAbsolutePath("/")
-        print "Is '/' a directory? " + rootDir:IsDirectory() // on Unix and Mac OS X, prints "Is '/' a directory? true"
-     */
-    action SetAbsolutePath(text path)
-        // Use the Path class to fix up the path and let us know if it's wrong.
-        Path p
-        p:SetAbsolutePath(path)
-
-        SetPathNative(p:GetPath())
-    end
-    
-    /*
-        Set the relative path this file represents. A path is a string that represents
-        where a file exists on teh hard drive. A relative path tells the system where
-        a file lives in relation to another location. Most commonly, this is in relation
-        to the working directory, which in most cases, is the directory where our program
-        lives. For example, the path
-
-        hello.txt
-
-        is a relative path, as is
-
-        images/separator.png
-
-        However, paths such as the following, are not relative:
-
-        C:\Windows
-
-        or
-
-        /images/separator.png
-
-        In the case of the latter path, notice the prefixed '/' symbol.
-
-        When using these relative paths, the operating system will look in the working
-        directory for these files. For example, if our working directory is
-        "C:\Users\jeff\My Documents", then Quorum will look for hello.txt in
-        'My documents'. Similarly, it will look for a file called 'separator.png' under an 'images' directory in
-        'My Documents'.
-
-        Attribute: Parameter path The relative path to use. Must be relative; if it is not,
-        an InvalidPathError will be raised.
-
-        Attribute: Example
-        use Libraries.System.File
-
-        // Construct a File object to refer to a file in our working directory
-        // called 'dictionary.txt'.
-        File dictFile
-        dictFile:SetRelativePath("dictionary.txt")
-        print "Does dictionary.txt exist in our directory? " + dictFile:Exists()
-
-        // Construct a File object to refer to a file in an 'images' folder under our
-        working directory called 'foo.png'.
-        File fooFile
-        fooFile:SetRelativePath("images/foo.png")
-        print "Does images/foo.png exist in our directory? " + fooFile:Exists()
-     */
-    action SetRelativePath(text path)
-        // Use the Path class to fix up the path and let us know if it's wrong.
-        Path p
-        p:SetRelativePath(path)
-
-        SetPathNative(p:GetPath())
+    action SetPath(text path)
+        SetPathNative(path)
     end
 
     /*
@@ -472,7 +401,7 @@ class File
         end
 
         File parentFile
-        parentFile:SetAbsolutePath(parentPath)
+        parentFile:SetWorkingDirectory(parentPath)
         return parentFile
     end
 
@@ -564,6 +493,7 @@ class File
         print items:Get(0) 
      */
     action GetDirectoryListing returns Indexed<File>
+        //// BROKEN - FIX ME ////
         if me:IsDirectory()
             Text listingString
             listingString:SetValue(GetDirectoryListingNative())
@@ -581,7 +511,8 @@ class File
             repeat while i:HasNext()
                 text p = i:Next()
                 File fileToAdd
-                fileToAdd:SetAbsolutePath(p)
+                fileToAdd:SetWorkingDirectory(me:GetWorkingDirectory())
+                fileToAdd:SetPath(p) // TODO
                 files:Add(fileToAdd)
             end
 

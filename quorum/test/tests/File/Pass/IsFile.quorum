@@ -10,7 +10,7 @@ class Main
         
         // Find "RunResult.java" in the test suite; it's a file.
         File runResult
-        runResult:SetRelativePath("test/org/quorum/execution/RunResult.java")
+        runResult:SetPath("test/org/quorum/execution/RunResult.java")
         boolean runResultIsFile = runResult:IsFile()
 
         print workingDirIsFile

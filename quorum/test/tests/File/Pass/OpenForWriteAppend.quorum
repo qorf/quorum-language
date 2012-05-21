@@ -6,7 +6,7 @@ use Libraries.System.Blueprints.FileRandomAccessBlueprint
 class Main
     action Main
         File f
-        f:SetRelativePath("test/tests/File/Resources/OpenForWrite.tmp")
+        f:SetPath("test/tests/File/Resources/OpenForWrite.tmp")
         
         FileWriterBlueprint w = f:OpenForWrite()
         w:Write("hello world")
