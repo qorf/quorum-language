@@ -36,12 +36,29 @@ public class File {
         return inst.GetPathNative();
     }
     
+    /**
+     * Get the absolute path of this File object.
+     * @return 
+     */
+    public String getAbsolutePathNative() {
+        return inst.getAbsolutePathNative();
+    }
+    
     public void SetPathNative(String newPath) {
         inst.SetPathNative(newPath);
     }
     
     public String GetWorkingDirectoryNative() {
         return inst.GetWorkingDirectoryNative();
+    }
+    
+    /**
+     * Set the user's current working directory.
+     * @param path
+     * @return false if the path does not exist or does not refer to a directory.
+     */
+    public boolean SetWorkingDirectoryNative(String path) {
+        return inst.SetWorkingDirectoryNative(path);
     }
     
     public String GetSystemNewline() {

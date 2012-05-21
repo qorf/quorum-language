@@ -20,7 +20,13 @@ public class QuorumFile {
      * the application's working directory.
      */
     protected String path = null;
-
+    
+    /**
+     * The working directory this instance of File is using to resolve relative
+     * paths. This path always represents an existing directory.
+     */
+    protected String workingDirectory = System.getProperty("user.dir");
+    
     /*
      * The "File" object we are representing here on the Java side.
      */
@@ -31,7 +37,7 @@ public class QuorumFile {
      */
     public QuorumFile() {
         file = new File(System.getProperty("user.dir"));
-        path = file.getPath();
+        path = "";
     }
     
     /*
@@ -90,16 +96,41 @@ public class QuorumFile {
      */
     public void SetPathNative(String path) {
         this.path = path;
-        this.file = new File(path);
+        this.file = new File(workingDirectory, path);
+    }
+    
+    /**
+     * Get the absolute path of this File object.
+     * @return 
+     */
+    public String getAbsolutePathNative() {
+        return this.file.getAbsolutePath();
     }
     
     /*
      * Get the user's current working directory.
      */
     public String GetWorkingDirectoryNative() {
-        return System.getProperty("user.dir");
+        return workingDirectory;
     }
     
+    /**
+     * Set the user's current working directory.
+     * @param path
+     * @return false if the path does not exist or does not refer to a directory.
+     */
+    public boolean SetWorkingDirectoryNative(String path) {
+        File f = new File(path);
+        
+        if (!f.exists() || !f.isDirectory()) {
+            return false;
+        }
+        
+        this.workingDirectory = path;
+        
+        return true;
+    }
+   
     /*
      * This action gets the system's newline character. This varies from
      * platform to platform and is difficult to detect manually. On some
