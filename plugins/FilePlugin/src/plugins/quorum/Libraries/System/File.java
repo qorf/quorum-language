@@ -40,7 +40,7 @@ public class File {
      * Get the absolute path of this File object.
      * @return 
      */
-    public String getAbsolutePathNative() {
+    public String GetAbsolutePathNative() {
         return inst.getAbsolutePathNative();
     }
     
