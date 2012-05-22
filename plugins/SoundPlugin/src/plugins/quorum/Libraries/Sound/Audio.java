@@ -189,17 +189,17 @@ public class Audio {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        Audio audio = new Audio();
+        //Audio audio = new Audio();
         //audio.PlayNative("/Users/astefik/Desktop/fart.wav", false);
         
         
-        audio.RecordNative("/Users/astefik/Desktop/test_record.wav");
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        audio.StopRecordingNative();
+//        audio.RecordNative("/Users/astefik/Desktop/test_record.wav");
+//        try {
+//            Thread.sleep(5000);
+//        } catch (InterruptedException ex) {
+//            Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//        
+//        audio.StopRecordingNative();
     }
 }
