@@ -4,7 +4,7 @@ use Libraries.System.FileRandomAccess
 class Main
     action Main
         File f
-        f:SetRelativePath("test/tests/FileReader/Resources/mixReads")
+        f:SetPath("test/tests/FileReader/Resources/mixReads")
         FileRandomAccess r
         r:OpenForRandomAccess(f)
         r:Read()

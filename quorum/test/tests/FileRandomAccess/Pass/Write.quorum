@@ -7,7 +7,7 @@ class Main
         text textToWrite = "abcdefgh"
         // Write a new file, read its contents and quit.
         File f
-        f:SetRelativePath("test/tests/FileRandomAccess/Resources/newFile")
+        f:SetPath("test/tests/FileRandomAccess/Resources/newFile")
         FileRandomAccess w
         w:OpenForRandomAccess(f)
         
