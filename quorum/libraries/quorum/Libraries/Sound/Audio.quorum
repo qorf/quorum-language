@@ -3,11 +3,59 @@ package Libraries.Sound
 
 use Libraries.System.File
 
+/*
+The Audio class provides basic functionality for both playing and recording
+sound files on the system. 
 
+
+Attribute: Example
+
+use Libraries.Sound.Audio
+use Libraries.System.File
+
+//first create audio and File objects
+Audio audio
+File file
+
+//set the path to the file you want to play back
+//in this case, test.wav should be replaced with your file.
+file:SetPath("test.wav")
+
+//tell the audio playback library what file you want to play
+audio:SetFile(file)
+
+//playback the file. By default, this is a non-blocking call.
+audio:Play()
+
+*/
 class Audio
 
     File file = undefined
 
+    /*
+    The Play action plays a sound file.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+    use Libraries.System.File
+
+    //first create audio and File objects
+    Audio audio
+    File file
+
+    //set the path to the file you want to play back
+    //in this case, test.wav should be replaced with your file.
+    file:SetPath("test.wav")
+
+    //tell the audio playback library what file you want to play
+    audio:SetFile(file)
+
+    //playback the file. By default, this is a non-blocking call.
+    audio:Play()
+
+    */
     action Play() 
         Play(false)
     end
@@ -18,7 +66,7 @@ class Audio
         end
 
 
-        text path = file:GetPath()
+        text path = file:GetAbsolutePath()
         PlayNative(path, block)
     end
 
@@ -35,6 +83,9 @@ class Audio
         if file = undefined
             alert("A file must be specified before recording can begin, but file variable in the Audio class was undefined. Call the SetFile(File file) action before calling Record.")
         end
+
+        text path = file:GetAbsolutePath()
+        RecordNative(path)
     end
 
     private system action RecordNative(text path)
