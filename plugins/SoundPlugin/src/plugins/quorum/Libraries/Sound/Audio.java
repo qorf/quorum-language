@@ -189,8 +189,8 @@ public class Audio {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        //Audio audio = new Audio();
-        //audio.PlayNative("/Users/astefik/Desktop/fart.wav", false);
+        Audio audio = new Audio();
+        audio.PlayNative("/Users/astefik/Desktop/fart.wav", false);
         
         
 //        audio.RecordNative("/Users/astefik/Desktop/test_record.wav");
