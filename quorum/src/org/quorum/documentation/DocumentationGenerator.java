@@ -5,11 +5,13 @@
 
 package org.quorum.documentation;
 
+import org.quorum.symbols.ClassDescriptor;
+
 /**
  *
  * @author stefika
  */
 public interface DocumentationGenerator {
-    public String generate();
+    public String generate(ClassDescriptor clazz);
     public DocumentationStyle getDocumentationStyle();
 }

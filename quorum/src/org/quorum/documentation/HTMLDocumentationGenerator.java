@@ -2,19 +2,29 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package org.quorum.documentation;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import org.quorum.symbols.*;
+import org.quorum.symbols.AccessModifierEnum;
+import org.quorum.symbols.BlueprintDescriptor;
+import org.quorum.symbols.ClassDescriptor;
+import org.quorum.symbols.DescriptorComparator;
+import org.quorum.symbols.Documentation;
+import org.quorum.symbols.GenericDescriptor;
+import org.quorum.symbols.MethodDescriptor;
+import org.quorum.symbols.ParameterDescriptor;
+import org.quorum.symbols.Parameters;
+import org.quorum.symbols.SystemActionDescriptor;
+import org.quorum.symbols.TypeDescriptor;
+import org.quorum.symbols.VariableDescriptor;
 
 /**
  *
- * @author stefika
+ * @author astefik
  */
-public class TracWikiDocumentationGenerator implements DocumentationGenerator {
+public class HTMLDocumentationGenerator implements DocumentationGenerator{
 
     @Override
     public String generate(ClassDescriptor clazz) {
@@ -473,10 +483,10 @@ public class TracWikiDocumentationGenerator implements DocumentationGenerator {
 
         return result;
     }
-    
+
+    @Override
     public DocumentationStyle getDocumentationStyle() {
-        return DocumentationStyle.TRAC_WIKI;
+        return DocumentationStyle.HTML;
     }
-
-
+    
 }

@@ -78,7 +78,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private IntermediateExecutionBuilder builder;
     private HashMap<String, QuorumFile> parseHash;
     private CompilerErrorManager compilerErrors;
-    private DocumentationGenerator documentor = DocumentationStyle.getDocumentationGenerator(DocumentationStyle.TRAC_WIKI);
+    private DocumentationGenerator documentor = DocumentationStyle.getDocumentationGenerator(DocumentationStyle.HTML);
     private static final String USE = "use";
     private static final Logger logger = Logger.getLogger(QuorumVirtualMachine.class.getName());
     private String inputExpression = "";
