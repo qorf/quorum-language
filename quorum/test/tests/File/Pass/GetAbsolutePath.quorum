@@ -1,0 +1,15 @@
+use Libraries.System.File
+use Libraries.System.DateTime
+
+class Main
+    action Main
+        File f
+        text workingDir = f:GetAbsolutePath()
+        print workingDir // should not be empty
+
+        f:SetWorkingDirectory("/Users/")
+        f:SetPath("jeff")
+        text absolutePath = f:GetAbsolutePath()
+        print absolutePath // /Users/jeff
+    end
+end

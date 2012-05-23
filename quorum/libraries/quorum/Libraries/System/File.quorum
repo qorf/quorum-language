@@ -133,6 +133,12 @@ class File
     private system action GetAbsolutePathNative returns text
     
     /*
+     * Used for constructing new File objects in GetDirectoryListing.
+     */
+    private system action GetWorkingDirectoryFromPath(text path) returns text
+    private system action GetPathFromPath(text path) returns text
+
+    /*
         This action returns the "working directory" of our program. The
         "working directory" is the directory our program looks in by default
         when looking for files that aren't specified by an absolute path. For
@@ -511,8 +517,10 @@ class File
             repeat while i:HasNext()
                 text p = i:Next()
                 File fileToAdd
-                fileToAdd:SetWorkingDirectory(me:GetWorkingDirectory())
-                fileToAdd:SetPath(p) // TODO
+                text workingDirectory = GetWorkingDirectoryFromPath(p)
+                text path = GetPathFromPath(p)
+                fileToAdd:SetWorkingDirectory(workingDirectory)
+                fileToAdd:SetPath(path)
                 files:Add(fileToAdd)
             end
 

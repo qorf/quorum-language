@@ -34,6 +34,8 @@ public class FilePlugin implements Plugin {
     public static final String GET_SYSTEM_NEWLINE = "GetSystemNewline";
     public static final String SET_PATH_NATIVE = "SetPathNative:text";
     public static final String GET_WORKING_DIRECTORY_NATIVE = "GetWorkingDirectoryNative";
+    public static final String GET_WORKING_DIRECTORY_FROM_PATH = "GetWorkingDirectoryFromPath:text";
+    public static final String GET_PATH_FROM_PATH = "GetPathFromPath:text";
     public static final String EXISTS = "Exists";
     public static final String IS_FILE = "IsFile";
     public static final String IS_DIRECTORY = "IsDirectory";
@@ -131,6 +133,14 @@ public class FilePlugin implements Plugin {
         }
         else if (action.equals(GET_WORKING_DIRECTORY_NATIVE)) {
             setPluginReturnValue(ret, inst.GetWorkingDirectoryNative());
+        }
+        else if (action.equals(GET_WORKING_DIRECTORY_FROM_PATH)) {
+            String path = call.getArgument("path").getResult().text;
+            setPluginReturnValue(ret, inst.GetWorkingDirectoryFromPath(path));
+        }
+        else if (action.equals(GET_PATH_FROM_PATH)) {
+            String path = call.getArgument("path").getResult().text;
+            setPluginReturnValue(ret, inst.GetPathFromPath(path));
         }
         else if (action.equals(IS_FILE)) {
             setPluginReturnValue(ret, inst.IsFile());

@@ -115,6 +115,24 @@ public class FileTester {
     }
 
     /**
+     * Test of GetPathNative method, of class File.
+     */
+    @Test
+    public void testGetAbsolutePath_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "GetAbsolutePath.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(!r.getLine(0).isEmpty());
+        assert(r.getLine(1).equals("/Users/jeff"));
+    }
+    
+    /**
      * Test of GetWorkingDirectoryNative method, of class File.
      */
     @Test
@@ -518,6 +536,29 @@ public class FileTester {
         }
     }
 
+    /**
+     * Test of GetPathNative method, of class File.
+     */
+    @Test
+    public void testGetAbsolutePath_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILE + CompilerTestSuite.PASS + "GetAbsolutePath.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } else {
+            String exactPath = vm.getDataEnvironment().getVariableValue("exactPath").getResult().text;
+            String absolutePath = vm.getDataEnvironment().getVariableValue("absolutePath").getResult().text;
+            
+            assert(!exactPath.isEmpty());
+            assert(absolutePath.equals("/Users/jeff"));
+        }
+    }
+    
     /**
      * Test of GetWorkingDirectoryNative method, of class File.
      */
