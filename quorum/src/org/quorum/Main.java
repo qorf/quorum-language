@@ -5,6 +5,10 @@
 package org.quorum;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
@@ -13,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.quorum.plugins.DefaultPluginLoader;
 import org.quorum.vm.implementation.QuorumClassLoader;
+import org.quorum.vm.implementation.QuorumJarGenerator;
 import org.quorum.vm.implementation.QuorumStandardLibrary;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
 import org.quorum.vm.interfaces.CodeGenerator;
@@ -302,6 +307,17 @@ public class Main {
                     System.out.print("Generating documentation...");
                     vm.generateAllDocumentation(files);
                     System.out.println(" done.");
+                    
+                    //copy over the CSS file
+                    File css = new File(root.getAbsolutePath() + "/libraries/style.css");
+                    File destination = new File(documentation.getAbsolutePath() + "/style.css");
+                    try {
+                        QuorumJarGenerator gen = new QuorumJarGenerator();
+                        gen.copyFile(css, destination);
+                    } catch (IOException ex) {
+                        Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    
                     System.out.println("Documentation placed in the folder: " + documentation.getAbsolutePath());
                 }
                 else if (isInterpret) {

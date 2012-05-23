@@ -45,11 +45,15 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         root = "";
         ContainerDescriptor con = clazz.getContainer();
         String container = con.getContainer();
-        String[] split = container.replace('.', '/').split("/");
-        
-        for(int i = 0; i < split.length - 1; i++) {
-            root += "../";
+        if(container.length() == 0) {
+           root = ""; //the root is the current folder
+        } else {
+            String[] split = container.replace('.', '/').split("/");
+            for(int i = 0; i < split.length; i++) {
+                root += "../";
+            }
         }
+        int a = 5;
     }
     
     /**
@@ -62,10 +66,12 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     private String generatePathToClass(ClassDescriptor clazz) {
         ContainerDescriptor con = clazz.getContainer();
         String container = con.getContainer();
+        if(container.startsWith(".")) {
+            container = container.substring(1);
+        }
         String[] split = container.replace('.', '/').split("/");
-        
         String path = root;
-        for(int i = 1; i < split.length; i++) {
+        for(int i = 0; i < split.length; i++) {
             path += split[i] + "/";
         }
         return path + clazz.getName() + "." + this.getFileExtension();
@@ -73,19 +79,20 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     
     @Override
     public String generate(ClassDescriptor clazz) {
+        computeRelativeRoot(clazz);
         String result = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n";
         result += "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n";
         result += "<head>";
-        result += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";
-        
+        result += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";        
         String key = clazz.getStaticKey();
-        result += "<title>" + key + "</title>";
+        result += "<title>" + key + "</title>\n";
+        result += "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + root + "style.css\"></link>";
         result += "</head>\n";
         result += "<body>\n";
         
         result += headingSurround(key, 1) + "\n";
 
-        computeRelativeRoot(clazz);
+        
         //get the class's name in wiki format
         String className = clazz.getName();
 
@@ -238,7 +245,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     }
     
     private String code(String string) {
-        return "<pre>" + string + "</pre>";
+        return "<pre class=\"code\">" + string + "</pre>";
     }
     
     private String link(String link, String text) {
@@ -563,15 +570,11 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
      */
     public String headingSurround(String input, int level) {
         String result = "";
-
         String wiki = "";
         for(int i = 0; i < level; i++) {
             wiki += "=";
         }
-
         result = "<h" + level + "> " + input + "</h" + level + "> ";
-
-
         return result;
     }
 
