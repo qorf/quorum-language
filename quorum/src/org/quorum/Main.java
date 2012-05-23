@@ -223,7 +223,7 @@ public class Main {
         File phonemicJNI = new File(dependencies.getAbsolutePath() +
                 "/jni");
         
-        File documentation = new File("./" + DOCUMENTATION_DIRECTORY + "/");
+        File documentation = new File(DOCUMENTATION_DIRECTORY + "/");
         
         if(!build.isDirectory()) {
             build.mkdir();
@@ -273,13 +273,13 @@ public class Main {
             vm.setMain(files[0].getAbsolutePath());
             //build
             
-            // If compling, let the user know we're building.
-            if (!isInterpret && !isDocumentation) {
+            // If compling or documenting, let the user know we're building.
+            if (!isInterpret) {
                 System.out.print("\nBuilding files...");
                 vm.build(files, true);
                 System.out.println(" done.");
-            }
-            else if (!isDocumentation) {
+            } //but if we're interpreting, don't bother the user
+            else {
                 vm.build(files, true);
             }
             
@@ -302,6 +302,7 @@ public class Main {
                     System.out.print("Generating documentation...");
                     vm.generateAllDocumentation(files);
                     System.out.println(" done.");
+                    System.out.println("Documentation placed in the folder: " + documentation.getAbsolutePath());
                 }
                 else if (isInterpret) {
                     // Generate code without dumping to disk.

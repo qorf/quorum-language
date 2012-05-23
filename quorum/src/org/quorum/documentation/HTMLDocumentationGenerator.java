@@ -261,6 +261,11 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         res.numParents = documentThese.size();
         return res;
     }
+
+    @Override
+    public String getFileExtension() {
+        return "html";
+    }
     
     private class ParentResult {
         public int numParents = 0;

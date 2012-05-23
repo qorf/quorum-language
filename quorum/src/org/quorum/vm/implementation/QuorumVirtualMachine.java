@@ -153,16 +153,15 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     }
 
     public boolean generateAllDocumentation(File[] files) {
-        TracWikiDocumentationGenerator doc = new TracWikiDocumentationGenerator();
-        this.build(files);
         Iterator<ContainerExecution> containers = this.builder.getContainers();
+        
         while (containers.hasNext()) {
             ContainerExecution containerExec = containers.next();
             Iterator<ClassExecution> classes = containerExec.getClasses();
             while (classes.hasNext()) {
                 ClassExecution classExec = classes.next();
                 ClassDescriptor clazz = classExec.getClassDescriptor();
-                String result = doc.generate(clazz);
+                String result = documentor.generate(clazz);
                 documentationToFile(clazz, result);
             }
         }
@@ -171,7 +170,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     private void documentationToFile(ClassDescriptor clazz, String string) {
         String root = documentationPath;
-
         String container = clazz.getContainer().getContainer();
         container = container.replace('.', '/');
         String[] split = container.split("/");
@@ -193,7 +191,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
             //write the string to a newly created file, if it does not exist
             try {
-                File result = new File(root + "/" + container + "/" + clazz.getName() + ".wiki");
+                File result = new File(root + "/" + container + "/" + clazz.getName() + "." + documentor.getFileExtension());
                 Writer out = null;
 
                 if (result.isFile()) {
@@ -434,12 +432,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         Build build = new Build();
         build.source = source;
         executionManager.add(build);
-//        try {
-//            buildActual(source);
-//        }
-//        catch(Exception exception) {
-//            logger.log(Level.INFO, "The Quorum Compiler threw an exception in build(File[]).", exception);
-//        }
     }
 
     @Override

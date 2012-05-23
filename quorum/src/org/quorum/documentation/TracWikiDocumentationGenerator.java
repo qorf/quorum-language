@@ -251,6 +251,11 @@ public class TracWikiDocumentationGenerator implements DocumentationGenerator {
         res.numParents = documentThese.size();
         return res;
     }
+
+    @Override
+    public String getFileExtension() {
+        return "wiki";
+    }
     
     private class ParentResult {
         public int numParents = 0;
