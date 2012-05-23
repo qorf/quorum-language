@@ -10,6 +10,7 @@ import java.util.Iterator;
 import org.quorum.symbols.AccessModifierEnum;
 import org.quorum.symbols.BlueprintDescriptor;
 import org.quorum.symbols.ClassDescriptor;
+import org.quorum.symbols.ContainerDescriptor;
 import org.quorum.symbols.DescriptorComparator;
 import org.quorum.symbols.Documentation;
 import org.quorum.symbols.GenericDescriptor;
@@ -26,13 +27,65 @@ import org.quorum.symbols.VariableDescriptor;
  */
 public class HTMLDocumentationGenerator implements DocumentationGenerator{
 
+    /**
+     * This string represents the root directory, by which to compare all links.
+     * For all links, it must be computed, given a class's package
+     * location.
+     * 
+     */
+    private String root = "";
+    
+    /**
+     * This method computes a relative path root. This root is relative to
+     * the package structure in Quorum.
+     * 
+     * @param clazz 
+     */
+    private void computeRelativeRoot(ClassDescriptor clazz) {
+        root = "";
+        ContainerDescriptor con = clazz.getContainer();
+        String container = con.getContainer();
+        String[] split = container.replace('.', '/').split("/");
+        
+        for(int i = 0; i < split.length - 1; i++) {
+            root += "../";
+        }
+    }
+    
+    /**
+     * Given a class in a package X, this method computes a string relative
+     * to the root.
+     * 
+     * @param clazz
+     * @return 
+     */
+    private String generatePathToClass(ClassDescriptor clazz) {
+        ContainerDescriptor con = clazz.getContainer();
+        String container = con.getContainer();
+        String[] split = container.replace('.', '/').split("/");
+        
+        String path = root;
+        for(int i = 1; i < split.length; i++) {
+            path += split[i] + "/";
+        }
+        return path + clazz.getName() + "." + this.getFileExtension();
+    }
+    
     @Override
     public String generate(ClassDescriptor clazz) {
-        String result = "";
+        String result = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n";
+        result += "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n";
+        result += "<head>";
+        result += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";
+        
         String key = clazz.getStaticKey();
-        result += headingSurround(pascalCasePackageChecker(key), 1) + "\n";
+        result += "<title>" + key + "</title>";
+        result += "</head>\n";
+        result += "<body>\n";
+        
+        result += headingSurround(key, 1) + "\n";
 
-
+        computeRelativeRoot(clazz);
         //get the class's name in wiki format
         String className = clazz.getName();
 
@@ -54,11 +107,11 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
 
         if(numTemplateVariables > 0) {
             //handle generics
-            templateString = "<" + templateString + ">";
+            templateString = "&lt;" + templateString + "&gt;";
             className += templateString;
         }
 
-        className = "Class " + this.pascalCaseChecker(className);
+        className = "Class " + className;
         result += headingSurround(className, 2) + "\n";
         //get the class's description in wiki format
         Documentation documentation = clazz.getDocumentation();
@@ -67,11 +120,11 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         if(documentation != null) {
             description = Documentation.breakStringIntoParagraphs(documentation.getDescription());
         }
-        description = "''Description'':\n" + description;
-        result += description + "\n";
+        description = italics("Description") + ":\n" + description;
+        result += paragraph(description) + "\n";
 
         //create the parent initialization wiki
-        String parentsString = "''Inherits from'':\n";
+        String parentsString = italics("Inherits from") + ":\n";
         Iterator<ClassDescriptor> unsortedParents = clazz.getFlattenedListOfParents();
         ArrayList<ClassDescriptor> sortedParents = new ArrayList<ClassDescriptor>();
         while(unsortedParents.hasNext()) {
@@ -81,17 +134,21 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         Collections.sort(sortedParents, compare);
         Iterator<ClassDescriptor> parents = sortedParents.iterator();
         
+        String parentList = "";
         while(parents.hasNext()) {
             ClassDescriptor parent = parents.next();
-            String pStr = " * [wiki:documentation/QuorumStandardLibrary/" + 
-                    parent.getStaticKey().replace('.', '/') + " " + parent.getStaticKey() + "]\n";
-            parentsString += pStr;
+            String parentPath = generatePathToClass(parent);
+            String parentLink = link(parentPath, parent.getStaticKey());
+            String parentListItem = listItem(parentLink) + "\n";
+            parentList += parentListItem;
         }
-
-        result += "\n''Example Code'':\n";
-        result += "{{{\n"
-                + "" + documentation.getExample()
-                + "\n}}}\n\n";
+        
+        parentList = unorderedList(parentList);
+        parentsString += parentList;
+                
+                
+        result += "\n" + italics("Example Code") + ":\n";
+        result += code(documentation.getExample()) + "\n\n";
         
         result += parentsString;
         //add work for any public variables
@@ -162,7 +219,34 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         if(totalParentMethodsNotImplemented > 0) {
             result += pString;
         }
+        
+        result += "</body>\n";
+        result += "</html>";
         return result;
+    }
+    
+    private String paragraph(String string) {
+        return "<p>" + string + "</p>";
+    }
+    
+    private String italics(String string) {
+        return "<i>" + string + "</i>";
+    }
+    
+    private String code(String string) {
+        return "<pre>" + string + "</pre>";
+    }
+    
+    private String link(String link, String text) {
+        return "<a href=" + "\"" + link + "\">" + text + "</a>";
+    }
+    
+    private String unorderedList(String string) {
+        return "<ul>" + string + "</ul>";
+    }
+    
+    private String listItem(String string) {
+        return "<li>" + string + "</li>";
     }
     
     private String getVariableDocumentation(VariableDescriptor variable) {
@@ -483,7 +567,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             wiki += "=";
         }
 
-        result = wiki + " " + input + " " + wiki;
+        result = "<h" + level + "> " + input + "</h" + level + "> ";
 
 
         return result;
