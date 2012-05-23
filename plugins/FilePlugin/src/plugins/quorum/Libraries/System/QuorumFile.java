@@ -19,7 +19,7 @@ public class QuorumFile {
      * The file (or directory) path this object represents. By default, this is
      * the application's working directory.
      */
-    protected String path = null;
+    protected String path = "";
     
     /**
      * The working directory this instance of File is using to resolve relative
@@ -206,5 +206,27 @@ public class QuorumFile {
         }
         
         return false;
+    }
+
+    public String GetWorkingDirectoryFromPath(String path) {
+        File newFile = new File(path);
+        File parent = newFile.getParentFile();
+        
+        if (newFile.isDirectory() && parent == null) {
+            return newFile.getAbsolutePath();
+        } else {
+            return parent.getAbsolutePath();
+        }    
+    }
+
+    public String GetPathFromPath(String path) {
+        File newFile = new File(path);
+        File parent = newFile.getParentFile();
+        
+        if (newFile.isDirectory() && parent == null) {
+            return "";
+        } else {
+            return newFile.getName();
+        }        
     }
 }

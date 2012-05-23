@@ -112,4 +112,12 @@ public class File {
     public boolean Move(String newPath) {
         return inst.Move(newPath);
     }
+    
+    public String GetWorkingDirectoryFromPath(String path) {
+        return inst.GetWorkingDirectoryFromPath(path);
+    }
+    
+    public String GetPathFromPath(String path) {
+        return inst.GetPathFromPath(path);
+    }
 }
