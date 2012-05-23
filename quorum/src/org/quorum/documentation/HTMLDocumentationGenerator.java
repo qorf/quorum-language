@@ -107,7 +107,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
 
         if(numTemplateVariables > 0) {
             //handle generics
-            templateString = "&lt;" + templateString + "&gt;";
+            templateString = getTemplateStartCharacter() + templateString + getTemplateEndCharacter();
             className += templateString;
         }
 
@@ -201,12 +201,12 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             if(method.getAccessModifier() == AccessModifierEnum.PUBLIC) {
                 String methodDocumentation = getMethodDocumentation(method);
                 result += methodDocumentation;
-                result += "\n----\n";
+                //result += "\n----\n";
             }
         }
         //now generate any information relevant from the parents.
         parents = sortedParents.iterator();
-        String pString = "== Inherited Actions ==\n\n";
+        String pString = headingSurround("Inherited Actions",2) + "\n\n";
         int totalParentMethodsNotImplemented = 0;
         while(parents.hasNext()) {
             ClassDescriptor parent = parents.next();
@@ -231,6 +231,10 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     
     private String italics(String string) {
         return "<i>" + string + "</i>";
+    }
+    
+    private String bold(String string) {
+        return "<b>" + string + "</b>";
     }
     
     private String code(String string) {
@@ -263,7 +267,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         }
         
         if(type.hasSubTypes()) {
-            result += "<";
+            result += getTemplateStartCharacter();
             Iterator<GenericDescriptor> subTypes = type.getSubTypes();
             while(subTypes.hasNext()) {
                 GenericDescriptor next = subTypes.next();
@@ -273,10 +277,18 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
                 result += ",";
             }
             result = result.substring(0, result.length() - 1);
-            result += ">";
+            result += getTemplateEndCharacter();
         }
         result = " * " + result + " " + pascalCaseChecker(name);
         return result;
+    }
+    
+    private String getTemplateStartCharacter() {
+        return "&lt;";
+    }
+    
+    private String getTemplateEndCharacter() {
+        return "&gt;";
     }
     
     private String getClassStringAsPath(ClassDescriptor clazz) {
@@ -406,7 +418,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     
     private String getMethodSignature(MethodDescriptor method) {
         String result = "";
-        String name = pascalCaseChecker(method.getName());
+        String name = method.getName();
         String modifier = method.getAccessModifier().toString();
 
         result = "";
@@ -445,23 +457,23 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         result += "" + modifier + methodType + " action " + name +
                 "(" + params + ")";
         
-        String returnType = "";
-        if(method.getReturnType().isVoid()) {
-            returnType = "";
-        }
-        else {
-            boolean templated = method.getReturnType().isTemplated();
-            if(templated) {
-                returnType = pascalCaseChecker(method.getReturnType().getTemplateName());
-            }
-            else {
-                returnType = pascalCasePackageChecker(method.getReturnType().getStaticKey());
-            }
-        }
-        
-        if(!method.getReturnType().isVoid()) {
-            result += " returns " + returnType;
-        }
+        String returnType = getReturnTypeString(method);
+//        if(method.getReturnType().isVoid()) {
+//            returnType = "";
+//        }
+//        else {
+//            boolean templated = method.getReturnType().isTemplated();
+//            if(templated) {
+//                returnType = method.getReturnType().getTemplateName();
+//            }
+//            else {
+//                returnType = method.getReturnType().getStaticKey();
+//            }
+//        }
+//        
+//        if(!method.getReturnType().isVoid()) {
+//            result += " returns " + returnType;
+//        }
         result += "\n\n";
 
         return result;
@@ -485,7 +497,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
 
         Parameters parameters = method.getParameters();
         String params = "";
-        String paramList = "\n''Parameters'':\n\n";
+        String paramList = paragraph(italics("Parameters") + ":");
         for (int i = 0; i < parameters.size(); i++) {
             if( i != 0) {
                 params += ",";
@@ -504,14 +516,60 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
                         + parameters.get(i).getName();
                 }
                 params += currentParam;
-                paramList +=  " '''" + currentParam + "''': ";
-                paramList += Documentation.breakStringIntoParagraphs(method.getDocumentation().getParameter(parameters.get(i).getName()));
+                paramList +=  bold(currentParam) + ": ";
+                String[] docArray = Documentation.breakStringIntoParagraphArray(method.getDocumentation().getParameter(parameters.get(i).getName()));
+                //paramList += Documentation.breakStringIntoParagraphs(method.getDocumentation().getParameter(parameters.get(i).getName()));
+//                for(int j = 0; j < docArray.length; j++) {
+//                    paramList += paragraph(docArray[j]);
+//                }
+//                
+                paramList += breakIntoParagraphs(docArray);
+                
                 paramList += "\n\n";
             }
         }
-        result += "'''" + modifier + methodType + " action " + name +
-                "(" + params + ")";
+        String methodSignature = getMethodSignature(method);
+        result += headingSurround(methodSignature, 3);
         
+        result += "\n\n";
+
+        Documentation documentation = method.getDocumentation();
+        if(documentation != null) {
+            String[] array = Documentation.breakStringIntoParagraphArray(documentation.getDescription());
+            result += breakIntoParagraphs(array);
+            //result += Documentation.breakStringIntoParagraphs(documentation.getDescription()) + "\n";
+        }
+       
+        if(parameters.isEmpty()) {
+            paramList += bold("none");
+        }
+        
+        result += paramList + "\n";
+        result += paragraph(italics("Returns") + ":");
+        
+        
+        
+        
+        result += bold(getReturnTypeString(method)) + ": " + 
+                Documentation.breakStringIntoParagraphs(documentation.getReturns()) + " ";
+        if(!(method instanceof BlueprintDescriptor)) {
+            result += paragraph(italics("Example Code") + ":");
+            result += "\n" + code(documentation.getExample())
+                    + "\n\n";
+        }
+
+        return result;
+    }
+    
+    private String breakIntoParagraphs(String[] array) {
+        String result = "";
+        for(int i = 0; i < array.length; i++) {
+            result += paragraph(array[i]);
+        }
+        return result;
+    }
+
+    private String getReturnTypeString(MethodDescriptor method) {
         String returnType = "";
         if(method.getReturnType().isVoid()) {
             returnType = "none";
@@ -519,46 +577,26 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         else {
             boolean templated = method.getReturnType().isTemplated();
             if(templated) {
-                returnType = pascalCaseChecker(method.getReturnType().getTemplateName());
+                returnType = method.getReturnType().getTemplateName();
             }
             else {
-                returnType = pascalCasePackageChecker(method.getReturnType().getStaticKey());
+                returnType = method.getReturnType().getStaticKey();
             }
         }
         
         if(!method.getReturnType().isVoid()) {
-            result += " returns " + returnType;
+            returnType += " returns " + returnType;
         }
-        
-        result += "'''\n\n";
-
-        Documentation documentation = method.getDocumentation();
-        if(documentation != null) {
-            result += Documentation.breakStringIntoParagraphs(documentation.getDescription()) + "\n";
-        }
-        
-        if(parameters.isEmpty()) {
-            paramList += " '''none'''";
-        }
-        
-        result += paramList + "\n";
-        result += "''Returns'':\n\n";
-        
-        
-        
-        
-        result += " '''" + returnType + "''': " + 
-                Documentation.breakStringIntoParagraphs(documentation.getReturns()) + " ";
-        if(!(method instanceof BlueprintDescriptor)) {
-            result += "\n\n''Example Code'':\n";
-            result += "\n{{{"
-                    + "\n" + documentation.getExample()
-                    + "\n}}}\n";
-        }
-
-        return result;
+        return returnType;
     }
-
+    
+    /**
+     * Creates text in the style of a heading at a particular level.
+     * 
+     * @param input
+     * @param level
+     * @return 
+     */
     public String headingSurround(String input, int level) {
         String result = "";
 
