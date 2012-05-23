@@ -67,6 +67,8 @@ public class Documentation{
                 }
                 else if(attribute.startsWith(EXAMPLE)) {
                     String result = attribute.substring(EXAMPLE.length(), attribute.length());
+                    //break the example by line, trim it, and recombine it
+                    result = formatExample(result);
                     example = result.trim();
                 }
 
@@ -76,6 +78,107 @@ public class Documentation{
             documentationString = value;
 
         }
+    }
+    
+    private String formatExample(String example) {
+        if(example == null || example.length() == 0) {
+            return "";
+        }
+        
+        int indent = 0;
+        
+        String[] split = example.split("\\r?\\n");
+        String result = "";
+        for(int i = 0; i < split.length; i++) {
+            
+            if(split[i].length() > 0) {
+                String trimmed = split[i].trim();
+                int indentPrevious = indent;
+                indent += indentCheck(trimmed);
+                
+                if(indent >= indentPrevious) {
+                    result += computeIndent(indentPrevious) + trimmed + "\n";
+                } else {
+                    result += computeIndent(indent) + trimmed + "\n";
+                }
+                
+            }
+            
+            
+        }
+        return result;
+    }
+    
+    private String computeIndent(int level) {
+        String result = "";
+        final int CHARS_IN_INDENT = 3;
+        for(int i = 0; i < level; i++) {
+            for(int j = 0; j < CHARS_IN_INDENT; j++) {
+                result += " ";
+            }
+        }
+        return result;
+    }
+    
+    public int indentCheck(String string) {
+        String[] split = string.split("\\s+");
+        int indent = 0;
+        
+        boolean check = true;
+        for(int i = 0; i < split.length; i++) {
+            if(isCommentStart(split[i])) {
+                check = false;
+            }
+            
+            if(isCommentEnd(split[i])) {
+                check = true;
+            }
+            
+            if(check) {
+                indent += isIncreaseIndentWord(split[i]);
+            }
+        }
+        return indent;
+    }
+    
+    public boolean isCommentStart(String string) {
+        if(string.contains("//")) {
+            return true;
+        } else if(string.contains("/*")) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    public boolean isCommentEnd(String string) {
+        if(string.contains("*/")) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    public int isIncreaseIndentWord(String string) {
+        if("class".equals(string)) {
+            return 1;
+        } else if ("if".equals(string)) {
+            return 1;
+        } else if ("check".equals(string)) {
+            return 1;
+        } else if ("detect".equals(string)) {
+            return 1;
+        } else if ("always".equals(string)) {
+            return 1;
+        } else if ("repeat".equals(string)) {
+            return 1;
+        } else if ("action".equals(string)) {
+            return 1;
+        } else if ("end".equals(string)) {
+            return -1;
+        }
+        
+        return 0;
     }
     
     public String toString() {

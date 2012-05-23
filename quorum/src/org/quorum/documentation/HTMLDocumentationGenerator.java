@@ -346,13 +346,18 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         DescriptorComparator compare = new DescriptorComparator();
         Collections.sort(documentThese, compare);
         Iterator<MethodDescriptor> iterator = documentThese.iterator();
+        String parentList = "";
         while(iterator.hasNext()) {
             MethodDescriptor method = iterator.next();
-            result += getParentMethodDocumentation(parent, method);
+            parentList += listItem(getParentMethodDocumentation(parent, method));
         }
         
+        parentList = unorderedList(parentList);
+        result += parentList;
+        
         ParentResult res = new ParentResult();
-        res.documentation = "'''From [wiki:Hop/HopStandardLibrary/" + getClassStringAsPath(parent) + "]'''\n\n";
+        String link = link(generatePathToClass(parent), parent.getStaticKey());
+        res.documentation = bold("From ") + link;
         res.documentation += result;
         res.numParents = documentThese.size();
         return res;
@@ -370,7 +375,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     
     private String getParentMethodDocumentation(ClassDescriptor parent, MethodDescriptor method) {
         String result = "";
-        result += " * " + getMethodSignature(method) + "";
+        result = getMethodSignature(method) + "";
         return result;
     } 
     
@@ -422,7 +427,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         String modifier = method.getAccessModifier().toString();
 
         result = "";
-
         String methodType = "";
 
         if(method instanceof BlueprintDescriptor) {
@@ -458,22 +462,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
                 "(" + params + ")";
         
         String returnType = getReturnTypeString(method);
-//        if(method.getReturnType().isVoid()) {
-//            returnType = "";
-//        }
-//        else {
-//            boolean templated = method.getReturnType().isTemplated();
-//            if(templated) {
-//                returnType = method.getReturnType().getTemplateName();
-//            }
-//            else {
-//                returnType = method.getReturnType().getStaticKey();
-//            }
-//        }
-//        
-//        if(!method.getReturnType().isVoid()) {
-//            result += " returns " + returnType;
-//        }
         result += "\n\n";
 
         return result;
@@ -481,20 +469,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
 
     public String getMethodDocumentation(MethodDescriptor method) {
         String result = "";
-        String name = pascalCaseChecker(method.getName());
-        String modifier = method.getAccessModifier().toString();
-
-        result = "";
-
-        String methodType = "";
-
-        if(method instanceof BlueprintDescriptor) {
-            methodType = " blueprint";
-        }
-        else if(method instanceof SystemActionDescriptor) {
-            methodType = " system";
-        }
-
         Parameters parameters = method.getParameters();
         String params = "";
         String paramList = paragraph(italics("Parameters") + ":");
@@ -517,14 +491,8 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
                 }
                 params += currentParam;
                 paramList +=  bold(currentParam) + ": ";
-                String[] docArray = Documentation.breakStringIntoParagraphArray(method.getDocumentation().getParameter(parameters.get(i).getName()));
-                //paramList += Documentation.breakStringIntoParagraphs(method.getDocumentation().getParameter(parameters.get(i).getName()));
-//                for(int j = 0; j < docArray.length; j++) {
-//                    paramList += paragraph(docArray[j]);
-//                }
-//                
+                String[] docArray = Documentation.breakStringIntoParagraphArray(method.getDocumentation().getParameter(parameters.get(i).getName()));//                
                 paramList += breakIntoParagraphs(docArray);
-                
                 paramList += "\n\n";
             }
         }
@@ -537,7 +505,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         if(documentation != null) {
             String[] array = Documentation.breakStringIntoParagraphArray(documentation.getDescription());
             result += breakIntoParagraphs(array);
-            //result += Documentation.breakStringIntoParagraphs(documentation.getDescription()) + "\n";
         }
        
         if(parameters.isEmpty()) {
@@ -546,9 +513,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         
         result += paramList + "\n";
         result += paragraph(italics("Returns") + ":");
-        
-        
-        
         
         result += bold(getReturnTypeString(method)) + ": " + 
                 Documentation.breakStringIntoParagraphs(documentation.getReturns()) + " ";
