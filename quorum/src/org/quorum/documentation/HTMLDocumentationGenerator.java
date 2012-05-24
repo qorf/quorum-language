@@ -207,7 +207,10 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             MethodDescriptor method = sortedMethods.next();
             if(method.getAccessModifier() == AccessModifierEnum.PUBLIC) {
                 String methodDocumentation = getMethodDocumentation(method);
+                result += "<div class=\"action\">";
                 result += methodDocumentation;
+                result += "</div>";
+                result += "<p></p>";
                 //result += "\n----\n";
             }
         }
@@ -504,7 +507,9 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             }
         }
         String methodSignature = getMethodSignature(method);
+        result += "<div class=\"action_title\">";
         result += headingSurround(methodSignature, 3);
+        result += "</div>";
         
         result += "\n\n";
 
