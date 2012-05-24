@@ -110,7 +110,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
         ra:Close()
      */
     action OpenForRandomAccess(File file)
-        OpenForRandomAccessNative(file:GetPath())
+        OpenForRandomAccessNative(file:GetAbsolutePath())
     end
 
     /*

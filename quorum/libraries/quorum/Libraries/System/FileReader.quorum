@@ -134,7 +134,7 @@ class FileReader is a FileReaderBlueprint
         reader:Close()
      */
     action OpenForRead(File file)
-        OpenForReadNative(file:GetPath())
+        OpenForReadNative(file:GetAbsolutePath())
     end
 
     /*

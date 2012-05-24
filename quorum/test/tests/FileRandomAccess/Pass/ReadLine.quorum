@@ -17,7 +17,7 @@ class Main
         r:Close()
 
         // now multi-line file
-        f:Setath("test/tests/FileReader/Resources/multipleLines")
+        f:SetPath("test/tests/FileReader/Resources/multipleLines")
         r:OpenForRandomAccess(f)
         text multiLine = r:ReadLine()
         text multiLine2 = r:ReadLine()
