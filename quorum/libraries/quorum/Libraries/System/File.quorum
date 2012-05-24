@@ -25,18 +25,11 @@ see the FileReader, FileWriter and FileRandomAccess classes.
 Upon creation of a File instance, the File object refers to the program's working
 directory. The "working directory" of a program is the directory in which a program
 looks for files. The path that the File instance refers to can be changed using
-the SetAbsolutePath(), SetRelativePath() and SetPath() actions.
-
-The SetRelativePath() action should be used when we wish to refer to a file
-in, or close to, the same directory as our application. For example, if the
-file I wish to open is in the current directory and named test.txt,
-I might call SetRelativePath("test.txt").
-
-The SetAbsolutePath() action should be used when we wish to refer to a file
-that is in an exact location. For example, if I were on Windows, and I wanted
-to refer to the "Program Files" folder, I might call SetAbsolutePath("C:\Program Files").
-On Linux systems, if I wanted to refer to the home directory of all users, I might
-call SetAbsolutePath("/home").
+two actions: SetWorkingDirectory and SetPath. The File class only permits setting
+paths in a relative manner. Paths are relative to the working directory of the
+given instance of File, which may be changed using the SetWorkingDirectory
+action. The working directory must be an absolute path and must refer to a
+directory. See the examples below for common use cases of File.
 
 Attribute: Author Jeff Wilson
 Attribute: Example
@@ -45,26 +38,36 @@ use Libraries.System.File
 class Main
     action main
         // Read the contents of a file and print them to the screen.
+        // This file is in our program's directory.
         File inputFile
-        inputFile:SetRelativePath("hello.txt")
+        inputFile:SetPath("hello.txt")
         print inputFile:Read() // read and print all contents to screen.
         
-
         // Write text to a file, erasing all old contents.
+        // This file is located in the C:\Windows folder.
         File outputFile
-        outputFile:SetRelativePath("new_file.txt")
+        outputFile:SetWorkingDirectory("C:\Windows")
+        outputFile:SetPath("secret_file.txt")
         outputFile:Write("hello there. this is a new file.")
         
-        // Print the working directory of our program. This is, by default,
+        // Print the working directory of a new File instance. This is, by default,
         // the folder in which our program is stored, i.e.
         // C:\Users\jeff\My Documents\NetBeansProjects\TestProject
         File newFile
-        print newFile:GetPath() // the default path is the working directory.
         print newFile:GetWorkingDirectory() // this action always returns the working directory.
+
+        // To get the paths a particular File instance refers to, we use the
+        // GetPath() and GetAbsolutePath() actions.
+        File someFile
+        someFile:SetWorkingDirectory("C:\Users\jeff")
+        someFile:SetPath("settings.txt")
+        print someFile:GetPath() // prints settings.txt.
+        print someFile:GetAbsolutePath() // prints C:\Users\jeff\settings.txt
+        print someFile:GetWorkingDirectory() // prints C:\Users\jeff
 
         // Find out if this file is a directory or not.
         File mysteryFile
-        mysteryFile:SetRelativePath("images") // assuming a file or directory exists in our working directory called 'images'.
+        mysteryFile:SetPath("images") // assuming a file or directory exists in our working directory called 'images'.
         print "The mystery file object is a file: " + mysteryFile:IsFile()
         print "The mystery file object is a directory: " + mysteryFile:IsDirectory()
     end
@@ -171,52 +174,66 @@ class File
 
     /*
         Get the path associated with this File object. If a File class
-        is instantiated and none of the actions SetPath, SetAbsolutePath
-        or SetRelativePath are called, then this will return the working
-        directory of the application (see GetWorkingDirectory() for a discussion
-        on working directories). Otherwise, it will return the relative or
-        absolute path this file represents.
+        is instantiated and the action SetPath
+        has been called, then this will return an empty string. Otherwise, it
+        will return the relative path set for this File instance. (Relative to
+        the current working directory).
 
-        Attribute: Returns the path this file represents, or the working directory.
+        Attribute: Returns the path this file represents, or an empty string.
 
         Attribute: Example
         use Libraries.System.File
 
-        // Set an absolute path, and get it back.
-        File absoluteFile
-        absoluteFile:SetAbsolutePath("/Users/jeff/Music")
-        print absoluteFile:GetPath() // prints "/Users/jeff/Music"
-
-        // Set a relative path, and get it back.
-        File relativeFile
-        relativeFile:SetRelativePath("./hello.txt")
-        print relativeFile:GetPath() // prints "./hello.txt"
+        // Set a path and get it back. This File object ultimately represents the
+        // path "/Users/jeff/Music"
+        File someFile
+        someFile:SetWorkingDirectory("/Users/jeff/")
+        someFile:SetPath("Music")
+        print absoluteFile:GetPath() // prints "Music"
      */
     action GetPath returns text
         return GetPathNative()
     end
 
+    /*
+        Get the ABSOLUTE path this File object represents. Essentially, this is
+        the same concept as GetPath, but the path is "absolute", that is, it is
+        NOT dependent on the working directory of a File object. The absolute path
+        is the working directory of File and the path of File concatenated together.
+
+        Attribute: Returns the absolute path this File object represents.
+
+        Attribute: Example
+        // Construct a file object to refer to "C:\Windows\System32".
+        File sys
+        sys:SetWorkingDirectory("C:\Windows")
+        sys:SetPath("System32")
+        print sys:GetPath() // prints "System32"
+        print sys:GetAbsolutePath() // prints "C:\Windows\System32"
+    */
     action GetAbsolutePath returns text
         return GetAbsolutePathNative()
     end
 
     /*
-        Set the path this File represents from a given Path object. For more
-        information on the Path object, see the Path documentation. In most
-        cases, it is preferable to use the SetAbsolutePath() or SetRelativePath()
-        actions.
-        TODO:FIX
-        Attribute: Parameter path The path object to get the relative or absolute path from.
+        Set the path this File represents. This path is what is called a
+        "relative" path, that is, it does not represent a concrete path to
+        some file. This path is relative to the working directory of this
+        File object (see SetWorkingDirectory()). 
+
+        Attribute: Parameter path The relative path we wish to use for this File object.
 
         Attribute: Example
         use Libraries.System.File
         use Libraries.System.Path
 
-        // Construct a Path object and associate a File object with it.
-        Path p
-        p:SetAbsolutePath("C:\Program Files")
+        // This File object will be constructed to refer to the "Program Files" directory
+        // on a Windows system. The working directory of "C:\" tells File to look for the path
+        // "Program Files" starting at "C:\". The full path then becomes "C:\Program Files".
+
         File programFilesDir
-        programFilesDir:SetPath(p)
+        programFilesDir:SetWorkingDirectory("C:\")
+        programFilesDir:SetPath("Program Files")
         print "Is it a directory? " + programFilesDir:IsDirectory() // on Windows systems, prints "Is it a directory? true"
      */
     action SetPath(text path)
@@ -235,8 +252,9 @@ class File
         // Does a folder called "Windows" exist under C:\? On Windows systems, it will;
         // on other systems, it will not.
         File winDir
-        winDir:SetAbsolutePath("C:\Windows")
-        print "Does 'C:\Windows' exist/ " + winDir:Exists() // on Windows systems, will print "Does 'C:\Windows' exist? true"
+        winDir:SetWorkingDirectory("C:\")
+        winDir:SetPath("Windows")
+        print "Does 'C:\Windows' exist?  " + winDir:Exists() // on Windows systems, will print "Does 'C:\Windows' exist? true"
      */
     system action Exists returns boolean
 
@@ -251,12 +269,13 @@ class File
 
         // Is C:\Windows a file?
         File winDir
-        winDir:SetAbsolutePath("C:\Windows")
+        winDir:SetWorkingDirectory("C:\Windows")
         print "Is C:\Windows a file? " + winDir:IsFile() // Will print 'Is C:\Windows a file? false'
 
         // Is C:\Windows\System32\kernel32.dll a file?
         File kernel32
-        kernel32:SetAbsolutePath("C:\Windows\System32\kernel32.dll")
+        kernel32:SetWorkingDirectory("C:\Windows\system32\")
+        kernel32:SetPath("ernel32.dll")
         print "Is C:\Windows\System32\kernel32.dll a file? " + kernel32:IsFile() // On Windows systems, will print "Is C:\Windows\System32\kernel32.dll a file? true"
      */
     system action IsFile returns boolean
@@ -274,12 +293,12 @@ class File
         // On most systems, the path './' refers to the current directory.
         // Is the current directory a directory?
         File currentDir
-        currentDir:SetRelativePath("./")
+        currentDir:SetPath("./")
         print "Are we in a directory? " + currentDir:IsDirectory() // On most systems, will print "Are we in a directory? true"
 
         // On Windows systems, is "C:\" a directory?
         File cDrive
-        cDrive:SetAbsolutePath("C:\")
+        cDrive:SetWorkingDirectory("C:\")
         print "Is C:\ a directory? " + cDrive:IsDirectory() // On Windows systems, will print "Is C:\ a directory? true"
      */
     system action IsDirectory returns boolean
@@ -298,7 +317,8 @@ class File
 
         // On Windows systems, the "user32.dll" file is hidden.
         File user32
-        user32:SetAbsolutePath("C:\Windows\user32.dll")
+        user32:SetWorkingDirectory("C:\Windows\System32")
+        user32:SetPath("user32.dll")
         print "Is user32.dll hidden? " + user32:IsHidden() // On Windows systems, will print "Is user32.dll hidden? true"
      */
     system action IsHidden returns boolean
@@ -328,7 +348,8 @@ class File
         // Get the file name from this path.
         text path = "C:\Program Files\Sodbeans\bin\sodbeans.exe"
         File file
-        file:SetAbsolutePath(path)
+        file:SetWorkingDirectory("C:\Program Files\Sodbeans\bin\")
+        file:SetPath("sodbeans.exe")
         print file:GetFileName() // will print "sodbeans.exe". (on any system)
      */
     system action GetFileName returns text
@@ -355,12 +376,14 @@ class File
 
         // Get the extension of a music file.
         File musicFile
-        musicFile:SetAbsolutePath("C:\Users\jeff\Music\Untitled.mp3")
+        musicFile:SetWorkingDirectory("C:\Users\jeff\Music")
+        musicFile:SetPath("Untitled.mp3")
         print musicFile:GetFileExtension() // prints "mp3" on all systems.
 
         // Get the extension of a directory.
         File appDir
-        appDir:SetAbsolutePath("/Applications/TextEdit.app")
+        appDir:SetWorkingDirectory("/Applications/")
+        appDir:SetPath("TextEdit.app")
         print appDir:GetFileExtension() // prints "app" on all systems.
      */
     system action GetFileExtension returns text
@@ -425,13 +448,13 @@ class File
 
         // How much disk space is available on C in gigabytes?
         File cDir
-        cDir:SetAbsolutePath("C:\")
+        cDir:SetWorkingDirectory("C:\")
         number amount = cDir:GetFreeDiskSpace() / 1024 / 1024 / 1024 // conversion from bytes to kilobytes, kilobytes to megabytes, megabytes to gigabytes
         print "Drive C has " + amount + " GB free."
 
         // How much disk space is available on the root drive? (Mac and Unix/Linux only).
         File root
-        root:SetAbsolutePath("/")
+        root:SetWorkingDirectory"/")
         amount = root:GetFreeDiskSpace() / 1024 / 1024 / 1024 // conversion from bytes to kilobytes, kilobytes to megabytes, megabytes to gigabytes
         print "The root drive has " + amount + " GB free."
      */
@@ -452,13 +475,13 @@ class File
 
         // How much disk space is available on C in gigabytes?
         File cDir
-        cDir:SetAbsolutePath("C:\")
+        cDir:SetWorkingDirectory("C:\")
         number amount = cDir:GetTotalDiskSpace() / 1024 / 1024 / 1024 // conversion from bytes to kilobytes, kilobytes to megabytes, megabytes to gigabytes
         print "Drive C has a total capacity of " + amount + " GB."
 
         // How much disk space is available on the root drive? (Mac and Unix/Linux only).
         File root
-        root:SetAbsolutePath("/")
+        root:SetWorkingDirectory("/")
         amount = root:GetTotalDiskSpace() / 1024 / 1024 / 1024 // conversion from bytes to kilobytes, kilobytes to megabytes, megabytes to gigabytes
         print "The root drive has a total capacity of  " + amount + " GB."
      */
@@ -477,7 +500,8 @@ class File
 
         // How big is the "notepad" program on Windows?
         File notepad
-        notepad:SetAbsolutePath("C:\Windows\notepad.exe")
+        notepad:SetWorkingDirectory("C:\Windows")
+        notepad:SetPath("notepad.exe")
         print "Notepad is " + notepad:GetFileSize() + " bytes."
      */
     system action GetFileSize returns number
@@ -494,7 +518,7 @@ class File
 
         // Get the first item (alphabetical order) listed in C:\.
         File cDrive
-        cDrive:SetAbsolutePath("C:\")
+        cDrive:SetWorkingDirectory("C:\")
         Indexed<File> items = cDrive:GetDirectoryListing()
         print items:Get(0) 
      */
@@ -543,7 +567,7 @@ class File
 
         // When was "Program Files" last modified?
         File programFiles
-        programFiles:SetAbsolutePath("C:\Program Files")
+        programFiles:SetWorkingDirectory("C:\Program Files")
         DateTime date
         if date not= undefined
             print "Program files was last modified on" + date:GetMonth() + "/" + date:GetDayOfMonth() + "/" + date:GetYear()
@@ -574,7 +598,8 @@ class File
 
         // Create a directory and delete it.
         File myDir
-        myDir:SetAbsolutePath("C:\Users\jeff\My Documents\A_New_Folder")
+        myDIr:SetWorkingDirectory("C:\Users\jeff\My DOcuments\")
+        myDir:SetPath("A_New_Folder")
         myDir:CreateDirectory()
         boolean ok = myDir:Delete() // delete it
 
@@ -602,24 +627,9 @@ class File
 
         // Create a directory in /Users/jeff called "oldMusic".
         File oldMusicDir
-        oldMusicDir:SetAbsolutePath("/Users/jeff/oldMusic")
+        oldMusicDir:SetWorkingDirectory("/Users/jeff")
+        oldMusicDir:SetPath("oldMusic")
         oldMusicDir:CreateDirectory()
-
-        // Construct the path "C:\blah\bb\foo" from the text above.
-        File blah
-        File bb
-        File foo
-        blah:SetAbsolutePath("C:\blah")
-        bb:SetAbsolutePath("C:\blah\bb")
-        foo:SetAbsolutePath("C:\blah\bb\foo")
-
-        boolean blahCreated = blah:CreateDirectory()
-        boolean bbCreated = bb:CreateDirectory()
-        boolean fooCreated = foo:CreateDirectory()
-
-        if blahCreated and bbCreated and fooCreated
-            print "Successfully built path C:\blah\bb\foo"
-        end
      */ 
     system action CreateDirectory returns boolean
 
@@ -637,7 +647,8 @@ class File
 
         // Move a file from one directory to another.
         File f
-        f:SetAbsolutePath("/Users/jeff/Music/Untitled.mp3")
+        f:SetWorkingDirectory("/Users/jeff/Music/")
+        f:SetPath("Untitled.mp3")
         boolean moveSucceeded = f:Move("/Users/jeff/oldMusic/Untitled.mp3")
         if moveSucceeded
             print "Move succeeded."
@@ -647,7 +658,8 @@ class File
 
         // Move can also be used to rename a file.
         File renameMe
-        renameMe:SetAbsolutePath("/Users/jeff/Music/Untitled.mp3")
+        renameMe:SetWorkingDirectory("/Users/jeff/Music/")
+        renameMe:SetPath("Untitled.mp3")
         moveSucceeded = renameMe:Move("/Users/jeff/Music/Toccata and Fugue.mp3")
         if moveSucceeded
             print "Move succeeded."
@@ -670,7 +682,8 @@ class File
 
         // Open a file for sequential reading and print all of its contents.
         File f
-        f:SetAbsolutePath("/Users/jeff/dictionary.txt")
+        f:SetWorkingDirectory("/Users/jeff/")
+        f:SetPath("dictionary.txt")
         FileReaderBlueprint reader = f:OpenForRead()
         print reader:Read()
         f:Close() // we're done with the file, see Close() documentation.
@@ -699,7 +712,8 @@ class File
 
         // Open a file for sequential writing and write a few lines.
         File f
-        f:SetAbsolutePath("/Users/jeff/dictionary.txt")
+        f:SetWorkingDirectory("/Users/jeff/")
+        f:SetPath("dictionary.txt")
         FileWriterBlueprint writer = f:OpenForWrite()
 
         // Create a small dictionary.
@@ -734,7 +748,8 @@ class File
 
         // Open a file for sequential writing and write a few lines, preserving the old contents.
         File f
-        f:SetAbsolutePath("/Users/jeff/dictionary.txt")
+        f:SetWorkingDirectory("/Users/jeff/")
+        f:SetPath("dictionary.txt")
         FileWriterBlueprint writer = f:OpenForWriteAppend()
 
         // Add a few new words to our dictionary.
@@ -768,7 +783,8 @@ class File
 
         // Open a file for sequential writing and write a few lines.
         File f
-        f:SetAbsolutePath("/Users/jeff/dictionary.txt")
+        f:SetWorkingDirectory("/Users/jeff/")
+        f:SetPath("dictionary.txt")
         FileWriterBlueprint writer = f:OpenForWrite()
 
         // Create a small dictionary.
@@ -802,7 +818,8 @@ class File
 
         // Open a file for sequential writing and write a few lines. Then, close it.
         File f
-        f:SetAbsolutePath("/Users/jeff/dictionary.txt")
+        f:SetWorkingDirectory("/Users/jeff/")
+        f:SetPath("dictionary.txt")
         FileWriterBlueprint writer = f:OpenForWrite()
 
         // Create a small dictionary.
@@ -841,7 +858,8 @@ class File
 
         // Open our dictionary and read all the contents at once. Print them.
         File dict
-        dict:SetAbsolutePath("/Users/jeff/dictionary.txt")
+        dict:SetWorkingDirectory("/Users/jeff/")
+        dict:SetPath("dictionary.txt")
         print dict:Read() // print all the contents to screen.
      */
     action Read returns text
@@ -863,12 +881,14 @@ class File
 
         // Write a single line to the file.
         File f
-        f:SetAbsolutePath("/Users/jeff/ASimpleMessage.txt")
+        f:SetWorkingDirectory("/Users/jeff/")
+        f:SetPath("ASimpleMessage.txt")
         text message = "Anything I put in here will magically appear in the file."
         f:Write(message)
 
         // It is also possible to write multiple lines, like so:
-        f:SetAbsolutePath("/Users/jeff/AComplexMessage.txt")
+        f:SetWorkingDirectory("/Users/jeff/")
+        f:SetPath("AComplexMessage.txt")
         text message ="This is the first line
 and here's another."
         f:Write(message)
