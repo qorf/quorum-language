@@ -23,7 +23,7 @@ use Libraries.System.FileReader
 
 // Open a file, read all of its contents and close it.
 File f
-f:SetAbsolutePath("/Users/jeff/hello.txt")
+f:SetPath("/hello.txt")
 FileReader reader
 reader:OpenForRead(f)
 text fileContents = reader:Read()
@@ -31,7 +31,7 @@ print "The contents are: " + fileContents
 reader:Close()
 
 // Open a file, read the first two lines and close it.
-f:SetRelativePath("./settings.dat")
+f:SetPath("./settings.dat")
 reader:OpenForRead(f)
 text line1 = reader:ReadLine()
 text line2 = reader:ReadLine()
@@ -88,7 +88,7 @@ class FileReader is a FileReaderBlueprint
 
         // Open the file for reading.
         File f
-        f:SetAbsolutePath("/Users/jeff/names.txt")
+        f:SetPath("names.txt")
         FileReader reader
         reader:OpenForRead(f)
 
@@ -122,7 +122,7 @@ class FileReader is a FileReaderBlueprint
 
         // Open the file for reading.
         File f
-        f:SetAbsolutePath("C:\Users\tom\My Documents\homework.txt")
+        f:SetPath("homework.txt")
         
         // Read the first two lines and then be done.
         FileReader reader
@@ -155,7 +155,7 @@ class FileReader is a FileReaderBlueprint
 
         // Open a file, read all the contents and close it.
         File f
-        f:SetAbsolutePath("C:\Users\tim\My Documents\To Do List.txt")
+        f:SetPath("To Do List.txt")
         FileReader reader
         reader:OpenForRead(f)
 
@@ -183,7 +183,7 @@ class FileReader is a FileReaderBlueprint
 
         // Open a file, read all of its contents to a text value and then print the text value.
         File f
-        f:SetAbsolutePath("C:\Users\jeff\Programs\Settings.dat")
+        f:SetPath("Settings.dat")
         FileReader reader
         reader:OpenForRead(f)
         text settings = reader:Read()
@@ -214,7 +214,7 @@ class FileReader is a FileReaderBlueprint
 
         // Open a file, print the first four bytes.
         File f
-        f:SetAbsolutePath("C:\Users\jeff\Programs\Settings.dat")
+        f:SetPath("Settings.dat")
         FileReader reader
         reader:OpenForRead(f)
         print "The first four bytes are " + reader:Read(4)
@@ -251,7 +251,7 @@ class FileReader is a FileReaderBlueprint
 
         // Open a file, read all of its contents to a text value and then print the text value.
         File f
-        f:SetAbsolutePath("/Users/jeff/words.txt")
+        f:SetPath("words.txt")
         FileReader reader
         reader:OpenForRead(f)
 
@@ -275,7 +275,7 @@ class FileReader is a FileReaderBlueprint
         
         // Read all lines into a collection and print the third line. If there is no third line, the appropriate error will be raised.
         File f
-        f:SetAbsolutePath("/Users/jeff/helloWorld.txt")
+        f:SetPath("/Users/jeff/helloWorld.txt")
         FileReader reader
         reader:OpenForRead(f)
         Indexed<text> lines = reader:ReadLines()

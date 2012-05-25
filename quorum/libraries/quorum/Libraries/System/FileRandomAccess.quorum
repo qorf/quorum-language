@@ -25,7 +25,7 @@ use Libraries.System.FileRandomAccess
 
 // Open a file for random access and write a byte to it.
 File f
-f:SetRelativePath("settings.dat")
+f:SetPath("settings.dat")
 FileRandomAccess ra
 ra:OpenForRandomAccess(f)
 
@@ -37,7 +37,7 @@ ra:Write("a")
 ra:Close()
 
 // Read the first byte from a file, and then consume the rest.
-f:SetRelativePath("mySound.wav")
+f:SetPath("mySound.wav")
 ra:OpenForRandomAccess(f)
 
 // Get the first byte.
@@ -50,7 +50,7 @@ text theRestOfTheBytes = ra:Read()
 ra:Close()
 
 // Open a file and read the first 60 bytes.
-f:SetRelatiePath("../familyPhoto.img")
+f:SetPath("../familyPhoto.img")
 ra:OpenForRandomAccess()
 
 // Get the first 60 bytes (which might be, for example, the header of a binary file format).
@@ -98,7 +98,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
 
         // Open a file for random access and write a byte to it.
         File f
-        f:SetRelativePath("settings.dat")
+        f:SetPath("settings.dat")
         FileRandomAccess ra
         ra:OpenForRandomAccess(f)
 
@@ -126,7 +126,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
 
         // Open a file, read a byte from it, and then close it.
         File f
-        f:SetAbsolutePath("C:\test.txt")
+        f:SetPath("C:\test.txt")
         FileRandomAccess ra
         ra:OpenForRandomAccess(f)
 
@@ -156,7 +156,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
         
         // Open a file, write the string "hello" to it, and then find out what our
         // position is.
-        f:SetRelativePath("mySettings.dat")
+        f:SetPath("mySettings.dat")
         FileRandomAccess ra
         ra:OpenForRandomAccess(f)
         
@@ -195,7 +195,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
 
         // Open a file, seek to byte 20 and write a string.
         File f
-        f:SetRelativePath("randomAccessTest.txt")
+        f:SetPath("randomAccessTest.txt")
         FileRandomAccess ra
         ra:OpenForRandomAccess(f)
         
@@ -239,7 +239,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
         // will have reached the end of the file. If the file is less than 3 bytes, or doesn't exist, the
         // Read() action will throw an EndOfFileError.
         File f
-        f:SetAbsolutePath("C:\Users\tim\essay.doc")
+        f:SetPath("essay.doc")
         FileRandomAccess ra
         ra:OpenForRandomAccess(f)
 
@@ -288,7 +288,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
 
         // Read the first byte from a file, and then consume the rest.
         File f
-        f:SetRelativePath("mySound.wav")
+        f:SetPath("mySound.wav")
         FileRandomAccess ra
         ra:OpenForRandomAccess(f)
 
@@ -322,7 +322,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
 
         // Open a file and read the first 60 bytes.
         File f
-        f:SetRelatiePath("../familyPhoto.img")
+        f:SetPath("../familyPhoto.img")
         FileRandomAccess ra
         ra:OpenForRandomAccess()
 
@@ -355,7 +355,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
 
         // Read the first line from a plain text file.
         File f
-        f:SetAbsolutePath("C:\Users\alan\dataset.txt")
+        f:SetPath("dataset.txt")
         FileRandomAccess ra
         ra:OpenForRandomAccess(f)
         print ra:ReadLine() // grab the first line
@@ -381,7 +381,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
 
         // Read all the lines from a file, print the first and third.
         File f
-        f:SetRelativePath("I_Contain_Three_Lines.txt")
+        f:SetPath("I_Contain_Three_Lines.txt")
         FileRandomAccess ra
         ra:OpenForRandomAccess(f)
 
@@ -430,7 +430,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
 
         // Write "abcd" to the file, from the third byte onward.
         File f
-        f:SetRelativePath("alphabet_empty.txt")
+        f:SetPath("alphabet_empty.txt")
         FileRandomAccess ra
         ra:OpenForRandomAccess(f)
         
@@ -469,7 +469,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
 
         // Write two lines to a file.
         File f
-        f:SetRelativePath("my_two_line_file.txt")
+        f:SetPath("my_two_line_file.txt")
         FileRandomAccess ra
         
         // Write the two lines.

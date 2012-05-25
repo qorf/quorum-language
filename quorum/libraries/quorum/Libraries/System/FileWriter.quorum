@@ -20,7 +20,7 @@ use Libraries.System.FileWriter
 
 // Write three lines to an existing file.
 File f
-f:SetAbsolutePath("/Users/jeff/anExistingFile.txt")
+f:SetPath("anExistingFile.txt")
 FileWriter writer
 writer:OpenForWriteAppend(f)
 
@@ -34,7 +34,7 @@ writer:Close()
 
 // Open a new file and write "abcdefgh" to it.
 
-f:SetAbsolutePath("/Users/tom/MySpecialDocument.dat")
+f:SetPath("MySpecialDocument.dat")
 writer:OpenForWrite(f)
 
 // Write "abcdefgh" to the file in two separate writes.
@@ -94,7 +94,7 @@ class FileWriter is a FileWriterBlueprint
 
         // Open a file for writing, write a line and close it.
         File f
-        f:SetRelativePath("myFile.txt") // open myFile.txt for writing (myFile.txt will appear in the working directory of our program)
+        f:SetPath("myFile.txt") // open myFile.txt for writing (myFile.txt will appear in the working directory of our program)
         FileWriter writer
         writer:OpenForWrite(f)
 
@@ -123,7 +123,7 @@ class FileWriter is a FileWriterBlueprint
         
         // Open a file, myFile.txt, for writing, but preserve the previous contents.
         File f
-        f:SetRelativePath("myFile.txt")
+        f:SetPath("myFile.txt")
         FileWriter writer
         writer:OpenForWriteAppend(f)
         
@@ -152,7 +152,7 @@ class FileWriter is a FileWriterBlueprint
 
         // Open a file, write a line to it, and then close it.
         File f
-        f:SetAbsolutePath("/Users/jeff/newFile.txt")
+        f:SetPath("newFile.txt")
         FileWriter writer
         writer:OpenForWrite(f)
 
@@ -180,7 +180,7 @@ class FileWriter is a FileWriterBlueprint
         // Open a new file and write "abcdefgh" to it.
 
         File f
-        f:SetAbsolutePath("/Users/tom/MySpecialDocument.dat")
+        f:SetPath("MySpecialDocument.dat")
         FileWriter writer
         writer:OpenForWrite(f)
 
@@ -211,7 +211,7 @@ class FileWriter is a FileWriterBlueprint
 
         // Write three lines to an existing file.
         File f
-        f:SetAbsolutePath("/Users/jeff/anExistingFile.txt")
+        f:SetPath("anExistingFile.txt")
         FileWriter writer
         writer:OpenForWriteAppend(f)
 
@@ -245,7 +245,7 @@ class FileWriter is a FileWriterBlueprint
 
         // Write some content to a file, and call PushToDisk() for extra security.
         File f
-        f:SetRelativePath("mySettings.dat")
+        f:SetPath("mySettings.dat")
         FileWriter writer
         writer:OpenForWrite(f)
         writer:WriteLine("value")
