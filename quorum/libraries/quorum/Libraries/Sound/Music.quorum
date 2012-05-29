@@ -207,8 +207,8 @@ class Music
     */
     public action Play(text path)
         File f
-        
-        if (not f:IsFile(path))
+        f:SetPath(path)
+        if (not f:IsFile())
             InvalidArgumentError e
             e:SetErrorMessage("The MIDI file " + path + " is not a valid file. It either doesn't exist or points to a directory.")
             alert(e)
