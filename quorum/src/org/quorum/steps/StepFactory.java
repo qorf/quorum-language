@@ -1093,7 +1093,7 @@ public class StepFactory {
         if (method == null && blueprint == null && systemAction == null) {
             CompilerError error = new CompilerError();
             error.setLineNumber(info.location.getStartLine());
-            error.setError("The method '" + methodKey + "' in class '" + machine.getSymbolTable().getCurrentClass() + "' has not been defined.");
+            error.setError("The action '" + methodKey + "' in class '" + machine.getSymbolTable().getCurrentClass() + "' has not been defined.");
             error.setColumn(info.location.getStartColumn());
             error.setFile(info.location.getFile());
             error.setErrorType(ErrorType.MISSING_METHOD);
@@ -1350,7 +1350,7 @@ public class StepFactory {
             if (method == null && systemAction == null) {
                 CompilerError error = new CompilerError();
                 error.setLineNumber(info.location.getStartLine());
-                error.setError("The method '" + methodKey + "' in class '" + clazz.getName() + "' has not been defined.");
+                error.setError("The action '" + methodKey + "' in class '" + clazz.getName() + "' has not been defined.");
                 error.setColumn(info.location.getStartColumn());
                 error.setFile(info.location.getFile());
                 error.setErrorType(ErrorType.MISSING_METHOD);
@@ -1611,7 +1611,7 @@ public class StepFactory {
                 CompilerError error = new CompilerError();
                 error.setLineNumber(location.getStartLine());
                 error.setFile(machine.getSymbolTable().getCurrentClass().getFile().getStaticKey());
-                error.setError("Cannot \"return now\" from a method that"
+                error.setError("Cannot \"return now\" from an action that"
                         + " requires a return of type " + returnType.getName() + ".");
                 error.setErrorType(ErrorType.INVALID_RETURN_NOW);
                 machine.getCompilerErrors().addError(error);

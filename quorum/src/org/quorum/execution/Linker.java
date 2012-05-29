@@ -90,7 +90,7 @@ public class Linker {
         CompilerError error = new CompilerError();
         error.setColumn(1);
         error.setLineNumber(1);
-        error.setError("Cannot start the program, as no main method is defined.");
+        error.setError("Cannot start the program, as no main action is defined.");
         error.setErrorType(ErrorType.MISSING_MAIN);
         machine.getCompilerErrors().setErrorKey(machine.getMain());
         error.setFile(machine.getMain());

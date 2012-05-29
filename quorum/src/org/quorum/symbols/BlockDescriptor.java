@@ -79,7 +79,7 @@ public class BlockDescriptor extends Descriptor implements Scopable{
     }
 
     public CompilerError add(MethodDescriptor descriptor) {
-        throw new UnsupportedOperationException("Cannot add a method to a block.");
+        throw new UnsupportedOperationException("Cannot add a action to a block.");
     }
 
     public CompilerError add(SystemActionDescriptor descriptor) {

@@ -293,7 +293,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                 //check if the access modifier is erroniously set to private
                 if (implMethod!=null && implMethod.getAccessModifier().equals(AccessModifierEnum.PRIVATE)) {
                     CompilerError error = new CompilerError(implMethod.getLineBegin(),
-                            "The blueprint method " + implMethod.getStaticKey() + " cannot be private.", ErrorType.INHERITANCE_MODIFIER_DOWNGRADE);
+                            "The blueprint action " + implMethod.getStaticKey() + " cannot be private.", ErrorType.INHERITANCE_MODIFIER_DOWNGRADE);
                     CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                     errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
                     errorManager.addError(error);
@@ -325,10 +325,10 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                 //check for ambiguous inheritance
                 if (this.getMethod(mName) == null && !curMethod.getParent().getScopeString().equals(method.getParent().getScopeString())) {
                     CompilerError error = new CompilerError(getLineBegin(),
-                            "Ambiguous inheritance of method " + mName + " from the classes "
+                            "Ambiguous inheritance of action " + mName + " from the classes "
                             + method.getParent().getScopeString() + " and "
                             + curMethod.getParent().getScopeString()
-                            + ". You must implement this method in the class "
+                            + ". You must implement this action in the class "
                             + getName(), ErrorType.INHERITANCE_AMBIGUOUS);
                     CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                     errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
@@ -407,10 +407,10 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                         //check for ambiguous inheritance of methods
                         if (parent.getMethod(method.getStaticKey()) == null && this.getMethod(method.getStaticKey()) == null && !curMethod.getParent().getScopeString().equals(method.getParent().getScopeString())) {
                             CompilerError error = new CompilerError(getLineBegin(),
-                                    "Ambiguous inheritance of method " + method.getStaticKey() + " from the classes "
+                                    "Ambiguous inheritance of action " + method.getStaticKey() + " from the classes "
                                     + method.getParent().getScopeString() + " and "
                                     + curMethod.getParent().getScopeString()
-                                    + ". You must implement this method in the class "
+                                    + ". You must implement this action in the class "
                                     + getName(), ErrorType.INHERITANCE_AMBIGUOUS);
                             CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                             errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
@@ -490,8 +490,8 @@ public class ClassDescriptor extends Descriptor implements Scopable {
             if (!method1.getReturnType().getStaticKey().equals(method2.getReturnType().getStaticKey())) {
                 CompilerError error = new CompilerError(getLineBegin(),
                         "Invalid return types for inherited methods."
-                        + "Method " + method1.getStaticKey() + "(return type " + method1.getReturnType().getStaticKey()
-                        + ") in class " + method1.getParent().getScopeString() + " and method " + method2.getStaticKey()
+                        + "Action " + method1.getStaticKey() + "(return type " + method1.getReturnType().getStaticKey()
+                        + ") in class " + method1.getParent().getScopeString() + " and action " + method2.getStaticKey()
                         + "(return type " + method2.getReturnType().getStaticKey()
                         + ") in class " + method2.getParent().getScopeString() + " are incompatible.", ErrorType.INHERITANCE_MISSMATCHED_RETURN);
                 CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
@@ -508,8 +508,8 @@ public class ClassDescriptor extends Descriptor implements Scopable {
             if (!originalMethod.getReturnType().getStaticKey().equals(overridingMethod.getReturnType().getStaticKey())) {
                 CompilerError error = new CompilerError(overridingMethod.getLineBegin(),
                         "Invalid return type for overriding method. "
-                        + "Method " + originalMethod.getStaticKey() + "(return type " + originalMethod.getReturnType().getStaticKey()
-                        + ") in class " + originalMethod.getParent().getScopeString() + " and method "
+                        + "Action " + originalMethod.getStaticKey() + "(return type " + originalMethod.getReturnType().getStaticKey()
+                        + ") in class " + originalMethod.getParent().getScopeString() + " and action "
                         + overridingMethod.getStaticKey() + "(return type " + overridingMethod.getReturnType().getStaticKey()
                         + ") in class " + overridingMethod.getParent().getScopeString() + " are incompatible.  ", ErrorType.INHERITANCE_MISSMATCHED_RETURN);
                 CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
@@ -518,8 +518,8 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                 return true;
             } else if (originalMethod.getAccessModifier().equals(AccessModifierEnum.PUBLIC) && overridingMethod.getAccessModifier().equals(AccessModifierEnum.PRIVATE)) {
                 CompilerError error = new CompilerError(overridingMethod.getLineBegin(),
-                        "The method " + originalMethod.getStaticKey() + " is public, but the overriding method " 
-                        + overridingMethod.getStaticKey() + " is private. The overriding method must be public.", ErrorType.INHERITANCE_MODIFIER_DOWNGRADE);
+                        "The action " + originalMethod.getStaticKey() + " is public, but the overriding action " 
+                        + overridingMethod.getStaticKey() + " is private. The overriding action must be public.", ErrorType.INHERITANCE_MODIFIER_DOWNGRADE);
                 CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                 errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
                 errorManager.addError(error);
@@ -984,7 +984,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
             if (matchScores.size() == 1) {//if there is only one match return it.
                 return matches.get(0);
             } else {//ambiguous method selection
-                String message = "Ambiguous method call. Which method should be called? ";
+                String message = "Ambiguous action call. Which action should be called? ";
 
                 //build the error string that lists the ambiguous methods.
                 Iterator<MethodDescriptor> matchIt = matches.iterator();
