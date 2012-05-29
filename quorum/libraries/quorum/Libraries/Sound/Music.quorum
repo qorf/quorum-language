@@ -205,16 +205,14 @@ class Music
         Music muse
         muse:Play("/Users/jeff/hello.mid")
     */
-    public action Play(text path)
-        File f
-        f:SetPath(path)
-        if (not f:IsFile())
+    public action Play(File file)
+        if (not file:IsFile())
             InvalidArgumentError e
             e:SetErrorMessage("The MIDI file " + path + " is not a valid file. It either doesn't exist or points to a directory.")
             alert(e)
         end
 
-        PlayMidiNative(path)
+        PlayMidiNative(file:GetAbsolutePath())
     end
 
     /*
