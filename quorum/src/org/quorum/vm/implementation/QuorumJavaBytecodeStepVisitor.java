@@ -532,8 +532,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (step.getParent() != null && !step.getParent().equals(currentClass)) {
             methodVisitor.visitFieldInsn(PUTFIELD, QuorumConverter.convertStaticKeyToBytecodePath(step.getParent().getStaticKey()), variableName, QuorumConverter.convertTypeToBytecodeString(variableType));
         } else if (assigningToObjectVariable) {
-            methodVisitor.visitMethodInsn(INVOKEINTERFACE, methodParent + "$Interface",
+            
+            if(step.getParent() != null){
+                methodVisitor.visitMethodInsn(INVOKEINTERFACE, methodParent + "$Interface",
+                    QuorumConverter.generateSetterNameFromSubField(step.getParent().getType(), variableName), QuorumConverter.generateSetterSignatureFromSubField(variableType));
+            }else{
+                methodVisitor.visitMethodInsn(INVOKEINTERFACE, methodParent + "$Interface",
                     QuorumConverter.generateSetterNameFromSubField(variable.getType(), variableName), QuorumConverter.generateSetterSignatureFromSubField(variableType));
+            }
         } else {
             methodVisitor.visitFieldInsn(PUTFIELD, methodParent, variableName, QuorumConverter.convertTypeToBytecodeString(variableType));
         }
@@ -569,9 +575,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 valueType.setBytecodeInterface(true);
             }
 
-            methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey() + "$Interface"),
-                    QuorumConverter.generateSetterNameFromSubField(type, subVariableName), QuorumConverter.generateSetterSignatureFromSubField(valueType));
-        } else {
+            if(step.getParent() != null){
+                methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey() + "$Interface"),
+                        QuorumConverter.generateSetterNameFromSubField(step.getParent().getType(), subVariableName), QuorumConverter.generateSetterSignatureFromSubField(valueType));
+            }else{
+                methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey() + "$Interface"),
+                        QuorumConverter.generateSetterNameFromSubField(type, subVariableName), QuorumConverter.generateSetterSignatureFromSubField(valueType));
+            }
+            } else {
             int mappedVariableNumber = -1;
             if (step.getVariable() instanceof ParameterDescriptor) {
                 //we are now assigning to a parameter variable
@@ -3542,7 +3553,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             VariableDescriptor varDescriptor = (VariableDescriptor) step.getValue();
             if (varDescriptor != null && varDescriptor.isInitializedClassVariable()) {
                 methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()), QuorumConverter.convertParentStaticKeyToValidName(step.getLocatedInClass().getStaticKey()), QuorumConverter.convertStaticKeyToBytecodePathTypeName(step.getLocatedInClass().getStaticKey()));
+                methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()), 
+                        QuorumConverter.convertParentStaticKeyToValidName(step.getLocatedInClass().getStaticKey()), QuorumConverter.convertTypeToBytecodeString(step.getLocatedInClass().getType()));
                 methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(step.getLocatedInClass().getStaticKey()),
                         varDescriptor.getName(), QuorumConverter.convertTypeToBytecodeString(varDescriptor.getType()));
                 variable = varDescriptor.getType();
@@ -3784,6 +3796,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         } else {
             pushVariable(variable.getType(), variable.getVariableNumber() - currentClass.getNumberOfVariables());
         }
+        
+        
 
         //visit the field instruction
         String name = step.getVariableName();
@@ -3792,8 +3806,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (!type.isPrimitiveType()) {
             type.setBytecodeInterface(true);
         }
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getStaticKey() + "$Interface"),
-                QuorumConverter.generateGetterNameFromSubField(variable.getType(), name), QuorumConverter.generateGetterSignatureFromSubField(type));
+        
+        if(step.getParent() != null){
+            methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getStaticKey() + "$Interface"),
+                    QuorumConverter.generateGetterNameFromSubField(step.getParent().getType(), name), QuorumConverter.generateGetterSignatureFromSubField(type));
+        }else{
+            methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getStaticKey() + "$Interface"),
+                    QuorumConverter.generateGetterNameFromSubField(variable.getType(), name), QuorumConverter.generateGetterSignatureFromSubField(type));
+        }
 
         //push the type of the variable on the top of the stack
         stack.pushExpressionType(type);

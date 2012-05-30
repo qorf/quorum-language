@@ -203,12 +203,17 @@ class Music
 
         Attribute: Example
         Music muse
-        muse:Play("/Users/jeff/hello.mid")
+        File file
+        muse:Play(file)
     */
     public action Play(File file)
-        if (not file:IsFile())
+        if (file not= undefined)
             InvalidArgumentError e
-            e:SetErrorMessage("The MIDI file " + path + " is not a valid file. It either doesn't exist or points to a directory.")
+            e:SetErrorMessage("The MIDI file is not a valid file. It either doesn't exist or points to a directory.")
+            alert(e)
+        elseif (not file:IsFile())
+            InvalidArgumentError e
+            e:SetErrorMessage("The MIDI file " + file:GetAbsolutePath() + " is not a valid file. It either doesn't exist or points to a directory.")
             alert(e)
         end
 

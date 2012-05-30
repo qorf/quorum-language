@@ -1,16 +1,8 @@
-use Libraries.Sound.Audio
-use Libraries.System.File
-use Libraries.Containers.Blueprints.Indexed
-//first create audio and File objects
-Audio audio
-File file
-
-//set the path to the file you want to play back
-//in this case, test.wav should be replaced with your file.
-file:SetPath("fart.wav")
-
-//tell the audio playback library what file you want to play
-audio:SetFile(file)
-
-//playback the file. By default, this is a non-blocking call.
-audio:Play()
+class Main
+    action Main
+        BPublicVariable b
+        b:parent:APublicVariable:something = 7
+        //integer value = b:parent:APublicVariable:something
+        //print b:parent:APublicVariable:something
+    end
+end

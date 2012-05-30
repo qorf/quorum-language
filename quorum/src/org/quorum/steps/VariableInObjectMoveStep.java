@@ -111,7 +111,11 @@ public class VariableInObjectMoveStep extends IntermediateStep{
         visitor.visit(this);
     }
 
-    void setParent(ClassDescriptor parent) {
+    public void setParent(ClassDescriptor parent) {
         this.parent = parent;
+    }
+    
+    public ClassDescriptor getParent(){
+        return this.parent;
     }
 }
