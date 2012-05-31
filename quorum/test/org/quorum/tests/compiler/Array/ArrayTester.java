@@ -47,6 +47,32 @@ public class ArrayTester {
     }
 
     @Test
+    public void test_pass_ArrayMultidimensional_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayMultidimensional.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        vm.blockRun();
+        if(vm.getExceptions().hasExceptions()) {
+            fail();
+        }
+    }
+
+    @Test
+    public void test_pass_ArrayMultidimensional_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayMultidimensional.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+    }
+    
+    
+    @Test
     public void test_pass_Array_Of_Type_Integer_Action_Set_Get_Integer_Template_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeIntegerActionSetGetInteger.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
