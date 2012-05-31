@@ -153,6 +153,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     }
 
     public boolean generateAllDocumentation(File[] files) {
+        documentor.clearIndex();
         Iterator<ContainerExecution> containers = this.builder.getContainers();
         
         while (containers.hasNext()) {
@@ -165,9 +166,35 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 documentationToFile(clazz, result);
             }
         }
+        documentor.finishIndex();
+        String index = documentor.getIndex();
+        generateIndexFile(index);
         return true;
     }
 
+    private void generateIndexFile(String string) {
+        String root = documentationPath;
+        File file = new File(root);
+        try {
+            File result = new File(root + "/index" + "." + documentor.getFileExtension());
+            Writer out = null;
+
+            if (result.isFile()) {
+                result.delete();
+            }
+            //create the file again
+            result.createNewFile();
+            result.setWritable(true);
+            result.setReadable(true);
+            out = new OutputStreamWriter(new FileOutputStream(result));
+
+            out.write(string);
+            out.close();
+        } catch (IOException exception) {
+            logger.log(Level.INFO, "Could not output index to file.", exception);
+        }
+    }
+    
     private void documentationToFile(ClassDescriptor clazz, String string) {
         String root = documentationPath;
         String container = clazz.getContainer().getContainer();
