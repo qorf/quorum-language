@@ -52,12 +52,9 @@ public class TemplateTester {
      *
      */
 
-           /**
-     * Test of variableSubvariableAssignment method, of class File.
-     */
     @Test
-    public void testVariableSubvariableAssignment_bytecode() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS + "variableSubvariableAssignment.quorum"));
+    public void testListNodeInteger_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS + "ListNodeInteger.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
@@ -69,8 +66,34 @@ public class TemplateTester {
     }
     
     @Test
-    public void testVariableSubvariableAssignment_execute() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS + "variableSubvariableAssignment.quorum"));
+    public void testListNodeInteger_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS + "ListNodeInteger.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } 
+    }
+        @Test
+    public void testListNodeNumber_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS + "ListNodeNumber.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+    }
+    
+    @Test
+    public void testListNodeNumber_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS + "ListNodeNumber.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
@@ -82,6 +105,32 @@ public class TemplateTester {
         } 
     }
     
+    @Test
+    public void testListNodeText_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS + "ListNodeText.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+    }
+    
+    @Test
+    public void testListNodeText_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS + "ListNodeText.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } 
+    }
     
     @Test
     public void test_pass_ArraySetAndGet_0_execute(){
