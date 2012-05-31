@@ -256,6 +256,29 @@ public class TracWikiDocumentationGenerator implements DocumentationGenerator {
     public String getFileExtension() {
         return "wiki";
     }
+
+    @Override
+    public boolean isIndexed() {
+        return false;
+    }
+
+    @Override
+    public void setIndexed(boolean isIndexed) {
+    }
+
+    @Override
+    public String getIndex() {
+        return null;
+    }
+
+    @Override
+    public void clearIndex() {
+    }
+    
+    @Override
+    public void finishIndex() {
+        
+    }
     
     private class ParentResult {
         public int numParents = 0;

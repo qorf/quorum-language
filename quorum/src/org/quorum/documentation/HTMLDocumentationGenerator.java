@@ -34,6 +34,92 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
      * 
      */
     private String root = "";
+
+    private boolean indexed = true;
+    private String indexPage = "";
+    
+    @Override
+    public boolean isIndexed() {
+        return indexed;
+    }
+
+    @Override
+    public void setIndexed(boolean isIndexed) {
+        indexed = isIndexed;
+    }
+
+    @Override
+    public String getIndex() {
+        return indexPage;
+    }
+
+    @Override
+    public void clearIndex() {
+        startNewIndex();
+    }
+    
+    @Override
+    public void finishIndex() {
+        indexPage += "\n</ul>";
+        indexPage += "\n</body>\n</html>";
+    }
+    
+    private void startNewIndex() {
+        indexPage = "";
+        String result = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n";
+        result += "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n";
+        result += "<head>";
+        result += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";
+        result += "<title>Index of Quorum Libraries</title>\n";
+        result += "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + root + "style.css\"></link>";
+        result += "</head>\n";
+        result += "<body>\n";
+        indexPage = result;
+        indexPage += "<ul>";
+    }
+    
+    private void addToIndex(ClassDescriptor clazz) {
+        indexPage += "<li>" + linkForClassFromRoot(clazz) + "</li>";
+        int b = 5;
+    }
+    
+    private String linkForClassFromRoot(ClassDescriptor clazz) {
+        return link(generatePathToClassFromRoot(clazz), clazz.getStaticKey());
+    }
+    /**
+     * Given a class in a package X, this method computes a string relative
+     * to the root.
+     * 
+     * @param clazz
+     * @return 
+     */
+    private String generatePathToClassFromRoot(ClassDescriptor clazz) {
+        ContainerDescriptor con = clazz.getContainer();
+        String container = con.getContainer();
+        if(container.startsWith(".")) {
+            container = container.substring(1);
+        }
+        String[] split = container.replace('.', '/').split("/");
+        String path = "";
+        for(int i = 0; i < split.length; i++) {
+            path += split[i] + "/";
+        }
+        if(path.compareTo("/")==0) {
+            path = "";
+        }
+        return path + clazz.getName() + "." + this.getFileExtension();
+    }
+    
+    /**
+     * Given a particular class descriptor object, this method returns an
+     * html link for that class.
+     * 
+     * @param clazz
+     * @return 
+     */
+    private String linkForClass(ClassDescriptor clazz) {
+        return link(generatePathToClass(clazz), clazz.getStaticKey());
+    }
     
     /**
      * This method computes a relative path root. This root is relative to
@@ -80,6 +166,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     @Override
     public String generate(ClassDescriptor clazz) {
         computeRelativeRoot(clazz);
+        addToIndex(clazz);
         String result = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n";
         result += "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n";
         result += "<head>";
