@@ -6,10 +6,5 @@ class Main
         File f
         text exactPath = f:GetAbsolutePath()
         print exactPath // should not be empty
-
-        f:SetWorkingDirectory("/Users/")
-        f:SetPath("jeff")
-        text absolutePath = f:GetAbsolutePath()
-        print absolutePath // /Users/jeff
     end
 end

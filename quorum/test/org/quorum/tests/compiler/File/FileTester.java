@@ -129,7 +129,6 @@ public class FileTester {
             fail();
         
         assert(!r.getLine(0).isEmpty());
-        assert(r.getLine(1).equals("/Users/jeff"));
     }
     
     /**
@@ -552,10 +551,8 @@ public class FileTester {
             fail();
         } else {
             String exactPath = vm.getDataEnvironment().getVariableValue("exactPath").getResult().text;
-            String absolutePath = vm.getDataEnvironment().getVariableValue("absolutePath").getResult().text;
             
             assert(!exactPath.isEmpty());
-            assert(absolutePath.equals("/Users/jeff"));
         }
     }
     
