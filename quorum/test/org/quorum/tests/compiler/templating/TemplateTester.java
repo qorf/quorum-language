@@ -52,6 +52,37 @@ public class TemplateTester {
      *
      */
 
+           /**
+     * Test of variableSubvariableAssignment method, of class File.
+     */
+    @Test
+    public void testVariableSubvariableAssignment_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS + "variableSubvariableAssignment.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+    }
+    
+    @Test
+    public void testVariableSubvariableAssignment_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS + "variableSubvariableAssignment.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } 
+    }
+    
+    
     @Test
     public void test_pass_ArraySetAndGet_0_execute(){
         String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
