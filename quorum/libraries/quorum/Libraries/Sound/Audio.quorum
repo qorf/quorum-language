@@ -5,7 +5,11 @@ use Libraries.System.File
 
 /*
 The Audio class provides basic functionality for both playing and recording
-sound files on the system. 
+sound files on the system. To use the audio class, we must first instantiate an
+object of type Audio, then call SetFile, with either a valid file for playback
+or the location of a new file for recording. If this file or location is valid,
+we can then call actions to either start playback or recording. The the file or
+location is not valid, a generic runtime Error will be thrown.
 
 
 Attribute: Example
@@ -33,7 +37,8 @@ class Audio
     File file = undefined
 
     /*
-    The Play action plays a sound file.
+    The Play action plays a sound file. Before we can call this action, we must
+    call the SetFile action. This file must point to a valid sound file.
 
 
     Attribute: Example
@@ -60,6 +65,33 @@ class Audio
         Play(false)
     end
 
+    /*
+    The Play action plays a sound file. Before we can call this action, we must
+    call the SetFile action. This file must point to a valid sound file. This 
+    version of the Play action allows us to pass a parameter. If this is true, 
+    this action will not return until the sound file has finished playing.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+    use Libraries.System.File
+
+    //first create audio and File objects
+    Audio audio
+    File file
+
+    //set the path to the file you want to play back
+    //in this case, test.wav should be replaced with your file.
+    file:SetPath("test.wav")
+
+    //tell the audio playback library what file you want to play
+    audio:SetFile(file)
+
+    //playback the file. By default, this is a non-blocking call.
+    audio:Play()
+
+    */
     action Play(boolean block) 
         if file = undefined
             alert("A file must be specified before recording can begin, but file variable in the Audio class was undefined.  Call the SetFile(File file) action before calling Play.")
@@ -73,12 +105,68 @@ class Audio
     private system action PlayNative(text path, boolean block)
 
 
-    action StopPlaying
+    /*
+        This action stops the system from playing a sound file. It is only relevant
+        if it is called from a non-blocking call to Play, which is either Play(false)
+        or Play().
 
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+        use Libraries.System.File
+
+        //first create audio and File objects
+        Audio audio
+        File file
+
+        //set the path to the file you want to play back
+        //in this case, test.wav should be replaced with your file.
+        file:SetPath("test.wav")
+
+        //tell the audio playback library what file you want to play
+        audio:SetFile(file)
+
+        //playback the file. By default, this is a non-blocking call.
+        audio:Play()
+
+        //now stop the playback. In this case, no sound will be heard (or very little)
+        //because playback begins immediately before stopping
+        audio:StopPlaying()
+    */
+    action StopPlaying
+        StopPlayingNative()
     end
 
     private system action StopPlayingNative
 
+    /*
+        This action tells the system to record from its default recording device.
+        On most systems, this will be set by the operating system, and will 
+        include a microphone or other device. On systems where no such device exists
+        this action will return and do nothing. The record action always
+        records in the background, and as such, calling Record() and then immediately
+        StopRecording() will do nothing.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+        use Libraries.System.File
+
+        //first create audio and File objects
+        Audio audio
+        File file
+
+        //set the path to the file you want to play back
+        //in this case, test.wav should be replaced with your file.
+        file:SetPath("test.wav")
+
+        //tell the audio system where the data from the microphone should be
+        //stored.
+        audio:SetFile(file)
+
+        //Start recording. This call is always non-blocking.
+        audio:Record()
+    */
     action Record()
         if file = undefined
             alert("A file must be specified before recording can begin, but file variable in the Audio class was undefined. Call the SetFile(File file) action before calling Record.")
@@ -91,23 +179,56 @@ class Audio
     private system action RecordNative(text path)
 
 
+    /*
+        This action tells this Audio object to stop recording. If the system is not
+        currently recording, it does nothing.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+        use Libraries.System.File
+
+        //first create audio and File objects
+        Audio audio
+        File file
+
+        //set the path to the file you want to play back
+        //in this case, test.wav should be replaced with your file.
+        file:SetPath("test.wav")
+
+        //tell the audio system where the data from the microphone should be
+        //stored.
+        audio:SetFile(file)
+
+        //Start recording. This call is always non-blocking.
+        //perhaps we let it go for a while or put this in a user interface
+        audio:Record()
+
+        //Stop recording. In this example, very little would be recorded,
+        //as we are telling the system to stop immediately after we start.
+        audio:StopRecording()
+    */
     action StopRecording()
         StopRecordingNative()
     end
 
     private system action StopRecordingNative
 
+    /*
+        This action sets the file that will be used by the system for recording
+        or playback. If used for playback, this must be a valid file. If this
+        is used for recording, a new file will be created.
+    */
     action GetFile() returns File
         return file
     end
 
+    /*
+        This action sets the file that will be used by the system for recording
+        or playback. If used for playback, this must be a valid file. If this
+        is used for recording, a new file will be created.
+    */
     action SetFile(File file) 
         me:file = file
-    end
-
-    action main
-        File file
-        SetFile(file)
-        Play(true)
     end
 end
