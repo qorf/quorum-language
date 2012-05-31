@@ -4,8 +4,8 @@ use Libraries.System.DateTime
 class Main
     action Main
         File f
-        text workingDir = f:GetAbsolutePath()
-        print workingDir // should not be empty
+        text exactPath = f:GetAbsolutePath()
+        print exactPath // should not be empty
 
         f:SetWorkingDirectory("/Users/")
         f:SetPath("jeff")

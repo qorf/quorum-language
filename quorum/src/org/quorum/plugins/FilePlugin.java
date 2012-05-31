@@ -28,12 +28,14 @@ public class FilePlugin implements Plugin {
     public static final String KEY = "Libraries.System.File";
     
     public static final String GET_PATH_NATIVE = "GetPathNative";
+    public static final String GET_ABSOLUTE_PATH_NATIVE = "GetAbsolutePathNative";
     public static final String GET_LAST_MODIFIED_NATIVE = "GetLastModifiedNative";
     public static final String GET_DIRECTORY_LISTING_NATIVE = "GetDirectoryListingNative";
     public static final String GET_PARENT_DIRECTORY_NATIVE = "GetParentDirectoryNative";
     public static final String GET_SYSTEM_NEWLINE = "GetSystemNewline";
     public static final String SET_PATH_NATIVE = "SetPathNative:text";
     public static final String GET_WORKING_DIRECTORY_NATIVE = "GetWorkingDirectoryNative";
+    public static final String SET_WORKING_DIRECTORY_NATIVE = "SetWorkingDirectoryNative:text";
     public static final String GET_WORKING_DIRECTORY_FROM_PATH = "GetWorkingDirectoryFromPath:text";
     public static final String GET_PATH_FROM_PATH = "GetPathFromPath:text";
     public static final String EXISTS = "Exists";
@@ -117,6 +119,9 @@ public class FilePlugin implements Plugin {
         if (action.equals(GET_FILE_NAME)) {
             setPluginReturnValue(ret, inst.GetFileName());
         }
+        else if (action.equals(GET_ABSOLUTE_PATH_NATIVE)) {
+            setPluginReturnValue(ret, inst.getAbsolutePathNative());
+        }
         else if (action.equals(GET_PATH_NATIVE)) {
             String path = inst.GetPathNative();
             setPluginReturnValue(ret, path);
@@ -133,6 +138,10 @@ public class FilePlugin implements Plugin {
         }
         else if (action.equals(GET_WORKING_DIRECTORY_NATIVE)) {
             setPluginReturnValue(ret, inst.GetWorkingDirectoryNative());
+        }
+        else if (action.equals(SET_WORKING_DIRECTORY_NATIVE)) {
+            String path = call.getArgument("path").getResult().text;
+            setPluginReturnValue(ret, inst.SetWorkingDirectoryNative(path));
         }
         else if (action.equals(GET_WORKING_DIRECTORY_FROM_PATH)) {
             String path = call.getArgument("path").getResult().text;
