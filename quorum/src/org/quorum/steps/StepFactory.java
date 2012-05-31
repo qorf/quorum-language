@@ -707,7 +707,7 @@ public class StepFactory {
                     if (variable == null ) {
                         this.addCompilerError("Variable " + info.variableInObjectName
                                 + " has not been defined in the class " + vd.getName() + ".", info.location, ErrorType.MISSING_VARIABLE);
-                    }else if(variable.getAccessModifier().equals(variable.getAccessModifier().PRIVATE)){
+                    }else if(variable.getAccessModifier().equals(variable.getAccessModifier().PRIVATE) && !info.location.getClassName().equals(vd.getType().getName())){
                         this.addCompilerError("Variable " + info.variableInObjectName
                                 + " cannot be accessed from " + vd.getName() + " because it is private. ", info.location, ErrorType.MISSING_VARIABLE);
                     }else {

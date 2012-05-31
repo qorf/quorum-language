@@ -781,7 +781,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         if (method != null) {
             if (method.getAccessModifier() != null) {//temporary fix: this should never be null
                 if (callee != null && method.getAccessModifier().equals(AccessModifierEnum.PRIVATE)
-                        && method.getParent().getScopeString().compareTo(callee.getType().getStaticKey()) == 0) {
+                        && method.getParent().getScopeString().compareTo(callee.getType().getStaticKey()) != 0) {
                     method = null;
                 }
             }
@@ -815,7 +815,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         if (method != null) {
             if (method.getAccessModifier() != null) {//temporary fix: this should never be null
                 if (callee != null && method.getAccessModifier().equals(AccessModifierEnum.PRIVATE)
-                        && method.getParent().getScopeString().compareTo(callee.getType().getStaticKey()) == 0) {
+                        && method.getParent().getScopeString().compareTo(callee.getType().getStaticKey()) != 0) {
                     method = null;
                 }
             }
