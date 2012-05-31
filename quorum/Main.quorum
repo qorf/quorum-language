@@ -1,7 +1,9 @@
-use Libraries.System.File
-use Libraries.System.DateTime
 
 class Main
+    ListNode<integer> head = undefined
+    ListNode<integer> tail = undefined
+    integer invalidIndex = -1
+    integer size = 0
     action Main
         File f
         text exactPath = f:GetAbsolutePath()

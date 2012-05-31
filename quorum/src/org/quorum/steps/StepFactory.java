@@ -712,6 +712,26 @@ public class StepFactory {
                                 + " cannot be accessed from " + vd.getName() + " because it is private. ", info.location, ErrorType.MISSING_VARIABLE);
                     }else {
                         leftType = variable.getType();
+                        if(leftType.isTemplated()){ //if the type is templated resolve the type for the assignment
+                            ClassDescriptor variablesClass = machine.getSymbolTable().getClassDescriptor(vd.getType().getName());
+                            VariableDescriptor variableInObject = variablesClass.getVariable(info.variableInObjectName);
+                            TypeDescriptor type = variableInObject.getType();
+                            
+                            if(type.isTemplated()){//if the variable in the object is templated also
+                                Iterator<GenericDescriptor> subTypes = vd.getType().getSubTypes();
+                                Iterator<GenericDescriptor> templateVariables = variablesClass.getTemplateVariables();
+                                
+                                while(templateVariables.hasNext()&& subTypes.hasNext()){//search through the templated types to match
+                                    GenericDescriptor nextTemplatedVariable = templateVariables.next();
+                                    GenericDescriptor nextSubType = subTypes.next();
+                                    if(nextTemplatedVariable.getName().equals(type.getTemplateName())){
+                                        leftType = nextSubType.getType();
+                                    }
+                                }
+                            }else{
+                                leftType = type;
+                            }
+                        }
                     }
                 }
             }
