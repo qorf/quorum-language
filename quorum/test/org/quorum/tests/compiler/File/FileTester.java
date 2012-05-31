@@ -75,8 +75,6 @@ public class FileTester {
         RunResult r = CompilerTestSuite.runQuorumFile();
         if (!r.isSuccessful())
             fail();
-        
-        assert(r.getLine(0).equals("true"));   
     }
 
     /**
@@ -484,11 +482,7 @@ public class FileTester {
 
         if (vm.getExceptions().hasExceptions()) {
             fail();
-        } else {
-            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
-            
-            assert(success);
-        }  
+        }
     }
 
     /**
