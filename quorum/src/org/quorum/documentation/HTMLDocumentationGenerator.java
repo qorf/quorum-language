@@ -113,9 +113,19 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             }
             
             
-            indexPage += "<li>" + linkForClassFromRoot(clazz) + "</li>\n";
+            indexPage += "<li>" + linkForClassFromRoot(clazz);
             String description = clazz.getDocumentation().getDescription();
+            final int MAX_LENGTH = 180;
+            int length = description.length();
+            if(length > MAX_LENGTH) {
+                length = MAX_LENGTH;
+            } 
+            indexPage += ": " + description.substring(0, length);
             
+            if(description.length() > MAX_LENGTH) {
+                indexPage += " ...";
+            }
+            indexPage += "</li>\n";
             
         }
         indexPage += "</ul>\n";
