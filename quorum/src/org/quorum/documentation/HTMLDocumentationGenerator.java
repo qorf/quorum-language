@@ -6,6 +6,7 @@ package org.quorum.documentation;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import org.quorum.symbols.AccessModifierEnum;
 import org.quorum.symbols.BlueprintDescriptor;
@@ -27,6 +28,7 @@ import org.quorum.symbols.VariableDescriptor;
  */
 public class HTMLDocumentationGenerator implements DocumentationGenerator{
 
+    
     /**
      * This string represents the root directory, by which to compare all links.
      * For all links, it must be computed, given a class's package
@@ -37,6 +39,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
 
     private boolean indexed = true;
     private String indexPage = "";
+    private ArrayList<ClassDescriptor> classes = new ArrayList<ClassDescriptor>();
     
     @Override
     public boolean isIndexed() {
@@ -60,31 +63,92 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     
     @Override
     public void finishIndex() {
-        indexPage += "\n</ul>";
+       // indexPage += "\n</ul>";
+        
+        
+        Collections.sort(classes, new Comparator() {
+            @Override
+            public int compare(Object a, Object b) {
+                ClassDescriptor left = (ClassDescriptor) a;
+                ClassDescriptor right = (ClassDescriptor) b;
+                //first compare the keys of the containers
+                String leftContainer = left.getContainer().getContainer();
+                String rightContainer = right.getContainer().getContainer();
+                
+                int result = leftContainer.compareTo(rightContainer);
+                if(result == 0) {
+                    return left.getStaticKey().compareTo(right.getStaticKey());
+                }
+                else {
+                    return result;
+                }
+                
+            }
+        });
+        
+        indexPage += "<ul>\n";
+        String previousContainer = "!!!!----invalid----!!!!";
+        boolean firstPackage = false;
+        for(int i = 0; i < classes.size(); i++) {
+            ClassDescriptor clazz = classes.get(i);
+            
+            
+            String newContainer = clazz.getContainer().getContainer();
+            if(previousContainer.compareTo(newContainer)!=0) { //if it's a new container
+                previousContainer = newContainer;
+                if(firstPackage) {
+                    indexPage += "</div>";
+                }
+                else {
+                    firstPackage = true;
+                }
+                indexPage += "<div class=\"index_package\">\n";
+                if(newContainer.isEmpty()) {
+                    indexPage += "<h2 class=\"index_package_title\">" + "Default Package" + "</h2>\n";
+                }
+                else {
+                    indexPage += "<h2 class=\"index_package_title\">" + newContainer + "</h2>\n";
+                }
+                indexPage += "</ul><ul>\n";
+            }
+            
+            
+            indexPage += "<li>" + linkForClassFromRoot(clazz) + "</li>\n";
+            String description = clazz.getDocumentation().getDescription();
+            
+            
+        }
+        indexPage += "</ul>\n";
+        indexPage += "</div>";
         indexPage += "\n</body>\n</html>";
     }
     
     private void startNewIndex() {
         indexPage = "";
+        classes.clear();
+        String pageTitle = "Index of Quorum Libraries";
         String result = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n";
         result += "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n";
         result += "<head>";
         result += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";
-        result += "<title>Index of Quorum Libraries</title>\n";
+        result += "<title>"+pageTitle+"</title>\n";
         result += "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + root + "style.css\"></link>";
         result += "</head>\n";
         result += "<body>\n";
+        result += "<h1>"+pageTitle+"</h1>\n";
         indexPage = result;
-        indexPage += "<ul>";
+        //indexPage += "<ul>";
     }
     
+    
     private void addToIndex(ClassDescriptor clazz) {
-        indexPage += "<li>" + linkForClassFromRoot(clazz) + "</li>";
-        int b = 5;
+        //indexPage += "<li>" + linkForClassFromRoot(clazz) + "</li>";
+        //int b = 5;
+        classes.add(clazz);        
     }
     
     private String linkForClassFromRoot(ClassDescriptor clazz) {
-        return link(generatePathToClassFromRoot(clazz), clazz.getStaticKey());
+        return link(generatePathToClassFromRoot(clazz), clazz.getName());
     }
     /**
      * Given a class in a package X, this method computes a string relative
