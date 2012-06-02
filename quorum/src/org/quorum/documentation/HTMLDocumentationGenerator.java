@@ -238,6 +238,30 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         return path + clazz.getName() + "." + this.getFileExtension();
     }
     
+    private String formatCodeForHtml(String example) {
+        String result = "";
+        StringBuilder builder = new StringBuilder();
+        for(int i = 0; i < example.length(); i++) {
+            char val = example.charAt(i);
+            String newVal = "";
+            if(val == '<') {
+                newVal = "&lt;";
+            }
+            else if(val == '>') {
+                newVal = "&gt;";
+            }
+            else if(val == '&') {
+                newVal = "&amp;";
+            }
+            else {
+                newVal = "" + val;
+            }
+            builder.append(newVal);
+        }
+        result = builder.toString();
+        return result;
+    }
+    
     @Override
     public String generate(ClassDescriptor clazz) {
         computeRelativeRoot(clazz);
@@ -414,7 +438,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     }
     
     private String code(String string) {
-        return "<pre class=\"code\">" + string + "</pre>";
+        return "<pre class=\"code\">" + formatCodeForHtml(string) + "</pre>";
     }
     
     private String link(String link, String text) {
