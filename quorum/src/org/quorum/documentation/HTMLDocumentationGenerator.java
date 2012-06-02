@@ -308,17 +308,21 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             ClassDescriptor parent = parents.next();
             String parentPath = generatePathToClass(parent);
             String parentLink = link(parentPath, parent.getStaticKey());
-            String parentListItem = listItem(parentLink) + "\n";
+            //String parentListItem = listItem(parentLink) + "\n";
+            String parentListItem = parentLink;
+            if(parents.hasNext()) { //there's another
+                parentListItem += ", ";
+            }
             parentList += parentListItem;
         }
         
-        parentList = unorderedList(parentList);
+        //parentList = parentList;//unorderedList(parentList);
         parentsString += parentList;
                 
-                
-        result += "\n" + italics("Example Code") + ":\n";
-        result += code(documentation.getExample()) + "\n\n";
-        
+        if(!documentation.getExample().isEmpty()) {
+            result += "\n" + italics("Example Code") + ":\n";
+            result += code(documentation.getExample()) + "\n\n";
+        }
         result += parentsString;
         //add work for any public variables
         
@@ -634,7 +638,8 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
                 "(" + params + ")";
         
         String returnType = getReturnTypeString(method);
-        result += "\n\n";
+        //result += returnType;
+        //result += "\n\n";
 
         return result;
     }
@@ -643,57 +648,59 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         String result = "";
         Parameters parameters = method.getParameters();
         String params = "";
-        String paramList = paragraph(italics("Parameters") + ":");
-        for (int i = 0; i < parameters.size(); i++) {
-            if( i != 0) {
-                params += ",";
-            }
-            ParameterDescriptor descriptor = parameters.get(i);
-            TypeDescriptor type = descriptor.getType();
-            if(type != null) {
-                boolean templated = parameters.get(i).getType().isTemplated();
-                String currentParam = "";
-                if(templated) {
-                    currentParam = pascalCaseChecker(parameters.get(i).getType().getTemplateName()) + " "
-                        + parameters.get(i).getName();
-                    
-                }else {
-                    currentParam = pascalCasePackageChecker(parameters.get(i).getType().getStaticKey()) + " "
-                        + parameters.get(i).getName();
+        String paramList = "";
+        if(!parameters.isEmpty()) {
+            paramList = italics("Parameters") + ":";
+            paramList += "<ul class=\"parameters\">";
+            for (int i = 0; i < parameters.size(); i++) {
+                if( i != 0) {
+                    params += ",";
                 }
-                params += currentParam;
-                paramList +=  bold(currentParam) + ": ";
-                String[] docArray = Documentation.breakStringIntoParagraphArray(method.getDocumentation().getParameter(parameters.get(i).getName()));//                
-                paramList += breakIntoParagraphs(docArray);
-                paramList += "\n\n";
+                ParameterDescriptor descriptor = parameters.get(i);
+                TypeDescriptor type = descriptor.getType();
+                if(type != null) {
+                    boolean templated = parameters.get(i).getType().isTemplated();
+                    String currentParam = "";
+                    if(templated) {
+                        currentParam = pascalCaseChecker(parameters.get(i).getType().getTemplateName()) + " "
+                            + parameters.get(i).getName();
+
+                    }else {
+                        currentParam = pascalCasePackageChecker(parameters.get(i).getType().getStaticKey()) + " "
+                            + parameters.get(i).getName();
+                    }
+                    params += currentParam;
+                    paramList += "<li>";
+                    paramList +=  bold(currentParam) + ": ";
+                    String parameterDocumentation = method.getDocumentation().getParameter(parameters.get(i).getName());
+                    paramList += parameterDocumentation;
+                    //String[] docArray = Documentation.breakStringIntoParagraphArray(method.getDocumentation().getParameter(parameters.get(i).getName()));//                
+                    //paramList += breakIntoParagraphs(docArray);
+                    paramList += "</li>\n\n";
+                }
             }
+            paramList += "</ul>";
         }
         String methodSignature = getMethodSignature(method);
-        result += "<div class=\"action_title\">";
-        result += headingSurround(methodSignature, 3);
-        result += "</div>";
-        
-        result += "\n\n";
+        result += "\n\t" + headingSurround(methodSignature, 3, "action_title") + "\n";
 
         Documentation documentation = method.getDocumentation();
         if(documentation != null) {
             String[] array = Documentation.breakStringIntoParagraphArray(documentation.getDescription());
-            result += breakIntoParagraphs(array);
+            result += "\n\t" + breakIntoParagraphs(array);
         }
-       
-        if(parameters.isEmpty()) {
-            paramList += bold("none");
-        }
-        
         result += paramList + "\n";
-        result += paragraph(italics("Returns") + ":");
         
-        result += bold(getReturnTypeString(method)) + ": " + 
-                Documentation.breakStringIntoParagraphs(documentation.getReturns()) + " ";
+        if(!method.getReturnType().isVoid()) {
+            result += italics("Returns") + ":<ul class=\"parameters\">";
+            result += "\n\t<li>" + bold(getReturnTypeString(method)) + ": " + documentation.getReturns() + "</li>\n</ul>";
+        }
         if(!(method instanceof BlueprintDescriptor)) {
-            result += paragraph(italics("Example Code") + ":");
-            result += "\n" + code(documentation.getExample())
-                    + "\n\n";
+            if(!documentation.getExample().isEmpty()) {
+                result += "\n\t" + paragraph(italics("Example Code") + ":");
+                result += "\n" + code(documentation.getExample())
+                        + "\n\n";
+            }
         }
 
         return result;
@@ -721,10 +728,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
                 returnType = method.getReturnType().getStaticKey();
             }
         }
-        
-        if(!method.getReturnType().isVoid()) {
-            returnType += " returns " + returnType;
-        }
         return returnType;
     }
     
@@ -742,6 +745,24 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             wiki += "=";
         }
         result = "<h" + level + "> " + input + "</h" + level + "> ";
+        return result;
+    }
+    
+    /**
+     * Creates text in the style of a heading at a particular level.
+     * 
+     * @param input
+     * @param level
+     * @param clazz
+     * @return 
+     */
+    public String headingSurround(String input, int level, String clazz) {
+        String result = "";
+        String wiki = "";
+        for(int i = 0; i < level; i++) {
+            wiki += "=";
+        }
+        result = "<h" + level + " class=\"" + clazz + "\"> " + input + "</h" + level + ">";
         return result;
     }
 
