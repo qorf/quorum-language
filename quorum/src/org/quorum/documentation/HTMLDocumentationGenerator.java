@@ -361,11 +361,22 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         if(variables.size() > 0) {
             Collections.sort(variables, compare);
             Iterator<VariableDescriptor> sortedVariables = variables.iterator();
-            result += "\n " + headingSurround("Variables",2) + "\n";
+            result += "\n " + headingSurround("Variables",2, "action_or_variables_header") + "\n";
+            result += "<ul class=\"variables\">";
+            boolean standardListItem = true;
             while(sortedVariables.hasNext()) {
                 VariableDescriptor next = sortedVariables.next();
-                result += getVariableDocumentation(next) + "\n";
+                String listClass = "";
+                if(standardListItem) {
+                    listClass = "class = \"package_standard\"";
+                }
+                else {
+                    listClass = "class = \"package_alternate\"";
+                }
+                standardListItem = !standardListItem;
+                result += "<li " + listClass + ">" + getVariableDocumentation(next) + "</li>\n";
             }
+            result += "</ul>";
         }
         
         //add work for any public actions
@@ -465,6 +476,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         else {
             result = pascalCasePackageChecker(type.getStaticKey());
         }
+        result = bold(result);
         
         if(type.hasSubTypes()) {
             result += getTemplateStartCharacter();
@@ -479,7 +491,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             result = result.substring(0, result.length() - 1);
             result += getTemplateEndCharacter();
         }
-        result = " * " + result + " " + pascalCaseChecker(name);
+        result = result + " " + pascalCaseChecker(name);
         return result;
     }
     
