@@ -63,9 +63,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     
     @Override
     public void finishIndex() {
-       // indexPage += "\n</ul>";
-        
-        
         Collections.sort(classes, new Comparator() {
             @Override
             public int compare(Object a, Object b) {
@@ -86,34 +83,38 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             }
         });
         
-        indexPage += "<ul>\n";
         String previousContainer = "!!!!----invalid----!!!!";
-        boolean firstPackage = false;
+        boolean firstPackage = true;
+        boolean standardListItem = true;
         for(int i = 0; i < classes.size(); i++) {
             ClassDescriptor clazz = classes.get(i);
-            
-            
             String newContainer = clazz.getContainer().getContainer();
             if(previousContainer.compareTo(newContainer)!=0) { //if it's a new container
                 previousContainer = newContainer;
-                if(firstPackage) {
-                    indexPage += "</div>";
+                if(!firstPackage) {
+                    indexPage += "\t</ul>\n</div>\n";
                 }
-                else {
-                    firstPackage = true;
-                }
+                
                 indexPage += "<div class=\"index_package\">\n";
                 if(newContainer.isEmpty()) {
-                    indexPage += "<h2 class=\"index_package_title\">" + "Default Package" + "</h2>\n";
+                    indexPage += "\t<h2 class=\"index_package_title\">" + "Default Package" + "</h2>\n";
                 }
                 else {
-                    indexPage += "<h2 class=\"index_package_title\">" + newContainer + "</h2>\n";
+                    indexPage += "\t<h2 class=\"index_package_title\">" + newContainer + "</h2>\n";
                 }
-                indexPage += "</ul><ul>\n";
+                indexPage += "\t<ul class=\"packages\">\n";
+                standardListItem = true;
             }
             
-            
-            indexPage += "<li>" + linkForClassFromRoot(clazz);
+            String listClass = "";
+            if(standardListItem) {
+                listClass = "class = \"package_standard\"";
+            }
+            else {
+                listClass = "class = \"package_alternate\"";
+            }
+            standardListItem = !standardListItem;
+            indexPage += "\t\t<li " + listClass + ">" + linkForClassFromRoot(clazz);
             String description = clazz.getDocumentation().getDescription();
             final int MAX_LENGTH = 180;
             int length = description.length();
@@ -126,10 +127,10 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
                 indexPage += " ...";
             }
             indexPage += "</li>\n";
-            
+            firstPackage = false;
         }
         indexPage += "</ul>\n";
-        indexPage += "</div>";
+        indexPage += "\n</div>";
         indexPage += "\n</body>\n</html>";
     }
     
