@@ -492,6 +492,10 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             result += getTemplateEndCharacter();
         }
         result = result + " " + pascalCaseChecker(name);
+        String description = variable.getDocumentation().getDescription();
+        if(!description.isEmpty()) {
+            result += ": " + description;
+        }
         return result;
     }
     

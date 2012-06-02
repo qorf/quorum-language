@@ -1,5 +1,14 @@
 package Libraries.Sound
 
+use Libraries.Language.Errors.InvalidArgumentError
+use Libraries.System.File
+use Libraries.Sound.Note
+use Libraries.Sound.Chord
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Sound.Instrument
+use Libraries.Sound.Track
+
 /*
     This class generates music from the Music Instrument Digital Interface
     (MIDI) standard. This class can be used to play invidual notes and
@@ -15,20 +24,12 @@ package Libraries.Sound
     http://tomscarff.110mb.com/midi_analyser/midi_note_numbers_for_octaves.htm
 
     This class also defines some constants that can be used throughout music-related
-    classes. These constants include:
-
-    * breve
-    * wholeNote
-    * halfNote
-    * quarterNote
-    * eighthNote
-    * sixteenthNote
-    * thirtySecondthNote
-    * sixtyFourthNote
+    classes. These constants include: breve, wholeNote, halfNote, quarterNote, 
+    eighthNote , sixteenthNote, thirtySecondthNote, sixtyFourthNote
 
     These constants can all be used to specify note start times and length. In
     addition, mathematical manipulation of these constants is permitted. For example,
-    if one desired a double whole note, one could type m:wholeNote*2, as well as just
+    if we wanted a double whole note, we could type m:wholeNote*2, as well as
     m:breve.
 
     Attribute: Author Andy Stefik and Jeff Wilson
@@ -44,16 +45,6 @@ repeat 12 times
     note = note + 1
 end
 */
-
-use Libraries.Language.Errors.InvalidArgumentError
-use Libraries.System.File
-use Libraries.Sound.Note
-use Libraries.Sound.Chord
-use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
-use Libraries.Sound.Instrument
-use Libraries.Sound.Track
-
 class Music
     private integer ticksPerWholeNote = 384 // 96 * 4
     private integer beatsPerMinute = 120 // A pretty standard tempo
@@ -61,13 +52,21 @@ class Music
     private List<Track> tracks
     private Instrument currentInstrument
 
+    /* A note with two times the duration of a whole note. */
     public integer breve = ticksPerWholeNote * 2
+    /* A whole note. */
     public integer wholeNote = ticksPerWholeNote
+    /* A note with half the duration of a whole note. */
     public integer halfNote = ticksPerWholeNote / 2
+    /* A note with a quarter the duration of a whole note. */
     public integer quarterNote = ticksPerWholeNote / 4
+    /* A note with an eighth the duration of a whole note. */
     public integer eighthNote = ticksPerWholeNote / 8
+    /* A note with a sixteenth the duration of a whole note. */
     public integer sixteenthNote = ticksPerWholeNote / 16
+    /* A note with a thirty-second the duration of a whole note. */
     public integer thirtySecondthNote = ticksPerWholeNote / 32
+    /* A note with a sixty-fourth the duration of a whole note. */
     public integer sixtyFourthNote = ticksPerWholeNote / 64
 
     private system action AddNoteForChord(integer note)
