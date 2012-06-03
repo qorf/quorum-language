@@ -148,19 +148,17 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         result += "<body>\n";
         result += "<h1>"+pageTitle+"</h1>\n";
         indexPage = result;
-        //indexPage += "<ul>";
     }
     
     
     private void addToIndex(ClassDescriptor clazz) {
-        //indexPage += "<li>" + linkForClassFromRoot(clazz) + "</li>";
-        //int b = 5;
         classes.add(clazz);        
     }
     
     private String linkForClassFromRoot(ClassDescriptor clazz) {
         return link(generatePathToClassFromRoot(clazz), clazz.getName());
     }
+    
     /**
      * Given a class in a package X, this method computes a string relative
      * to the root.
@@ -332,7 +330,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             ClassDescriptor parent = parents.next();
             String parentPath = generatePathToClass(parent);
             String parentLink = link(parentPath, parent.getStaticKey());
-            //String parentListItem = listItem(parentLink) + "\n";
             String parentListItem = parentLink;
             if(parents.hasNext()) { //there's another
                 parentListItem += ", ";
@@ -340,7 +337,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             parentList += parentListItem;
         }
         
-        //parentList = parentList;//unorderedList(parentList);
         parentsString += parentList;
                 
         if(!documentation.getExample().isEmpty()) {
@@ -678,9 +674,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
                 "(" + params + ")";
         
         String returnType = getReturnTypeString(method);
-        //result += returnType;
-        //result += "\n\n";
-
         return result;
     }
 
@@ -714,8 +707,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
                     paramList +=  bold(currentParam) + ": ";
                     String parameterDocumentation = method.getDocumentation().getParameter(parameters.get(i).getName());
                     paramList += parameterDocumentation;
-                    //String[] docArray = Documentation.breakStringIntoParagraphArray(method.getDocumentation().getParameter(parameters.get(i).getName()));//                
-                    //paramList += breakIntoParagraphs(docArray);
                     paramList += "</li>\n\n";
                 }
             }
