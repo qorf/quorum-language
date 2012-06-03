@@ -1,5 +1,24 @@
 package Libraries.Robots
+
+/*
+    This is a parent class representing the types of objects, usually sensors
+    that are able to be connected to the robot. This class has only two
+    blueprint methods, for getting and setting a port.
+
+    Attribute: Author Sahana Tambi Sathyanarayana
+*/
 class Connectable 
+    /*
+        Sets what port the connectable can connect to.
+
+        Attribute: Parameter port This is the port that can be connected to.
+    */
     blueprint action SetPort(integer port)
+
+    /*
+        Sets what port the connectable can connect to.
+
+        Attribute: Returns This returns which port the item is connected to.
+    */
     blueprint action GetPort() returns integer
 end

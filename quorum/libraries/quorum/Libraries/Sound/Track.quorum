@@ -1,15 +1,14 @@
 package Libraries.Sound
 
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
+
 /*
     This class represents a track. A track is a series of notes and chords. A collection
     of tracks makes up a song. When tracks are played, all tracks begin at the exact same time.
 
     Attribute: Author Jeff Wilson
 */
-
-use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
-
 class Track
     private List<MusicEvent> events
     private Instrument instrument
@@ -26,7 +25,7 @@ class Track
     /*
         Add a new note to this track.
 
-        Attribute: Paramter note the note to add
+        Attribute: Parameter note the note to add
     */
     public action Add(Note note)
         events:Add(note)
