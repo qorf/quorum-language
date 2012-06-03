@@ -255,7 +255,11 @@ import org.quorum.vm.interfaces.CompilerError;
 		        doc.parseDocumentationString(documentationString);
 		        current = -1; //we've found the documentation, so bail
 		    }
-		    else if(toke.getChannel() == this.DEFAULT_TOKEN_CHANNEL) {
+		    else if(toke.getChannel() == this.DEFAULT_TOKEN_CHANNEL
+		    	    && toke.getType() != PRIVATE 
+                            && toke.getType() != PUBLIC 
+                            && toke.getType() != BLUEPRINT 
+                            && toke.getType() != NATIVE) {
 		        current = -1; //bail out, there's no documentation
 		    }
 		    current = current - 1;

@@ -1,4 +1,4 @@
-// $ANTLR 3.2 Sep 23, 2009 12:02:23 /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g 2012-03-13 15:24:12
+// $ANTLR 3.3 Nov 30, 2010 12:45:30 /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g 2012-06-03 09:34:17
 
 
 
@@ -27,97 +27,97 @@ public class QuorumParser extends Parser {
     public static final String[] tokenNames = new String[] {
         "<invalid>", "<EOR>", "<DOWN>", "<UP>", "FUNCTION_CALL", "FUNCTION_CALL_PARENT", "FUNCTION_CALL_THIS", "FUNCTION_EXPRESSION_LIST", "SOLO_FUNCTION_CALL", "SOLO_FUNCTION_CALL_PARENT", "SOLO_FUNCTION_CALL_THIS", "QUALIFIED_NAME", "EXPRESSION_STATEMENT", "STATEMENT_LIST", "CONSTRUCTOR", "FPARAM", "UNARY_NOT", "ELSE_IF_STATEMENT", "FINAL_ELSE", "PAREN_WRAPPED_EXPRESSION", "ROOT_EXPRESSION", "QUALIFIED_SOLO_EXPRESSION", "QUALIFIED_SOLO_EXPRESSION_SELECTOR", "QUALIFIED_SOLO_PARENT_EXPRESSON", "GENERIC", "PACKAGE_NAME", "USE", "CLASS", "ID", "END", "INHERITS", "COMMA", "PUBLIC", "PRIVATE", "ACTION", "LEFT_PAREN", "RIGHT_PAREN", "RETURNS", "BLUEPRINT", "NATIVE", "ON_CREATE", "PERIOD", "COLON", "PARENT", "ME", "ALERT", "CHECK", "DETECT", "ALWAYS", "OF_TYPE", "OR", "PRINT", "SAY", "RETURN", "NOW", "LESS", "GREATER", "INTEGER_KEYWORD", "NUMBER_KEYWORD", "TEXT", "BOOLEAN_KEYWORD", "EQUALITY", "IF", "ELSE_IF", "ELSE", "REPEAT", "TIMES", "WHILE", "UNTIL", "AND", "NOTEQUALS", "GREATER_EQUAL", "LESS_EQUAL", "PLUS", "MINUS", "MULTIPLY", "DIVIDE", "MODULO", "NOT", "CAST", "INT", "BOOLEAN", "DECIMAL", "STRING", "NULL", "INPUT", "ON_DESTROY", "OVER", "LEFT_SQR_BRACE", "RIGHT_SQR_BRACE", "DOUBLE_QUOTE", "NEWLINE", "WS", "COMMENTS"
     };
-    public static final int CAST=79;
-    public static final int FUNCTION_CALL_THIS=6;
-    public static final int WHILE=67;
-    public static final int GENERIC=24;
-    public static final int DOUBLE_QUOTE=90;
-    public static final int ME=44;
-    public static final int NOW=54;
-    public static final int NOT=78;
     public static final int EOF=-1;
-    public static final int SOLO_FUNCTION_CALL_PARENT=9;
-    public static final int PAREN_WRAPPED_EXPRESSION=19;
-    public static final int ACTION=34;
-    public static final int GREATER=56;
-    public static final int COMMENTS=93;
-    public static final int INHERITS=30;
-    public static final int ALWAYS=48;
-    public static final int RETURN=53;
-    public static final int LESS=55;
-    public static final int UNARY_NOT=16;
-    public static final int FPARAM=15;
-    public static final int FUNCTION_EXPRESSION_LIST=7;
-    public static final int RIGHT_SQR_BRACE=89;
-    public static final int DIVIDE=76;
-    public static final int SOLO_FUNCTION_CALL=8;
-    public static final int INTEGER_KEYWORD=57;
-    public static final int OF_TYPE=49;
-    public static final int PERIOD=41;
-    public static final int PRIVATE=33;
-    public static final int NULL=84;
-    public static final int ELSE=64;
-    public static final int NATIVE=39;
-    public static final int INT=80;
-    public static final int SAY=52;
-    public static final int WS=92;
-    public static final int UNTIL=68;
-    public static final int OR=50;
-    public static final int LEFT_PAREN=35;
-    public static final int CHECK=46;
-    public static final int REPEAT=65;
-    public static final int LESS_EQUAL=72;
-    public static final int EXPRESSION_STATEMENT=12;
-    public static final int USE=26;
-    public static final int END=29;
     public static final int FUNCTION_CALL=4;
-    public static final int CONSTRUCTOR=14;
-    public static final int OVER=87;
-    public static final int EQUALITY=61;
-    public static final int CLASS=27;
-    public static final int ELSE_IF_STATEMENT=17;
-    public static final int QUALIFIED_SOLO_PARENT_EXPRESSON=23;
-    public static final int ALERT=45;
-    public static final int INPUT=85;
-    public static final int SOLO_FUNCTION_CALL_THIS=10;
-    public static final int ID=28;
-    public static final int AND=69;
-    public static final int IF=62;
-    public static final int PARENT=43;
-    public static final int RIGHT_PAREN=36;
-    public static final int BOOLEAN=81;
-    public static final int MULTIPLY=75;
-    public static final int COMMA=31;
-    public static final int PLUS=73;
-    public static final int RETURNS=37;
-    public static final int ELSE_IF=63;
-    public static final int QUALIFIED_NAME=11;
-    public static final int MODULO=77;
-    public static final int ON_CREATE=40;
     public static final int FUNCTION_CALL_PARENT=5;
-    public static final int QUALIFIED_SOLO_EXPRESSION=21;
-    public static final int FINAL_ELSE=18;
-    public static final int NOTEQUALS=70;
+    public static final int FUNCTION_CALL_THIS=6;
+    public static final int FUNCTION_EXPRESSION_LIST=7;
+    public static final int SOLO_FUNCTION_CALL=8;
+    public static final int SOLO_FUNCTION_CALL_PARENT=9;
+    public static final int SOLO_FUNCTION_CALL_THIS=10;
+    public static final int QUALIFIED_NAME=11;
+    public static final int EXPRESSION_STATEMENT=12;
     public static final int STATEMENT_LIST=13;
-    public static final int TEXT=59;
-    public static final int MINUS=74;
-    public static final int ON_DESTROY=86;
+    public static final int CONSTRUCTOR=14;
+    public static final int FPARAM=15;
+    public static final int UNARY_NOT=16;
+    public static final int ELSE_IF_STATEMENT=17;
+    public static final int FINAL_ELSE=18;
+    public static final int PAREN_WRAPPED_EXPRESSION=19;
     public static final int ROOT_EXPRESSION=20;
-    public static final int PRINT=51;
-    public static final int PACKAGE_NAME=25;
-    public static final int COLON=42;
-    public static final int NEWLINE=91;
-    public static final int DECIMAL=82;
-    public static final int DETECT=47;
-    public static final int BLUEPRINT=38;
-    public static final int BOOLEAN_KEYWORD=60;
-    public static final int LEFT_SQR_BRACE=88;
+    public static final int QUALIFIED_SOLO_EXPRESSION=21;
     public static final int QUALIFIED_SOLO_EXPRESSION_SELECTOR=22;
-    public static final int NUMBER_KEYWORD=58;
-    public static final int TIMES=66;
+    public static final int QUALIFIED_SOLO_PARENT_EXPRESSON=23;
+    public static final int GENERIC=24;
+    public static final int PACKAGE_NAME=25;
+    public static final int USE=26;
+    public static final int CLASS=27;
+    public static final int ID=28;
+    public static final int END=29;
+    public static final int INHERITS=30;
+    public static final int COMMA=31;
     public static final int PUBLIC=32;
+    public static final int PRIVATE=33;
+    public static final int ACTION=34;
+    public static final int LEFT_PAREN=35;
+    public static final int RIGHT_PAREN=36;
+    public static final int RETURNS=37;
+    public static final int BLUEPRINT=38;
+    public static final int NATIVE=39;
+    public static final int ON_CREATE=40;
+    public static final int PERIOD=41;
+    public static final int COLON=42;
+    public static final int PARENT=43;
+    public static final int ME=44;
+    public static final int ALERT=45;
+    public static final int CHECK=46;
+    public static final int DETECT=47;
+    public static final int ALWAYS=48;
+    public static final int OF_TYPE=49;
+    public static final int OR=50;
+    public static final int PRINT=51;
+    public static final int SAY=52;
+    public static final int RETURN=53;
+    public static final int NOW=54;
+    public static final int LESS=55;
+    public static final int GREATER=56;
+    public static final int INTEGER_KEYWORD=57;
+    public static final int NUMBER_KEYWORD=58;
+    public static final int TEXT=59;
+    public static final int BOOLEAN_KEYWORD=60;
+    public static final int EQUALITY=61;
+    public static final int IF=62;
+    public static final int ELSE_IF=63;
+    public static final int ELSE=64;
+    public static final int REPEAT=65;
+    public static final int TIMES=66;
+    public static final int WHILE=67;
+    public static final int UNTIL=68;
+    public static final int AND=69;
+    public static final int NOTEQUALS=70;
     public static final int GREATER_EQUAL=71;
+    public static final int LESS_EQUAL=72;
+    public static final int PLUS=73;
+    public static final int MINUS=74;
+    public static final int MULTIPLY=75;
+    public static final int DIVIDE=76;
+    public static final int MODULO=77;
+    public static final int NOT=78;
+    public static final int CAST=79;
+    public static final int INT=80;
+    public static final int BOOLEAN=81;
+    public static final int DECIMAL=82;
     public static final int STRING=83;
+    public static final int NULL=84;
+    public static final int INPUT=85;
+    public static final int ON_DESTROY=86;
+    public static final int OVER=87;
+    public static final int LEFT_SQR_BRACE=88;
+    public static final int RIGHT_SQR_BRACE=89;
+    public static final int DOUBLE_QUOTE=90;
+    public static final int NEWLINE=91;
+    public static final int WS=92;
+    public static final int COMMENTS=93;
 
     // delegates
     // delegators
@@ -141,7 +141,7 @@ public class QuorumParser extends Parser {
     }
 
     public String[] getTokenNames() { return QuorumParser.tokenNames; }
-    public String getGrammarFileName() { return "/Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g"; }
+    public String getGrammarFileName() { return "/Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g"; }
 
 
     	public static final int HIDDEN_DOCUMENTATION = 100;
@@ -313,7 +313,11 @@ public class QuorumParser extends Parser {
     		        doc.parseDocumentationString(documentationString);
     		        current = -1; //we've found the documentation, so bail
     		    }
-    		    else if(toke.getChannel() == this.DEFAULT_TOKEN_CHANNEL) {
+    		    else if(toke.getChannel() == this.DEFAULT_TOKEN_CHANNEL
+    		    	    && toke.getType() != PRIVATE 
+                                && toke.getType() != PUBLIC 
+                                && toke.getType() != BLUEPRINT 
+                                && toke.getType() != NATIVE) {
     		        current = -1; //bail out, there's no documentation
     		    }
     		    current = current - 1;
@@ -328,7 +332,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "start"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:267:1: start : ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ | ) class_declaration EOF ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:271:1: start : ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ | ) class_declaration EOF ;
     public final QuorumParser.start_return start() throws RecognitionException {
         QuorumParser.start_return retval = new QuorumParser.start_return();
         retval.start = input.LT(1);
@@ -354,17 +358,17 @@ public class QuorumParser extends Parser {
         CommonTree EOF8_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:267:7: ( ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ | ) class_declaration EOF )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:268:3: ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ | ) class_declaration EOF
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:271:7: ( ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ | ) class_declaration EOF )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:272:3: ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ | ) class_declaration EOF
             {
             root_0 = (CommonTree)adaptor.nil();
 
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:268:3: ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ | )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:272:3: ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ | )
             int alt4=5;
             alt4 = dfa4.predict(input);
             switch (alt4) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:268:4: package_rule ( reference )+
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:272:4: package_rule ( reference )+
                     {
                     pushFollow(FOLLOW_package_rule_in_start150);
                     package_rule1=package_rule();
@@ -372,7 +376,7 @@ public class QuorumParser extends Parser {
                     state._fsp--;
 
                     adaptor.addChild(root_0, package_rule1.getTree());
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:268:17: ( reference )+
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:272:17: ( reference )+
                     int cnt1=0;
                     loop1:
                     do {
@@ -386,7 +390,7 @@ public class QuorumParser extends Parser {
 
                         switch (alt1) {
                     	case 1 :
-                    	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:268:17: reference
+                    	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:272:17: reference
                     	    {
                     	    pushFollow(FOLLOW_reference_in_start152);
                     	    reference2=reference();
@@ -411,9 +415,9 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:269:4: ( reference )+ package_rule
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:273:4: ( reference )+ package_rule
                     {
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:269:4: ( reference )+
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:273:4: ( reference )+
                     int cnt2=0;
                     loop2:
                     do {
@@ -427,7 +431,7 @@ public class QuorumParser extends Parser {
 
                         switch (alt2) {
                     	case 1 :
-                    	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:269:4: reference
+                    	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:273:4: reference
                     	    {
                     	    pushFollow(FOLLOW_reference_in_start159);
                     	    reference3=reference();
@@ -458,7 +462,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:270:4: package_rule
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:274:4: package_rule
                     {
                     pushFollow(FOLLOW_package_rule_in_start167);
                     package_rule5=package_rule();
@@ -470,9 +474,9 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 4 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:271:4: ( reference )+
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:275:4: ( reference )+
                     {
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:271:4: ( reference )+
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:275:4: ( reference )+
                     int cnt3=0;
                     loop3:
                     do {
@@ -486,7 +490,7 @@ public class QuorumParser extends Parser {
 
                         switch (alt3) {
                     	case 1 :
-                    	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:271:4: reference
+                    	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:275:4: reference
                     	    {
                     	    pushFollow(FOLLOW_reference_in_start172);
                     	    reference6=reference();
@@ -511,7 +515,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 5 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:272:4: 
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:276:4: 
                     {
                     }
                     break;
@@ -555,7 +559,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "package_rule"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:276:1: package_rule : PACKAGE_NAME qn= qualified_name ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:280:1: package_rule : PACKAGE_NAME qn= qualified_name ;
     public final QuorumParser.package_rule_return package_rule() throws RecognitionException {
         QuorumParser.package_rule_return retval = new QuorumParser.package_rule_return();
         retval.start = input.LT(1);
@@ -569,8 +573,8 @@ public class QuorumParser extends Parser {
         CommonTree PACKAGE_NAME9_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:276:14: ( PACKAGE_NAME qn= qualified_name )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:276:16: PACKAGE_NAME qn= qualified_name
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:280:14: ( PACKAGE_NAME qn= qualified_name )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:280:16: PACKAGE_NAME qn= qualified_name
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -614,7 +618,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "reference"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:282:1: reference : USE qn= qualified_name ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:286:1: reference : USE qn= qualified_name ;
     public final QuorumParser.reference_return reference() throws RecognitionException {
         QuorumParser.reference_return retval = new QuorumParser.reference_return();
         retval.start = input.LT(1);
@@ -628,8 +632,8 @@ public class QuorumParser extends Parser {
         CommonTree USE10_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:283:2: ( USE qn= qualified_name )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:284:2: USE qn= qualified_name
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:287:2: ( USE qn= qualified_name )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:288:2: USE qn= qualified_name
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -678,7 +682,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "class_declaration"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:291:1: class_declaration : ( ( CLASS ID (genericList= generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END ) -> ^( CLASS ID ( generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END ) | no_class_stmnts );
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:295:1: class_declaration : ( ( CLASS ID (genericList= generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END ) -> ^( CLASS ID ( generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END ) | no_class_stmnts );
     public final QuorumParser.class_declaration_return class_declaration() throws RecognitionException {
         class_declaration_stack.push(new class_declaration_scope());
         QuorumParser.class_declaration_return retval = new QuorumParser.class_declaration_return();
@@ -711,7 +715,7 @@ public class QuorumParser extends Parser {
         	Documentation classDocumentation = getDocumentationFromRecentToken();
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:297:5: ( ( CLASS ID (genericList= generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END ) -> ^( CLASS ID ( generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END ) | no_class_stmnts )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:301:5: ( ( CLASS ID (genericList= generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END ) -> ^( CLASS ID ( generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END ) | no_class_stmnts )
             int alt8=2;
             int LA8_0 = input.LA(1);
 
@@ -729,10 +733,10 @@ public class QuorumParser extends Parser {
             }
             switch (alt8) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:298:2: ( CLASS ID (genericList= generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END )
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:302:2: ( CLASS ID (genericList= generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END )
                     {
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:298:2: ( CLASS ID (genericList= generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END )
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:299:2: CLASS ID (genericList= generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:302:2: ( CLASS ID (genericList= generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END )
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:303:2: CLASS ID (genericList= generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END
                     {
                     CLASS11=(Token)match(input,CLASS,FOLLOW_CLASS_in_class_declaration255);  
                     stream_CLASS.add(CLASS11);
@@ -757,7 +761,7 @@ public class QuorumParser extends Parser {
                     		symbol.add(cd);
                     		((class_declaration_scope)class_declaration_stack.peek()).current_class = cd;
                     	
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:317:13: (genericList= generic_declaration )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:321:13: (genericList= generic_declaration )?
                     int alt5=2;
                     int LA5_0 = input.LA(1);
 
@@ -766,7 +770,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt5) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:317:13: genericList= generic_declaration
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:321:13: genericList= generic_declaration
                             {
                             pushFollow(FOLLOW_generic_declaration_in_class_declaration268);
                             genericList=generic_declaration();
@@ -796,7 +800,7 @@ public class QuorumParser extends Parser {
                     			}
                     		}
                     	
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:334:2: ( inherit_stmnts )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:338:2: ( inherit_stmnts )?
                     int alt6=2;
                     int LA6_0 = input.LA(1);
 
@@ -805,7 +809,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt6) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:334:2: inherit_stmnts
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:338:2: inherit_stmnts
                             {
                             pushFollow(FOLLOW_inherit_stmnts_in_class_declaration275);
                             inherit_stmnts13=inherit_stmnts();
@@ -819,7 +823,7 @@ public class QuorumParser extends Parser {
 
                     }
 
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:335:2: ( class_stmnts )*
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:339:2: ( class_stmnts )*
                     loop7:
                     do {
                         int alt7=2;
@@ -832,7 +836,7 @@ public class QuorumParser extends Parser {
 
                         switch (alt7) {
                     	case 1 :
-                    	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:335:2: class_stmnts
+                    	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:339:2: class_stmnts
                     	    {
                     	    pushFollow(FOLLOW_class_stmnts_in_class_declaration286);
                     	    class_stmnts14=class_stmnts();
@@ -864,7 +868,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: inherit_stmnts, class_stmnts, generic_declaration, END, CLASS, ID
+                    // elements: END, ID, class_stmnts, generic_declaration, CLASS, inherit_stmnts
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -874,27 +878,27 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 343:4: -> ^( CLASS ID ( generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END )
+                    // 347:4: -> ^( CLASS ID ( generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:343:7: ^( CLASS ID ( generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:347:7: ^( CLASS ID ( generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(stream_CLASS.nextNode(), root_1);
 
                         adaptor.addChild(root_1, stream_ID.nextNode());
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:343:18: ( generic_declaration )?
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:347:18: ( generic_declaration )?
                         if ( stream_generic_declaration.hasNext() ) {
                             adaptor.addChild(root_1, stream_generic_declaration.nextTree());
 
                         }
                         stream_generic_declaration.reset();
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:343:39: ( inherit_stmnts )?
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:347:39: ( inherit_stmnts )?
                         if ( stream_inherit_stmnts.hasNext() ) {
                             adaptor.addChild(root_1, stream_inherit_stmnts.nextTree());
 
                         }
                         stream_inherit_stmnts.reset();
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:343:55: ( class_stmnts )*
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:347:55: ( class_stmnts )*
                         while ( stream_class_stmnts.hasNext() ) {
                             adaptor.addChild(root_1, stream_class_stmnts.nextTree());
 
@@ -911,7 +915,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:345:2: no_class_stmnts
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:349:2: no_class_stmnts
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -966,7 +970,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "no_class_stmnts"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:357:1: no_class_stmnts : ( ( statement )+ | ( ( access_modifier )? method_declaration )+ );
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:361:1: no_class_stmnts : ( ( statement )+ | ( ( access_modifier )? method_declaration )+ );
     public final QuorumParser.no_class_stmnts_return no_class_stmnts() throws RecognitionException {
         no_class_stmnts_stack.push(new no_class_stmnts_scope());
         QuorumParser.no_class_stmnts_return retval = new QuorumParser.no_class_stmnts_return();
@@ -983,7 +987,7 @@ public class QuorumParser extends Parser {
 
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:361:2: ( ( statement )+ | ( ( access_modifier )? method_declaration )+ )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:365:2: ( ( statement )+ | ( ( access_modifier )? method_declaration )+ )
             int alt12=2;
             switch ( input.LA(1) ) {
             case ID:
@@ -1026,11 +1030,11 @@ public class QuorumParser extends Parser {
                 {
                 int LA12_3 = input.LA(2);
 
-                if ( (LA12_3==ACTION||(LA12_3>=BLUEPRINT && LA12_3<=ON_CREATE)) ) {
-                    alt12=2;
-                }
-                else if ( (LA12_3==ID||(LA12_3>=INTEGER_KEYWORD && LA12_3<=BOOLEAN_KEYWORD)) ) {
+                if ( (LA12_3==ID||(LA12_3>=INTEGER_KEYWORD && LA12_3<=BOOLEAN_KEYWORD)) ) {
                     alt12=1;
+                }
+                else if ( (LA12_3==ACTION||(LA12_3>=BLUEPRINT && LA12_3<=ON_CREATE)) ) {
+                    alt12=2;
                 }
                 else {
                     NoViableAltException nvae =
@@ -1057,7 +1061,7 @@ public class QuorumParser extends Parser {
 
             switch (alt12) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:362:2: ( statement )+
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:366:2: ( statement )+
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -1074,7 +1078,7 @@ public class QuorumParser extends Parser {
                     		
                     		symbol.add(((no_class_stmnts_scope)no_class_stmnts_stack.peek()).fakeMain);
                     	
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:375:2: ( statement )+
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:379:2: ( statement )+
                     int cnt9=0;
                     loop9:
                     do {
@@ -1088,7 +1092,7 @@ public class QuorumParser extends Parser {
 
                         switch (alt9) {
                     	case 1 :
-                    	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:375:2: statement
+                    	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:379:2: statement
                     	    {
                     	    pushFollow(FOLLOW_statement_in_no_class_stmnts343);
                     	    statement17=statement();
@@ -1116,11 +1120,11 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:379:3: ( ( access_modifier )? method_declaration )+
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:383:3: ( ( access_modifier )? method_declaration )+
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:379:3: ( ( access_modifier )? method_declaration )+
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:383:3: ( ( access_modifier )? method_declaration )+
                     int cnt11=0;
                     loop11:
                     do {
@@ -1134,9 +1138,9 @@ public class QuorumParser extends Parser {
 
                         switch (alt11) {
                     	case 1 :
-                    	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:379:4: ( access_modifier )? method_declaration
+                    	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:383:4: ( access_modifier )? method_declaration
                     	    {
-                    	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:379:4: ( access_modifier )?
+                    	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:383:4: ( access_modifier )?
                     	    int alt10=2;
                     	    int LA10_0 = input.LA(1);
 
@@ -1145,7 +1149,7 @@ public class QuorumParser extends Parser {
                     	    }
                     	    switch (alt10) {
                     	        case 1 :
-                    	            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:379:4: access_modifier
+                    	            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:383:4: access_modifier
                     	            {
                     	            pushFollow(FOLLOW_access_modifier_in_no_class_stmnts352);
                     	            access_modifier18=access_modifier();
@@ -1208,7 +1212,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "inherit_stmnts"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:381:1: inherit_stmnts : INHERITS qn= qualified_name (genericList= generic_statement )? ( COMMA qn= qualified_name (genericList= generic_statement )? )* -> ^( INHERITS ( qualified_name ( generic_statement )? )+ ) ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:385:1: inherit_stmnts : INHERITS qn= qualified_name (genericList= generic_statement )? ( COMMA qn= qualified_name (genericList= generic_statement )? )* -> ^( INHERITS ( qualified_name ( generic_statement )? )+ ) ;
     public final QuorumParser.inherit_stmnts_return inherit_stmnts() throws RecognitionException {
         QuorumParser.inherit_stmnts_return retval = new QuorumParser.inherit_stmnts_return();
         retval.start = input.LT(1);
@@ -1229,8 +1233,8 @@ public class QuorumParser extends Parser {
         RewriteRuleSubtreeStream stream_qualified_name=new RewriteRuleSubtreeStream(adaptor,"rule qualified_name");
         RewriteRuleSubtreeStream stream_generic_statement=new RewriteRuleSubtreeStream(adaptor,"rule generic_statement");
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:382:2: ( INHERITS qn= qualified_name (genericList= generic_statement )? ( COMMA qn= qualified_name (genericList= generic_statement )? )* -> ^( INHERITS ( qualified_name ( generic_statement )? )+ ) )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:382:4: INHERITS qn= qualified_name (genericList= generic_statement )? ( COMMA qn= qualified_name (genericList= generic_statement )? )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:386:2: ( INHERITS qn= qualified_name (genericList= generic_statement )? ( COMMA qn= qualified_name (genericList= generic_statement )? )* -> ^( INHERITS ( qualified_name ( generic_statement )? )+ ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:386:4: INHERITS qn= qualified_name (genericList= generic_statement )? ( COMMA qn= qualified_name (genericList= generic_statement )? )*
             {
             INHERITS20=(Token)match(input,INHERITS,FOLLOW_INHERITS_in_inherit_stmnts368);  
             stream_INHERITS.add(INHERITS20);
@@ -1241,7 +1245,7 @@ public class QuorumParser extends Parser {
             state._fsp--;
 
             stream_qualified_name.add(qn.getTree());
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:382:42: (genericList= generic_statement )?
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:386:42: (genericList= generic_statement )?
             int alt13=2;
             int LA13_0 = input.LA(1);
 
@@ -1250,7 +1254,7 @@ public class QuorumParser extends Parser {
             }
             switch (alt13) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:382:42: genericList= generic_statement
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:386:42: genericList= generic_statement
                     {
                     pushFollow(FOLLOW_generic_statement_in_inherit_stmnts376);
                     genericList=generic_statement();
@@ -1280,7 +1284,7 @@ public class QuorumParser extends Parser {
             			clazz.addUnresolvedParentClassNames((qn!=null?qn.type:null), null);
             		}	
             	
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:398:4: ( COMMA qn= qualified_name (genericList= generic_statement )? )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:402:4: ( COMMA qn= qualified_name (genericList= generic_statement )? )*
             loop15:
             do {
                 int alt15=2;
@@ -1293,7 +1297,7 @@ public class QuorumParser extends Parser {
 
                 switch (alt15) {
             	case 1 :
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:398:5: COMMA qn= qualified_name (genericList= generic_statement )?
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:402:5: COMMA qn= qualified_name (genericList= generic_statement )?
             	    {
             	    COMMA21=(Token)match(input,COMMA,FOLLOW_COMMA_in_inherit_stmnts384);  
             	    stream_COMMA.add(COMMA21);
@@ -1304,7 +1308,7 @@ public class QuorumParser extends Parser {
             	    state._fsp--;
 
             	    stream_qualified_name.add(qn.getTree());
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:398:40: (genericList= generic_statement )?
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:402:40: (genericList= generic_statement )?
             	    int alt14=2;
             	    int LA14_0 = input.LA(1);
 
@@ -1313,7 +1317,7 @@ public class QuorumParser extends Parser {
             	    }
             	    switch (alt14) {
             	        case 1 :
-            	            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:398:40: genericList= generic_statement
+            	            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:402:40: genericList= generic_statement
             	            {
             	            pushFollow(FOLLOW_generic_statement_in_inherit_stmnts392);
             	            genericList=generic_statement();
@@ -1355,7 +1359,7 @@ public class QuorumParser extends Parser {
 
 
             // AST REWRITE
-            // elements: generic_statement, qualified_name, INHERITS
+            // elements: qualified_name, INHERITS, generic_statement
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -1365,9 +1369,9 @@ public class QuorumParser extends Parser {
             RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
             root_0 = (CommonTree)adaptor.nil();
-            // 415:2: -> ^( INHERITS ( qualified_name ( generic_statement )? )+ )
+            // 419:2: -> ^( INHERITS ( qualified_name ( generic_statement )? )+ )
             {
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:415:5: ^( INHERITS ( qualified_name ( generic_statement )? )+ )
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:419:5: ^( INHERITS ( qualified_name ( generic_statement )? )+ )
                 {
                 CommonTree root_1 = (CommonTree)adaptor.nil();
                 root_1 = (CommonTree)adaptor.becomeRoot(stream_INHERITS.nextNode(), root_1);
@@ -1377,7 +1381,7 @@ public class QuorumParser extends Parser {
                 }
                 while ( stream_qualified_name.hasNext() ) {
                     adaptor.addChild(root_1, stream_qualified_name.nextTree());
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:415:33: ( generic_statement )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:419:33: ( generic_statement )?
                     if ( stream_generic_statement.hasNext() ) {
                         adaptor.addChild(root_1, stream_generic_statement.nextTree());
 
@@ -1420,7 +1424,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "access_modifier"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:417:1: access_modifier returns [AccessModifierEnum amEnum] : ( PUBLIC | PRIVATE );
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:421:1: access_modifier returns [AccessModifierEnum amEnum] : ( PUBLIC | PRIVATE );
     public final QuorumParser.access_modifier_return access_modifier() throws RecognitionException {
         QuorumParser.access_modifier_return retval = new QuorumParser.access_modifier_return();
         retval.start = input.LT(1);
@@ -1434,7 +1438,7 @@ public class QuorumParser extends Parser {
         CommonTree PRIVATE23_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:418:2: ( PUBLIC | PRIVATE )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:422:2: ( PUBLIC | PRIVATE )
             int alt16=2;
             int LA16_0 = input.LA(1);
 
@@ -1452,7 +1456,7 @@ public class QuorumParser extends Parser {
             }
             switch (alt16) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:418:4: PUBLIC
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:422:4: PUBLIC
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -1467,7 +1471,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:422:4: PRIVATE
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:426:4: PRIVATE
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -1507,7 +1511,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "class_stmnts"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:427:1: class_stmnts : ( assignment_statement | (modifier= access_modifier )? method_declaration );
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:431:1: class_stmnts : ( assignment_statement | (modifier= access_modifier )? method_declaration );
     public final QuorumParser.class_stmnts_return class_stmnts() throws RecognitionException {
         QuorumParser.class_stmnts_return retval = new QuorumParser.class_stmnts_return();
         retval.start = input.LT(1);
@@ -1523,7 +1527,7 @@ public class QuorumParser extends Parser {
 
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:428:2: ( assignment_statement | (modifier= access_modifier )? method_declaration )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:432:2: ( assignment_statement | (modifier= access_modifier )? method_declaration )
             int alt18=2;
             switch ( input.LA(1) ) {
             case ID:
@@ -1590,7 +1594,7 @@ public class QuorumParser extends Parser {
 
             switch (alt18) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:429:2: assignment_statement
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:433:2: assignment_statement
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -1608,11 +1612,11 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:433:4: (modifier= access_modifier )? method_declaration
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:437:4: (modifier= access_modifier )? method_declaration
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:433:13: (modifier= access_modifier )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:437:13: (modifier= access_modifier )?
                     int alt17=2;
                     int LA17_0 = input.LA(1);
 
@@ -1621,7 +1625,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt17) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:433:13: modifier= access_modifier
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:437:13: modifier= access_modifier
                             {
                             pushFollow(FOLLOW_access_modifier_in_class_stmnts466);
                             modifier=access_modifier();
@@ -1685,7 +1689,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "method_declaration"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:443:1: method_declaration : ( ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )? block END -> ^( ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? block END ) | BLUEPRINT ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )? -> ^( BLUEPRINT ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? ) | NATIVE ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )? -> ^( NATIVE ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? ) | ON_CREATE block END -> ^( ON_CREATE block END ) );
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:447:1: method_declaration : ( ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )? block END -> ^( ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? block END ) | BLUEPRINT ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )? -> ^( BLUEPRINT ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? ) | NATIVE ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )? -> ^( NATIVE ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? ) | ON_CREATE block END -> ^( ON_CREATE block END ) );
     public final QuorumParser.method_declaration_return method_declaration() throws RecognitionException {
         method_declaration_stack.push(new method_declaration_scope());
         QuorumParser.method_declaration_return retval = new QuorumParser.method_declaration_return();
@@ -1776,7 +1780,7 @@ public class QuorumParser extends Parser {
 
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:454:2: ( ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )? block END -> ^( ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? block END ) | BLUEPRINT ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )? -> ^( BLUEPRINT ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? ) | NATIVE ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )? -> ^( NATIVE ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? ) | ON_CREATE block END -> ^( ON_CREATE block END ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:458:2: ( ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )? block END -> ^( ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? block END ) | BLUEPRINT ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )? -> ^( BLUEPRINT ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? ) | NATIVE ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )? -> ^( NATIVE ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? ) | ON_CREATE block END -> ^( ON_CREATE block END ) )
             int alt31=4;
             switch ( input.LA(1) ) {
             case ACTION:
@@ -1808,7 +1812,7 @@ public class QuorumParser extends Parser {
 
             switch (alt31) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:454:4: ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )? block END
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:458:4: ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )? block END
                     {
                     ACTION26=(Token)match(input,ACTION,FOLLOW_ACTION_in_method_declaration492);  
                     stream_ACTION.add(ACTION26);
@@ -1825,7 +1829,7 @@ public class QuorumParser extends Parser {
                     		((method_declaration_scope)method_declaration_stack.peek()).method.setColumnBegin(ACTION26.getCharPositionInLine());
                     		((method_declaration_scope)method_declaration_stack.peek()).params = new Vector<ParameterDescriptor>();		
                     	
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:465:2: ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:469:2: ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )?
                     int alt21=2;
                     int LA21_0 = input.LA(1);
 
@@ -1834,12 +1838,12 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt21) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:465:3: LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:469:3: LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN
                             {
                             LEFT_PAREN28=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_method_declaration504);  
                             stream_LEFT_PAREN.add(LEFT_PAREN28);
 
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:465:14: ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )?
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:469:14: ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )?
                             int alt20=2;
                             int LA20_0 = input.LA(1);
 
@@ -1848,7 +1852,7 @@ public class QuorumParser extends Parser {
                             }
                             switch (alt20) {
                                 case 1 :
-                                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:465:15: formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )*
+                                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:469:15: formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )*
                                     {
                                     pushFollow(FOLLOW_formal_parameter_in_method_declaration507);
                                     formal_parameter29=formal_parameter(((method_declaration_scope)method_declaration_stack.peek()).params);
@@ -1856,7 +1860,7 @@ public class QuorumParser extends Parser {
                                     state._fsp--;
 
                                     stream_formal_parameter.add(formal_parameter29.getTree());
-                                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:465:61: ( COMMA formal_parameter[$method_declaration::params] )*
+                                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:469:61: ( COMMA formal_parameter[$method_declaration::params] )*
                                     loop19:
                                     do {
                                         int alt19=2;
@@ -1869,7 +1873,7 @@ public class QuorumParser extends Parser {
 
                                         switch (alt19) {
                                     	case 1 :
-                                    	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:465:62: COMMA formal_parameter[$method_declaration::params]
+                                    	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:469:62: COMMA formal_parameter[$method_declaration::params]
                                     	    {
                                     	    COMMA30=(Token)match(input,COMMA,FOLLOW_COMMA_in_method_declaration511);  
                                     	    stream_COMMA.add(COMMA30);
@@ -1904,7 +1908,7 @@ public class QuorumParser extends Parser {
 
                     }
 
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:466:2: ( RETURNS return_type= assignment_declaration )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:470:2: ( RETURNS return_type= assignment_declaration )?
                     int alt22=2;
                     int LA22_0 = input.LA(1);
 
@@ -1913,7 +1917,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt22) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:466:3: RETURNS return_type= assignment_declaration
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:470:3: RETURNS return_type= assignment_declaration
                             {
                             RETURNS33=(Token)match(input,RETURNS,FOLLOW_RETURNS_in_method_declaration526);  
                             stream_RETURNS.add(RETURNS33);
@@ -1980,7 +1984,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: RETURNS, formal_parameter, block, END, assignment_declaration, ACTION, ID
+                    // elements: END, block, RETURNS, formal_parameter, ID, ACTION, assignment_declaration
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -1990,21 +1994,21 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 507:2: -> ^( ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? block END )
+                    // 511:2: -> ^( ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? block END )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:507:5: ^( ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? block END )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:511:5: ^( ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? block END )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(stream_ACTION.nextNode(), root_1);
 
                         adaptor.addChild(root_1, stream_ID.nextNode());
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:507:17: ( formal_parameter )*
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:511:17: ( formal_parameter )*
                         while ( stream_formal_parameter.hasNext() ) {
                             adaptor.addChild(root_1, stream_formal_parameter.nextTree());
 
                         }
                         stream_formal_parameter.reset();
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:507:35: ( RETURNS assignment_declaration )?
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:511:35: ( RETURNS assignment_declaration )?
                         if ( stream_RETURNS.hasNext()||stream_assignment_declaration.hasNext() ) {
                             adaptor.addChild(root_1, stream_RETURNS.nextNode());
                             adaptor.addChild(root_1, stream_assignment_declaration.nextTree());
@@ -2024,7 +2028,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:508:4: BLUEPRINT ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:512:4: BLUEPRINT ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )?
                     {
                     BLUEPRINT36=(Token)match(input,BLUEPRINT,FOLLOW_BLUEPRINT_in_method_declaration577);  
                     stream_BLUEPRINT.add(BLUEPRINT36);
@@ -2046,7 +2050,7 @@ public class QuorumParser extends Parser {
                     		((method_declaration_scope)method_declaration_stack.peek()).blueprint.setColumnEnd(ACTION37.getCharPositionInLine());
                     		((method_declaration_scope)method_declaration_stack.peek()).params = new Vector<ParameterDescriptor>();		
                     	
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:521:2: ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:525:2: ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )?
                     int alt25=2;
                     int LA25_0 = input.LA(1);
 
@@ -2055,12 +2059,12 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt25) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:521:3: LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:525:3: LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN
                             {
                             LEFT_PAREN39=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_method_declaration591);  
                             stream_LEFT_PAREN.add(LEFT_PAREN39);
 
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:521:14: ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )?
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:525:14: ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )?
                             int alt24=2;
                             int LA24_0 = input.LA(1);
 
@@ -2069,7 +2073,7 @@ public class QuorumParser extends Parser {
                             }
                             switch (alt24) {
                                 case 1 :
-                                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:521:15: formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )*
+                                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:525:15: formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )*
                                     {
                                     pushFollow(FOLLOW_formal_parameter_in_method_declaration594);
                                     formal_parameter40=formal_parameter(((method_declaration_scope)method_declaration_stack.peek()).params);
@@ -2077,7 +2081,7 @@ public class QuorumParser extends Parser {
                                     state._fsp--;
 
                                     stream_formal_parameter.add(formal_parameter40.getTree());
-                                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:521:61: ( COMMA formal_parameter[$method_declaration::params] )*
+                                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:525:61: ( COMMA formal_parameter[$method_declaration::params] )*
                                     loop23:
                                     do {
                                         int alt23=2;
@@ -2090,7 +2094,7 @@ public class QuorumParser extends Parser {
 
                                         switch (alt23) {
                                     	case 1 :
-                                    	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:521:62: COMMA formal_parameter[$method_declaration::params]
+                                    	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:525:62: COMMA formal_parameter[$method_declaration::params]
                                     	    {
                                     	    COMMA41=(Token)match(input,COMMA,FOLLOW_COMMA_in_method_declaration598);  
                                     	    stream_COMMA.add(COMMA41);
@@ -2125,7 +2129,7 @@ public class QuorumParser extends Parser {
 
                     }
 
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:522:2: ( RETURNS return_type= assignment_declaration )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:526:2: ( RETURNS return_type= assignment_declaration )?
                     int alt26=2;
                     int LA26_0 = input.LA(1);
 
@@ -2134,7 +2138,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt26) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:522:3: RETURNS return_type= assignment_declaration
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:526:3: RETURNS return_type= assignment_declaration
                             {
                             RETURNS44=(Token)match(input,RETURNS,FOLLOW_RETURNS_in_method_declaration613);  
                             stream_RETURNS.add(RETURNS44);
@@ -2180,7 +2184,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: ACTION, formal_parameter, assignment_declaration, ID, BLUEPRINT, RETURNS
+                    // elements: BLUEPRINT, RETURNS, assignment_declaration, ACTION, formal_parameter, ID
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2190,29 +2194,29 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 549:2: -> ^( BLUEPRINT ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? )
+                    // 553:2: -> ^( BLUEPRINT ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:549:5: ^( BLUEPRINT ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:553:5: ^( BLUEPRINT ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(stream_BLUEPRINT.nextNode(), root_1);
 
                         adaptor.addChild(root_1, stream_ACTION.nextNode());
                         adaptor.addChild(root_1, stream_ID.nextNode());
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:549:27: ( formal_parameter )*
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:553:27: ( formal_parameter )*
                         while ( stream_formal_parameter.hasNext() ) {
                             adaptor.addChild(root_1, stream_formal_parameter.nextTree());
 
                         }
                         stream_formal_parameter.reset();
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:549:45: ( RETURNS assignment_declaration )?
-                        if ( stream_assignment_declaration.hasNext()||stream_RETURNS.hasNext() ) {
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:553:45: ( RETURNS assignment_declaration )?
+                        if ( stream_RETURNS.hasNext()||stream_assignment_declaration.hasNext() ) {
                             adaptor.addChild(root_1, stream_RETURNS.nextNode());
                             adaptor.addChild(root_1, stream_assignment_declaration.nextTree());
 
                         }
-                        stream_assignment_declaration.reset();
                         stream_RETURNS.reset();
+                        stream_assignment_declaration.reset();
 
                         adaptor.addChild(root_0, root_1);
                         }
@@ -2223,7 +2227,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:550:4: NATIVE ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:554:4: NATIVE ACTION ID ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )? ( RETURNS return_type= assignment_declaration )?
                     {
                     NATIVE45=(Token)match(input,NATIVE,FOLLOW_NATIVE_in_method_declaration651);  
                     stream_NATIVE.add(NATIVE45);
@@ -2245,7 +2249,7 @@ public class QuorumParser extends Parser {
                     		((method_declaration_scope)method_declaration_stack.peek()).systemAction.setColumnEnd(ACTION46.getCharPositionInLine());
                     		((method_declaration_scope)method_declaration_stack.peek()).params = new Vector<ParameterDescriptor>();		
                     	
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:563:2: ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:567:2: ( LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN )?
                     int alt29=2;
                     int LA29_0 = input.LA(1);
 
@@ -2254,12 +2258,12 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt29) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:563:3: LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:567:3: LEFT_PAREN ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )? RIGHT_PAREN
                             {
                             LEFT_PAREN48=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_method_declaration665);  
                             stream_LEFT_PAREN.add(LEFT_PAREN48);
 
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:563:14: ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )?
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:567:14: ( formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )* )?
                             int alt28=2;
                             int LA28_0 = input.LA(1);
 
@@ -2268,7 +2272,7 @@ public class QuorumParser extends Parser {
                             }
                             switch (alt28) {
                                 case 1 :
-                                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:563:15: formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )*
+                                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:567:15: formal_parameter[$method_declaration::params] ( COMMA formal_parameter[$method_declaration::params] )*
                                     {
                                     pushFollow(FOLLOW_formal_parameter_in_method_declaration668);
                                     formal_parameter49=formal_parameter(((method_declaration_scope)method_declaration_stack.peek()).params);
@@ -2276,7 +2280,7 @@ public class QuorumParser extends Parser {
                                     state._fsp--;
 
                                     stream_formal_parameter.add(formal_parameter49.getTree());
-                                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:563:61: ( COMMA formal_parameter[$method_declaration::params] )*
+                                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:567:61: ( COMMA formal_parameter[$method_declaration::params] )*
                                     loop27:
                                     do {
                                         int alt27=2;
@@ -2289,7 +2293,7 @@ public class QuorumParser extends Parser {
 
                                         switch (alt27) {
                                     	case 1 :
-                                    	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:563:62: COMMA formal_parameter[$method_declaration::params]
+                                    	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:567:62: COMMA formal_parameter[$method_declaration::params]
                                     	    {
                                     	    COMMA50=(Token)match(input,COMMA,FOLLOW_COMMA_in_method_declaration672);  
                                     	    stream_COMMA.add(COMMA50);
@@ -2324,7 +2328,7 @@ public class QuorumParser extends Parser {
 
                     }
 
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:564:2: ( RETURNS return_type= assignment_declaration )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:568:2: ( RETURNS return_type= assignment_declaration )?
                     int alt30=2;
                     int LA30_0 = input.LA(1);
 
@@ -2333,7 +2337,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt30) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:564:3: RETURNS return_type= assignment_declaration
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:568:3: RETURNS return_type= assignment_declaration
                             {
                             RETURNS53=(Token)match(input,RETURNS,FOLLOW_RETURNS_in_method_declaration687);  
                             stream_RETURNS.add(RETURNS53);
@@ -2379,7 +2383,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: assignment_declaration, NATIVE, ID, RETURNS, formal_parameter, ACTION
+                    // elements: ID, RETURNS, assignment_declaration, NATIVE, formal_parameter, ACTION
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2389,29 +2393,29 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 591:2: -> ^( NATIVE ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? )
+                    // 595:2: -> ^( NATIVE ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:591:5: ^( NATIVE ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:595:5: ^( NATIVE ACTION ID ( formal_parameter )* ( RETURNS assignment_declaration )? )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(stream_NATIVE.nextNode(), root_1);
 
                         adaptor.addChild(root_1, stream_ACTION.nextNode());
                         adaptor.addChild(root_1, stream_ID.nextNode());
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:591:24: ( formal_parameter )*
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:595:24: ( formal_parameter )*
                         while ( stream_formal_parameter.hasNext() ) {
                             adaptor.addChild(root_1, stream_formal_parameter.nextTree());
 
                         }
                         stream_formal_parameter.reset();
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:591:42: ( RETURNS assignment_declaration )?
-                        if ( stream_assignment_declaration.hasNext()||stream_RETURNS.hasNext() ) {
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:595:42: ( RETURNS assignment_declaration )?
+                        if ( stream_RETURNS.hasNext()||stream_assignment_declaration.hasNext() ) {
                             adaptor.addChild(root_1, stream_RETURNS.nextNode());
                             adaptor.addChild(root_1, stream_assignment_declaration.nextTree());
 
                         }
-                        stream_assignment_declaration.reset();
                         stream_RETURNS.reset();
+                        stream_assignment_declaration.reset();
 
                         adaptor.addChild(root_0, root_1);
                         }
@@ -2422,7 +2426,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 4 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:592:4: ON_CREATE block END
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:596:4: ON_CREATE block END
                     {
                     ON_CREATE54=(Token)match(input,ON_CREATE,FOLLOW_ON_CREATE_in_method_declaration725);  
                     stream_ON_CREATE.add(ON_CREATE54);
@@ -2468,7 +2472,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: block, ON_CREATE, END
+                    // elements: END, block, ON_CREATE
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2478,9 +2482,9 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 623:2: -> ^( ON_CREATE block END )
+                    // 627:2: -> ^( ON_CREATE block END )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:623:5: ^( ON_CREATE block END )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:627:5: ^( ON_CREATE block END )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(stream_ON_CREATE.nextNode(), root_1);
@@ -2523,7 +2527,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "formal_parameter"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:625:1: formal_parameter[Vector<ParameterDescriptor> params] : assignment_declaration ID -> ^( FPARAM assignment_declaration ID ) ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:629:1: formal_parameter[Vector<ParameterDescriptor> params] : assignment_declaration ID -> ^( FPARAM assignment_declaration ID ) ;
     public final QuorumParser.formal_parameter_return formal_parameter(Vector<ParameterDescriptor> params) throws RecognitionException {
         QuorumParser.formal_parameter_return retval = new QuorumParser.formal_parameter_return();
         retval.start = input.LT(1);
@@ -2538,8 +2542,8 @@ public class QuorumParser extends Parser {
         RewriteRuleTokenStream stream_ID=new RewriteRuleTokenStream(adaptor,"token ID");
         RewriteRuleSubtreeStream stream_assignment_declaration=new RewriteRuleSubtreeStream(adaptor,"rule assignment_declaration");
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:626:2: ( assignment_declaration ID -> ^( FPARAM assignment_declaration ID ) )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:626:4: assignment_declaration ID
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:630:2: ( assignment_declaration ID -> ^( FPARAM assignment_declaration ID ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:630:4: assignment_declaration ID
             {
             pushFollow(FOLLOW_assignment_declaration_in_formal_parameter759);
             assignment_declaration57=assignment_declaration();
@@ -2591,7 +2595,7 @@ public class QuorumParser extends Parser {
 
 
             // AST REWRITE
-            // elements: ID, assignment_declaration
+            // elements: assignment_declaration, ID
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -2601,9 +2605,9 @@ public class QuorumParser extends Parser {
             RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
             root_0 = (CommonTree)adaptor.nil();
-            // 664:4: -> ^( FPARAM assignment_declaration ID )
+            // 668:4: -> ^( FPARAM assignment_declaration ID )
             {
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:664:7: ^( FPARAM assignment_declaration ID )
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:668:7: ^( FPARAM assignment_declaration ID )
                 {
                 CommonTree root_1 = (CommonTree)adaptor.nil();
                 root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(FPARAM, "FPARAM"), root_1);
@@ -2644,7 +2648,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "qualified_name"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:667:1: qualified_name returns [QualifiedNameDescriptor type] : ids+= ID ( PERIOD ids+= ID )* -> ^( QUALIFIED_NAME ID ( PERIOD ID )* ) ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:671:1: qualified_name returns [QualifiedNameDescriptor type] : ids+= ID ( PERIOD ids+= ID )* -> ^( QUALIFIED_NAME ID ( PERIOD ID )* ) ;
     public final QuorumParser.qualified_name_return qualified_name() throws RecognitionException {
         QuorumParser.qualified_name_return retval = new QuorumParser.qualified_name_return();
         retval.start = input.LT(1);
@@ -2661,8 +2665,8 @@ public class QuorumParser extends Parser {
         RewriteRuleTokenStream stream_PERIOD=new RewriteRuleTokenStream(adaptor,"token PERIOD");
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:668:2: (ids+= ID ( PERIOD ids+= ID )* -> ^( QUALIFIED_NAME ID ( PERIOD ID )* ) )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:668:4: ids+= ID ( PERIOD ids+= ID )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:672:2: (ids+= ID ( PERIOD ids+= ID )* -> ^( QUALIFIED_NAME ID ( PERIOD ID )* ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:672:4: ids+= ID ( PERIOD ids+= ID )*
             {
             ids=(Token)match(input,ID,FOLLOW_ID_in_qualified_name792);  
             stream_ID.add(ids);
@@ -2670,7 +2674,7 @@ public class QuorumParser extends Parser {
             if (list_ids==null) list_ids=new ArrayList();
             list_ids.add(ids);
 
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:668:12: ( PERIOD ids+= ID )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:672:12: ( PERIOD ids+= ID )*
             loop32:
             do {
                 int alt32=2;
@@ -2683,7 +2687,7 @@ public class QuorumParser extends Parser {
 
                 switch (alt32) {
             	case 1 :
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:668:13: PERIOD ids+= ID
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:672:13: PERIOD ids+= ID
             	    {
             	    PERIOD59=(Token)match(input,PERIOD,FOLLOW_PERIOD_in_qualified_name795);  
             	    stream_PERIOD.add(PERIOD59);
@@ -2728,7 +2732,7 @@ public class QuorumParser extends Parser {
 
 
             // AST REWRITE
-            // elements: ID, ID, PERIOD
+            // elements: PERIOD, ID, ID
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -2738,22 +2742,22 @@ public class QuorumParser extends Parser {
             RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
             root_0 = (CommonTree)adaptor.nil();
-            // 691:3: -> ^( QUALIFIED_NAME ID ( PERIOD ID )* )
+            // 695:3: -> ^( QUALIFIED_NAME ID ( PERIOD ID )* )
             {
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:691:6: ^( QUALIFIED_NAME ID ( PERIOD ID )* )
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:695:6: ^( QUALIFIED_NAME ID ( PERIOD ID )* )
                 {
                 CommonTree root_1 = (CommonTree)adaptor.nil();
                 root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(QUALIFIED_NAME, "QUALIFIED_NAME"), root_1);
 
                 adaptor.addChild(root_1, stream_ID.nextNode());
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:691:26: ( PERIOD ID )*
-                while ( stream_ID.hasNext()||stream_PERIOD.hasNext() ) {
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:695:26: ( PERIOD ID )*
+                while ( stream_PERIOD.hasNext()||stream_ID.hasNext() ) {
                     adaptor.addChild(root_1, stream_PERIOD.nextNode());
                     adaptor.addChild(root_1, stream_ID.nextNode());
 
                 }
-                stream_ID.reset();
                 stream_PERIOD.reset();
+                stream_ID.reset();
 
                 adaptor.addChild(root_0, root_1);
                 }
@@ -2787,7 +2791,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "block"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:693:1: block : ( statement )* -> ^( STATEMENT_LIST ( statement )* ) ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:697:1: block : ( statement )* -> ^( STATEMENT_LIST ( statement )* ) ;
     public final QuorumParser.block_return block() throws RecognitionException {
         QuorumParser.block_return retval = new QuorumParser.block_return();
         retval.start = input.LT(1);
@@ -2799,10 +2803,10 @@ public class QuorumParser extends Parser {
 
         RewriteRuleSubtreeStream stream_statement=new RewriteRuleSubtreeStream(adaptor,"rule statement");
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:693:8: ( ( statement )* -> ^( STATEMENT_LIST ( statement )* ) )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:693:10: ( statement )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:697:8: ( ( statement )* -> ^( STATEMENT_LIST ( statement )* ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:697:10: ( statement )*
             {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:693:10: ( statement )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:697:10: ( statement )*
             loop33:
             do {
                 int alt33=2;
@@ -2815,7 +2819,7 @@ public class QuorumParser extends Parser {
 
                 switch (alt33) {
             	case 1 :
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:693:10: statement
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:697:10: statement
             	    {
             	    pushFollow(FOLLOW_statement_in_block833);
             	    statement60=statement();
@@ -2845,14 +2849,14 @@ public class QuorumParser extends Parser {
             RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
             root_0 = (CommonTree)adaptor.nil();
-            // 694:3: -> ^( STATEMENT_LIST ( statement )* )
+            // 698:3: -> ^( STATEMENT_LIST ( statement )* )
             {
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:694:6: ^( STATEMENT_LIST ( statement )* )
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:698:6: ^( STATEMENT_LIST ( statement )* )
                 {
                 CommonTree root_1 = (CommonTree)adaptor.nil();
                 root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(STATEMENT_LIST, "STATEMENT_LIST"), root_1);
 
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:694:23: ( statement )*
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:698:23: ( statement )*
                 while ( stream_statement.hasNext() ) {
                     adaptor.addChild(root_1, stream_statement.nextTree());
 
@@ -2891,7 +2895,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "statement"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:697:1: statement : ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement );
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:701:1: statement : ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement );
     public final QuorumParser.statement_return statement() throws RecognitionException {
         QuorumParser.statement_return retval = new QuorumParser.statement_return();
         retval.start = input.LT(1);
@@ -2919,12 +2923,12 @@ public class QuorumParser extends Parser {
 
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:697:10: ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:701:10: ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement )
             int alt34=9;
             alt34 = dfa34.predict(input);
             switch (alt34) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:698:3: solo_method_call
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:702:3: solo_method_call
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -2938,7 +2942,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:699:4: if_statement
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:703:4: if_statement
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -2952,7 +2956,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:700:4: assignment_statement
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:704:4: assignment_statement
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -2966,7 +2970,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 4 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:701:4: loop_statement
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:705:4: loop_statement
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -2980,7 +2984,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 5 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:702:4: return_statement
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:706:4: return_statement
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -2994,7 +2998,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 6 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:703:4: print_statement
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:707:4: print_statement
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -3008,7 +3012,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 7 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:704:4: speak_statement
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:708:4: speak_statement
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -3022,7 +3026,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 8 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:705:4: check_statement
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:709:4: check_statement
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -3036,7 +3040,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 9 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:706:4: alert_statement
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:710:4: alert_statement
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -3075,7 +3079,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "solo_method_call"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:709:1: solo_method_call : ( qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN -> ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN ) | PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN -> ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN -> ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN ) );
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:713:1: solo_method_call : ( qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN -> ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN ) | PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN -> ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN -> ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN ) );
     public final QuorumParser.solo_method_call_return solo_method_call() throws RecognitionException {
         QuorumParser.solo_method_call_return retval = new QuorumParser.solo_method_call_return();
         retval.start = input.LT(1);
@@ -3149,7 +3153,7 @@ public class QuorumParser extends Parser {
         RewriteRuleSubtreeStream stream_expression=new RewriteRuleSubtreeStream(adaptor,"rule expression");
         RewriteRuleSubtreeStream stream_qualified_name=new RewriteRuleSubtreeStream(adaptor,"rule qualified_name");
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:710:2: ( qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN -> ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN ) | PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN -> ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN -> ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:714:2: ( qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN -> ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN ) | PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN -> ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN -> ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN ) )
             int alt43=3;
             switch ( input.LA(1) ) {
             case ID:
@@ -3176,7 +3180,7 @@ public class QuorumParser extends Parser {
 
             switch (alt43) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:711:2: qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:2: qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN
                     {
                     pushFollow(FOLLOW_qualified_name_in_solo_method_call909);
                     qualified_name70=qualified_name();
@@ -3184,7 +3188,7 @@ public class QuorumParser extends Parser {
                     state._fsp--;
 
                     stream_qualified_name.add(qualified_name70.getTree());
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:711:17: ( COLON ID )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:17: ( COLON ID )?
                     int alt35=2;
                     int LA35_0 = input.LA(1);
 
@@ -3193,7 +3197,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt35) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:711:18: COLON ID
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:18: COLON ID
                             {
                             COLON71=(Token)match(input,COLON,FOLLOW_COLON_in_solo_method_call912);  
                             stream_COLON.add(COLON71);
@@ -3210,7 +3214,7 @@ public class QuorumParser extends Parser {
                     LEFT_PAREN73=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_solo_method_call918);  
                     stream_LEFT_PAREN.add(LEFT_PAREN73);
 
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:711:40: ( expression ( COMMA expression )* )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:40: ( expression ( COMMA expression )* )?
                     int alt37=2;
                     int LA37_0 = input.LA(1);
 
@@ -3219,7 +3223,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt37) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:711:41: expression ( COMMA expression )*
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:41: expression ( COMMA expression )*
                             {
                             pushFollow(FOLLOW_expression_in_solo_method_call921);
                             expression74=expression();
@@ -3227,7 +3231,7 @@ public class QuorumParser extends Parser {
                             state._fsp--;
 
                             stream_expression.add(expression74.getTree());
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:711:52: ( COMMA expression )*
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:52: ( COMMA expression )*
                             loop36:
                             do {
                                 int alt36=2;
@@ -3240,7 +3244,7 @@ public class QuorumParser extends Parser {
 
                                 switch (alt36) {
                             	case 1 :
-                            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:711:53: COMMA expression
+                            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:53: COMMA expression
                             	    {
                             	    COMMA75=(Token)match(input,COMMA,FOLLOW_COMMA_in_solo_method_call924);  
                             	    stream_COMMA.add(COMMA75);
@@ -3272,7 +3276,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: ID, qualified_name, expression, RIGHT_PAREN, expression, LEFT_PAREN, COLON, COMMA
+                    // elements: expression, COLON, qualified_name, expression, LEFT_PAREN, COMMA, ID, RIGHT_PAREN
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -3282,27 +3286,27 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 711:86: -> ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN )
+                    // 715:86: -> ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:712:4: ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:716:4: ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(SOLO_FUNCTION_CALL, "SOLO_FUNCTION_CALL"), root_1);
 
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:712:40: ( COLON ID )?
-                        if ( stream_ID.hasNext()||stream_COLON.hasNext() ) {
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:716:40: ( COLON ID )?
+                        if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
                             adaptor.addChild(root_1, stream_COLON.nextNode());
                             adaptor.addChild(root_1, stream_ID.nextNode());
 
                         }
-                        stream_ID.reset();
                         stream_COLON.reset();
+                        stream_ID.reset();
                         adaptor.addChild(root_1, stream_LEFT_PAREN.nextNode());
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:712:63: ( expression ( COMMA expression )* )?
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:716:63: ( expression ( COMMA expression )* )?
                         if ( stream_expression.hasNext()||stream_expression.hasNext()||stream_COMMA.hasNext() ) {
                             adaptor.addChild(root_1, stream_expression.nextTree());
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:712:75: ( COMMA expression )*
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:716:75: ( COMMA expression )*
                             while ( stream_expression.hasNext()||stream_COMMA.hasNext() ) {
                                 adaptor.addChild(root_1, stream_COMMA.nextNode());
                                 adaptor.addChild(root_1, stream_expression.nextTree());
@@ -3326,7 +3330,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:713:4: PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:717:4: PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN
                     {
                     PARENT78=(Token)match(input,PARENT,FOLLOW_PARENT_in_solo_method_call971);  
                     stream_PARENT.add(PARENT78);
@@ -3349,7 +3353,7 @@ public class QuorumParser extends Parser {
                     LEFT_PAREN83=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_solo_method_call981);  
                     stream_LEFT_PAREN.add(LEFT_PAREN83);
 
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:713:52: ( expression ( COMMA expression )* )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:717:52: ( expression ( COMMA expression )* )?
                     int alt39=2;
                     int LA39_0 = input.LA(1);
 
@@ -3358,7 +3362,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt39) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:713:53: expression ( COMMA expression )*
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:717:53: expression ( COMMA expression )*
                             {
                             pushFollow(FOLLOW_expression_in_solo_method_call984);
                             expression84=expression();
@@ -3366,7 +3370,7 @@ public class QuorumParser extends Parser {
                             state._fsp--;
 
                             stream_expression.add(expression84.getTree());
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:713:64: ( COMMA expression )*
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:717:64: ( COMMA expression )*
                             loop38:
                             do {
                                 int alt38=2;
@@ -3379,7 +3383,7 @@ public class QuorumParser extends Parser {
 
                                 switch (alt38) {
                             	case 1 :
-                            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:713:65: COMMA expression
+                            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:717:65: COMMA expression
                             	    {
                             	    COMMA85=(Token)match(input,COMMA,FOLLOW_COMMA_in_solo_method_call987);  
                             	    stream_COMMA.add(COMMA85);
@@ -3411,7 +3415,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: LEFT_PAREN, PARENT, expression, ID, COMMA, COLON, qualified_name, expression, COLON, RIGHT_PAREN
+                    // elements: expression, PARENT, expression, ID, COMMA, COLON, LEFT_PAREN, qualified_name, RIGHT_PAREN, COLON
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -3421,9 +3425,9 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 713:98: -> ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN )
+                    // 717:98: -> ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:714:4: ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:718:4: ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(SOLO_FUNCTION_CALL_PARENT, "SOLO_FUNCTION_CALL_PARENT"), root_1);
@@ -3434,22 +3438,22 @@ public class QuorumParser extends Parser {
                         adaptor.addChild(root_1, stream_COLON.nextNode());
                         adaptor.addChild(root_1, stream_ID.nextNode());
                         adaptor.addChild(root_1, stream_LEFT_PAREN.nextNode());
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:714:80: ( expression ( COMMA expression )* )?
-                        if ( stream_expression.hasNext()||stream_COMMA.hasNext()||stream_expression.hasNext() ) {
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:718:80: ( expression ( COMMA expression )* )?
+                        if ( stream_expression.hasNext()||stream_expression.hasNext()||stream_COMMA.hasNext() ) {
                             adaptor.addChild(root_1, stream_expression.nextTree());
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:714:92: ( COMMA expression )*
-                            while ( stream_COMMA.hasNext()||stream_expression.hasNext() ) {
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:718:92: ( COMMA expression )*
+                            while ( stream_expression.hasNext()||stream_COMMA.hasNext() ) {
                                 adaptor.addChild(root_1, stream_COMMA.nextNode());
                                 adaptor.addChild(root_1, stream_expression.nextTree());
 
                             }
-                            stream_COMMA.reset();
                             stream_expression.reset();
+                            stream_COMMA.reset();
 
                         }
                         stream_expression.reset();
-                        stream_COMMA.reset();
                         stream_expression.reset();
+                        stream_COMMA.reset();
                         adaptor.addChild(root_1, stream_RIGHT_PAREN.nextNode());
 
                         adaptor.addChild(root_0, root_1);
@@ -3461,7 +3465,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:4: ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:719:4: ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN
                     {
                     ME88=(Token)match(input,ME,FOLLOW_ME_in_solo_method_call1035);  
                     stream_ME.add(ME88);
@@ -3475,7 +3479,7 @@ public class QuorumParser extends Parser {
                     state._fsp--;
 
                     stream_qualified_name.add(qualified_name90.getTree());
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:28: ( COLON ID )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:719:28: ( COLON ID )?
                     int alt40=2;
                     int LA40_0 = input.LA(1);
 
@@ -3484,7 +3488,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt40) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:29: COLON ID
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:719:29: COLON ID
                             {
                             COLON91=(Token)match(input,COLON,FOLLOW_COLON_in_solo_method_call1042);  
                             stream_COLON.add(COLON91);
@@ -3501,7 +3505,7 @@ public class QuorumParser extends Parser {
                     LEFT_PAREN93=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_solo_method_call1048);  
                     stream_LEFT_PAREN.add(LEFT_PAREN93);
 
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:51: ( expression ( COMMA expression )* )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:719:51: ( expression ( COMMA expression )* )?
                     int alt42=2;
                     int LA42_0 = input.LA(1);
 
@@ -3510,7 +3514,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt42) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:52: expression ( COMMA expression )*
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:719:52: expression ( COMMA expression )*
                             {
                             pushFollow(FOLLOW_expression_in_solo_method_call1051);
                             expression94=expression();
@@ -3518,7 +3522,7 @@ public class QuorumParser extends Parser {
                             state._fsp--;
 
                             stream_expression.add(expression94.getTree());
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:63: ( COMMA expression )*
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:719:63: ( COMMA expression )*
                             loop41:
                             do {
                                 int alt41=2;
@@ -3531,7 +3535,7 @@ public class QuorumParser extends Parser {
 
                                 switch (alt41) {
                             	case 1 :
-                            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:64: COMMA expression
+                            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:719:64: COMMA expression
                             	    {
                             	    COMMA95=(Token)match(input,COMMA,FOLLOW_COMMA_in_solo_method_call1054);  
                             	    stream_COMMA.add(COMMA95);
@@ -3563,7 +3567,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: ID, COLON, qualified_name, RIGHT_PAREN, expression, ME, COLON, expression, LEFT_PAREN, COMMA
+                    // elements: COLON, COMMA, LEFT_PAREN, COLON, expression, RIGHT_PAREN, qualified_name, ID, expression, ME
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -3573,9 +3577,9 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 715:97: -> ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN )
+                    // 719:97: -> ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:716:4: ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:720:4: ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(SOLO_FUNCTION_CALL_THIS, "SOLO_FUNCTION_CALL_THIS"), root_1);
@@ -3583,31 +3587,31 @@ public class QuorumParser extends Parser {
                         adaptor.addChild(root_1, stream_ME.nextNode());
                         adaptor.addChild(root_1, stream_COLON.nextNode());
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:716:54: ( COLON ID )?
-                        if ( stream_ID.hasNext()||stream_COLON.hasNext() ) {
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:720:54: ( COLON ID )?
+                        if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
                             adaptor.addChild(root_1, stream_COLON.nextNode());
                             adaptor.addChild(root_1, stream_ID.nextNode());
 
                         }
-                        stream_ID.reset();
                         stream_COLON.reset();
+                        stream_ID.reset();
                         adaptor.addChild(root_1, stream_LEFT_PAREN.nextNode());
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:716:77: ( expression ( COMMA expression )* )?
-                        if ( stream_expression.hasNext()||stream_expression.hasNext()||stream_COMMA.hasNext() ) {
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:720:77: ( expression ( COMMA expression )* )?
+                        if ( stream_COMMA.hasNext()||stream_expression.hasNext()||stream_expression.hasNext() ) {
                             adaptor.addChild(root_1, stream_expression.nextTree());
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:716:89: ( COMMA expression )*
-                            while ( stream_expression.hasNext()||stream_COMMA.hasNext() ) {
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:720:89: ( COMMA expression )*
+                            while ( stream_COMMA.hasNext()||stream_expression.hasNext() ) {
                                 adaptor.addChild(root_1, stream_COMMA.nextNode());
                                 adaptor.addChild(root_1, stream_expression.nextTree());
 
                             }
-                            stream_expression.reset();
                             stream_COMMA.reset();
+                            stream_expression.reset();
 
                         }
-                        stream_expression.reset();
-                        stream_expression.reset();
                         stream_COMMA.reset();
+                        stream_expression.reset();
+                        stream_expression.reset();
                         adaptor.addChild(root_1, stream_RIGHT_PAREN.nextNode());
 
                         adaptor.addChild(root_0, root_1);
@@ -3644,7 +3648,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "alert_statement"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:719:1: alert_statement : ALERT LEFT_PAREN expression RIGHT_PAREN -> ^( ALERT LEFT_PAREN expression RIGHT_PAREN ) ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:723:1: alert_statement : ALERT LEFT_PAREN expression RIGHT_PAREN -> ^( ALERT LEFT_PAREN expression RIGHT_PAREN ) ;
     public final QuorumParser.alert_statement_return alert_statement() throws RecognitionException {
         QuorumParser.alert_statement_return retval = new QuorumParser.alert_statement_return();
         retval.start = input.LT(1);
@@ -3665,8 +3669,8 @@ public class QuorumParser extends Parser {
         RewriteRuleTokenStream stream_ALERT=new RewriteRuleTokenStream(adaptor,"token ALERT");
         RewriteRuleSubtreeStream stream_expression=new RewriteRuleSubtreeStream(adaptor,"rule expression");
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:720:2: ( ALERT LEFT_PAREN expression RIGHT_PAREN -> ^( ALERT LEFT_PAREN expression RIGHT_PAREN ) )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:720:4: ALERT LEFT_PAREN expression RIGHT_PAREN
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:724:2: ( ALERT LEFT_PAREN expression RIGHT_PAREN -> ^( ALERT LEFT_PAREN expression RIGHT_PAREN ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:724:4: ALERT LEFT_PAREN expression RIGHT_PAREN
             {
             ALERT98=(Token)match(input,ALERT,FOLLOW_ALERT_in_alert_statement1113);  
             stream_ALERT.add(ALERT98);
@@ -3686,7 +3690,7 @@ public class QuorumParser extends Parser {
 
 
             // AST REWRITE
-            // elements: ALERT, LEFT_PAREN, RIGHT_PAREN, expression
+            // elements: ALERT, RIGHT_PAREN, expression, LEFT_PAREN
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -3696,9 +3700,9 @@ public class QuorumParser extends Parser {
             RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
             root_0 = (CommonTree)adaptor.nil();
-            // 721:2: -> ^( ALERT LEFT_PAREN expression RIGHT_PAREN )
+            // 725:2: -> ^( ALERT LEFT_PAREN expression RIGHT_PAREN )
             {
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:721:5: ^( ALERT LEFT_PAREN expression RIGHT_PAREN )
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:725:5: ^( ALERT LEFT_PAREN expression RIGHT_PAREN )
                 {
                 CommonTree root_1 = (CommonTree)adaptor.nil();
                 root_1 = (CommonTree)adaptor.becomeRoot(stream_ALERT.nextNode(), root_1);
@@ -3739,7 +3743,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "check_statement"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:724:1: check_statement : check_start= CHECK block ( (detect_start= DETECT detect_parameter block )+ (always_start= ALWAYS block )? | always_start_2= ALWAYS block ) end= END ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:728:1: check_statement : check_start= CHECK block ( (detect_start= DETECT detect_parameter block )+ (always_start= ALWAYS block )? | always_start_2= ALWAYS block ) end= END ;
     public final QuorumParser.check_statement_return check_statement() throws RecognitionException {
         QuorumParser.check_statement_return retval = new QuorumParser.check_statement_return();
         retval.start = input.LT(1);
@@ -3772,8 +3776,8 @@ public class QuorumParser extends Parser {
         	BlockDescriptor block;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:728:2: (check_start= CHECK block ( (detect_start= DETECT detect_parameter block )+ (always_start= ALWAYS block )? | always_start_2= ALWAYS block ) end= END )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:728:6: check_start= CHECK block ( (detect_start= DETECT detect_parameter block )+ (always_start= ALWAYS block )? | always_start_2= ALWAYS block ) end= END
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:732:2: (check_start= CHECK block ( (detect_start= DETECT detect_parameter block )+ (always_start= ALWAYS block )? | always_start_2= ALWAYS block ) end= END )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:732:6: check_start= CHECK block ( (detect_start= DETECT detect_parameter block )+ (always_start= ALWAYS block )? | always_start_2= ALWAYS block ) end= END
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -3794,7 +3798,7 @@ public class QuorumParser extends Parser {
                    		block.setLineBegin(check_start.getLine());
                    		block.setColumnBegin(check_start.getCharPositionInLine());
             	
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:735:6: ( (detect_start= DETECT detect_parameter block )+ (always_start= ALWAYS block )? | always_start_2= ALWAYS block )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:739:6: ( (detect_start= DETECT detect_parameter block )+ (always_start= ALWAYS block )? | always_start_2= ALWAYS block )
             int alt46=2;
             int LA46_0 = input.LA(1);
 
@@ -3812,9 +3816,9 @@ public class QuorumParser extends Parser {
             }
             switch (alt46) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:735:7: (detect_start= DETECT detect_parameter block )+ (always_start= ALWAYS block )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:739:7: (detect_start= DETECT detect_parameter block )+ (always_start= ALWAYS block )?
                     {
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:735:7: (detect_start= DETECT detect_parameter block )+
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:739:7: (detect_start= DETECT detect_parameter block )+
                     int cnt44=0;
                     loop44:
                     do {
@@ -3828,7 +3832,7 @@ public class QuorumParser extends Parser {
 
                         switch (alt44) {
                     	case 1 :
-                    	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:735:8: detect_start= DETECT detect_parameter block
+                    	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:739:8: detect_start= DETECT detect_parameter block
                     	    {
                     	    detect_start=(Token)match(input,DETECT,FOLLOW_DETECT_in_check_statement1172); 
                     	    detect_start_tree = (CommonTree)adaptor.create(detect_start);
@@ -3872,7 +3876,7 @@ public class QuorumParser extends Parser {
                         cnt44++;
                     } while (true);
 
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:750:6: (always_start= ALWAYS block )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:754:6: (always_start= ALWAYS block )?
                     int alt45=2;
                     int LA45_0 = input.LA(1);
 
@@ -3881,7 +3885,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt45) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:750:7: always_start= ALWAYS block
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:754:7: always_start= ALWAYS block
                             {
                             always_start=(Token)match(input,ALWAYS,FOLLOW_ALWAYS_in_check_statement1210); 
                             always_start_tree = (CommonTree)adaptor.create(always_start);
@@ -3916,7 +3920,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:766:6: always_start_2= ALWAYS block
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:770:6: always_start_2= ALWAYS block
                     {
                     always_start_2=(Token)match(input,ALWAYS,FOLLOW_ALWAYS_in_check_statement1243); 
                     always_start_2_tree = (CommonTree)adaptor.create(always_start_2);
@@ -3984,7 +3988,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "detect_parameter"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:788:1: detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionTypeList] : ID ( OF_TYPE qualified_name ( OR qualified_name )* )? -> ^( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? ) ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:792:1: detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionTypeList] : ID ( OF_TYPE qualified_name ( OR qualified_name )* )? -> ^( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? ) ;
     public final QuorumParser.detect_parameter_return detect_parameter() throws RecognitionException {
         QuorumParser.detect_parameter_return retval = new QuorumParser.detect_parameter_return();
         retval.start = input.LT(1);
@@ -4007,8 +4011,8 @@ public class QuorumParser extends Parser {
         RewriteRuleTokenStream stream_OR=new RewriteRuleTokenStream(adaptor,"token OR");
         RewriteRuleSubtreeStream stream_qualified_name=new RewriteRuleSubtreeStream(adaptor,"rule qualified_name");
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:789:2: ( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? -> ^( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? ) )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:789:5: ID ( OF_TYPE qualified_name ( OR qualified_name )* )?
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:793:2: ( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? -> ^( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:793:5: ID ( OF_TYPE qualified_name ( OR qualified_name )* )?
             {
             ID107=(Token)match(input,ID,FOLLOW_ID_in_detect_parameter1297);  
             stream_ID.add(ID107);
@@ -4034,7 +4038,7 @@ public class QuorumParser extends Parser {
             		vm.getCompilerErrors().addError(error);
             	}	
             	
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:813:2: ( OF_TYPE qualified_name ( OR qualified_name )* )?
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:817:2: ( OF_TYPE qualified_name ( OR qualified_name )* )?
             int alt48=2;
             int LA48_0 = input.LA(1);
 
@@ -4043,7 +4047,7 @@ public class QuorumParser extends Parser {
             }
             switch (alt48) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:813:3: OF_TYPE qualified_name ( OR qualified_name )*
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:817:3: OF_TYPE qualified_name ( OR qualified_name )*
                     {
                     OF_TYPE108=(Token)match(input,OF_TYPE,FOLLOW_OF_TYPE_in_detect_parameter1309);  
                     stream_OF_TYPE.add(OF_TYPE108);
@@ -4054,7 +4058,7 @@ public class QuorumParser extends Parser {
                     state._fsp--;
 
                     stream_qualified_name.add(qualified_name109.getTree());
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:813:25: ( OR qualified_name )*
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:817:25: ( OR qualified_name )*
                     loop47:
                     do {
                         int alt47=2;
@@ -4067,7 +4071,7 @@ public class QuorumParser extends Parser {
 
                         switch (alt47) {
                     	case 1 :
-                    	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:813:26: OR qualified_name
+                    	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:817:26: OR qualified_name
                     	    {
                     	    OR110=(Token)match(input,OR,FOLLOW_OR_in_detect_parameter1313);  
                     	    stream_OR.add(OR110);
@@ -4096,7 +4100,7 @@ public class QuorumParser extends Parser {
 
 
             // AST REWRITE
-            // elements: qualified_name, ID, OF_TYPE, qualified_name, OR
+            // elements: OF_TYPE, ID, OR, qualified_name, qualified_name
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -4106,31 +4110,31 @@ public class QuorumParser extends Parser {
             RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
             root_0 = (CommonTree)adaptor.nil();
-            // 814:2: -> ^( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? )
+            // 818:2: -> ^( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? )
             {
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:814:5: ^( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? )
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:818:5: ^( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? )
                 {
                 CommonTree root_1 = (CommonTree)adaptor.nil();
                 root_1 = (CommonTree)adaptor.becomeRoot(stream_ID.nextNode(), root_1);
 
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:814:10: ( OF_TYPE qualified_name ( OR qualified_name )* )?
-                if ( stream_qualified_name.hasNext()||stream_OF_TYPE.hasNext()||stream_qualified_name.hasNext()||stream_OR.hasNext() ) {
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:818:10: ( OF_TYPE qualified_name ( OR qualified_name )* )?
+                if ( stream_OF_TYPE.hasNext()||stream_OR.hasNext()||stream_qualified_name.hasNext()||stream_qualified_name.hasNext() ) {
                     adaptor.addChild(root_1, stream_OF_TYPE.nextNode());
                     adaptor.addChild(root_1, stream_qualified_name.nextTree());
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:814:33: ( OR qualified_name )*
-                    while ( stream_qualified_name.hasNext()||stream_OR.hasNext() ) {
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:818:33: ( OR qualified_name )*
+                    while ( stream_OR.hasNext()||stream_qualified_name.hasNext() ) {
                         adaptor.addChild(root_1, stream_OR.nextNode());
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
                     }
-                    stream_qualified_name.reset();
                     stream_OR.reset();
+                    stream_qualified_name.reset();
 
                 }
-                stream_qualified_name.reset();
                 stream_OF_TYPE.reset();
-                stream_qualified_name.reset();
                 stream_OR.reset();
+                stream_qualified_name.reset();
+                stream_qualified_name.reset();
 
                 adaptor.addChild(root_0, root_1);
                 }
@@ -4164,7 +4168,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "print_statement"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:816:1: print_statement : PRINT root_expression ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:820:1: print_statement : PRINT root_expression ;
     public final QuorumParser.print_statement_return print_statement() throws RecognitionException {
         QuorumParser.print_statement_return retval = new QuorumParser.print_statement_return();
         retval.start = input.LT(1);
@@ -4178,8 +4182,8 @@ public class QuorumParser extends Parser {
         CommonTree PRINT112_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:817:2: ( PRINT root_expression )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:817:4: PRINT root_expression
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:821:2: ( PRINT root_expression )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:821:4: PRINT root_expression
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -4220,7 +4224,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "speak_statement"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:820:1: speak_statement : SAY root_expression ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:824:1: speak_statement : SAY root_expression ;
     public final QuorumParser.speak_statement_return speak_statement() throws RecognitionException {
         QuorumParser.speak_statement_return retval = new QuorumParser.speak_statement_return();
         retval.start = input.LT(1);
@@ -4234,8 +4238,8 @@ public class QuorumParser extends Parser {
         CommonTree SAY114_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:821:2: ( SAY root_expression )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:821:4: SAY root_expression
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:825:2: ( SAY root_expression )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:825:4: SAY root_expression
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -4276,7 +4280,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "return_statement"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:824:1: return_statement : RETURN ( root_expression | NOW ) ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:828:1: return_statement : RETURN ( root_expression | NOW ) ;
     public final QuorumParser.return_statement_return return_statement() throws RecognitionException {
         QuorumParser.return_statement_return retval = new QuorumParser.return_statement_return();
         retval.start = input.LT(1);
@@ -4292,8 +4296,8 @@ public class QuorumParser extends Parser {
         CommonTree NOW118_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:825:2: ( RETURN ( root_expression | NOW ) )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:825:4: RETURN ( root_expression | NOW )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:829:2: ( RETURN ( root_expression | NOW ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:829:4: RETURN ( root_expression | NOW )
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -4301,7 +4305,7 @@ public class QuorumParser extends Parser {
             RETURN116_tree = (CommonTree)adaptor.create(RETURN116);
             adaptor.addChild(root_0, RETURN116_tree);
 
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:825:11: ( root_expression | NOW )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:829:11: ( root_expression | NOW )
             int alt49=2;
             int LA49_0 = input.LA(1);
 
@@ -4319,7 +4323,7 @@ public class QuorumParser extends Parser {
             }
             switch (alt49) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:825:13: root_expression
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:829:13: root_expression
                     {
                     pushFollow(FOLLOW_root_expression_in_return_statement1381);
                     root_expression117=root_expression();
@@ -4331,7 +4335,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:825:31: NOW
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:829:31: NOW
                     {
                     NOW118=(Token)match(input,NOW,FOLLOW_NOW_in_return_statement1385); 
                     NOW118_tree = (CommonTree)adaptor.create(NOW118);
@@ -4371,7 +4375,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "generic_declaration"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:828:1: generic_declaration returns [ArrayList genericTypeList] : LESS ids+= ID ( COMMA ids+= ID )* GREATER -> ^( GENERIC LESS ID ( COMMA ID )* GREATER ) ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:832:1: generic_declaration returns [ArrayList genericTypeList] : LESS ids+= ID ( COMMA ids+= ID )* GREATER -> ^( GENERIC LESS ID ( COMMA ID )* GREATER ) ;
     public final QuorumParser.generic_declaration_return generic_declaration() throws RecognitionException {
         QuorumParser.generic_declaration_return retval = new QuorumParser.generic_declaration_return();
         retval.start = input.LT(1);
@@ -4394,8 +4398,8 @@ public class QuorumParser extends Parser {
         RewriteRuleTokenStream stream_LESS=new RewriteRuleTokenStream(adaptor,"token LESS");
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:829:2: ( LESS ids+= ID ( COMMA ids+= ID )* GREATER -> ^( GENERIC LESS ID ( COMMA ID )* GREATER ) )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:829:4: LESS ids+= ID ( COMMA ids+= ID )* GREATER
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:833:2: ( LESS ids+= ID ( COMMA ids+= ID )* GREATER -> ^( GENERIC LESS ID ( COMMA ID )* GREATER ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:833:4: LESS ids+= ID ( COMMA ids+= ID )* GREATER
             {
             LESS119=(Token)match(input,LESS,FOLLOW_LESS_in_generic_declaration1402);  
             stream_LESS.add(LESS119);
@@ -4406,7 +4410,7 @@ public class QuorumParser extends Parser {
             if (list_ids==null) list_ids=new ArrayList();
             list_ids.add(ids);
 
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:829:17: ( COMMA ids+= ID )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:833:17: ( COMMA ids+= ID )*
             loop50:
             do {
                 int alt50=2;
@@ -4419,7 +4423,7 @@ public class QuorumParser extends Parser {
 
                 switch (alt50) {
             	case 1 :
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:829:18: COMMA ids+= ID
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:833:18: COMMA ids+= ID
             	    {
             	    COMMA120=(Token)match(input,COMMA,FOLLOW_COMMA_in_generic_declaration1409);  
             	    stream_COMMA.add(COMMA120);
@@ -4467,7 +4471,7 @@ public class QuorumParser extends Parser {
 
 
             // AST REWRITE
-            // elements: ID, LESS, ID, GREATER, COMMA
+            // elements: LESS, COMMA, ID, GREATER, ID
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -4477,23 +4481,23 @@ public class QuorumParser extends Parser {
             RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
             root_0 = (CommonTree)adaptor.nil();
-            // 852:2: -> ^( GENERIC LESS ID ( COMMA ID )* GREATER )
+            // 856:2: -> ^( GENERIC LESS ID ( COMMA ID )* GREATER )
             {
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:852:5: ^( GENERIC LESS ID ( COMMA ID )* GREATER )
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:856:5: ^( GENERIC LESS ID ( COMMA ID )* GREATER )
                 {
                 CommonTree root_1 = (CommonTree)adaptor.nil();
                 root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(GENERIC, "GENERIC"), root_1);
 
                 adaptor.addChild(root_1, stream_LESS.nextNode());
                 adaptor.addChild(root_1, stream_ID.nextNode());
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:852:23: ( COMMA ID )*
-                while ( stream_ID.hasNext()||stream_COMMA.hasNext() ) {
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:856:23: ( COMMA ID )*
+                while ( stream_COMMA.hasNext()||stream_ID.hasNext() ) {
                     adaptor.addChild(root_1, stream_COMMA.nextNode());
                     adaptor.addChild(root_1, stream_ID.nextNode());
 
                 }
-                stream_ID.reset();
                 stream_COMMA.reset();
+                stream_ID.reset();
                 adaptor.addChild(root_1, stream_GREATER.nextNode());
 
                 adaptor.addChild(root_0, root_1);
@@ -4534,7 +4538,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "generic_statement"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:854:1: generic_statement returns [ArrayList genericTypeList] : LESS type= assignment_declaration ( COMMA type= assignment_declaration )* GREATER -> ^( GENERIC LESS assignment_declaration ( COMMA assignment_declaration )* GREATER ) ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:858:1: generic_statement returns [ArrayList genericTypeList] : LESS type= assignment_declaration ( COMMA type= assignment_declaration )* GREATER -> ^( GENERIC LESS assignment_declaration ( COMMA assignment_declaration )* GREATER ) ;
     public final QuorumParser.generic_statement_return generic_statement() throws RecognitionException {
         generic_statement_stack.push(new generic_statement_scope());
         QuorumParser.generic_statement_return retval = new QuorumParser.generic_statement_return();
@@ -4556,8 +4560,8 @@ public class QuorumParser extends Parser {
         RewriteRuleTokenStream stream_LESS=new RewriteRuleTokenStream(adaptor,"token LESS");
         RewriteRuleSubtreeStream stream_assignment_declaration=new RewriteRuleSubtreeStream(adaptor,"rule assignment_declaration");
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:858:2: ( LESS type= assignment_declaration ( COMMA type= assignment_declaration )* GREATER -> ^( GENERIC LESS assignment_declaration ( COMMA assignment_declaration )* GREATER ) )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:858:4: LESS type= assignment_declaration ( COMMA type= assignment_declaration )* GREATER
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:862:2: ( LESS type= assignment_declaration ( COMMA type= assignment_declaration )* GREATER -> ^( GENERIC LESS assignment_declaration ( COMMA assignment_declaration )* GREATER ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:862:4: LESS type= assignment_declaration ( COMMA type= assignment_declaration )* GREATER
             {
             LESS122=(Token)match(input,LESS,FOLLOW_LESS_in_generic_statement1458);  
             stream_LESS.add(LESS122);
@@ -4574,7 +4578,7 @@ public class QuorumParser extends Parser {
 
             		((generic_statement_scope)generic_statement_stack.peek()).typeList.add((type!=null?type.type:null));
             	
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:866:2: ( COMMA type= assignment_declaration )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:870:2: ( COMMA type= assignment_declaration )*
             loop51:
             do {
                 int alt51=2;
@@ -4587,7 +4591,7 @@ public class QuorumParser extends Parser {
 
                 switch (alt51) {
             	case 1 :
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:866:3: COMMA type= assignment_declaration
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:870:3: COMMA type= assignment_declaration
             	    {
             	    COMMA123=(Token)match(input,COMMA,FOLLOW_COMMA_in_generic_statement1475);  
             	    stream_COMMA.add(COMMA123);
@@ -4641,7 +4645,7 @@ public class QuorumParser extends Parser {
 
 
             // AST REWRITE
-            // elements: assignment_declaration, LESS, COMMA, GREATER, assignment_declaration
+            // elements: GREATER, assignment_declaration, COMMA, LESS, assignment_declaration
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -4651,16 +4655,16 @@ public class QuorumParser extends Parser {
             RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
             root_0 = (CommonTree)adaptor.nil();
-            // 896:2: -> ^( GENERIC LESS assignment_declaration ( COMMA assignment_declaration )* GREATER )
+            // 900:2: -> ^( GENERIC LESS assignment_declaration ( COMMA assignment_declaration )* GREATER )
             {
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:896:5: ^( GENERIC LESS assignment_declaration ( COMMA assignment_declaration )* GREATER )
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:900:5: ^( GENERIC LESS assignment_declaration ( COMMA assignment_declaration )* GREATER )
                 {
                 CommonTree root_1 = (CommonTree)adaptor.nil();
                 root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(GENERIC, "GENERIC"), root_1);
 
                 adaptor.addChild(root_1, stream_LESS.nextNode());
                 adaptor.addChild(root_1, stream_assignment_declaration.nextTree());
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:896:42: ( COMMA assignment_declaration )*
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:900:42: ( COMMA assignment_declaration )*
                 while ( stream_COMMA.hasNext()||stream_assignment_declaration.hasNext() ) {
                     adaptor.addChild(root_1, stream_COMMA.nextNode());
                     adaptor.addChild(root_1, stream_assignment_declaration.nextTree());
@@ -4704,7 +4708,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "class_type"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:898:1: class_type returns [TypeDescriptor type] : qn= qualified_name ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:902:1: class_type returns [TypeDescriptor type] : qn= qualified_name ;
     public final QuorumParser.class_type_return class_type() throws RecognitionException {
         QuorumParser.class_type_return retval = new QuorumParser.class_type_return();
         retval.start = input.LT(1);
@@ -4716,8 +4720,8 @@ public class QuorumParser extends Parser {
 
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:899:2: (qn= qualified_name )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:899:4: qn= qualified_name
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:903:2: (qn= qualified_name )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:903:4: qn= qualified_name
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -4770,7 +4774,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "assignment_declaration"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:916:1: assignment_declaration returns [TypeDescriptor type] : (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD );
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:920:1: assignment_declaration returns [TypeDescriptor type] : (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD );
     public final QuorumParser.assignment_declaration_return assignment_declaration() throws RecognitionException {
         QuorumParser.assignment_declaration_return retval = new QuorumParser.assignment_declaration_return();
         retval.start = input.LT(1);
@@ -4792,7 +4796,7 @@ public class QuorumParser extends Parser {
         CommonTree BOOLEAN_KEYWORD128_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:917:2: (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:921:2: (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD )
             int alt53=5;
             switch ( input.LA(1) ) {
             case ID:
@@ -4829,7 +4833,7 @@ public class QuorumParser extends Parser {
 
             switch (alt53) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:917:4: qn= qualified_name (gs= generic_statement )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:921:4: qn= qualified_name (gs= generic_statement )?
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -4839,7 +4843,7 @@ public class QuorumParser extends Parser {
                     state._fsp--;
 
                     adaptor.addChild(root_0, qn.getTree());
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:917:26: (gs= generic_statement )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:921:26: (gs= generic_statement )?
                     int alt52=2;
                     int LA52_0 = input.LA(1);
 
@@ -4848,7 +4852,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt52) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:917:26: gs= generic_statement
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:921:26: gs= generic_statement
                             {
                             pushFollow(FOLLOW_generic_statement_in_assignment_declaration1554);
                             gs=generic_statement();
@@ -4888,7 +4892,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:940:4: INTEGER_KEYWORD
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:944:4: INTEGER_KEYWORD
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -4907,7 +4911,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:948:4: NUMBER_KEYWORD
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:952:4: NUMBER_KEYWORD
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -4926,7 +4930,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 4 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:956:4: TEXT
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:960:4: TEXT
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -4945,7 +4949,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 5 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:964:4: BOOLEAN_KEYWORD
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:968:4: BOOLEAN_KEYWORD
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -4989,7 +4993,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "assignment_statement"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:972:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side | obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:976:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side | obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );
     public final QuorumParser.assignment_statement_return assignment_statement() throws RecognitionException {
         QuorumParser.assignment_statement_return retval = new QuorumParser.assignment_statement_return();
         retval.start = input.LT(1);
@@ -5027,16 +5031,16 @@ public class QuorumParser extends Parser {
         CommonTree ID135_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:973:2: ( (sel= selector COLON )? ID rhs= assign_right_hand_side | obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:977:2: ( (sel= selector COLON )? ID rhs= assign_right_hand_side | obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? )
             int alt58=3;
             alt58 = dfa58.predict(input);
             switch (alt58) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:974:3: (sel= selector COLON )? ID rhs= assign_right_hand_side
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:978:3: (sel= selector COLON )? ID rhs= assign_right_hand_side
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:974:3: (sel= selector COLON )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:978:3: (sel= selector COLON )?
                     int alt54=2;
                     int LA54_0 = input.LA(1);
 
@@ -5045,7 +5049,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt54) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:974:4: sel= selector COLON
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:978:4: sel= selector COLON
                             {
                             pushFollow(FOLLOW_selector_in_assignment_statement1608);
                             sel=selector();
@@ -5096,7 +5100,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:994:4: obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:998:4: obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -5106,7 +5110,7 @@ public class QuorumParser extends Parser {
                     state._fsp--;
 
                     adaptor.addChild(root_0, obj.getTree());
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:994:23: ( COLON PARENT COLON parent= qualified_name )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:998:23: ( COLON PARENT COLON parent= qualified_name )?
                     int alt55=2;
                     int LA55_0 = input.LA(1);
 
@@ -5119,7 +5123,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt55) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:994:24: COLON PARENT COLON parent= qualified_name
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:998:24: COLON PARENT COLON parent= qualified_name
                             {
                             COLON131=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1634); 
                             COLON131_tree = (CommonTree)adaptor.create(COLON131);
@@ -5163,11 +5167,11 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:995:4: (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:999:4: (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )?
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:995:13: (modifier= access_modifier )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:999:13: (modifier= access_modifier )?
                     int alt56=2;
                     int LA56_0 = input.LA(1);
 
@@ -5176,7 +5180,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt56) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:995:13: modifier= access_modifier
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:999:13: modifier= access_modifier
                             {
                             pushFollow(FOLLOW_access_modifier_in_assignment_statement1661);
                             modifier=access_modifier();
@@ -5207,7 +5211,7 @@ public class QuorumParser extends Parser {
                     name_tree = (CommonTree)adaptor.create(name);
                     adaptor.addChild(root_0, name_tree);
 
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1003:46: (rhs= assign_right_hand_side )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1007:46: (rhs= assign_right_hand_side )?
                     int alt57=2;
                     int LA57_0 = input.LA(1);
 
@@ -5216,7 +5220,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt57) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1003:46: rhs= assign_right_hand_side
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1007:46: rhs= assign_right_hand_side
                             {
                             pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1685);
                             rhs=assign_right_hand_side();
@@ -5287,7 +5291,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "assign_right_hand_side"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1033:1: assign_right_hand_side : ( EQUALITY root_expression ) ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1037:1: assign_right_hand_side : ( EQUALITY root_expression ) ;
     public final QuorumParser.assign_right_hand_side_return assign_right_hand_side() throws RecognitionException {
         QuorumParser.assign_right_hand_side_return retval = new QuorumParser.assign_right_hand_side_return();
         retval.start = input.LT(1);
@@ -5301,13 +5305,13 @@ public class QuorumParser extends Parser {
         CommonTree EQUALITY136_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1035:2: ( ( EQUALITY root_expression ) )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1036:3: ( EQUALITY root_expression )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1039:2: ( ( EQUALITY root_expression ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1040:3: ( EQUALITY root_expression )
             {
             root_0 = (CommonTree)adaptor.nil();
 
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1036:3: ( EQUALITY root_expression )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1036:4: EQUALITY root_expression
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1040:3: ( EQUALITY root_expression )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1040:4: EQUALITY root_expression
             {
             EQUALITY136=(Token)match(input,EQUALITY,FOLLOW_EQUALITY_in_assign_right_hand_side1711); 
             EQUALITY136_tree = (CommonTree)adaptor.create(EQUALITY136);
@@ -5349,7 +5353,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "if_statement"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1040:1: if_statement : firstif= IF root_expression block (firstelse= ELSE_IF root_expression block )* (secondelse= ELSE block )? end= END ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1044:1: if_statement : firstif= IF root_expression block (firstelse= ELSE_IF root_expression block )* (secondelse= ELSE block )? end= END ;
     public final QuorumParser.if_statement_return if_statement() throws RecognitionException {
         QuorumParser.if_statement_return retval = new QuorumParser.if_statement_return();
         retval.start = input.LT(1);
@@ -5380,8 +5384,8 @@ public class QuorumParser extends Parser {
         	BlockDescriptor block;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1044:2: (firstif= IF root_expression block (firstelse= ELSE_IF root_expression block )* (secondelse= ELSE block )? end= END )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1045:2: firstif= IF root_expression block (firstelse= ELSE_IF root_expression block )* (secondelse= ELSE block )? end= END
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1048:2: (firstif= IF root_expression block (firstelse= ELSE_IF root_expression block )* (secondelse= ELSE block )? end= END )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1049:2: firstif= IF root_expression block (firstelse= ELSE_IF root_expression block )* (secondelse= ELSE block )? end= END
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -5408,7 +5412,7 @@ public class QuorumParser extends Parser {
                    		block.setLineBegin(firstif.getLine());
                    		block.setColumnBegin(firstif.getCharPositionInLine());
             	
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1053:2: (firstelse= ELSE_IF root_expression block )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1057:2: (firstelse= ELSE_IF root_expression block )*
             loop59:
             do {
                 int alt59=2;
@@ -5421,7 +5425,7 @@ public class QuorumParser extends Parser {
 
                 switch (alt59) {
             	case 1 :
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1053:3: firstelse= ELSE_IF root_expression block
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1057:3: firstelse= ELSE_IF root_expression block
             	    {
             	    firstelse=(Token)match(input,ELSE_IF,FOLLOW_ELSE_IF_in_if_statement1758); 
             	    firstelse_tree = (CommonTree)adaptor.create(firstelse);
@@ -5459,7 +5463,7 @@ public class QuorumParser extends Parser {
                 }
             } while (true);
 
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1067:2: (secondelse= ELSE block )?
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1071:2: (secondelse= ELSE block )?
             int alt60=2;
             int LA60_0 = input.LA(1);
 
@@ -5468,7 +5472,7 @@ public class QuorumParser extends Parser {
             }
             switch (alt60) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1067:3: secondelse= ELSE block
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1071:3: secondelse= ELSE block
                     {
                     secondelse=(Token)match(input,ELSE,FOLLOW_ELSE_in_if_statement1790); 
                     secondelse_tree = (CommonTree)adaptor.create(secondelse);
@@ -5533,7 +5537,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "loop_statement"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1089:1: loop_statement : REPEAT ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) ) block END ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1093:1: loop_statement : REPEAT ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) ) block END ;
     public final QuorumParser.loop_statement_return loop_statement() throws RecognitionException {
         QuorumParser.loop_statement_return retval = new QuorumParser.loop_statement_return();
         retval.start = input.LT(1);
@@ -5560,8 +5564,8 @@ public class QuorumParser extends Parser {
         	BlockDescriptor block;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1093:2: ( REPEAT ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) ) block END )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1094:2: REPEAT ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) ) block END
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1097:2: ( REPEAT ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) ) block END )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1098:2: REPEAT ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) ) block END
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -5573,7 +5577,7 @@ public class QuorumParser extends Parser {
             REPEAT143_tree = (CommonTree)adaptor.create(REPEAT143);
             adaptor.addChild(root_0, REPEAT143_tree);
 
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1098:10: ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1102:10: ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) )
             int alt61=2;
             int LA61_0 = input.LA(1);
 
@@ -5591,10 +5595,10 @@ public class QuorumParser extends Parser {
             }
             switch (alt61) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1114:4: ( root_expression TIMES )
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1118:4: ( root_expression TIMES )
                     {
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1114:4: ( root_expression TIMES )
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1114:5: root_expression TIMES
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1118:4: ( root_expression TIMES )
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1118:5: root_expression TIMES
                     {
                     pushFollow(FOLLOW_root_expression_in_loop_statement1907);
                     root_expression144=root_expression();
@@ -5613,10 +5617,10 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1115:5: ( ( WHILE | UNTIL ) root_expression )
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1119:5: ( ( WHILE | UNTIL ) root_expression )
                     {
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1115:5: ( ( WHILE | UNTIL ) root_expression )
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1115:6: ( WHILE | UNTIL ) root_expression
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1119:5: ( ( WHILE | UNTIL ) root_expression )
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1119:6: ( WHILE | UNTIL ) root_expression
                     {
                     set146=(Token)input.LT(1);
                     if ( (input.LA(1)>=WHILE && input.LA(1)<=UNTIL) ) {
@@ -5692,7 +5696,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "selector"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1131:1: selector returns [ScopeSelector scopeSel] : ( PARENT COLON qn= qualified_name -> ^( PARENT qualified_name ) | ME );
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1135:1: selector returns [ScopeSelector scopeSel] : ( PARENT COLON qn= qualified_name -> ^( PARENT qualified_name ) | ME );
     public final QuorumParser.selector_return selector() throws RecognitionException {
         QuorumParser.selector_return retval = new QuorumParser.selector_return();
         retval.start = input.LT(1);
@@ -5712,7 +5716,7 @@ public class QuorumParser extends Parser {
         RewriteRuleTokenStream stream_PARENT=new RewriteRuleTokenStream(adaptor,"token PARENT");
         RewriteRuleSubtreeStream stream_qualified_name=new RewriteRuleSubtreeStream(adaptor,"rule qualified_name");
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1132:2: ( PARENT COLON qn= qualified_name -> ^( PARENT qualified_name ) | ME )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1136:2: ( PARENT COLON qn= qualified_name -> ^( PARENT qualified_name ) | ME )
             int alt62=2;
             int LA62_0 = input.LA(1);
 
@@ -5730,7 +5734,7 @@ public class QuorumParser extends Parser {
             }
             switch (alt62) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1132:4: PARENT COLON qn= qualified_name
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1136:4: PARENT COLON qn= qualified_name
                     {
                     PARENT150=(Token)match(input,PARENT,FOLLOW_PARENT_in_selector1960);  
                     stream_PARENT.add(PARENT150);
@@ -5762,9 +5766,9 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1137:4: -> ^( PARENT qualified_name )
+                    // 1141:4: -> ^( PARENT qualified_name )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1137:7: ^( PARENT qualified_name )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1141:7: ^( PARENT qualified_name )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(stream_PARENT.nextNode(), root_1);
@@ -5780,7 +5784,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1139:4: ME
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1143:4: ME
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -5822,7 +5826,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "root_expression"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1147:1: root_expression : expression -> ^( ROOT_EXPRESSION expression ) ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1151:1: root_expression : expression -> ^( ROOT_EXPRESSION expression ) ;
     public final QuorumParser.root_expression_return root_expression() throws RecognitionException {
         QuorumParser.root_expression_return retval = new QuorumParser.root_expression_return();
         retval.start = input.LT(1);
@@ -5834,8 +5838,8 @@ public class QuorumParser extends Parser {
 
         RewriteRuleSubtreeStream stream_expression=new RewriteRuleSubtreeStream(adaptor,"rule expression");
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1148:2: ( expression -> ^( ROOT_EXPRESSION expression ) )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1148:4: expression
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1152:2: ( expression -> ^( ROOT_EXPRESSION expression ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1152:4: expression
             {
             pushFollow(FOLLOW_expression_in_root_expression1998);
             expression153=expression();
@@ -5856,9 +5860,9 @@ public class QuorumParser extends Parser {
             RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
             root_0 = (CommonTree)adaptor.nil();
-            // 1148:15: -> ^( ROOT_EXPRESSION expression )
+            // 1152:15: -> ^( ROOT_EXPRESSION expression )
             {
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1148:18: ^( ROOT_EXPRESSION expression )
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1152:18: ^( ROOT_EXPRESSION expression )
                 {
                 CommonTree root_1 = (CommonTree)adaptor.nil();
                 root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(ROOT_EXPRESSION, "ROOT_EXPRESSION"), root_1);
@@ -5897,7 +5901,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "expression"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1151:1: expression : or ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1155:1: expression : or ;
     public final QuorumParser.expression_return expression() throws RecognitionException {
         QuorumParser.expression_return retval = new QuorumParser.expression_return();
         retval.start = input.LT(1);
@@ -5909,8 +5913,8 @@ public class QuorumParser extends Parser {
 
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1152:2: ( or )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1152:4: or
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1156:2: ( or )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1156:4: or
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -5947,7 +5951,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "or"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1155:1: or : and ( OR and )* ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1159:1: or : and ( OR and )* ;
     public final QuorumParser.or_return or() throws RecognitionException {
         QuorumParser.or_return retval = new QuorumParser.or_return();
         retval.start = input.LT(1);
@@ -5963,8 +5967,8 @@ public class QuorumParser extends Parser {
         CommonTree OR156_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1155:5: ( and ( OR and )* )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1155:7: and ( OR and )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1159:5: ( and ( OR and )* )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1159:7: and ( OR and )*
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -5974,7 +5978,7 @@ public class QuorumParser extends Parser {
             state._fsp--;
 
             adaptor.addChild(root_0, and155.getTree());
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1155:11: ( OR and )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1159:11: ( OR and )*
             loop63:
             do {
                 int alt63=2;
@@ -5987,7 +5991,7 @@ public class QuorumParser extends Parser {
 
                 switch (alt63) {
             	case 1 :
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1155:12: OR and
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1159:12: OR and
             	    {
             	    OR156=(Token)match(input,OR,FOLLOW_OR_in_or2033); 
             	    OR156_tree = (CommonTree)adaptor.create(OR156);
@@ -6035,7 +6039,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "and"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1158:1: and : equality ( AND equality )* ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1162:1: and : equality ( AND equality )* ;
     public final QuorumParser.and_return and() throws RecognitionException {
         QuorumParser.and_return retval = new QuorumParser.and_return();
         retval.start = input.LT(1);
@@ -6051,8 +6055,8 @@ public class QuorumParser extends Parser {
         CommonTree AND159_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1158:6: ( equality ( AND equality )* )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1158:8: equality ( AND equality )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1162:6: ( equality ( AND equality )* )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1162:8: equality ( AND equality )*
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -6062,7 +6066,7 @@ public class QuorumParser extends Parser {
             state._fsp--;
 
             adaptor.addChild(root_0, equality158.getTree());
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1158:17: ( AND equality )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1162:17: ( AND equality )*
             loop64:
             do {
                 int alt64=2;
@@ -6075,7 +6079,7 @@ public class QuorumParser extends Parser {
 
                 switch (alt64) {
             	case 1 :
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1158:18: AND equality
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1162:18: AND equality
             	    {
             	    AND159=(Token)match(input,AND,FOLLOW_AND_in_and2053); 
             	    AND159_tree = (CommonTree)adaptor.create(AND159);
@@ -6123,7 +6127,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "equality"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1160:1: equality : isa_operation ( ( EQUALITY | NOTEQUALS ) isa_operation )* ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1164:1: equality : isa_operation ( ( EQUALITY | NOTEQUALS ) isa_operation )* ;
     public final QuorumParser.equality_return equality() throws RecognitionException {
         QuorumParser.equality_return retval = new QuorumParser.equality_return();
         retval.start = input.LT(1);
@@ -6141,8 +6145,8 @@ public class QuorumParser extends Parser {
         CommonTree NOTEQUALS163_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1160:9: ( isa_operation ( ( EQUALITY | NOTEQUALS ) isa_operation )* )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1160:11: isa_operation ( ( EQUALITY | NOTEQUALS ) isa_operation )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1164:9: ( isa_operation ( ( EQUALITY | NOTEQUALS ) isa_operation )* )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1164:11: isa_operation ( ( EQUALITY | NOTEQUALS ) isa_operation )*
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -6152,7 +6156,7 @@ public class QuorumParser extends Parser {
             state._fsp--;
 
             adaptor.addChild(root_0, isa_operation161.getTree());
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1160:25: ( ( EQUALITY | NOTEQUALS ) isa_operation )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1164:25: ( ( EQUALITY | NOTEQUALS ) isa_operation )*
             loop66:
             do {
                 int alt66=2;
@@ -6165,9 +6169,9 @@ public class QuorumParser extends Parser {
 
                 switch (alt66) {
             	case 1 :
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1160:26: ( EQUALITY | NOTEQUALS ) isa_operation
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1164:26: ( EQUALITY | NOTEQUALS ) isa_operation
             	    {
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1160:26: ( EQUALITY | NOTEQUALS )
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1164:26: ( EQUALITY | NOTEQUALS )
             	    int alt65=2;
             	    int LA65_0 = input.LA(1);
 
@@ -6185,7 +6189,7 @@ public class QuorumParser extends Parser {
             	    }
             	    switch (alt65) {
             	        case 1 :
-            	            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1160:27: EQUALITY
+            	            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1164:27: EQUALITY
             	            {
             	            EQUALITY162=(Token)match(input,EQUALITY,FOLLOW_EQUALITY_in_equality2072); 
             	            EQUALITY162_tree = (CommonTree)adaptor.create(EQUALITY162);
@@ -6195,7 +6199,7 @@ public class QuorumParser extends Parser {
             	            }
             	            break;
             	        case 2 :
-            	            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1160:40: NOTEQUALS
+            	            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1164:40: NOTEQUALS
             	            {
             	            NOTEQUALS163=(Token)match(input,NOTEQUALS,FOLLOW_NOTEQUALS_in_equality2078); 
             	            NOTEQUALS163_tree = (CommonTree)adaptor.create(NOTEQUALS163);
@@ -6249,7 +6253,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "isa_operation"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1162:1: isa_operation : comparison ( INHERITS class_type )? ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1166:1: isa_operation : comparison ( INHERITS class_type )? ;
     public final QuorumParser.isa_operation_return isa_operation() throws RecognitionException {
         QuorumParser.isa_operation_return retval = new QuorumParser.isa_operation_return();
         retval.start = input.LT(1);
@@ -6265,8 +6269,8 @@ public class QuorumParser extends Parser {
         CommonTree INHERITS166_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1163:2: ( comparison ( INHERITS class_type )? )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1163:4: comparison ( INHERITS class_type )?
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1167:2: ( comparison ( INHERITS class_type )? )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1167:4: comparison ( INHERITS class_type )?
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -6276,7 +6280,7 @@ public class QuorumParser extends Parser {
             state._fsp--;
 
             adaptor.addChild(root_0, comparison165.getTree());
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1163:15: ( INHERITS class_type )?
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1167:15: ( INHERITS class_type )?
             int alt67=2;
             int LA67_0 = input.LA(1);
 
@@ -6285,7 +6289,7 @@ public class QuorumParser extends Parser {
             }
             switch (alt67) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1163:16: INHERITS class_type
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1167:16: INHERITS class_type
                     {
                     INHERITS166=(Token)match(input,INHERITS,FOLLOW_INHERITS_in_isa_operation2098); 
                     INHERITS166_tree = (CommonTree)adaptor.create(INHERITS166);
@@ -6330,7 +6334,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "comparison"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1165:1: comparison : add ( ( GREATER | GREATER_EQUAL | LESS | LESS_EQUAL ) add )* ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:1: comparison : add ( ( GREATER | GREATER_EQUAL | LESS | LESS_EQUAL ) add )* ;
     public final QuorumParser.comparison_return comparison() throws RecognitionException {
         QuorumParser.comparison_return retval = new QuorumParser.comparison_return();
         retval.start = input.LT(1);
@@ -6352,8 +6356,8 @@ public class QuorumParser extends Parser {
         CommonTree LESS_EQUAL172_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1165:11: ( add ( ( GREATER | GREATER_EQUAL | LESS | LESS_EQUAL ) add )* )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1165:13: add ( ( GREATER | GREATER_EQUAL | LESS | LESS_EQUAL ) add )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:11: ( add ( ( GREATER | GREATER_EQUAL | LESS | LESS_EQUAL ) add )* )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:13: add ( ( GREATER | GREATER_EQUAL | LESS | LESS_EQUAL ) add )*
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -6363,7 +6367,7 @@ public class QuorumParser extends Parser {
             state._fsp--;
 
             adaptor.addChild(root_0, add168.getTree());
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1165:17: ( ( GREATER | GREATER_EQUAL | LESS | LESS_EQUAL ) add )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:17: ( ( GREATER | GREATER_EQUAL | LESS | LESS_EQUAL ) add )*
             loop69:
             do {
                 int alt69=2;
@@ -6376,9 +6380,9 @@ public class QuorumParser extends Parser {
 
                 switch (alt69) {
             	case 1 :
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1165:18: ( GREATER | GREATER_EQUAL | LESS | LESS_EQUAL ) add
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:18: ( GREATER | GREATER_EQUAL | LESS | LESS_EQUAL ) add
             	    {
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1165:18: ( GREATER | GREATER_EQUAL | LESS | LESS_EQUAL )
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:18: ( GREATER | GREATER_EQUAL | LESS | LESS_EQUAL )
             	    int alt68=4;
             	    switch ( input.LA(1) ) {
             	    case GREATER:
@@ -6410,7 +6414,7 @@ public class QuorumParser extends Parser {
 
             	    switch (alt68) {
             	        case 1 :
-            	            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1165:19: GREATER
+            	            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:19: GREATER
             	            {
             	            GREATER169=(Token)match(input,GREATER,FOLLOW_GREATER_in_comparison2116); 
             	            GREATER169_tree = (CommonTree)adaptor.create(GREATER169);
@@ -6420,7 +6424,7 @@ public class QuorumParser extends Parser {
             	            }
             	            break;
             	        case 2 :
-            	            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1165:30: GREATER_EQUAL
+            	            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:30: GREATER_EQUAL
             	            {
             	            GREATER_EQUAL170=(Token)match(input,GREATER_EQUAL,FOLLOW_GREATER_EQUAL_in_comparison2121); 
             	            GREATER_EQUAL170_tree = (CommonTree)adaptor.create(GREATER_EQUAL170);
@@ -6430,7 +6434,7 @@ public class QuorumParser extends Parser {
             	            }
             	            break;
             	        case 3 :
-            	            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1165:47: LESS
+            	            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:47: LESS
             	            {
             	            LESS171=(Token)match(input,LESS,FOLLOW_LESS_in_comparison2126); 
             	            LESS171_tree = (CommonTree)adaptor.create(LESS171);
@@ -6440,7 +6444,7 @@ public class QuorumParser extends Parser {
             	            }
             	            break;
             	        case 4 :
-            	            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1165:55: LESS_EQUAL
+            	            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:55: LESS_EQUAL
             	            {
             	            LESS_EQUAL172=(Token)match(input,LESS_EQUAL,FOLLOW_LESS_EQUAL_in_comparison2131); 
             	            LESS_EQUAL172_tree = (CommonTree)adaptor.create(LESS_EQUAL172);
@@ -6494,7 +6498,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "add"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:1: add : multiply ( ( PLUS | MINUS ) multiply )* ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1173:1: add : multiply ( ( PLUS | MINUS ) multiply )* ;
     public final QuorumParser.add_return add() throws RecognitionException {
         QuorumParser.add_return retval = new QuorumParser.add_return();
         retval.start = input.LT(1);
@@ -6512,8 +6516,8 @@ public class QuorumParser extends Parser {
         CommonTree MINUS176_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:5: ( multiply ( ( PLUS | MINUS ) multiply )* )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:7: multiply ( ( PLUS | MINUS ) multiply )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1173:5: ( multiply ( ( PLUS | MINUS ) multiply )* )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1173:7: multiply ( ( PLUS | MINUS ) multiply )*
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -6523,7 +6527,7 @@ public class QuorumParser extends Parser {
             state._fsp--;
 
             adaptor.addChild(root_0, multiply174.getTree());
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:16: ( ( PLUS | MINUS ) multiply )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1173:16: ( ( PLUS | MINUS ) multiply )*
             loop71:
             do {
                 int alt71=2;
@@ -6536,9 +6540,9 @@ public class QuorumParser extends Parser {
 
                 switch (alt71) {
             	case 1 :
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:17: ( PLUS | MINUS ) multiply
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1173:17: ( PLUS | MINUS ) multiply
             	    {
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:17: ( PLUS | MINUS )
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1173:17: ( PLUS | MINUS )
             	    int alt70=2;
             	    int LA70_0 = input.LA(1);
 
@@ -6556,7 +6560,7 @@ public class QuorumParser extends Parser {
             	    }
             	    switch (alt70) {
             	        case 1 :
-            	            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:18: PLUS
+            	            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1173:18: PLUS
             	            {
             	            PLUS175=(Token)match(input,PLUS,FOLLOW_PLUS_in_add2153); 
             	            PLUS175_tree = (CommonTree)adaptor.create(PLUS175);
@@ -6566,7 +6570,7 @@ public class QuorumParser extends Parser {
             	            }
             	            break;
             	        case 2 :
-            	            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:26: MINUS
+            	            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1173:26: MINUS
             	            {
             	            MINUS176=(Token)match(input,MINUS,FOLLOW_MINUS_in_add2158); 
             	            MINUS176_tree = (CommonTree)adaptor.create(MINUS176);
@@ -6620,7 +6624,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "multiply"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:1: multiply : combo_expression ( ( MULTIPLY | DIVIDE | MODULO ) combo_expression )* ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1176:1: multiply : combo_expression ( ( MULTIPLY | DIVIDE | MODULO ) combo_expression )* ;
     public final QuorumParser.multiply_return multiply() throws RecognitionException {
         QuorumParser.multiply_return retval = new QuorumParser.multiply_return();
         retval.start = input.LT(1);
@@ -6640,8 +6644,8 @@ public class QuorumParser extends Parser {
         CommonTree MODULO181_tree=null;
 
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:9: ( combo_expression ( ( MULTIPLY | DIVIDE | MODULO ) combo_expression )* )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:11: combo_expression ( ( MULTIPLY | DIVIDE | MODULO ) combo_expression )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1176:9: ( combo_expression ( ( MULTIPLY | DIVIDE | MODULO ) combo_expression )* )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1176:11: combo_expression ( ( MULTIPLY | DIVIDE | MODULO ) combo_expression )*
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -6651,7 +6655,7 @@ public class QuorumParser extends Parser {
             state._fsp--;
 
             adaptor.addChild(root_0, combo_expression178.getTree());
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:28: ( ( MULTIPLY | DIVIDE | MODULO ) combo_expression )*
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1176:28: ( ( MULTIPLY | DIVIDE | MODULO ) combo_expression )*
             loop73:
             do {
                 int alt73=2;
@@ -6664,9 +6668,9 @@ public class QuorumParser extends Parser {
 
                 switch (alt73) {
             	case 1 :
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:29: ( MULTIPLY | DIVIDE | MODULO ) combo_expression
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1176:29: ( MULTIPLY | DIVIDE | MODULO ) combo_expression
             	    {
-            	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:29: ( MULTIPLY | DIVIDE | MODULO )
+            	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1176:29: ( MULTIPLY | DIVIDE | MODULO )
             	    int alt72=3;
             	    switch ( input.LA(1) ) {
             	    case MULTIPLY:
@@ -6693,7 +6697,7 @@ public class QuorumParser extends Parser {
 
             	    switch (alt72) {
             	        case 1 :
-            	            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:30: MULTIPLY
+            	            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1176:30: MULTIPLY
             	            {
             	            MULTIPLY179=(Token)match(input,MULTIPLY,FOLLOW_MULTIPLY_in_multiply2179); 
             	            MULTIPLY179_tree = (CommonTree)adaptor.create(MULTIPLY179);
@@ -6703,7 +6707,7 @@ public class QuorumParser extends Parser {
             	            }
             	            break;
             	        case 2 :
-            	            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:42: DIVIDE
+            	            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1176:42: DIVIDE
             	            {
             	            DIVIDE180=(Token)match(input,DIVIDE,FOLLOW_DIVIDE_in_multiply2184); 
             	            DIVIDE180_tree = (CommonTree)adaptor.create(DIVIDE180);
@@ -6713,7 +6717,7 @@ public class QuorumParser extends Parser {
             	            }
             	            break;
             	        case 3 :
-            	            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:51: MODULO
+            	            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1176:51: MODULO
             	            {
             	            MODULO181=(Token)match(input,MODULO,FOLLOW_MODULO_in_multiply2188); 
             	            MODULO181_tree = (CommonTree)adaptor.create(MODULO181);
@@ -6767,7 +6771,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "combo_expression"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1175:1: combo_expression : ( NOT atom -> ^( UNARY_NOT NOT atom ) | CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN | atom );
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:1: combo_expression : ( NOT atom -> ^( UNARY_NOT NOT atom ) | CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN | atom );
     public final QuorumParser.combo_expression_return combo_expression() throws RecognitionException {
         QuorumParser.combo_expression_return retval = new QuorumParser.combo_expression_return();
         retval.start = input.LT(1);
@@ -6796,7 +6800,7 @@ public class QuorumParser extends Parser {
         RewriteRuleTokenStream stream_NOT=new RewriteRuleTokenStream(adaptor,"token NOT");
         RewriteRuleSubtreeStream stream_atom=new RewriteRuleSubtreeStream(adaptor,"rule atom");
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1176:2: ( NOT atom -> ^( UNARY_NOT NOT atom ) | CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN | atom )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1180:2: ( NOT atom -> ^( UNARY_NOT NOT atom ) | CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN | atom )
             int alt74=3;
             switch ( input.LA(1) ) {
             case NOT:
@@ -6833,7 +6837,7 @@ public class QuorumParser extends Parser {
 
             switch (alt74) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1176:4: NOT atom
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1180:4: NOT atom
                     {
                     NOT183=(Token)match(input,NOT,FOLLOW_NOT_in_combo_expression2207);  
                     stream_NOT.add(NOT183);
@@ -6857,9 +6861,9 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1176:13: -> ^( UNARY_NOT NOT atom )
+                    // 1180:13: -> ^( UNARY_NOT NOT atom )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1176:16: ^( UNARY_NOT NOT atom )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1180:16: ^( UNARY_NOT NOT atom )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(UNARY_NOT, "UNARY_NOT"), root_1);
@@ -6876,7 +6880,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1177:4: CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1181:4: CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -6912,7 +6916,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1178:4: atom
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1182:4: atom
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -6951,7 +6955,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "atom"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1181:1: atom : ( qualified_name ( COLON ID )? -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | qualified_name COLON PARENT COLON qualified_name COLON ID -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID ) | qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | selector COLON qualified_name -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | ( MINUS )? INT | BOOLEAN | ( MINUS )? DECIMAL | STRING | NULL | ME | INPUT LEFT_PAREN expression RIGHT_PAREN | LEFT_PAREN expression RIGHT_PAREN -> ^( expression ) );
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1185:1: atom : ( qualified_name ( COLON ID )? -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | qualified_name COLON PARENT COLON qualified_name COLON ID -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID ) | qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | selector COLON qualified_name -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | ( MINUS )? INT | BOOLEAN | ( MINUS )? DECIMAL | STRING | NULL | ME | INPUT LEFT_PAREN expression RIGHT_PAREN | LEFT_PAREN expression RIGHT_PAREN -> ^( expression ) );
     public final QuorumParser.atom_return atom() throws RecognitionException {
         QuorumParser.atom_return retval = new QuorumParser.atom_return();
         retval.start = input.LT(1);
@@ -7070,12 +7074,12 @@ public class QuorumParser extends Parser {
         RewriteRuleSubtreeStream stream_function_expression_list=new RewriteRuleSubtreeStream(adaptor,"rule function_expression_list");
         RewriteRuleSubtreeStream stream_qualified_name=new RewriteRuleSubtreeStream(adaptor,"rule qualified_name");
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1181:7: ( qualified_name ( COLON ID )? -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | qualified_name COLON PARENT COLON qualified_name COLON ID -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID ) | qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | selector COLON qualified_name -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | ( MINUS )? INT | BOOLEAN | ( MINUS )? DECIMAL | STRING | NULL | ME | INPUT LEFT_PAREN expression RIGHT_PAREN | LEFT_PAREN expression RIGHT_PAREN -> ^( expression ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1185:7: ( qualified_name ( COLON ID )? -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | qualified_name COLON PARENT COLON qualified_name COLON ID -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID ) | qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | selector COLON qualified_name -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | ( MINUS )? INT | BOOLEAN | ( MINUS )? DECIMAL | STRING | NULL | ME | INPUT LEFT_PAREN expression RIGHT_PAREN | LEFT_PAREN expression RIGHT_PAREN -> ^( expression ) )
             int alt80=14;
             alt80 = dfa80.predict(input);
             switch (alt80) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1182:2: qualified_name ( COLON ID )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1186:2: qualified_name ( COLON ID )?
                     {
                     pushFollow(FOLLOW_qualified_name_in_atom2254);
                     qualified_name192=qualified_name();
@@ -7083,7 +7087,7 @@ public class QuorumParser extends Parser {
                     state._fsp--;
 
                     stream_qualified_name.add(qualified_name192.getTree());
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1182:17: ( COLON ID )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1186:17: ( COLON ID )?
                     int alt75=2;
                     int LA75_0 = input.LA(1);
 
@@ -7092,7 +7096,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt75) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1182:18: COLON ID
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1186:18: COLON ID
                             {
                             COLON193=(Token)match(input,COLON,FOLLOW_COLON_in_atom2257);  
                             stream_COLON.add(COLON193);
@@ -7109,7 +7113,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: COLON, ID, qualified_name
+                    // elements: ID, qualified_name, COLON
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7119,22 +7123,22 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1182:29: -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? )
+                    // 1186:29: -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1182:32: ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1186:32: ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(QUALIFIED_SOLO_EXPRESSION, "QUALIFIED_SOLO_EXPRESSION"), root_1);
 
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1182:75: ( COLON ID )?
-                        if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1186:75: ( COLON ID )?
+                        if ( stream_ID.hasNext()||stream_COLON.hasNext() ) {
                             adaptor.addChild(root_1, stream_COLON.nextNode());
                             adaptor.addChild(root_1, stream_ID.nextNode());
 
                         }
-                        stream_COLON.reset();
                         stream_ID.reset();
+                        stream_COLON.reset();
 
                         adaptor.addChild(root_0, root_1);
                         }
@@ -7145,7 +7149,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1183:4: qualified_name COLON PARENT COLON qualified_name COLON ID
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1187:4: qualified_name COLON PARENT COLON qualified_name COLON ID
                     {
                     pushFollow(FOLLOW_qualified_name_in_atom2281);
                     qualified_name195=qualified_name();
@@ -7177,7 +7181,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: COLON, qualified_name, COLON, ID, COLON, qualified_name, PARENT
+                    // elements: ID, COLON, PARENT, qualified_name, COLON, qualified_name, COLON
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7187,9 +7191,9 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1183:62: -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID )
+                    // 1187:62: -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1183:65: ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1187:65: ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(QUALIFIED_SOLO_PARENT_EXPRESSON, "QUALIFIED_SOLO_PARENT_EXPRESSON"), root_1);
@@ -7211,7 +7215,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1184:4: qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1188:4: qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN
                     {
                     pushFollow(FOLLOW_qualified_name_in_atom2318);
                     qualified_name202=qualified_name();
@@ -7219,7 +7223,7 @@ public class QuorumParser extends Parser {
                     state._fsp--;
 
                     stream_qualified_name.add(qualified_name202.getTree());
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1184:19: ( COLON ID )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1188:19: ( COLON ID )?
                     int alt76=2;
                     int LA76_0 = input.LA(1);
 
@@ -7228,7 +7232,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt76) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1184:20: COLON ID
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1188:20: COLON ID
                             {
                             COLON203=(Token)match(input,COLON,FOLLOW_COLON_in_atom2321);  
                             stream_COLON.add(COLON203);
@@ -7257,7 +7261,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: qualified_name, LEFT_PAREN, RIGHT_PAREN, COLON, function_expression_list, ID
+                    // elements: COLON, LEFT_PAREN, function_expression_list, RIGHT_PAREN, ID, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7267,15 +7271,15 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1184:79: -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
+                    // 1188:79: -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1185:4: ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1189:4: ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(FUNCTION_CALL, "FUNCTION_CALL"), root_1);
 
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1185:35: ( COLON ID )?
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1189:35: ( COLON ID )?
                         if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
                             adaptor.addChild(root_1, stream_COLON.nextNode());
                             adaptor.addChild(root_1, stream_ID.nextNode());
@@ -7296,7 +7300,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 4 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1186:4: selector COLON qualified_name
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1190:4: selector COLON qualified_name
                     {
                     pushFollow(FOLLOW_selector_in_atom2360);
                     selector208=selector();
@@ -7316,7 +7320,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: selector, qualified_name, COLON
+                    // elements: selector, COLON, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7326,9 +7330,9 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1186:34: -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name )
+                    // 1190:34: -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1187:4: ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1191:4: ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(QUALIFIED_SOLO_EXPRESSION_SELECTOR, "QUALIFIED_SOLO_EXPRESSION_SELECTOR"), root_1);
@@ -7346,7 +7350,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 5 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1190:4: PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1194:4: PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN
                     {
                     PARENT211=(Token)match(input,PARENT,FOLLOW_PARENT_in_atom2389);  
                     stream_PARENT.add(PARENT211);
@@ -7381,7 +7385,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: LEFT_PAREN, COLON, RIGHT_PAREN, COLON, ID, qualified_name, PARENT, function_expression_list
+                    // elements: ID, LEFT_PAREN, function_expression_list, COLON, COLON, RIGHT_PAREN, PARENT, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7391,9 +7395,9 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1190:89: -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN )
+                    // 1194:89: -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1191:4: ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1195:4: ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(FUNCTION_CALL_PARENT, "FUNCTION_CALL_PARENT"), root_1);
@@ -7416,7 +7420,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 6 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1192:4: ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1196:4: ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN
                     {
                     ME219=(Token)match(input,ME,FOLLOW_ME_in_atom2433);  
                     stream_ME.add(ME219);
@@ -7430,7 +7434,7 @@ public class QuorumParser extends Parser {
                     state._fsp--;
 
                     stream_qualified_name.add(qualified_name221.getTree());
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1192:28: ( COLON ID )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1196:28: ( COLON ID )?
                     int alt77=2;
                     int LA77_0 = input.LA(1);
 
@@ -7439,7 +7443,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt77) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1192:29: COLON ID
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1196:29: COLON ID
                             {
                             COLON222=(Token)match(input,COLON,FOLLOW_COLON_in_atom2440);  
                             stream_COLON.add(COLON222);
@@ -7468,7 +7472,7 @@ public class QuorumParser extends Parser {
 
 
                     // AST REWRITE
-                    // elements: RIGHT_PAREN, qualified_name, ME, COLON, COLON, LEFT_PAREN, ID, function_expression_list
+                    // elements: LEFT_PAREN, qualified_name, COLON, RIGHT_PAREN, COLON, function_expression_list, ME, ID
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7478,9 +7482,9 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1192:88: -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
+                    // 1196:88: -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1193:4: ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1197:4: ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(FUNCTION_CALL_THIS, "FUNCTION_CALL_THIS"), root_1);
@@ -7488,7 +7492,7 @@ public class QuorumParser extends Parser {
                         adaptor.addChild(root_1, stream_ME.nextNode());
                         adaptor.addChild(root_1, stream_COLON.nextNode());
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1193:49: ( COLON ID )?
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1197:49: ( COLON ID )?
                         if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
                             adaptor.addChild(root_1, stream_COLON.nextNode());
                             adaptor.addChild(root_1, stream_ID.nextNode());
@@ -7509,11 +7513,11 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 7 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1194:4: ( MINUS )? INT
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1198:4: ( MINUS )? INT
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1194:4: ( MINUS )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1198:4: ( MINUS )?
                     int alt78=2;
                     int LA78_0 = input.LA(1);
 
@@ -7522,7 +7526,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt78) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1194:5: MINUS
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1198:5: MINUS
                             {
                             MINUS227=(Token)match(input,MINUS,FOLLOW_MINUS_in_atom2484); 
                             MINUS227_tree = (CommonTree)adaptor.create(MINUS227);
@@ -7542,7 +7546,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 8 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1195:4: BOOLEAN
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1199:4: BOOLEAN
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -7554,11 +7558,11 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 9 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1196:4: ( MINUS )? DECIMAL
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1200:4: ( MINUS )? DECIMAL
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1196:4: ( MINUS )?
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1200:4: ( MINUS )?
                     int alt79=2;
                     int LA79_0 = input.LA(1);
 
@@ -7567,7 +7571,7 @@ public class QuorumParser extends Parser {
                     }
                     switch (alt79) {
                         case 1 :
-                            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1196:5: MINUS
+                            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1200:5: MINUS
                             {
                             MINUS230=(Token)match(input,MINUS,FOLLOW_MINUS_in_atom2499); 
                             MINUS230_tree = (CommonTree)adaptor.create(MINUS230);
@@ -7587,7 +7591,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 10 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1197:4: STRING
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1201:4: STRING
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -7599,7 +7603,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 11 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1198:4: NULL
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1202:4: NULL
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -7611,7 +7615,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 12 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1199:4: ME
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1203:4: ME
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -7623,7 +7627,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 13 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1200:5: INPUT LEFT_PAREN expression RIGHT_PAREN
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1204:5: INPUT LEFT_PAREN expression RIGHT_PAREN
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -7649,7 +7653,7 @@ public class QuorumParser extends Parser {
                     }
                     break;
                 case 14 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1201:4: LEFT_PAREN expression RIGHT_PAREN
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1205:4: LEFT_PAREN expression RIGHT_PAREN
                     {
                     LEFT_PAREN239=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2536);  
                     stream_LEFT_PAREN.add(LEFT_PAREN239);
@@ -7676,9 +7680,9 @@ public class QuorumParser extends Parser {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1201:38: -> ^( expression )
+                    // 1205:38: -> ^( expression )
                     {
-                        // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1201:41: ^( expression )
+                        // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1205:41: ^( expression )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(stream_expression.nextNode(), root_1);
@@ -7717,7 +7721,7 @@ public class QuorumParser extends Parser {
     };
 
     // $ANTLR start "function_expression_list"
-    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1204:1: function_expression_list : ( expression ( COMMA expression )* )? -> ^( FUNCTION_EXPRESSION_LIST ( expression )* ) ;
+    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1208:1: function_expression_list : ( expression ( COMMA expression )* )? -> ^( FUNCTION_EXPRESSION_LIST ( expression )* ) ;
     public final QuorumParser.function_expression_list_return function_expression_list() throws RecognitionException {
         QuorumParser.function_expression_list_return retval = new QuorumParser.function_expression_list_return();
         retval.start = input.LT(1);
@@ -7734,10 +7738,10 @@ public class QuorumParser extends Parser {
         RewriteRuleTokenStream stream_COMMA=new RewriteRuleTokenStream(adaptor,"token COMMA");
         RewriteRuleSubtreeStream stream_expression=new RewriteRuleSubtreeStream(adaptor,"rule expression");
         try {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1205:2: ( ( expression ( COMMA expression )* )? -> ^( FUNCTION_EXPRESSION_LIST ( expression )* ) )
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1206:2: ( expression ( COMMA expression )* )?
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1209:2: ( ( expression ( COMMA expression )* )? -> ^( FUNCTION_EXPRESSION_LIST ( expression )* ) )
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1210:2: ( expression ( COMMA expression )* )?
             {
-            // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1206:2: ( expression ( COMMA expression )* )?
+            // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1210:2: ( expression ( COMMA expression )* )?
             int alt82=2;
             int LA82_0 = input.LA(1);
 
@@ -7746,7 +7750,7 @@ public class QuorumParser extends Parser {
             }
             switch (alt82) {
                 case 1 :
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1206:3: expression ( COMMA expression )*
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1210:3: expression ( COMMA expression )*
                     {
                     pushFollow(FOLLOW_expression_in_function_expression_list2560);
                     expression242=expression();
@@ -7754,7 +7758,7 @@ public class QuorumParser extends Parser {
                     state._fsp--;
 
                     stream_expression.add(expression242.getTree());
-                    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1206:14: ( COMMA expression )*
+                    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1210:14: ( COMMA expression )*
                     loop81:
                     do {
                         int alt81=2;
@@ -7767,7 +7771,7 @@ public class QuorumParser extends Parser {
 
                         switch (alt81) {
                     	case 1 :
-                    	    // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1206:15: COMMA expression
+                    	    // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1210:15: COMMA expression
                     	    {
                     	    COMMA243=(Token)match(input,COMMA,FOLLOW_COMMA_in_function_expression_list2563);  
                     	    stream_COMMA.add(COMMA243);
@@ -7806,14 +7810,14 @@ public class QuorumParser extends Parser {
             RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
             root_0 = (CommonTree)adaptor.nil();
-            // 1207:2: -> ^( FUNCTION_EXPRESSION_LIST ( expression )* )
+            // 1211:2: -> ^( FUNCTION_EXPRESSION_LIST ( expression )* )
             {
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1207:5: ^( FUNCTION_EXPRESSION_LIST ( expression )* )
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1211:5: ^( FUNCTION_EXPRESSION_LIST ( expression )* )
                 {
                 CommonTree root_1 = (CommonTree)adaptor.nil();
                 root_1 = (CommonTree)adaptor.becomeRoot((CommonTree)adaptor.create(FUNCTION_EXPRESSION_LIST, "FUNCTION_EXPRESSION_LIST"), root_1);
 
-                // /Users/Melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1207:32: ( expression )*
+                // /Users/stefika/Quorum/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1211:32: ( expression )*
                 while ( stream_expression.hasNext() ) {
                     adaptor.addChild(root_1, stream_expression.nextTree());
 
@@ -7862,7 +7866,7 @@ public class QuorumParser extends Parser {
     static final String DFA4_maxS =
         "\1\101\2\34\1\uffff\2\101\1\34\2\uffff\1\34\2\uffff\2\101";
     static final String DFA4_acceptS =
-        "\3\uffff\1\5\3\uffff\1\1\1\3\1\uffff\1\4\1\2\2\uffff";
+        "\3\uffff\1\5\3\uffff\1\1\1\3\1\uffff\1\2\1\4\2\uffff";
     static final String DFA4_specialS =
         "\16\uffff}>";
     static final String[] DFA4_transitionS = {
@@ -7873,8 +7877,8 @@ public class QuorumParser extends Parser {
             "",
             "\1\7\2\10\3\uffff\3\10\3\uffff\3\10\1\6\1\uffff\4\10\4\uffff"+
             "\3\10\3\uffff\4\10\1\uffff\1\10\2\uffff\1\10",
-            "\1\13\1\2\2\12\3\uffff\3\12\3\uffff\3\12\1\11\1\uffff\4\12"+
-            "\4\uffff\3\12\3\uffff\4\12\1\uffff\1\12\2\uffff\1\12",
+            "\1\12\1\2\2\13\3\uffff\3\13\3\uffff\3\13\1\11\1\uffff\4\13"+
+            "\4\uffff\3\13\3\uffff\4\13\1\uffff\1\13\2\uffff\1\13",
             "\1\14",
             "",
             "",
@@ -7883,8 +7887,8 @@ public class QuorumParser extends Parser {
             "",
             "\1\7\2\10\3\uffff\3\10\3\uffff\3\10\1\6\1\uffff\4\10\4\uffff"+
             "\3\10\3\uffff\4\10\1\uffff\1\10\2\uffff\1\10",
-            "\1\13\1\2\2\12\3\uffff\3\12\3\uffff\3\12\1\11\1\uffff\4\12"+
-            "\4\uffff\3\12\3\uffff\4\12\1\uffff\1\12\2\uffff\1\12"
+            "\1\12\1\2\2\13\3\uffff\3\13\3\uffff\3\13\1\11\1\uffff\4\13"+
+            "\4\uffff\3\13\3\uffff\4\13\1\uffff\1\13\2\uffff\1\13"
     };
 
     static final short[] DFA4_eot = DFA.unpackEncodedString(DFA4_eotS);
@@ -7917,7 +7921,7 @@ public class QuorumParser extends Parser {
             this.transition = DFA4_transition;
         }
         public String getDescription() {
-            return "268:3: ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ | )";
+            return "272:3: ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ | )";
         }
     }
     static final String DFA34_eotS =
@@ -7994,7 +7998,7 @@ public class QuorumParser extends Parser {
             this.transition = DFA34_transition;
         }
         public String getDescription() {
-            return "697:1: statement : ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement );";
+            return "701:1: statement : ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement );";
         }
     }
     static final String DFA58_eotS =
@@ -8049,30 +8053,30 @@ public class QuorumParser extends Parser {
             this.transition = DFA58_transition;
         }
         public String getDescription() {
-            return "972:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side | obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );";
+            return "976:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side | obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );";
         }
     }
     static final String DFA80_eotS =
         "\41\uffff";
     static final String DFA80_eofS =
-        "\1\uffff\1\17\1\uffff\1\22\17\uffff\1\17\1\uffff\1\17\1\uffff\1"+
-        "\33\6\uffff\2\33\1\uffff";
+        "\1\uffff\1\16\1\uffff\1\22\17\uffff\2\16\2\uffff\1\34\6\uffff\2"+
+        "\34\1\uffff";
     static final String DFA80_minS =
-        "\2\34\1\52\1\34\1\120\7\uffff\2\34\2\uffff\2\34\1\uffff\1\34\1\uffff"+
-        "\1\34\1\51\4\34\2\uffff\1\51\2\34\1\uffff";
+        "\2\34\1\52\1\34\1\120\7\uffff\2\34\2\uffff\2\34\1\uffff\2\34\1\uffff"+
+        "\1\51\4\34\2\uffff\1\51\2\34\1\uffff";
     static final String DFA80_maxS =
         "\1\125\1\115\1\52\1\115\1\122\7\uffff\1\34\1\53\2\uffff\2\34\1\uffff"+
-        "\1\115\1\uffff\1\115\1\52\1\115\3\34\2\uffff\1\52\2\115\1\uffff";
+        "\2\115\1\uffff\1\52\1\115\3\34\2\uffff\1\52\2\115\1\uffff";
     static final String DFA80_acceptS =
-        "\5\uffff\1\7\1\10\1\11\1\12\1\13\1\15\1\16\2\uffff\1\3\1\1\2\uffff"+
-        "\1\14\1\uffff\1\2\6\uffff\1\4\1\6\3\uffff\1\5";
+        "\5\uffff\1\7\1\10\1\11\1\12\1\13\1\15\1\16\2\uffff\1\1\1\3\2\uffff"+
+        "\1\14\2\uffff\1\2\5\uffff\1\6\1\4\3\uffff\1\5";
     static final String DFA80_specialS =
         "\41\uffff}>";
     static final String[] DFA80_transitionS = {
             "\1\1\6\uffff\1\13\7\uffff\1\2\1\3\35\uffff\1\4\5\uffff\1\5\1"+
             "\6\1\7\1\10\1\11\1\12",
-            "\7\17\1\16\1\17\1\uffff\3\17\1\14\1\15\6\17\1\uffff\4\17\1"+
-            "\uffff\14\17\2\uffff\11\17",
+            "\7\16\1\17\1\16\1\uffff\3\16\1\14\1\15\6\16\1\uffff\4\16\1"+
+            "\uffff\14\16\2\uffff\11\16",
             "\1\20",
             "\7\22\1\uffff\1\22\1\uffff\3\22\1\uffff\1\21\6\22\1\uffff\4"+
             "\22\1\uffff\14\22\2\uffff\11\22",
@@ -8085,30 +8089,30 @@ public class QuorumParser extends Parser {
             "",
             "",
             "\1\23",
-            "\1\25\16\uffff\1\24",
+            "\1\24\16\uffff\1\25",
             "",
             "",
             "\1\26",
             "\1\27",
             "",
-            "\7\17\1\16\1\17\1\uffff\3\17\1\14\1\15\6\17\1\uffff\4\17\1"+
-            "\uffff\14\17\2\uffff\11\17",
+            "\7\16\1\17\1\16\1\uffff\3\16\1\14\1\15\6\16\1\uffff\4\16\1"+
+            "\uffff\14\16\2\uffff\11\16",
+            "\7\16\1\17\1\16\1\uffff\3\16\2\uffff\6\16\1\uffff\4\16\1\uffff"+
+            "\14\16\2\uffff\11\16",
             "",
-            "\7\17\1\16\1\17\1\uffff\3\17\2\uffff\6\17\1\uffff\4\17\1\uffff"+
-            "\14\17\2\uffff\11\17",
             "\1\30\1\31",
-            "\7\33\1\34\1\33\1\uffff\3\33\1\32\1\34\6\33\1\uffff\4\33\1"+
-            "\uffff\14\33\2\uffff\11\33",
+            "\7\34\1\33\1\34\1\uffff\3\34\1\32\1\33\6\34\1\uffff\4\34\1"+
+            "\uffff\14\34\2\uffff\11\34",
             "\1\35",
             "\1\36",
             "\1\37",
             "",
             "",
             "\1\30\1\31",
-            "\7\33\1\40\1\33\1\uffff\4\33\1\uffff\6\33\1\uffff\4\33\1\uffff"+
-            "\14\33\2\uffff\11\33",
-            "\7\33\1\34\1\33\1\uffff\3\33\1\32\1\34\6\33\1\uffff\4\33\1"+
-            "\uffff\14\33\2\uffff\11\33",
+            "\7\34\1\40\1\34\1\uffff\4\34\1\uffff\6\34\1\uffff\4\34\1\uffff"+
+            "\14\34\2\uffff\11\34",
+            "\7\34\1\33\1\34\1\uffff\3\34\1\32\1\33\6\34\1\uffff\4\34\1"+
+            "\uffff\14\34\2\uffff\11\34",
             ""
     };
 
@@ -8142,7 +8146,7 @@ public class QuorumParser extends Parser {
             this.transition = DFA80_transition;
         }
         public String getDescription() {
-            return "1181:1: atom : ( qualified_name ( COLON ID )? -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | qualified_name COLON PARENT COLON qualified_name COLON ID -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID ) | qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | selector COLON qualified_name -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | ( MINUS )? INT | BOOLEAN | ( MINUS )? DECIMAL | STRING | NULL | ME | INPUT LEFT_PAREN expression RIGHT_PAREN | LEFT_PAREN expression RIGHT_PAREN -> ^( expression ) );";
+            return "1185:1: atom : ( qualified_name ( COLON ID )? -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | qualified_name COLON PARENT COLON qualified_name COLON ID -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID ) | qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | selector COLON qualified_name -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | ( MINUS )? INT | BOOLEAN | ( MINUS )? DECIMAL | STRING | NULL | ME | INPUT LEFT_PAREN expression RIGHT_PAREN | LEFT_PAREN expression RIGHT_PAREN -> ^( expression ) );";
         }
     }
  
