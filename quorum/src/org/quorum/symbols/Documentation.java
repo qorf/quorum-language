@@ -80,6 +80,7 @@ public class Documentation{
     }
     
     private String formatExample(String example) {
+        
         if(example == null || example.length() == 0) {
             return "";
         }
@@ -89,14 +90,11 @@ public class Documentation{
         for(int i = 0; i < split.length; i++) {
             if(split[i].length() > 0) {
                 String trimmed = split[i].trim();
-                int indentPrevious = indent;
+                isInString = false;
                 indent += indentCheck(trimmed);
-                
-                if(indent >= indentPrevious) {
-                    result += computeIndent(indentPrevious) + trimmed + "\n";
-                } else {
-                    result += computeIndent(indent) + trimmed + "\n";
-                }
+                result += computeIndent(indent) + trimmed + "\n";
+                isInString = false;
+                indent += postIndentCheck(trimmed);
             }
         }
         return result;
@@ -152,7 +150,72 @@ public class Documentation{
         return false;
     }
     
+    private void areQuotationsInString(String string) {
+        for(int i = 0; i < string.length(); i++) {
+            char val = string.charAt(i);
+            if(val == '\"') {
+                isInString = !isInString;
+            }
+        }
+    }
+    
+    boolean isInString = false;
     public int isIncreaseIndentWord(String string) {
+        areQuotationsInString(string);
+        
+        if(isInString) {
+            return 0;
+        }
+        
+        if("class".equals(string)) {
+            return 0;
+        } else if ("if".equals(string)) {
+            return 0;
+        } else if ("check".equals(string)) {
+            return 0;
+        } else if ("detect".equals(string)) {
+            return -1;
+        } else if ("always".equals(string)) {
+            return 0;
+        } else if ("repeat".equals(string)) {
+            return 0;
+        } else if ("action".equals(string)) {
+            return 0;
+        } else if ("end".equals(string)) {
+            return -1;
+        }
+        
+        return 0;
+    }
+    
+    public int postIndentCheck(String string) {
+        String[] split = string.split("\\s+");
+        int indent = 0;
+        
+        boolean check = true;
+        for(int i = 0; i < split.length; i++) {
+            if(isCommentStart(split[i])) {
+                check = false;
+            }
+            
+            if(isCommentEnd(split[i])) {
+                check = true;
+            }
+            
+            if(check) {
+                indent += isPostIndent(split[i]);
+            }
+        }
+        return indent;
+    }
+    
+    public int isPostIndent(String string) {
+        areQuotationsInString(string);
+        
+        if(isInString) {
+            return 0;
+        }
+        
         if("class".equals(string)) {
             return 1;
         } else if ("if".equals(string)) {
@@ -168,7 +231,7 @@ public class Documentation{
         } else if ("action".equals(string)) {
             return 1;
         } else if ("end".equals(string)) {
-            return -1;
+            return 0;
         }
         
         return 0;
