@@ -315,13 +315,17 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         result += paragraph(description) + "\n";
 
         //create the parent initialization wiki
-        String parentsString = italics("Inherits from") + ":\n";
+        
         Iterator<ClassDescriptor> unsortedParents = clazz.getFlattenedListOfParents();
         ArrayList<ClassDescriptor> sortedParents = new ArrayList<ClassDescriptor>();
         while(unsortedParents.hasNext()) {
             sortedParents.add(unsortedParents.next());
         }
         DescriptorComparator compare = new DescriptorComparator();
+        String parentsString = "";
+        if(!sortedParents.isEmpty()) {
+            parentsString = italics("Inherits from") + ":\n";
+        }
         Collections.sort(sortedParents, compare);
         Iterator<ClassDescriptor> parents = sortedParents.iterator();
         
@@ -376,8 +380,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         }
         
         //add work for any public actions
-        result += "\n " + headingSurround("Actions",2) + "\n";
-        
         ArrayList<MethodDescriptor> methods = new ArrayList<MethodDescriptor>();
         Iterator<MethodDescriptor> unsortedMethods = clazz.getMethods();
         while(unsortedMethods.hasNext()) {
@@ -395,8 +397,11 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             methods.add(method);
         }
         
-        //sort the methods into alphabetical order
+        if(!methods.isEmpty()) {
+            result += "\n " + headingSurround("Actions",2) + "\n";
+        }
         
+        //sort the methods into alphabetical order
         Collections.sort(methods, compare);
         
         Iterator<MethodDescriptor> sortedMethods = methods.iterator();
@@ -408,21 +413,30 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
                 result += methodDocumentation;
                 result += "</div>";
                 result += "<p></p>";
-                //result += "\n----\n";
             }
         }
         //now generate any information relevant from the parents.
         parents = sortedParents.iterator();
         String pString = headingSurround("Inherited Actions",2) + "\n\n";
         int totalParentMethodsNotImplemented = 0;
+        pString += "<ul class=\"parent_variables\">\n";
+        boolean standard = true;
         while(parents.hasNext()) {
             ClassDescriptor parent = parents.next();
             ParentResult more = getParentMethodsNotImplemented(parent, clazz);
             if(more.numParents != 0) {
-                pString += more.documentation;
+                if(standard) {
+                    pString += "<li class=\"package_standard\">";
+                }
+                else {
+                    pString += "<li class=\"package_alternate\">";
+                }
+                standard = !standard;
+                pString += more.documentation + "</li>\n";
                 totalParentMethodsNotImplemented += more.numParents;
             }
         }
+        pString += "</ul>";
         if(totalParentMethodsNotImplemented > 0) {
             result += pString;
         }
@@ -531,7 +545,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             if(!isMethodInClassOrPrivate(method, clazz)) {
                 //we need to document this method
                 documentThese.add(method);
-                
             }
         }
         
@@ -541,7 +554,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             if(!isMethodInClassOrPrivate(method, clazz)) {
                 //we need to document this method
                 documentThese.add(method);
-                
             }
         }
         
@@ -551,7 +563,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             if(!isMethodInClassOrPrivate(method, clazz)) {
                 //we need to document this method
                 documentThese.add(method);
-                
             }
         }
         
@@ -561,15 +572,17 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         String parentList = "";
         while(iterator.hasNext()) {
             MethodDescriptor method = iterator.next();
-            parentList += listItem(getParentMethodDocumentation(parent, method));
+            parentList += getParentMethodDocumentation(parent, method);
+            if(iterator.hasNext()) {
+                parentList += ", ";
+            }
         }
         
-        parentList = unorderedList(parentList);
         result += parentList;
         
         ParentResult res = new ParentResult();
-        String link = link(generatePathToClass(parent), parent.getStaticKey());
-        res.documentation = bold("From ") + link;
+        String link = link(generatePathToClass(parent), parent.getStaticKey()) + " ";
+        res.documentation = bold("From: ") + link;
         res.documentation += result;
         res.numParents = documentThese.size();
         return res;
