@@ -974,6 +974,12 @@ assignment_declaration returns [TypeDescriptor type]
 		$type = t;
 	};
 assignment_statement
+@init{
+	Documentation variableDocumentation = null;
+	if(isInClassAssignmentStatementScope) {
+		variableDocumentation = getDocumentationFromRecentToken();
+	}
+}
 	:			
 		(sel = selector COLON)? ID rhs = assign_right_hand_side
 		{
@@ -1007,6 +1013,9 @@ assignment_statement
 	type = assignment_declaration name = ID rhs = assign_right_hand_side?	
 		{
 			VariableDescriptor new_desc = new VariableDescriptor();
+			if(isInClassAssignmentStatementScope) {
+				new_desc.setDocumentation(variableDocumentation);
+			}
 			Iterator<GenericDescriptor> gdList = $type.type.getSubTypes();
 			new_desc.setAccessModifier(accessModifier);
 			new_desc.setType($type.type);

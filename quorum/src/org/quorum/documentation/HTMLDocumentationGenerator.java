@@ -463,7 +463,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     private String getVariableDocumentation(VariableDescriptor variable) {
         String result = "";
         TypeDescriptor type = variable.getType();
-        String name = variable.getName();
+        String name = italics(variable.getName());
         
         
         if(type.isTemplated()) {
@@ -695,16 +695,14 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
                     boolean templated = parameters.get(i).getType().isTemplated();
                     String currentParam = "";
                     if(templated) {
-                        currentParam = pascalCaseChecker(parameters.get(i).getType().getTemplateName()) + " "
-                            + parameters.get(i).getName();
+                        currentParam = pascalCaseChecker(parameters.get(i).getType().getTemplateName());
 
                     }else {
-                        currentParam = pascalCasePackageChecker(parameters.get(i).getType().getStaticKey()) + " "
-                            + parameters.get(i).getName();
+                        currentParam = pascalCasePackageChecker(parameters.get(i).getType().getStaticKey());
                     }
                     params += currentParam;
                     paramList += "<li>";
-                    paramList +=  bold(currentParam) + ": ";
+                    paramList +=  bold(currentParam) + " " + italics(parameters.get(i).getName()) + ": ";
                     String parameterDocumentation = method.getDocumentation().getParameter(parameters.get(i).getName());
                     paramList += parameterDocumentation;
                     paramList += "</li>\n\n";

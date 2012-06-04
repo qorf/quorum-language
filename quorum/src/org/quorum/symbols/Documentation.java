@@ -27,13 +27,12 @@ public class Documentation{
     
     public void parseDocumentationString(String value) {
         if(value != null) {
+            //first chop out the /* and the */
+            value = value.substring(2, value.length() - 2).trim();
             String[] split = value.split("Attribute:");
             int length = split.length;
             
-            if(length > 0) {
-                description = split[0].substring(2);
-                description = getDescription().trim();
-            }
+            description = split[0].trim();
 
             int current = 1;
             while(current < length) {
@@ -41,7 +40,7 @@ public class Documentation{
                 attribute = attribute.trim();
 
                 if(current == split.length - 1) {
-                    attribute = attribute.substring(0, attribute.length() - 2).trim();
+                    attribute = attribute.trim();
                 }
 
                 if(attribute.startsWith(AUTHOR)) {
@@ -84,13 +83,10 @@ public class Documentation{
         if(example == null || example.length() == 0) {
             return "";
         }
-        
         int indent = 0;
-        
         String[] split = example.split("\\r?\\n");
         String result = "";
         for(int i = 0; i < split.length; i++) {
-            
             if(split[i].length() > 0) {
                 String trimmed = split[i].trim();
                 int indentPrevious = indent;
@@ -101,10 +97,7 @@ public class Documentation{
                 } else {
                     result += computeIndent(indent) + trimmed + "\n";
                 }
-                
             }
-            
-            
         }
         return result;
     }
