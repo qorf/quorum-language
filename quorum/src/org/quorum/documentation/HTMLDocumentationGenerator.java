@@ -134,6 +134,22 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         indexPage += "\n</body>\n</html>";
     }
     
+    private String generateHeader() {
+        String result = "";
+        result += "<div class=\"quorum_header\">";
+        result += "<ul class=\"quorum_header\">";
+        result += "<li class=\"quorum_header_start\">Quorum</li>";
+        result += "<li class=\"quorum_header\"><a href=\"" + root + "index.html" 
+                + "\" class=\"quorum_header\">Index</a></li>";
+        result += "<li class=\"quorum_header\"><a href=\"https://sourceforge.net/apps/trac/quorum" 
+                + "\" class=\"quorum_header\">Wiki</a></li>";
+        result += "<li class=\"quorum_header\"><a href=\"https://sourceforge.net/apps/trac/quorum/wiki/documentation" 
+                + "\" class=\"quorum_header\">Syntax</a></li>";
+        result += "</ul>";
+        result += "</div>";
+        return result;
+    }
+    
     private void startNewIndex() {
         indexPage = "";
         classes.clear();
@@ -143,10 +159,11 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         result += "<head>";
         result += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";
         result += "<title>"+pageTitle+"</title>\n";
+        result += generateHeader();
         result += "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + root + "style.css\"></link>";
         result += "</head>\n";
         result += "<body>\n";
-        result += "<h1>"+pageTitle+"</h1>\n";
+        result += "<h1 class=\"page_title\">"+pageTitle+"</h1>\n";
         indexPage = result;
     }
     
@@ -270,11 +287,12 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         result += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";        
         String key = clazz.getStaticKey();
         result += "<title>" + key + "</title>\n";
+        result += generateHeader();
         result += "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + root + "style.css\"></link>";
         result += "</head>\n";
         result += "<body>\n";
         
-        result += headingSurround(key, 1) + "\n";
+        result += headingSurround(key, 1, "page_title") + "\n";
 
         
         //get the class's name in wiki format
