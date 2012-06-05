@@ -1,0 +1,14 @@
+class Main
+    private number g = 9.81
+
+    private action PrintG
+        print g
+    end
+
+    action Main
+        Main m
+        PrintG()
+        m:g = 4.51
+        m:PrintG()
+    end
+end

@@ -62,6 +62,7 @@ public class FileTester {
         assert(r.getLine(1).equals("true"));
     }
 
+ 
     /**
      * Test of GetDirectoryListingNative method, of class File.
      */

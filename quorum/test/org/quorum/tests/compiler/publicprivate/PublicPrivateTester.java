@@ -45,6 +45,69 @@ public class PublicPrivateTester {
     @After
     public void tearDown() {
     }
+    
+    @Test
+    public void test_assign_local_private_variables_and_action_calls_multiple_objects_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "AssignLocalPrivVarAndActionCallsMultipleObjects.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+    }
+
+    @Test
+    public void test_assign_local_private_variables_and_action_calls_multiple_objects_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "AssignLocalPrivVarAndActionCallsMultipleObjects.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_assign_local_private_variables_and_action_calls_nested_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "AssignLocalPrivateVarAndActionCallsNested.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+    }
+
+    @Test
+    public void test_assign_local_private_variables_and_action_calls_nested_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "AssignLocalPrivateVarAndActionCallsNested.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_assign_local_private_variables_and_action_calls_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "AssignLocalPrivateVariablesAndActionCalls.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+    }
+
+    @Test
+    public void test_assign_local_private_variables_and_action_calls_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "AssignLocalPrivateVariablesAndActionCalls.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+    }
 
     @Test
     public void test_simple_public_action_execute(){
