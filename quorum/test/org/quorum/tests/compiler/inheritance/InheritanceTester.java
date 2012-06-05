@@ -45,6 +45,49 @@ public class InheritanceTester {
     @After
     public void tearDown() {
     }
+    
+    @Test
+    public void test_assign_to_parents_variable_execute(){
+        String directory = CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS;
+        File[] build = new File[3];
+        build[2] = CompilerTestSuite.getQuorumFile(directory + "Test2.quorum");
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Test1.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "AssignToParentsVariable.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+    }
+    
+    @Test
+    public void test_assign_to_parents_variable_bytecode(){
+        String directory = CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS;
+        File[] build = new File[3];
+        build[2] = CompilerTestSuite.getQuorumFile(directory + "Test2.quorum");
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Test1.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "AssignToParentsVariable.quorum");
+
+        try {
+            CompilerTestSuite.build(build);
+        }
+        catch(Exception e) {
+            fail();
+        }
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
+        if (!r.isSuccessful())
+            fail();
+    }
 
     @Test
     public void test_single_inheritance_simple_one_layer_execute(){
