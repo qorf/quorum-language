@@ -45,6 +45,70 @@ public class ExceptionsTester {
     @After
     public void tearDown() {
     }
+    
+    @Test
+    public void test_missing_parameters2_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "missingParameters2.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        if(!vm.getExceptions().hasErrors()){
+            fail();
+        }else if(!vm.getExceptions().exceptionStackPeek().getStaticKey().equals(ErrorTypeDescriptor.INVALID_ARGUMENT_ERROR)){
+            fail();
+        }else if(vm.getExceptions().hasErrors() && vm.hasCaughtException()){
+            fail();
+        }
+        
+        vm.stop();
+    }
+
+    @Test
+    public void test_missing_parameters2_bytecode(){
+        fail("passing for an incorrect reason - check carefully");
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "missingParameters2.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_missing_parameters_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "missingParameters.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+
+        if(!vm.getExceptions().hasErrors()){
+            fail();
+        }else if(!vm.getExceptions().exceptionStackPeek().getStaticKey().equals(ErrorTypeDescriptor.INVALID_ARGUMENT_ERROR)){
+            fail();
+        }else if(vm.getExceptions().hasErrors() && vm.hasCaughtException()){
+            fail();
+        }
+        
+        vm.stop();
+    }
+
+    @Test
+    public void test_missing_parameters_bytecode(){
+        fail("passing for an incorrect reason - check carefully");
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "missingParameters.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (r.isSuccessful())
+            fail();
+    }
 
     @Test
     public void test_cast_text_to_integer_exception_execute(){
