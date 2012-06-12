@@ -362,7 +362,8 @@ solo_method_call
 			values.add($e.eval);
 			steps.add($e.step);
 			registers.add($e.eval.getRegister());
-			types.add($e.eval.getType().getStaticKey());
+			if($e.eval.getType() != null)
+				types.add($e.eval.getType().getStaticKey());
                 	argumentTypes.add($e.eval.getType());
                 	inCallStep = false;
 		}
@@ -371,7 +372,8 @@ solo_method_call
 			values.add($e.eval);
 			steps.add($e.step);
 			registers.add($e.eval.getRegister());
-			types.add($e.eval.getType().getStaticKey());
+			if($e.eval.getType() != null)
+				types.add($e.eval.getType().getStaticKey());
                 	argumentTypes.add($e.eval.getType());
 		}
 		)*)? RIGHT_PAREN) 

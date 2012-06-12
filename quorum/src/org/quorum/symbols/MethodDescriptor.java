@@ -205,7 +205,8 @@ public class MethodDescriptor extends Descriptor implements Scopable {
         key += name;
         for (int i = 0; i < arguments.size(); i++) {
             key += ":";
-            key += arguments.elementAt(i).getStaticKey();
+            if(arguments.elementAt(i) != null)
+                key += arguments.elementAt(i).getStaticKey();
         }
         return key;
     }
