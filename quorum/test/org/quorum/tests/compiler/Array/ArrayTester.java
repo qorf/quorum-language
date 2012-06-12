@@ -47,6 +47,32 @@ public class ArrayTester {
     }
     
     @Test
+    public void test_pass_Array_Get_Last_Location_Found_execute() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayGetLastLocationFound.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+            fail();
+        }
+        vm.blockRun();
+
+        if (vm.getExceptions().hasExceptions()) {
+            fail();
+        } 
+        vm.stop();
+    }
+
+    @Test
+    public void test_pass_Array_Get_Last_Location_Found_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayGetLastLocationFound.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+    }
+    
+    @Test
     public void test_pass_Array_Get_First_Location_Not_Found_execute() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayGetFirstLocationNotFound.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()) {
