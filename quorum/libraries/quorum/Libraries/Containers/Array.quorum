@@ -253,12 +253,16 @@ class Array <Type> is a ArrayBlueprint<Type>
     action GetFirstLocation(Type value) returns integer
         integer size = me:GetSize()
         integer counter = 0
-        repeat while counter < size
-            Type temp = me:Get(counter)
-            if value:Equals(temp)
-                return counter
+        if value not= undefined
+            repeat while counter < size
+                Type temp = me:Get(counter)
+                if temp not= undefined 
+                    if value:Equals(temp)
+                        return counter
+                    end
+                end
+                counter = counter + 1
             end
-            counter = counter + 1
         end
         return -1
     end
@@ -284,11 +288,15 @@ class Array <Type> is a ArrayBlueprint<Type>
     action GetLastLocation(Type value) returns integer
         integer size = me:GetSize()
         
-        repeat until size <= 0
-            size = size - 1
-            Type temp = me:Get(size)
-            if value:Equals(temp)
-                return size
+        if value not= undefined
+            repeat until size <= 0
+                size = size - 1
+                Type temp = me:Get(size)
+                if temp not= undefined
+                    if value:Equals(temp)
+                        return size
+                    end
+                end
             end
         end
         return -1
