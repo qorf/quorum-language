@@ -31,6 +31,7 @@ public class Parameters {
     public CompilerError add(ParameterDescriptor param) {
         if(parameters.containsKey(param.getName())) {
             CompilerError error = new CompilerError();
+            error.setError("Two parameters cannot have the same name, " + param.getName() + ".");
             error.setLineNumber(param.getLineBegin());
             error.setColumn(param.getColumnBegin());
             return error;
