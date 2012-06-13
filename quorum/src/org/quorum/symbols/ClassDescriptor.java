@@ -923,7 +923,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                             TypeCheckerResult result = checker.check(specified, actual, OperationEnum.IMPLICIT_CAST, false);
                             if (result.getResult() == null) {
                                 specified.convertToPrimitive();
-                                if (actual.getName().compareTo(specified.getName()) == 0) {
+                                if (actual != null && specified != null && actual.getName().compareTo(specified.getName()) == 0) {
                                     result = checker.checkAutobox(actual);
                                     if (result.getResult() == null) {
                                         CompilerError error = new CompilerError(getLineBegin(), result.getErrorMessage(), result.getErrorType());
