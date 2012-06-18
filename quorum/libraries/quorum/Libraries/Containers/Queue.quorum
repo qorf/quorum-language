@@ -36,7 +36,7 @@ class Queue<Type> is a QueueBlueprint<Type>
         Attribute: Parameter value The value to be inserted at the back of the queue.
 
         Attribute: Example
-
+        use Libraries.Containers.Queue
         Queue<integer> myQueue
         myQueue:Add(12)
     */
@@ -50,7 +50,7 @@ class Queue<Type> is a QueueBlueprint<Type>
         Attribute: Returns Returns a copy of this object.
 
         Attribute: Example
-
+    use Libraries.Containers.Queue
     Queue<integer> myQueue
     Queue<integer> copyQueue
     myQueue:Add(12)
@@ -73,7 +73,7 @@ class Queue<Type> is a QueueBlueprint<Type>
         This action empty's the queue, clearing out all of the items contained within it. 
 
         Attribute: Example
-
+        use Libraries.Containers.Queue
         Queue<integer> myQueue
         myQueue:Add(12)
         myQueue:Empty() //the item we added is now gone
@@ -88,7 +88,8 @@ class Queue<Type> is a QueueBlueprint<Type>
         Attribute: Returns Returns the iterator for an object. 
 
         Attribute: Example
-
+        use Libraries.Containers.Queue
+        use Libraries.Containers.Blueprints.Iterator
         Queue<integer> myQueue
         myQueue:Add(12)
         myQueue:Add(13)
@@ -105,7 +106,7 @@ class Queue<Type> is a QueueBlueprint<Type>
         Attribute: Returns Returns an integer value representing the size of the queue.
 
         Attribute: Example
-
+        use Libraries.Containers.Queue
         Queue<integer> myQueue
         myQueue:Add(12)
         integer size = myQueue:GetSize()
@@ -122,7 +123,7 @@ class Queue<Type> is a QueueBlueprint<Type>
         Attribute: Returns Returns true if the item was in the Addable object and false if it was not. 
 
         Attribute: Example
-
+        use Libraries.Containers.Queue
         Queue<integer> myQueue
         myQueue:Add(12)
         myQueue:Add(1)
@@ -138,7 +139,7 @@ class Queue<Type> is a QueueBlueprint<Type>
         Attribute: Returns Returns true when the container is empty and false when it is not. 
 
         Attribute: Example
-
+        use Libraries.Containers.Queue
         Queue<integer> myQueue
         if myQueue:IsEmpty()
             print "The Queue is empty."
@@ -156,7 +157,7 @@ class Queue<Type> is a QueueBlueprint<Type>
         Attribute: Returns Returns true if the item was removed and false if it was not removed. 
 
         Attribute: Example
-
+        use Libraries.Containers.Queue
         Queue<integer> myQueue
         myQueue:Add(43)
         myQueue:Add(13)
@@ -175,7 +176,7 @@ class Queue<Type> is a QueueBlueprint<Type>
         Attribute: Returns Returns true if the item was removed and false if it was not removed. 
 
         Attribute: Example
-
+        use Libraries.Containers.Queue
         Queue<integer> myQueue
         myQueue:Add(43)
         myQueue:Add(13)
@@ -192,7 +193,7 @@ class Queue<Type> is a QueueBlueprint<Type>
         Attribute: Parameter value The item to be added to the queue. 
 
         Attribute: Example
-
+        use Libraries.Containers.Queue
         Queue<integer> myQueue
         myQueue:AddToEnd(12)
     */
@@ -206,7 +207,7 @@ class Queue<Type> is a QueueBlueprint<Type>
         Attribute: Returns The item at the front of the queue.
 
         Attribute: Example
-
+        use Libraries.Containers.Queue
         Queue<integer> myQueue
         myQueue:Add(4)
         myQueue:Add(13)
@@ -223,7 +224,7 @@ class Queue<Type> is a QueueBlueprint<Type>
         Attribute: Returns The item at the front of the queue. 
 
         Attribute: Example
-
+        use Libraries.Containers.Queue
         Queue<integer> myQueue
         myQueue:Add(33)
         myQueue:Add(13)

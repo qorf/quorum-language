@@ -36,7 +36,7 @@ class Random
     the fractional portion of the number will be ignored.
 
     Attribute: Example
-
+    use Libraries.Compute.Random
     Random random
     random:SetSeed(1010001) // set the seed to 1010001
 
@@ -50,7 +50,7 @@ class Random
     Attribute: Returns Returns the random number.
 
     Attribute: Example
-
+    use Libraries.Compute.Random
     Random random
     integer randomNumber = random:RandomInteger()
 
@@ -63,7 +63,7 @@ class Random
     Attribute: Returns Returns the random number.
 
     Attribute: Example
-
+    use Libraries.Compute.Random
     Random random
     number randomNumber = random:RandomNumber()
 
@@ -76,7 +76,7 @@ class Random
     Attribute: Returns Returns the random boolean.
 
     Attribute: Example
-
+    use Libraries.Compute.Random
     Random random
     boolean randomBool = random:RandomBoolean()
 
@@ -97,6 +97,7 @@ class Random
     Attribute: Returns Returns the random integer.
 
     Attribute: Example
+    use Libraries.Compute.Random
     Random random
     integer randomNumber = random:RandomInteger(5)
     */
@@ -119,7 +120,7 @@ class Random
     Attribute: Returns Returns the random integer.
 
     Attribute: Example
-
+    use Libraries.Compute.Random
     Random random
     integer randomNumber = random:RandomIntegerBetween(1, 5)
 
@@ -151,10 +152,11 @@ class Random
     Attribute: Returns Returns the list of random integers.
 
     Attribute: Example
-
+    use Libraries.Compute.Random
+    use Libraries.Containers.List
     Random random
     List<Integer> list
-    list = random:RandomListOfIntegers()
+    list = random:RandomListOfIntegers(15)
 
     */
     action RandomListOfIntegers(integer length) returns List<integer>
@@ -184,10 +186,11 @@ class Random
     Attribute: Returns Returns the list of random numbers.
 
     Attribute: Example
-
+    use Libraries.Compute.Random
+    use Libraries.Containers.List
     Random random
     List<number> list
-    list = random:RandomListOfNumbers()
+    list = random:RandomListOfNumbers(15)
 
     */
     action RandomListOfNumbers(integer length) returns List<number>

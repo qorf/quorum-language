@@ -40,7 +40,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Parameter value The value to be inserted at the back or last index of the linked list.
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:Add(12)
     */
@@ -65,7 +65,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Parameter location The index or location the value will be stored at. 
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:Add(12, 0)
     */ 
@@ -112,7 +112,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Parameter value The item to be added to the list. 
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:AddToEnd(12)
     */
@@ -137,7 +137,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Parameter value The item to be added to the list.
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:AddToFront(12)
     */
@@ -162,7 +162,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Returns Returns a copy of this object.
 
         Attribute: Example
-
+    use Libraries.Containers.List
     List<integer> myList
     List<integer> copyList
     myList:Add(12)
@@ -186,7 +186,7 @@ class List <Type> is a ListBlueprint<Type>
         This action empty's the list, clearing out all of the items contained within it. 
 
         Attribute: Example
-
+    use Libraries.Containers.List
     List<integer> myList
     myList:Add(12)
     myList:Empty() //the item we added is now gone
@@ -206,7 +206,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Returns The item at the given location.
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:Add(12)
         myList:Add(13)
@@ -239,7 +239,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Returns The location of the first occurrence of the item. 
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:Add(12)
         myList:Add(13)
@@ -277,7 +277,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Returns The location of the last occurrence of the item. 
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:Add(12)
         myList:Add(13)
@@ -312,7 +312,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Returns The item at the front of the list.
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:Add(4)
         myList:Add(13)
@@ -333,7 +333,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Returns The item at the end of the list.
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:Add(4)
         myList:Add(13)
@@ -354,7 +354,8 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Returns Returns the iterator for an object. 
 
         Attribute: Example
-
+        use Libraries.Containers.List
+        use Libraries.Containers.Blueprints.Iterator
         List<integer> myList
         myList:Add(12)
         myList:Add(13)
@@ -374,7 +375,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Returns Returns an integer value representing the size of the list.
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:Add(12)
         integer size = myList:GetSize()
@@ -392,7 +393,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Returns Returns true if the item was in the Addable object and false if it was not. 
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:Add(12)
         myList:Add(1)
@@ -416,7 +417,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Returns Returns true when the container is empty and false when it is not. 
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         if myList:IsEmpty()
             print "List is empty."
@@ -434,7 +435,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Returns Returns true if the item was removed and false if it was not removed. 
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:Add(43)
         myList:Add(13)
@@ -462,7 +463,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Returns Returns true if the item was removed and false if it was not removed. 
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:Add(43)
         myList:Add(13)
@@ -555,7 +556,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Returns The item that was removed from the list. 
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:Add(43)
         myList:Add(13)
@@ -575,7 +576,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Returns The item at the end of the list. 
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:Add(33)
         myList:Add(13)
@@ -598,7 +599,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Returns The item at the front of the list. 
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:Add(33)
         myList:Add(13)
@@ -622,7 +623,7 @@ class List <Type> is a ListBlueprint<Type>
         Attribute: Parameter location The index or location the value will be stored at. 
 
         Attribute: Example
-
+        use Libraries.Containers.List
         List<integer> myList
         myList:Add(43)
         myList:Add(13)

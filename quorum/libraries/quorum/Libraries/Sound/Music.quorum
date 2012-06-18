@@ -103,6 +103,7 @@ class Music
         Attribute: Parameter volume the volume to play the note at (0 to 1).
         
         Attribute: Example
+        use Libraries.Sound.Music
         Music muse
         muse:Play(60, 1, 0.5) // middle C for 1 second, half volume
     */
@@ -113,6 +114,7 @@ class Music
         method *must* be called, or the program will not exit properly.
 
         Attribute: Example
+        use Libraries.Sound.Music
         Music muse
         muse:Close()
     */
@@ -140,6 +142,7 @@ class Music
         Attribute: Parameter duration how long to play the note (in seconds)
         
         Attribute: Example
+        use Libraries.Sound.Music
         Music muse
         muse:Play(60, 1) // middle C, for 1 second, full volume
     */
@@ -153,6 +156,8 @@ class Music
         Attribute: Parameter note the note object to play
 
         Attribute: Example
+        use Libraries.Sound.Music
+        use Libraries.Sound.Note
         Music muse
         Note note
         note:SetPitch(60)
@@ -171,6 +176,8 @@ class Music
         Attribute: Parameter chord the chord object to play.
         
         Attribute: Example
+        use Libraries.Sound.Music
+        use Libraries.Sound.Chord
         Music muse
         Chord chord
         // Play a major C chord.
@@ -201,6 +208,8 @@ class Music
         Attribute: Parameter path the path to the MIDI fie.
 
         Attribute: Example
+        use Libraries.Sound.Music
+        use Libraries.System.File
         Music muse
         File file
         muse:Play(file)
@@ -225,8 +234,12 @@ class Music
         exist, this method will do nothing. See the "Stop" method to stop playback.
 
         Attribute: Example
+        use Libraries.Sound.Music
+        use Libraries.Sound.Note
+        use Libraries.Sound.Chord
+        use Libraries.Sound.Track
         // Play a simple C arpeggio followed by a C chord.
-
+        
         Music muse
         Track t = muse:AddTrack()
 
@@ -326,6 +339,7 @@ class Music
         Gets the current tempo of the song being created in beats per minute. The default tempo is 120 bpm.
         
         Attribute: Example
+        use Libraries.Sound.Music
         Music muse
         print "The tempo is " + muse:GetTempo() + " beats per minute."
     */
@@ -339,6 +353,8 @@ class Music
         Attribute: Parameter index the index of the requested track (zero based).
         Attribute: Returns the requested track
         Attribute: Example
+        use Libraries.Sound.Music
+        use Libraries.Sound.Track
         Music muse
         Track myTrack = muse:AddTrack()
         Track aCopyOfMyTrack = muse:GetTrack(0)
@@ -353,6 +369,9 @@ class Music
         Attribute: Returns an iterator containing all tracks (if any).
 
         Attribute: Example
+        use Libraries.Sound.Music
+        use Libraries.Sound.Track
+        use Libraries.Containers.Blueprints.Iterator
         Music muse
         Iterator<Track> tracks = muse:GetTracks()
     */
@@ -372,6 +391,8 @@ class Music
         Attribute: Parameter index the requested instrument number (zero based).
         
         Attribute: Example
+        use Libraries.Sound.Music
+        use Libraries.Sound.Instrument
         Music muse
         Instrument i = muse:GetInstrument(0) // get the default piano specified by the General MIDI standard.
         print i:GetName()
@@ -386,6 +407,9 @@ class Music
         Attribute: Returns the available instruments.
         
         Attribute: Example
+        use Libraries.Sound.Music
+        use Libraries.Sound.Instrument
+        use Libraries.Containers.Blueprints.Iterator
         Music muse
         Iterator<Instrument> instruments = muse:GetInstruments()
         print "Here are all the available instruments:"
@@ -419,6 +443,8 @@ class Music
         Attribute: Returns a new track
 
         Attribute: Example
+        use Libraries.Sound.Music
+        use Libraries.Sound.Track
         Music muse
         
         // Add three tracks to our composition.
@@ -441,6 +467,7 @@ class Music
         Attribute: Parameter beatsPerMinute the tempo of the song, in beats per minute.
         
         Attribute: Example
+        use Libraries.Sound.Music
         Music muse
         muse:SetTempo(240) // speed it up
     */
@@ -456,6 +483,8 @@ class Music
         Attribute: Parameter instrument the instrument to set
 
         Attribute: Example
+        use Libraries.Sound.Music
+        use Libraries.Sound.Instrument
         Music muse
         
         // Select a different instrument and set it as the default, then play a note.

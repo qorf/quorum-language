@@ -29,7 +29,7 @@ class ListNode <Type>
         Attribute: Returns The next node of type ListNode<Type>
 
         Attribute: Example
-        
+        use Libraries.Containers.Support.ListNode
         ListNode<integer> node
         node:GetNext()
 
@@ -45,7 +45,7 @@ class ListNode <Type>
         Attribute: Returns The previous node of type ListNode<Type>
 
         Attribute: Example
-        
+        use Libraries.Containers.Support.ListNode
         ListNode<integer> node
         node:GetPrevious()
 
@@ -60,7 +60,7 @@ class ListNode <Type>
         Attribute: Returns The value stored in the node.
 
         Attribute: Example
-        
+        use Libraries.Containers.Support.ListNode
         ListNode<integer> node
         integer val = node:GetValue()
 
@@ -75,7 +75,7 @@ class ListNode <Type>
         Attribute: Parameter node The next node in the list.
 
         Attribute: Example
-        
+        use Libraries.Containers.Support.ListNode
         ListNode<integer> node
         ListNode<integer> nextNode
         nextNode:SetValue(30)
@@ -91,9 +91,9 @@ class ListNode <Type>
         Attribute: Parameter node The previous node in the list.
 
         Attribute: Example
-        
+        use Libraries.Containers.Support.ListNode
         ListNode<integer> node
-        ListNode<integer prevNode
+        ListNode<integer> prevNode
         prevNode:SetValue(28)
         node:SetPrevious(prevNode)
     */
@@ -107,7 +107,7 @@ class ListNode <Type>
         Attribute: Parameter value The value to be stored by this node.
 
         Attribute: Example
-        
+        use Libraries.Containers.Support.ListNode
         ListNode<integer> node
         node:SetValue(29)
     */

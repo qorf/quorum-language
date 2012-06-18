@@ -36,7 +36,7 @@ class Stack<Type> is a StackBlueprint<Type>
         Attribute: Parameter value The value to be added to the top of the stack.
 
         Attribute: Example
-
+        use Libraries.Containers.Stack
         Stack<integer> myStack
         myStack:Add(12)
     */
@@ -50,7 +50,7 @@ class Stack<Type> is a StackBlueprint<Type>
         Attribute: Returns Returns a copy of this object.
 
         Attribute: Example
-
+    use Libraries.Containers.Stack
     Stack<integer> myStack
     Stack<integer> copyStack
     myStack:Add(12)
@@ -74,7 +74,7 @@ class Stack<Type> is a StackBlueprint<Type>
         This action empty's the stack, clearing out all of the items contained within it. 
 
         Attribute: Example
-
+        use Libraries.Containers.Stack
         Stack<integer> myStack
         myStack:Add(12)
         myStack:Empty() //the item we added is now gone
@@ -89,7 +89,8 @@ class Stack<Type> is a StackBlueprint<Type>
         Attribute: Returns Returns the iterator for an object. 
 
         Attribute: Example
-
+        use Libraries.Containers.Stack
+        use Libraries.Containers.Blueprints.Iterator
         Stack<integer> myStack
         myStack:Add(12)
         myStack:Add(13)
@@ -106,7 +107,7 @@ class Stack<Type> is a StackBlueprint<Type>
         Attribute: Returns Returns an integer value representing the size of the stack.
 
         Attribute: Example
-
+        use Libraries.Containers.Stack
         Stack<integer> myStack
         myStack:Add(12)
         integer size = myStack:GetSize()
@@ -123,7 +124,7 @@ class Stack<Type> is a StackBlueprint<Type>
         Attribute: Returns Returns true if the item was in the Addable object and false if it was not. 
 
         Attribute: Example
-
+        use Libraries.Containers.Stack
         Stack<integer> myStack
         myStack:Add(12)
         myStack:Add(1)
@@ -139,7 +140,7 @@ class Stack<Type> is a StackBlueprint<Type>
         Attribute: Returns Returns true when the container is empty and false when it is not. 
 
         Attribute: Example
-
+        use Libraries.Containers.Stack
         Stack<integer> myStack
         if(myStack:IsEmpty())
             print "The stack is empty."
@@ -157,7 +158,7 @@ class Stack<Type> is a StackBlueprint<Type>
         Attribute: Returns Returns true if the item was removed and false if it was not removed. 
 
         Attribute: Example
-
+        use Libraries.Containers.Stack
         Stack<integer> myStack
         myStack:Add(43)
         myStack:Add(13)
@@ -176,7 +177,7 @@ class Stack<Type> is a StackBlueprint<Type>
         Attribute: Returns Returns true if the item was removed and false if it was not removed. 
 
         Attribute: Example
-
+        use Libraries.Containers.Stack
         Stack<integer> myStack
         myStack:Add(43)
         myStack:Add(13)
@@ -193,7 +194,7 @@ class Stack<Type> is a StackBlueprint<Type>
         Attribute: Returns The item at the top of the stack.
 
         Attribute: Example
-
+        use Libraries.Containers.Stack
         Stack<integer> myStack
         myStack:Push(1)
         myStack:Push(2)
@@ -210,7 +211,7 @@ class Stack<Type> is a StackBlueprint<Type>
         Attribute: Returns The item at the top of the stack. 
 
         Attribute: Example
-
+        use Libraries.Containers.Stack
         Stack<integer> myStack
         myStack:Push(1)
         myStack:Push(2)
@@ -226,7 +227,7 @@ class Stack<Type> is a StackBlueprint<Type>
         Attribute: Parameter value The item to the top of the stack. 
 
         Attribute: Example
-
+        use Libraries.Containers.Stack
         Stack<integer> myStack
         myStack:Push(1)
         myStack:Push(2)

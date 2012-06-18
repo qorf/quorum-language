@@ -12,6 +12,7 @@ Attribute: Author Andreas and Melissa Stefik
 
 Attribute: Example
 
+use Libraries.Containers.List
 use Libraries.Containers.Blueprints.ListIterator
 
 class Main
@@ -35,8 +36,13 @@ class ListIterator<Type> is a Iterator<Type>
         Attribute: Parameter tail The tail pointer of the list.
 
         Attribute: Example
-        
-        Iterator<List<integer>> listIterator
+        use Libraries.Containers.List
+        use Libraries.Containers.Support.ListIterator
+        use Libraries.Containers.Support.ListNode
+        List<integer> myList
+        ListNode<integer> head
+        ListNode<integer> tail
+        ListIterator<List<integer>> listIterator
         listIterator:Set(myList, head, tail)
 
     */
@@ -53,8 +59,9 @@ class ListIterator<Type> is a Iterator<Type>
         Attribute: Returns The list.
 
         Attribute: Example
-        
-        Iterator<List<integer>> listIterator 
+        use Libraries.Containers.List
+        use Libraries.Containers.Support.ListIterator
+        ListIterator<List<integer>> listIterator 
         listIterator:GetList()
 
     */
@@ -69,8 +76,10 @@ class ListIterator<Type> is a Iterator<Type>
         Attribute: Returns The current item in the iteration.
 
         Attribute: Example
-        
-        Iterator<List<integer>> listIterator = myList:GetIterator()
+        use Libraries.Containers.List
+        use Libraries.Containers.Blueprints.Iterator
+        List<integer> myList
+        Iterator<integer> listIterator = myList:GetIterator()
         integer item = listIterator:GetCurrent()
 
     */
@@ -86,8 +95,10 @@ class ListIterator<Type> is a Iterator<Type>
         if there is not.
 
         Attribute: Example
-        
-        Iterator<List<integer>> listIterator = myList:GetIterator()
+        use Libraries.Containers.List
+        use Libraries.Containers.Blueprints.Iterator
+        List<integer> myList
+        Iterator<integer> listIterator = myList:GetIterator()
         
         if listIterator:HasNext()
             listIterator:Next()
@@ -114,8 +125,10 @@ class ListIterator<Type> is a Iterator<Type>
         Attribute: Returns The next item in the iteration.
 
         Attribute: Example
-        
-        Iterator<List<integer>> listIterator = myList:GetIterator()
+        use Libraries.Containers.List
+        use Libraries.Containers.Blueprints.Iterator
+        List<integer> myList
+        Iterator<integer> listIterator = myList:GetIterator()
         integer item = listIterator:Next()
 
     */
@@ -132,8 +145,10 @@ class ListIterator<Type> is a Iterator<Type>
         This action starts the iteration over from the beginning. 
 
         Attribute: Example
-        
-        Iterator<List<integer>> listIterator = myList:GetIterator()
+        use Libraries.Containers.List
+        use Libraries.Containers.Blueprints.Iterator
+        List<integer> myList
+        Iterator<integer> listIterator = myList:GetIterator()
         
         if listIterator:HasNext()
             listIterator:Next()

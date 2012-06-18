@@ -48,7 +48,7 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Parameter value The item to be added to the indexed object. 
         
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
         myTable:SetSize(10, 10)
         myTable:Set(0, 0, 22)
@@ -83,7 +83,7 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Returns The item at the given location.
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
         myTable:SetSize(10,10)
         myTable:Set(0,0,22)
@@ -114,7 +114,7 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Return The capacity of table for rows. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
         integer maxSize = myTable:GetMaxNumberOfRows()
     */
@@ -128,7 +128,7 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Return The capacity of table for columns. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
         integer maxSize = myTable:GetMaxNumberOfColumns()
     */
@@ -146,7 +146,7 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Parameter column The max number of columns in the table. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
         myTable:SetMaxSize(10, 10)
     */
@@ -188,7 +188,7 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Parameter column The number of columns.
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
         myTable:SetSize(10,10)
     */
@@ -215,7 +215,7 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Return The number of rows in the table. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
         integer size = myTable:GetNumberOfRows()
     */
@@ -229,7 +229,7 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Return The number of items in a row. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
         integer size = myTable:GetSizeOfRow(0)
     */
@@ -252,7 +252,7 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Returns True if the table is resizable and false if it is not.
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
         boolean result = myTable:GetAutoResize()
     */
@@ -268,7 +268,7 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Parameter resizable The value to set the resizable flag to.
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
         myTable:SetAutoResize(false)
         myTable:SetSize(10, 10)
@@ -295,7 +295,7 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Parameter value The item to be added to the indexed object.
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
         myTable:Add(0, 0, 22) 
     */ 
@@ -354,10 +354,11 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Parameter row A row (array) of values to add to the table.
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
+        use Libraries.Containers.Array
         Table<integer> myTable
         Array<integer> row
-        myTable:Add(row) 
+        myTable:AddRow(row) 
     */ 
     action AddRow(Array<Type> row)
         table:Add(row)
@@ -371,7 +372,8 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Returns The array or row at the given location
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
+        use Libraries.Containers.Array
         Table<integer> myTable
         myTable:SetSize(1,4)
         myTable:Set(0, 0, 22) 
@@ -394,7 +396,8 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Parameter value The item to be added to the table. 
 
         Attribute: Example
-
+        use Libraries.Containers.Table
+        use Libraries.Containers.Array
         Table<integer> myTable
         myTable:AddToEndOfRow(0,12)
     */
@@ -422,7 +425,7 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Parameter value The item to be added to the array.
 
         Attribute: Example
-
+        use Libraries.Containers.Table
         Table<integer> myTable
         myTable:AddToFrontOfRow(0, 12)
     */
@@ -437,6 +440,7 @@ class Table<Type> is a TableBlueprint<Type>
         to be a deep copy.
         
         Attribute: Example
+        use Libraries.Containers.Table
         //the array class is Copyable
         Table<integer> table
         Object o = table:Copy()
@@ -465,7 +469,7 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Returns The item at the front of the array.
 
         Attribute: Example
-
+        use Libraries.Containers.Table
         Table<integer> myTable
         myTable:AddToEndOfRow(0,4)
         myTable:AddToEndOfRow(0,13)
@@ -489,7 +493,7 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Returns The item at the end of the row in the table.
 
         Attribute: Example
-
+        use Libraries.Containers.Table
         Table<integer> myTable
         myTable:AddToEndOfRow(0, 4)
         myTable:AddToEndOfRow(0, 13)
@@ -515,9 +519,10 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Returns The item that was removed from the indexed object. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
+        use Libraries.Containers.Array
         Table<integer> myTable
-        myTable:SetSize(10)
+        myTable:SetSize(10,10)
         myTable:Set(0, 0, 22) 
         myTable:Set(0, 1, 33)
         myTable:Set(0, 2, 45)
@@ -550,16 +555,17 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Returns Returns the iterator for an object. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
+        use Libraries.Containers.Array
         use Libraries.Containers.Blueprints.Iterator
 
         Table<integer> myTable
-        myTable:SetSize(4)
+        myTable:SetSize(4,4)
         myTable:Set(0, 0, 22) 
         myTable:Set(0, 1, 33)
         myTable:Set(0, 2, 45)
         myTable:Set(0, 3, 22)
-        Iterator<Array<integer>> it = myTable:GetIterator()
+        Iterator<Array<integer>> it = myTable:GetRowIterator()
     */
     action GetRowIterator() returns Iterator<Array<Type>>
         return table:GetIterator()
@@ -573,9 +579,9 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Returns Returns true if the item was in the Addable object and false if it was not. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
-        myTable:SetSize(10)
+        myTable:SetSize(10, 10)
         myTable:Set(0, 0, 22) 
         myTable:Set(0, 1, 33)
         myTable:Set(0, 2, 45)
@@ -603,9 +609,9 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Returns Returns true if the item was removed and false if it was not removed. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
-        myTable:SetSize(10)
+        myTable:SetSize(10,10)
         myTable:Set(0, 0, 22) 
         myTable:Set(0, 1, 33)
         myTable:Set(0, 2, 45)
@@ -634,9 +640,9 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Returns Returns true if the item was removed and false if it was not removed.
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
-        myTable:SetSize(10)
+        myTable:SetSize(10,10)
         myTable:Set(0, 0, 22) 
         myTable:Set(0, 1, 33)
         myTable:Set(0, 2, 45)
@@ -665,7 +671,7 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Returns The item at the end of the table. 
 
         Attribute: Example
-
+        use Libraries.Containers.Table
         Table<integer> myTable
         myTable:AddToEndOfRow(0, 33)
         myTable:AddToEndOfRow(0, 13)
@@ -683,11 +689,11 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Returns The item at the front of the table. 
 
         Attribute: Example
-
+        use Libraries.Containers.Table
         Table<integer> myTable
-        myTable:Add(0,33)
-        myTable:Add(0,13)
-        myTable:Add(0,43)
+        myTable:Add(0,0,33)
+        myTable:Add(0,1,13)
+        myTable:Add(0,2,43)
         integer removed = myTable:RemoveFromFrontOfRow(0)
     */
     action RemoveFromFrontOfRow(integer row) returns Type
@@ -698,13 +704,13 @@ class Table<Type> is a TableBlueprint<Type>
         This action empty's the table, clearing out all of the items contained within it. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
-        myTable:SetSize(10)
-        myTable:Set(0, 22) 
-        myTable:Set(1, 33)
-        myTable:Set(2, 45)
-        myTable:Set(3, 22)
+        myTable:SetSize(10,10)
+        myTable:Set(0, 0, 22) 
+        myTable:Set(1, 0, 33)
+        myTable:Set(2, 0, 45)
+        myTable:Set(3, 0, 22)
         myTable:Empty()
     */
     action Empty
@@ -717,9 +723,9 @@ class Table<Type> is a TableBlueprint<Type>
         Attribute: Returns Returns true when the container is empty and false when it is not. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Table
         Table<integer> myTable
-        myTable:SetSize(10)
+        myTable:SetSize(10, 10)
         myTable:Set(0, 0, 22) 
         myTable:Set(0, 1, 33)
         myTable:Set(0, 2, 45)
