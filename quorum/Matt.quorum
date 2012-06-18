@@ -1,41 +1,16 @@
-/*
-class Matt
-    number x = cast(number, "6.0")
-    integer y = cast(integer, "5005")
+        use Libraries.System.File
+        use Libraries.System.Blueprints.FileWriterBlueprint
 
-    action Main
-        text a = "85.4"
-        number b = cast(number, BooleanGenerator())
-        number c = -5.33 + cast(number, a)
-        text d = cast(text, true) 
-        text e = BooleanGenerator() + " " + TextGenerator() + " " + IntegerGenerator() + " " + NumberGenerator()
-        print b * 50.4543634123
-        print e
+        // Write a single line to the file.
+        File f
+        f:SetWorkingDirectory("/Users/jeff/")
+        f:SetPath("ASimpleMessage.txt")
+        text message = "Anything I put in here will magically appear in the file."
+        f:Write(message)
 
-        if a not= "100.8" then
-            print x
-        end
-        else then
-           print y
-        end
-    end
-
-    action IntegerGenerator returns integer
-        return y
-    end
-
-    action NumberGenerator returns number
-        return x
-    end
-
-    action TextGenerator returns text
-        return "abcd1234"
-    end
-
-    action BooleanGenerator returns boolean
-        return true
-    end
-end
-*/
-
-print "hello world"
+        // It is also possible to write multiple lines, like so:
+        f:SetWorkingDirectory("/Users/jeff/")
+        f:SetPath("AComplexMessage.txt")
+        message ="This is the first line
+and here's another."
+        f:Write(message)

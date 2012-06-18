@@ -56,7 +56,9 @@ class Error
         Attribute: Parameter trace The generated stack trace.
 
         Attribute: Example
-
+        use Libraries.Containers.Array
+        use Libraries.Language.Errors.Error
+        use Libraries.System.StackTraceItem
         Array<StackTraceItem> callStack
         Error error
         error:SetStackTrace(callStack)
@@ -77,7 +79,9 @@ class Error
         Attribute: Returns The errors stack trace.
 
         Attribute: Example
-
+        use Libraries.Containers.Array
+        use Libraries.Language.Errors.Error
+        use Libraries.System.StackTraceItem
         Array<StackTraceItem> callStack
         Error error
         callStack = error:GetStackTrace()
@@ -93,7 +97,7 @@ class Error
 
         Attribute: Example
 
-        
+        use Libraries.Language.Errors.Error
         Error error
         error:SetErrorMessage("An error has occurred.")
     */
@@ -109,7 +113,7 @@ class Error
 
         Attribute: Example
 
-        
+        use Libraries.Language.Errors.Error
         Error error
         text message = error:GetErrorMessage()
     */
@@ -124,7 +128,7 @@ class Error
 
         Attribute: Example
 
-        
+        use Libraries.Language.Errors.Error
         Error error
         integer size = error:GetStackSize()
     */
@@ -135,7 +139,7 @@ class Error
         window. 
 
         Attribute: Example
-
+        use Libraries.Language.Errors.Error
         Error error
         error:PrintStackTrace()
     */
@@ -162,7 +166,8 @@ class Error
         Attribute: Returns An item off the stack trace.
 
         Attribute: Example
-
+        use Libraries.Language.Errors.Error
+        use Libraries.System.StackTraceItem
         Error error
         StackTraceItem callStackItem = error:GetStackTraceItem(0)
     */

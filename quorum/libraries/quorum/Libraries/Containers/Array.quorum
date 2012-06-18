@@ -45,7 +45,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Parameter value The item to be added to the indexed object. 
         
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:SetSize(10)
         myArray:Set(0, 22)
@@ -69,7 +69,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Returns The item at the given location.
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:SetSize(10)
         myArray:Set(0, 22)
@@ -91,7 +91,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Return The max size of the array. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         integer maxSize = myArray:GetMaxSize()
     */
@@ -105,7 +105,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Parameter size The max size to set for the array. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:SetMaxSize(20)
     */
@@ -119,7 +119,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Parameter size The size of the array. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:SetSize(10)
     */
@@ -139,7 +139,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Return The size of the array. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         integer size = myArray:GetSize()
     */
@@ -152,7 +152,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Returns True if the array is resizable and false if it is not.
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         boolean result = myArray:GetAutoResize()
     */
@@ -166,7 +166,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Parameter resizable The value to set the resizable flag to.
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:SetAutoResize(false)
         myArray:SetSize(10)
@@ -181,7 +181,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Parameter value The item to be added to the indexed object.
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:Add(0, 22) 
     */ 
@@ -210,7 +210,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Parameter value The value to be inserted.
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:Add(22)
     */
@@ -241,7 +241,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Returns The location of the first occurrence of the item.
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:SetSize(10)
         myArray:Set(0, 22) 
@@ -276,7 +276,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Returns The location of the last occurrence of the item. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:SetSize(10)
         myArray:Set(0, 22) 
@@ -310,7 +310,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Parameter value The item to be added to the array. 
 
         Attribute: Example
-
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:AddToEnd(12)
     */
@@ -326,7 +326,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Parameter value The item to be added to the array.
 
         Attribute: Example
-
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:AddToFront(12)
     */
@@ -342,6 +342,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         
         Attribute: Example
         //the array class is Copyable
+        use Libraries.Containers.Array
         Array<integer> array
         Object o = array:Copy()
         Array<integer> copy = cast(Array<integer>, o)
@@ -365,7 +366,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Returns The item at the front of the array.
 
         Attribute: Example
-
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:Add(4)
         myArray:Add(13)
@@ -382,7 +383,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Returns The item at the end of the array.
 
         Attribute: Example
-
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:Add(4)
         myArray:Add(13)
@@ -402,6 +403,7 @@ class Array <Type> is a ArrayBlueprint<Type>
 
         Attribute: Example
         
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:SetSize(10)
         myArray:Set(0, 22) 
@@ -426,7 +428,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Returns Returns the iterator for an object. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         use Libraries.Containers.Blueprints.Iterator
 
         Array<integer> myArray
@@ -452,7 +454,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Returns Returns true if the item was in the Addable object and false if it was not. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:SetSize(10)
         myArray:Set(0, 22) 
@@ -482,7 +484,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Returns Returns true if the item was removed and false if it was not removed. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:SetSize(10)
         myArray:Set(0, 22) 
@@ -513,7 +515,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Returns Returns true if the item was removed and false if it was not removed.
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:SetSize(10)
         myArray:Set(0, 22) 
@@ -545,7 +547,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Returns The item at the end of the array. 
 
         Attribute: Example
-
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:Add(33)
         myArray:Add(13)
@@ -562,7 +564,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Returns The item at the front of the list. 
 
         Attribute: Example
-
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:Add(33)
         myArray:Add(13)
@@ -577,7 +579,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         This action empty's the list, clearing out all of the items contained within it. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:SetSize(10)
         myArray:Set(0, 22) 
@@ -594,7 +596,7 @@ class Array <Type> is a ArrayBlueprint<Type>
         Attribute: Returns Returns true when the container is empty and false when it is not. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
         Array<integer> myArray
         myArray:SetSize(10)
         myArray:Set(0, 22) 

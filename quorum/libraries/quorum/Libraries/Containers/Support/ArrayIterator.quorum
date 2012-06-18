@@ -28,12 +28,6 @@ class ArrayIterator<Type> is a Iterator<Type>
         This action sets the array parameters up for the iterator. 
 
         Attribute: Parameter array The array to iterator over.
-
-        Attribute: Example
-        
-        Iterator<Array<integer>> arrayIterator
-        arrayIterator:Set(myArray)
-
     */
     action Set(Array<Type> newArray)
         me:array = newArray
@@ -44,11 +38,6 @@ class ArrayIterator<Type> is a Iterator<Type>
         This action gets the array that the iterator has.
 
         Attribute: Returns The array.
-
-        Attribute: Example
-        
-        Iterator<Array<integer>> arrayIterator 
-        arrayIterator:GetArray()
 
     */
     action GetArray() returns Array<Type>
@@ -62,8 +51,10 @@ class ArrayIterator<Type> is a Iterator<Type>
         Attribute: Returns The current item in the iteration.
 
         Attribute: Example
-        
-        Iterator<Array<integer>> arrayIterator = myArray:GetIterator()
+        use Libraries.Containers.Array
+        use Libraries.Containers.Blueprints.Iterator
+        Array<integer> myArray
+        Iterator<integer> arrayIterator = myArray:GetIterator()
         integer item = arrayIterator:GetCurrent()
 
     */
@@ -83,7 +74,9 @@ class ArrayIterator<Type> is a Iterator<Type>
         if there is not.
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
+        use Libraries.Containers.Blueprints.Iterator
+        Array<Array<integer>> myArray
         Iterator<Array<integer>> arrayIterator = myArray:GetIterator()
         
         if arrayIterator:HasNext()
@@ -105,8 +98,10 @@ class ArrayIterator<Type> is a Iterator<Type>
         Attribute: Returns The next item in the iteration.
 
         Attribute: Example
-        
-        Iterator<Array<integer>> arrayIterator = myArray:GetIterator()
+        use Libraries.Containers.Array
+        use Libraries.Containers.Blueprints.Iterator
+        Array<integer> myArray
+        Iterator<integer> arrayIterator = myArray:GetIterator()
         integer item = arrayIterator:Next()
 
     */
@@ -120,7 +115,9 @@ class ArrayIterator<Type> is a Iterator<Type>
         This action starts the iteration over from the beginning. 
 
         Attribute: Example
-        
+        use Libraries.Containers.Array
+        use Libraries.Containers.Blueprints.Iterator
+        Array<Array<integer>> myArray
         Iterator<Array<integer>> arrayIterator = myArray:GetIterator()
         
         if arrayIterator:HasNext()

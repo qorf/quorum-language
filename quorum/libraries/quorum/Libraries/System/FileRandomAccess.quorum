@@ -324,7 +324,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
         File f
         f:SetPath("../familyPhoto.img")
         FileRandomAccess ra
-        ra:OpenForRandomAccess()
+        ra:OpenForRandomAccess(f)
 
         // Get the first 60 bytes (which might be, for example, the header of a binary file format).
         text header = ra:Read(60)

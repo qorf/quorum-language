@@ -30,7 +30,7 @@ class StackTraceItem
     Attribute: Parameter line The line number that the activation record originates from.
 
     Attribute: Example
-
+    use Libraries.System.StackTraceItem
     StackTraceItem item
     item:Init("MyCallStack", "Call", "Libraries.System.CallStack", 15)
     */
@@ -47,9 +47,9 @@ class StackTraceItem
     Attribute: Returns The name of the class on the call stack.
 
     Attribute: Example
-
+    use Libraries.System.StackTraceItem
     StackTraceItem item
-    text class = item:GetClassName()
+    text clazz = item:GetClassName()
     */
     action GetClassName() returns text
         return className
@@ -61,7 +61,7 @@ class StackTraceItem
     Attribute: Returns The name of the method on the call stack.
 
     Attribute: Example
-
+    use Libraries.System.StackTraceItem
     StackTraceItem item
     text method = item:GetMethodName()
     */
@@ -75,7 +75,7 @@ class StackTraceItem
     Attribute: Returns The name of the file on the call stack.
 
     Attribute: Example
-
+    use Libraries.System.StackTraceItem
     StackTraceItem item
     text file = item:GetFileName()
     */
@@ -89,7 +89,7 @@ class StackTraceItem
     Attribute: Returns The line number of the item on the call stack.
 
     Attribute: Example
-
+    use Libraries.System.StackTraceItem
     StackTraceItem item
     integer line = item:GetLineNumber()
     */
@@ -105,7 +105,7 @@ class StackTraceItem
     Attribute: Returns True if the StackTraceItem's are equal and false if they are not equal.
 
     Attribute: Example
-
+    use Libraries.System.StackTraceItem
     StackTraceItem item
     StackTraceItem item2
     item:Equals(item2)

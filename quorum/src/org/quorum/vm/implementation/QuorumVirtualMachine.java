@@ -12,6 +12,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -84,6 +86,17 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private String inputExpression = "";
     private boolean auditoryDebugging = true;
     
+    /**
+     * This instance of QuorumVirtualMachine is used only if verification of
+     * documentation example code is enabled. 
+     */
+    private QuorumVirtualMachine verifierVM = null;
+    
+    /**
+     * Used in the build(String) method to guarantee unique tokens.
+     */
+    private SecureRandom random = new SecureRandom();
+    
     //private BuildManager buildManager;
 
     public QuorumVirtualMachine() {
@@ -147,20 +160,29 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         }
         File[] toArray = files.values().toArray(new File[files.size()]);
 
-        generateAllDocumentation(toArray);
+        generateAllDocumentation(toArray, false);
 
         return true;
     }
 
-    public boolean generateAllDocumentation(File[] files) {
+    public boolean generateAllDocumentation(File[] files, boolean verify) {
         documentor.clearIndex();
         Iterator<ContainerExecution> containers = this.builder.getContainers();
         
+        if (verify) {
+            // Spawn a new VM for documentation verification.
+            verifierVM = new QuorumVirtualMachine();
+        }
         while (containers.hasNext()) {
             ContainerExecution containerExec = containers.next();
             Iterator<ClassExecution> classes = containerExec.getClasses();
             while (classes.hasNext()) {
                 ClassExecution classExec = classes.next();
+                
+                if (verify) {
+                    // Verify that all documentaiton compiles.
+                    verifyDocumentaitonCompilation(classExec.getClassDescriptor());
+                }
                 ClassDescriptor clazz = classExec.getClassDescriptor();
                 String result = documentor.generate(clazz);
                 documentationToFile(clazz, result);
@@ -471,6 +493,25 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         return this.auditoryDebugging;
     }
 
+    private void verifyDocumentaitonCompilation(ClassDescriptor clazz) {
+        Iterator<MethodDescriptor> methods = clazz.getMethods();
+        
+        while (methods.hasNext()) {
+            //verifierVM = new QuorumVirtualMachine();
+            verifierVM.resetBuild();
+            MethodDescriptor method = methods.next();
+            String example = method.getDocumentation().getExample();
+
+            if (!example.isEmpty()) {
+                verifierVM.build(example);
+
+                if (!verifierVM.getCompilerErrors().isCompilationErrorFree()) {
+                    System.err.println("Warning: Method " + method.getStaticKey() + " of class " + clazz.getStaticKey() + " has example documentation that will not compile.");
+                }
+            }
+        }
+    }
+
     private class Build implements Runnable {
 
         public File[] source;
@@ -505,7 +546,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
      * @param source 
      */
     public void build(String source) {
-        File main = new File("InvalidNotOnDiskUniqueKey2340238746293141920348293847");
+        String token = new BigInteger(130, random).toString(32);
+        File main = new File(token);
         this.setMain(main.getAbsolutePath());
 
         this.parseSingle(main, source);

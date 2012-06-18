@@ -113,6 +113,13 @@ public class Main {
      * A flag telling the computer to output documentation.
      */
     private static final String DOCUMENT = "-document";
+    
+    /**
+     * A flag telling the computer to output documentation and determine if
+     * action examples compile.
+     */
+    private static final String DOCUMENT_AND_VERIFY = "-document-and-verify";
+    
     /**
      * A flag telling the computer the name of the file to distribute. This
      * flag must be followed a string name, with no file extension. 
@@ -162,6 +169,12 @@ public class Main {
      * by default.
      */
     private static boolean isDocumentation = false;
+    
+    /**
+     * Whether or not to verify code examples in actions when generating documentation. This is
+     * off by default.
+     */
+    private static boolean isVerifyDocumentation = false;
     
     /**
      * A folder for the distributions to be placed.
@@ -304,9 +317,17 @@ public class Main {
                     // Set the documentation directory to the distribution folder.
                     vm.setDocumentationPath(documentation.getAbsolutePath());
                     
-                    System.out.print("Generating documentation...");
-                    vm.generateAllDocumentation(files);
-                    System.out.println(" done.");
+                    if (!isVerifyDocumentation)
+                        System.out.print("Generating documentation...");
+                    else
+                        System.out.println("Generating and verifying documentation...");
+                    
+                    vm.generateAllDocumentation(files, isVerifyDocumentation);
+                    
+                    if (!isVerifyDocumentation)
+                        System.out.println(" done.");
+                    else
+                        System.out.println("Done. Any non-compiling examples are shown above.");
                     
                     //copy over the CSS file
                     File css = new File(root.getAbsolutePath() + "/libraries/style.css");
@@ -408,7 +429,9 @@ public class Main {
   " bytecode or interpreting the code, it outputs documentation for the code. This feature is currently"+
   " in the experimental stage and only outputs `wiki' formatted documentation. In the future, HTML output is" +
   " planned.\n\n"+
-                
+  "-document-and-verify This causes Quorum to output documentation and ensure that enclosed code examples for "+
+  "actions compile. This is highly experimental and does not state the precise errors encountered. It is also very "+
+  "slow.\n\n"+
   "-name [String] This sets the name which is output for the corresponding distribution files."+
   "An example might be -name Music. This would cause Quorum to output a "+
   "jar file by the name of Music.jar into the folder distribute.\n\n"+
@@ -472,6 +495,10 @@ public class Main {
             }
             else if(arg.compareTo(DOCUMENT) == 0){
                 isDocumentation = true;
+            }
+            else if (arg.compareTo(DOCUMENT_AND_VERIFY) == 0) {
+                isDocumentation = true;
+                isVerifyDocumentation = true;
             }
             else if(arg.compareTo(INTERPRET) == 0){
                 isInterpret = true;

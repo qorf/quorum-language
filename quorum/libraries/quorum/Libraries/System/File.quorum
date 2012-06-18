@@ -156,8 +156,7 @@ class File
         use Libraries.System.File
 
         File myFileObject
-        File dir = myFileObject:GetWorkingDirectory()
-        print "The working directory of this program is " + dir:GetPath()
+        print "The working directory of this program is " + myFileObject:GetPath()
      */
     action GetWorkingDirectory() returns text
         return GetWorkingDirectoryNative()
@@ -189,7 +188,7 @@ class File
         File someFile
         someFile:SetWorkingDirectory("/Users/jeff/")
         someFile:SetPath("Music")
-        print absoluteFile:GetPath() // prints "Music"
+        print someFile:GetPath() // prints "Music"
      */
     action GetPath returns text
         return GetPathNative()
@@ -204,6 +203,7 @@ class File
         Attribute: Returns the absolute path this File object represents.
 
         Attribute: Example
+        use Libraries.System.File
         // Construct a file object to refer to "C:\Windows\System32".
         File sys
         sys:SetWorkingDirectory("C:\Windows")
@@ -520,7 +520,8 @@ class File
         File cDrive
         cDrive:SetWorkingDirectory("C:\")
         Indexed<File> items = cDrive:GetDirectoryListing()
-        print items:Get(0) 
+        File f0 = items:Get(0)
+        print f0:GetPath()
      */
     action GetDirectoryListing returns Indexed<File>
         //// BROKEN - FIX ME ////
@@ -888,7 +889,7 @@ class File
         // It is also possible to write multiple lines, like so:
         f:SetWorkingDirectory("/Users/jeff/")
         f:SetPath("AComplexMessage.txt")
-        text message ="This is the first line
+        message ="This is the first line
 and here's another."
         f:Write(message)
      */

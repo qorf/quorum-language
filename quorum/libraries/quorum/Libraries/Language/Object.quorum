@@ -30,7 +30,8 @@ class Object
         are not equal. 
 
         Attribute: Example
-
+        use Libraries.Language.Object
+        use Libraries.Language.Types.Text
         Object o
         Text t
         boolean result = o:Equals(t)
@@ -62,7 +63,7 @@ class Object
         Attribute: Returns The Compare result, Smaller, Equal, or Larger. 
 
         Attribute: Example
-
+        use Libraries.Language.Support.CompareResult
         Object o
         Object t
         CompareResult result = o:Compare(t)
