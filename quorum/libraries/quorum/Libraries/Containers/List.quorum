@@ -471,14 +471,16 @@ class List <Type> is a ListBlueprint<Type>
     */
     action RemoveAll(Type value) returns boolean
         ListNode<Type> current = head
+        boolean wasRemoved = false
         repeat while current not= undefined
             Type type = current:value
             if value:Equals(type)
                 RemoveNode(current)
+                wasRemoved = true
             end
             current = current:next
         end
-        return false
+        return wasRemoved
     end
 
     private action RemoveNode(ListNode<Type> node)
