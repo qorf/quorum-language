@@ -3157,7 +3157,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                             TypeDescriptor mappedTemplateType = step.getMethodCallee().getMappedTemplateType(next.getTemplateName());
                             if (mappedTemplateType != null && next.isPrimitiveType()) {
                                 next.convertToClass();
-                                String autoBoxClassName = QuorumConverter.convertStaticKeyToBytecodePathTypeName(QuorumConverter.convertClassNameToInterfaceName(next.getStaticKey()));
+                                String autoBoxClassName = QuorumConverter.convertStaticKeyToBytecodePath(QuorumConverter.convertClassNameToInterfaceName(next.getStaticKey()));
 
                                 // Create a new autoboxed object.
                                 methodVisitor.visitTypeInsn(CHECKCAST, QuorumConverter.convertStaticKeyToBytecodePath(QuorumConverter.convertClassNameToInterfaceName(next.getStaticKey())));
