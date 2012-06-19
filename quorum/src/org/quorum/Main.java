@@ -118,7 +118,7 @@ public class Main {
      * A flag telling the computer to output documentation and determine if
      * action examples compile.
      */
-    private static final String DOCUMENT_AND_VERIFY = "-document-and-verify";
+    private static final String DOCUMENT_AND_VERIFY = "-verify";
     
     /**
      * A flag telling the computer the name of the file to distribute. This
@@ -429,7 +429,7 @@ public class Main {
   " bytecode or interpreting the code, it outputs documentation for the code. This feature is currently"+
   " in the experimental stage and only outputs `wiki' formatted documentation. In the future, HTML output is" +
   " planned.\n\n"+
-  "-document-and-verify This causes Quorum to output documentation and ensure that enclosed code examples for "+
+  "-verify This causes Quorum to output documentation and ensure that enclosed code examples for "+
   "actions compile. This is highly experimental and does not state the precise errors encountered. It is also very "+
   "slow.\n\n"+
   "-name [String] This sets the name which is output for the corresponding distribution files."+
@@ -441,7 +441,7 @@ public class Main {
   + "set, it is set to a path relative to Quorum.jar/libraries/plugins.\n\n"+
                 
   "-help This causes help to be output to the command line.\n\n"+
-  
+   
   "After entering any flags desired, a list of files indicates to the compiler "+
   "which files to interpret or compile.\n\n "+
   
