@@ -217,6 +217,8 @@ public class CompilerTestSuite {
         vm.build(files, true);
         
         
+        // Experimental: Run test sutie using -interpret flag.
+        //ProcessBuilder pb = new ProcessBuilder("java", "-jar", "dist/Quorum.jar", "-interpret", files[0].getAbsolutePath());
         ProcessBuilder pb = new ProcessBuilder("java", "-classpath", "build/classes/build", "quorum." + file.getName().split("\\.")[0]);
         pb.directory(systemRoot);
         Process proc = null;

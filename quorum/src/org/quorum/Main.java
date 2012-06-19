@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.Iterator;
@@ -358,9 +359,20 @@ public class Main {
                         Method declaredMethod = quorumClass.getDeclaredMethod("main", new Class[]{String[].class});
                         String[] programArguments = {}; // TODO: In the future, this can be used to pass arguments to a program running in interpreted mode.
                         declaredMethod.invoke(null, (Object)programArguments);
+                    } catch (InvocationTargetException e) {
+                        if (e.getCause() != null)
+                            System.err.println("Unable to run interpreter: " + e.getCause().getMessage());
+                        else
+                            System.err.println("Unable to run interpreter: " + e.getMessage());
+                        
+                        // Bail with an error code.
+                        System.exit(1);
                     } catch (Exception e) {
                         // TODO: Handle this in a more friendly manner.
                         System.err.println("Unable to run interpreter: " + e.getMessage());
+                        
+                        // Bail with an error code.
+                        System.exit(1);
                     }
                 }
                 else {
