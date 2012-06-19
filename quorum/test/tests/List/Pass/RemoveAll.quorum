@@ -29,8 +29,12 @@ class Main
        textList:Add("Three")
        textList:Add("One")
 
-       textList:RemoveAll("One")
-
+       boolean removed = textList:RemoveAll("One")
+       if removed = true
+            print "worked!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+       else
+            print "didn't work!"
+       end
        text textTotal = ""
        integer i = 0
        repeat 4 times
