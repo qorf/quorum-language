@@ -204,7 +204,18 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (currentClassExecution.hasConstructor()) {
             MethodExecution constructor = currentClassExecution.getConstructor();
             currentMethodExecution = constructor;
-            visitBlock(constructor, currentMethodExecution.getTracker());
+            visitBlock(constructor, constructor.getTracker());
+            
+            //after the constructor is visited reset the call step states
+            //this allows us to call the constructor two times.
+            Iterator<ExecutionStep> iterator = currentMethodExecution.getSteps().iterator();
+            while (iterator.hasNext()) {
+                ExecutionStep next = iterator.next();
+                if (next instanceof CallStep) {
+                    CallStep step = (CallStep) next;
+                    step.setIsCalleeLoaded(false);
+                }
+            }
             currentMethodExecution = null;
         }
 
