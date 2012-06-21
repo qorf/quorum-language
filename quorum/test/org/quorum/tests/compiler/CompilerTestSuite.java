@@ -218,8 +218,17 @@ public class CompilerTestSuite {
         
         
         // Experimental: Run test sutie using -interpret flag.
-        //ProcessBuilder pb = new ProcessBuilder("java", "-jar", "dist/Quorum.jar", "-interpret", files[0].getAbsolutePath());
-        ProcessBuilder pb = new ProcessBuilder("java", "-classpath", "build/classes/build", "quorum." + file.getName().split("\\.")[0]);
+        String[] paths = new String[4 + (files.length)];
+        paths[0] = "java";
+        paths[1] = "-jar";
+        paths[2] = "dist/Quorum.jar";
+        paths[3] = "-interpret";
+        for (int i = 0; i < files.length; i++) {
+            paths[i + 4] = files[i].getAbsolutePath();
+        }
+        
+        ProcessBuilder pb = new ProcessBuilder(paths);
+        //ProcessBuilder pb = new ProcessBuilder("java", "-classpath", "build/classes/build", "quorum." + file.getName().split("\\.")[0]);
         pb.directory(systemRoot);
         Process proc = null;
         
