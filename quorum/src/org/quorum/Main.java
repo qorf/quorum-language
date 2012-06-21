@@ -275,7 +275,7 @@ public class Main {
                 path = path.replaceAll("\\%20", " ");
                 File next = new File(args[i]);
                 files[fileIndex] = next;
-                
+                fileIndex++;
                 // If compiling, show the user some information.
                 if (!isInterpret)
                     System.out.println("Preparing to build " + files[fileIndex]);
