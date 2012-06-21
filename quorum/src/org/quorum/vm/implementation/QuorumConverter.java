@@ -298,6 +298,24 @@ public class QuorumConverter {
         }
     }
     
+        /**
+     * This method takes a type descriptor and converts it into a valid 
+     * type descriptor value in Java bytecode.
+     * 
+     * @param type
+     * @return 
+     */
+    public static String convertObjectTypeToPath(TypeDescriptor type) {
+        
+            String key = type.getStaticKey();
+            String convert = convertStaticKeyToBytecodePath(key);
+            
+            if(type.isBytecodeInterface()){
+                convert = convertClassNameToInterfaceName(convert);
+            }
+            
+            return convert;
+    }
     /**
      * This method takes a Quorum type descriptor and converts it into
      * the name of the type.

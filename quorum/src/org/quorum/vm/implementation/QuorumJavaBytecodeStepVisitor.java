@@ -2174,7 +2174,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             pop = stack.popExpressionType();
 
             //convert object to primitive
-            String autoBoxClassName = QuorumConverter.convertTypeToBytecodeString(pop);
+            String autoBoxClassName = QuorumConverter.convertObjectTypeToPath(pop);
             pop.convertToPrimitive();
             String autoBoxMethodSignature = QuorumConverter.generateGetterSignatureFromSubField(pop);
 
