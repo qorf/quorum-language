@@ -5,6 +5,7 @@
 
 package org.quorum.documentation;
 
+import java.io.File;
 import org.quorum.symbols.ClassDescriptor;
 
 /**
@@ -51,9 +52,22 @@ public interface DocumentationGenerator {
     public void clearIndex();
     
     /**
-     * 
+     * Computes any final details with an index that may have been generated
+     * as this documentation generator was used. DocumentationGenerator objects
+     * are not required to store an index, and as such, this call may do nothing\
+     * on a particular subclass.
      */
     public void finishIndex();
+    
+    /**
+     * This method does any final processing when documentation is completely
+     * generated. For example, the HTML generator copies over a css file. Other
+     * generators may do nothing.
+     * 
+     * @param standardLibrary The folder where the standard library resides.
+     * @param documentationRoot The folder where the documentation was generated.
+     */
+    public void finish(File standardLibrary, File documentationRoot);
     
     /**
      * This helper function returns an enumerated type indicating the style

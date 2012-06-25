@@ -191,6 +191,11 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         documentor.finishIndex();
         String index = documentor.getIndex();
         generateIndexFile(index);
+        
+        //copy over the CSS file
+        File documentation = new File(documentationPath);
+        File standardLibraryRoot = this.getStandardLibrary().getRootFolder();
+        documentor.finish(standardLibraryRoot, documentation);
         return true;
     }
 

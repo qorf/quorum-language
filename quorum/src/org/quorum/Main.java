@@ -330,16 +330,6 @@ public class Main {
                     else
                         System.out.println("Done. Any non-compiling examples are shown above.");
                     
-                    //copy over the CSS file
-                    File css = new File(root.getAbsolutePath() + "/libraries/style.css");
-                    File destination = new File(documentation.getAbsolutePath() + "/style.css");
-                    try {
-                        QuorumJarGenerator gen = new QuorumJarGenerator();
-                        gen.copyFile(css, destination);
-                    } catch (IOException ex) {
-                        Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    
                     System.out.println("Documentation placed in the folder: " + documentation.getAbsolutePath());
                 }
                 else if (isInterpret) {

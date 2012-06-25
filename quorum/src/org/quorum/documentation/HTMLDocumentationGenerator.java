@@ -4,10 +4,14 @@
  */
 package org.quorum.documentation;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.quorum.symbols.AccessModifierEnum;
 import org.quorum.symbols.BlueprintDescriptor;
 import org.quorum.symbols.ClassDescriptor;
@@ -21,6 +25,7 @@ import org.quorum.symbols.Parameters;
 import org.quorum.symbols.SystemActionDescriptor;
 import org.quorum.symbols.TypeDescriptor;
 import org.quorum.symbols.VariableDescriptor;
+import org.quorum.vm.implementation.QuorumJarGenerator;
 
 /**
  *
@@ -609,6 +614,18 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     @Override
     public String getFileExtension() {
         return "html";
+    }
+
+    @Override
+    public void finish(File standardLibrary, File documentation) {
+        File css = new File(standardLibrary.getParentFile().getAbsolutePath() + "/style.css");
+        File destination = new File(documentation.getAbsolutePath() + "/style.css");
+        try {
+            QuorumJarGenerator gen = new QuorumJarGenerator();
+            gen.copyFile(css, destination);
+        } catch (IOException ex) {
+            Logger.getLogger(HTMLDocumentationGenerator.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     private class ParentResult {

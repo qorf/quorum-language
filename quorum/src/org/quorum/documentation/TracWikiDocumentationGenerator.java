@@ -5,6 +5,7 @@
 
 package org.quorum.documentation;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -278,6 +279,11 @@ public class TracWikiDocumentationGenerator implements DocumentationGenerator {
     @Override
     public void finishIndex() {
         
+    }
+
+    @Override
+    public void finish(File standardLibrary, File documentationRoot) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     private class ParentResult {
