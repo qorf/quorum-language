@@ -275,10 +275,10 @@ public class Main {
                 path = path.replaceAll("\\%20", " ");
                 File next = new File(args[i]);
                 files[fileIndex] = next;
-                fileIndex++;
                 // If compiling, show the user some information.
                 if (!isInterpret)
                     System.out.println("Preparing to build " + files[fileIndex]);
+                fileIndex++;
             }
             
             //setup the VM
@@ -360,7 +360,7 @@ public class Main {
                         String[] programArguments = {}; // TODO: In the future, this can be used to pass arguments to a program running in interpreted mode.
                         declaredMethod.invoke(null, (Object)programArguments);
                     } catch (InvocationTargetException e) {
-                        if (e.getCause() != null)
+                        if (e.getCause() != null) 
                             System.err.println("Unable to run interpreter: " + e.getCause().getMessage());
                         else
                             System.err.println("Unable to run interpreter: " + e.getMessage());
