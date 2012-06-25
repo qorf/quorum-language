@@ -576,24 +576,85 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
 
             methodVisitor.visitVarInsn(ALOAD, variableNumber);
-            processExpressions();
-            valueType = stack.popExpressionType();
+            
+            if(!type.hasSubTypes()){
+                processExpressions();
+                valueType = stack.popExpressionType();
 
-            if (!valueType.isPrimitiveType()) {
-                if (valueType.isNull()) {
-                    valueType = step.getSubVariableType();
+                if (!valueType.isPrimitiveType()) {
+                    if (valueType.isNull()) {
+                        valueType = step.getSubVariableType();
+                    }
+                    valueType.setBytecodeInterface(true);
                 }
-                valueType.setBytecodeInterface(true);
             }
 
-            if(step.getParent() != null){
+
+            if (step.getParent() != null) {
                 methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey() + "$Interface"),
                         QuorumConverter.generateSetterNameFromSubField(step.getParent().getType(), subVariableName), QuorumConverter.generateSetterSignatureFromSubField(valueType));
-            }else{
+
+            } else if (type.hasSubTypes()) {//if we are dealing with templated values and autoboxing
+                Iterator<GenericDescriptor> subTypes = type.getSubTypes();
+                if (subTypes.hasNext()) {
+                    TypeDescriptor next = subTypes.next().getType();
+                    String autoBoxClassName = "";
+                    String autoBoxMethodSignature = "";
+
+                    if (next.isInteger()) {
+                        autoBoxClassName = "quorum/Libraries/Language/Types/Integer";
+                        autoBoxMethodSignature = "(I)V";
+                    } else if (next.isNumber()) {
+                        autoBoxClassName = "quorum/Libraries/Language/Types/Number";
+                        autoBoxMethodSignature = "(D)V";
+                    } else if (next.isBoolean()) {
+                        autoBoxClassName = "quorum/Libraries/Language/Types/Boolean";
+                        autoBoxMethodSignature = "(Z)V";
+                    } else if (next.isText()) {
+                        autoBoxClassName = "quorum/Libraries/Language/Types/Text";
+                        autoBoxMethodSignature = "(Ljava/lang/String;)V";
+                    }
+
+                    // Create a new autoboxed object.
+                    methodVisitor.visitTypeInsn(NEW, autoBoxClassName);
+                    methodVisitor.visitInsn(DUP);
+                    methodVisitor.visitInsn(DUP);
+                    methodVisitor.visitMethodInsn(INVOKESPECIAL, autoBoxClassName, "<init>", "()V");
+
+                    processExpressions();
+                    valueType = stack.popExpressionType();
+
+                    if (!valueType.isPrimitiveType()) {
+                        if (valueType.isNull()) {
+                            valueType = step.getSubVariableType();
+                        }
+                        valueType.setBytecodeInterface(true);
+                    }else if(!next.getStaticKey().equals(valueType.getStaticKey())){
+                        stack.pushExpressionType(valueType);
+                        if(valueType.isText()){
+                            this.castTextToValue(next);
+                        }else if(next.isText()){
+                            this.castValueToText();
+                        }else{
+                            this.castValueToValue(next);
+                        }
+                    }
+                    
+                    // Call SetValue.
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
+                            "SetValue", autoBoxMethodSignature);
+
+                    TypeDescriptor obj = TypeDescriptor.getSystemObject();
+                    obj.setBytecodeInterface(true);
+
+                    methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey() + "$Interface"),
+                            QuorumConverter.generateSetterNameFromSubField(type, subVariableName), QuorumConverter.generateSetterSignatureFromSubField(obj));
+                }
+            } else {
                 methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey() + "$Interface"),
                         QuorumConverter.generateSetterNameFromSubField(type, subVariableName), QuorumConverter.generateSetterSignatureFromSubField(valueType));
             }
-            } else {
+        } else {
             int mappedVariableNumber = -1;
             if (step.getVariable() instanceof ParameterDescriptor) {
                 //we are now assigning to a parameter variable
@@ -622,11 +683,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     }
 
     /**
-     * This helper method performs an assignment into either a local variable or a field variable.
-     * 
+     * This helper method performs an assignment into either a local variable or
+     * a field variable.
+     *
      * @param value The bytecode stack value needed by the assignment.
      * @param step The Assignment step being performed.
-     * @param isDefined True if the variable being assigned a value was already defined.
+     * @param isDefined True if the variable being assigned a value was already
+     * defined.
      */
     private void performAssignment(TypeDescriptor valueType, AssignmentStep step, boolean isDefined, String conversion) {
         VariableParameterCommonDescriptor variable = step.getVariable();
@@ -668,9 +731,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     /**
      * Converts an integer (top stack value) to a number
-     * 
-     * stack before step:   integer -> number;
-     * stack after step:    number -> number
+     *
+     * stack before step: integer -> number; stack after step: number -> number
      */
     private void prepareNumberIntegerOperation() {
         methodVisitor.visitInsn(I2D);
@@ -683,12 +745,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     }
 
     /**
-     * Converts an integer (second stack value) to a number (swaps the stack 
-     * values, performs the conversion, then swaps the new values if order matters)
-     * 
-     * stack before step:   number -> integer;
-     * stack after step:    number -> number
-     * 
+     * Converts an integer (second stack value) to a number (swaps the stack
+     * values, performs the conversion, then swaps the new values if order
+     * matters)
+     *
+     * stack before step: number -> integer; stack after step: number -> number
+     *
      * @param orderMatters 
      */
     private void prepareIntegerNumberOperation(boolean orderMatters) {
