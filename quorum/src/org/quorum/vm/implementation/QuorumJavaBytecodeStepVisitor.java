@@ -597,58 +597,73 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             } else if (type.hasSubTypes()) {//if we are dealing with templated values and autoboxing
                 Iterator<GenericDescriptor> subTypes = type.getSubTypes();
                 if (subTypes.hasNext()) {
-                    TypeDescriptor next = subTypes.next().getType();
+                    GenericDescriptor subType = subTypes.next();
+                    TypeDescriptor next = subType.getType();
                     String autoBoxClassName = "";
                     String autoBoxMethodSignature = "";
 
-                    if (next.isInteger()) {
-                        autoBoxClassName = "quorum/Libraries/Language/Types/Integer";
-                        autoBoxMethodSignature = "(I)V";
-                    } else if (next.isNumber()) {
-                        autoBoxClassName = "quorum/Libraries/Language/Types/Number";
-                        autoBoxMethodSignature = "(D)V";
-                    } else if (next.isBoolean()) {
-                        autoBoxClassName = "quorum/Libraries/Language/Types/Boolean";
-                        autoBoxMethodSignature = "(Z)V";
-                    } else if (next.isText()) {
-                        autoBoxClassName = "quorum/Libraries/Language/Types/Text";
-                        autoBoxMethodSignature = "(Ljava/lang/String;)V";
-                    }
-
-                    // Create a new autoboxed object.
-                    methodVisitor.visitTypeInsn(NEW, autoBoxClassName);
-                    methodVisitor.visitInsn(DUP);
-                    methodVisitor.visitInsn(DUP);
-                    methodVisitor.visitMethodInsn(INVOKESPECIAL, autoBoxClassName, "<init>", "()V");
-
-                    processExpressions();
-                    valueType = stack.popExpressionType();
-
-                    if (!valueType.isPrimitiveType()) {
-                        if (valueType.isNull()) {
-                            valueType = step.getSubVariableType();
+                    if (next.isPrimitiveType()) {
+                        if (next.isInteger()) {
+                            autoBoxClassName = "quorum/Libraries/Language/Types/Integer";
+                            autoBoxMethodSignature = "(I)V";
+                        } else if (next.isNumber()) {
+                            autoBoxClassName = "quorum/Libraries/Language/Types/Number";
+                            autoBoxMethodSignature = "(D)V";
+                        } else if (next.isBoolean()) {
+                            autoBoxClassName = "quorum/Libraries/Language/Types/Boolean";
+                            autoBoxMethodSignature = "(Z)V";
+                        } else if (next.isText()) {
+                            autoBoxClassName = "quorum/Libraries/Language/Types/Text";
+                            autoBoxMethodSignature = "(Ljava/lang/String;)V";
                         }
-                        valueType.setBytecodeInterface(true);
-                    }else if(!next.getStaticKey().equals(valueType.getStaticKey())){
-                        stack.pushExpressionType(valueType);
-                        if(valueType.isText()){
-                            this.castTextToValue(next);
-                        }else if(next.isText()){
-                            this.castValueToText();
-                        }else{
-                            this.castValueToValue(next);
+
+                        // Create a new autoboxed object.
+                        methodVisitor.visitTypeInsn(NEW, autoBoxClassName);
+                        methodVisitor.visitInsn(DUP);
+                        methodVisitor.visitInsn(DUP);
+                        methodVisitor.visitMethodInsn(INVOKESPECIAL, autoBoxClassName, "<init>", "()V");
+
+                        processExpressions();
+                        valueType = stack.popExpressionType();
+
+                        if (!valueType.isPrimitiveType()) {
+                            if (valueType.isNull()) {
+                                valueType = step.getSubVariableType();
+                            }
+                            valueType.setBytecodeInterface(true);
+                        } else if (!next.getStaticKey().equals(valueType.getStaticKey())) {
+                            stack.pushExpressionType(valueType);
+                            if (valueType.isText()) {
+                                this.castTextToValue(next);
+                            } else if (next.isText()) {
+                                this.castValueToText();
+                            } else {
+                                this.castValueToValue(next);
+                            }
                         }
+
+                        // Call SetValue.
+                        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
+                                "SetValue", autoBoxMethodSignature);
+
+                        TypeDescriptor obj = TypeDescriptor.getSystemObject();
+                        obj.setBytecodeInterface(true);
+
+                        methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey() + "$Interface"),
+                                QuorumConverter.generateSetterNameFromSubField(type, subVariableName), QuorumConverter.generateSetterSignatureFromSubField(obj));
+                    } else {
+                        processExpressions();
+                        valueType = stack.popExpressionType();
+
+                        if (!valueType.isPrimitiveType()) {
+                            if (valueType.isNull()) {
+                                valueType = step.getSubVariableType();
+                            }
+                            valueType.setBytecodeInterface(true);
+                        }
+                        methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey() + "$Interface"),
+                                QuorumConverter.generateSetterNameFromSubField(type, subVariableName), QuorumConverter.generateSetterSignatureFromSubField(valueType));
                     }
-                    
-                    // Call SetValue.
-                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, autoBoxClassName,
-                            "SetValue", autoBoxMethodSignature);
-
-                    TypeDescriptor obj = TypeDescriptor.getSystemObject();
-                    obj.setBytecodeInterface(true);
-
-                    methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey() + "$Interface"),
-                            QuorumConverter.generateSetterNameFromSubField(type, subVariableName), QuorumConverter.generateSetterSignatureFromSubField(obj));
                 }
             } else {
                 methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey() + "$Interface"),
