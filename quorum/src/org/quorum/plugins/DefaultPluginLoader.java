@@ -43,6 +43,9 @@ public class DefaultPluginLoader {
         plugin = new MathPlugin();
         plugins.add(plugin);
 
+        plugin = new AudioPlugin();
+        plugins.add(plugin);
+        
         plugin = new ArrayPlugin();
         plugins.add(plugin);
 
