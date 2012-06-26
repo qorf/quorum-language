@@ -11,10 +11,10 @@
  
 ;--------------------------------
 ; The name of the installer
-Name "Quorum 1.0"
+Name "Quorum 1.5"
 
 ; The file to write
-OutFile "Quorum.exe"
+OutFile "Quorum 1.5.exe"
 
 ; The default installation directory
 InstallDir $PROGRAMFILES\Quorum
@@ -139,10 +139,10 @@ Section "Quorum (required)" Quorum_Sec
   WriteRegStr HKLM SOFTWARE\Quorum "Install_Dir" "$INSTDIR"
   
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum1" "DisplayName" "Quorum 1.0"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum1" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum1" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum1" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum15" "DisplayName" "Quorum 1.0"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum15" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum15" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum15" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
   
   ; Write QUORUM_INSTALLATION_PATH environment variable
