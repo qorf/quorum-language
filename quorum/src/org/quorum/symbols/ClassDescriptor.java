@@ -1339,7 +1339,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         allMethods.addAll(methods.values());
         allMethods.addAll(blueprints.values());
         allMethods.addAll(systemActions.values());
-        allMethods.addAll(resolvedTypeVirtualMethods.values());
+        allMethods.addAll(virtualMethods.values());
         return allMethods;
     }
     
@@ -1375,7 +1375,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
             }
         }
         
-        allMethods.addAll(resolvedTypeVirtualMethods.values());
+        allMethods.addAll(virtualMethods.values());
         
         return allMethods;
     }

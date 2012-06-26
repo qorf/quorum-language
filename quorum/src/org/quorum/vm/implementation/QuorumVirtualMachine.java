@@ -1269,11 +1269,11 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 String signature = method.getMethodSignature(true);
                 TypeDescriptor returnType = method.getReturnType();
                 if (!returnType.isVoid()) {
-                    if (returnType.isTemplated()) {
-                        signature += " returns " + returnType.getTemplateName();
-                    } else {
+                    //if (returnType.isTemplated()) {
+                    //    signature += " returns " + returnType.getTemplateName();
+                    //} else {
                         signature += " returns " + returnType.getStaticKey();
-                    }
+                    //}
                 }
 
                 String description = "";
