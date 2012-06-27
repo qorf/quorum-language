@@ -22,8 +22,26 @@ public class Console {
     private static JDialog dialog = null;
     private static boolean useDialog = true;
     
+    static {
+        try {
+            optionPane = new JOptionPane();
+            optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
+            optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
+            optionPane.setWantsInput(true);
+            dialog = optionPane.createDialog("Input Dialog");
+            dialog.setModalityType(ModalityType.APPLICATION_MODAL);
+            dialog.pack();
+            
+            // Allow dialog to be used.
+            useDialog = true;
+        } catch (Throwable e) {
+            // If SWING or AWT not available, we will use standard input
+            // only.
+            useDialog = false;
+        }
+    }
     public Console() {
-        
+
     }
     public void Print(String message) {
         System.out.println(message);
@@ -63,9 +81,7 @@ public class Console {
      * @return 
      */
     public static String StaticInput(String text) {
-        if (useDialog && optionPane == null || dialog == null) {
-            useDialog = loadConsoleGUI();
-        }
+
         
         if (useDialog) {
             String answer = "";
@@ -95,26 +111,6 @@ public class Console {
     }
 
     public static void Load() {
-    }
-    
-    private static boolean loadConsoleGUI() {
-        //initialize an input dialog that can be used application wide.
-        try {
-            optionPane = new JOptionPane();
-            optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
-            optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
-            optionPane.setWantsInput(true);
-            dialog = optionPane.createDialog("Input Dialog");
-            dialog.setModalityType(ModalityType.APPLICATION_MODAL);
-            dialog.pack();
-            
-            // Allow dialog to be used.
-            return true;
-        } catch (Throwable e) {
-            // If SWING or AWT not available, we will use standard input
-            // only.
-            return false;
-        }
     }
     
     public static void Unload() {
