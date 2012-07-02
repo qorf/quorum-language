@@ -11,17 +11,17 @@
  
 ;--------------------------------
 ; The name of the installer
-Name "Quorum 1.5"
+Name "Quorum 1.5.1"
 
 ; The file to write
-OutFile "Quorum 1.5.exe"
+OutFile "Quorum 1.5.1.exe"
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\Quorum
+InstallDir "$PROGRAMFILES\Quorum 1.5.1"
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\Quorum" "Install_Dir"
+InstallDirRegKey HKLM "Software\Quorum 1.5.1" "Install_Dir"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
@@ -136,13 +136,13 @@ Section "Quorum (required)" Quorum_Sec
   File /nonfatal /r "Quorum\*.*"
   
   ; Write the installation path into the registry
-  WriteRegStr HKLM SOFTWARE\Quorum "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM "SOFTWARE\Quorum 1.5.1" "Install_Dir" "$INSTDIR"
   
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum15" "DisplayName" "Quorum 1.0"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum15" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum15" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum15" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum 1.5.1" "DisplayName" "Quorum 1.5.1"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum 1.5.1" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum 1.5.1" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum 1.5.1" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
   
   ; Write QUORUM_INSTALLATION_PATH environment variable
@@ -157,7 +157,7 @@ SectionEnd
 ;--------------------------------
 ; Optional section (can be disabled by the user)
 Section "Start Menu Shortcuts" StartMenu_Sec
-  CreateDirectory "$SMPROGRAMS\Quorum"
+  CreateDirectory "$SMPROGRAMS\Quorum 1.5.1"
   CreateShortCut "$SMPROGRAMS\Quorum\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
 
 SectionEnd
@@ -180,7 +180,7 @@ Section "Uninstall"
 	
   ; Remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum"
-  DeleteRegKey HKLM SOFTWARE\Quorum
+  DeleteRegKey HKLM "SOFTWARE\Quorum 1.5.1"
 
   ; Remove files and uninstaller
   Delete $INSTDIR\*.*
