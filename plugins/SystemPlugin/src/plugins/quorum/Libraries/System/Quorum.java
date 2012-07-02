@@ -17,5 +17,7 @@ public class Quorum {
     
     public static void Unload() {
         Console.Unload();
+        
+        System.exit(0);
     }
 }
