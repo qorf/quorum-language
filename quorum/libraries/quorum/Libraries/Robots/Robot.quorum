@@ -463,7 +463,7 @@ class Robot
         integer angle = robot:SetTotalAngle(0)
         robot:StopWheels()
     */
-    system action SetTotalAngle(integer angle)
+    //system action SetTotalAngle(integer angle)
     
     /*
         This action returns the total accumulated distance the robot has moved 
@@ -497,7 +497,7 @@ class Robot
         robot:SetTotalDistance(0)
         robot:StopWheels()
     */
-    system action SetTotalDistance(number distance)
+    //system action SetTotalDistance(number distance)
     
     /*
         This action turns off the robot, which means that the robot does not perfom 
@@ -556,7 +556,7 @@ class Robot
     */
     system action GetMaximumSpeed() returns number
  
-    system action IsWallDetected(number lag)
+    system action IsWallDetected(number lag) returns boolean
     
     /*
         This action returns the speed with which the robot was asked to move.
