@@ -21,7 +21,7 @@ public class Robot {
     cbccore.create.Create r = null;
     
     private double robot_speed, robot_rspeed, robot_lspeed;
-            
+    
     public void Connect() 
     {
         try {
@@ -56,8 +56,15 @@ public class Robot {
     {
         int speed_int = (int)(speed * 500);
         distance = distance * 1000;
-        while(r.getDistance() < distance)
-            r.driveStraight(speed_int);
+        if (speed >= 0) {
+            double maxDistance = Device.getLowCreateController().get_create_distance(0) + distance;
+            while(r.getDistance() < maxDistance)
+                r.driveStraight(speed_int);
+        } else {
+            double maxDistance = Device.getLowCreateController().get_create_distance(0) - distance;
+            while(r.getDistance() > maxDistance)
+                r.driveStraight(speed_int);
+        }
         robot_speed = speed;
     }
     
@@ -205,21 +212,21 @@ public class Robot {
        return Device.getLowCreateController().get_create_total_angle(0);
     }
     
-    public void SetTotalAngle(int angle)
+    /*public void SetTotalAngle(int angle)
     {
        Device.getLowCreateController().set_create_total_angle(angle);
-    }
+    }*/
     
     public double GetTotalDistance()
     {
        return (double)(r.getDistance() * 0.001);
     }
       
-    public void SetTotalDistance(double distance)
+    /*public void SetTotalDistance(double distance)
     {
        int distance_int = (int)(distance * 1000); 
            Device.getLowCreateController().set_create_distance(distance_int);
-    }
+    }*/
     
     public void RunDemo(int demo)
     {
@@ -228,7 +235,7 @@ public class Robot {
     
     public double GetMaximumSpeed()
     {
-        return 0.5;
+        return 1.0;
     }
     
     public void TurnOff()
@@ -249,10 +256,10 @@ public class Robot {
         return Device.getLowCreateController().get_create_mode(0.1f);
     }
     
-    public void IsWallDetected(double lag)
+    public boolean IsWallDetected(double lag)
     {
         float lag_float = (float) lag;
-        Device.getLowCreateController().get_create_wall(lag_float);
+        return Device.getLowCreateController().get_create_wall(lag_float) == 1;
     }
     
     public double GetSpeed(double lag) 
