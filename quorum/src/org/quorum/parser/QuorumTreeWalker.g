@@ -1424,6 +1424,12 @@ scope {
 			$loop_statement::first_step = $expr.step;
 			$loop_statement::type = 2;
 			
+			TypeDescriptor type = $expr.eval.getType();
+			if(type == null || !type.isBoolean()) {
+				CompilerError error = new CompilerError($REPEAT.getLine(), "repeat loops require a boolean expression.", ErrorType.REPEAT_NON_BOOLEAN);
+				vm.getCompilerErrors().addError(error);	
+			}
+			
 			if($loop_statement::isWhile){
 				$loop_statement::cJumpStep = new ConditionalJumpLoopStep();
 				$loop_statement::cJumpStep.setLoopType(LoopType.WHILE);
