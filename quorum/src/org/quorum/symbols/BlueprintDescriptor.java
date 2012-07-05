@@ -14,12 +14,6 @@ import org.quorum.vm.interfaces.CompilerError;
  */
 public class BlueprintDescriptor extends MethodDescriptor {
 
-    private String key = "";
-    private TypeDescriptor returnType;
-    private Parameters parameters = new Parameters();
-    private AccessModifierEnum accessModifier;
-    private Scopable parent;
-
     /**
      * A method that generates a key signature for a method with a given name and
      * set of arguments.

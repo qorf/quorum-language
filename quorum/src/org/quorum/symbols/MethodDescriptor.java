@@ -18,16 +18,16 @@ import org.quorum.vm.interfaces.LineInformation;
  */
 public class MethodDescriptor extends Descriptor implements Scopable {
 
-    private Parameters parameters = new Parameters();
+    protected Parameters parameters = new Parameters();
     private Vector<BlockDescriptor> children;
     private HashMap<String, VariableParameterCommonDescriptor> variables;
     private HashMap<Integer, Object> statementList;
     private int currentBlock;
-    private String key = "";
-    private TypeDescriptor returnType;
+    protected String key = "";
+    protected TypeDescriptor returnType;
     private HashMap<String, TypeDescriptor> mappedTemplateType = new HashMap<String, TypeDescriptor>();
-    private Scopable parent;
-    private AccessModifierEnum accessModifier;
+    protected Scopable parent;
+    protected AccessModifierEnum accessModifier;
     private MethodLocation location;
     private boolean isResolved = true;
     private boolean isConstructor = false;
