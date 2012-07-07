@@ -143,13 +143,31 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         String result = "";
         result += "<div class=\"quorum_header\">";
         result += "<ul class=\"quorum_header\">";
-        result += "<li class=\"quorum_header_start\">Quorum</li>";
-        result += "<li class=\"quorum_header\"><a href=\"" + root + "index.html" 
-                + "\" class=\"quorum_header\">Index</a></li>";
-        result += "<li class=\"quorum_header\"><a href=\"https://sourceforge.net/apps/trac/quorum" 
-                + "\" class=\"quorum_header\">Wiki</a></li>";
-        result += "<li class=\"quorum_header\"><a href=\"https://sourceforge.net/apps/trac/quorum/wiki/documentation" 
-                + "\" class=\"quorum_header\">Syntax</a></li>";
+        
+        
+        result += "<li class=\"quorum_header_start\"> <a href=\"" + 
+                    "/index.php\" class=\"quorum_header\">Quorum</a></li>";
+        result += "<li class=\"quorum_header\"> <a href=\"" + 
+                    "/syntax.php\" class=\"quorum_header\">Syntax</a></li>";
+        result += "<li class=\"quorum_header\"> <a href=\"" + 
+                    "/libraries.php\" class=\"quorum_header\">Libraries</a></li>";
+        result += "<li class=\"quorum_header\"> <a href=\"" + 
+                    "/curriculum.php\" class=\"quorum_header\">Curriculum</a></li>";
+        result += "<li class=\"quorum_header\"> <a href=\"" + 
+                    "/download.php\" class=\"quorum_header\">Downloads</a></li>";
+        
+        
+        
+        
+        
+        
+//        result += "<li class=\"quorum_header_start\">Quorum</li>";
+//        result += "<li class=\"quorum_header\"><a href=\"" + root + "intro.php" 
+//                + "\" class=\"quorum_header\">Index</a></li>";
+//        result += "<li class=\"quorum_header\"><a href=\"https://sourceforge.net/apps/trac/quorum" 
+//                + "\" class=\"quorum_header\">Wiki</a></li>";
+//        result += "<li class=\"quorum_header\"><a href=\"https://sourceforge.net/apps/trac/quorum/wiki/documentation" 
+//                + "\" class=\"quorum_header\">Syntax</a></li>";
         result += "</ul>";
         result += "</div>";
         return result;
@@ -617,12 +635,41 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     }
 
     @Override
+    public String getIndexName() {
+        return "library-index";
+    }
+    
+    @Override
     public void finish(File standardLibrary, File documentation) {
         File css = new File(standardLibrary.getParentFile().getAbsolutePath() + "/style.css");
         File destination = new File(documentation.getAbsolutePath() + "/style.css");
         try {
             QuorumJarGenerator gen = new QuorumJarGenerator();
             gen.copyFile(css, destination);
+            
+            File intro = new File(standardLibrary.getParentFile().getAbsolutePath() + "/index.php");
+            destination = new File(documentation.getAbsolutePath() + "/index.php");
+            gen.copyFile(intro, destination);
+            
+            File syntax = new File(standardLibrary.getParentFile().getAbsolutePath() + "/syntax.php");
+            destination = new File(documentation.getAbsolutePath() + "/syntax.php");
+            gen.copyFile(syntax, destination);
+            
+            File libraries = new File(standardLibrary.getParentFile().getAbsolutePath() + "/libraries.php");
+            destination = new File(documentation.getAbsolutePath() + "/libraries.php");
+            gen.copyFile(libraries, destination);
+            
+            File curriculum = new File(standardLibrary.getParentFile().getAbsolutePath() + "/curriculum.php");
+            destination = new File(documentation.getAbsolutePath() + "/curriculum.php");
+            gen.copyFile(curriculum, destination);
+            
+            File downloads = new File(standardLibrary.getParentFile().getAbsolutePath() + "/download.php");
+            destination = new File(documentation.getAbsolutePath() + "/download.php");
+            gen.copyFile(downloads, destination);
+            
+            File documents = new File(standardLibrary.getParentFile().getAbsolutePath() + "/documents");
+            destination = new File(documentation.getAbsolutePath() + "/documents");
+            gen.copyFile(documents, destination);
         } catch (IOException ex) {
             Logger.getLogger(HTMLDocumentationGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }

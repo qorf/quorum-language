@@ -10,7 +10,7 @@
     <div class="quorum_header">
         <ul class="quorum_header">
             <?php echo '<li class="quorum_header_start"> <a href="'. 
-                    '/intro.php" class="quorum_header">Quorum</a></li>';?>
+                    '/index.php" class="quorum_header">Quorum</a></li>';?>
             <?php echo '<li class="quorum_header"> <a href="' .  
                     '/syntax.php" class="quorum_header">Syntax</a></li>';?>
             <?php echo '<li class="quorum_header"> <a href="' . 

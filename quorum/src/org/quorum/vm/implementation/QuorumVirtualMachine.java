@@ -203,7 +203,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         String root = documentationPath;
         File file = new File(root);
         try {
-            File result = new File(root + "/index" + "." + documentor.getFileExtension());
+            File result = new File(root + "/" + documentor.getIndexName() + "." + documentor.getFileExtension());
             Writer out = null;
 
             if (result.isFile()) {

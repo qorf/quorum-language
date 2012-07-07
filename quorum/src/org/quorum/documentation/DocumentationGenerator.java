@@ -38,6 +38,12 @@ public interface DocumentationGenerator {
     public void setIndexed(boolean isIndexed);
     
     /**
+     * Returns the name used by the generator for the index file.
+     * @return 
+     */
+    public String getIndexName();
+    
+    /**
      * Returns the generated index file. If isIndexed() is false, this returns
      * null.
      * 

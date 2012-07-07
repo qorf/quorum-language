@@ -156,6 +156,11 @@ public class TracWikiDocumentationGenerator implements DocumentationGenerator {
         return result;
     }
     
+    @Override
+    public String getIndexName() {
+        return "index";
+    }
+    
     private String getVariableDocumentation(VariableDescriptor variable) {
         String result = "";
         TypeDescriptor type = variable.getType();
