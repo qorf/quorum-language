@@ -1,6 +1,6 @@
 <?php include("documents/include/header.php"); ?>
 <script type="text/javascript">
-    document.title += 'Introduction to the Quorum Programming Language';
+    document.title = 'Introduction to the Quorum Programming Language';
 </script>
 <h1>The Quorum Programming Language</h1>
 <p>

@@ -1,6 +1,6 @@
 <?php include("documents/include/header.php"); ?>
 <script type="text/javascript">
-    document.title += 'Download the Quorum Programming Language';
+    document.title = 'Download the Quorum Programming Language';
 </script>
 <h1>The Quorum Download page</h1>
 <p>To install Quorum as a standalone programming language, that can be
