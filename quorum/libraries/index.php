@@ -18,14 +18,14 @@
     <li>Static type checking</li>
     <li>Unique control structures, heavily tested to be easy to understand by novices and professionals</li>
     <li>Object-oriented language</li>
-    <li><a href="libraries.html">Standard Library</a> (e.g., data structures, music generation, text-to-speech)</li>
+    <li><a href="libraries.php">Standard Library</a> (e.g., data structures, music generation, text-to-speech)</li>
     <li>Plugin system for extending Quorum</li>
     <li>Integration with the NetBeans IDE</li>
     <li>Talking Omniscient debugger (The debugger literally talks to you and tells you what is going on).</li>
 </ul>
 <h2>Getting Started with Quorum</h2>
 <ul>
-    <li>Here are instructions to <a href="documents/download.php">download and install Quorum</a> on its own. Quorum also comes included in <a href="http://sodbeans.sourceforge.net/download.php">Sodbeans</a>.</li>
+    <li>Here is the <a href="documents/download.php">download and install</a> page. Quorum also comes included in <a href="http://sodbeans.sourceforge.net/download.php">Sodbeans</a>.</li>
     <li>For further instructions on installation, you can go to the <a href="documents/installation.php">Quorum installation and getting started</a> page.</li>
     <li>If you are new to Quorum and want to learn how to write programs, check out information on the <a href="syntax.php">syntax.</a></li>
     <li>If you are taking a class on Quorum, <a href="curriculum.php">labs, programming assignments, and curriculum</a> is available.</li>

@@ -20,13 +20,13 @@
     various ways of storing data in the Quorum programming language.
 </p>
 <ul>
-    <li><a href="variables.html">Variables</a>: Storing information in memory.</li>
-    <li><a href="operators.html">Operators</a>: Adding, subtracting, and multiplying, oh my!</li>
-    <li><a href="types.html">Types</a>: Understanding Quorum's type system.</li>
-    <li><a href="casting.html">Type Casting</a>: Convert one type of thing to another.</li>
-    <li><a href="comments.html">Comments</a>: Writing notes to yourself 
+    <li><a href="documents/syntax/variables.php">Variables</a>: Storing information in memory.</li>
+    <li><a href="documents/syntax/operators.php">Operators</a>: Adding, subtracting, and multiplying, oh my!</li>
+    <li><a href="documents/syntax/types.php">Types</a>: Understanding Quorum's type system.</li>
+    <li><a href="documents/syntax/casting.php">Type Casting</a>: Convert one type of thing to another.</li>
+    <li><a href="documents/syntax/comments.php">Comments</a>: Writing notes to yourself 
         (or others) to help understand the code.</li>
-    <li><a href="arrays.html">Arrays</a>: Storing collections of data in memory.</li>
+    <li><a href="documents/syntax/arrays.php">Arrays</a>: Storing collections of data in memory.</li>
 </ul>
 <h3>Control Structures</h3>
 <p>
@@ -39,8 +39,8 @@
     Quorum language.
 </p>
 <ul>
-    <li><a href="repeat.html">Repeat</a>: Doing things zero or more times</li>
-    <li><a href="if.html">If</a>: Do something only when a condition 
+    <li><a href="documents/syntax/repeat.php">Repeat</a>: Doing things zero or more times</li>
+    <li><a href="documents/syntax/if.php">If</a>: Do something only when a condition 
         is true</li>            
 </ul>
 <h3>Classes and Actions</h3>
@@ -54,20 +54,20 @@
     the Quorum Programming Language:
 </p>
 <ul>
-    <li><a href="actions.html">Actions</a>: Telling Quorum to take certain behaviors.</li>
-    <li><a href="classes.html">Classes</a>: Classes allow you to make your own custom types.</li>
-    <li><a href="use.html">Use statements</a>: Use statements make it 
+    <li><a href="documents/syntax/actions.php">Actions</a>: Telling Quorum to take certain behaviors.</li>
+    <li><a href="documents/syntax/classes.php">Classes</a>: Classes allow you to make your own custom types.</li>
+    <li><a href="documents/syntax/use.php">Use statements</a>: Use statements make it 
         easier to use classes from the standard library.</li>
-    <li><a href="inheritance.html">Inheritance</a>: Create relationships between classes.</li>
-    <li><a href="isa.html">is a</a>: A special operator that determines 
+    <li><a href="documents/syntax/inheritance.php">Inheritance</a>: Create relationships between classes.</li>
+    <li><a href="documents/syntax/isa.php">is a</a>: A special operator that determines 
         whether an object is a subclass of a parent.</li>
-    <li><a href="blueprints.html">Blueprints</a>: Blueprint actions
+    <li><a href="documents/syntax/blueprints.php">Blueprints</a>: Blueprint actions
         allow you to specify that child classes must implement an action.</li>
-    <li><a href="generics.html">Generics</a>: Generics allow you to specify 
+    <li><a href="documents/syntax/generics.php">Generics</a>: Generics allow you to specify 
         types in container classes.</li>
-    <li><a href="autoboxing.html">Auto-boxing</a>: Automatic conversion 
+    <li><a href="documents/syntax/autoboxing.php">Auto-boxing</a>: Automatic conversion 
         between primitive types and Object types.</li>
-    <li><a href="errors.html">Error Handling</a>: This section shows how to 
+    <li><a href="documents/syntax/errors.php">Error Handling</a>: This section shows how to 
         deal with errors (called exceptions in other languages).</li>
 </ul>
 <h3>Libraries and Extensions</h3>
@@ -77,11 +77,11 @@
     add to it, and general recommended coding standards.
 </p>
 <ul>
-    <li><a href="standards.html">Coding Standards</a>: This section describes
+    <li><a href="documents/syntax/standards.php">Coding Standards</a>: This section describes
         coding standards for Quorum classes.</li>
-    <li><a href="libraries.html">The Quorum Standard Library</a>: The Quorum standard library 
+    <li><a href="documents/syntax/libraries.php">The Quorum Standard Library</a>: The Quorum standard library 
         provides additional functionality for the programming language.</li>
-    <li><a href="index.html">The Quorum Standard Library Application 
+    <li><a href="documents/syntax/index.php">The Quorum Standard Library Application 
             Programming Interface (API) Index</a>: This page gives a raw 
         index of the classes available in the standard library.</li>
 </ul>
