@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
+import org.sodbeans.phonemic.SpeechPriority;
+import org.sodbeans.phonemic.TextToSpeechFactory;
+import org.sodbeans.phonemic.tts.TextToSpeech;
 
 /**
  * A compiler plugin for basic console input/output.
@@ -21,6 +24,7 @@ public class Console {
     private static JOptionPane optionPane = null;
     private static JDialog dialog = null;
     private static boolean useDialog = true;
+    private static TextToSpeech speech = null;
     
     static {
         try {
@@ -34,6 +38,9 @@ public class Console {
             
             // Allow dialog to be used.
             useDialog = true;
+            
+            // Set up speech if we get here.
+            speech = TextToSpeechFactory.getDefaultTextToSpeech();
         } catch (Throwable e) {
             // If SWING or AWT not available, we will use standard input
             // only.
@@ -81,13 +88,19 @@ public class Console {
      * @return 
      */
     public static String StaticInput(String text) {
-
-        
         if (useDialog) {
+            // Read the user the prompt message if we are in sodbeans.
+            // Sodbeans calls Quorum programs using the -D flag, like so:
+            // java -Dsodbeans=1 -jar <Default.jar> ...
+            if (System.getProperty("sodbeans") != null)
+                speech.speak(text, SpeechPriority.MEDIUM_HIGH);
+            
+            // Now, show the input dialog.
             String answer = "";
             optionPane.setMessage(text);
             dialog.setVisible(true); 
             dialog.requestFocus();
+
             answer = (String) optionPane.getInputValue();
             return answer;
         } else {
