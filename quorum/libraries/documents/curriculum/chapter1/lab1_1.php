@@ -1,4 +1,4 @@
-<?php include("documents/include/header.php"); ?>
+<?php include("../../include/header.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab 1.1';
 </script>
@@ -26,56 +26,31 @@ The tutorial window consists of six different options to choose from.  The six c
 <p>
 First, let's visit the Hotkeys Reference to get a general overview of the hotkeys one might use in Sodbeans.  Press 1 on the keyboard, or click on the button labeled ![1], to enter the Hotkeys Reference window.  This window displays a list of every hotkey, along with the action that they perform. This reference is helfpul, as there is no need to memorize every hotkey to complete a task. Over time, commonly used hotkeys will be easily memorized and help us work more efficiently. Take a look through the list and write down or type the keyboard shortcuts, along with the description for each shortcut listed below.
 </p>
-<p>
-||Change speech voice||
-</p>
-<p>
-||Create a new project||
-</p>
-<p>
-||Decrease speech speed||
-</p>
-<p>
-||Decrease speech volume||
-</p>
-<p>
-||Increase speech speed||
-</p>
-<p>
-||Increase speech volume||
-</p>
-<p>
-||Open an existing project||
-</p>
-<p>
-||Repeat what was last said||
-</p>
-<p>
-||Save a file||
-</p>
-<p>
-||Save all files||
-</p>
-<p>
-||Stop speaking||
-</p>
-<p>
-||Switch between open documents||
-</p>
-<p>
-||Toggle a breakpoint for Debugger||
-</p>
+
+<ol><li>Change speech voice
+</li><li>Create a new project
+</li><li>Decrease speech speed
+</li><li>Decrease speech volume
+</li><li>Increase speech speed
+</li><li>Increase speech volume
+</li><li>Open an existing project
+</li><li>Repeat what was last said
+</li><li>Save a file
+</li><li>Save all files
+</li><li>Stop speaking
+</li><li>Switch between open documents
+</li><li>Toggle a breakpoint for Debugger
+</li></ol>
 <p>
 Now, let's return to the main tutorial window. Take a quick tour of the other tutorial options on the main tutorial window. Although we are only focusing on the Hotkeys Reference and Sodbeans Tutorials in this lab, we will take a quick look at the other tutorial options to get a feel of the tutorial system in Sodbeans. First, press the 2 key on the keyboard, or click on the ![2] button, to enter the Sodbeans Tutorials. Try navigating the window that appears. Notice that within the Sodbeans Tutorial window, there are many options, such as &quot;Windows and Navigation.&quot; Return to the main tutorial window and repeat the same steps for the &quot;Quorum Tutorials&quot; and &quot;Quorum Standard Library&quot; buttons. After a quick tour, return to the main tutorial window to get ready for the next task.
 </p>
 <p>
 Create a word document with answers for the following questions:
 </p>
-<ol>
- 1. What is the definition of hotkeys?
-</ol>
- 2. What are some hotkeys that might be the most frequently used?  Include both description and hot key.
- 3. What does the tutorial system in Sodbeans offer?
+<ol><li>What is the definition of hotkeys?
+</li><li>What are some hotkeys that might be the most frequently used?  Include both description and hot key.
+</li><li>What does the tutorial system in Sodbeans offer?
+</li></ol>
 <h2>Task 2: Following Tutorials</h2>
 <p>
 It’s time to become familiar with the basics of Sodbeans by learning windows, navigation, projects, and files.  We will work through two tutorials: 1) Windows and Navigation and 2) Projects and Files.
@@ -93,76 +68,49 @@ Return to the main tutorial window and close the main tutorial window.
 To reopen the main tutorial window, go the Help menu and select the Sodbeans Tutorial item.  Close the main tutorial window again.  If there is enough time, play with the keyboard shortcuts, as shown in the tables below.
 </p>
 <p>
-<span class="keys">BR</span>
-</p>
-<p>
 General
 </p>
-<p>
-||<b>Task</b>||<b>Hotkey</b>||<b>Action</b>||
-</p>
-<p>
-||Create Project||CTRL + SHIFT + N||Creates a new project||
-</p>
-<p>
-||Open Project||CTRL + SHIFT + O||Opens an existing project||
-</p>
-<p>
-||Properties Window||CTRL + comma||Opens the properties or options window||
-</p>
+<table class="table">
+<tr><td><strong>Task</strong></td><td><strong>Hotkey</strong></td><td><strong>Action</strong>
+</td></tr><tr><td>Create Project</td><td>CTRL + SHIFT + N</td><td>Creates a new project
+</td></tr><tr><td>Open Project</td><td>CTRL + SHIFT + O</td><td>Opens an existing project
+</td></tr><tr><td>Properties Window</td><td>CTRL + comma</td><td>Opens the properties or options window
+</td></tr></table>
 <p>
 Tutorial
 </p>
-<p>
-||<b>Task</b>||<b>Hotkey</b>||<b>Action</b>||
-</p>
-<p>
-||Tutorial Window||CTRL + ALT + T||Changes the focus to the Tutorial Remote window during the tutorial||
-</p>
+<table class="table">
+<tr><td><strong>Task</strong></td><td><strong>Hotkey</strong></td><td><strong>Action</strong>
+</td></tr><tr><td>Tutorial Window</td><td>CTRL + ALT + T</td><td>Changes the focus to the Tutorial Remote window during the tutorial
+</td></tr></table>
 <p>
 Tree Views
 </p>
-<p>
-||<b>Task</b>||<b>Hotkey</b>||<b>Action</b>||
-</p>
-<p>
-||Collapse Project/Folder||Left Arrow||Closes the project or folder||
-</p>
-<p>
-||Expand Project/Folder||Right Arrow||Opens the project or folder||
-</p>
+<table class="table">
+<tr><td><strong>Task</strong></td><td><strong>Hotkey</strong></td><td><strong>Action</strong>
+</td></tr><tr><td>Collapse Project/Folder</td><td>Left Arrow</td><td>Closes the project or folder
+</td></tr><tr><td>Expand Project/Folder</td><td>Right Arrow</td><td>Opens the project or folder
+</td></tr></table>
 <p>
 Using Project
 </p>
-<p>
-||<b>Task</b>||<b>Hotkey</b>||<b>Action</b>||
-</p>
-<p>
-||Editor Window||CTRL + 0||Changes the focus to the editor window||
-</p>
-<p>
-||New File||CTRL + N||Opens the new file dialog to create a new file||
-</p>
-<p>
-||Output Window||CTRL + 5||Changes the focus to the Sodbeans output window||
-</p>
-<p>
-||Projects Window||CTRL + 1||Changes the focus to the Projects window||
-</p>
-<p>
-||Variable Window||CTRL + SHIFT + 1||Changes the focus to the variable window||
-</p>
+<table class="table">
+<tr><td><strong>Task</strong></td><td><strong>Hotkey</strong></td><td><strong>Action</strong>
+</td></tr><tr><td>Editor Window</td><td>CTRL + 0</td><td>Changes the focus to the editor window
+</td></tr><tr><td>New File</td><td>CTRL + N</td><td>Opens the new file dialog to create a new file
+</td></tr><tr><td>Output Window</td><td>CTRL + 5</td><td>Changes the focus to the Sodbeans output window
+</td></tr><tr><td>Projects Window</td><td>CTRL + 1</td><td>Changes the focus to the Projects window
+</td></tr><tr><td>Variable Window</td><td>CTRL + SHIFT + 1</td><td>Changes the focus to the variable window
+</td></tr></table>
 <p>
 Use an existing document from the previous task to answer the following questions:
 </p>
-<ol>
- 1. What does the Projects window display?
-</ol>
- 2. What is the editor window designed to be used?
- 3. What is the purpose of the properties window?
- 4. What is the file main.quorum known as?
- 5. Where are all Quorum files located inside the project?
- 6. When there are two or more projects in the Projects window, how do we tell Sodbeans to focus on the one project only in order to build and run a program?
+<ol><li>What does the Projects window display?
+</li><li>What is the editor window designed to be used?
+</li><li>What is the purpose of the properties window?
+</li><li>What is the file main.quorum known as?
+</li><li>Where are all Quorum files located inside the project?
+</li><li>When there are two or more projects in the Projects window, how do we tell Sodbeans to focus on the one project only in order to build and run a program?
+</li></ol>
 
-
-<?php include("documents/include/footer.php"); ?>
+<?php include("../../include/footer.php"); ?>

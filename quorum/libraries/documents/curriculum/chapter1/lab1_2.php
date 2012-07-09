@@ -1,4 +1,4 @@
-<?php include("documents/include/header.php"); ?>
+<?php include("../../include/header.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab 1.2';
 </script>
@@ -37,10 +37,9 @@ Navigate to the editor for main.quorum and arrow through the code. Listen and re
 <p>
 Create a word document and answer the following questions:
 </p>
-<ol>
- 1. What lines start with the keywords {{{repeat while}}}?
-</ol>
- 2. What lines start with the keyword {{{if}}}?
+<ol><li>What lines start with the keywords <tt>repeat while</tt>?
+</li><li>What lines start with the keyword <tt>if</tt>?
+</li></ol>
 <h2>Task 3: Run the Program</h2>
 <p>
 It’s time to do the first run of the game!  To run the program, press the F6 key or go to Run -&gt; Run Project (Hangman).  The game has begun!  The input dialog appears.  It prompts us to guess a letter, so type any one letter to make your guess and press Enter.  Continue doing the same step until the game ends with the following statement:  “Hooray! The word is quorum.”
@@ -48,12 +47,10 @@ It’s time to do the first run of the game!  To run the program, press the F6 k
 <p>
 After the program finishes running, try to find and guess the code that accepts the user input and announces the current and final results.  Answer the following questions:
 </p>
-<ol>
- 1. Where is the keyword {{{input}}} that accepts the user input?  Provide both line number and code. (Hint: Look for the line that starts with the word {{{guess}}}.)
-</ol>
- 2. Where are the three lines of code that use keyword {{{say}}} to announce the current and final results?  Provide line numbers.
- 3. Near the end of the program, there is a line that says &quot;if game over is equal to true.&quot;  What do you think that code does?
-<h2>Task 4: Play Your Partner’s Game</h2>
+<ol><li>Where is the keyword <tt>input</tt> that accepts the user input?  Provide both line number and code. (Hint: Look for the line that starts with the word <tt>guess</tt>.)
+</li><li>Where are the three lines of code that use keyword <tt>say</tt> to announce the current and final results?  Provide line numbers.
+</li><li>Near the end of the program, there is a line that says "if game over is equal to true."  What do you think that code does?
+</li></ol><h2>Task 4: Play Your Partner’s Game</h2>
 <p>
 Before playing each other’s game, the answer needs to be changed to something new.  To change the answer, find the following code:
 </p>
@@ -71,4 +68,4 @@ To make the changes take effect, run the program.  It is now ready to use. Switc
 Feel free to keep playing the game.  Change the answer to something different, then run the program again.
 </p>
 
-<?php include("documents/include/footer.php"); ?>
+<?php include("../../include/footer.php"); ?>
