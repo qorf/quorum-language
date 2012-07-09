@@ -79,7 +79,7 @@
 <ul>
     <li><a href="documents/syntax/standards.php">Coding Standards</a>: This section describes
         coding standards for Quorum classes.</li>
-    <li><a href="documents/syntax/libraries.php">The Quorum Standard Library</a>: The Quorum standard library 
+    <li><a href="libraries.php">The Quorum Standard Library</a>: The Quorum standard library 
         provides additional functionality for the programming language.</li>
     <li><a href="documents/syntax/index.php">The Quorum Standard Library Application 
             Programming Interface (API) Index</a>: This page gives a raw 
