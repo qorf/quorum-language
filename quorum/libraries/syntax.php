@@ -81,7 +81,7 @@
         coding standards for Quorum classes.</li>
     <li><a href="libraries.php">The Quorum Standard Library</a>: The Quorum standard library 
         provides additional functionality for the programming language.</li>
-    <li><a href="documents/syntax/index.php">The Quorum Standard Library Application 
+    <li><a href="library-index.html">The Quorum Standard Library Application 
             Programming Interface (API) Index</a>: This page gives a raw 
         index of the classes available in the standard library.</li>
 </ul>

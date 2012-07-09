@@ -8,32 +8,43 @@
     offers a new approach to programming language design. Designed in formal 
     empirical studies with human subjects, Quorum has been iteratively 
     refined for ease of understanding and use in lab work and field tests 
-    with novices and experts. Quorum is available as part of the <a href="http://sodbeans.sourceforge.net/"> Sodbeans project</a> and 
+    with novices and experts. Quorum is available as part of the 
+    <a href="http://sodbeans.sourceforge.net/"> Sodbeans project</a> and 
     additionally as a stand-alone programming 
-    language. The Quorum 1.5 release (see the <a href="documents/release.php">Quorum release notes</a>), 
+    language. The Quorum 1.5 release (see 
+    the <a href="documents/release.php">Quorum release notes</a>), 
     has the following features:
 </p>
 <ul>
     <li>Source code is compiled to Java bytecode</li>
     <li>Static type checking</li>
-    <li>Unique control structures, heavily tested to be easy to understand by novices and professionals</li>
+    <li>Unique control structures, heavily tested to be easy to understand by 
+        novices and professionals</li>
     <li>Object-oriented language</li>
-    <li><a href="libraries.php">Standard Library</a> (e.g., data structures, music generation, text-to-speech)</li>
+    <li><a href="libraries.php">Standard Library</a> (e.g., data structures, 
+        music generation, text-to-speech)</li>
     <li>Plugin system for extending Quorum</li>
     <li>Integration with the NetBeans IDE</li>
-    <li>Talking Omniscient debugger (The debugger literally talks to you and tells you what is going on).</li>
+    <li>Talking Omniscient debugger (The debugger literally talks to you and 
+        tells you what is going on).</li>
 </ul>
 <h2>Getting Started with Quorum</h2>
 <ul>
-    <li>Here is the <a href="documents/download.php">download and install</a> page. Quorum also comes included in <a href="http://sodbeans.sourceforge.net/download.php">Sodbeans</a>.</li>
-    <li>For further instructions on installation, you can go to the <a href="documents/installation.php">Quorum installation and getting started</a> page.</li>
-    <li>If you are new to Quorum and want to learn how to write programs, check out information on the <a href="syntax.php">syntax.</a></li>
-    <li>If you are taking a class on Quorum, <a href="curriculum.php">labs, programming assignments, and curriculum</a> is available.</li>
+    <li>Here is the <a href="download.php">download and installation</a> page. 
+        Quorum also comes included in 
+        <a href="http://sodbeans.sourceforge.net/download.php">Sodbeans</a>.</li>
+    <li>If you are new to Quorum and want to learn how to write programs, check 
+        out information on the <a href="syntax.php">syntax.</a></li>
+    <li>If you are taking a class on Quorum, <a href="curriculum.php">labs, 
+            programming assignments, and curriculum</a> is available.</li>
+    <li>If you want a quick reference for Quorum's command line arguments, go
+        to the <a href="documents/console.php">command line reference page</a>.
 
 </ul>
 <h2>Example Code in Quorum</h2>
 <p>
-    Below are some full examples of programs written in Quorum. These examples are complete standalone programs. Here's hello, world:
+    Below are some full examples of programs written in Quorum. These examples 
+    are complete standalone programs. Here's hello, world:
 </p>
 <p><pre class="code"><code>
 print &quot;Hello, world!&quot;
@@ -45,7 +56,8 @@ print &quot;Hello, world!&quot;
 say &quot;Hello, World!&quot;
 </code></pre></p>
 <p>
-    and here's how you create a chromatic musical scale (starting at middle C) play out of your computer's speakers:
+    and here's how you create a chromatic musical scale (starting at middle C) 
+    play out of your computer's speakers:
 </p>
 <p><pre class="code"><code>
 use Libraries.Sound.Music
