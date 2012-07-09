@@ -16,12 +16,12 @@
     <li>Small programming projects (1-2 hours completion time)</li>
     <li>Challenge programming projects (5-10 hours completion time)</li>
 </ol>
-<h2><a href="chapter1.html">Chapter 1: A Quick Tour of Sodbeans and Quorum</a></h2>
-<h2><a href="chapter2.html">Chapter 2: Variables and Types</a></h2>
-<h2><a href="chapter3.html">Chapter 3: Control Structures</a></h2>
-<h2><a href="chapter4.html">Chapter 4: Actions</a></h2>
-<h2><a href="chapter5.html">Chapter 5: Classes</a></h2>
-<h2><a href="chapter6.html">Chapter 6: Inheritance</a></h2>
-<h2><a href="chapter7.html">Chapter 7: Errors and Data</a></h2>
-<h2><a href="chapter8.html">Chapter 8: Input and Output</a></h2>
+<h2><a href="/documents/curriculum/chapter1/chapter1.php">Chapter 1: A Quick Tour of Sodbeans and Quorum</a></h2>
+<h2><a href="/documents/curriculum/chapter2/chapter2.php">Chapter 2: Variables and Types</a></h2>
+<h2><a href="/documents/curriculum/chapter3/chapter3.php">Chapter 3: Control Structures</a></h2>
+<h2><a href="/documents/curriculum/chapter4/chapter4.php">Chapter 4: Actions</a></h2>
+<h2><a href="/documents/curriculum/chapter5/chapter5.php">Chapter 5: Classes</a></h2>
+<h2><a href="/documents/curriculum/chapter6/chapter6.php">Chapter 6: Inheritance</a></h2>
+<h2><a href="/documents/curriculum/chapter7/chapter7.php">Chapter 7: Errors and Data</a></h2>
+<h2><a href="/documents/curriculum/chapter8/chapter8.php">Chapter 8: Input and Output</a></h2>
 <?php include("documents/include/footer.php"); ?>
