@@ -37,7 +37,7 @@ In the <tt>Circle</tt> class, add the class variable <b>radius</b> of type <tt>n
 <p>
 Now lets add a GetRadius and SetRadius action to help get a value for radius.  Just as you learned from chapter 5, create an access action and access modifier for radius. Creating actions such as these to obtain values helps keep your program modular and robust.  In task 3, we will be using inheritance to access these actions in our Sphere class.  Thanks to inheritance, we only need to write the actions once, and can then use them in both classes to obtain a value for radius.
 </p>
-<h2>Task 3: Inheriting actions from another class</h2>
+<h2>Task 3: Inheriting Actions From Another Class</h2>
 <p>
 Now that we have our getter and setter for radius, lets inherit that method in our Sphere class. To inherit the actions of another class,  tell Sodbeans that &quot;class A&quot; is a &quot;B&quot;.  The keywords here are &quot;is a&quot; which is used to inherit one class into another.  Lets rewrite our Sphere class so that Sodbeans knows that class Sphere is inheriting the actions of class Circle.  Your code should look similar to the following:
 </p>
@@ -58,7 +58,7 @@ end
 <p>
 Now let's use the different actions to create diameters for our Circle and Sphere.  In Main, create Circle and Sphere objects.  Next, create number variables circleRadius and sphereRadius. Using the set and get actions in our Circle class, assign a radius value to circleRadius.  Recall that in our Sphere class, in action  SphereSetRadius, we've already set the value of radius to 12.5, so now we only need to get that value.  Using the GetRadius method from our Sphere class, assign the sphereRadius variable a value.  Next, multiply both values by 2 to get the circle and sphere diameters, then print or say their respective values.
 </p>
-<h2>Task 4: Using inherited actions</h2>
+<h2>Task 4: Using Inherited Actions</h2>
 <p>
 We are going to create actions that will calculate various circle and sphere properties.  The sphere calculations will require a radius, which can only be obtained through inheritance from our Circle class.
 </p>

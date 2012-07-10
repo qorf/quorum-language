@@ -3,7 +3,7 @@
     document.title = 'Lab6_2';
 </script>
 
-          <h1>Lab 6.2 Blueprints</h1>
+          <h1>Lab 6.2: Blueprints</h1>
 <h2>Objectives</h2>
 <p>
 The goal of this lab is to understand the following concepts:
@@ -60,7 +60,7 @@ This action should do the same as action SaySuperPowers, but instead should iter
 This is a blueprint action that each class(Spiderman, Superman, and CaptainAmerica) will inherit from class SuperHero and implement in a different way. By using blueprints and inheritance in this program, we are able to create a general action that can be used across multiple classes in different ways.  This saves us the time of creating this specific action for every class.
 Next, in Main, try to instantiate an object of type SuperHero.  Notice that this resulted in a compiler error.  This is because Sodbeans doesn't know what the blueprint actions do.
 </p>
-<h2>Task 3: Inheriting blueprint actions from another class</h2>
+<h2>Task 3: Inheriting Blueprint Actions From Another Class</h2>
 <p>
 In this task we will be implementing the inherited blueprint action BuildCharacter for classes Superman, Spiderman, and CaptainAmerica. The BuildCharacter action should do the same thing for each class: add equipment and powers to the hero using the setters from classes Equipment and SuperPower, and add the values to the proper array using the AddEquipment action from our SuperHero class. For each superhero (Superman, Spiderman, and Captain America), add powers and pieces of equipment that describe that particular hero. I.e:
 </p>
@@ -77,7 +77,7 @@ end
 </pre><p>
 In the above example, we have described that Superman has a cape and can use laser vision. For each superhero, create a combination of at least 5 powers and/or equipment that that superhero has.
 </p>
-<h2>Task 4: Using inherited actions</h2>
+<h2>Task 4: Using Inherited Actions</h2>
 <p>
 After you have action BuildCharacter implemented for each superhero, go into Main and instantiate an object of each superhero and call BuildCharacter. Then, using the SaySuperPowers() and SayInventory() actions, list the powers and inventory of each superhero for the user. Notice the BuildCharacter action that is called is unique to each superhero. When ran, the user should be told which superhero is being described, and then told that superhero's powers and equipment. When finished, debug and fix any errors, then show your instructor you code.
 </p>

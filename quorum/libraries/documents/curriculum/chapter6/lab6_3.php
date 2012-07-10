@@ -3,7 +3,7 @@
     document.title = 'Lab6_3';
 </script>
 
-          <h1>Lab 6.3 More Inheritance</h1>
+          <h1>Lab 6.3: More Inheritance</h1>
 <h2">Objectives</h2>
 <p>
 The goal of this lab is to understand the following concepts:
@@ -17,7 +17,7 @@ In this lab, we will create a program to ask the user about their pets. It will 
 </p>
 <h2>Task 1: Getting Started</h2>
 <p>
-Start Sodbeans.  Create a new “Quorum Application” project, and name it <strong>Lab6_2</strong>.  In the <tt>Main.quorum</tt> file, it should contain a <tt>Main</tt> class and <tt>Main</tt> action.
+Start Sodbeans.  Create a new “Quorum Application” project, and name it <strong>Lab6_3</strong>.  In the <tt>Main.quorum</tt> file, it should contain a <tt>Main</tt> class and <tt>Main</tt> action.
 </p>
 <p>
 We will create four additional classes in this project.  In the New File dialog, create a new file by selecting “Quorum” and “Quorum Class” in the Categories and File Types windows, respectively.  Then, name  the new file <strong>Pet</strong> in the New Quorum Class dialog.  Repeat the above steps to create Classes named <strong>Cat</strong>, <strong>Dog</strong>, and <strong>Lizard</strong>.
@@ -57,7 +57,7 @@ Now that our parent class has the needed actions, we can write code for our Cat,
 </pre><p>
 First, notice that the variable pounds has to be cast to type number. In the above example, this is being done on the same line as the input statement, but it doesn't have to be.  Second, notice that the action SetWeight, which was declared in class Pet, is being accessed by the keyword parent.  The parent keyword allows us to reference a class directly.
 </p>
-<h2>Task 4: Using inherited actions</h2>
+<h2>Task 4: Using Inherited Actions</h2>
 <p>
 In Main, instantiate objects of your Cat, Dog, and Lizard classes.  Next, ask the user what kind of pet they have, 1 for cat, 2 for dog, or 3 for lizard.  You will now need to create control structures that perform like the following:
 </p>

@@ -12,13 +12,11 @@ The goal of this assignment is to understand the following concepts:
 </li><li>Creating class actions and using derived actions
 </li><li>Having source code in multiple files
 </li></ul><h2>Overview</h2>
-<blockquote>
 <p>
 In this assignment we will be creating a program that computes area, volume, and other geometric attributes for a variety of 2D and 3D shapes.  In this program, you will create a class hierarchy through inheritance, so that your base class, <tt>Shape</tt>, has derived classes <tt>TwoDShape</tt> and <tt>ThreeDShape</tt>, and <tt>TwoDShape</tt> has derived classes <tt>Circle</tt>, <tt>Square</tt>, and <tt>Triangle</tt>, and <tt>3DShape</tt> has derived classes <tt>Sphere</tt>, <tt>Cube</tt>, and <tt>Pyramid</tt>.  Because the 2D shapes and 3D shapes require many of the same things to complete the area and volume formulas, we can use inheritance to reuse the same variables and actions, creating a more robust program.
 </p>
-</blockquote>
 <h2>Design Criteria</h2>
-<ul><li>Create a new assignment and label it Assignment 6_1
+<ul><li>Create a new assignment and label it <strong>Assignment6_1</strong>
 </li><li>Create a source file named Shape.quorum
 </li><li>Create a source file named TwoDShape.quorum
 </li><li>Create a source file named ThreeDShape.quorum
@@ -28,7 +26,7 @@ In this assignment we will be creating a program that computes area, volume, and
 </li><li>Create a source file named Sphere.quorum
 </li><li>Create a source file named Cube.quorum
 </li><li>Create a source file named Pyramid.quorum
-</li></ul><h2>Class <tt>Shape</tt></h2>
+</li></ul><h3>Class <tt>Shape</tt></h3>
 <p>
 Class <tt>Shape</tt> will contain Getter and Setter actions for the following variables:
 </p>
@@ -39,15 +37,15 @@ Class <tt>Shape</tt> will contain Getter and Setter actions for the following va
 </li></ul><p>
 This class should also have a static variable, number pi = 3.1415.
 </p>
-<h2>Class <tt>TwoDShape</tt></h2>
+<h3>Class <tt>TwoDShape</tt></h3>
 <p>
 Class <tt>TwoDShape</tt> will contain actions that will ask for user input and use that input as the arguments for the Setter actions from base class <tt>Employee</tt>.  Note: you will need to cast the input as type number, otherwise you will receive a compiler error.
 </p>
-<h2>Class <tt>ThreeDShape</tt></h2>
+<h3>Class <tt>ThreeDShape</tt></h3>
 <p>
 Class <tt>ThreeDShape</tt> will do the same as class <tt>TwoDShape</tt>, except that the user should be queried to enter input for cube, pyramid, and sphere, instead of for square, triangle, and circle.
 </p>
-<h2>Class <tt>Circle</tt></h2>
+<h3>Class <tt>Circle</tt></h3>
 <p>
 Class <tt>Circle</tt> is a derived class from class <tt>TwoDShape</tt>.  It will have two actions:
 </p>
@@ -56,7 +54,7 @@ Class <tt>Circle</tt> is a derived class from class <tt>TwoDShape</tt>.  It will
 and
 </p>
 <pre class="code">action CalculateCircumference(number radius) returns number
-</pre><h2>Class <tt>Square</tt></h2>
+</pre><h3>Class <tt>Square</tt></h3>
 <p>
 Class <tt>Square</tt> is a derived class from <tt>TwoDShape</tt>. It will have two actions:
 </p>
@@ -65,25 +63,25 @@ Class <tt>Square</tt> is a derived class from <tt>TwoDShape</tt>. It will have t
 and
 </p>
 <pre class="code">action CalculatePerimeter(number side) returns number
-</pre><h2>Class <tt>Triangle</tt></h2>
+</pre><h3>Class <tt>Triangle</tt></h3>
 <p>
 Class <tt>Triangle</tt> is a derived class from <tt>TwoDShape</tt>. It will have one action:
 </p>
 <pre class="code">action CalculateArea(number base, number height) returns number
-</pre><h2>Class <tt>Cube</tt></h2>
+</pre><h3>Class <tt>Cube</tt></h3>
 <p>
 Class <tt>Cube</tt> is derived from <tt>ThreeDShape</tt>.  It will have two actions, one to calculate the volume of a cube, and one to calculate surface area of a cube.
 </p>
-<h2>Class <tt>Sphere</tt></h2>
+<h3>Class <tt>Sphere</tt></h3>
 <p>
 Class <tt>Sphere</tt> is derived from <tt>ThreeDShape</tt>.  It will have two actions, one to calculate the volume of a sphere, and one to calculate the surface area of a sphere. Note: the variable <tt>pi</tt> that you made in class <tt>Shape</tt> can be accessed using the <tt>parent:</tt> keyword.
 </p>
-<h2>Class <tt>Pyramid</tt></h2>
+<h3>Class <tt>Pyramid</tt></h3>
 <p>
 Class <tt>Pyramid</tt> is derived from <tt>ThreeDShape</tt>.  It will have one action that calculates the volume of a pyramid.
 </p>
 <p>
-<h2>Class <tt>Main</tt></h2>
+<h3>Class <tt>Main</tt></h3>
 </p>
 <p>
 Class <tt>Main</tt> will have three actions. One will call all the actions from <tt>Circle</tt>, <tt>Square</tt>, and <tt>Triangle</tt>, and will report the calculations of each to the user.  For example:
