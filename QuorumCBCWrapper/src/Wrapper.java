@@ -16,6 +16,6 @@ public class Wrapper {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        quorum.Main.main(args);
+        quorum.main.main(args);
     }
 }
