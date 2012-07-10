@@ -1,6 +1,6 @@
 <?php include("../../include/header.php"); ?>
 <script type="text/javascript">
-    document.title = 'Chapter 6: Inheritance';
+    document.title = 'Chapter 6';
 </script>
 <h1>Chapter 6: Inheritance</h1>
 <h2>Questions</h2>
