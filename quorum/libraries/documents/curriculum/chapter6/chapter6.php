@@ -80,10 +80,10 @@
 </ul>
 </ul>
 <h2>Challenge Programming Projects</h2>
-<ul>
+<!-- <ul>
 <li><a href="assignment6_4.php">Assignment Manual 6.4</a></li>
 <ul>
 <li>Build a Super Hero factory</li>
 <li>Use the Libraries.Sound.Music</li>
-<li>Use inheritance and blueprint actions</li>
+<li>Use inheritance and blueprint actions</li> -->
 <?php include("../../include/footer.php"); ?>
