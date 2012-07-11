@@ -97,7 +97,15 @@ public class Console {
             
             // Now, show the input dialog.
             String answer = "";
+            optionPane = new JOptionPane();
+            optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
+            optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
+            optionPane.setWantsInput(true);
+            dialog = optionPane.createDialog("Input Dialog");
+            dialog.setModalityType(ModalityType.APPLICATION_MODAL);
+            dialog.pack();
             optionPane.setMessage(text);
+            optionPane.setInitialSelectionValue("");
             dialog.setVisible(true); 
             dialog.requestFocus();
 
