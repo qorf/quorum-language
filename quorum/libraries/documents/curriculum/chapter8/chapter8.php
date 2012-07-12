@@ -7,7 +7,7 @@
 <h2>Questions</h2>
 <h2>Essay Questions</h2>
 <h2>In Class Lab Assignments</h2>
-<ul><li> <a href="lab8_1">Lab Manual 8.1</a>
+<ul><li> <a href="lab8_1.php">Lab Manual 8.1</a>
 <ul><li>Learn to read and write to files
 </li><li>Introduce the File, FileReader and FileWriter classes
 </li><li>Write an address book application utilizing the File I/O classes in Quorum
