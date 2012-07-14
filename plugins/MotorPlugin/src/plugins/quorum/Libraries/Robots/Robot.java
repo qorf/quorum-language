@@ -279,22 +279,22 @@ public class Robot {
     
     public int GetRightSensorValue()
     {
-        return Device.getLowCreateController().get_create_rcliff_amt(0.1f);
+        return Device.getLowCreateController().get_create_rcliff_amt(0.01f);
     }
     
     public int GetRightFrontSensorValue()
     {
-        return Device.getLowCreateController().get_create_rcliff_amt(0.1f);
+        return Device.getLowCreateController().get_create_rfcliff_amt(0.01f);
     }
     
     public int GetLeftSensorValue()
     {
-        return Device.getLowCreateController().get_create_rcliff_amt(0.1f);
+        return Device.getLowCreateController().get_create_lcliff_amt(0.01f);
     }
     
     public int GetLeftFrontSensorValue()
     {
-        return Device.getLowCreateController().get_create_rcliff_amt(0.1f);
+        return Device.getLowCreateController().get_create_lfcliff_amt(0.01f);
     }
 }
     
