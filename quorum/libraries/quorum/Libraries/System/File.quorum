@@ -514,16 +514,16 @@ class File
 
         Attribute: Example
         use Libraries.System.File
-        use Libraries.Containers.Blueprints.Indexed
+        use Libraries.Containers.Array
 
         // Get the first item (alphabetical order) listed in C:\.
         File cDrive
         cDrive:SetWorkingDirectory("C:\")
-        Indexed<File> items = cDrive:GetDirectoryListing()
+        Array<File> items = cDrive:GetDirectoryListing()
         File f0 = items:Get(0)
         print f0:GetPath()
      */
-    action GetDirectoryListing returns Indexed<File>
+    action GetDirectoryListing returns Array<File>
         //// BROKEN - FIX ME ////
         if me:IsDirectory()
             Text listingString
