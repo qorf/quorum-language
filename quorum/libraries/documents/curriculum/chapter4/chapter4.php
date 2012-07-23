@@ -27,7 +27,7 @@
 </li></ol>
 <h2>In Class Lab Assignments</h2>
 <ul>
-<li> <a href="lab4_1">Lab Manual 4.1</a></li>
+<li> <a href="lab4_1.php">Lab Manual 4.1</a></li>
 <ul>
 <li>Introduce the fundamentals of actions</li>
 <li>Write simple actions</li>
@@ -36,7 +36,7 @@
 </ul>
 </ul>
 <ul>
-<li><a href="lab4_2">Lab Manual 4.2</a></li>
+<li><a href="lab4_2.php">Lab Manual 4.2</a></li>
 <ul>
 <li>Write a Rock Paper Scissors game utilizing actions</li>
 <li>Gain hands-on experience organizing programs into actions</li>
@@ -44,7 +44,7 @@
 </ul>
 </ul>
 <ul>
-<li><a href="lab4_3">Lab Manual 4.3</a></li>
+<li><a href="lab4_3.php">Lab Manual 4.3</a></li>
 <ul>
 <li>Write a trip cost calculation program in Quorum</li>
 <li>More hands-on experience using actions</li>
@@ -53,14 +53,14 @@
 </ul>
 <h2>Short Programming Projects</h2>
 <ul>
-<li><a href="assignment4_1">Assignment Manual 4.1</a></li>
+<li><a href="assignment4_1.php">Assignment Manual 4.1</a></li>
 <ul>
 <li>Write a calculator for common mathematical functions such as addition, subtraction, multiplication, division, exponentiation</li>
 <li>Gain experience using parameters and returning values</li>
 </ul>
 </ul>
 <ul>
-<li><a href="assignment4_2">Assignment Manual 4.2</a></li>
+<li><a href="assignment4_2.php">Assignment Manual 4.2</a></li>
 <ul>
 <li>Write a program to calculate the total time required to travel a certain distance at a specific speed</li>
 <li>Understand and use action overloading</li>
@@ -68,7 +68,7 @@
 </ul>
 <h2>Challenge Programming Projects</h2>
 <ul>
-<li><a href="assignment4_3">Assignment Manual 4.3</a></li>
+<li><a href="assignment4_3.php">Assignment Manual 4.3</a></li>
 <ul>
 <li>Modify the existing travel reservation program.</li>
 <li>Use actions to break down the travel reservation program into more logical pieces.</li>

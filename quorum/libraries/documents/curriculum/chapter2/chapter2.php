@@ -32,7 +32,7 @@ use Libraries.Sound.Music
 </li></ol>
 <h2>In Class Lab Assignments</h2>
 <ul>
-<li><a href="lab2_1">Lab Manual 2.1</a></li>
+<li><a href="lab2_1.php">Lab Manual 2.1</a></li>
 <ul>
 <li>Explore data types in Quorum.</li>
 <li>Define each type of variable.</li>
@@ -40,7 +40,7 @@ use Libraries.Sound.Music
 </ul>
 </ul>
 <ul>
-<li><a href="lab2_2">Lab Manual 2.2</a></li>
+<li><a href="lab2_2.php">Lab Manual 2.2</a></li>
 <ul>
 <li>Learn about mathematical operations in Quorum.</li>
 <li>Write a program in Quorum that uses order of operations.</li>
@@ -48,7 +48,7 @@ use Libraries.Sound.Music
 </ul>
 </ul>
 <ul>
-<li><a href="lab2_3">Lab Manual 2.3</a></li>
+<li><a href="lab2_3.php">Lab Manual 2.3</a></li>
 <ul>
 <li>Use the Music library in Quorum to play music.</li>
 <li>Output a melody to a song of your choice.</li>
@@ -57,7 +57,7 @@ use Libraries.Sound.Music
 </ul>
 <h2>Short Programming Projects</h2>
 <ul>
-<li><a href="assignment2_1"> Assignment Manual 2.1</a></li>
+<li><a href="assignment2_1.php"> Assignment Manual 2.1</a></li>
 <ul>
 <li>Write a program that defines types and uses type casts.</li>
 <li>Program implicit type casts.</li>
@@ -65,7 +65,7 @@ use Libraries.Sound.Music
 </ul>
 </ul>
 <ul>
-<li><a href="assignment2_2">Assignment Manual 2.2</a></li>
+<li><a href="assignment2_2.php">Assignment Manual 2.2</a></li>
 <ul>
 <li>Write a program that uses mathematical operations.</li>
 <li>Compute the average distance in yards.</li>
@@ -74,7 +74,7 @@ use Libraries.Sound.Music
 </ul>
 <h2>Challenge Programming Projects</h2>
 <ul>
-<li><a href="assignment2_3">Assignment Manual 2.3</a></li>
+<li><a href="assignment2_3.php">Assignment Manual 2.3</a></li>
 <ul>
 <li>Write the music program that plays a combination of sounds and spoken text (music and lyrics).</li>
 </ul>
