@@ -43,7 +43,8 @@ firstAddition: 11
 secondAddition: 28.7
 </code></pre></p>
 <p>
-Notice the variable types of all of the variables in the statement assigning to the secondAddition variable.
+Notice the variable types of all of the variables in the statement assigning to the secondAddition variable. The variable <b>secondAdditions</b> holds a number with a decimal while <b>firstAddition</b> is only a variable.  When adding the values of <b>a</b>, <b>b</b>, <b>c</b>, and <b>d</b>, you are adding together two different types: an integer type and a number type.  When adding these together in Quorum, the integer types are automatically
+type cast to a number type, even if you don't see it. So for example, 7 becomes 7.0.  However, if variable <b>secondAddition</b> were to be of type integer, you would get an error, since it's impossible to assign a number value to a variable that is type integer.  Thus the need for explicit casting.
 </p>
 <p>
 We will apply the same concepts to the other mathematical operations. Let's move onto subtraction by doing the following:
@@ -183,17 +184,44 @@ integer numberOfEggs = cast(integer, numberOfEggsInput)
 </code></pre></p>
 <p>
 Now write the Quorum code to speak the numberOfEggs result. It should say "You have this many eggs: " followed by the <tt>numberOfEggs</tt> value.
+Next, modify <b>a</b>, <b>b</b>, <b>c</b>, and <b>d</b> to use an input statement to obtain their values from the user.  Remember to prompt the user for integer values for <b>a</b> and <b>b</b>, and prompt the user for decimal values for <b>c</b> and <b>d</b>.
 </p>
 <h2>Task 3: Problem Statements</h2>
 <p>
-There are real-world problems that we can solve using math. In this lab we will focus on analyzing problem statements and turn them into the Quorum code. Before we jump into problem-solving situations, we will need to have a new project in Sodbeans.  Create a new project and name it <strong>Lab2_2_1</strong>.  Be sure to comment and label each solution with the problem statement number (comments can be created by typing <tt>//</tt> in front of the comment we are making).  For each problem statement, assign values to the appropriate variables and have your program speak the results.
+There are real-world problems that we can solve using math. In this lab we will focus on analyzing problem statements and turn them into the Quorum code. Before we jump into problem-solving situations, we will need to have a new project in Sodbeans.  Create a new project and name it <strong>Lab2_2_1</strong>.  Be sure to comment and label each solution with the problem statement number (comments can be created by typing <tt>//</tt> in front of the comment we are making).  For each problem statement, assign values to the appropriate variables and have your program speak the results. Get user input for the values listed
+in each problem, indicated by <b>integer value</b> or <b>number value</b> and remember to cast them to the appropriate type if needed.
 </p>
-<ol><li>A car travels 510 miles on a freeway for 7.5 hours. Given that speed = distance / time, write code to calculate the car’s speed in terms of miles per hour.
-</li></ol><ol start="2"><li>A class goes on a field trip to the museum.  A school bus can hold up to 40 passengers.  A class of 25 students, a teacher, and two teacher assistants board the bus for the trip.  Write code to calculate what percentage of the bus is filled.
-</li></ol><ol start="3"><li>Someone has ordered a pizza for you, free of charge. However, before you can eat the pizza, you are asked to find the area of the top of the pizza box. The box is 12 inches by 14 inches. Write a program that outputs the area of the pizza box in the form, "The pizza box, in square inches, has an area of: "
+<ol><li>A car travels <b>integer value</b> miles on a freeway for <b>number value</b> hours. Given that speed = distance / time, write code to calculate the car’s speed in terms of miles per hour.
+</li></ol><ol start="2"><li>A class goes on a field trip to the museum.  A school bus can hold up to <b>integer value</b> passengers.  A class of <b>integer value</b> students, a teacher, and two teacher assistants board the bus for the trip.  Write code to calculate what percentage of the bus is filled.
+</li></ol><ol start="3"><li>Someone has ordered a pizza for you, free of charge. However, before you can eat the pizza, you are asked to find the area of the top of the pizza box. The box is <b>integer value</b> inches by <b>integer value</b> inches. Write a program that outputs the area of the pizza box in the form, "The pizza box, in square inches, has an area of: "
 </li></ol><ol start="4"><li>A thrift store manager wishes to write a program that allows him to calculate the total cost of an order of shirts. He wishes to enter the name of a shirt, the number of shirts, and the price per shirt. Write code that accepts user input for the shirt name, the number of shirts, and the price of each shirt. The program should calculate and output the total cost of the order using either the <tt>print</tt> or <tt>say</tt> statement. For testing purposes, use the input: shirt name = Navy Polo Shirt, number of shirts = 11, and price = $8.99.  The result should match the following output:
 </li></ol>
+<h2>Sample Output</h2>
+<p>
+When run, your program should look similar to the following:
+</p>
 <p><pre class="code"><code>
+Enter the number of miles a car has to travel:
+100
+Enter the number of hours he has to drive for:
+1.5
+The car was traveling at 66.66 miles per hour.
+How many passengers can a school bus hold?
+50
+How big is the class getting on the bus?
+25
+The bus would be 56% full with a class size of 25, a teacher, and two teaching assistants.
+Enter the width of of a pizza box(as a whole number)
+10
+Enter the length of a pizza box(as a whole number)
+15
+The pizza box, in inches, has an area of 150.
+Enter the name of a shirt:
+Navy Polo Shirt
+Enter how many shirts to order:
+11
+Enter the cost of each shirt:
+8.99
 The total cost of 11 Navy Polo Shirt items is $98.89. Each shirt costs $8.99.
 </code></pre></p>
 
