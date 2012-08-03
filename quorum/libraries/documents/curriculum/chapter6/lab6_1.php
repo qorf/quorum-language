@@ -46,17 +46,17 @@ class Sphere is a Circle
 end
 </code></pre></p>
 <p>
-Great  Now lets use the SetRadius method we declared in our Circle class to create a radius for our Sphere:
+Great  Now lets use the SetRadius method we declared in our Circle class to create a radius for our Sphere.  This time, we will get user input for the radius, and use that input as an argument to SetRadius:
 </p>
 <p><pre class="code"><code>
-class Sphere is a Circle    //creates a hierarchy, where sphere is inheriting from Circle
-    action SphereSetRadius
-        SetRadius(12.5)  //this is a method declared in our Circle class
-    end
-end
+  class Sphere is a Circle    //creates a hierarchy, where sphere is inheriting from Circle
+  action SphereSetRadius
+  SetRadius(cast(number, input("Enter a radius")))  //this is a method declared in our Circle class
+  end
+  end
 </code></pre></p>
 <p>
-Now let's use the different actions to create diameters for our Circle and Sphere.  In Main, create Circle and Sphere objects.  Next, create number variables circleRadius and sphereRadius. Using the set and get actions in our Circle class, assign a radius value to circleRadius.  Recall that in our Sphere class, in action  SphereSetRadius, we've already set the value of radius to 12.5, so now we only need to get that value.  Using the GetRadius method from our Sphere class, assign the sphereRadius variable a value.  Next, multiply both values by 2 to get the circle and sphere diameters, then print or say their respective values.
+Now let's use the different actions to create diameters for our Circle and Sphere.  In Main, create Circle and Sphere objects.  Next, create number variables circleRadius and sphereRadius. Using the set and get actions in our Circle class, assign a radius value to circleRadius.  Recall that in our Sphere class, in action  SphereSetRadius, we've already set the value of radius to whatever the user entered, so now we only need to get that value.  Using the GetRadius method from our Sphere class, assign the sphereRadius variable a value.  Next, multiply both values by 2 to get the circle and sphere diameters, then print or say their respective values.
 </p>
 <h2>Task 4: Using Inherited Actions</h2>
 <p>

@@ -40,7 +40,9 @@ We will fill <tt>Car</tt> and <tt>Main</tt> classes with the code in the next fo
 </p>
 <h2>Task 2: Creating Class Variables</h2>
 <p>
-We are going to create class variables and experiment how they work between two classes.  There are two ways to control access to class variables.  Other classes can access class variables by calling getters and setters or public variables.  In this task, we will experiment the access to class variables between <tt>Car</tt> and <tt>Main</tt> classes.
+We are going to create class variables and experiment with how they work between two classes.  There are two ways to control access to class variables: we can use access modifiers and accessor actions (getters and setters) or by making the class variables public.
+In programming, we typically want to write code that is secure and encapsulated.  Encapsulation is one of the four fundamental object oriented programming concepts. It is the technique of making class variables private and providing access to them with public actions.
+If a variable is private, then it can't be accessed by anything outside of the class is was created in, except through the use of getters and setters.  This is also known as data hiding. Encapsualtion gives maintainability, flexibility, and extensibility to our code.
 </p>
 <p>
 In a <tt>Car</tt> class, add two class variables:
