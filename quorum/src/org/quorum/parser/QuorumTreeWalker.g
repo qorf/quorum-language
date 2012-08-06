@@ -1353,7 +1353,12 @@ scope {
 		$loop_statement::type = -1;
 		$loop_statement::cJumpStep = null;
 		
-				symbol.getControlFlow().repeatStart();
+		CompilerError e = symbol.getControlFlow().addStatement($loop_statement::location);
+	        if (e != null) {
+	                this.builder.getVirtualMachine().getCompilerErrors().addError(e);
+	        }
+	        
+		symbol.getControlFlow().repeatStart();
 	}
 
 	(

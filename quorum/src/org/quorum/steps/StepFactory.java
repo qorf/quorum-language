@@ -1041,6 +1041,13 @@ public class StepFactory {
         VariableParameterCommonDescriptor vd = null;
 
         String className = "";
+        
+        if(info.isSoloMethod){
+            CompilerError e = this.machine.getSymbolTable().getControlFlow().addStatement(info.location);
+            if (e != null) {
+                machine.getCompilerErrors().addError(e);
+            }
+        }
 
         if (info.isObjectCall) { //we're calling on an object
              vd = machine.getSymbolTable().getCurrentScope().getVariable(info.variable.getName());
@@ -1848,6 +1855,11 @@ public class StepFactory {
         SymbolTable symbolTable = this.machine.getSymbolTable();
         addConditionalJumpIfStep(info.ifFalseLabel, info.ifConditionalStep);
 
+        CompilerError e = symbolTable.getControlFlow().addStatement(info.ifLocation);
+        if (e != null) {
+                machine.getCompilerErrors().addError(e);
+        }
+        
         addBeginScopeStep(info.ifStartLabel, "if");
         symbolTable.getControlFlow().ifStart();
         symbolTable.enterNextBlock();
@@ -2035,6 +2047,11 @@ public class StepFactory {
         checkLandingPads.setMethod(symbolTable.getCurrentMethod());
         this.machine.addCheckLandingPads(info.checkStartLabel, checkLandingPads);
 
+        CompilerError e = symbolTable.getControlFlow().addStatement(info.location);
+        if (e != null) {
+                machine.getCompilerErrors().addError(e);
+        }
+            
         //start check and enter the check block
         addBeginCheckScopeStep(info.checkStartLabel, checkLandingPads);
         
@@ -2522,6 +2539,11 @@ public class StepFactory {
             this.addCastStep(location, TypeDescriptor.getTextType(),
                     value, step, value.getRegister(), false);
         }
+        
+        CompilerError e = this.machine.getSymbolTable().getControlFlow().addStatement(location);
+        if (e != null) {
+            machine.getCompilerErrors().addError(e);
+        }
 
         PrintStep printStep = new PrintStep();
         printStep.setLineInformation(location);
@@ -2543,6 +2565,12 @@ public class StepFactory {
             this.addCastStep(location, TypeDescriptor.getTextType(), value,
                     step, value.getRegister(), false);
         }
+        
+        CompilerError e = this.machine.getSymbolTable().getControlFlow().addStatement(location);
+        if (e != null) {
+            machine.getCompilerErrors().addError(e);
+        }
+        
         SpeakStep speakStep = new SpeakStep();
         speakStep.setLineInformation(location);
 

@@ -1,9 +1,12 @@
-class Main
-    action Main
-        integer i = 1
-        if i = 1 
-            print "something"
-        end
-        print "done"
-    end
+use Libraries.Language.Errors.Error
+action Main
+    number z = Test()
+end
+
+action Test returns number
+    Error e
+    return 0.0
+end
+
+action Z
 end
