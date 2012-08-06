@@ -21,16 +21,9 @@ import org.quorum.symbols.TypeDescriptor;
 import org.quorum.symbols.VariableDescriptor;
 import org.quorum.symbols.VariableParameterCommonDescriptor;
 import org.quorum.execution.ExpressionValue;
-import org.quorum.symbols.BlueprintDescriptor;
-import org.quorum.symbols.OperationEnum;
-import org.quorum.symbols.Parameters;
-import org.quorum.symbols.QualifiedNameDescriptor;
-import org.quorum.symbols.Scopable;
-import org.quorum.symbols.TypeConversionResults;
+import org.quorum.symbols.*;
 import org.quorum.vm.interfaces.CompilerError;
 import org.quorum.vm.interfaces.CompilerErrorManager;
-import org.quorum.symbols.ErrorTypeDescriptor;
-import org.quorum.symbols.SystemActionDescriptor;
 import org.quorum.vm.implementation.OpcodeType;
 import org.quorum.vm.interfaces.ErrorType;
 
@@ -1090,6 +1083,10 @@ public class StepFactory {
         BlueprintDescriptor blueprint = clazz.getBlueprint(methodKey);
         SystemActionDescriptor systemAction = clazz.getResolvedSystemMethod(info.methodName, info.argumentTypes, vd, info.location);
 
+        boolean isMethodErrorChecked = checkActionAccessModifier(method, vd, info.location);
+        boolean isSystemActionErrorChecked = checkActionAccessModifier(systemAction, vd, info.location);
+
+        
         if(method != null) {
             addMethodCasts(info, method, vd, clazz);
         }
@@ -1110,10 +1107,14 @@ public class StepFactory {
             cExec.addClass(ce);
         }
 
-        if (method == null && blueprint == null && systemAction == null) {
+        if (!isMethodErrorChecked && !isSystemActionErrorChecked && method == null && blueprint == null && systemAction == null) {
             CompilerError error = new CompilerError();
             error.setLineNumber(info.location.getStartLine());
-            error.setError("The action '" + methodKey + "' in class '" + machine.getSymbolTable().getCurrentClass() + "' has not been defined.");
+            if(vd == null){
+                error.setError("The action '" + methodKey + "' in class '" + machine.getSymbolTable().getCurrentClass() + "' has not been defined.");
+            }else{
+                error.setError("The action '" + methodKey + "' in class '" + vd.getType().getName() + "' has not been defined.");
+            }
             error.setColumn(info.location.getStartColumn());
             error.setFile(info.location.getFile());
             error.setErrorType(ErrorType.MISSING_METHOD);
@@ -1124,7 +1125,7 @@ public class StepFactory {
             tuple.setStep(new CallStep());
             tuple.setValue(new ExpressionValue());
 
-        } else {
+        } else if(!isMethodErrorChecked && !isSystemActionErrorChecked) {
 
             if(method == null && blueprint != null){
                 method = blueprint;
@@ -1254,6 +1255,29 @@ public class StepFactory {
         return tuple;
     }
 
+    private boolean checkActionAccessModifier(MethodDescriptor method, VariableParameterCommonDescriptor vd, LineInformation callInformation){
+        boolean isErrorChecked = false;
+        if (method != null ) {
+            if (method.getAccessModifier() != null) {//temporary fix: this should never be null
+                if (vd != null && method.getAccessModifier().equals(AccessModifierEnum.PRIVATE)
+                        && (method.getParent().getScopeString().compareTo(vd.getType().getStaticKey()) == 0 
+                        && method.getParent().getScopeString().compareTo(callInformation.getClassName())!=0)) {
+                    
+                    //add the compiler error
+                    String message = "Action '" + method.getStaticKey() + "' is private to the class '" + ((ClassDescriptor)method.getParent()).getName() + "'";
+                    CompilerError error = new CompilerError(callInformation.getStartLine(),message, ErrorType.MISSING_METHOD);
+                    error.setFile(callInformation.getFile());
+                    CompilerErrorManager errorManager = machine.getCompilerErrors();
+                    errorManager.setErrorKey(machine.getSymbolTable().getCurrentClass().getFile().getFile().getAbsolutePath());
+                    errorManager.addError(error);
+                    isErrorChecked = true;
+                    
+                    method = null;
+                }
+            }
+        }
+        return isErrorChecked;
+    }
     /**
      * Sets the return type of a templated method (this include subtypes)
      * @param type
