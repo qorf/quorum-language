@@ -1,12 +1,15 @@
-use Libraries.Language.Errors.Error
-action Main
-    number z = Test()
-end
-
-action Test returns number
-    Error e
-    return 0.0
-end
-
-action Z
+class Main
+    action Main
+        GreetUser("Sasha")
+        print "Back from GreetUser()."
+        GetUserBalance()
+        print "Leaving..."
+    end
+    action GreetUser (text name)
+        print "Hello there, " + name + "!"
+    end
+    action GetUserBalance returns Object
+        Object num
+        return num
+    end
 end

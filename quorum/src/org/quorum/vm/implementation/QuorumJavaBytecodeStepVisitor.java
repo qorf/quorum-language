@@ -3226,7 +3226,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         // Is the method return type void? If not, push its return type onto the stack.
         if (!step.getMethodCallee().getReturnType().isVoid()) {
             if (step.isSoloMethodCall()) {
-                methodVisitor.visitInsn(POP);
+                if(step.getMethodCallee().getReturnType().isNumber()){
+                    methodVisitor.visitInsn(POP2);
+                }else{
+                    methodVisitor.visitInsn(POP);
+                }
             } else {
                 TypeDescriptor returnType = step.getMethodCallee().getReturnType();
 
