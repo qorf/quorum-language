@@ -1433,20 +1433,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                             if (!call.isCalleeLoaded()) {
                                 visitCallSpecial(call);
                             }
-                        }else if(callStep instanceof InputStep){
-                            InputStep call = (InputStep) callStep;
-
-                            //check the new step for casts
-                            if (newStep) {
-                                castStepLocation = call.getCastStepLocation();
-                                
-                                
-                                i = processAutoBox(steps, i, castStepLocation, opcodeLocation, visitedCasts, tracker);
-
-                            }
-
-                        }else if(callStep.isCastStep()){
-                            
+                        }else if(callStep instanceof InputStep || callStep.isCastStep()){
 
                             //check the new step for casts
                             if (newStep) {
