@@ -32,6 +32,7 @@ public abstract class ExecutionStep {
 
     protected RuntimeError runtimeError;
     private boolean modifiedReturn = false;
+    private boolean isCastStep = false;
 
     /** The absolute path to the file this op-code is relative too
      * 
@@ -425,5 +426,18 @@ public abstract class ExecutionStep {
      */
     public void setModifiedReturn(boolean modifiedReturn) {
         this.modifiedReturn = modifiedReturn;
+    }
+    /**
+     * @return the isCastStep
+     */
+    public boolean isCastStep() {
+        return isCastStep;
+    }
+
+    /**
+     * @param isCastStep the isCastStep to set
+     */
+    public void setIsCastStep(boolean isCastStep) {
+        this.isCastStep = isCastStep;
     }
 }

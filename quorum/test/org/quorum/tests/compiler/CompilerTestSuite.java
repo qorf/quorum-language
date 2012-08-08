@@ -227,8 +227,8 @@ public class CompilerTestSuite {
             paths[i + 4] = files[i].getAbsolutePath();
         }
         
-        ProcessBuilder pb = new ProcessBuilder(paths);
-        //ProcessBuilder pb = new ProcessBuilder("java", "-classpath", "build/classes/build", "quorum." + file.getName().split("\\.")[0]);
+        //ProcessBuilder pb = new ProcessBuilder(paths);
+        ProcessBuilder pb = new ProcessBuilder("java", "-classpath", "build/classes/build", "quorum." + file.getName().split("\\.")[0]);
         pb.directory(systemRoot);
         Process proc = null;
         

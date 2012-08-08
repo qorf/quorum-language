@@ -1387,7 +1387,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     int callStepNumber = functionParameterMapping.get(count);
                     ExecutionStep callStep = steps.get(callStepNumber);
 
-                    if(callStep instanceof CallStep){
+                    if(callStep instanceof CallStep || callStep instanceof InputStep || callStep.isCastStep()){
                         castStepLocation = callStep.getCastStepLocation();
 
                         i = processAutoBox(steps, i, castStepLocation, callStepNumber, visitedCasts, tracker);
@@ -1411,7 +1411,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
                         //opcodeLocation = i;
                         // Make sure this is actually a CallStep.
-                        while (!(callStep instanceof CallStep)) {
+                        while (!(callStep instanceof CallStep) && !(callStep instanceof InputStep)&& !(callStep.isCastStep())) {
                             opcodeLocation++;
                             callStep = steps.get(opcodeLocation);
                             newStep = true;
@@ -1433,7 +1433,31 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                             if (!call.isCalleeLoaded()) {
                                 visitCallSpecial(call);
                             }
-                        } else {
+                        }else if(callStep instanceof InputStep){
+                            InputStep call = (InputStep) callStep;
+
+                            //check the new step for casts
+                            if (newStep) {
+                                castStepLocation = call.getCastStepLocation();
+                                
+                                
+                                i = processAutoBox(steps, i, castStepLocation, opcodeLocation, visitedCasts, tracker);
+
+                            }
+
+                        }else if(callStep.isCastStep()){
+                            
+
+                            //check the new step for casts
+                            if (newStep) {
+                                castStepLocation = callStep.getCastStepLocation();
+                                
+                                
+                                i = processAutoBox(steps, i, castStepLocation, opcodeLocation, visitedCasts, tracker);
+
+                            }
+
+                        }else {
                             Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
                                     Level.SEVERE, "Function mapping between opcode parameters "
                                     + "and callsteps results in incorrect values. This is a compiler bug.");

@@ -1577,6 +1577,7 @@ public class StepFactory {
         OperationEnum cast;
         if (explicitCast) {
             cast = OperationEnum.CAST;
+            step.setIsCastStep(true);
         } else {
             cast = OperationEnum.IMPLICIT_CAST;
         }

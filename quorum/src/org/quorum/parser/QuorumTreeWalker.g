@@ -2111,23 +2111,26 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		$eval = result.getValue();
 		$step = result.getStep();
 	}
-	|	INPUT LEFT_PAREN input_expr=expression RIGHT_PAREN
+	|	INPUT{inCallStep = true; int parameterPosition = builder.addParameterLabel();} LEFT_PAREN input_expr=expression RIGHT_PAREN
 	{
 		LineInformation location = new LineInformation (
-			$INPUT.getLine(),
+			$LEFT_PAREN.getLine(),
 			$RIGHT_PAREN.getLine(),
-			$INPUT.getCharPositionInLine(),
+			$LEFT_PAREN.getCharPositionInLine(),
 			$RIGHT_PAREN.getCharPositionInLine()
 		);
 		location.setFile(fileName);
+		
 		ExecutionStep step = $input_expr.step;
 		ExpressionValue value = $input_expr.eval;
 
+		builder.addCallLabel(parameterPosition);
 		ResultTuple result = stepFactory.addInputStep(location, value, step, temp);
 		
 		temp = result.getNextRegister();
 		$eval = result.getValue();
 		$step = result.getStep();
+		inCallStep = false;
 	}
 	|	CAST LEFT_PAREN castqn=assignment_declaration COMMA cast_expr=expression castrpn=RIGHT_PAREN
 	{

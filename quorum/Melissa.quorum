@@ -1,15 +1,14 @@
+use Libraries.Containers.Array
 class Main
     action Main
-        GreetUser("Sasha")
-        print "Back from GreetUser()."
-        GetUserBalance()
-        print "Leaving..."
+        Array<integer> myArray
+        test(cast(integer, "1"))
     end
-    action GreetUser (text name)
-        print "Hello there, " + name + "!"
+
+    action getTest returns text
+        return "1"
     end
-    action GetUserBalance returns Object
-        Object num
-        return num
+    action test(text t)
+        print t
     end
 end
