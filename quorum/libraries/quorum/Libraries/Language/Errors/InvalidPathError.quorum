@@ -29,8 +29,6 @@ end
 */
 class InvalidPathError is a Error
     on create
-        if GetErrorMessage() = ""
-            SetErrorMessage("InvalidPathError: The specified path is not valid for this operation.")
-        end
+        SetErrorMessage("InvalidPathError: The specified path is not valid for this operation.")
     end
 end

@@ -22,7 +22,8 @@ public enum OpcodeType {
     PRINT,
     SAY,
     RETURN,
-    SOLO_METHOD_CALL;
+    SOLO_METHOD_CALL,
+    ALERT;
     //fill in other categories as/if needed.
 }
 

@@ -28,8 +28,6 @@ end
 */
 class InputOutputError is a Error
     on create
-        if GetErrorMessage() = ""
-            SetErrorMessage("InputOutputError: An error occurred during an input/output operation.")
-        end
+        SetErrorMessage("InputOutputError: An error occurred during an input/output operation.")
     end
 end

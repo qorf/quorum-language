@@ -1531,6 +1531,12 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         setContainer(cd);
     }
 
+    /**
+     * Initialize the standard library classes that need to be included in every
+     * class file by default. This includes, Libraries.Language.Object, Libraries.Language.Types.Integer,
+     * Libraries.Language.Types.Number, Libraries.Language.Types.Boolean, Libraries.Language.Types.Text,
+     * Libraries.Language.Errors.CastError, and Libraries.Language.Errors.Error
+     */
     private void initUses(){
 
         UseDescriptor use = new UseDescriptor();
@@ -1556,6 +1562,11 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         use = new UseDescriptor();
         use.setUse(TypeDescriptor.BOOLEAN_OBJECT);
         use.setName("Boolean");
+        uses.put(use.getName(), use);
+        
+        use = new UseDescriptor();
+        use.setUse(TypeDescriptor.CAST_ERROR_OBJECT);
+        use.setName("CastError");
         uses.put(use.getName(), use);
 
     }

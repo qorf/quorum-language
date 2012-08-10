@@ -29,8 +29,6 @@ end
 */
 class InvalidLocationError is a Error
     on create
-        if GetErrorMessage() = ""
-            SetErrorMessage("Location Invalid: Attempted to reference a location in a data structure that does not exist.")
-        end
+        SetErrorMessage("Location Invalid: Attempted to reference a location in a data structure that does not exist.")
     end
 end

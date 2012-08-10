@@ -550,7 +550,7 @@ scope{
 		$alert_statement::errorStep = null;
 	}
 
-	 LEFT_PAREN ex=expression
+	 LEFT_PAREN ex=root_expression
 	{
 		ErrorTypeDescriptor t = new ErrorTypeDescriptor();
 
@@ -558,7 +558,9 @@ scope{
 			
 			ClassDescriptor cd = symbol.findFullyQualifiedClass($ex.eval.getType().getName());
 			
-		
+			if(cd == null)
+				cd = symbol.findClass($ex.eval.getType().getName(), "Libraries.Language.Errors");
+			
 			if(cd.getStaticKey().equals(ErrorTypeDescriptor.ERROR) || cd.getParent(ErrorTypeDescriptor.ERROR) != null){
 		        	t.setName(cd.getStaticKey());
 		        	t.setType(cd.getType());
@@ -594,7 +596,7 @@ scope{
                 
                 
 		stepFactory.addAlertStep(location, $alert_statement::errorType, $alert_statement::errorValue, $alert_statement::errorStep);
-		
+		builder.addStepLabel(OpcodeType.ALERT, -1);
 		symbol.addStatementFlagToCurrentFile(location.getStartLine());
 		
 	}

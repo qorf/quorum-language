@@ -20,8 +20,6 @@ end
 */
 class CastError is a Error
     on create
-        if GetErrorMessage() = ""
-            SetErrorMessage("Cast Error: An error occurred while casting")
-        end
+        SetErrorMessage("Cast Error: An error occurred while casting")
     end
 end

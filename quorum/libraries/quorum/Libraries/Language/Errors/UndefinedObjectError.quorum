@@ -24,8 +24,6 @@ end
 */
 class UndefinedObjectError is a Error
     on create
-        if GetErrorMessage() = ""
-            SetErrorMessage("The object being referenced is undefined.")
-        end
+        SetErrorMessage("The object being referenced is undefined.")
     end
 end

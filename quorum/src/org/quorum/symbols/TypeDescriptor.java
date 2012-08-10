@@ -25,6 +25,7 @@ public class TypeDescriptor extends Descriptor {
     public static final String TEXT_OBJECT = "Libraries.Language.Types.Text";
     public static final String BOOLEAN_OBJECT = "Libraries.Language.Types.Boolean";
     public static final String OBJECT = "Libraries.Language.Object";
+    public static final String CAST_ERROR_OBJECT = "Libraries.Language.Errors.CastError";
     public static final String NULL = "NULL_TYPE";
 
     private boolean bytecodeInterface = false;
@@ -93,6 +94,12 @@ public class TypeDescriptor extends Descriptor {
     public static TypeDescriptor getBooleanObjectType() {
         TypeDescriptor t = new TypeDescriptor();
         t.setName(BOOLEAN_OBJECT);
+        return t;
+    }
+    
+    public static TypeDescriptor getCastErrorObjectType() {
+        TypeDescriptor t = new TypeDescriptor();
+        t.setName(CAST_ERROR_OBJECT);
         return t;
     }
 
@@ -211,6 +218,15 @@ public class TypeDescriptor extends Descriptor {
      * @return
      */
     public boolean isBooleanClass() {
+        return getName().compareToIgnoreCase(BOOLEAN_OBJECT) == 0;
+    }
+    
+    /**
+     * Determines if this is of type Libraries.Language.Errors.CastError.
+     *
+     * @return
+     */
+    public boolean isCastErrorClass() {
         return getName().compareToIgnoreCase(BOOLEAN_OBJECT) == 0;
     }
 

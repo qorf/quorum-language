@@ -21,8 +21,6 @@ end
 */
 class DivideByZeroError is a Error
     on create
-        if GetErrorMessage() = ""
-            SetErrorMessage("Divide By Zero Error: An error occurred while attempting to divide by zero.")
-        end
+       SetErrorMessage("Divide By Zero Error: An error occurred while attempting to divide by zero.")
     end
 end

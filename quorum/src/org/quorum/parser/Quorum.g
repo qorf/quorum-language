@@ -721,8 +721,8 @@ solo_method_call
 	;
 	
 alert_statement 
-	:	ALERT LEFT_PAREN expression  RIGHT_PAREN
-	-> ^(ALERT LEFT_PAREN expression RIGHT_PAREN)
+	:	ALERT LEFT_PAREN root_expression  RIGHT_PAREN
+	-> ^(ALERT LEFT_PAREN root_expression RIGHT_PAREN)
 	;
 	
 check_statement 

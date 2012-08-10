@@ -91,9 +91,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         
         // If this is a normal class, we can just initialize by calling java/Lang/Object.<init>().
         // If it is an exception class, we must initialize by calling java/lang/Throwable.<init>().
-        if (currentClass.getStaticKey().equals("Libraries.Language.Errors.Error") || currentClass.getParent("Libraries.Language.Errors.Error") != null) {
+        if (currentClass.getStaticKey().equals("Libraries.Language.Errors.Error")) {
             // invoke <init> on java/lang/Throwable.
             methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Throwable", "<init>", "()V");
+        }
+        else if(currentClass.getParent("Libraries.Language.Errors.Error") != null){
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, "quorum/Libraries/Language/Errors/Error", "<init>", "()V");
         }
         else {
             // invoke <init> on java/lang/Object.
@@ -1193,11 +1196,36 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         String type = QuorumConverter.convertTypeToJavaTypeEquivalent(returnValueType);
         type = type.substring(0, 1).toUpperCase() + type.substring(1);
-
-
+        
+        //create the labels for catching a java exception
+        Label beginTry = new Label();
+        Label endTry = new Label();
+        Label catchStart = new Label();
+        Label catchEnd = new Label();
+        
+        //build the try catch block for the parse statement (could throw NumberFormatException).
+        methodVisitor.visitTryCatchBlock(beginTry, endTry, catchStart, "java/lang/NumberFormatException");
+        methodVisitor.visitLabel(beginTry);
+     
+        //call parse
         methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertTypeToJavaClassTypeEquivalent(returnValueType),
                 "parse" + type, "(Ljava/lang/String;)" + QuorumConverter.convertTypeToBytecodeString(returnValueType));
         stack.pushExpressionType(returnValueType);
+        
+        //catch any exception thrown by the parse
+        methodVisitor.visitLabel(endTry);
+        methodVisitor.visitJumpInsn(GOTO, catchEnd);
+        methodVisitor.visitLabel(catchStart);
+        
+        //create error and re-throw
+        methodVisitor.visitTypeInsn(NEW, "quorum/Libraries/Language/Errors/CastError");
+        methodVisitor.visitInsn(DUP);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, "quorum/Libraries/Language/Errors/CastError", "<init>", "()V");
+
+        //throw the exception
+        methodVisitor.visitInsn(ATHROW);
+        
+        methodVisitor.visitLabel(catchEnd);
     }
 
     /**
@@ -2174,6 +2202,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AlertStep step) {
+        processExpressions();
         //throw the exception
         methodVisitor.visitInsn(ATHROW);
     }
@@ -2181,9 +2210,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AlwaysEndStep step) {
         CheckDetectDescriptor desc = stack.popCheckDetect();
-
-        methodVisitor.visitVarInsn(ALOAD, desc.getLastDetectVariableNumber());
-        methodVisitor.visitInsn(ATHROW);
+        
+        //TODO: not sure this is working for always statements that happen after an uncaught exception.
+        if(step.isInErrorState()){
+            methodVisitor.visitVarInsn(ALOAD, desc.getLastDetectVariableNumber());
+            methodVisitor.visitInsn(ATHROW);
+        }
 
         //check detect construct is now ending
         methodVisitor.visitLabel(desc.getConstructEnd());
@@ -3718,16 +3750,21 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
 
         //create the java exception 
-        methodVisitor.visitTypeInsn(NEW, "java/lang/Throwable");
+        methodVisitor.visitTypeInsn(NEW, "quorum/Libraries/Language/Errors/Error");
         methodVisitor.visitInsn(DUP);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, "quorum/Libraries/Language/Errors/Error", "<init>", "()V");
+        int variableNumber = stack.pushMaximumVariable();
+        methodVisitor.visitVarInsn(ASTORE, variableNumber);
+        methodVisitor.visitVarInsn(ALOAD, variableNumber);
         if (runtimeError != null) {
             methodVisitor.visitLdcInsn(runtimeError.getErrorMessage());
-            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Throwable", "<init>", "(Ljava/lang/String;)V");
-        } else {
-            methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Throwable", "<init>", "()V");
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "quorum/Libraries/Language/Errors/Error", "SetErrorMessage", "(Ljava/lang/String;)V");
+        }else{
+            processExpressions();
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "quorum/Libraries/Language/Errors/Error", "SetErrorMessage", "(Ljava/lang/String;)V");
         }
 
-
+        methodVisitor.visitVarInsn(ALOAD, variableNumber);
         //throw the exception
         methodVisitor.visitInsn(ATHROW);
     }

@@ -26,8 +26,6 @@ end
 */
 class EndOfFileError is a Error
     on create
-        if GetErrorMessage() = ""
-            SetErrorMessage("EndOfFileError: The end of the file has been reached.")
-        end
+        SetErrorMessage("EndOfFileError: The end of the file has been reached.")
     end
 end

@@ -350,9 +350,10 @@ public class Main {
                         String[] programArguments = {}; // TODO: In the future, this can be used to pass arguments to a program running in interpreted mode.
                         declaredMethod.invoke(null, (Object)programArguments);
                     } catch (InvocationTargetException e) {
-                        if (e.getCause() != null) 
-                            System.err.println("Unable to run interpreter: " + e.getCause().getMessage());
-                        else
+                        if (e.getCause() != null){ 
+                            System.err.println("Unable to run interpreter: ");
+                            e.printStackTrace();
+                        }else
                             System.err.println("Unable to run interpreter: " + e.getMessage());
                         
                         // Bail with an error code.

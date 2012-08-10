@@ -1,4 +1,4 @@
-// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2012-08-08 11:39:26
+// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2012-08-09 13:58:21
 
 
 package org.quorum.parser;
@@ -26,100 +26,100 @@ import java.util.HashMap;
 @SuppressWarnings({"all", "warnings", "unchecked"})
 public class QuorumTreeWalker extends TreeParser {
     public static final String[] tokenNames = new String[] {
-        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "FUNCTION_CALL", "FUNCTION_CALL_PARENT", "FUNCTION_CALL_THIS", "FUNCTION_EXPRESSION_LIST", "SOLO_FUNCTION_CALL", "SOLO_FUNCTION_CALL_PARENT", "SOLO_FUNCTION_CALL_THIS", "QUALIFIED_NAME", "EXPRESSION_STATEMENT", "STATEMENT_LIST", "CONSTRUCTOR", "FPARAM", "UNARY_NOT", "ELSE_IF_STATEMENT", "FINAL_ELSE", "PAREN_WRAPPED_EXPRESSION", "ROOT_EXPRESSION", "QUALIFIED_SOLO_EXPRESSION", "QUALIFIED_SOLO_EXPRESSION_SELECTOR", "QUALIFIED_SOLO_PARENT_EXPRESSON", "GENERIC", "PACKAGE_NAME", "USE", "CLASS", "ID", "END", "INHERITS", "COMMA", "PUBLIC", "PRIVATE", "ACTION", "LEFT_PAREN", "RIGHT_PAREN", "RETURNS", "BLUEPRINT", "NATIVE", "ON_CREATE", "PERIOD", "COLON", "PARENT", "ME", "ALERT", "CHECK", "DETECT", "ALWAYS", "OF_TYPE", "OR", "PRINT", "SAY", "RETURN", "NOW", "LESS", "GREATER", "INTEGER_KEYWORD", "NUMBER_KEYWORD", "TEXT", "BOOLEAN_KEYWORD", "EQUALITY", "IF", "ELSE_IF", "ELSE", "REPEAT", "TIMES", "WHILE", "UNTIL", "AND", "NOTEQUALS", "GREATER_EQUAL", "LESS_EQUAL", "PLUS", "MINUS", "MULTIPLY", "DIVIDE", "MODULO", "NOT", "CAST", "INT", "BOOLEAN", "DECIMAL", "STRING", "NULL", "INPUT", "ON_DESTROY", "OVER", "LEFT_SQR_BRACE", "RIGHT_SQR_BRACE", "DOUBLE_QUOTE", "NEWLINE", "WS", "COMMENTS"
+        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "ACTION", "ALERT", "ALWAYS", "AND", "BLUEPRINT", "BOOLEAN", "BOOLEAN_KEYWORD", "CAST", "CHECK", "CLASS", "COLON", "COMMA", "COMMENTS", "CONSTRUCTOR", "DECIMAL", "DETECT", "DIVIDE", "DOUBLE_QUOTE", "ELSE", "ELSE_IF", "ELSE_IF_STATEMENT", "END", "EQUALITY", "EXPRESSION_STATEMENT", "FINAL_ELSE", "FPARAM", "FUNCTION_CALL", "FUNCTION_CALL_PARENT", "FUNCTION_CALL_THIS", "FUNCTION_EXPRESSION_LIST", "GENERIC", "GREATER", "GREATER_EQUAL", "ID", "IF", "INHERITS", "INPUT", "INT", "INTEGER_KEYWORD", "LEFT_PAREN", "LEFT_SQR_BRACE", "LESS", "LESS_EQUAL", "ME", "MINUS", "MODULO", "MULTIPLY", "NATIVE", "NEWLINE", "NOT", "NOTEQUALS", "NOW", "NULL", "NUMBER_KEYWORD", "OF_TYPE", "ON_CREATE", "ON_DESTROY", "OR", "OVER", "PACKAGE_NAME", "PARENT", "PAREN_WRAPPED_EXPRESSION", "PERIOD", "PLUS", "PRINT", "PRIVATE", "PUBLIC", "QUALIFIED_NAME", "QUALIFIED_SOLO_EXPRESSION", "QUALIFIED_SOLO_EXPRESSION_SELECTOR", "QUALIFIED_SOLO_PARENT_EXPRESSON", "REPEAT", "RETURN", "RETURNS", "RIGHT_PAREN", "RIGHT_SQR_BRACE", "ROOT_EXPRESSION", "SAY", "SOLO_FUNCTION_CALL", "SOLO_FUNCTION_CALL_PARENT", "SOLO_FUNCTION_CALL_THIS", "STATEMENT_LIST", "STRING", "TEXT", "TIMES", "UNARY_NOT", "UNTIL", "USE", "WHILE", "WS"
     };
 
     public static final int EOF=-1;
-    public static final int FUNCTION_CALL=4;
-    public static final int FUNCTION_CALL_PARENT=5;
-    public static final int FUNCTION_CALL_THIS=6;
-    public static final int FUNCTION_EXPRESSION_LIST=7;
-    public static final int SOLO_FUNCTION_CALL=8;
-    public static final int SOLO_FUNCTION_CALL_PARENT=9;
-    public static final int SOLO_FUNCTION_CALL_THIS=10;
-    public static final int QUALIFIED_NAME=11;
-    public static final int EXPRESSION_STATEMENT=12;
-    public static final int STATEMENT_LIST=13;
-    public static final int CONSTRUCTOR=14;
-    public static final int FPARAM=15;
-    public static final int UNARY_NOT=16;
-    public static final int ELSE_IF_STATEMENT=17;
-    public static final int FINAL_ELSE=18;
-    public static final int PAREN_WRAPPED_EXPRESSION=19;
-    public static final int ROOT_EXPRESSION=20;
-    public static final int QUALIFIED_SOLO_EXPRESSION=21;
-    public static final int QUALIFIED_SOLO_EXPRESSION_SELECTOR=22;
-    public static final int QUALIFIED_SOLO_PARENT_EXPRESSON=23;
-    public static final int GENERIC=24;
-    public static final int PACKAGE_NAME=25;
-    public static final int USE=26;
-    public static final int CLASS=27;
-    public static final int ID=28;
-    public static final int END=29;
-    public static final int INHERITS=30;
-    public static final int COMMA=31;
-    public static final int PUBLIC=32;
-    public static final int PRIVATE=33;
-    public static final int ACTION=34;
-    public static final int LEFT_PAREN=35;
-    public static final int RIGHT_PAREN=36;
-    public static final int RETURNS=37;
-    public static final int BLUEPRINT=38;
-    public static final int NATIVE=39;
-    public static final int ON_CREATE=40;
-    public static final int PERIOD=41;
-    public static final int COLON=42;
-    public static final int PARENT=43;
-    public static final int ME=44;
-    public static final int ALERT=45;
-    public static final int CHECK=46;
-    public static final int DETECT=47;
-    public static final int ALWAYS=48;
-    public static final int OF_TYPE=49;
-    public static final int OR=50;
-    public static final int PRINT=51;
-    public static final int SAY=52;
-    public static final int RETURN=53;
-    public static final int NOW=54;
-    public static final int LESS=55;
-    public static final int GREATER=56;
-    public static final int INTEGER_KEYWORD=57;
-    public static final int NUMBER_KEYWORD=58;
-    public static final int TEXT=59;
-    public static final int BOOLEAN_KEYWORD=60;
-    public static final int EQUALITY=61;
-    public static final int IF=62;
-    public static final int ELSE_IF=63;
-    public static final int ELSE=64;
-    public static final int REPEAT=65;
-    public static final int TIMES=66;
-    public static final int WHILE=67;
-    public static final int UNTIL=68;
-    public static final int AND=69;
-    public static final int NOTEQUALS=70;
-    public static final int GREATER_EQUAL=71;
-    public static final int LESS_EQUAL=72;
-    public static final int PLUS=73;
-    public static final int MINUS=74;
-    public static final int MULTIPLY=75;
-    public static final int DIVIDE=76;
-    public static final int MODULO=77;
-    public static final int NOT=78;
-    public static final int CAST=79;
-    public static final int INT=80;
-    public static final int BOOLEAN=81;
-    public static final int DECIMAL=82;
-    public static final int STRING=83;
-    public static final int NULL=84;
-    public static final int INPUT=85;
-    public static final int ON_DESTROY=86;
-    public static final int OVER=87;
-    public static final int LEFT_SQR_BRACE=88;
-    public static final int RIGHT_SQR_BRACE=89;
-    public static final int DOUBLE_QUOTE=90;
-    public static final int NEWLINE=91;
-    public static final int WS=92;
-    public static final int COMMENTS=93;
+    public static final int ACTION=4;
+    public static final int ALERT=5;
+    public static final int ALWAYS=6;
+    public static final int AND=7;
+    public static final int BLUEPRINT=8;
+    public static final int BOOLEAN=9;
+    public static final int BOOLEAN_KEYWORD=10;
+    public static final int CAST=11;
+    public static final int CHECK=12;
+    public static final int CLASS=13;
+    public static final int COLON=14;
+    public static final int COMMA=15;
+    public static final int COMMENTS=16;
+    public static final int CONSTRUCTOR=17;
+    public static final int DECIMAL=18;
+    public static final int DETECT=19;
+    public static final int DIVIDE=20;
+    public static final int DOUBLE_QUOTE=21;
+    public static final int ELSE=22;
+    public static final int ELSE_IF=23;
+    public static final int ELSE_IF_STATEMENT=24;
+    public static final int END=25;
+    public static final int EQUALITY=26;
+    public static final int EXPRESSION_STATEMENT=27;
+    public static final int FINAL_ELSE=28;
+    public static final int FPARAM=29;
+    public static final int FUNCTION_CALL=30;
+    public static final int FUNCTION_CALL_PARENT=31;
+    public static final int FUNCTION_CALL_THIS=32;
+    public static final int FUNCTION_EXPRESSION_LIST=33;
+    public static final int GENERIC=34;
+    public static final int GREATER=35;
+    public static final int GREATER_EQUAL=36;
+    public static final int ID=37;
+    public static final int IF=38;
+    public static final int INHERITS=39;
+    public static final int INPUT=40;
+    public static final int INT=41;
+    public static final int INTEGER_KEYWORD=42;
+    public static final int LEFT_PAREN=43;
+    public static final int LEFT_SQR_BRACE=44;
+    public static final int LESS=45;
+    public static final int LESS_EQUAL=46;
+    public static final int ME=47;
+    public static final int MINUS=48;
+    public static final int MODULO=49;
+    public static final int MULTIPLY=50;
+    public static final int NATIVE=51;
+    public static final int NEWLINE=52;
+    public static final int NOT=53;
+    public static final int NOTEQUALS=54;
+    public static final int NOW=55;
+    public static final int NULL=56;
+    public static final int NUMBER_KEYWORD=57;
+    public static final int OF_TYPE=58;
+    public static final int ON_CREATE=59;
+    public static final int ON_DESTROY=60;
+    public static final int OR=61;
+    public static final int OVER=62;
+    public static final int PACKAGE_NAME=63;
+    public static final int PARENT=64;
+    public static final int PAREN_WRAPPED_EXPRESSION=65;
+    public static final int PERIOD=66;
+    public static final int PLUS=67;
+    public static final int PRINT=68;
+    public static final int PRIVATE=69;
+    public static final int PUBLIC=70;
+    public static final int QUALIFIED_NAME=71;
+    public static final int QUALIFIED_SOLO_EXPRESSION=72;
+    public static final int QUALIFIED_SOLO_EXPRESSION_SELECTOR=73;
+    public static final int QUALIFIED_SOLO_PARENT_EXPRESSON=74;
+    public static final int REPEAT=75;
+    public static final int RETURN=76;
+    public static final int RETURNS=77;
+    public static final int RIGHT_PAREN=78;
+    public static final int RIGHT_SQR_BRACE=79;
+    public static final int ROOT_EXPRESSION=80;
+    public static final int SAY=81;
+    public static final int SOLO_FUNCTION_CALL=82;
+    public static final int SOLO_FUNCTION_CALL_PARENT=83;
+    public static final int SOLO_FUNCTION_CALL_THIS=84;
+    public static final int STATEMENT_LIST=85;
+    public static final int STRING=86;
+    public static final int TEXT=87;
+    public static final int TIMES=88;
+    public static final int UNARY_NOT=89;
+    public static final int UNTIL=90;
+    public static final int USE=91;
+    public static final int WHILE=92;
+    public static final int WS=93;
 
     // delegates
     public TreeParser[] getDelegates() {
@@ -515,7 +515,7 @@ public static class STAttrMap extends HashMap {
             if ( (LA8_0==CLASS) ) {
                 alt8=1;
             }
-            else if ( ((LA8_0 >= SOLO_FUNCTION_CALL && LA8_0 <= QUALIFIED_NAME)||LA8_0==ID||(LA8_0 >= PUBLIC && LA8_0 <= ACTION)||(LA8_0 >= BLUEPRINT && LA8_0 <= ON_CREATE)||(LA8_0 >= PARENT && LA8_0 <= CHECK)||(LA8_0 >= PRINT && LA8_0 <= RETURN)||(LA8_0 >= INTEGER_KEYWORD && LA8_0 <= BOOLEAN_KEYWORD)||LA8_0==IF||LA8_0==REPEAT) ) {
+            else if ( ((LA8_0 >= ACTION && LA8_0 <= ALERT)||LA8_0==BLUEPRINT||LA8_0==BOOLEAN_KEYWORD||LA8_0==CHECK||(LA8_0 >= ID && LA8_0 <= IF)||LA8_0==INTEGER_KEYWORD||LA8_0==ME||LA8_0==NATIVE||LA8_0==NUMBER_KEYWORD||LA8_0==ON_CREATE||LA8_0==PARENT||(LA8_0 >= PRINT && LA8_0 <= QUALIFIED_NAME)||(LA8_0 >= REPEAT && LA8_0 <= RETURN)||(LA8_0 >= SAY && LA8_0 <= SOLO_FUNCTION_CALL_THIS)||LA8_0==TEXT) ) {
                 alt8=2;
             }
             else {
@@ -608,7 +608,7 @@ public static class STAttrMap extends HashMap {
                         int alt7=2;
                         int LA7_0 = input.LA(1);
 
-                        if ( (LA7_0==QUALIFIED_NAME||LA7_0==ID||(LA7_0 >= PUBLIC && LA7_0 <= ACTION)||(LA7_0 >= BLUEPRINT && LA7_0 <= ON_CREATE)||(LA7_0 >= PARENT && LA7_0 <= ME)||(LA7_0 >= INTEGER_KEYWORD && LA7_0 <= BOOLEAN_KEYWORD)) ) {
+                        if ( (LA7_0==ACTION||LA7_0==BLUEPRINT||LA7_0==BOOLEAN_KEYWORD||LA7_0==ID||LA7_0==INTEGER_KEYWORD||LA7_0==ME||LA7_0==NATIVE||LA7_0==NUMBER_KEYWORD||LA7_0==ON_CREATE||LA7_0==PARENT||(LA7_0 >= PRIVATE && LA7_0 <= QUALIFIED_NAME)||LA7_0==TEXT) ) {
                             alt7=1;
                         }
 
@@ -704,24 +704,24 @@ public static class STAttrMap extends HashMap {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:126:2: ( ( statement )+ | ( (modEnum= access_modifier )? method_declaration )+ )
             int alt12=2;
             switch ( input.LA(1) ) {
+            case ALERT:
+            case BOOLEAN_KEYWORD:
+            case CHECK:
+            case ID:
+            case IF:
+            case INTEGER_KEYWORD:
+            case ME:
+            case NUMBER_KEYWORD:
+            case PARENT:
+            case PRINT:
+            case QUALIFIED_NAME:
+            case REPEAT:
+            case RETURN:
+            case SAY:
             case SOLO_FUNCTION_CALL:
             case SOLO_FUNCTION_CALL_PARENT:
             case SOLO_FUNCTION_CALL_THIS:
-            case QUALIFIED_NAME:
-            case ID:
-            case PARENT:
-            case ME:
-            case ALERT:
-            case CHECK:
-            case PRINT:
-            case SAY:
-            case RETURN:
-            case INTEGER_KEYWORD:
-            case NUMBER_KEYWORD:
             case TEXT:
-            case BOOLEAN_KEYWORD:
-            case IF:
-            case REPEAT:
                 {
                 alt12=1;
                 }
@@ -730,10 +730,10 @@ public static class STAttrMap extends HashMap {
                 {
                 int LA12_2 = input.LA(2);
 
-                if ( (LA12_2==QUALIFIED_NAME||(LA12_2 >= INTEGER_KEYWORD && LA12_2 <= BOOLEAN_KEYWORD)) ) {
+                if ( (LA12_2==BOOLEAN_KEYWORD||LA12_2==INTEGER_KEYWORD||LA12_2==NUMBER_KEYWORD||LA12_2==QUALIFIED_NAME||LA12_2==TEXT) ) {
                     alt12=1;
                 }
-                else if ( (LA12_2==ACTION||(LA12_2 >= BLUEPRINT && LA12_2 <= ON_CREATE)) ) {
+                else if ( (LA12_2==ACTION||LA12_2==BLUEPRINT||LA12_2==NATIVE||LA12_2==ON_CREATE) ) {
                     alt12=2;
                 }
                 else {
@@ -749,10 +749,10 @@ public static class STAttrMap extends HashMap {
                 {
                 int LA12_3 = input.LA(2);
 
-                if ( (LA12_3==QUALIFIED_NAME||(LA12_3 >= INTEGER_KEYWORD && LA12_3 <= BOOLEAN_KEYWORD)) ) {
+                if ( (LA12_3==BOOLEAN_KEYWORD||LA12_3==INTEGER_KEYWORD||LA12_3==NUMBER_KEYWORD||LA12_3==QUALIFIED_NAME||LA12_3==TEXT) ) {
                     alt12=1;
                 }
-                else if ( (LA12_3==ACTION||(LA12_3 >= BLUEPRINT && LA12_3 <= ON_CREATE)) ) {
+                else if ( (LA12_3==ACTION||LA12_3==BLUEPRINT||LA12_3==NATIVE||LA12_3==ON_CREATE) ) {
                     alt12=2;
                 }
                 else {
@@ -796,7 +796,7 @@ public static class STAttrMap extends HashMap {
                         int alt9=2;
                         int LA9_0 = input.LA(1);
 
-                        if ( ((LA9_0 >= SOLO_FUNCTION_CALL && LA9_0 <= QUALIFIED_NAME)||LA9_0==ID||(LA9_0 >= PUBLIC && LA9_0 <= PRIVATE)||(LA9_0 >= PARENT && LA9_0 <= CHECK)||(LA9_0 >= PRINT && LA9_0 <= RETURN)||(LA9_0 >= INTEGER_KEYWORD && LA9_0 <= BOOLEAN_KEYWORD)||LA9_0==IF||LA9_0==REPEAT) ) {
+                        if ( (LA9_0==ALERT||LA9_0==BOOLEAN_KEYWORD||LA9_0==CHECK||(LA9_0 >= ID && LA9_0 <= IF)||LA9_0==INTEGER_KEYWORD||LA9_0==ME||LA9_0==NUMBER_KEYWORD||LA9_0==PARENT||(LA9_0 >= PRINT && LA9_0 <= QUALIFIED_NAME)||(LA9_0 >= REPEAT && LA9_0 <= RETURN)||(LA9_0 >= SAY && LA9_0 <= SOLO_FUNCTION_CALL_THIS)||LA9_0==TEXT) ) {
                             alt9=1;
                         }
 
@@ -853,7 +853,7 @@ public static class STAttrMap extends HashMap {
                         int alt11=2;
                         int LA11_0 = input.LA(1);
 
-                        if ( ((LA11_0 >= PUBLIC && LA11_0 <= ACTION)||(LA11_0 >= BLUEPRINT && LA11_0 <= ON_CREATE)) ) {
+                        if ( (LA11_0==ACTION||LA11_0==BLUEPRINT||LA11_0==NATIVE||LA11_0==ON_CREATE||(LA11_0 >= PRIVATE && LA11_0 <= PUBLIC)) ) {
                             alt11=1;
                         }
 
@@ -866,7 +866,7 @@ public static class STAttrMap extends HashMap {
                     	    int alt10=2;
                     	    int LA10_0 = input.LA(1);
 
-                    	    if ( ((LA10_0 >= PUBLIC && LA10_0 <= PRIVATE)) ) {
+                    	    if ( ((LA10_0 >= PRIVATE && LA10_0 <= PUBLIC)) ) {
                     	        alt10=1;
                     	    }
                     	    switch (alt10) {
@@ -1125,14 +1125,14 @@ public static class STAttrMap extends HashMap {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:171:2: ( assignment_statement | (modEnum= access_modifier )? method_declaration )
             int alt17=2;
             switch ( input.LA(1) ) {
-            case QUALIFIED_NAME:
-            case ID:
-            case PARENT:
-            case ME:
-            case INTEGER_KEYWORD:
-            case NUMBER_KEYWORD:
-            case TEXT:
             case BOOLEAN_KEYWORD:
+            case ID:
+            case INTEGER_KEYWORD:
+            case ME:
+            case NUMBER_KEYWORD:
+            case PARENT:
+            case QUALIFIED_NAME:
+            case TEXT:
                 {
                 alt17=1;
                 }
@@ -1141,10 +1141,10 @@ public static class STAttrMap extends HashMap {
                 {
                 int LA17_2 = input.LA(2);
 
-                if ( (LA17_2==QUALIFIED_NAME||(LA17_2 >= INTEGER_KEYWORD && LA17_2 <= BOOLEAN_KEYWORD)) ) {
+                if ( (LA17_2==BOOLEAN_KEYWORD||LA17_2==INTEGER_KEYWORD||LA17_2==NUMBER_KEYWORD||LA17_2==QUALIFIED_NAME||LA17_2==TEXT) ) {
                     alt17=1;
                 }
-                else if ( (LA17_2==ACTION||(LA17_2 >= BLUEPRINT && LA17_2 <= ON_CREATE)) ) {
+                else if ( (LA17_2==ACTION||LA17_2==BLUEPRINT||LA17_2==NATIVE||LA17_2==ON_CREATE) ) {
                     alt17=2;
                 }
                 else {
@@ -1160,10 +1160,10 @@ public static class STAttrMap extends HashMap {
                 {
                 int LA17_3 = input.LA(2);
 
-                if ( (LA17_3==QUALIFIED_NAME||(LA17_3 >= INTEGER_KEYWORD && LA17_3 <= BOOLEAN_KEYWORD)) ) {
+                if ( (LA17_3==BOOLEAN_KEYWORD||LA17_3==INTEGER_KEYWORD||LA17_3==NUMBER_KEYWORD||LA17_3==QUALIFIED_NAME||LA17_3==TEXT) ) {
                     alt17=1;
                 }
-                else if ( (LA17_3==ACTION||(LA17_3 >= BLUEPRINT && LA17_3 <= ON_CREATE)) ) {
+                else if ( (LA17_3==ACTION||LA17_3==BLUEPRINT||LA17_3==NATIVE||LA17_3==ON_CREATE) ) {
                     alt17=2;
                 }
                 else {
@@ -1210,7 +1210,7 @@ public static class STAttrMap extends HashMap {
                     int alt16=2;
                     int LA16_0 = input.LA(1);
 
-                    if ( ((LA16_0 >= PUBLIC && LA16_0 <= PRIVATE)) ) {
+                    if ( ((LA16_0 >= PRIVATE && LA16_0 <= PUBLIC)) ) {
                         alt16=1;
                     }
                     switch (alt16) {
@@ -1815,7 +1815,7 @@ public static class STAttrMap extends HashMap {
                     int alt26=2;
                     int LA26_0 = input.LA(1);
 
-                    if ( ((LA26_0 >= SOLO_FUNCTION_CALL && LA26_0 <= QUALIFIED_NAME)||LA26_0==ID||(LA26_0 >= PUBLIC && LA26_0 <= PRIVATE)||(LA26_0 >= PARENT && LA26_0 <= CHECK)||(LA26_0 >= PRINT && LA26_0 <= RETURN)||(LA26_0 >= INTEGER_KEYWORD && LA26_0 <= BOOLEAN_KEYWORD)||LA26_0==IF||LA26_0==REPEAT) ) {
+                    if ( (LA26_0==ALERT||LA26_0==BOOLEAN_KEYWORD||LA26_0==CHECK||(LA26_0 >= ID && LA26_0 <= IF)||LA26_0==INTEGER_KEYWORD||LA26_0==ME||LA26_0==NUMBER_KEYWORD||LA26_0==PARENT||(LA26_0 >= PRINT && LA26_0 <= QUALIFIED_NAME)||(LA26_0 >= REPEAT && LA26_0 <= RETURN)||(LA26_0 >= SAY && LA26_0 <= SOLO_FUNCTION_CALL_THIS)||LA26_0==TEXT) ) {
                         alt26=1;
                     }
 
@@ -1899,16 +1899,16 @@ public static class STAttrMap extends HashMap {
                 alt27=2;
                 }
                 break;
-            case QUALIFIED_NAME:
-            case ID:
-            case PUBLIC:
-            case PRIVATE:
-            case PARENT:
-            case ME:
-            case INTEGER_KEYWORD:
-            case NUMBER_KEYWORD:
-            case TEXT:
             case BOOLEAN_KEYWORD:
+            case ID:
+            case INTEGER_KEYWORD:
+            case ME:
+            case NUMBER_KEYWORD:
+            case PARENT:
+            case PRIVATE:
+            case PUBLIC:
+            case QUALIFIED_NAME:
+            case TEXT:
                 {
                 alt27=3;
                 }
@@ -2172,7 +2172,7 @@ public static class STAttrMap extends HashMap {
                     int alt30=2;
                     int LA30_0 = input.LA(1);
 
-                    if ( ((LA30_0 >= FUNCTION_CALL && LA30_0 <= FUNCTION_CALL_THIS)||LA30_0==UNARY_NOT||(LA30_0 >= QUALIFIED_SOLO_EXPRESSION && LA30_0 <= QUALIFIED_SOLO_PARENT_EXPRESSON)||LA30_0==INHERITS||LA30_0==ME||LA30_0==OR||(LA30_0 >= LESS && LA30_0 <= GREATER)||LA30_0==EQUALITY||(LA30_0 >= AND && LA30_0 <= MODULO)||(LA30_0 >= CAST && LA30_0 <= INPUT)) ) {
+                    if ( (LA30_0==AND||LA30_0==BOOLEAN||LA30_0==CAST||LA30_0==DECIMAL||LA30_0==DIVIDE||LA30_0==EQUALITY||(LA30_0 >= FUNCTION_CALL && LA30_0 <= FUNCTION_CALL_THIS)||(LA30_0 >= GREATER && LA30_0 <= GREATER_EQUAL)||(LA30_0 >= INHERITS && LA30_0 <= INT)||(LA30_0 >= LESS && LA30_0 <= MULTIPLY)||LA30_0==NOTEQUALS||LA30_0==NULL||LA30_0==OR||LA30_0==PLUS||(LA30_0 >= QUALIFIED_SOLO_EXPRESSION && LA30_0 <= QUALIFIED_SOLO_PARENT_EXPRESSON)||LA30_0==STRING||LA30_0==UNARY_NOT) ) {
                         alt30=1;
                     }
                     switch (alt30) {
@@ -2320,7 +2320,7 @@ public static class STAttrMap extends HashMap {
                     int alt32=2;
                     int LA32_0 = input.LA(1);
 
-                    if ( ((LA32_0 >= FUNCTION_CALL && LA32_0 <= FUNCTION_CALL_THIS)||LA32_0==UNARY_NOT||(LA32_0 >= QUALIFIED_SOLO_EXPRESSION && LA32_0 <= QUALIFIED_SOLO_PARENT_EXPRESSON)||LA32_0==INHERITS||LA32_0==ME||LA32_0==OR||(LA32_0 >= LESS && LA32_0 <= GREATER)||LA32_0==EQUALITY||(LA32_0 >= AND && LA32_0 <= MODULO)||(LA32_0 >= CAST && LA32_0 <= INPUT)) ) {
+                    if ( (LA32_0==AND||LA32_0==BOOLEAN||LA32_0==CAST||LA32_0==DECIMAL||LA32_0==DIVIDE||LA32_0==EQUALITY||(LA32_0 >= FUNCTION_CALL && LA32_0 <= FUNCTION_CALL_THIS)||(LA32_0 >= GREATER && LA32_0 <= GREATER_EQUAL)||(LA32_0 >= INHERITS && LA32_0 <= INT)||(LA32_0 >= LESS && LA32_0 <= MULTIPLY)||LA32_0==NOTEQUALS||LA32_0==NULL||LA32_0==OR||LA32_0==PLUS||(LA32_0 >= QUALIFIED_SOLO_EXPRESSION && LA32_0 <= QUALIFIED_SOLO_PARENT_EXPRESSON)||LA32_0==STRING||LA32_0==UNARY_NOT) ) {
                         alt32=1;
                     }
                     switch (alt32) {
@@ -2484,7 +2484,7 @@ public static class STAttrMap extends HashMap {
                     int alt35=2;
                     int LA35_0 = input.LA(1);
 
-                    if ( ((LA35_0 >= FUNCTION_CALL && LA35_0 <= FUNCTION_CALL_THIS)||LA35_0==UNARY_NOT||(LA35_0 >= QUALIFIED_SOLO_EXPRESSION && LA35_0 <= QUALIFIED_SOLO_PARENT_EXPRESSON)||LA35_0==INHERITS||LA35_0==ME||LA35_0==OR||(LA35_0 >= LESS && LA35_0 <= GREATER)||LA35_0==EQUALITY||(LA35_0 >= AND && LA35_0 <= MODULO)||(LA35_0 >= CAST && LA35_0 <= INPUT)) ) {
+                    if ( (LA35_0==AND||LA35_0==BOOLEAN||LA35_0==CAST||LA35_0==DECIMAL||LA35_0==DIVIDE||LA35_0==EQUALITY||(LA35_0 >= FUNCTION_CALL && LA35_0 <= FUNCTION_CALL_THIS)||(LA35_0 >= GREATER && LA35_0 <= GREATER_EQUAL)||(LA35_0 >= INHERITS && LA35_0 <= INT)||(LA35_0 >= LESS && LA35_0 <= MULTIPLY)||LA35_0==NOTEQUALS||LA35_0==NULL||LA35_0==OR||LA35_0==PLUS||(LA35_0 >= QUALIFIED_SOLO_EXPRESSION && LA35_0 <= QUALIFIED_SOLO_PARENT_EXPRESSON)||LA35_0==STRING||LA35_0==UNARY_NOT) ) {
                         alt35=1;
                     }
                     switch (alt35) {
@@ -2629,7 +2629,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "alert_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:541:1: alert_statement : ^( ALERT LEFT_PAREN ex= expression RIGHT_PAREN ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:541:1: alert_statement : ^( ALERT LEFT_PAREN ex= root_expression RIGHT_PAREN ) ;
     public final QuorumTreeWalker.alert_statement_return alert_statement() throws RecognitionException {
         alert_statement_stack.push(new alert_statement_scope());
         QuorumTreeWalker.alert_statement_return retval = new QuorumTreeWalker.alert_statement_return();
@@ -2637,12 +2637,12 @@ public static class STAttrMap extends HashMap {
 
 
         CommonTree LEFT_PAREN13=null;
-        QuorumTreeWalker.expression_return ex =null;
+        QuorumTreeWalker.root_expression_return ex =null;
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:547:2: ( ^( ALERT LEFT_PAREN ex= expression RIGHT_PAREN ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:547:4: ^( ALERT LEFT_PAREN ex= expression RIGHT_PAREN )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:547:2: ( ^( ALERT LEFT_PAREN ex= root_expression RIGHT_PAREN ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:547:4: ^( ALERT LEFT_PAREN ex= root_expression RIGHT_PAREN )
             {
             match(input,ALERT,FOLLOW_ALERT_in_alert_statement786); 
 
@@ -2654,8 +2654,8 @@ public static class STAttrMap extends HashMap {
             match(input, Token.DOWN, null); 
             LEFT_PAREN13=(CommonTree)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_alert_statement794); 
 
-            pushFollow(FOLLOW_expression_in_alert_statement798);
-            ex=expression();
+            pushFollow(FOLLOW_root_expression_in_alert_statement798);
+            ex=root_expression();
 
             state._fsp--;
 
@@ -2667,7 +2667,9 @@ public static class STAttrMap extends HashMap {
             			
             			ClassDescriptor cd = symbol.findFullyQualifiedClass((ex!=null?ex.eval:null).getType().getName());
             			
-            		
+            			if(cd == null)
+            				cd = symbol.findClass((ex!=null?ex.eval:null).getType().getName(), "Libraries.Language.Errors");
+            			
             			if(cd.getStaticKey().equals(ErrorTypeDescriptor.ERROR) || cd.getParent(ErrorTypeDescriptor.ERROR) != null){
             		        	t.setName(cd.getStaticKey());
             		        	t.setType(cd.getType());
@@ -2705,7 +2707,7 @@ public static class STAttrMap extends HashMap {
                             
                             
             		stepFactory.addAlertStep(location, ((alert_statement_scope)alert_statement_stack.peek()).errorType, ((alert_statement_scope)alert_statement_stack.peek()).errorValue, ((alert_statement_scope)alert_statement_stack.peek()).errorStep);
-            		
+            		builder.addStepLabel(OpcodeType.ALERT, -1);
             		symbol.addStatementFlagToCurrentFile(location.getStartLine());
             		
             	
@@ -2750,7 +2752,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "check_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:604:1: check_statement :check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:606:1: check_statement :check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END ;
     public final QuorumTreeWalker.check_statement_return check_statement() throws RecognitionException {
         check_statement_stack.push(new check_statement_scope());
         QuorumTreeWalker.check_statement_return retval = new QuorumTreeWalker.check_statement_return();
@@ -2765,8 +2767,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:614:2: (check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:615:2: check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:616:2: (check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:617:2: check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END
             {
             	
             		((check_statement_scope)check_statement_stack.peek()).detectJump = new JumpStep();
@@ -2806,7 +2808,7 @@ public static class STAttrMap extends HashMap {
             		stepFactory.addCheckEndJumpStep(((check_statement_scope)check_statement_stack.peek()).info);
             	
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:643:2: ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:645:2: ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] )
             int alt39=2;
             int LA39_0 = input.LA(1);
 
@@ -2825,9 +2827,9 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt39) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:644:7: (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:646:7: (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )?
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:644:7: (detect_start= DETECT det_param= detect_parameter block[true] )+
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:646:7: (detect_start= DETECT det_param= detect_parameter block[true] )+
                     int cnt37=0;
                     loop37:
                     do {
@@ -2841,7 +2843,7 @@ public static class STAttrMap extends HashMap {
 
                         switch (alt37) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:644:8: detect_start= DETECT det_param= detect_parameter block[true]
+                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:646:8: detect_start= DETECT det_param= detect_parameter block[true]
                     	    {
                     	    detect_start=(CommonTree)match(input,DETECT,FOLLOW_DETECT_in_check_statement866); 
 
@@ -2918,7 +2920,7 @@ public static class STAttrMap extends HashMap {
                     } while (true);
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:695:7: (always= ALWAYS block[true] )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:697:7: (always= ALWAYS block[true] )?
                     int alt38=2;
                     int LA38_0 = input.LA(1);
 
@@ -2927,7 +2929,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt38) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:695:8: always= ALWAYS block[true]
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:697:8: always= ALWAYS block[true]
                             {
                             always=(CommonTree)match(input,ALWAYS,FOLLOW_ALWAYS_in_check_statement950); 
 
@@ -2957,7 +2959,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:710:7: always= ALWAYS block[true]
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:712:7: always= ALWAYS block[true]
                     {
                     always=(CommonTree)match(input,ALWAYS,FOLLOW_ALWAYS_in_check_statement998); 
 
@@ -3038,7 +3040,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "detect_parameter"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:745:1: detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionTypeList] : ^(id= ID ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )? ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:747:1: detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionTypeList] : ^(id= ID ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )? ) ;
     public final QuorumTreeWalker.detect_parameter_return detect_parameter() throws RecognitionException {
         detect_parameter_stack.push(new detect_parameter_scope());
         QuorumTreeWalker.detect_parameter_return retval = new QuorumTreeWalker.detect_parameter_return();
@@ -3050,14 +3052,14 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:749:2: ( ^(id= ID ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )? ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:749:4: ^(id= ID ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )? )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:751:2: ( ^(id= ID ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )? ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:751:4: ^(id= ID ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )? )
             {
             id=(CommonTree)match(input,ID,FOLLOW_ID_in_detect_parameter1059); 
 
             if ( input.LA(1)==Token.DOWN ) {
                 match(input, Token.DOWN, null); 
-                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:750:2: ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )?
+                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:752:2: ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )?
                 int alt41=2;
                 int LA41_0 = input.LA(1);
 
@@ -3066,7 +3068,7 @@ public static class STAttrMap extends HashMap {
                 }
                 switch (alt41) {
                     case 1 :
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:750:3: OF_TYPE qn= qualified_name ( OR qn= qualified_name )*
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:752:3: OF_TYPE qn= qualified_name ( OR qn= qualified_name )*
                         {
                         match(input,OF_TYPE,FOLLOW_OF_TYPE_in_detect_parameter1064); 
 
@@ -3118,7 +3120,7 @@ public static class STAttrMap extends HashMap {
                         		((detect_parameter_scope)detect_parameter_stack.peek()).exceptionList.add(t);
                         	
 
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:792:2: ( OR qn= qualified_name )*
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:794:2: ( OR qn= qualified_name )*
                         loop40:
                         do {
                             int alt40=2;
@@ -3131,7 +3133,7 @@ public static class STAttrMap extends HashMap {
 
                             switch (alt40) {
                         	case 1 :
-                        	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:792:3: OR qn= qualified_name
+                        	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:794:3: OR qn= qualified_name
                         	    {
                         	    match(input,OR,FOLLOW_OR_in_detect_parameter1080); 
 
@@ -3234,7 +3236,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "print_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:843:1: print_statement : PRINT root_expression ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:845:1: print_statement : PRINT root_expression ;
     public final QuorumTreeWalker.print_statement_return print_statement() throws RecognitionException {
         QuorumTreeWalker.print_statement_return retval = new QuorumTreeWalker.print_statement_return();
         retval.start = input.LT(1);
@@ -3244,8 +3246,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:844:2: ( PRINT root_expression )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:844:4: PRINT root_expression
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:846:2: ( PRINT root_expression )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:846:4: PRINT root_expression
             {
             match(input,PRINT,FOLLOW_PRINT_in_print_statement1111); 
 
@@ -3296,7 +3298,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "speak_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:864:1: speak_statement : SAY root_expression ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:866:1: speak_statement : SAY root_expression ;
     public final QuorumTreeWalker.speak_statement_return speak_statement() throws RecognitionException {
         QuorumTreeWalker.speak_statement_return retval = new QuorumTreeWalker.speak_statement_return();
         retval.start = input.LT(1);
@@ -3306,8 +3308,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:865:2: ( SAY root_expression )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:865:4: SAY root_expression
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:867:2: ( SAY root_expression )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:867:4: SAY root_expression
             {
             match(input,SAY,FOLLOW_SAY_in_speak_statement1129); 
 
@@ -3357,7 +3359,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "return_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:883:1: return_statement : RETURN ( root_expression | NOW ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:885:1: return_statement : RETURN ( root_expression | NOW ) ;
     public final QuorumTreeWalker.return_statement_return return_statement() throws RecognitionException {
         QuorumTreeWalker.return_statement_return retval = new QuorumTreeWalker.return_statement_return();
         retval.start = input.LT(1);
@@ -3369,12 +3371,12 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:884:2: ( RETURN ( root_expression | NOW ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:884:4: RETURN ( root_expression | NOW )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:886:2: ( RETURN ( root_expression | NOW ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:886:4: RETURN ( root_expression | NOW )
             {
             RETURN18=(CommonTree)match(input,RETURN,FOLLOW_RETURN_in_return_statement1145); 
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:884:11: ( root_expression | NOW )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:886:11: ( root_expression | NOW )
             int alt42=2;
             int LA42_0 = input.LA(1);
 
@@ -3393,7 +3395,7 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt42) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:884:12: root_expression
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:886:12: root_expression
                     {
                     pushFollow(FOLLOW_root_expression_in_return_statement1148);
                     root_expression16=root_expression();
@@ -3421,7 +3423,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:901:4: NOW
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:903:4: NOW
                     {
                     NOW17=(CommonTree)match(input,NOW,FOLLOW_NOW_in_return_statement1156); 
 
@@ -3468,7 +3470,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "generic_declaration"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:916:1: generic_declaration : ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:918:1: generic_declaration : ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER ) ;
     public final QuorumTreeWalker.generic_declaration_return generic_declaration() throws RecognitionException {
         QuorumTreeWalker.generic_declaration_return retval = new QuorumTreeWalker.generic_declaration_return();
         retval.start = input.LT(1);
@@ -3478,8 +3480,8 @@ public static class STAttrMap extends HashMap {
         List list_ids=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:917:2: ( ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:917:4: ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:919:2: ( ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:919:4: ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER )
             {
             match(input,GENERIC,FOLLOW_GENERIC_in_generic_declaration1174); 
 
@@ -3491,7 +3493,7 @@ public static class STAttrMap extends HashMap {
             list_ids.add(ids);
 
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:917:27: ( COMMA ids+= ID )*
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:919:27: ( COMMA ids+= ID )*
             loop43:
             do {
                 int alt43=2;
@@ -3504,7 +3506,7 @@ public static class STAttrMap extends HashMap {
 
                 switch (alt43) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:917:28: COMMA ids+= ID
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:919:28: COMMA ids+= ID
             	    {
             	    match(input,COMMA,FOLLOW_COMMA_in_generic_declaration1183); 
 
@@ -3552,7 +3554,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "generic_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:920:1: generic_statement returns [ArrayList<GenericDescriptor> templateTypes] : ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:922:1: generic_statement returns [ArrayList<GenericDescriptor> templateTypes] : ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER ) ;
     public final QuorumTreeWalker.generic_statement_return generic_statement() throws RecognitionException {
         QuorumTreeWalker.generic_statement_return retval = new QuorumTreeWalker.generic_statement_return();
         retval.start = input.LT(1);
@@ -3564,8 +3566,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:921:2: ( ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:921:4: ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:923:2: ( ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:923:4: ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER )
             {
             match(input,GENERIC,FOLLOW_GENERIC_in_generic_statement1209); 
 
@@ -3596,7 +3598,7 @@ public static class STAttrMap extends HashMap {
             		types.add(genericType);
             	
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:939:3: ( COMMA a= assignment_declaration )*
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:941:3: ( COMMA a= assignment_declaration )*
             loop44:
             do {
                 int alt44=2;
@@ -3609,7 +3611,7 @@ public static class STAttrMap extends HashMap {
 
                 switch (alt44) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:939:4: COMMA a= assignment_declaration
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:941:4: COMMA a= assignment_declaration
             	    {
             	    match(input,COMMA,FOLLOW_COMMA_in_generic_statement1228); 
 
@@ -3677,7 +3679,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "class_type"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:966:1: class_type returns [TypeDescriptor myType] : qn= qualified_name ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:968:1: class_type returns [TypeDescriptor myType] : qn= qualified_name ;
     public final QuorumTreeWalker.class_type_return class_type() throws RecognitionException {
         QuorumTreeWalker.class_type_return retval = new QuorumTreeWalker.class_type_return();
         retval.start = input.LT(1);
@@ -3687,8 +3689,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:967:2: (qn= qualified_name )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:967:4: qn= qualified_name
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:969:2: (qn= qualified_name )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:969:4: qn= qualified_name
             {
             pushFollow(FOLLOW_qualified_name_in_class_type1273);
             qn=qualified_name();
@@ -3748,7 +3750,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "assignment_declaration"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:996:1: assignment_declaration returns [TypeDescriptor myType] : (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD );
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:998:1: assignment_declaration returns [TypeDescriptor myType] : (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD );
     public final QuorumTreeWalker.assignment_declaration_return assignment_declaration() throws RecognitionException {
         QuorumTreeWalker.assignment_declaration_return retval = new QuorumTreeWalker.assignment_declaration_return();
         retval.start = input.LT(1);
@@ -3760,7 +3762,7 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:997:2: (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:999:2: (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD )
             int alt46=5;
             switch ( input.LA(1) ) {
             case QUALIFIED_NAME:
@@ -3798,7 +3800,7 @@ public static class STAttrMap extends HashMap {
 
             switch (alt46) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:997:4: qn= qualified_name (gs= generic_statement )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:999:4: qn= qualified_name (gs= generic_statement )?
                     {
                     pushFollow(FOLLOW_qualified_name_in_assignment_declaration1295);
                     qn=qualified_name();
@@ -3806,7 +3808,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:997:26: (gs= generic_statement )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:999:26: (gs= generic_statement )?
                     int alt45=2;
                     int LA45_0 = input.LA(1);
 
@@ -3815,7 +3817,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt45) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:997:26: gs= generic_statement
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:999:26: gs= generic_statement
                             {
                             pushFollow(FOLLOW_generic_statement_in_assignment_declaration1299);
                             gs=generic_statement();
@@ -3862,7 +3864,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1027:4: INTEGER_KEYWORD
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1029:4: INTEGER_KEYWORD
                     {
                     match(input,INTEGER_KEYWORD,FOLLOW_INTEGER_KEYWORD_in_assignment_declaration1308); 
 
@@ -3875,7 +3877,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1033:4: NUMBER_KEYWORD
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1035:4: NUMBER_KEYWORD
                     {
                     match(input,NUMBER_KEYWORD,FOLLOW_NUMBER_KEYWORD_in_assignment_declaration1316); 
 
@@ -3888,7 +3890,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 4 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1039:4: TEXT
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1041:4: TEXT
                     {
                     match(input,TEXT,FOLLOW_TEXT_in_assignment_declaration1324); 
 
@@ -3901,7 +3903,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 5 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1045:4: BOOLEAN_KEYWORD
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1047:4: BOOLEAN_KEYWORD
                     {
                     match(input,BOOLEAN_KEYWORD,FOLLOW_BOOLEAN_KEYWORD_in_assignment_declaration1332); 
 
@@ -3937,7 +3939,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "assignment_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1051:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1053:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );
     public final QuorumTreeWalker.assignment_statement_return assignment_statement() throws RecognitionException {
         QuorumTreeWalker.assignment_statement_return retval = new QuorumTreeWalker.assignment_statement_return();
         retval.start = input.LT(1);
@@ -3961,23 +3963,23 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1052:2: ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1054:2: ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? )
             int alt51=3;
             alt51 = dfa51.predict(input);
             switch (alt51) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1053:3: (sel= selector COLON )? ID rhs= assign_right_hand_side
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1055:3: (sel= selector COLON )? ID rhs= assign_right_hand_side
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1053:3: (sel= selector COLON )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1055:3: (sel= selector COLON )?
                     int alt47=2;
                     int LA47_0 = input.LA(1);
 
-                    if ( ((LA47_0 >= PARENT && LA47_0 <= ME)) ) {
+                    if ( (LA47_0==ME||LA47_0==PARENT) ) {
                         alt47=1;
                     }
                     switch (alt47) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1053:4: sel= selector COLON
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1055:4: sel= selector COLON
                             {
                             pushFollow(FOLLOW_selector_in_assignment_statement1348);
                             sel=selector();
@@ -4035,7 +4037,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1084:4: obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1086:4: obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side
                     {
                     pushFollow(FOLLOW_qualified_name_in_assignment_statement1368);
                     obj=qualified_name();
@@ -4043,7 +4045,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1084:23: ( COLON PARENT COLON parent= qualified_name )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1086:23: ( COLON PARENT COLON parent= qualified_name )?
                     int alt48=2;
                     int LA48_0 = input.LA(1);
 
@@ -4056,7 +4058,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt48) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1084:24: COLON PARENT COLON parent= qualified_name
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1086:24: COLON PARENT COLON parent= qualified_name
                             {
                             match(input,COLON,FOLLOW_COLON_in_assignment_statement1371); 
 
@@ -4120,18 +4122,18 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1115:4: (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1117:4: (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )?
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1115:13: (modifier= access_modifier )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1117:13: (modifier= access_modifier )?
                     int alt49=2;
                     int LA49_0 = input.LA(1);
 
-                    if ( ((LA49_0 >= PUBLIC && LA49_0 <= PRIVATE)) ) {
+                    if ( ((LA49_0 >= PRIVATE && LA49_0 <= PUBLIC)) ) {
                         alt49=1;
                     }
                     switch (alt49) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1115:13: modifier= access_modifier
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1117:13: modifier= access_modifier
                             {
                             pushFollow(FOLLOW_access_modifier_in_assignment_statement1401);
                             modifier=access_modifier();
@@ -4153,7 +4155,7 @@ public static class STAttrMap extends HashMap {
 
                     name=(CommonTree)match(input,ID,FOLLOW_ID_in_assignment_statement1414); 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1115:75: (rhs= assign_right_hand_side )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1117:75: (rhs= assign_right_hand_side )?
                     int alt50=2;
                     int LA50_0 = input.LA(1);
 
@@ -4162,7 +4164,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt50) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1115:75: rhs= assign_right_hand_side
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1117:75: rhs= assign_right_hand_side
                             {
                             pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1418);
                             rhs=assign_right_hand_side();
@@ -4232,7 +4234,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "assign_right_hand_side"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1144:1: assign_right_hand_side returns [ExpressionValue eval, ExecutionStep step] : ( EQUALITY root_expression ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1146:1: assign_right_hand_side returns [ExpressionValue eval, ExecutionStep step] : ( EQUALITY root_expression ) ;
     public final QuorumTreeWalker.assign_right_hand_side_return assign_right_hand_side() throws RecognitionException {
         QuorumTreeWalker.assign_right_hand_side_return retval = new QuorumTreeWalker.assign_right_hand_side_return();
         retval.start = input.LT(1);
@@ -4242,11 +4244,11 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1145:2: ( ( EQUALITY root_expression ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1146:3: ( EQUALITY root_expression )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1147:2: ( ( EQUALITY root_expression ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1148:3: ( EQUALITY root_expression )
             {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1146:3: ( EQUALITY root_expression )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1146:4: EQUALITY root_expression
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1148:3: ( EQUALITY root_expression )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1148:4: EQUALITY root_expression
             {
             match(input,EQUALITY,FOLLOW_EQUALITY_in_assign_right_hand_side1439); 
 
@@ -4296,7 +4298,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "if_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1154:1: if_statement : begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1156:1: if_statement : begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END ;
     public final QuorumTreeWalker.if_statement_return if_statement() throws RecognitionException {
         if_statement_stack.push(new if_statement_scope());
         QuorumTreeWalker.if_statement_return retval = new QuorumTreeWalker.if_statement_return();
@@ -4315,8 +4317,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1160:3: (begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1160:5: begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1162:3: (begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1162:5: begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END
             {
             begin_if=(CommonTree)match(input,IF,FOLLOW_IF_in_if_statement1467); 
 
@@ -4376,7 +4378,7 @@ public static class STAttrMap extends HashMap {
             			
             		
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1204:3: (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )*
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1206:3: (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )*
             loop52:
             do {
                 int alt52=2;
@@ -4389,7 +4391,7 @@ public static class STAttrMap extends HashMap {
 
                 switch (alt52) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1204:4: begin_else_if= ELSE_IF condition2= root_expression b= block[true]
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1206:4: begin_else_if= ELSE_IF condition2= root_expression b= block[true]
             	    {
             	    begin_else_if=(CommonTree)match(input,ELSE_IF,FOLLOW_ELSE_IF_in_if_statement1509); 
 
@@ -4477,7 +4479,7 @@ public static class STAttrMap extends HashMap {
             } while (true);
 
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1267:3: (begin_else= ELSE b= block[true] )?
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1269:3: (begin_else= ELSE b= block[true] )?
             int alt53=2;
             int LA53_0 = input.LA(1);
 
@@ -4486,7 +4488,7 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt53) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1267:4: begin_else= ELSE b= block[true]
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1269:4: begin_else= ELSE b= block[true]
                     {
                     begin_else=(CommonTree)match(input,ELSE,FOLLOW_ELSE_in_if_statement1566); 
 
@@ -4590,7 +4592,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "loop_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1311:1: loop_statement : REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1313:1: loop_statement : REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END ;
     public final QuorumTreeWalker.loop_statement_return loop_statement() throws RecognitionException {
         loop_statement_stack.push(new loop_statement_scope());
         QuorumTreeWalker.loop_statement_return retval = new QuorumTreeWalker.loop_statement_return();
@@ -4603,8 +4605,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1330:2: ( REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1331:2: REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1332:2: ( REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1333:2: REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END
             {
             REPEAT23=(CommonTree)match(input,REPEAT,FOLLOW_REPEAT_in_loop_statement1608); 
 
@@ -4640,14 +4642,14 @@ public static class STAttrMap extends HashMap {
             		symbol.getControlFlow().repeatStart();
             	
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1364:2: ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1366:2: ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) )
             int alt55=2;
             int LA55_0 = input.LA(1);
 
             if ( (LA55_0==ROOT_EXPRESSION) ) {
                 alt55=1;
             }
-            else if ( ((LA55_0 >= WHILE && LA55_0 <= UNTIL)) ) {
+            else if ( (LA55_0==UNTIL||LA55_0==WHILE) ) {
                 alt55=2;
             }
             else {
@@ -4659,10 +4661,10 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt55) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1394:3: (expr= root_expression TIMES )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1396:3: (expr= root_expression TIMES )
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1394:3: (expr= root_expression TIMES )
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1394:4: expr= root_expression TIMES
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1396:3: (expr= root_expression TIMES )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1396:4: expr= root_expression TIMES
                     {
                     pushFollow(FOLLOW_root_expression_in_loop_statement1681);
                     expr=root_expression();
@@ -4706,12 +4708,12 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1422:4: ( ( WHILE | UNTIL ) expr= root_expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1424:4: ( ( WHILE | UNTIL ) expr= root_expression )
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1422:4: ( ( WHILE | UNTIL ) expr= root_expression )
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1422:5: ( WHILE | UNTIL ) expr= root_expression
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1424:4: ( ( WHILE | UNTIL ) expr= root_expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1424:5: ( WHILE | UNTIL ) expr= root_expression
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1422:5: ( WHILE | UNTIL )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1424:5: ( WHILE | UNTIL )
                     int alt54=2;
                     int LA54_0 = input.LA(1);
 
@@ -4730,7 +4732,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt54) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1422:6: WHILE
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1424:6: WHILE
                             {
                             match(input,WHILE,FOLLOW_WHILE_in_loop_statement1694); 
 
@@ -4739,7 +4741,7 @@ public static class STAttrMap extends HashMap {
                             }
                             break;
                         case 2 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1422:49: UNTIL
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1424:49: UNTIL
                             {
                             match(input,UNTIL,FOLLOW_UNTIL_in_loop_statement1700); 
 
@@ -4863,7 +4865,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "selector"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1508:1: selector returns [ScopeSelector scopeSel] : ( ^( PARENT qualified_name ) | ME );
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1510:1: selector returns [ScopeSelector scopeSel] : ( ^( PARENT qualified_name ) | ME );
     public final QuorumTreeWalker.selector_return selector() throws RecognitionException {
         QuorumTreeWalker.selector_return retval = new QuorumTreeWalker.selector_return();
         retval.start = input.LT(1);
@@ -4874,7 +4876,7 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1509:2: ( ^( PARENT qualified_name ) | ME )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1511:2: ( ^( PARENT qualified_name ) | ME )
             int alt56=2;
             int LA56_0 = input.LA(1);
 
@@ -4893,7 +4895,7 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt56) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1509:4: ^( PARENT qualified_name )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1511:4: ^( PARENT qualified_name )
                     {
                     PARENT26=(CommonTree)match(input,PARENT,FOLLOW_PARENT_in_selector1773); 
 
@@ -4923,7 +4925,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1522:4: ME
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1524:4: ME
                     {
                     match(input,ME,FOLLOW_ME_in_selector1784); 
 
@@ -4961,7 +4963,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "root_expression"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1530:1: root_expression returns [ExpressionValue eval, ExecutionStep step] : ^( ROOT_EXPRESSION expression ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1532:1: root_expression returns [ExpressionValue eval, ExecutionStep step] : ^( ROOT_EXPRESSION expression ) ;
     public final QuorumTreeWalker.root_expression_return root_expression() throws RecognitionException {
         QuorumTreeWalker.root_expression_return retval = new QuorumTreeWalker.root_expression_return();
         retval.start = input.LT(1);
@@ -4971,8 +4973,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1531:2: ( ^( ROOT_EXPRESSION expression ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1532:2: ^( ROOT_EXPRESSION expression )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1533:2: ( ^( ROOT_EXPRESSION expression ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1534:2: ^( ROOT_EXPRESSION expression )
             {
 
             		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
@@ -5022,7 +5024,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "expression"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1543:1: expression returns [ExpressionValue eval, ExecutionStep step] : ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN );
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1545:1: expression returns [ExpressionValue eval, ExecutionStep step] : ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN );
     public final QuorumTreeWalker.expression_return expression() throws RecognitionException {
         QuorumTreeWalker.expression_return retval = new QuorumTreeWalker.expression_return();
         retval.start = input.LT(1);
@@ -5078,7 +5080,7 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1544:2: ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1546:2: ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN )
             int alt62=29;
             switch ( input.LA(1) ) {
             case UNARY_NOT:
@@ -5259,7 +5261,7 @@ public static class STAttrMap extends HashMap {
 
             switch (alt62) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1545:3: ^( UNARY_NOT NOT expr= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1547:3: ^( UNARY_NOT NOT expr= expression )
                     {
                     match(input,UNARY_NOT,FOLLOW_UNARY_NOT_in_expression1834); 
 
@@ -5285,7 +5287,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1552:4: ^( EQUALITY left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1554:4: ^( EQUALITY left= expression right= expression )
                     {
                     match(input,EQUALITY,FOLLOW_EQUALITY_in_expression1854); 
 
@@ -5315,7 +5317,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1559:4: ^( NOTEQUALS left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1561:4: ^( NOTEQUALS left= expression right= expression )
                     {
                     match(input,NOTEQUALS,FOLLOW_NOTEQUALS_in_expression1876); 
 
@@ -5345,7 +5347,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 4 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1566:4: ^( GREATER left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1568:4: ^( GREATER left= expression right= expression )
                     {
                     match(input,GREATER,FOLLOW_GREATER_in_expression1898); 
 
@@ -5375,7 +5377,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 5 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1573:4: ^( GREATER_EQUAL left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1575:4: ^( GREATER_EQUAL left= expression right= expression )
                     {
                     match(input,GREATER_EQUAL,FOLLOW_GREATER_EQUAL_in_expression1920); 
 
@@ -5405,7 +5407,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 6 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1580:4: ^( INHERITS left= expression dec= class_type )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1582:4: ^( INHERITS left= expression dec= class_type )
                     {
                     match(input,INHERITS,FOLLOW_INHERITS_in_expression1942); 
 
@@ -5435,7 +5437,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 7 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1587:4: ^( LESS left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1589:4: ^( LESS left= expression right= expression )
                     {
                     match(input,LESS,FOLLOW_LESS_in_expression1960); 
 
@@ -5465,7 +5467,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 8 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1594:4: ^( LESS_EQUAL left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1596:4: ^( LESS_EQUAL left= expression right= expression )
                     {
                     match(input,LESS_EQUAL,FOLLOW_LESS_EQUAL_in_expression1982); 
 
@@ -5495,7 +5497,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 9 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1601:4: ^( OR left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1603:4: ^( OR left= expression right= expression )
                     {
                     match(input,OR,FOLLOW_OR_in_expression2004); 
 
@@ -5525,7 +5527,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 10 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1608:4: ^( AND left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1610:4: ^( AND left= expression right= expression )
                     {
                     match(input,AND,FOLLOW_AND_in_expression2026); 
 
@@ -5555,7 +5557,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 11 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1615:4: ^( PLUS left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1617:4: ^( PLUS left= expression right= expression )
                     {
                     match(input,PLUS,FOLLOW_PLUS_in_expression2048); 
 
@@ -5585,7 +5587,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 12 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1622:4: ^( MINUS left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1624:4: ^( MINUS left= expression right= expression )
                     {
                     match(input,MINUS,FOLLOW_MINUS_in_expression2070); 
 
@@ -5615,7 +5617,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 13 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1629:4: ^( MULTIPLY left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1631:4: ^( MULTIPLY left= expression right= expression )
                     {
                     match(input,MULTIPLY,FOLLOW_MULTIPLY_in_expression2092); 
 
@@ -5645,7 +5647,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 14 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1636:4: ^( DIVIDE left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1638:4: ^( DIVIDE left= expression right= expression )
                     {
                     match(input,DIVIDE,FOLLOW_DIVIDE_in_expression2114); 
 
@@ -5675,7 +5677,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 15 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1643:4: ^( MODULO left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1645:4: ^( MODULO left= expression right= expression )
                     {
                     match(input,MODULO,FOLLOW_MODULO_in_expression2136); 
 
@@ -5705,7 +5707,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 16 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1650:4: ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1652:4: ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
                     {
                     match(input,FUNCTION_CALL,FOLLOW_FUNCTION_CALL_in_expression2158); 
 
@@ -5716,7 +5718,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1650:34: ( COLON ID )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1652:34: ( COLON ID )?
                     int alt57=2;
                     int LA57_0 = input.LA(1);
 
@@ -5725,7 +5727,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt57) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1650:35: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1652:35: COLON ID
                             {
                             match(input,COLON,FOLLOW_COLON_in_expression2162); 
 
@@ -5836,7 +5838,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 17 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1733:4: ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1735:4: ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? )
                     {
                     match(input,QUALIFIED_SOLO_EXPRESSION,FOLLOW_QUALIFIED_SOLO_EXPRESSION_in_expression2193); 
 
@@ -5847,7 +5849,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1733:51: ( COLON ID )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1735:51: ( COLON ID )?
                     int alt58=2;
                     int LA58_0 = input.LA(1);
 
@@ -5856,7 +5858,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt58) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1733:52: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1735:52: COLON ID
                             {
                             match(input,COLON,FOLLOW_COLON_in_expression2200); 
 
@@ -5904,7 +5906,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 18 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1763:4: ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1765:4: ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID )
                     {
                     match(input,QUALIFIED_SOLO_PARENT_EXPRESSON,FOLLOW_QUALIFIED_SOLO_PARENT_EXPRESSON_in_expression2214); 
 
@@ -5974,7 +5976,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 19 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1800:4: ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1802:4: ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name )
                     {
                     match(input,QUALIFIED_SOLO_EXPRESSION_SELECTOR,FOLLOW_QUALIFIED_SOLO_EXPRESSION_SELECTOR_in_expression2242); 
 
@@ -6027,7 +6029,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 20 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1829:4: ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1831:4: ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
                     {
                     match(input,FUNCTION_CALL_PARENT,FOLLOW_FUNCTION_CALL_PARENT_in_expression2260); 
 
@@ -6141,7 +6143,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 21 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1908:4: ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1910:4: ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
                     {
                     match(input,FUNCTION_CALL_THIS,FOLLOW_FUNCTION_CALL_THIS_in_expression2297); 
 
@@ -6156,7 +6158,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1908:49: ( COLON ID )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1910:49: ( COLON ID )?
                     int alt59=2;
                     int LA59_0 = input.LA(1);
 
@@ -6165,7 +6167,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt59) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1908:50: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1910:50: COLON ID
                             {
                             match(input,COLON,FOLLOW_COLON_in_expression2306); 
 
@@ -6278,7 +6280,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 22 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1993:4: BOOLEAN
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1995:4: BOOLEAN
                     {
                     BOOLEAN38=(CommonTree)match(input,BOOLEAN,FOLLOW_BOOLEAN_in_expression2334); 
 
@@ -6300,9 +6302,9 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 23 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2008:4: ( MINUS )? DECIMAL
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2010:4: ( MINUS )? DECIMAL
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2008:4: ( MINUS )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2010:4: ( MINUS )?
                     int alt60=2;
                     int LA60_0 = input.LA(1);
 
@@ -6311,7 +6313,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt60) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2008:5: MINUS
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2010:5: MINUS
                             {
                             MINUS40=(CommonTree)match(input,MINUS,FOLLOW_MINUS_in_expression2343); 
 
@@ -6357,9 +6359,9 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 24 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2039:4: ( MINUS )? INT
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2041:4: ( MINUS )? INT
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2039:4: ( MINUS )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2041:4: ( MINUS )?
                     int alt61=2;
                     int LA61_0 = input.LA(1);
 
@@ -6368,7 +6370,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt61) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2039:5: MINUS
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2041:5: MINUS
                             {
                             MINUS42=(CommonTree)match(input,MINUS,FOLLOW_MINUS_in_expression2356); 
 
@@ -6412,7 +6414,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 25 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2068:4: STRING
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2070:4: STRING
                     {
                     STRING43=(CommonTree)match(input,STRING,FOLLOW_STRING_in_expression2368); 
 
@@ -6433,7 +6435,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 26 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2082:4: NULL
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2084:4: NULL
                     {
                     NULL44=(CommonTree)match(input,NULL,FOLLOW_NULL_in_expression2376); 
 
@@ -6454,7 +6456,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 27 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2096:4: ME
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2098:4: ME
                     {
                     ME45=(CommonTree)match(input,ME,FOLLOW_ME_in_expression2384); 
 
@@ -6479,7 +6481,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 28 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2114:4: INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2116:4: INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN
                     {
                     match(input,INPUT,FOLLOW_INPUT_in_expression2392); 
 
@@ -6519,7 +6521,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 29 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2135:4: CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2137:4: CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN
                     {
                     CAST48=(CommonTree)match(input,CAST,FOLLOW_CAST_in_expression2409); 
 
@@ -6588,7 +6590,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "function_expression_list"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2156:1: function_expression_list returns [List list, int firstParam] : ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2158:1: function_expression_list returns [List list, int firstParam] : ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) ;
     public final QuorumTreeWalker.function_expression_list_return function_expression_list() throws RecognitionException {
         QuorumTreeWalker.function_expression_list_return retval = new QuorumTreeWalker.function_expression_list_return();
         retval.start = input.LT(1);
@@ -6599,27 +6601,27 @@ public static class STAttrMap extends HashMap {
 
         retval.list = new ArrayList(); retval.firstParam = -1;
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2158:2: ( ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2159:2: ^( FUNCTION_EXPRESSION_LIST (e= expression )* )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2160:2: ( ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2161:2: ^( FUNCTION_EXPRESSION_LIST (e= expression )* )
             {
             match(input,FUNCTION_EXPRESSION_LIST,FOLLOW_FUNCTION_EXPRESSION_LIST_in_function_expression_list2449); 
 
             if ( input.LA(1)==Token.DOWN ) {
                 match(input, Token.DOWN, null); 
-                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2159:29: (e= expression )*
+                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2161:29: (e= expression )*
                 loop63:
                 do {
                     int alt63=2;
                     int LA63_0 = input.LA(1);
 
-                    if ( ((LA63_0 >= FUNCTION_CALL && LA63_0 <= FUNCTION_CALL_THIS)||LA63_0==UNARY_NOT||(LA63_0 >= QUALIFIED_SOLO_EXPRESSION && LA63_0 <= QUALIFIED_SOLO_PARENT_EXPRESSON)||LA63_0==INHERITS||LA63_0==ME||LA63_0==OR||(LA63_0 >= LESS && LA63_0 <= GREATER)||LA63_0==EQUALITY||(LA63_0 >= AND && LA63_0 <= MODULO)||(LA63_0 >= CAST && LA63_0 <= INPUT)) ) {
+                    if ( (LA63_0==AND||LA63_0==BOOLEAN||LA63_0==CAST||LA63_0==DECIMAL||LA63_0==DIVIDE||LA63_0==EQUALITY||(LA63_0 >= FUNCTION_CALL && LA63_0 <= FUNCTION_CALL_THIS)||(LA63_0 >= GREATER && LA63_0 <= GREATER_EQUAL)||(LA63_0 >= INHERITS && LA63_0 <= INT)||(LA63_0 >= LESS && LA63_0 <= MULTIPLY)||LA63_0==NOTEQUALS||LA63_0==NULL||LA63_0==OR||LA63_0==PLUS||(LA63_0 >= QUALIFIED_SOLO_EXPRESSION && LA63_0 <= QUALIFIED_SOLO_PARENT_EXPRESSON)||LA63_0==STRING||LA63_0==UNARY_NOT) ) {
                         alt63=1;
                     }
 
 
                     switch (alt63) {
                 	case 1 :
-                	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2160:2: e= expression
+                	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2162:2: e= expression
                 	    {
 
                 	    		if(retval.list.size() >= 1){
@@ -6679,7 +6681,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "formal_parameter"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2175:1: formal_parameter returns [TypeDescriptor type, String name] : ^( FPARAM ad= assignment_declaration ID ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2177:1: formal_parameter returns [TypeDescriptor type, String name] : ^( FPARAM ad= assignment_declaration ID ) ;
     public final QuorumTreeWalker.formal_parameter_return formal_parameter() throws RecognitionException {
         QuorumTreeWalker.formal_parameter_return retval = new QuorumTreeWalker.formal_parameter_return();
         retval.start = input.LT(1);
@@ -6690,8 +6692,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2176:2: ( ^( FPARAM ad= assignment_declaration ID ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2176:6: ^( FPARAM ad= assignment_declaration ID )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2178:2: ( ^( FPARAM ad= assignment_declaration ID ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2178:6: ^( FPARAM ad= assignment_declaration ID )
             {
             match(input,FPARAM,FOLLOW_FPARAM_in_formal_parameter2490); 
 
@@ -6737,18 +6739,20 @@ public static class STAttrMap extends HashMap {
     static final String DFA4_eofS =
         "\24\uffff";
     static final String DFA4_minS =
-        "\1\10\2\13\1\uffff\2\2\2\34\2\3\1\34\1\10\1\34\1\10\1\3\2\uffff"+
-        "\1\3\2\uffff";
+        "\1\4\2\107\1\uffff\2\2\2\45\2\3\1\45\1\4\1\45\1\4\1\3\2\uffff\1"+
+        "\3\2\uffff";
     static final String DFA4_maxS =
-        "\1\101\2\13\1\uffff\2\2\2\34\2\51\1\34\1\101\1\34\1\101\1\51\2\uffff"+
-        "\1\51\2\uffff";
+        "\1\133\2\107\1\uffff\2\2\2\45\2\102\1\45\1\133\1\45\1\133\1\102"+
+        "\2\uffff\1\102\2\uffff";
     static final String DFA4_acceptS =
         "\3\uffff\1\5\13\uffff\1\1\1\3\1\uffff\1\2\1\4";
     static final String DFA4_specialS =
         "\24\uffff}>";
     static final String[] DFA4_transitionS = {
-            "\4\3\15\uffff\1\1\1\2\2\3\3\uffff\3\3\3\uffff\3\3\2\uffff\4"+
-            "\3\4\uffff\3\3\3\uffff\4\3\1\uffff\1\3\2\uffff\1\3",
+            "\2\3\2\uffff\1\3\1\uffff\1\3\1\uffff\2\3\27\uffff\2\3\3\uffff"+
+            "\1\3\4\uffff\1\3\3\uffff\1\3\5\uffff\1\3\1\uffff\1\3\3\uffff"+
+            "\1\1\1\3\3\uffff\4\3\3\uffff\2\3\4\uffff\4\3\2\uffff\1\3\3\uffff"+
+            "\1\2",
             "\1\4",
             "\1\5",
             "",
@@ -6756,18 +6760,22 @@ public static class STAttrMap extends HashMap {
             "\1\7",
             "\1\10",
             "\1\11",
-            "\1\13\45\uffff\1\12",
-            "\1\15\45\uffff\1\14",
+            "\1\13\76\uffff\1\12",
+            "\1\15\76\uffff\1\14",
             "\1\16",
-            "\4\20\16\uffff\1\17\2\20\3\uffff\3\20\3\uffff\3\20\2\uffff"+
-            "\4\20\4\uffff\3\20\3\uffff\4\20\1\uffff\1\20\2\uffff\1\20",
+            "\2\20\2\uffff\1\20\1\uffff\1\20\1\uffff\2\20\27\uffff\2\20"+
+            "\3\uffff\1\20\4\uffff\1\20\3\uffff\1\20\5\uffff\1\20\1\uffff"+
+            "\1\20\4\uffff\1\20\3\uffff\4\20\3\uffff\2\20\4\uffff\4\20\2"+
+            "\uffff\1\20\3\uffff\1\17",
             "\1\21",
-            "\4\23\15\uffff\1\22\1\2\2\23\3\uffff\3\23\3\uffff\3\23\2\uffff"+
-            "\4\23\4\uffff\3\23\3\uffff\4\23\1\uffff\1\23\2\uffff\1\23",
-            "\1\13\45\uffff\1\12",
+            "\2\23\2\uffff\1\23\1\uffff\1\23\1\uffff\2\23\27\uffff\2\23"+
+            "\3\uffff\1\23\4\uffff\1\23\3\uffff\1\23\5\uffff\1\23\1\uffff"+
+            "\1\23\3\uffff\1\22\1\23\3\uffff\4\23\3\uffff\2\23\4\uffff\4"+
+            "\23\2\uffff\1\23\3\uffff\1\2",
+            "\1\13\76\uffff\1\12",
             "",
             "",
-            "\1\15\45\uffff\1\14",
+            "\1\15\76\uffff\1\14",
             "",
             ""
     };
@@ -6810,23 +6818,24 @@ public static class STAttrMap extends HashMap {
     static final String DFA51_eofS =
         "\12\uffff";
     static final String DFA51_minS =
-        "\1\13\1\uffff\1\2\1\uffff\1\34\1\3\1\34\1\30\1\3\1\uffff";
+        "\1\12\1\uffff\1\2\1\uffff\1\45\1\3\1\45\1\16\1\3\1\uffff";
     static final String DFA51_maxS =
-        "\1\74\1\uffff\1\2\1\uffff\1\34\1\51\1\34\1\52\1\51\1\uffff";
+        "\1\127\1\uffff\1\2\1\uffff\1\45\1\102\2\45\1\102\1\uffff";
     static final String DFA51_acceptS =
         "\1\uffff\1\1\1\uffff\1\3\5\uffff\1\2";
     static final String DFA51_specialS =
         "\12\uffff}>";
     static final String[] DFA51_transitionS = {
-            "\1\2\20\uffff\1\1\3\uffff\2\3\11\uffff\2\1\14\uffff\4\3",
+            "\1\3\32\uffff\1\1\4\uffff\1\3\4\uffff\1\1\11\uffff\1\3\6\uffff"+
+            "\1\1\4\uffff\2\3\1\2\17\uffff\1\3",
             "",
             "\1\4",
             "",
             "\1\5",
-            "\1\7\45\uffff\1\6",
+            "\1\7\76\uffff\1\6",
             "\1\10",
-            "\1\3\3\uffff\1\3\15\uffff\1\11",
-            "\1\7\45\uffff\1\6",
+            "\1\11\23\uffff\1\3\2\uffff\1\3",
+            "\1\7\76\uffff\1\6",
             ""
     };
 
@@ -6860,69 +6869,69 @@ public static class STAttrMap extends HashMap {
             this.transition = DFA51_transition;
         }
         public String getDescription() {
-            return "1051:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );";
+            return "1053:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );";
         }
     }
  
 
-    public static final BitSet FOLLOW_package_rule_in_start51 = new BitSet(new long[]{0x0000000004000000L});
-    public static final BitSet FOLLOW_reference_in_start53 = new BitSet(new long[]{0x5E3879C71C000F00L,0x0000000000000002L});
-    public static final BitSet FOLLOW_reference_in_start59 = new BitSet(new long[]{0x0000000006000000L});
-    public static final BitSet FOLLOW_package_rule_in_start62 = new BitSet(new long[]{0x5E3879C718000F00L,0x0000000000000002L});
-    public static final BitSet FOLLOW_package_rule_in_start67 = new BitSet(new long[]{0x5E3879C718000F00L,0x0000000000000002L});
-    public static final BitSet FOLLOW_reference_in_start72 = new BitSet(new long[]{0x5E3879C71C000F00L,0x0000000000000002L});
+    public static final BitSet FOLLOW_package_rule_in_start51 = new BitSet(new long[]{0x0000000000000000L,0x0000000008000000L});
+    public static final BitSet FOLLOW_reference_in_start53 = new BitSet(new long[]{0x0A08846000003530L,0x00000000089E18F1L});
+    public static final BitSet FOLLOW_reference_in_start59 = new BitSet(new long[]{0x8000000000000000L,0x0000000008000000L});
+    public static final BitSet FOLLOW_package_rule_in_start62 = new BitSet(new long[]{0x0A08846000003530L,0x00000000009E18F1L});
+    public static final BitSet FOLLOW_package_rule_in_start67 = new BitSet(new long[]{0x0A08846000003530L,0x00000000009E18F1L});
+    public static final BitSet FOLLOW_reference_in_start72 = new BitSet(new long[]{0x0A08846000003530L,0x00000000089E18F1L});
     public static final BitSet FOLLOW_class_declaration_in_start81 = new BitSet(new long[]{0x0000000000000000L});
     public static final BitSet FOLLOW_EOF_in_start84 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_PACKAGE_NAME_in_package_rule96 = new BitSet(new long[]{0x0000000000000800L});
+    public static final BitSet FOLLOW_PACKAGE_NAME_in_package_rule96 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
     public static final BitSet FOLLOW_qualified_name_in_package_rule100 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_USE_in_reference113 = new BitSet(new long[]{0x0000000000000800L});
+    public static final BitSet FOLLOW_USE_in_reference113 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
     public static final BitSet FOLLOW_qualified_name_in_reference115 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_CLASS_in_class_declaration131 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_ID_in_class_declaration133 = new BitSet(new long[]{0x1E0019C771000800L});
-    public static final BitSet FOLLOW_generic_declaration_in_class_declaration139 = new BitSet(new long[]{0x1E0019C770000800L});
-    public static final BitSet FOLLOW_inherit_stmnts_in_class_declaration146 = new BitSet(new long[]{0x1E0019C730000800L});
-    public static final BitSet FOLLOW_class_stmnts_in_class_declaration153 = new BitSet(new long[]{0x1E0019C730000800L});
+    public static final BitSet FOLLOW_ID_in_class_declaration133 = new BitSet(new long[]{0x0A0884A402000510L,0x00000000008000E1L});
+    public static final BitSet FOLLOW_generic_declaration_in_class_declaration139 = new BitSet(new long[]{0x0A0884A002000510L,0x00000000008000E1L});
+    public static final BitSet FOLLOW_inherit_stmnts_in_class_declaration146 = new BitSet(new long[]{0x0A08842002000510L,0x00000000008000E1L});
+    public static final BitSet FOLLOW_class_stmnts_in_class_declaration153 = new BitSet(new long[]{0x0A08842002000510L,0x00000000008000E1L});
     public static final BitSet FOLLOW_END_in_class_declaration156 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_no_class_stmnts_in_class_declaration169 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_statement_in_no_class_stmnts189 = new BitSet(new long[]{0x5E38780310000F02L,0x0000000000000002L});
-    public static final BitSet FOLLOW_access_modifier_in_no_class_stmnts203 = new BitSet(new long[]{0x000001C400000000L});
-    public static final BitSet FOLLOW_method_declaration_in_no_class_stmnts211 = new BitSet(new long[]{0x000001C700000002L});
+    public static final BitSet FOLLOW_statement_in_no_class_stmnts189 = new BitSet(new long[]{0x0200846000001422L,0x00000000009E18F1L});
+    public static final BitSet FOLLOW_access_modifier_in_no_class_stmnts203 = new BitSet(new long[]{0x0808000000000110L});
+    public static final BitSet FOLLOW_method_declaration_in_no_class_stmnts211 = new BitSet(new long[]{0x0808000000000112L,0x0000000000000060L});
     public static final BitSet FOLLOW_INHERITS_in_inherit_stmnts225 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_qualified_name_in_inherit_stmnts233 = new BitSet(new long[]{0x0000000001000808L});
-    public static final BitSet FOLLOW_generic_statement_in_inherit_stmnts239 = new BitSet(new long[]{0x0000000000000808L});
+    public static final BitSet FOLLOW_qualified_name_in_inherit_stmnts233 = new BitSet(new long[]{0x0000000400000008L,0x0000000000000080L});
+    public static final BitSet FOLLOW_generic_statement_in_inherit_stmnts239 = new BitSet(new long[]{0x0000000000000008L,0x0000000000000080L});
     public static final BitSet FOLLOW_PUBLIC_in_access_modifier257 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_PRIVATE_in_access_modifier265 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_assignment_statement_in_class_stmnts279 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_access_modifier_in_class_stmnts288 = new BitSet(new long[]{0x000001C400000000L});
+    public static final BitSet FOLLOW_access_modifier_in_class_stmnts288 = new BitSet(new long[]{0x0808000000000110L});
     public static final BitSet FOLLOW_method_declaration_in_class_stmnts296 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ACTION_in_method_declaration314 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_ID_in_method_declaration320 = new BitSet(new long[]{0x000000200000A000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration325 = new BitSet(new long[]{0x000000200000A000L});
-    public static final BitSet FOLLOW_RETURNS_in_method_declaration338 = new BitSet(new long[]{0x1E00000000000800L});
-    public static final BitSet FOLLOW_assignment_declaration_in_method_declaration342 = new BitSet(new long[]{0x0000000000002000L});
-    public static final BitSet FOLLOW_block_in_method_declaration348 = new BitSet(new long[]{0x0000000020000000L});
+    public static final BitSet FOLLOW_ID_in_method_declaration320 = new BitSet(new long[]{0x0000000020000000L,0x0000000000202000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration325 = new BitSet(new long[]{0x0000000020000000L,0x0000000000202000L});
+    public static final BitSet FOLLOW_RETURNS_in_method_declaration338 = new BitSet(new long[]{0x0200040000000400L,0x0000000000800080L});
+    public static final BitSet FOLLOW_assignment_declaration_in_method_declaration342 = new BitSet(new long[]{0x0000000000000000L,0x0000000000200000L});
+    public static final BitSet FOLLOW_block_in_method_declaration348 = new BitSet(new long[]{0x0000000002000000L});
     public static final BitSet FOLLOW_END_in_method_declaration351 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_BLUEPRINT_in_method_declaration366 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_ACTION_in_method_declaration368 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_method_declaration375 = new BitSet(new long[]{0x0000002000008008L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration380 = new BitSet(new long[]{0x0000002000008008L});
-    public static final BitSet FOLLOW_RETURNS_in_method_declaration389 = new BitSet(new long[]{0x1E00000000000800L});
+    public static final BitSet FOLLOW_ACTION_in_method_declaration368 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_ID_in_method_declaration375 = new BitSet(new long[]{0x0000000020000008L,0x0000000000002000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration380 = new BitSet(new long[]{0x0000000020000008L,0x0000000000002000L});
+    public static final BitSet FOLLOW_RETURNS_in_method_declaration389 = new BitSet(new long[]{0x0200040000000400L,0x0000000000800080L});
     public static final BitSet FOLLOW_assignment_declaration_in_method_declaration391 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_NATIVE_in_method_declaration400 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_ACTION_in_method_declaration402 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_method_declaration409 = new BitSet(new long[]{0x0000002000008008L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration414 = new BitSet(new long[]{0x0000002000008008L});
-    public static final BitSet FOLLOW_RETURNS_in_method_declaration423 = new BitSet(new long[]{0x1E00000000000800L});
+    public static final BitSet FOLLOW_ACTION_in_method_declaration402 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_ID_in_method_declaration409 = new BitSet(new long[]{0x0000000020000008L,0x0000000000002000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration414 = new BitSet(new long[]{0x0000000020000008L,0x0000000000002000L});
+    public static final BitSet FOLLOW_RETURNS_in_method_declaration423 = new BitSet(new long[]{0x0200040000000400L,0x0000000000800080L});
     public static final BitSet FOLLOW_assignment_declaration_in_method_declaration425 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_ON_CREATE_in_method_declaration434 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_block_in_method_declaration441 = new BitSet(new long[]{0x0000000020000000L});
+    public static final BitSet FOLLOW_block_in_method_declaration441 = new BitSet(new long[]{0x0000000002000000L});
     public static final BitSet FOLLOW_END_in_method_declaration444 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_QUALIFIED_NAME_in_qualified_name467 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_ID_in_qualified_name472 = new BitSet(new long[]{0x0000020000000008L});
-    public static final BitSet FOLLOW_PERIOD_in_qualified_name475 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_qualified_name479 = new BitSet(new long[]{0x0000020000000008L});
+    public static final BitSet FOLLOW_ID_in_qualified_name472 = new BitSet(new long[]{0x0000000000000008L,0x0000000000000004L});
+    public static final BitSet FOLLOW_PERIOD_in_qualified_name475 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_ID_in_qualified_name479 = new BitSet(new long[]{0x0000000000000008L,0x0000000000000004L});
     public static final BitSet FOLLOW_STATEMENT_LIST_in_block498 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_statement_in_block505 = new BitSet(new long[]{0x5E38780310000F08L,0x0000000000000002L});
+    public static final BitSet FOLLOW_statement_in_block505 = new BitSet(new long[]{0x0200846000001428L,0x00000000009E18F1L});
     public static final BitSet FOLLOW_solo_method_call_in_statement522 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_if_statement_in_statement527 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_assignment_statement_in_statement532 = new BitSet(new long[]{0x0000000000000002L});
@@ -6933,115 +6942,115 @@ public static class STAttrMap extends HashMap {
     public static final BitSet FOLLOW_check_statement_in_statement557 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_alert_statement_in_statement562 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_SOLO_FUNCTION_CALL_in_solo_method_call582 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_qualified_name_in_solo_method_call591 = new BitSet(new long[]{0x0000040800000000L});
-    public static final BitSet FOLLOW_COLON_in_solo_method_call594 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_solo_method_call596 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call600 = new BitSet(new long[]{0x2184101040E10070L,0x00000000003FBFE0L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call610 = new BitSet(new long[]{0x0000001080000000L});
-    public static final BitSet FOLLOW_COMMA_in_solo_method_call620 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call626 = new BitSet(new long[]{0x0000001080000000L});
+    public static final BitSet FOLLOW_qualified_name_in_solo_method_call591 = new BitSet(new long[]{0x0000080000004000L});
+    public static final BitSet FOLLOW_COLON_in_solo_method_call594 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_ID_in_solo_method_call596 = new BitSet(new long[]{0x0000080000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call600 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002404708L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call610 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
+    public static final BitSet FOLLOW_COMMA_in_solo_method_call620 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call626 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call640 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_SOLO_FUNCTION_CALL_PARENT_in_solo_method_call652 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_PARENT_in_solo_method_call659 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_solo_method_call661 = new BitSet(new long[]{0x0000000000000800L});
-    public static final BitSet FOLLOW_qualified_name_in_solo_method_call663 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_solo_method_call665 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_solo_method_call667 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call669 = new BitSet(new long[]{0x2184101040E10070L,0x00000000003FBFE0L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call679 = new BitSet(new long[]{0x0000001080000000L});
-    public static final BitSet FOLLOW_COMMA_in_solo_method_call686 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call692 = new BitSet(new long[]{0x0000001080000000L});
+    public static final BitSet FOLLOW_PARENT_in_solo_method_call659 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_solo_method_call661 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
+    public static final BitSet FOLLOW_qualified_name_in_solo_method_call663 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_solo_method_call665 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_ID_in_solo_method_call667 = new BitSet(new long[]{0x0000080000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call669 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002404708L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call679 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
+    public static final BitSet FOLLOW_COMMA_in_solo_method_call686 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call692 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call702 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_SOLO_FUNCTION_CALL_THIS_in_solo_method_call713 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_ME_in_solo_method_call720 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_solo_method_call722 = new BitSet(new long[]{0x0000000000000800L});
-    public static final BitSet FOLLOW_qualified_name_in_solo_method_call724 = new BitSet(new long[]{0x0000040800000000L});
-    public static final BitSet FOLLOW_COLON_in_solo_method_call727 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_solo_method_call729 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call733 = new BitSet(new long[]{0x2184101040E10070L,0x00000000003FBFE0L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call743 = new BitSet(new long[]{0x0000001080000000L});
-    public static final BitSet FOLLOW_COMMA_in_solo_method_call750 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call756 = new BitSet(new long[]{0x0000001080000000L});
+    public static final BitSet FOLLOW_ME_in_solo_method_call720 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_solo_method_call722 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
+    public static final BitSet FOLLOW_qualified_name_in_solo_method_call724 = new BitSet(new long[]{0x0000080000004000L});
+    public static final BitSet FOLLOW_COLON_in_solo_method_call727 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_ID_in_solo_method_call729 = new BitSet(new long[]{0x0000080000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call733 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002404708L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call743 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
+    public static final BitSet FOLLOW_COMMA_in_solo_method_call750 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call756 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call766 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_ALERT_in_alert_statement786 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_alert_statement794 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
-    public static final BitSet FOLLOW_expression_in_alert_statement798 = new BitSet(new long[]{0x0000001000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_alert_statement794 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_root_expression_in_alert_statement798 = new BitSet(new long[]{0x0000000000000000L,0x0000000000004000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_alert_statement806 = new BitSet(new long[]{0x0000000000000008L});
-    public static final BitSet FOLLOW_CHECK_in_check_statement838 = new BitSet(new long[]{0x0000000000002000L});
-    public static final BitSet FOLLOW_block_in_check_statement844 = new BitSet(new long[]{0x0001800000000000L});
-    public static final BitSet FOLLOW_DETECT_in_check_statement866 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_detect_parameter_in_check_statement893 = new BitSet(new long[]{0x0000000000002000L});
-    public static final BitSet FOLLOW_block_in_check_statement917 = new BitSet(new long[]{0x0001800020000000L});
-    public static final BitSet FOLLOW_ALWAYS_in_check_statement950 = new BitSet(new long[]{0x0000000000002000L});
-    public static final BitSet FOLLOW_block_in_check_statement966 = new BitSet(new long[]{0x0000000020000000L});
-    public static final BitSet FOLLOW_ALWAYS_in_check_statement998 = new BitSet(new long[]{0x0000000000002000L});
-    public static final BitSet FOLLOW_block_in_check_statement1021 = new BitSet(new long[]{0x0000000020000000L});
+    public static final BitSet FOLLOW_CHECK_in_check_statement838 = new BitSet(new long[]{0x0000000000000000L,0x0000000000200000L});
+    public static final BitSet FOLLOW_block_in_check_statement844 = new BitSet(new long[]{0x0000000000080040L});
+    public static final BitSet FOLLOW_DETECT_in_check_statement866 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_detect_parameter_in_check_statement893 = new BitSet(new long[]{0x0000000000000000L,0x0000000000200000L});
+    public static final BitSet FOLLOW_block_in_check_statement917 = new BitSet(new long[]{0x0000000002080040L});
+    public static final BitSet FOLLOW_ALWAYS_in_check_statement950 = new BitSet(new long[]{0x0000000000000000L,0x0000000000200000L});
+    public static final BitSet FOLLOW_block_in_check_statement966 = new BitSet(new long[]{0x0000000002000000L});
+    public static final BitSet FOLLOW_ALWAYS_in_check_statement998 = new BitSet(new long[]{0x0000000000000000L,0x0000000000200000L});
+    public static final BitSet FOLLOW_block_in_check_statement1021 = new BitSet(new long[]{0x0000000002000000L});
     public static final BitSet FOLLOW_END_in_check_statement1030 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ID_in_detect_parameter1059 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_OF_TYPE_in_detect_parameter1064 = new BitSet(new long[]{0x0000000000000800L});
-    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1073 = new BitSet(new long[]{0x0004000000000008L});
-    public static final BitSet FOLLOW_OR_in_detect_parameter1080 = new BitSet(new long[]{0x0000000000000800L});
-    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1084 = new BitSet(new long[]{0x0004000000000008L});
-    public static final BitSet FOLLOW_PRINT_in_print_statement1111 = new BitSet(new long[]{0x0000000000100000L});
+    public static final BitSet FOLLOW_OF_TYPE_in_detect_parameter1064 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
+    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1073 = new BitSet(new long[]{0x2000000000000008L});
+    public static final BitSet FOLLOW_OR_in_detect_parameter1080 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
+    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1084 = new BitSet(new long[]{0x2000000000000008L});
+    public static final BitSet FOLLOW_PRINT_in_print_statement1111 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
     public static final BitSet FOLLOW_root_expression_in_print_statement1113 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_SAY_in_speak_statement1129 = new BitSet(new long[]{0x0000000000100000L});
+    public static final BitSet FOLLOW_SAY_in_speak_statement1129 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
     public static final BitSet FOLLOW_root_expression_in_speak_statement1131 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RETURN_in_return_statement1145 = new BitSet(new long[]{0x0040000000100000L});
+    public static final BitSet FOLLOW_RETURN_in_return_statement1145 = new BitSet(new long[]{0x0080000000000000L,0x0000000000010000L});
     public static final BitSet FOLLOW_root_expression_in_return_statement1148 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_NOW_in_return_statement1156 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_GENERIC_in_generic_declaration1174 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_LESS_in_generic_declaration1176 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_generic_declaration1180 = new BitSet(new long[]{0x0100000080000000L});
-    public static final BitSet FOLLOW_COMMA_in_generic_declaration1183 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_generic_declaration1187 = new BitSet(new long[]{0x0100000080000000L});
+    public static final BitSet FOLLOW_LESS_in_generic_declaration1176 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_ID_in_generic_declaration1180 = new BitSet(new long[]{0x0000000800008000L});
+    public static final BitSet FOLLOW_COMMA_in_generic_declaration1183 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_ID_in_generic_declaration1187 = new BitSet(new long[]{0x0000000800008000L});
     public static final BitSet FOLLOW_GREATER_in_generic_declaration1191 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_GENERIC_in_generic_statement1209 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_LESS_in_generic_statement1211 = new BitSet(new long[]{0x1E00000000000800L});
-    public static final BitSet FOLLOW_assignment_declaration_in_generic_statement1220 = new BitSet(new long[]{0x0100000080000000L});
-    public static final BitSet FOLLOW_COMMA_in_generic_statement1228 = new BitSet(new long[]{0x1E00000000000800L});
-    public static final BitSet FOLLOW_assignment_declaration_in_generic_statement1232 = new BitSet(new long[]{0x0100000080000000L});
+    public static final BitSet FOLLOW_LESS_in_generic_statement1211 = new BitSet(new long[]{0x0200040000000400L,0x0000000000800080L});
+    public static final BitSet FOLLOW_assignment_declaration_in_generic_statement1220 = new BitSet(new long[]{0x0000000800008000L});
+    public static final BitSet FOLLOW_COMMA_in_generic_statement1228 = new BitSet(new long[]{0x0200040000000400L,0x0000000000800080L});
+    public static final BitSet FOLLOW_assignment_declaration_in_generic_statement1232 = new BitSet(new long[]{0x0000000800008000L});
     public static final BitSet FOLLOW_GREATER_in_generic_statement1248 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_qualified_name_in_class_type1273 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_qualified_name_in_assignment_declaration1295 = new BitSet(new long[]{0x0000000001000002L});
+    public static final BitSet FOLLOW_qualified_name_in_assignment_declaration1295 = new BitSet(new long[]{0x0000000400000002L});
     public static final BitSet FOLLOW_generic_statement_in_assignment_declaration1299 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_INTEGER_KEYWORD_in_assignment_declaration1308 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_NUMBER_KEYWORD_in_assignment_declaration1316 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_TEXT_in_assignment_declaration1324 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_BOOLEAN_KEYWORD_in_assignment_declaration1332 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_selector_in_assignment_statement1348 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_assignment_statement1350 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_assignment_statement1354 = new BitSet(new long[]{0x2000000000000000L});
+    public static final BitSet FOLLOW_selector_in_assignment_statement1348 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_assignment_statement1350 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_ID_in_assignment_statement1354 = new BitSet(new long[]{0x0000000004000000L});
     public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1358 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_qualified_name_in_assignment_statement1368 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_assignment_statement1371 = new BitSet(new long[]{0x0000080000000000L});
-    public static final BitSet FOLLOW_PARENT_in_assignment_statement1373 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_assignment_statement1375 = new BitSet(new long[]{0x0000000000000800L});
-    public static final BitSet FOLLOW_qualified_name_in_assignment_statement1379 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_assignment_statement1383 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_assignment_statement1385 = new BitSet(new long[]{0x2000000000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_assignment_statement1368 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_assignment_statement1371 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000001L});
+    public static final BitSet FOLLOW_PARENT_in_assignment_statement1373 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_assignment_statement1375 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
+    public static final BitSet FOLLOW_qualified_name_in_assignment_statement1379 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_assignment_statement1383 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_ID_in_assignment_statement1385 = new BitSet(new long[]{0x0000000004000000L});
     public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1389 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_access_modifier_in_assignment_statement1401 = new BitSet(new long[]{0x1E00000000000800L});
-    public static final BitSet FOLLOW_assignment_declaration_in_assignment_statement1408 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_assignment_statement1414 = new BitSet(new long[]{0x2000000000000002L});
+    public static final BitSet FOLLOW_access_modifier_in_assignment_statement1401 = new BitSet(new long[]{0x0200040000000400L,0x0000000000800080L});
+    public static final BitSet FOLLOW_assignment_declaration_in_assignment_statement1408 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_ID_in_assignment_statement1414 = new BitSet(new long[]{0x0000000004000002L});
     public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1418 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_EQUALITY_in_assign_right_hand_side1439 = new BitSet(new long[]{0x0000000000100000L});
+    public static final BitSet FOLLOW_EQUALITY_in_assign_right_hand_side1439 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
     public static final BitSet FOLLOW_root_expression_in_assign_right_hand_side1441 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_IF_in_if_statement1467 = new BitSet(new long[]{0x0000000000100000L});
-    public static final BitSet FOLLOW_root_expression_in_if_statement1480 = new BitSet(new long[]{0x0000000000002000L});
-    public static final BitSet FOLLOW_block_in_if_statement1492 = new BitSet(new long[]{0x8000000020000000L,0x0000000000000001L});
-    public static final BitSet FOLLOW_ELSE_IF_in_if_statement1509 = new BitSet(new long[]{0x0000000000100000L});
-    public static final BitSet FOLLOW_root_expression_in_if_statement1522 = new BitSet(new long[]{0x0000000000002000L});
-    public static final BitSet FOLLOW_block_in_if_statement1532 = new BitSet(new long[]{0x8000000020000000L,0x0000000000000001L});
-    public static final BitSet FOLLOW_ELSE_in_if_statement1566 = new BitSet(new long[]{0x0000000000002000L});
-    public static final BitSet FOLLOW_block_in_if_statement1576 = new BitSet(new long[]{0x0000000020000000L});
+    public static final BitSet FOLLOW_IF_in_if_statement1467 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_root_expression_in_if_statement1480 = new BitSet(new long[]{0x0000000000000000L,0x0000000000200000L});
+    public static final BitSet FOLLOW_block_in_if_statement1492 = new BitSet(new long[]{0x0000000002C00000L});
+    public static final BitSet FOLLOW_ELSE_IF_in_if_statement1509 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_root_expression_in_if_statement1522 = new BitSet(new long[]{0x0000000000000000L,0x0000000000200000L});
+    public static final BitSet FOLLOW_block_in_if_statement1532 = new BitSet(new long[]{0x0000000002C00000L});
+    public static final BitSet FOLLOW_ELSE_in_if_statement1566 = new BitSet(new long[]{0x0000000000000000L,0x0000000000200000L});
+    public static final BitSet FOLLOW_block_in_if_statement1576 = new BitSet(new long[]{0x0000000002000000L});
     public static final BitSet FOLLOW_END_in_if_statement1585 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_REPEAT_in_loop_statement1608 = new BitSet(new long[]{0x0000000000100000L,0x0000000000000018L});
-    public static final BitSet FOLLOW_root_expression_in_loop_statement1681 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000004L});
-    public static final BitSet FOLLOW_TIMES_in_loop_statement1683 = new BitSet(new long[]{0x0000000000002000L});
-    public static final BitSet FOLLOW_WHILE_in_loop_statement1694 = new BitSet(new long[]{0x0000000000100000L});
-    public static final BitSet FOLLOW_UNTIL_in_loop_statement1700 = new BitSet(new long[]{0x0000000000100000L});
-    public static final BitSet FOLLOW_root_expression_in_loop_statement1715 = new BitSet(new long[]{0x0000000000002000L});
-    public static final BitSet FOLLOW_block_in_loop_statement1726 = new BitSet(new long[]{0x0000000020000000L});
+    public static final BitSet FOLLOW_REPEAT_in_loop_statement1608 = new BitSet(new long[]{0x0000000000000000L,0x0000000014010000L});
+    public static final BitSet FOLLOW_root_expression_in_loop_statement1681 = new BitSet(new long[]{0x0000000000000000L,0x0000000001000000L});
+    public static final BitSet FOLLOW_TIMES_in_loop_statement1683 = new BitSet(new long[]{0x0000000000000000L,0x0000000000200000L});
+    public static final BitSet FOLLOW_WHILE_in_loop_statement1694 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_UNTIL_in_loop_statement1700 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_root_expression_in_loop_statement1715 = new BitSet(new long[]{0x0000000000000000L,0x0000000000200000L});
+    public static final BitSet FOLLOW_block_in_loop_statement1726 = new BitSet(new long[]{0x0000000002000000L});
     public static final BitSet FOLLOW_END_in_loop_statement1734 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_PARENT_in_selector1773 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_qualified_name_in_selector1775 = new BitSet(new long[]{0x0000000000000008L});
@@ -7049,113 +7058,113 @@ public static class STAttrMap extends HashMap {
     public static final BitSet FOLLOW_ROOT_EXPRESSION_in_root_expression1810 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_expression_in_root_expression1812 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_UNARY_NOT_in_expression1834 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_NOT_in_expression1836 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
+    public static final BitSet FOLLOW_NOT_in_expression1836 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
     public static final BitSet FOLLOW_expression_in_expression1842 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_EQUALITY_in_expression1854 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression1860 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
+    public static final BitSet FOLLOW_expression_in_expression1860 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
     public static final BitSet FOLLOW_expression_in_expression1866 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_NOTEQUALS_in_expression1876 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression1882 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
+    public static final BitSet FOLLOW_expression_in_expression1882 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
     public static final BitSet FOLLOW_expression_in_expression1888 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_GREATER_in_expression1898 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression1904 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
+    public static final BitSet FOLLOW_expression_in_expression1904 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
     public static final BitSet FOLLOW_expression_in_expression1910 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_GREATER_EQUAL_in_expression1920 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression1926 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
+    public static final BitSet FOLLOW_expression_in_expression1926 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
     public static final BitSet FOLLOW_expression_in_expression1932 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_INHERITS_in_expression1942 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression1946 = new BitSet(new long[]{0x0000000000000800L});
+    public static final BitSet FOLLOW_expression_in_expression1946 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
     public static final BitSet FOLLOW_class_type_in_expression1950 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_LESS_in_expression1960 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression1966 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
+    public static final BitSet FOLLOW_expression_in_expression1966 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
     public static final BitSet FOLLOW_expression_in_expression1972 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_LESS_EQUAL_in_expression1982 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression1988 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
+    public static final BitSet FOLLOW_expression_in_expression1988 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
     public static final BitSet FOLLOW_expression_in_expression1994 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_OR_in_expression2004 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2010 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
+    public static final BitSet FOLLOW_expression_in_expression2010 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
     public static final BitSet FOLLOW_expression_in_expression2016 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_AND_in_expression2026 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2032 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
+    public static final BitSet FOLLOW_expression_in_expression2032 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
     public static final BitSet FOLLOW_expression_in_expression2038 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_PLUS_in_expression2048 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2054 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
+    public static final BitSet FOLLOW_expression_in_expression2054 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
     public static final BitSet FOLLOW_expression_in_expression2060 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_MINUS_in_expression2070 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2076 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
+    public static final BitSet FOLLOW_expression_in_expression2076 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
     public static final BitSet FOLLOW_expression_in_expression2082 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_MULTIPLY_in_expression2092 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2098 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
+    public static final BitSet FOLLOW_expression_in_expression2098 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
     public static final BitSet FOLLOW_expression_in_expression2104 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_DIVIDE_in_expression2114 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2120 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
+    public static final BitSet FOLLOW_expression_in_expression2120 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
     public static final BitSet FOLLOW_expression_in_expression2126 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_MODULO_in_expression2136 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2142 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
+    public static final BitSet FOLLOW_expression_in_expression2142 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
     public static final BitSet FOLLOW_expression_in_expression2148 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_FUNCTION_CALL_in_expression2158 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_qualified_name_in_expression2160 = new BitSet(new long[]{0x0000040800000000L});
-    public static final BitSet FOLLOW_COLON_in_expression2162 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_expression2164 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2168 = new BitSet(new long[]{0x0000000000000080L});
-    public static final BitSet FOLLOW_function_expression_list_in_expression2180 = new BitSet(new long[]{0x0000001000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_expression2160 = new BitSet(new long[]{0x0000080000004000L});
+    public static final BitSet FOLLOW_COLON_in_expression2162 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_ID_in_expression2164 = new BitSet(new long[]{0x0000080000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2168 = new BitSet(new long[]{0x0000000200000000L});
+    public static final BitSet FOLLOW_function_expression_list_in_expression2180 = new BitSet(new long[]{0x0000000000000000L,0x0000000000004000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2182 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_QUALIFIED_SOLO_EXPRESSION_in_expression2193 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_qualified_name_in_expression2197 = new BitSet(new long[]{0x0000040000000008L});
-    public static final BitSet FOLLOW_COLON_in_expression2200 = new BitSet(new long[]{0x0000000010000000L});
+    public static final BitSet FOLLOW_qualified_name_in_expression2197 = new BitSet(new long[]{0x0000000000004008L});
+    public static final BitSet FOLLOW_COLON_in_expression2200 = new BitSet(new long[]{0x0000002000000000L});
     public static final BitSet FOLLOW_ID_in_expression2202 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_QUALIFIED_SOLO_PARENT_EXPRESSON_in_expression2214 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_qualified_name_in_expression2218 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_expression2220 = new BitSet(new long[]{0x0000080000000000L});
-    public static final BitSet FOLLOW_PARENT_in_expression2222 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_expression2224 = new BitSet(new long[]{0x0000000000000800L});
-    public static final BitSet FOLLOW_qualified_name_in_expression2228 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_expression2230 = new BitSet(new long[]{0x0000000010000000L});
+    public static final BitSet FOLLOW_qualified_name_in_expression2218 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_expression2220 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000001L});
+    public static final BitSet FOLLOW_PARENT_in_expression2222 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_expression2224 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
+    public static final BitSet FOLLOW_qualified_name_in_expression2228 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_expression2230 = new BitSet(new long[]{0x0000002000000000L});
     public static final BitSet FOLLOW_ID_in_expression2232 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_QUALIFIED_SOLO_EXPRESSION_SELECTOR_in_expression2242 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_selector_in_expression2244 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_expression2246 = new BitSet(new long[]{0x0000000000000800L});
+    public static final BitSet FOLLOW_selector_in_expression2244 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_expression2246 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
     public static final BitSet FOLLOW_qualified_name_in_expression2248 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_FUNCTION_CALL_PARENT_in_expression2260 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_PARENT_in_expression2262 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_expression2264 = new BitSet(new long[]{0x0000000000000800L});
-    public static final BitSet FOLLOW_qualified_name_in_expression2268 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_expression2270 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_expression2272 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2274 = new BitSet(new long[]{0x0000000000000080L});
-    public static final BitSet FOLLOW_function_expression_list_in_expression2285 = new BitSet(new long[]{0x0000001000000000L});
+    public static final BitSet FOLLOW_PARENT_in_expression2262 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_expression2264 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
+    public static final BitSet FOLLOW_qualified_name_in_expression2268 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_expression2270 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_ID_in_expression2272 = new BitSet(new long[]{0x0000080000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2274 = new BitSet(new long[]{0x0000000200000000L});
+    public static final BitSet FOLLOW_function_expression_list_in_expression2285 = new BitSet(new long[]{0x0000000000000000L,0x0000000000004000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2287 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_FUNCTION_CALL_THIS_in_expression2297 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_ME_in_expression2299 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_COLON_in_expression2301 = new BitSet(new long[]{0x0000000000000800L});
-    public static final BitSet FOLLOW_qualified_name_in_expression2303 = new BitSet(new long[]{0x0000040800000000L});
-    public static final BitSet FOLLOW_COLON_in_expression2306 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ID_in_expression2308 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2312 = new BitSet(new long[]{0x0000000000000080L});
-    public static final BitSet FOLLOW_function_expression_list_in_expression2323 = new BitSet(new long[]{0x0000001000000000L});
+    public static final BitSet FOLLOW_ME_in_expression2299 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_expression2301 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000080L});
+    public static final BitSet FOLLOW_qualified_name_in_expression2303 = new BitSet(new long[]{0x0000080000004000L});
+    public static final BitSet FOLLOW_COLON_in_expression2306 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_ID_in_expression2308 = new BitSet(new long[]{0x0000080000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2312 = new BitSet(new long[]{0x0000000200000000L});
+    public static final BitSet FOLLOW_function_expression_list_in_expression2323 = new BitSet(new long[]{0x0000000000000000L,0x0000000000004000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2325 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_BOOLEAN_in_expression2334 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MINUS_in_expression2343 = new BitSet(new long[]{0x0000000000000000L,0x0000000000040000L});
+    public static final BitSet FOLLOW_MINUS_in_expression2343 = new BitSet(new long[]{0x0000000000040000L});
     public static final BitSet FOLLOW_DECIMAL_in_expression2347 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MINUS_in_expression2356 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_MINUS_in_expression2356 = new BitSet(new long[]{0x0000020000000000L});
     public static final BitSet FOLLOW_INT_in_expression2360 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_STRING_in_expression2368 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_NULL_in_expression2376 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ME_in_expression2384 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_INPUT_in_expression2392 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2395 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
-    public static final BitSet FOLLOW_expression_in_expression2399 = new BitSet(new long[]{0x0000001000000000L});
+    public static final BitSet FOLLOW_INPUT_in_expression2392 = new BitSet(new long[]{0x0000080000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2395 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
+    public static final BitSet FOLLOW_expression_in_expression2399 = new BitSet(new long[]{0x0000000000000000L,0x0000000000004000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2401 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_CAST_in_expression2409 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2411 = new BitSet(new long[]{0x1E00000000000800L});
-    public static final BitSet FOLLOW_assignment_declaration_in_expression2415 = new BitSet(new long[]{0x0000000080000000L});
-    public static final BitSet FOLLOW_COMMA_in_expression2417 = new BitSet(new long[]{0x2184100040E10070L,0x00000000003FBFE0L});
-    public static final BitSet FOLLOW_expression_in_expression2421 = new BitSet(new long[]{0x0000001000000000L});
+    public static final BitSet FOLLOW_CAST_in_expression2409 = new BitSet(new long[]{0x0000080000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2411 = new BitSet(new long[]{0x0200040000000400L,0x0000000000800080L});
+    public static final BitSet FOLLOW_assignment_declaration_in_expression2415 = new BitSet(new long[]{0x0000000000008000L});
+    public static final BitSet FOLLOW_COMMA_in_expression2417 = new BitSet(new long[]{0x2147E399C4140A80L,0x0000000002400708L});
+    public static final BitSet FOLLOW_expression_in_expression2421 = new BitSet(new long[]{0x0000000000000000L,0x0000000000004000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2425 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_FUNCTION_EXPRESSION_LIST_in_function_expression_list2449 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_function_expression_list2461 = new BitSet(new long[]{0x2184100040E10078L,0x00000000003FBFE0L});
+    public static final BitSet FOLLOW_expression_in_function_expression_list2461 = new BitSet(new long[]{0x2147E399C4140A88L,0x0000000002400708L});
     public static final BitSet FOLLOW_FPARAM_in_formal_parameter2490 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_assignment_declaration_in_formal_parameter2494 = new BitSet(new long[]{0x0000000010000000L});
+    public static final BitSet FOLLOW_assignment_declaration_in_formal_parameter2494 = new BitSet(new long[]{0x0000002000000000L});
     public static final BitSet FOLLOW_ID_in_formal_parameter2496 = new BitSet(new long[]{0x0000000000000008L});
 
 }

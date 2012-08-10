@@ -1,14 +1,7 @@
-use Libraries.Containers.Array
+use Libraries.Language.Errors.Error
 class Main
     action Main
-        Array<integer> myArray
-        test(cast(integer, "1"))
-    end
-
-    action getTest returns text
-        return "1"
-    end
-    action test(text t)
-        print t
+        Error e
+        //alert(e)
     end
 end
