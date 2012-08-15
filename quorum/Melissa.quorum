@@ -3,10 +3,11 @@ class NestedCatchCastException
     integer result = 1
     action main
         
-        //A_1 a
+        
         check
-             //a:test()
-             integer i = cast(integer, "1.2")
+             A_1 a
+             a:test()
+             //integer i = cast(integer, "1.2")
         detect e of type CastError
             result = result + 1
         end

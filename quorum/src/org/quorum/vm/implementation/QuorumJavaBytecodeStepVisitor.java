@@ -2519,7 +2519,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 desc.setAlwaysStartPosition(next.getLocalLocation());
             }
         }
-        stack.pushExceptionTable(tryCatchTable);
+        if(!tryCatchTable.isEmpty()){
+            stack.pushExceptionTable(tryCatchTable);
+        }
 
         //reverse and put into label stack
         while (!tempStack.isEmpty()) {
