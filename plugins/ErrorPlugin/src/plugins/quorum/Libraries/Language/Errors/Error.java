@@ -27,26 +27,32 @@ public class Error {
     }
     
     public String GetClassName(int index) {
-        String className;
+        String className = "";
         
         if (index > stackTrace.length) {
-            className = null;
+            className = "Unknown class name";
         }
         else {
             className = stackTrace[index].getClassName();
+            if(className == null){
+                className = "Unknown class.";
+            }
         }
         
         return className;
     }
     
     public String GetMethodName(int index) {
-        String methodName;
+        String methodName = "";
         
         if (index > stackTrace.length) {
-            methodName = null;
+            methodName = "Unknown action.";
         }
         else {
             methodName = stackTrace[index].getMethodName();
+            if(methodName == null){
+                methodName = "Unknown action.";
+            }
         }
         
         return methodName;
@@ -56,10 +62,13 @@ public class Error {
         String fileName;
         
         if (index > stackTrace.length) {
-            fileName = null;
+            fileName = "Unknown file.";
         }
         else {
             fileName = stackTrace[index].getFileName();
+            if(fileName == null){
+                fileName = "Unknown file.";
+            }
         }
         
         return fileName;
@@ -86,6 +95,7 @@ public class Error {
      */
     public void InitStackTraceFromError() {
         stackTrace = Thread.currentThread().getStackTrace();
+        int a = 0;
     }
     
     /**
