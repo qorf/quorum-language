@@ -1568,6 +1568,11 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         use.setUse(TypeDescriptor.CAST_ERROR_OBJECT);
         use.setName("CastError");
         uses.put(use.getName(), use);
+        
+        use = new UseDescriptor();
+        use.setUse(TypeDescriptor.ERROR_OBJECT);
+        use.setName("Error");
+        uses.put(use.getName(), use);
 
     }
 

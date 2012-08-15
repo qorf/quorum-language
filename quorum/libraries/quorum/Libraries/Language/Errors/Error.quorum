@@ -132,7 +132,7 @@ class Error
         Error error
         integer size = error:GetStackSize()
     */
-    system action GetStackSize() returns integer
+    private system action GetStackSize() returns integer
 
     /*
         This action prints the errors stack trace to the sodbeans output
@@ -171,7 +171,7 @@ class Error
         Error error
         StackTraceItem callStackItem = error:GetStackTraceItem(0)
     */
-    action GetStackTraceItem(integer index) returns StackTraceItem
+    private action GetStackTraceItem(integer index) returns StackTraceItem
         StackTraceItem item
         item:Init(GetClassName(index), GetMethodName(index), GetFileName(index), GetLineNumber(index))
         return item

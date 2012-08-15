@@ -20,6 +20,7 @@ import org.quorum.symbols.TypeDescriptor;
  * @author Andreas Stefik
  */
 public class BytecodeStack {
+    private Stack<ArrayList<CheckDetectEntry>> exceptionTables = new Stack<ArrayList<CheckDetectEntry>>();
     private Stack<TypeDescriptor> expressionTypes = new Stack<TypeDescriptor>();
     private OmniscientStack<LabelStackValue> labels = new OmniscientStack<LabelStackValue>();
     private HashMap<Integer, Integer> quorumToJavaNumberVariableMap = new HashMap<Integer, Integer>();
@@ -36,6 +37,26 @@ public class BytecodeStack {
     private Stack<CheckDetectDescriptor> checkDetects = new Stack<CheckDetectDescriptor>();
     private Stack<Integer> errorVariableNumber = new Stack<Integer>();
     
+    
+    public void pushExceptionTable(ArrayList<CheckDetectEntry> table){
+        exceptionTables.push(table);
+    }
+    
+    public ArrayList<CheckDetectEntry> popExceptionTable(){
+        if(exceptionTables.empty()){
+            return null;
+        }else{
+            return exceptionTables.pop();
+        }
+    }
+    
+    public ArrayList<CheckDetectEntry> peekExceptionTable(){
+        if(exceptionTables.empty()){
+            return null;
+        }else{
+            return exceptionTables.peek();
+        }
+    }
     
     public void pushErrorVariable(int varNumber){
         errorVariableNumber.push(varNumber);

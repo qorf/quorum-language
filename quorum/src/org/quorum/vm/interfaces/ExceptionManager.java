@@ -151,7 +151,7 @@ public class ExceptionManager {
 
     /**
      * If there are any alerts or exceptions that have been thrown and 
-     * not caught return false.
+     * not caught return true.
      * 
      * @return 
      */

@@ -1,7 +1,16 @@
-use Libraries.Language.Errors.Error
-class Main
-    action Main
-        Error e
-        //alert(e)
+use Libraries.Language.Errors.CastError
+class NestedCatchCastException
+    integer result = 1
+    action main
+        
+        //A_1 a
+        check
+             //a:test()
+             integer i = cast(integer, "1.2")
+        detect e of type CastError
+            result = result + 1
+        end
+        result = result + 1
+        print result
     end
 end

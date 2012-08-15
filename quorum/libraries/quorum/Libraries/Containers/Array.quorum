@@ -80,10 +80,8 @@ class Array <Type> is a ArrayBlueprint<Type>
         if location < size and location >= 0
             return GetNative(location)
         else
-            //InvalidLocationError error
-            //alert(error)
-            Type t
-            return t
+            InvalidLocationError error
+            alert(error)
         end
     end
 
@@ -127,8 +125,8 @@ class Array <Type> is a ArrayBlueprint<Type>
     */
     action SetSize(integer size)
         if size < 0
-            //InvalidLocationError error
-            //alert(error)
+            InvalidLocationError error
+            alert(error)
         else
             SetSizeNative(size)
         end
@@ -192,17 +190,16 @@ class Array <Type> is a ArrayBlueprint<Type>
         integer capacity = GetMaxSize()
         
         if not GetAutoResize() and size = capacity
-            //InvalidLocationError error
-            //error:SetErrorMessage("Invalid Location Error: cannot add to the array because the max size has been reached")
-            //alert(error)
+            InvalidLocationError error
+            error:SetErrorMessage("Invalid Location Error: cannot add to the array because the max size has been reached")
+            alert(error)
         end
         
         if location <= size and location >= 0
             AddNative(location, value)
         else
-            //InvalidLocationError error
-            //alert(error)
-            
+            InvalidLocationError error
+            alert(error)
         end
     end
 
@@ -221,16 +218,16 @@ class Array <Type> is a ArrayBlueprint<Type>
         integer capacity = GetMaxSize()
         
         if not GetAutoResize() and size = capacity
-            //InvalidLocationError error
-            //error:SetErrorMessage("Invalid Location Error: cannot add to the array because the max size has been reached")
-            //alert(error)
+            InvalidLocationError error
+            error:SetErrorMessage("Invalid Location Error: cannot add to the array because the max size has been reached")
+            alert(error)
         end
         
         if size <= capacity
             AddNative(value)
         else
-            //InvalidLocationError error
-            //alert(error)
+            InvalidLocationError error
+            alert(error)
         end
     end
 
@@ -419,10 +416,8 @@ class Array <Type> is a ArrayBlueprint<Type>
         if location < size and location >= 0
             return RemoveAtNative(location)
         else
-            //InvalidLocationError error
-            //alert(error)
-            Type t
-            return t
+            InvalidLocationError error
+            alert(error)
         end
     end
 

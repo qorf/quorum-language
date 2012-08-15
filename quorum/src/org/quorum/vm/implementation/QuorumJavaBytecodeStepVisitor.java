@@ -94,8 +94,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (currentClass.getStaticKey().equals("Libraries.Language.Errors.Error")) {
             // invoke <init> on java/lang/Throwable.
             methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Throwable", "<init>", "()V");
-        }
-        else if(currentClass.getParent("Libraries.Language.Errors.Error") != null){
+        }else if(currentClass.getParent("Libraries.Language.Errors.Error") != null){
             methodVisitor.visitMethodInsn(INVOKESPECIAL, "quorum/Libraries/Language/Errors/Error", "<init>", "()V");
         }
         else {
@@ -1202,9 +1201,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         Label endTry = new Label();
         Label catchStart = new Label();
         Label catchEnd = new Label();
-        
         //build the try catch block for the parse statement (could throw NumberFormatException).
-        methodVisitor.visitTryCatchBlock(beginTry, endTry, catchStart, "java/lang/NumberFormatException");
+        ArrayList<CheckDetectEntry> peekExceptionTable = stack.peekExceptionTable();
+        if(peekExceptionTable != null){
+            peekExceptionTable.add(0, new CheckDetectEntry(beginTry, endTry, catchStart, "java/lang/NumberFormatException"));
+        }else{
+            methodVisitor.visitTryCatchBlock(beginTry, endTry, catchStart, "java/lang/NumberFormatException");
+        }
         methodVisitor.visitLabel(beginTry);
      
         //call parse
@@ -2211,8 +2214,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AlwaysEndStep step) {
         CheckDetectDescriptor desc = stack.popCheckDetect();
         
-        //TODO: not sure this is working for always statements that happen after an uncaught exception.
-        if(step.isInErrorState()){
+        if(desc.isHasAlways()){
             methodVisitor.visitVarInsn(ALOAD, desc.getLastDetectVariableNumber());
             methodVisitor.visitInsn(ATHROW);
         }
@@ -2494,28 +2496,30 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         Stack<LabelStackValue> tempStack = new Stack<LabelStackValue>();
         ArrayList<DetectInfo> allDetects = step.getLandingPads().getAllDetects();
         //get all of the blocks associated with the try (all detects and always blocks).
+        ArrayList<CheckDetectEntry> tryCatchTable = new ArrayList<CheckDetectEntry>();
         for (int i = 0; i < allDetects.size(); i++) {
             DetectInfo next = allDetects.get(i);
-
+            
             //if this is a detect parameter build the visit try catch block calls
             if (next.getDetectParameter().errorType != null) {
-                methodVisitor.visitTryCatchBlock(desc.getCheckStart(), desc.getCheckEnd(), desc.pushDetectStartLabel(), "quorum/Libraries/Language/Errors/Error");
+                tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.pushDetectStartLabel(), QuorumConverter.convertStaticKeyToBytecodePath(next.getDetectParameter().errorType.getStaticKey())));
                 //if there is an always and this is the first detect or
                 //if it's not the first detect generate the try catch block calls
                 if (step.getLandingPads().hasAlwaysBlock() && i == 0) {
                     desc.setHasAlways(true);
-                    methodVisitor.visitTryCatchBlock(desc.getCheckStart(), desc.getCheckEnd(), desc.getAlwaysStart(), null); // null means "catch any type"
-                    methodVisitor.visitTryCatchBlock(desc.peekDetectStartLabel(), desc.pushDetectEndLabel(), desc.getAlwaysStart(), null);
+                    tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.getAlwaysStart(), null)); // null means "catch any type"
+                    tryCatchTable.add(new CheckDetectEntry(desc.peekDetectStartLabel(), desc.pushDetectEndLabel(), desc.getAlwaysStart(), null));
                     tempStack.push(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, desc.peekDetectEndLabel()));
                 } else if (step.getLandingPads().hasAlwaysBlock()) {
                     desc.setHasAlways(true);
-                    methodVisitor.visitTryCatchBlock(desc.peekDetectStartLabel(), desc.pushDetectEndLabel(), desc.getAlwaysStart(), null);
+                    tryCatchTable.add(new CheckDetectEntry(desc.peekDetectStartLabel(), desc.pushDetectEndLabel(), desc.getAlwaysStart(), null));
                 }
             } else if (next.isAlawysBlock()) {
-                methodVisitor.visitTryCatchBlock(desc.getAlwaysStart(), desc.getAlwaysEnd(), desc.getAlwaysStart(), null); // null means "catch any type"
+                tryCatchTable.add(new CheckDetectEntry(desc.getAlwaysStart(), desc.getAlwaysEnd(), desc.getAlwaysStart(), null)); // null means "catch any type"
                 desc.setAlwaysStartPosition(next.getLocalLocation());
             }
         }
+        stack.pushExceptionTable(tryCatchTable);
 
         //reverse and put into label stack
         while (!tempStack.isEmpty()) {
@@ -3491,7 +3495,16 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitLabel(label1);
             } else if (!step.getBlockTag().equals("always") && (label.getLabelType().equals(LabelTypeEnum.CHECK) || label.getLabelType().equals(LabelTypeEnum.DETECT))) {//end of the loop will mark the goto and visit the end label.
                 stack.popLabel();
-
+                
+                if(label.getLabelType().equals(LabelTypeEnum.CHECK)){
+                    ArrayList<CheckDetectEntry> exceptionTable = stack.popExceptionTable();
+                    
+                    for(int i = 0; exceptionTable != null && i < exceptionTable.size(); i++){
+                        CheckDetectEntry entry = exceptionTable.get(i);
+                        methodVisitor.visitTryCatchBlock(entry.getFrom(), entry.getTo(), entry.getTarget(), entry.getType());
+                    }
+                }
+                
                 Label label1 = label.getLabel();
                 if (label1 != null) {
                     methodVisitor.visitLabel(label1);
