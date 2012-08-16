@@ -67,14 +67,14 @@ public class ExceptionsTester {
 
     @Test
     public void test_missing_parameters2_bytecode(){
-        fail("passing for an incorrect reason - check carefully");
+        //fail("passing for an incorrect reason - check carefully");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "missingParameters2.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
         
         RunResult r = CompilerTestSuite.runQuorumFile();
-        if (r.isSuccessful())
+        if (r.getReturnCode() != 2)
             fail();
     }
     
@@ -99,14 +99,14 @@ public class ExceptionsTester {
 
     @Test
     public void test_missing_parameters_bytecode(){
-        fail("passing for an incorrect reason - check carefully");
+        //fail("passing for an incorrect reason - check carefully");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "missingParameters.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
         
         RunResult r = CompilerTestSuite.runQuorumFile();
-        if (r.isSuccessful())
+        if (r.getReturnCode() != 2)
             fail();
     }
 
@@ -330,14 +330,14 @@ public class ExceptionsTester {
 
     @Test
     public void test_uncaught_cast_exception_bytecode(){
-        fail("passing for an incorrect reason - check carefully");
+        //fail("passing for an incorrect reason - check carefully");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtCastException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
         
         RunResult r = CompilerTestSuite.runQuorumFile();
-        if (r.isSuccessful())
+        if (r.getReturnCode() != 2)
             fail();
     }
     
@@ -363,7 +363,7 @@ public class ExceptionsTester {
 
     @Test
     public void test_uncaught_nested_cast_exception_bytecode(){
-        fail("passing for an incorrect reason - check carefully");
+        //fail("passing for an incorrect reason - check carefully");
         String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
         File[] build = new File[3];
         build[2] = CompilerTestSuite.getQuorumFile(directory + "A_1.quorum");
@@ -376,7 +376,7 @@ public class ExceptionsTester {
         }
         
         RunResult r = CompilerTestSuite.runQuorumFile();
-        if (r.isSuccessful())
+        if (r.getReturnCode() != 2)
             fail();
     }
     
@@ -555,14 +555,14 @@ public class ExceptionsTester {
     
     @Test
     public void test_uncaught_cast_alert_exception_bytecode(){
-        fail("passing for an incorrect reason - check carefully");
+        //fail("passing for an incorrect reason - check carefully");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtCastAlertException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
         
         RunResult r = CompilerTestSuite.runQuorumFile();
-        if (r.isSuccessful())
+        if (r.getReturnCode() != 2)
             fail();
     }
 
@@ -588,7 +588,7 @@ public class ExceptionsTester {
 
     @Test
     public void test_uncaught_nested_cast_alert_exception_bytecode(){
-        fail("passing for an incorrect reason - check carefully");
+        //fail("passing for an incorrect reason - check carefully");
         String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
         File[] build = new File[3];
         build[2] = CompilerTestSuite.getQuorumFile(directory + "A_2.quorum");
@@ -597,7 +597,7 @@ public class ExceptionsTester {
 
         CompilerTestSuite.build(build);
         RunResult r = CompilerTestSuite.runQuorumFile();
-        if (r.isSuccessful())
+        if (r.getReturnCode() != 2)
             fail();
     }
     
@@ -733,14 +733,14 @@ public class ExceptionsTester {
     
     @Test
     public void test_uncaught_simple_alert_exception_bytecode(){
-        fail("passing for an incorrect reason - check carefully");
+        //fail("passing for an incorrect reason - check carefully");
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtSimpleAlertException.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
         
         RunResult r = CompilerTestSuite.runQuorumFile();
-        if (r.isSuccessful())
+        if (r.getReturnCode() != 2)
             fail();
     }
 
@@ -766,7 +766,7 @@ public class ExceptionsTester {
     
     @Test
     public void test_uncaught_nested_simple_alert_exception_bytecode(){
-        fail("passing for an incorrect reason - check carefully");
+        //fail("passing for an incorrect reason - check carefully");
         String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
         File[] build = new File[3];
         build[2] = CompilerTestSuite.getQuorumFile(directory + "A_3.quorum");

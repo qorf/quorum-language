@@ -63,7 +63,7 @@ import org.quorum.tests.compiler.use.UseTester;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses(value={TypeCheckTester.class, ListTester.class, RandomTester.class, StackTester.class,
-    CurriculumTester.class, ActionsTester.class/*, ExceptionsTester.class*/, ArrayTester.class, TableTester.class,
+    CurriculumTester.class, ActionsTester.class, ExceptionsTester.class, ArrayTester.class, TableTester.class,
     MathTester.class, QueueTester.class, IfStatementTester.class, InheritanceTester.class, LoopsTester.class,
     NativeFunctionsTester.class, OtherTester.class, PublicPrivateTester.class, TemplateTester.class,
     UseTester.class, FileTester.class, ExpressionsTester.class, FileReaderTester.class, FileWriterTester.class, FileRandomAccessTester.class})
@@ -228,7 +228,7 @@ public class CompilerTestSuite {
         }
         
         //ProcessBuilder pb = new ProcessBuilder(paths);
-        ProcessBuilder pb = new ProcessBuilder("java", "-classpath", "build/classes/build", "quorum." + file.getName().split("\\.")[0]);
+        ProcessBuilder pb = new ProcessBuilder("java", "-DQuorumUnitTest=1", "-classpath", "build/classes/build", "quorum." + file.getName().split("\\.")[0]);
         pb.directory(systemRoot);
         Process proc = null;
         
@@ -239,7 +239,9 @@ public class CompilerTestSuite {
         }
         
         try {
-            runResult.setSuccessful(proc.waitFor() == 0);
+            int result = proc.waitFor();
+            runResult.setSuccessful(result == 0);
+            runResult.setReturnCode(result);
         } catch (InterruptedException ex) {
             Logger.getLogger(CompilerTestSuite.class.getName()).log(Level.SEVERE, null, ex);
         }

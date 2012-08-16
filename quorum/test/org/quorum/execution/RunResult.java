@@ -17,6 +17,7 @@ import java.util.ArrayList;
  */
 public class RunResult {
     private boolean successful = false;
+    private int returnCode = -1;
     private ArrayList<String> lines = new ArrayList<String>();
     
     /**
@@ -58,5 +59,13 @@ public class RunResult {
      */
     public void setSuccessful(boolean successful) {
         this.successful = successful;
+    }
+    
+    public int getReturnCode() {
+        return returnCode;
+    }
+    
+    public void setReturnCode(int code) {
+        this.returnCode = code;
     }
 }
