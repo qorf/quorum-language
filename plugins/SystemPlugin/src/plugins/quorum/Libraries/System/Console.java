@@ -23,24 +23,27 @@ public class Console {
     public java.lang.Object $me = null;
     private static JOptionPane optionPane = null;
     private static JDialog dialog = null;
-    private static boolean useDialog = true;
+    private static boolean useDialog = false;
     private static TextToSpeech speech = null;
     
+
     static {
         try {
-            optionPane = new JOptionPane();
-            optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
-            optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
-            optionPane.setWantsInput(true);
-            dialog = optionPane.createDialog("Input Dialog");
-            dialog.setModalityType(ModalityType.APPLICATION_MODAL);
-            dialog.pack();
-            
-            // Allow dialog to be used.
-            useDialog = true;
-            
-            // Set up speech if we get here.
-            speech = TextToSpeechFactory.getDefaultTextToSpeech();
+            if (System.getProperty(Quorum.QUORUM_TEST_JVM_FLAG) == null) {
+                optionPane = new JOptionPane();
+                optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
+                optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
+                optionPane.setWantsInput(true);
+                dialog = optionPane.createDialog("Input Dialog");
+                dialog.setModalityType(ModalityType.APPLICATION_MODAL);
+                dialog.pack();
+
+                // Allow dialog to be used.
+                useDialog = true;
+
+                // Set up speech if we get here.
+                speech = TextToSpeechFactory.getDefaultTextToSpeech();
+            }
         } catch (Throwable e) {
             // If SWING or AWT not available, we will use standard input
             // only.
