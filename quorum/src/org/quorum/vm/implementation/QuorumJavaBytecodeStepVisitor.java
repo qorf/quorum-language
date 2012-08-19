@@ -2152,6 +2152,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         step = steps.get(i);
                     }
                 }
+                
+                //if we have an empty check block we need to mark it and not generate a table.
+                if(step instanceof BeginCheckScopeStep){
+                    ExecutionStep next = steps.get(i + 1);
+                    if(next instanceof EndScopeStep){
+                        ((BeginCheckScopeStep)step).setIsEmpty(true);
+                    }
+                }
                 step.visit(this);
             }
         }
@@ -2519,7 +2527,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 desc.setAlwaysStartPosition(next.getLocalLocation());
             }
         }
-        if(!tryCatchTable.isEmpty()){
+        if(!tryCatchTable.isEmpty() && !step.isEmpty()){
             stack.pushExceptionTable(tryCatchTable);
         }
 

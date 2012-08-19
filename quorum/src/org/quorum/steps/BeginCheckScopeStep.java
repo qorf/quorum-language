@@ -19,6 +19,7 @@ public class BeginCheckScopeStep extends IntermediateStep{
 
     private String blockName;
     private CheckLandingPads landingPads;
+    private boolean isEmptyCheck = false;
 
     @Override
     public void execute() {
@@ -65,5 +66,13 @@ public class BeginCheckScopeStep extends IntermediateStep{
      */
     public void setLandingPads(CheckLandingPads landingPads) {
         this.landingPads = landingPads;
+    }
+
+    public void setIsEmpty(boolean b) {
+        isEmptyCheck = b;
+    }
+    
+    public boolean isEmpty(){
+        return isEmptyCheck;
     }
 }
