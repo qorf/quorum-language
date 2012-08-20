@@ -278,7 +278,7 @@ public class ExceptionsTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         assert(r.getLine(0).equals("3"));
@@ -497,13 +497,8 @@ public class ExceptionsTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
-        vm.blockRun();
 
-        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
-            fail();
-        }
-
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         assert(r.getLine(0).equals("3"));
