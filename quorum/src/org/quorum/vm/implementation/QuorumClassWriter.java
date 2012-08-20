@@ -38,7 +38,7 @@ public class QuorumClassWriter extends ClassWriter {
      */
     @Override
     protected String getCommonSuperClass(String type1, String type2) {
-        if (type1.startsWith("quorum/") && type2.startsWith("quorum/")) {
+        if (type1.startsWith("quorum/") || type2.startsWith("quorum/")) {
             return "java/lang/Object";
         } else {
             return super.getCommonSuperClass(type1, type2);

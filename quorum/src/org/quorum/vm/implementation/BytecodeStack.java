@@ -78,6 +78,9 @@ public class BytecodeStack {
         return checkDetects.peek();
     }
     
+    public Stack<CheckDetectDescriptor> cloneCheckDetect() {
+        return (Stack<CheckDetectDescriptor>)this.checkDetects.clone();
+    }
     /**
      * Push an integer counter variable onto the counter stack. Since it is an
      * integer, the variable size is always one.

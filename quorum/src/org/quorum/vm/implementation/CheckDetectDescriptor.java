@@ -142,7 +142,7 @@ public class CheckDetectDescriptor {
      * @return the constructEnd
      */
     public Label getConstructEnd() {
-        return constructEnd;
+        return this.constructEnd;
     }
 
     /**

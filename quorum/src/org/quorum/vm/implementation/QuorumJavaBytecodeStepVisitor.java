@@ -2221,6 +2221,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(AlwaysEndStep step) {
         CheckDetectDescriptor desc = stack.popCheckDetect();
+
         
         if(desc.isHasAlways()){
             methodVisitor.visitVarInsn(ALOAD, desc.getLastDetectVariableNumber());
@@ -2546,7 +2547,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         CheckDetectDescriptor desc = stack.peekCheckDetect();
 
         //Insert 'always' code here.
-        int alwaysStartPosition = desc.getAlwaysStartPosition() + 2;
+        int  alwaysStartPosition = desc.getAlwaysStartPosition() + 2;
+        
         int alwaysEndPosition = alwaysStartPosition;
         Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
         while (desc.getAlwaysStartPosition() != -1 && !(steps.get(alwaysEndPosition) instanceof AlwaysEndStep)) {
@@ -2581,27 +2583,34 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BeginScopeStep step) {
         if (step.getBlockTag().equals("always")) {
-            CheckDetectDescriptor desc = stack.peekCheckDetect();
+            //CheckDetectDescriptor desc = stack.peekCheckDetect();
 
-            //Insert 'always' code here *if it's labeled as always*
-            int alwaysStartPosition = desc.getAlwaysStartPosition() + 2;
-            int alwaysEndPosition = alwaysStartPosition;
-            Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
-            while (desc.getAlwaysStartPosition() != -1 && !(steps.get(alwaysEndPosition) instanceof AlwaysEndStep)) {
-                alwaysEndPosition++;
-            }
+            Stack<CheckDetectDescriptor> descriptors = stack.cloneCheckDetect();
+            CheckDetectDescriptor desc = null;
+            do {
+                desc = descriptors.pop();
+                
+                if (desc.isHasAlways()) {
+                    //Insert 'always' code here *if it's labeled as always*
+                    int alwaysStartPosition = desc.getAlwaysStartPosition() + 2;
+                    int alwaysEndPosition = alwaysStartPosition;
+                    Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
+                    while (desc.getAlwaysStartPosition() != -1 && !(steps.get(alwaysEndPosition) instanceof AlwaysEndStep)) {
+                        alwaysEndPosition++;
+                    }
 
-            visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
+                    visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
 
-            //LabelStackValue popLabel0 = stack.popLabel();
-            methodVisitor.visitJumpInsn(GOTO, desc.getConstructEnd());
+                    //LabelStackValue popLabel0 = stack.popLabel();
+                    methodVisitor.visitJumpInsn(GOTO, desc.getConstructEnd());
 
+                    methodVisitor.visitLabel(desc.getAlwaysStart());
 
-            methodVisitor.visitLabel(desc.getAlwaysStart());
-
-            //TODO: this astore needs to be fixed and not hardcoded.
-            methodVisitor.visitVarInsn(ASTORE, desc.getLastDetectVariableNumber());
-            methodVisitor.visitLabel(desc.getAlwaysEnd());
+                    //TODO: this astore needs to be fixed and not hardcoded.
+                    methodVisitor.visitVarInsn(ASTORE, desc.getLastDetectVariableNumber());
+                    methodVisitor.visitLabel(desc.getAlwaysEnd());
+                }
+            } while (desc != null && !desc.isHasAlways());
         }
 
     }
