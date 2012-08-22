@@ -789,4 +789,116 @@ public class ExceptionsTester {
         assert(r.getLine(2).equals("hi"));
         assert(r.getLine(3).equals("hi2"));
     }
+    
+    @Test
+    public void test_CastErrorCausingCastError_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CastErrorCausingCastError.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("caught"));
+    }
+    
+    @Test
+    public void test_CaughtActionException_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CaughtActionException.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("Error: callMe failed"));
+    }
+    
+    @Test
+    public void test_CaughtActionExceptionWithAlways_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CaughtActionExceptionWithAlways.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("Error: callMe failed"));
+        assert(r.getLine(1).equals("true"));
+    }
+    
+    @Test
+    public void test_MultipleDetects_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "MultipleDetects.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("error"));
+    }
+    
+    @Test
+    public void test_MultipleDetectsWithAlways_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "MultipleDetectsWithAlways.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("error"));
+        assert(r.getLine(1).equals("always"));
+    }
+    
+    @Test
+    public void test_MultipleDetectsWithAlwaysThrowingCastError_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "MultipleDetectsWithAlwaysThrowingCastError.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        assert(r.getReturnCode() == 2);
+    }
+    
+    @Test
+    public void test_NestedCheckDetectInAllBlocks_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "NestedCheckDetectInAllBlocks.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("A"));
+        assert(r.getLine(1).equals("C"));
+        assert(r.getLine(2).equals("inner always 2"));
+        assert(r.getLine(3).equals("outer always"));
+        assert(r.getLine(4).equals("D"));
+    }
+    
+    @Test
+    public void test_UncaughtErrorInAlways_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtErrorInAlways.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        assert(r.getReturnCode() == 2);
+    }
 }

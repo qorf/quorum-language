@@ -1,0 +1,23 @@
+/**
+Expected output: none, error code 2
+*/
+
+use Libraries.Language.Errors.Error
+use Libraries.Language.Errors.CastError
+use Libraries.Language.Errors.OutOfBoundsError
+
+class Main
+    action Main
+        check
+            alert("bleh")
+        detect e of type OutOfBoundsError
+            print "OutOfBoundsError"
+        detect j of type CastError
+            print "CastError"
+        detect k
+            print k:GetErrorMessage()
+        always
+            alert("j")
+        end
+    end
+end

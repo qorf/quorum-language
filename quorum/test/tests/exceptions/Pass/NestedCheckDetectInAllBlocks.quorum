@@ -1,0 +1,34 @@
+/**
+Expected output:
+A
+C
+inner always 2
+outer always
+D
+*/
+
+use Libraries.Language.Errors.Error
+
+class Main
+    action Main
+        check
+            alert("A")
+        detect e of type Error
+            print e:GetErrorMessage()
+            check
+                alert("C")
+            detect e of type Error
+                 print e:GetErrorMessage()
+            always
+                print "inner always 2"
+            end
+        always
+            print "outer always"
+            check
+                alert("D")
+            detect e
+                print e:GetErrorMessage()
+            end
+        end
+    end
+end
