@@ -1,0 +1,26 @@
+/**
+Expected output:
+alert
+*/
+
+use Libraries.Language.Errors.Error
+
+class Main
+    action Main
+        check
+            integer j = 10
+        detect e of type Error
+            print "shouldn't be here..."
+        always
+            check
+                Thrower()
+            detect e
+                print e:GetErrorMessage()
+            end
+        end
+    end
+
+    action Thrower
+        alert("alert")
+    end
+end

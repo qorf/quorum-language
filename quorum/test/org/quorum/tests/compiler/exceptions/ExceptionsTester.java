@@ -950,4 +950,16 @@ public class ExceptionsTester {
         assert(r.getLine(0).equals("always"));
         assert(r.getLine(0).equals("alert"));
     }
+    
+    @Test
+    public void test_CatchMethodErrorInAlways_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchMethodErrorInAlways.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        assert(r.isSuccessful());
+        assert(r.getLine(0).equals("alert"));
+    }
 }
