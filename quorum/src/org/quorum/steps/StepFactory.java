@@ -2263,6 +2263,7 @@ public class StepFactory {
         }
         
         AlwaysEndStep step = new AlwaysEndStep();
+        step.addCheckDetectLabel(info.checkStartLabel);
         builder.add(step);
     }
     

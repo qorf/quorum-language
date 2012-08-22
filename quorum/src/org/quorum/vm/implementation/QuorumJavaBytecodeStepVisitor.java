@@ -2228,6 +2228,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(AlwaysEndStep step) {
         CheckDetectDescriptor desc = stack.popCheckDetect();
 
+        ArrayList<CheckDetectEntry> tryCatchTable = stack.peekExceptionTable();
+        if (desc.isHasAlways()) {
+            desc.setHasAlways(true);
+            tryCatchTable.add(new CheckDetectEntry(desc.peekDetectStartLabel(), desc.pushDetectEndLabel(), desc.getAlwaysStart(), null));
+        }
         
         if(desc.isHasAlways()){
             methodVisitor.visitVarInsn(ALOAD, desc.getLastDetectVariableNumber());
@@ -2532,22 +2537,25 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             } else if (next.isAlawysBlock()) {
                 //tryCatchTable.add(new CheckDetectEntry(desc.getAlwaysStart(), desc.getAlwaysEnd(), desc.getAlwaysStart(), null)); // null means "catch any type"
                 desc.setAlwaysStartPosition(next.getLocalLocation());
+                desc.setBlockName(step.getBlockName());
             }
         }
         
         if(stack.peekExceptionTable() == null){
             stack.pushExceptionTable(new ArrayList<CheckDetectEntry>());
         }
-        //Insert 'always' code here.
-        int  alwaysStartPosition = desc.getAlwaysStartPosition() + 2;
-        
-        int alwaysEndPosition = alwaysStartPosition;
-        Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
-        while (desc.getAlwaysStartPosition() != -1 && !(steps.get(alwaysEndPosition) instanceof AlwaysEndStep)) {
-            alwaysEndPosition++;
-        }
-
-        visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
+//        //Insert 'always' code here.
+//        int  alwaysStartPosition = desc.getAlwaysStartPosition() + 2;
+//        
+//        int alwaysEndPosition = alwaysStartPosition;
+//        Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
+//        while (desc.getAlwaysStartPosition() != -1 && !(steps.get(alwaysEndPosition) instanceof AlwaysEndStep)) {
+//            alwaysEndPosition++;
+//        }
+//
+//        if(desc.getAlwaysStartPosition() != -1){
+//            visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
+//        }
 
         //reverse and put into label stack
 //        while (!tempStack.isEmpty()) {
@@ -2571,13 +2579,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             //if there is an always and this is the first detect or
             //if it's not the first detect generate the try catch block calls
             if (desc.isHasAlways() && step.isFirstDetect()) {
+                desc.flagFirstDetect();
                 desc.setHasAlways(true);
-                tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.getAlwaysStart(), null)); // null means "catch any type"
-                tryCatchTable.add(new CheckDetectEntry(desc.peekDetectStartLabel(), desc.pushDetectEndLabel(), desc.getAlwaysStart(), null));
+                //tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.getAlwaysStart(), null)); // null means "catch any type"
+                //tryCatchTable.add(new CheckDetectEntry(desc.peekDetectStartLabel(), desc.pushDetectEndLabel(), desc.getAlwaysStart(), null));
                 tempStack.push(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, desc.peekDetectEndLabel()));
             } else if (desc.isHasAlways()) {
                 desc.setHasAlways(true);
-                tryCatchTable.add(new CheckDetectEntry(desc.peekDetectStartLabel(), desc.pushDetectEndLabel(), desc.getAlwaysStart(), null));
+                //tryCatchTable.add(new CheckDetectEntry(desc.peekDetectStartLabel(), desc.pushDetectEndLabel(), desc.getAlwaysStart(), null));
             }
         } 
         
@@ -2585,16 +2594,18 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             stack.pushLabel(tempStack.pop());
         }
             
-        //Insert 'always' code here.
-        int  alwaysStartPosition = desc.getAlwaysStartPosition() + 2;
-        
-        int alwaysEndPosition = alwaysStartPosition;
-        Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
-        while (desc.getAlwaysStartPosition() != -1 && !(steps.get(alwaysEndPosition) instanceof AlwaysEndStep)) {
-            alwaysEndPosition++;
-        }
-
-        visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
+//        //Insert 'always' code here.
+//        int  alwaysStartPosition = desc.getAlwaysStartPosition() + 2;
+//        
+//        int alwaysEndPosition = alwaysStartPosition;
+//        Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
+//        while (desc.getAlwaysStartPosition() != -1 && !(steps.get(alwaysEndPosition) instanceof AlwaysEndStep)) {
+//            alwaysEndPosition++;
+//        }
+//
+//        if(desc.getAlwaysStartPosition() != -1){
+//            visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
+//        }
 
         //LabelStackValue popLabel0 = stack.popLabel();
         methodVisitor.visitJumpInsn(GOTO, desc.getConstructEnd());
@@ -2625,8 +2636,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             CheckDetectDescriptor desc = stack.peekCheckDetect();
 
             
-            ArrayList<CheckDetectEntry> tryCatchTable = stack.peekExceptionTable();
-            tryCatchTable.add(new CheckDetectEntry(desc.getAlwaysStart(), desc.getAlwaysEnd(), desc.getAlwaysStart(), null)); // null means "catch any type"
+            //ArrayList<CheckDetectEntry> tryCatchTable = stack.peekExceptionTable();
+            //tryCatchTable.add(new CheckDetectEntry(desc.getAlwaysStart(), desc.getAlwaysEnd(), desc.getAlwaysStart(), null)); // null means "catch any type"
             //desc.setAlwaysStartPosition(step.getLocalLocation());
             
             //Stack<CheckDetectDescriptor> descriptors = stack.cloneCheckDetect();
@@ -2636,14 +2647,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 
                 //if (desc.isHasAlways()) {
                     //Insert 'always' code here *if it's labeled as always*
-                    int alwaysStartPosition = desc.getAlwaysStartPosition() + 2;
-                    int alwaysEndPosition = alwaysStartPosition;
-                    Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
-                    while (desc.getAlwaysStartPosition() != -1 && !(steps.get(alwaysEndPosition) instanceof AlwaysEndStep)) {
-                        alwaysEndPosition++;
-                    }
-
-                    visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
+//                    int alwaysStartPosition = desc.getAlwaysStartPosition() + 2;
+//                    int alwaysEndPosition = alwaysStartPosition;
+//                    Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
+//                    while (desc.getAlwaysStartPosition() != -1 && !(steps.get(alwaysEndPosition) instanceof AlwaysEndStep)) {
+//                        alwaysEndPosition++;
+//                    }
+//
+//                    visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
 
                     //LabelStackValue popLabel0 = stack.popLabel();
                     methodVisitor.visitJumpInsn(GOTO, desc.getConstructEnd());
@@ -3558,14 +3569,57 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 //visit the end of the loop label.
                 methodVisitor.visitLabel(label1);
             } else if (!step.getBlockTag().equals("always") && (label.getLabelType().equals(LabelTypeEnum.CHECK) || label.getLabelType().equals(LabelTypeEnum.DETECT))) {//end of the loop will mark the goto and visit the end label.
+                
+                //visit any 'always' code that needs to be inserted.
+                CheckDetectDescriptor desc = stack.peekCheckDetect();
+                int alwaysStartPosition = desc.getAlwaysStartPosition() + 2;
+                
+                int alwaysEndPosition = alwaysStartPosition;
+                Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
+                boolean found = false;
+                while (desc.getAlwaysStartPosition() != -1 && !found) {
+                    ExecutionStep futureStep = steps.get(alwaysEndPosition);
+                    if(futureStep instanceof AlwaysEndStep){
+                        AlwaysEndStep endStep = (AlwaysEndStep)futureStep;
+                        if(desc.getBlockName().equals(endStep.getCheckDetectLabel())){
+                            found = true;
+                        }else{
+                            alwaysEndPosition++;
+                        }
+                    }else{
+                        alwaysEndPosition++;
+                    }
+                }
+
+                if (desc.getAlwaysStartPosition() != -1) {
+                    visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
+                    
+                }
+                
+                if (label.getLabelType().equals(LabelTypeEnum.DETECT)) {
+                    ArrayList<CheckDetectEntry> tryCatchTable = stack.peekExceptionTable();
+                    //tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.pushDetectStartLabel(), QuorumConverter.convertStaticKeyToBytecodePath(step.getDetectParameter().errorType.getStaticKey())));
+                    //if there is an always and this is the first detect or
+                    //if it's not the first detect generate the try catch block calls
+                    if (desc.isHasAlways() && desc.isFirstDetect()) {
+                        desc.unflagFirstDetect();
+                        desc.setHasAlways(true);
+                        tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.getAlwaysStart(), null)); // null means "catch any type"
+                        tryCatchTable.add(new CheckDetectEntry(desc.peekDetectStartLabel(), desc.pushDetectEndLabel(), desc.getAlwaysStart(), null));
+                        //tempStack.push(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, desc.peekDetectEndLabel()));
+                    }
+                }
+                //end of the check or detect
                 stack.popLabel();
-                
-                
-                
                 Label label1 = label.getLabel();
                 if (label1 != null) {
                     methodVisitor.visitLabel(label1);
                 }
+                
+                //is this the end of the entire check detect block?
+//                if( step.isLastCheckDetectScope() ){
+//                     stack.popCheckDetect();
+//                }
             }
         }
 

@@ -31,6 +31,8 @@ public class CheckDetectDescriptor {
     private Stack<Label> detectStarts = new Stack<Label>();
     private Stack<Label> detectEnds = new Stack<Label>();
     private boolean hasAlways = false;
+    private String blockName = "";
+    private boolean isFirstDetect = false;
     
     public Label pushDetectStartLabel() {
         Label l = new Label();
@@ -206,5 +208,25 @@ public class CheckDetectDescriptor {
      */
     public void setLastDetectVariableNumber(int lastDetectVariableNumber) {
         this.lastDetectVariableNumber = lastDetectVariableNumber;
+    }
+
+    public void setBlockName(String blockName) {
+        this.blockName = blockName;
+    }
+    
+    public String getBlockName(){
+        return this.blockName;
+    }
+
+    public void flagFirstDetect() {
+        isFirstDetect = true;
+    }
+    
+    public void unflagFirstDetect(){
+        isFirstDetect = false;
+    }
+    
+    public boolean isFirstDetect(){
+        return isFirstDetect;
     }
 }

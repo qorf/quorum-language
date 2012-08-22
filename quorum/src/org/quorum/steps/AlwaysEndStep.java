@@ -20,6 +20,7 @@ public class AlwaysEndStep extends IntermediateStep {
 
     private boolean threwException = false;
     private boolean alertException = false;
+    private String checkLabel = "";
     @Override
     public void execute() {
         RuntimeError error = vm.getExceptions().exceptionStackPop();
@@ -49,5 +50,13 @@ public class AlwaysEndStep extends IntermediateStep {
     @Override
     public void visit(ExecutionStepVisitor visitor) {
         visitor.visit(this);
+    }
+
+    public void addCheckDetectLabel(String checkStartLabel) {
+        checkLabel = checkStartLabel;
+    }
+    
+    public String getCheckDetectLabel(){
+        return checkLabel;
     }
 }

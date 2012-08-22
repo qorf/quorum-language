@@ -48,6 +48,10 @@ public class BeginCheckScopeStep extends IntermediateStep{
     public void setBlockName(String name){
         blockName = name;
     }
+    
+    public String getBlockName(){
+        return blockName;
+    }
 
     @Override
     public void visit(ExecutionStepVisitor visitor) {
