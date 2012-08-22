@@ -1,0 +1,24 @@
+/**
+Expected output:
+alert
+*/
+
+use Libraries.Language.Errors.Error
+
+class Main
+    action Main
+        check
+            check
+                suspiciousMethod()
+            detect j of type Error
+                alert(j) // rethrow
+            end
+        detect e
+            print e:GetErrorMessage()
+        end
+    end
+
+    action suspiciousMethod
+        alert("alert")
+    end
+end

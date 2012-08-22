@@ -901,4 +901,53 @@ public class ExceptionsTester {
         RunResult r = CompilerTestSuite.runQuorumFile();
         assert(r.getReturnCode() == 2);
     }
+    
+    @Test
+    public void test_RecursiveCallFromAlways_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "RecursiveCallFromAlways.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        assert(r.isSuccessful());
+        assert(r.getLine(0).equals("detect hit"));
+    }
+    
+    @Test
+    public void test_CatchCastErrorFromOtherMethod_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchCastErrorFromOtherMethod.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        assert(r.isSuccessful());
+        assert(r.getLine(0).equals("got cast error"));
+    }
+    
+    @Test
+    public void test_RethrowError_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "RethrowError.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        assert(r.isSuccessful());
+        assert(r.getLine(0).equals("alert"));
+    }
+    
+    @Test
+    public void test_RethrowErrorWithAlways_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "RethrowErrorWithAlways.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        assert(r.isSuccessful());
+        assert(r.getLine(0).equals("always"));
+        assert(r.getLine(0).equals("alert"));
+    }
 }
