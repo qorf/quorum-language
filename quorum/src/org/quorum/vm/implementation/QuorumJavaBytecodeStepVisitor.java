@@ -2521,11 +2521,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 desc.pushDetectStartLabel();
                 //if there is an always and this is the first detect or
                 //if it's not the first detect generate the try catch block calls
-                if (step.getLandingPads().hasAlwaysBlock() && i == 0) {
-                    desc.setHasAlways(true);
-                    desc.pushDetectEndLabel();
-                    tempStack.push(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, desc.peekDetectEndLabel()));
-                } else if (step.getLandingPads().hasAlwaysBlock()) {
+                if (step.getLandingPads().hasAlwaysBlock()) {
                     desc.setHasAlways(true);
                     desc.pushDetectEndLabel();
                     tempStack.push(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, desc.peekDetectEndLabel()));
@@ -3514,13 +3510,19 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 
                 if (label.getLabelType().equals(LabelTypeEnum.DETECT)) {
                     ArrayList<CheckDetectEntry> tryCatchTable = stack.peekExceptionTable();
-                    //if there is an always and this is the first detect or
-                    //if it's not the first detect generate the try catch block calls
-                    if (desc.isHasAlways() && desc.isFirstDetect()) {
-                        desc.unflagFirstDetect();
+                    
+                    Label startLabel = null;
+                    Label endLabel = null;
+                    if(desc.isHasAlways()){
+                        startLabel = desc.getNextDetectStartLabel();
+                        endLabel = desc.getNextDetectEndLabel();
+                    }
+                    
+                    if (desc.isHasAlways() && desc.isLastDetect()) {
+                        //desc.unflagFirstDetect();
                         desc.setHasAlways(true);
                         tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.getAlwaysStart(), null)); // null means "catch any type"
-                        tryCatchTable.add(new CheckDetectEntry(desc.getNextDetectStartLabel(), desc.getNextDetectEndLabel(), desc.getAlwaysStart(), null));
+                        tryCatchTable.add(new CheckDetectEntry(startLabel, endLabel, desc.getAlwaysStart(), null));
                     }
                 }
                 

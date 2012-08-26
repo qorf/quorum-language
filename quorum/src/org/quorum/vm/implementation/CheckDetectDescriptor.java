@@ -229,4 +229,12 @@ public class CheckDetectDescriptor {
     public boolean isFirstDetect(){
         return isFirstDetect;
     }
+
+    public boolean isLastDetect() {
+        if(detectEnds.size() == 1){
+            return true;
+        }else{
+            return false;
+        }
+    }
 }
