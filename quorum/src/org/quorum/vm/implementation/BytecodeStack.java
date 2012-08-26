@@ -71,11 +71,19 @@ public class BytecodeStack {
     }
     
     public CheckDetectDescriptor popCheckDetect() {
-        return checkDetects.pop();
+        if(checkDetects.isEmpty()){
+            return null;
+        }else{
+            return checkDetects.pop();
+        }
     }
     
     public CheckDetectDescriptor peekCheckDetect() {
-        return checkDetects.peek();
+        if(checkDetects.isEmpty()){
+            return null;
+        }else{
+            return checkDetects.peek();
+        }
     }
     
     public Stack<CheckDetectDescriptor> cloneCheckDetect() {
