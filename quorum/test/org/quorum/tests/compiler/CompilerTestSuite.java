@@ -214,7 +214,7 @@ public class CompilerTestSuite {
         vm.setPluginFolder(pluginFolder);
         vm.setMain(files[0].getAbsolutePath());
         //build
-        vm.build(files, true);
+        vm.testBuild(files);
         
         
         // Experimental: Run test sutie using -interpret flag.

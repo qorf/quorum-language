@@ -90,6 +90,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
             }
             catch(Exception e) {
                 logger.log(Level.SEVERE, "The Quorum bytecode generator threw an error.", e);
+                throw new RuntimeException("The Quorum bytecode generator threw an error.");
             }
         }
     }

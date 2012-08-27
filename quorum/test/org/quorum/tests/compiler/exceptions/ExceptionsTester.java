@@ -1163,7 +1163,7 @@ public class ExceptionsTester {
     
     @Test
     public void test_IfInCheckWithAlways_bytecode(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "IfInCheck.quorum"));
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "IfInCheckWithAlways.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail("compiler error");
         }
@@ -1705,7 +1705,7 @@ public class ExceptionsTester {
         assert(r.getLine(0).equals("detect 1"));
         assert(r.getLine(1).equals("detect 2"));
         assert(r.getLine(2).equals("check 3"));
-        assert(r.getLine(3).equals("always 3"));
+        assert(r.getLine(3).equals("always 2"));
         assert(r.getLine(4).equals("always 1"));
     }
 }
