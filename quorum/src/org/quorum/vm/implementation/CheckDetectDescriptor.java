@@ -4,6 +4,7 @@
  */
 package org.quorum.vm.implementation;
 
+import java.util.ArrayList;
 import java.util.Stack;
 import org.objectweb.asm.Label;
 
@@ -32,7 +33,10 @@ public class CheckDetectDescriptor {
     private Stack<Label> detectEnds = new Stack<Label>();
     private boolean hasAlways = false;
     private String blockName = "";
-    private boolean isFirstDetect = false;
+    private boolean hadThrow = false;
+    
+    private ArrayList<Label>processedDetectStart = new ArrayList<Label>();
+    private ArrayList<Label>processedDetectEnd = new ArrayList<Label>();
     
     public Label pushDetectStartLabel() {
         Label l = new Label();
@@ -218,20 +222,52 @@ public class CheckDetectDescriptor {
         return this.blockName;
     }
 
-    public void flagFirstDetect() {
-        isFirstDetect = true;
+    public void flagThrow() {
+        hadThrow = true;
     }
     
-    public void unflagFirstDetect(){
-        isFirstDetect = false;
+    public void unflagThrow(){
+        hadThrow = false;
     }
     
-    public boolean isFirstDetect(){
-        return isFirstDetect;
+    public boolean isAfterThrow(){
+        return hadThrow;
+    }
+    public boolean isLastDetect(){
+        if(this.detectEnds.size() == 0){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 
-    public boolean isLastDetect() {
-        if(detectEnds.size() == 1){
+    public void addProcessedDetectStart(Label startLabel) {
+        processedDetectStart.add(startLabel);
+    }
+    
+    public void addProcessedDetectEnd(Label startLabel) {
+        processedDetectEnd.add(startLabel);
+    }
+
+    public Label popProcessedDetectEnd() {
+        if(processedDetectEnd.isEmpty()){
+            return null;
+        }else{
+            return processedDetectEnd.remove(0);
+        }
+    }
+    
+    public Label popProcessedDetectStart() {
+        if(processedDetectStart.isEmpty()){
+            return null;
+        }else{
+            return processedDetectStart.remove(0);
+        }
+    }
+    
+    public boolean hasProcessedDetect() {
+        if(!processedDetectStart.isEmpty() && !processedDetectEnd.isEmpty()){
             return true;
         }else{
             return false;

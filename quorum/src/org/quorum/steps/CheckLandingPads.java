@@ -36,9 +36,13 @@ public class CheckLandingPads {
      * stores local and global location information.
      */
     public void addLandingPad(String detectTypeName, DetectInfo detectInfo){
-        landingPads.put(detectTypeName, detectInfo);
-        orderedLandingPads.add(detectInfo);
-        setAlwaysBlock(detectInfo.isAlawysBlock());
+        if(!landingPads.containsKey(detectTypeName)){
+            landingPads.put(detectTypeName, detectInfo);
+            if(!detectTypeName.equals("Always") || (detectTypeName.equals("Always") && detectInfo.getDetectParameter() != null)){
+                orderedLandingPads.add(detectInfo);
+            }
+            setAlwaysBlock(detectInfo.isAlawysBlock());
+        }
     }
 
     /**

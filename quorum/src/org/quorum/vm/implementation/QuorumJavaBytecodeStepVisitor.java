@@ -1204,7 +1204,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //build the try catch block for the parse statement (could throw NumberFormatException).
         ArrayList<CheckDetectEntry> peekExceptionTable = stack.peekExceptionTable();
         if(peekExceptionTable != null){
-            peekExceptionTable.add(0, new CheckDetectEntry(beginTry, endTry, catchStart, "java/lang/NumberFormatException"));
+            //ArrayList<CheckDetectEntry> arrayList = new ArrayList<CheckDetectEntry>();
+            peekExceptionTable.add(new CheckDetectEntry(beginTry, endTry, catchStart, "java/lang/NumberFormatException"));
+            //stack.pushExceptionTable(arrayList);
         }else{
             methodVisitor.visitTryCatchBlock(beginTry, endTry, catchStart, "java/lang/NumberFormatException");
         }
@@ -2518,7 +2520,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             
             //if this is a detect parameter build the visit try catch block calls
             if (next.getDetectParameter().errorType != null) {
-                desc.pushDetectStartLabel();
                 //if there is an always and this is the first detect or
                 //if it's not the first detect generate the try catch block calls
                 if (step.getLandingPads().hasAlwaysBlock()) {
@@ -2555,12 +2556,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         Stack<LabelStackValue> tempStack = new Stack<LabelStackValue>();
         //if this is a detect parameter build the visit try catch block calls
         if (step.getDetectParameter().errorType != null) {
+            desc.pushDetectStartLabel();
             tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.peekDetectStartLabel(), QuorumConverter.convertStaticKeyToBytecodePath(step.getDetectParameter().errorType.getStaticKey())));
-            //if there is an always and this is the first detect or
-            //if it's not the first detect generate the try catch block calls
-            if (desc.isHasAlways() && step.isFirstDetect()) {
-                desc.flagFirstDetect();
-            }
         } 
         
         while (!tempStack.isEmpty()) {
@@ -3508,24 +3505,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 CheckDetectDescriptor desc = stack.peekCheckDetect();
                 int alwaysStartPosition = desc.getAlwaysStartPosition() + 2;
                 
-                if (label.getLabelType().equals(LabelTypeEnum.DETECT)) {
-                    ArrayList<CheckDetectEntry> tryCatchTable = stack.peekExceptionTable();
-                    
-                    Label startLabel = null;
-                    Label endLabel = null;
-                    if(desc.isHasAlways()){
-                        startLabel = desc.getNextDetectStartLabel();
-                        endLabel = desc.getNextDetectEndLabel();
-                    }
-                    
-                    if (desc.isHasAlways() && desc.isLastDetect()) {
-                        //desc.unflagFirstDetect();
-                        desc.setHasAlways(true);
-                        tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.getAlwaysStart(), null)); // null means "catch any type"
-                        tryCatchTable.add(new CheckDetectEntry(startLabel, endLabel, desc.getAlwaysStart(), null));
-                    }
-                }
-                
                 //end of the check or detect
                 stack.popLabel();
                 Label label1 = label.getLabel();
@@ -3554,6 +3533,31 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
                     
                 }
+                
+                if (label.getLabelType().equals(LabelTypeEnum.DETECT)) {
+                    ArrayList<CheckDetectEntry> tryCatchTable = stack.peekExceptionTable();
+                    
+                    Label startLabel = null;
+                    Label endLabel = null;
+                    if(desc.isHasAlways()){
+                        startLabel = desc.getNextDetectStartLabel();
+                        endLabel = desc.getNextDetectEndLabel();
+                    }
+                    
+                    if (desc.isHasAlways() && desc.isLastDetect()) {
+                        desc.setHasAlways(true);
+                        tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.getAlwaysStart(), null)); // null means "catch any type"
+                        while(desc.hasProcessedDetect()){
+                            tryCatchTable.add(new CheckDetectEntry(desc.popProcessedDetectStart(), desc.popProcessedDetectEnd(), desc.getAlwaysStart(), null));
+                        }
+                        tryCatchTable.add(new CheckDetectEntry(startLabel, endLabel, desc.getAlwaysStart(), null));
+                    }else{
+                        desc.addProcessedDetectStart(startLabel);
+                        desc.addProcessedDetectEnd(endLabel);
+                    }
+                }
+                
+
             }
         }
 
