@@ -1,0 +1,24 @@
+/*
+Expected output:
+detect
+always
+*/
+
+use Libraries.Language.Errors.all
+
+class Main
+    action Main
+        check
+            integer k = cast(integer, "3.7")
+        detect e of type CastError
+            integer z = 11
+            if z = 10
+                print "shouldn't be here"
+            elseif z = 11
+                print "detect"
+            end
+        always
+            print "always"
+        end
+    end
+end

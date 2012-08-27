@@ -1,0 +1,21 @@
+/*
+Expected output:
+detect
+*/
+
+use Libraries.Language.Errors.all
+
+class Main
+    action Main
+        check
+            integer k = cast(integer, "3.7")
+        detect e of type CastError
+            integer z = 10
+            if z = 11
+                print "shouldn't be here"
+            else
+                print "detect"
+            end
+        end
+    end
+end

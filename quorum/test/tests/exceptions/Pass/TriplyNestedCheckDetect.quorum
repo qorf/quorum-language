@@ -1,0 +1,28 @@
+/*
+Expected output:
+detect 1
+detect 2
+check 3
+*/
+
+use Libraries.Language.Errors.all
+
+class Main
+    action Main
+        check
+            alert("some error")
+        detect e
+            print "detect 1"
+            check
+                alert("detect 2")
+            detect j
+                print j:GetErrorMessage()
+                check
+                    print "check 3"
+                detect e
+                    print "shouldn't be here"
+                end
+            end
+        end
+    end
+end

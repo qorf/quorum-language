@@ -1,0 +1,20 @@
+/*
+Expected output:
+detect
+detect
+*/
+
+use Libraries.Language.Errors.all
+
+class Main
+    action Main
+        check
+            integer k = cast(integer, "3.7")
+        detect e of type CastError
+            integer z = 2
+            repeat z times
+                print "detect"
+            end
+        end
+    end
+end

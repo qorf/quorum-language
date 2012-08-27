@@ -1,0 +1,20 @@
+/*
+Expected output:
+detect
+*/
+
+use Libraries.Language.Errors.all
+
+class Main
+    action Main
+        integer k = 0
+        repeat while k < 4
+            check
+                number f = cast(number, "nope")
+            detect e
+                print "detect"
+            end
+            k = k + 1
+        end
+    end
+end
