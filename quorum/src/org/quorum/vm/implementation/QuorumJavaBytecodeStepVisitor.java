@@ -2240,6 +2240,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         //check detect construct is now ending
         methodVisitor.visitLabel(desc.getConstructEnd());
+        desc.flagAlwaysScope(false);
     }
 
     @Override
@@ -2528,6 +2529,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     tempStack.push(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, desc.peekDetectEndLabel()));
                 }
             } else if (next.isAlawysBlock()) {
+                //stack.pushAlwaysVariableOffset(0);
                 desc.setAlwaysEnd(new Label());
                 desc.setAlwaysStartPosition(next.getLocalLocation());
                 desc.setBlockName(step.getBlockName());
@@ -2581,9 +2583,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitVarInsn(ASTORE, mappedVariableNumber);
 
         stack.pushLabel(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, desc.peekDetectEndLabel()));
-        desc.peekDetectStartLabel();
-
-
     }
 
     @Override
@@ -2593,9 +2592,16 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
             methodVisitor.visitJumpInsn(GOTO, desc.getConstructEnd());
             methodVisitor.visitLabel(desc.getAlwaysStart());
-
+            desc.flagAlwaysScope(true);
+            int alwaysOffset = 0;
+            //if(stack.isInAlwaysScope()){
+                alwaysOffset = desc.getMaxVariableSize();
+                stack.registerMaxVariableSize(desc.getLastDetectVariableNumber() + alwaysOffset);
+            //}
             //TODO: this astore needs to be fixed and not hardcoded.
-            methodVisitor.visitVarInsn(ASTORE, desc.getLastDetectVariableNumber());
+            methodVisitor.visitVarInsn(ASTORE, desc.getLastDetectVariableNumber() + alwaysOffset);
+            desc.setLastDetectVariableNumber(desc.getLastDetectVariableNumber() + alwaysOffset);
+            //stack.addToCurrentAlwaysOffset();
             methodVisitor.visitLabel(desc.getAlwaysEnd());
 
         }
@@ -3528,18 +3534,23 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         alwaysEndPosition++;
                     }
                 }
-
                 if (desc.getAlwaysStartPosition() != -1) {
+                    //boolean wasFlagged = stack.isInAlwaysScope();
+                    //stack.unflagAlwaysScope();
                     visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
                     
+                    //if(wasFlagged){
+                    //    stack.flagAlwaysScope();
+                    //}
                 }
                 
-                if (label.getLabelType().equals(LabelTypeEnum.DETECT)) {
+                if (label.getLabelType().equals(LabelTypeEnum.DETECT)) {                    
                     ArrayList<CheckDetectEntry> tryCatchTable = stack.peekExceptionTable();
                     
                     Label startLabel = null;
                     Label endLabel = null;
                     if(desc.isHasAlways()){
+                        //stack.registerAlwaysVariableOffset(stack.getMaxVariablesSize());
                         startLabel = desc.getNextDetectStartLabel();
                         endLabel = desc.getNextDetectEndLabel();
                     }
@@ -3560,6 +3571,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
             }
         }
+        stack.registerMaxVariableSize();
 
     }
 

@@ -34,6 +34,8 @@ public class CheckDetectDescriptor {
     private boolean hasAlways = false;
     private String blockName = "";
     private boolean hadThrow = false;
+    private boolean isInAlwaysScope = false;
+    private int maxVariableSize = 0;
     
     private ArrayList<Label>processedDetectStart = new ArrayList<Label>();
     private ArrayList<Label>processedDetectEnd = new ArrayList<Label>();
@@ -272,5 +274,33 @@ public class CheckDetectDescriptor {
         }else{
             return false;
         }
+    }
+
+    /**
+     * @return the isInAlwaysScope
+     */
+    public boolean isInAlwaysScope() {
+        return isInAlwaysScope;
+    }
+
+    /**
+     * @param isInAlwaysScope the isInAlwaysScope to set
+     */
+    public void flagAlwaysScope(boolean isInAlwaysScope) {
+        this.isInAlwaysScope = isInAlwaysScope;
+    }
+
+    /**
+     * @return the maxVariableSize
+     */
+    public int getMaxVariableSize() {
+        return maxVariableSize;
+    }
+
+    /**
+     * @param maxVariableSize the maxVariableSize to set
+     */
+    public void setMaxVariableSize(int maxVariableSize) {
+        this.maxVariableSize = maxVariableSize;
     }
 }

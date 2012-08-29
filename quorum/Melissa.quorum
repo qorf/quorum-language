@@ -1,21 +1,32 @@
-/**
-Expected output: error code of 2, uncaught exception
+/*
+ * Expected Output
+ * XText = "X" - when first exception is thrown
+ * YText = "Y" - when second exception is thrown in first always
+ * hiText = "hi" - when always block of second check...detect is hit
+ * hiOutText = "hi2" - when end of first always block is hit
 */
-
 use Libraries.Language.Errors.Error
-use Libraries.Language.Errors.CastError
-use Libraries.Language.Errors.OutOfBoundsError
-
-class Main
-    action Main
+class Main 
+    action main
         check
-            integer i = 5
-        detect e of type OutOfBoundsError
-            integer i = 4
-        detect k
-            integer i = 4
+            integer i = 1
+            print i
+        detect e
+            integer i = 2
+            print i
         always
-            integer i = 5
+            check
+                integer i = 3
+                print i
+            detect e
+                integer i = 4
+                print i
+            always
+                integer i = 6
+                print i
+            end
+            integer j = 5
+            print j
         end
     end
 end

@@ -36,8 +36,10 @@ public class BytecodeStack {
     private int currentNumberIfStatements = 0;
     private Stack<CheckDetectDescriptor> checkDetects = new Stack<CheckDetectDescriptor>();
     private Stack<Integer> errorVariableNumber = new Stack<Integer>();
-    
-    
+    private ArrayList<Integer> alwaysBlockOffset = new ArrayList<Integer>();
+    private int currentAlwaysOffset = 0;
+    private int registeredMaxVariable = 0;
+ 
     public void pushExceptionTable(ArrayList<CheckDetectEntry> table){
         exceptionTables.push(table);
     }
@@ -67,6 +69,9 @@ public class BytecodeStack {
     }
     
     public void pushCheckDetect(CheckDetectDescriptor d) {
+        if(!checkDetects.isEmpty())
+            d.setMaxVariableSize(checkDetects.peek().getMaxVariableSize());
+        
         checkDetects.push(d);
     }
     
@@ -74,7 +79,12 @@ public class BytecodeStack {
         if(checkDetects.isEmpty()){
             return null;
         }else{
-            return checkDetects.pop();
+            CheckDetectDescriptor pop = checkDetects.pop();
+            int maxVariableSize = pop.getMaxVariableSize();
+            if(!checkDetects.isEmpty()){
+                checkDetects.peek().setMaxVariableSize(maxVariableSize);
+            }
+            return pop;
         }
     }
     
@@ -343,7 +353,7 @@ public class BytecodeStack {
      * @return 
      */
     public int getMaxVariablesSize() {
-        return maxVariablesSize;
+            return maxVariablesSize;
     }
     
     /**
@@ -352,7 +362,7 @@ public class BytecodeStack {
      * @param quorumLocation
      */
     public void setStartingVariableNumber(int quorumLocation) {
-        startingVariable = quorumLocation;
+       startingVariable = quorumLocation + currentAlwaysOffset;
     }
         
     /**
@@ -366,7 +376,21 @@ public class BytecodeStack {
         if (get != null){
             TypeDescriptor currentType = variables.get(get);
             if(QuorumConverter.getSizeOfType(currentType) == QuorumConverter.getSizeOfType(type)){
-                return get;
+                if(!checkDetects.isEmpty() && checkDetects.peek().isInAlwaysScope()){
+                    int result = get + checkDetects.peek().getMaxVariableSize();
+                    checkDetects.peek().setMaxVariableSize(result);
+                    return result;
+                }else if(checkDetects.size() >= 2){
+                    CheckDetectDescriptor pop = checkDetects.pop();
+                    CheckDetectDescriptor peek = checkDetects.peek();
+                    checkDetects.push(pop);
+                    if(peek.isInAlwaysScope())
+                        return get + peek.getMaxVariableSize();
+                    else
+                        return get;
+                }else{
+                    return get;
+                }
             }else{
                 setVariableType(get, type);
                 currentVariablesSize -= QuorumConverter.getSizeOfType(currentType);
@@ -385,7 +409,22 @@ public class BytecodeStack {
                 if(currentVariablesSize > maxVariablesSize) {
                     maxVariablesSize = currentVariablesSize;
                 }
-                return get;
+                
+                if(!checkDetects.isEmpty() && checkDetects.peek().isInAlwaysScope()){
+                    int result = get + checkDetects.peek().getMaxVariableSize();
+                    checkDetects.peek().setMaxVariableSize(result);
+                    return result;
+                }else if(checkDetects.size() >= 2){
+                    CheckDetectDescriptor pop = checkDetects.pop();
+                    CheckDetectDescriptor peek = checkDetects.peek();
+                    checkDetects.push(pop);
+                    if(peek.isInAlwaysScope())
+                        return get + peek.getMaxVariableSize();
+                    else
+                        return get;
+                }else{
+                    return get;
+                }
             }
         }else{
             return -1;
@@ -436,5 +475,66 @@ public class BytecodeStack {
      */
     public int getCurrentNumberOfIfStatements(){
         return currentNumberIfStatements;
+    }
+    
+    public void registerMaxVariableSize(){
+        if(!checkDetects.isEmpty() && checkDetects.peek().getMaxVariableSize() < this.maxVariablesSize)
+            checkDetects.peek().setMaxVariableSize(maxVariablesSize);      
+    }
+    
+    public int getRegisteredMaxVariableSize(){
+        return checkDetects.peek().getMaxVariableSize();
+    }
+
+    /*public void pushAlwaysVariableOffset(Integer offset){
+        alwaysVariableOffset.add(offset);
+        this.currentVariablesSize +=offset;
+    }
+    
+    public void registerAlwaysVariableOffset(int offset){
+        Integer peek = alwaysVariableOffset.remove(alwaysVariableOffset.size() - 1);
+        if(offset > peek){
+            this.currentVariablesSize -= peek;
+            this.currentVariablesSize += offset;
+            alwaysVariableOffset.add(offset);
+        }else{
+            alwaysVariableOffset.add(peek);
+        }
+    }
+    
+    public int getAlwaysVariableOffset() {
+        return alwaysVariableOffset.get(alwaysVariableOffset.size() - 1);
+    }
+
+    public int popAlwaysVariableOffset() {
+        Integer pop = alwaysVariableOffset.remove(alwaysVariableOffset.size() - 1);
+        this.currentVariablesSize -= pop;
+        return pop;
+    }
+    
+    public void addToCurrentAlwaysOffset(){
+        currentAlwaysOffset += alwaysVariableOffset.get(alwaysVariableOffset.size() - 1);
+    }
+    
+    public void removeFromCurrentAlwaysOffset(int offset){
+        currentAlwaysOffset -= offset;
+    }
+
+    void mergeAlwaysOffset(int popAlwaysVariableOffset) {
+        if(!alwaysVariableOffset.isEmpty()){
+            Integer get = alwaysVariableOffset.get(alwaysVariableOffset.size() - 1);
+            registerAlwaysVariableOffset(get + popAlwaysVariableOffset);
+        }
+    }
+
+    void resetAlwaysVariableOffset() {
+        alwaysVariableOffset.set(alwaysVariableOffset.size()-1, 0);
+    }*/
+
+    void registerMaxVariableSize(int offset) {
+        if(offset > maxVariablesSize)
+            maxVariablesSize = offset;
+        
+        this.registerMaxVariableSize();
     }
 }
