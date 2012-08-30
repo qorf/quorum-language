@@ -482,7 +482,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * @param interpreterVarNumber - the variable's number in the interpreter. mapped to a JVM variable pool number.
      */
     public void pushVariable(TypeDescriptor type, int interpreterVarNumber) {
-        methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(type), stack.getMappedVariableNumber(interpreterVarNumber, type));
+        methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(type), stack.getMappedVariableNumber(interpreterVarNumber, type, false));
     }
 
     /**
@@ -511,7 +511,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()),
                         variable.getName(), QuorumConverter.convertTypeToBytecodeString(variable.getType()));
             } else {
-                methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(variable.getType()), stack.getMappedVariableNumber(variable.getVariableNumber(), variable.getType()));
+                methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(variable.getType()), stack.getMappedVariableNumber(variable.getVariableNumber(), variable.getType(), false));
             }
             variableName = subVariableName;
             variableType = stack.popExpressionType();
@@ -679,12 +679,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 mappedVariableNumber = stack.getParameterNumber(varDescriptor.getName());
             } else {
                 //if we are not dealing with an object variable then store it in a local varaiable
-                mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, valueType);
+                mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, valueType, true);
 
                 // Is it defined yet?
                 if (mappedVariableNumber == -1) {
                     stack.setVariable(variableNumber, valueType);
-                    mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, valueType);
+                    mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, valueType, true);
                 } else {
                     if (valueType.isBytecodeInterface()) {
                         //we need to set the stack variables type to something new or something?
@@ -2234,7 +2234,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (desc.isHasAlways()) {
             desc.setHasAlways(true);
             tryCatchTable.add(new CheckDetectEntry(desc.getAlwaysStart(), desc.getAlwaysEnd(), desc.getAlwaysStart(), null));
-            methodVisitor.visitVarInsn(ALOAD, desc.getLastDetectVariableNumber());
+            methodVisitor.visitVarInsn(ALOAD, desc.getStoredDetectVariableNumber());
             methodVisitor.visitInsn(ATHROW);
         }
 
@@ -2573,10 +2573,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         // Store the error. This is essentially a "hidden" variable.
         int variableNumber = step.getDetectParameter().getVariableNumber();
-        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameter().getType());
+        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameter().getType(), true);
         if (mappedVariableNumber == -1) {
             stack.setVariable(variableNumber, step.getDetectParameter().getType());
-            mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameter().getType());
+            mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameter().getType(), true);
         }
 
         desc.setLastDetectVariableNumber(mappedVariableNumber);
@@ -2594,13 +2594,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitLabel(desc.getAlwaysStart());
             desc.flagAlwaysScope(true);
             int alwaysOffset = 0;
-            //if(stack.isInAlwaysScope()){
+            //if(desc.isInAlwaysScope()){
                 alwaysOffset = desc.getMaxVariableSize();
-                stack.registerMaxVariableSize(desc.getLastDetectVariableNumber() + alwaysOffset);
+                stack.registerMaxVariableSize(1 + alwaysOffset);
             //}
             //TODO: this astore needs to be fixed and not hardcoded.
-            methodVisitor.visitVarInsn(ASTORE, desc.getLastDetectVariableNumber() + alwaysOffset);
-            desc.setLastDetectVariableNumber(desc.getLastDetectVariableNumber() + alwaysOffset);
+            methodVisitor.visitVarInsn(ASTORE, 1 + alwaysOffset);
+            desc.setStoredDetectVariableNumber(1 + alwaysOffset);
             //stack.addToCurrentAlwaysOffset();
             methodVisitor.visitLabel(desc.getAlwaysEnd());
 
@@ -3165,7 +3165,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     //Otherwise, load the variable from the mapped variable on the
                     //stack.
                     int number = var.getVariableNumber() - currentClass.getNumberOfVariables();
-                    int mapped = stack.getMappedVariableNumber(number, var.getType());
+                    int mapped = stack.getMappedVariableNumber(number, var.getType(), false);
                     methodVisitor.visitVarInsn(ALOAD, mapped);
                 }
             }
@@ -3203,7 +3203,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             //grab the variable from storage and check if it is an interface type
             TypeDescriptor varType = null;
             if (var != null) {
-                varType = stack.getVariable(stack.getMappedVariableNumber(var.getVariableNumber() - currentClass.getNumberOfVariables(), var.getType()));
+                varType = stack.getVariable(stack.getMappedVariableNumber(var.getVariableNumber() - currentClass.getNumberOfVariables(), var.getType(), true));
                 if (varType != null) {
                     isCalledOnInterface = varType.isBytecodeInterface();
                 }
@@ -3263,7 +3263,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         //Otherwise, load the variable from the mapped variable on the
                         //stack.
                         int number = var.getVariableNumber() - currentClass.getNumberOfVariables();
-                        int mapped = stack.getMappedVariableNumber(number, var.getType());
+                        int mapped = stack.getMappedVariableNumber(number, var.getType(), false);
                         methodVisitor.visitVarInsn(ALOAD, mapped);
                     }
                 }
@@ -3436,7 +3436,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         type.setBytecodeInterface(isField);
 
         stack.setVariable(variableNumber, type);
-        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, type);
+        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, type, true);
         if (!isField && mappedVariableNumber != -1) {
             methodVisitor.visitVarInsn(ASTORE, mappedVariableNumber);
         } else if (isField && mappedVariableNumber != -1) {
@@ -3768,7 +3768,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 variable = varDescriptor.getType();
             } else {//otherwise get the variable number and push the new variable onto the bytecode stack
                 int variableNumber = step.getValue().getVariableNumber() - currentClass.getNumberOfVariables();
-                int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getValue().getType());
+                int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getValue().getType(), false);
                 variable = stack.getVariable(mappedVariableNumber);
                 pushVariable(step.getValue().getType(), variableNumber);
             }
@@ -4048,7 +4048,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 variable = varDescriptor.getType();
             } else {//otherwise get the variable number and push the new variable onto the bytecode stack
                 int variableNumber = step.getValue().getVariableNumber() - currentClass.getNumberOfVariables();
-                int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getValue().getType());
+                int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getValue().getType(),false);
                 variable = stack.getVariable(mappedVariableNumber);
                 pushVariable(step.getValue().getType(), variableNumber);
             }

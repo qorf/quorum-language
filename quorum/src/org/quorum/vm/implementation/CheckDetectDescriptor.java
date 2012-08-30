@@ -36,6 +36,7 @@ public class CheckDetectDescriptor {
     private boolean hadThrow = false;
     private boolean isInAlwaysScope = false;
     private int maxVariableSize = 0;
+    private int storedDetectVariableNumber = -1;
     
     private ArrayList<Label>processedDetectStart = new ArrayList<Label>();
     private ArrayList<Label>processedDetectEnd = new ArrayList<Label>();
@@ -302,5 +303,19 @@ public class CheckDetectDescriptor {
      */
     public void setMaxVariableSize(int maxVariableSize) {
         this.maxVariableSize = maxVariableSize;
+    }
+
+    /**
+     * @return the storedDetectVariableNumber
+     */
+    public int getStoredDetectVariableNumber() {
+        return storedDetectVariableNumber;
+    }
+
+    /**
+     * @param storedDetectVariableNumber the storedDetectVariableNumber to set
+     */
+    public void setStoredDetectVariableNumber(int storedDetectVariableNumber) {
+        this.storedDetectVariableNumber = storedDetectVariableNumber;
     }
 }

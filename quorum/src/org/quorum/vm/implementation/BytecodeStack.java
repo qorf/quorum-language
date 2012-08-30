@@ -81,7 +81,7 @@ public class BytecodeStack {
         }else{
             CheckDetectDescriptor pop = checkDetects.pop();
             int maxVariableSize = pop.getMaxVariableSize();
-            if(!checkDetects.isEmpty()){
+            if(!checkDetects.isEmpty() && !checkDetects.peek().isInAlwaysScope()){
                 checkDetects.peek().setMaxVariableSize(maxVariableSize);
             }
             return pop;
@@ -371,22 +371,30 @@ public class BytecodeStack {
      * @param quorumLocation
      * @return 
      */
-    public int getMappedVariableNumber(int quorumLocation, TypeDescriptor type) {
+    public int getMappedVariableNumber(int quorumLocation, TypeDescriptor type, boolean isStore) {
         Integer get = quorumToJavaNumberVariableMap.get(quorumLocation);
         if (get != null){
             TypeDescriptor currentType = variables.get(get);
             if(QuorumConverter.getSizeOfType(currentType) == QuorumConverter.getSizeOfType(type)){
                 if(!checkDetects.isEmpty() && checkDetects.peek().isInAlwaysScope()){
                     int result = get + checkDetects.peek().getMaxVariableSize();
-                    checkDetects.peek().setMaxVariableSize(result);
+                    if(isStore)
+                        checkDetects.peek().setMaxVariableSize(result);
+                    else
+                        result -= get;
                     return result;
                 }else if(checkDetects.size() >= 2){
                     CheckDetectDescriptor pop = checkDetects.pop();
                     CheckDetectDescriptor peek = checkDetects.peek();
                     checkDetects.push(pop);
-                    if(peek.isInAlwaysScope())
-                        return get + peek.getMaxVariableSize();
-                    else
+                    if(peek.isInAlwaysScope()){
+                        int result = get + peek.getMaxVariableSize();
+                        if(isStore)
+                            registerMaxVariableSize(result);
+                        //else
+                            //result -= get;
+                        return result;
+                    }else
                         return get;
                 }else{
                     return get;
@@ -412,15 +420,23 @@ public class BytecodeStack {
                 
                 if(!checkDetects.isEmpty() && checkDetects.peek().isInAlwaysScope()){
                     int result = get + checkDetects.peek().getMaxVariableSize();
-                    checkDetects.peek().setMaxVariableSize(result);
+                    if(isStore)
+                        checkDetects.peek().setMaxVariableSize(result);
+                    else
+                        result -= get;
                     return result;
                 }else if(checkDetects.size() >= 2){
                     CheckDetectDescriptor pop = checkDetects.pop();
                     CheckDetectDescriptor peek = checkDetects.peek();
                     checkDetects.push(pop);
-                    if(peek.isInAlwaysScope())
-                        return get + peek.getMaxVariableSize();
-                    else
+                    if(peek.isInAlwaysScope()){
+                        int result = get + peek.getMaxVariableSize();
+                        if(isStore)
+                            registerMaxVariableSize(result);
+                        else
+                            result -= get;
+                        return result;
+                    }else
                         return get;
                 }else{
                     return get;
