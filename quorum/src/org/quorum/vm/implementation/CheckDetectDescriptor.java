@@ -67,7 +67,10 @@ public class CheckDetectDescriptor {
     }
     
     public Label getNextDetectEndLabel() {
-        return detectEnds.pop();
+        if(detectEnds.isEmpty())
+            return null;
+        else
+            return detectEnds.pop();
     }
         
     public Label peekDetectEndLabel(){
@@ -317,5 +320,9 @@ public class CheckDetectDescriptor {
      */
     public void setStoredDetectVariableNumber(int storedDetectVariableNumber) {
         this.storedDetectVariableNumber = storedDetectVariableNumber;
+    }
+
+    void pushDetectEndLabel(Label endLabel) {
+        this.detectEnds.push(endLabel);
     }
 }

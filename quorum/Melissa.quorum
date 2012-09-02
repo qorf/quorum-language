@@ -1,32 +1,13 @@
-/*
- * Expected Output
- * XText = "X" - when first exception is thrown
- * YText = "Y" - when second exception is thrown in first always
- * hiText = "hi" - when always block of second check...detect is hit
- * hiOutText = "hi2" - when end of first always block is hit
-*/
-use Libraries.Language.Errors.Error
-class Main 
+use Libraries.Language.Errors.CastError
+class Main
     action main
+        integer i = 1
         check
-            integer i = 1
-            print i
-        detect e
-            integer i = 2
-            print i
-        always
-            check
-                integer i = 3
-                print i
-            detect e
-                integer i = 4
-                print i
-            always
-                integer i = 6
-                print i
-            end
-            integer j = 5
-            print j
+            i = cast(integer, "1.5")
+        detect e of type CastError
+            i = 2
         end
+
+        print i
     end
 end
