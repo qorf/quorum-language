@@ -1,17 +1,28 @@
+/**
+  * Expected output:
+  *
+  * Error: callMe failed
+  */
 
-use Libraries.Language.Errors.all
+use Libraries.Language.Errors.Error
 
 class Main
     action Main
-        repeat 2 times
         check
-            print "check"
-        detect e of type CastError
-            print "detect"
-        always
-            print "always"
-            
+            callMe(50)
+        detect e of type Error
+            e:PrintStackTrace()
         end
+    end
+
+    action callMe(integer depth)
+        if depth <= 25
+            //return now
+            print depth
+            Error err
+            alert(err)
         end
+    
+        callMe(depth - 1)
     end
 end

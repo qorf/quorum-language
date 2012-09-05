@@ -32,17 +32,15 @@ class Error
 
         //set the size of the stack trace
         if size > 20
-            stackTrace:SetSize(20)
-        else
-            stackTrace:SetSize(size)
+            size = 20
         end
 
         //fill the stack trace with items
-        integer i = size - 1
+        integer i = stackTrace:GetSize()
         integer j = 0
-        repeat while i >= 0
+        repeat while size >= j
             StackTraceItem item = GetStackTraceItem(j)
-            stackTrace:Set(i, item)
+            stackTrace:AddToFront(item)
             i = i - 1
             j = j + 1
         end

@@ -504,51 +504,6 @@ public class BytecodeStack {
         return checkDetects.peek().getMaxVariableSize();
     }
 
-    /*public void pushAlwaysVariableOffset(Integer offset){
-        alwaysVariableOffset.add(offset);
-        this.currentVariablesSize +=offset;
-    }
-    
-    public void registerAlwaysVariableOffset(int offset){
-        Integer peek = alwaysVariableOffset.remove(alwaysVariableOffset.size() - 1);
-        if(offset > peek){
-            this.currentVariablesSize -= peek;
-            this.currentVariablesSize += offset;
-            alwaysVariableOffset.add(offset);
-        }else{
-            alwaysVariableOffset.add(peek);
-        }
-    }
-    
-    public int getAlwaysVariableOffset() {
-        return alwaysVariableOffset.get(alwaysVariableOffset.size() - 1);
-    }
-
-    public int popAlwaysVariableOffset() {
-        Integer pop = alwaysVariableOffset.remove(alwaysVariableOffset.size() - 1);
-        this.currentVariablesSize -= pop;
-        return pop;
-    }
-    
-    public void addToCurrentAlwaysOffset(){
-        currentAlwaysOffset += alwaysVariableOffset.get(alwaysVariableOffset.size() - 1);
-    }
-    
-    public void removeFromCurrentAlwaysOffset(int offset){
-        currentAlwaysOffset -= offset;
-    }
-
-    void mergeAlwaysOffset(int popAlwaysVariableOffset) {
-        if(!alwaysVariableOffset.isEmpty()){
-            Integer get = alwaysVariableOffset.get(alwaysVariableOffset.size() - 1);
-            registerAlwaysVariableOffset(get + popAlwaysVariableOffset);
-        }
-    }
-
-    void resetAlwaysVariableOffset() {
-        alwaysVariableOffset.set(alwaysVariableOffset.size()-1, 0);
-    }*/
-
     void registerMaxVariableSize(int offset) {
         if(offset > maxVariablesSize)
             maxVariablesSize = offset;
