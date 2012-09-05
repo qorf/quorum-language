@@ -1,24 +1,17 @@
-/**
-Expected output:
-always
-alert
-*/
 
-use Libraries.Language.Errors.Error
+use Libraries.Language.Errors.all
 
 class Main
     action Main
+        repeat 2 times
         check
-            print "check2"
-            check
-                print "check"
-            detect j
-                print "detect"
-            always
-                print "always"
-            end
-        detect e
-             print "detect2"
+            print "check"
+        detect e of type CastError
+            print "detect"
+        always
+            print "always"
+            
+        end
         end
     end
 end

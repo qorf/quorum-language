@@ -679,7 +679,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 mappedVariableNumber = stack.getParameterNumber(varDescriptor.getName());
             } else {
                 //if we are not dealing with an object variable then store it in a local varaiable
-                mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, valueType, true);
+                mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, valueType, false);
 
                 // Is it defined yet?
                 if (mappedVariableNumber == -1) {
@@ -2151,7 +2151,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
                 if (step instanceof EndScopeStep) {
                     // Is it a loop? If so, skip the incrementation op codes.
-                    if (stack.peekLabel() != null && (stack.peekLabel().getLabelType().equals(LabelTypeEnum.FROM) || stack.peekLabel().getLabelType().equals(LabelTypeEnum.TIMES))) {
+                    if (stack.peekLabel() != null && ((EndScopeStep)step).getBlockTag().equals("loop")&&
+                            (stack.peekLabel().getLabelType().equals(LabelTypeEnum.FROM) || stack.peekLabel().getLabelType().equals(LabelTypeEnum.TIMES))) {
                         methodVisitor.visitInsn(ICONST_1);
                         methodVisitor.visitVarInsn(ILOAD, stack.peekCounterVariable());
                         methodVisitor.visitInsn(IADD);
@@ -2231,7 +2232,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         CheckDetectDescriptor desc = stack.popCheckDetect();
 
         ArrayList<CheckDetectEntry> tryCatchTable = stack.peekExceptionTable();
-        if (desc.isHasAlways()) {
+        if (desc.isHasAlways() && !desc.hasEmptyCheck()) {
             desc.setHasAlways(true);
             tryCatchTable.add(new CheckDetectEntry(desc.getAlwaysStart(), desc.getAlwaysEnd(), desc.getAlwaysStart(), null));
             methodVisitor.visitVarInsn(ALOAD, desc.getStoredDetectVariableNumber());
@@ -2537,6 +2538,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
         }
         
+        if(step.isEmpty()){
+            desc.setHasEmptyCheck(true);
+        }
+        
         if(stack.peekExceptionTable() == null){
             stack.pushExceptionTable(new ArrayList<CheckDetectEntry>());
         }
@@ -2565,7 +2570,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             desc.pushDetectEndLabel();
             
         //if this is a detect parameter build the visit try catch block calls
-        if (step.getDetectParameter().errorType != null) {
+        if (step.getDetectParameter().errorType != null && !desc.hasEmptyCheck()) {
             tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.peekDetectStartLabel(), QuorumConverter.convertStaticKeyToBytecodePath(step.getDetectParameter().errorType.getStaticKey())));
         } 
         
@@ -2580,7 +2585,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         // Store the error. This is essentially a "hidden" variable.
         int variableNumber = step.getDetectParameter().getVariableNumber();
-        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameter().getType(), true);
+        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameter().getType(), false);
         if (mappedVariableNumber == -1) {
             stack.setVariable(variableNumber, step.getDetectParameter().getType());
             mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameter().getType(), true);
@@ -3460,7 +3465,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(EndScopeStep step) {
         if (!stack.isEmptyLabel()) {//if the stack has a label
             LabelStackValue label = stack.peekLabel();
-            if (label.getLabelType().equals(LabelTypeEnum.IF)) {//if the label is for an if statement
+            if (label.getLabelType().equals(LabelTypeEnum.IF) && !step.getBlockTag().equals("always")) {//if the label is for an if statement
                 if (label.getJumpType() != GOTO && !step.isLastIfScope()) {//if the label is NOT a GOTO jump
 
                     stack.popLabel();
@@ -3500,7 +3505,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     Label pop = label.getLabel();
                     methodVisitor.visitLabel(pop);
                 }
-            } else if (label.getLabelType().equals(LabelTypeEnum.LOOP)) {//end of the loop will mark the goto and visit the end label.
+            } else if (label.getLabelType().equals(LabelTypeEnum.LOOP) && !step.getBlockTag().equals("always")) {//end of the loop will mark the goto and visit the end label.
 
                 stack.popLabel();
 
@@ -3559,7 +3564,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 if (label.getLabelType().equals(LabelTypeEnum.DETECT)) {                    
                     ArrayList<CheckDetectEntry> tryCatchTable = stack.peekExceptionTable();
                     
-                    if (desc.isHasAlways() && desc.isLastDetect()) {
+                    if (desc.isHasAlways() && desc.isLastDetect() && !desc.hasEmptyCheck()) {
                         desc.setHasAlways(true);
                         tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.getAlwaysStart(), null)); // null means "catch any type"
                         while(desc.hasProcessedDetect()){

@@ -35,6 +35,7 @@ public class CheckDetectDescriptor {
     private String blockName = "";
     private boolean hadThrow = false;
     private boolean isInAlwaysScope = false;
+    private boolean hasEmptyCheck = false;
     private int maxVariableSize = 0;
     private int storedDetectVariableNumber = -1;
     
@@ -325,7 +326,15 @@ public class CheckDetectDescriptor {
         this.storedDetectVariableNumber = storedDetectVariableNumber;
     }
 
-    void pushDetectEndLabel(Label endLabel) {
+    public void pushDetectEndLabel(Label endLabel) {
         this.detectEnds.push(endLabel);
+    }
+
+    public void setHasEmptyCheck(boolean b) {
+        hasEmptyCheck = b;
+    }
+    
+    public boolean hasEmptyCheck(){
+        return hasEmptyCheck;
     }
 }
