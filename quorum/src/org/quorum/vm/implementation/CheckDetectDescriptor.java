@@ -56,7 +56,10 @@ public class CheckDetectDescriptor {
     }
     
     public Label getNextDetectStartLabel() {
-        return detectStarts.pop();
+        if(detectStarts.isEmpty())
+            return null;
+        else
+            return detectStarts.pop();
     }
     
     public Label peekDetectStartLabel(){

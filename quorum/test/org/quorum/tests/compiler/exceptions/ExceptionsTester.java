@@ -948,7 +948,7 @@ public class ExceptionsTester {
         RunResult r = CompilerTestSuite.runQuorumFile();
         assert(r.isSuccessful());
         assert(r.getLine(0).equals("always"));
-        assert(r.getLine(0).equals("alert"));
+        assert(r.getLine(1).equals("alert"));
     }
     
     @Test

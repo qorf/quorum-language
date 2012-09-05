@@ -2544,7 +2544,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //reverse and put into label stack
         while (!endLabelStack.isEmpty()) {
             Label pop = endLabelStack.pop();
-            stack.pushLabel(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, pop));
+            //stack.pushLabel(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, pop));
             desc.pushDetectEndLabel(pop);
         }
 
@@ -2559,9 +2559,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         ArrayList<CheckDetectEntry> tryCatchTable = stack.peekExceptionTable();
         
         Stack<LabelStackValue> tempStack = new Stack<LabelStackValue>();
+        desc.pushDetectStartLabel();
+        
+        if(!desc.isHasAlways())
+            desc.pushDetectEndLabel();
+            
         //if this is a detect parameter build the visit try catch block calls
         if (step.getDetectParameter().errorType != null) {
-            desc.pushDetectStartLabel();
             tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.peekDetectStartLabel(), QuorumConverter.convertStaticKeyToBytecodePath(step.getDetectParameter().errorType.getStaticKey())));
         } 
         
@@ -3549,19 +3553,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     }
                 }
                 if (desc.getAlwaysStartPosition() != -1) {
-                    //boolean wasFlagged = stack.isInAlwaysScope();
-                    //stack.unflagAlwaysScope();
                     visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
-                    
-                    //if(wasFlagged){
-                    //    stack.flagAlwaysScope();
-                    //}
                 }
                 
                 if (label.getLabelType().equals(LabelTypeEnum.DETECT)) {                    
                     ArrayList<CheckDetectEntry> tryCatchTable = stack.peekExceptionTable();
-                    
-    
                     
                     if (desc.isHasAlways() && desc.isLastDetect()) {
                         desc.setHasAlways(true);
@@ -3570,7 +3566,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                             tryCatchTable.add(new CheckDetectEntry(desc.popProcessedDetectStart(), desc.popProcessedDetectEnd(), desc.getAlwaysStart(), null));
                         }
                         tryCatchTable.add(new CheckDetectEntry(startLabel, endLabel, desc.getAlwaysStart(), null));
-                    }else{
+                    }else if(startLabel != null && endLabel != null){
                         desc.addProcessedDetectStart(startLabel);
                         desc.addProcessedDetectEnd(endLabel);
                     }

@@ -1,13 +1,24 @@
-use Libraries.Language.Errors.CastError
-class Main
-    action main
-        integer i = 1
-        check
-            i = cast(integer, "1.5")
-        detect e of type CastError
-            i = 2
-        end
+/**
+Expected output:
+always
+alert
+*/
 
-        print i
+use Libraries.Language.Errors.Error
+
+class Main
+    action Main
+        check
+            print "check2"
+            check
+                print "check"
+            detect j
+                print "detect"
+            always
+                print "always"
+            end
+        detect e
+             print "detect2"
+        end
     end
 end

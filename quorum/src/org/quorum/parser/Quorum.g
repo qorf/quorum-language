@@ -805,6 +805,7 @@ detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionT
 	           		
 	new_desc.setType(type);
 	new_desc.setName($ID.text);
+	new_desc.setInitialized(true);
            		
 	CompilerError error = symbol.add(new_desc);
 	if(error != null) {

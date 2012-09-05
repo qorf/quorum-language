@@ -381,7 +381,7 @@ public class BytecodeStack {
                     if(isStore)
                         checkDetects.peek().setMaxVariableSize(result);
                     else
-                        result -= get;
+                        result -= checkDetects.peek().getMaxVariableSize();
                     return result;
                 }else if(checkDetects.size() >= 2){
                     CheckDetectDescriptor pop = checkDetects.pop();
@@ -423,7 +423,7 @@ public class BytecodeStack {
                     if(isStore)
                         checkDetects.peek().setMaxVariableSize(result);
                     else
-                        result -= get;
+                        result -= checkDetects.peek().getMaxVariableSize();
                     return result;
                 }else if(checkDetects.size() >= 2){
                     CheckDetectDescriptor pop = checkDetects.pop();
