@@ -4,6 +4,23 @@
 </script>
 <?php echo '<h2>' . $WEB_ROOT. '</h2>';?>
 <h1>Quorum Release Notes</h1>
+<h2>Quorum 1.6 September 10th, 2012</h2>
+<p>Quorum 1.6 contains a number of important bug fixes.</p>
+<ul>
+    
+    <li>Fixed a number of bugs with the error system (called exceptions in other languages). 
+    These changes include a near rewrite of the bytecode generation algorithms for this system.</li>
+    <li>In order to help identify problems in the future, we have added a considerable number of test cases
+        for the errors system. We think these tests offer a much more 
+        complete automated suite for this part of the compiler.</li>
+    <li>Fixed some bugs in the control flow analysis algorithms. These fixes will 
+        not impact the runtime behavior of any Quorum programs, but will
+        make alternative control flow sequences that are illegal or impossible
+        a little bit more obvious.</li>
+    <li>Improved the clarity slightly of a few compiler errors. As always, making
+    compiler errors easier to understand is a work in progress.</li>
+    <li>Fixed a number of small edge-case bugs.</li>
+</ul>
 <h2>Quorum 1.5 June 26th, 2012</h2>
 <ul>
     <li>Significantly altered the syntax for conditional statements (if). The reason for this change is because we ran an empirical study, which showed evidence that novices using this construct made consistent errors, especially in the use of the token &quot;then&quot; and &quot;end&quot; on the inside of else if constructs. There is still one more set of tests we would like to run on this construct, to reveal whether the keywords &quot;else if&quot; lead to higher accuracy than our current choice, &quot;elseif.&quot; We have not yet discovered clear empirical evidence in the academic literature, so will probably end up running the tests on our own. Below we give a quick example of the change.</li>
