@@ -38,7 +38,7 @@ class Error
         //fill the stack trace with items
         integer i = stackTrace:GetSize()
         integer j = 0
-        repeat while size >= j
+        repeat while j < size
             StackTraceItem item = GetStackTraceItem(j)
             stackTrace:AddToFront(item)
             i = i - 1
