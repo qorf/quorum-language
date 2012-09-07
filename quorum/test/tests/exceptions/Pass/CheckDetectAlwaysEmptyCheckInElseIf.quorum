@@ -1,0 +1,24 @@
+/*
+Expected output:
+always
+*/
+
+use Libraries.Language.Errors.all
+
+class Main
+    action Main
+        integer a = 2
+        integer b = 2
+        boolean k = (a = b)
+        if not k
+            print "shouldn't be in if"
+        elseif k
+            check
+            detect e
+                print "shouldn't be here"
+            always
+                print "always"
+            end
+        end
+    end
+end

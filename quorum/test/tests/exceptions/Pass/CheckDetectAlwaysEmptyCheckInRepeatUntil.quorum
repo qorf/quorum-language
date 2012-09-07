@@ -1,0 +1,22 @@
+/*
+Expected output:
+always
+always
+*/
+
+use Libraries.Language.Errors.all
+
+class Main
+    action Main
+        integer a = 0
+        repeat until a >= 2
+            check
+            detect e
+                print "shouldn't be here"
+            always
+                print "always"
+            end
+            a = a + 1
+        end
+    end
+end

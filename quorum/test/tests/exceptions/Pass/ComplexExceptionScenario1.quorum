@@ -1,0 +1,57 @@
+/*
+Expected output:
+
+*/
+
+use Libraries.Language.Errors.all
+
+class Main
+    action Main
+        integer a = 1
+        repeat a times
+            check
+                integer i = 0
+                repeat while i < 100
+                    if i = 5
+                        alert("i is 5")
+                    end
+                    i = i + 1
+                end
+            detect e
+                if a = 1
+                    check
+                        integer z = 0
+                        repeat until z = 100
+                            integer t = 0
+                            repeat while t < 3
+                                if t = 1
+                                    alert("t is 1")
+                                end
+                                t = t + 1
+                            end
+                        end
+                    detect e
+                        print "ok 1"
+                        check
+                            integer t = 0
+                            repeat 9 times
+                                if t = 2
+                                    alert("t = 2")
+                                end
+                                t = t + 1
+                            end
+                        detect e
+                            print "ok 2"
+                        always
+                            print "ok 3"
+                        end
+                    always
+                        print "ok 4"
+                    end
+                end
+            always
+                print "ok 5"
+            end
+        end
+    end
+end

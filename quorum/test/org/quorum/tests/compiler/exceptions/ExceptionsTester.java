@@ -1708,4 +1708,151 @@ public class ExceptionsTester {
         assert(r.getLine(3).equals("always 2"));
         assert(r.getLine(4).equals("always 1"));
     }
+    
+    @Test
+    public void test_CheckDetectAlwaysEmptyCheckInElse_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CheckDetectAlwaysEmptyCheckInElse.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail("compiler error");
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful()) {
+            fail("run failed");
+        }
+        
+        assert(r.getLine(0).equals("always"));
+    }
+    
+    @Test
+    public void test_CheckDetectAlwaysEmptyCheckInElseIf_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CheckDetectAlwaysEmptyCheckInElseIf.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail("compiler error");
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful()) {
+            fail("run failed");
+        }
+        
+        assert(r.getLine(0).equals("always"));
+    }
+    
+    @Test
+    public void test_CheckDetectAlwaysEmptyCheckInIf_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CheckDetectAlwaysEmptyCheckInIf.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail("compiler error");
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful()) {
+            fail("run failed");
+        }
+        
+        assert(r.getLine(0).equals("always"));
+    }
+    
+    @Test
+    public void test_CheckDetectAlwaysEmptyCheckInIfElseElseIf_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CheckDetectAlwaysEmptyCheckInIfElseElseIf.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail("compiler error");
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful()) {
+            fail("run failed");
+        }
+        
+        assert(r.getLine(0).equals("always"));
+    }
+    
+    @Test
+    public void test_CheckDetectAlwaysEmptyCheckInRepeatTimes_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CheckDetectAlwaysEmptyCheckInRepeatTimes.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail("compiler error");
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful()) {
+            fail("run failed");
+        }
+        
+        assert(r.getLine(0).equals("always"));
+        assert(r.getLine(1).equals("always"));
+    }
+    
+    @Test
+    public void test_CheckDetectAlwaysEmptyCheckInRepeatWhile_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CheckDetectAlwaysEmptyCheckInRepeatWhile.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail("compiler error");
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful()) {
+            fail("run failed");
+        }
+        
+        assert(r.getLine(0).equals("always"));
+        assert(r.getLine(1).equals("always"));
+    }
+    
+    @Test
+    public void test_CheckDetectAlwaysEmptyCheckInRepeatUntil_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CheckDetectAlwaysEmptyCheckInRepeatUntil.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail("compiler error");
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful()) {
+            fail("run failed");
+        }
+        
+        assert(r.getLine(0).equals("always"));
+        assert(r.getLine(0).equals("always"));
+    }
+    
+    @Test
+    public void test_ComplexExceptionScenario1_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "ComplexExceptionScenario1.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail("compiler error");
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful()) {
+            fail("run failed");
+        }
+        
+        assert(r.getLine(0).equals("ok 1"));
+        assert(r.getLine(1).equals("ok 2"));
+        assert(r.getLine(2).equals("ok 3"));
+        assert(r.getLine(3).equals("ok 4"));
+        assert(r.getLine(4).equals("ok 5"));
+    }
+    
+    @Test
+    public void test_ComplexExceptionScenario2_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "ComplexExceptionScenario2.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail("compiler error");
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful()) {
+            fail("run failed");
+        }
+        
+        assert(r.getLine(0).equals("ok 1"));
+        assert(r.getLine(1).equals("ok 2"));
+        assert(r.getLine(2).equals("ok 3"));
+        assert(r.getLine(3).equals("ok 1"));
+        assert(r.getLine(4).equals("ok 2"));
+        assert(r.getLine(5).equals("ok 3"));
+    }
 }
