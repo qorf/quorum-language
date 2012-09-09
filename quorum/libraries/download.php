@@ -14,7 +14,7 @@
          alt="Click this image to download the Quorum 1.6 Installer for Windows."/></a>
 
 <h2>Quorum 1.6 for Mac OS X</h2>
-<a href="https://sourceforge.net/projects/quorum/files/Quorum%201.5.1/Quorum%201.6.pkg/download">
+<a href="https://sourceforge.net/projects/quorum/files/Quorum%201.6/Quorum%201.6.pkg/download">
     <img src="documents/images/download.png"
          alt="Click this image to download the Quorum 1.6 Installer for Apple OS X."/></a>
 
