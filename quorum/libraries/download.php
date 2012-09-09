@@ -8,15 +8,15 @@
     for your platform and run it. If you would prefer to use Quorum as part of
     an IDE directly, see the <a href="http://sodbeans.sourceforge.net/"> Sodbeans project</a></p>
 
-<h2>Quorum 1.5 for Windows</h2>
-<a href="https://sourceforge.net/projects/quorum/files/Quorum%201.5.1/Quorum%201.5.1.exe/download">
+<h2>Quorum 1.6 for Windows</h2>
+<a href="http://sourceforge.net/projects/quorum/files/Quorum%201.6/Quorum%201.6.exe/download">
     <img src="documents/images/download.png"
-         alt="Click this image to download the Sodbeans Quorum 1.5 Installer for Windows."/></a>
+         alt="Click this image to download the Quorum 1.6 Installer for Windows."/></a>
 
-<h2>Quorum 1.5 for Mac OS X</h2>
-<a href="https://sourceforge.net/projects/quorum/files/Quorum%201.5.1/Quorum%201.5.1.pkg/download">
+<h2>Quorum 1.6 for Mac OS X</h2>
+<a href="https://sourceforge.net/projects/quorum/files/Quorum%201.5.1/Quorum%201.6.pkg/download">
     <img src="documents/images/download.png"
-         alt="Click this image to download the Sodbeans Quorum 1.5 Installer for Windows."/></a>
+         alt="Click this image to download the Quorum 1.6 Installer for Apple OS X."/></a>
 
 <h1>Getting started, after you install Quorum</h1>
 <p>
@@ -32,7 +32,7 @@ Quorum, this page will describe what you can do next to get started.
 When we invoke Quorum through a command prompt (such as cmd.exe on windows, or 
 Terminal on Mac), we can optionally specify various parameters to make Quorum 
 compile programs. While a more complete guide on the command line arguments for
-Quorum can be found on the <a href="documents/console.php">command line arugment page</a>,
+Quorum can be found on the <a href="documents/console.php">command line argument page</a>,
 a brief description is as follows:
 </p>
 <p><pre class="code"><code>
