@@ -4,7 +4,7 @@
 </script>
 <?php echo '<h2>' . $WEB_ROOT. '</h2>';?>
 <h1>Quorum Release Notes</h1>
-<h2>Quorum 1.6 September 10th, 2012</h2>
+<h2>Quorum 1.6 September 9th, 2012</h2>
 <p>Quorum 1.6 contains a number of important bug fixes.</p>
 <ul>
     
