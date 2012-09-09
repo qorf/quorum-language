@@ -2604,16 +2604,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
             methodVisitor.visitJumpInsn(GOTO, desc.getConstructEnd());
             methodVisitor.visitLabel(desc.getAlwaysStart());
+            
             desc.flagAlwaysScope(true);
-            int alwaysOffset = 0;
-            //if(desc.isInAlwaysScope()){
-                alwaysOffset = desc.getMaxVariableSize();
-                stack.registerMaxVariableSize(1 + alwaysOffset);
-            //}
-            //TODO: this astore needs to be fixed and not hardcoded.
+            int alwaysOffset = desc.getMaxVariableSize();
+            stack.registerMaxVariableSize(1 + alwaysOffset);
+            
             methodVisitor.visitVarInsn(ASTORE, 1 + alwaysOffset);
             desc.setStoredDetectVariableNumber(1 + alwaysOffset);
-            //stack.addToCurrentAlwaysOffset();
             methodVisitor.visitLabel(desc.getAlwaysEnd());
 
         }
@@ -3557,10 +3554,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         alwaysEndPosition++;
                     }
                 }
+                
+                //if there is an always block insert the always into the check or detect block
                 if (desc.getAlwaysStartPosition() != -1) {
                     visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
                 }
                 
+                //if this is a detect block process the table entries or labels.
                 if (label.getLabelType().equals(LabelTypeEnum.DETECT)) {                    
                     ArrayList<CheckDetectEntry> tryCatchTable = stack.peekExceptionTable();
                     
@@ -3580,6 +3580,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
             }
         }
+        //register the variables to determine the proper variable numbers in the always scope.
         stack.registerMaxVariableSize();
 
     }

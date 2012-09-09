@@ -38,10 +38,20 @@ public class BytecodeStack {
     private Stack<Integer> errorVariableNumber = new Stack<Integer>();
     private int currentAlwaysOffset = 0;
  
+    /**
+     * Push a check detect entry onto a table that maintains an exception table
+     * that is generated for the bytecode try/catch exception table.
+     * 
+     * @param table 
+     */
     public void pushExceptionTable(ArrayList<CheckDetectEntry> table){
         exceptionTables.push(table);
     }
     
+    /**
+     * Pop the current exception table entry.
+     * @return 
+     */
     public ArrayList<CheckDetectEntry> popExceptionTable(){
         if(exceptionTables.empty()){
             return null;
@@ -50,6 +60,10 @@ public class BytecodeStack {
         }
     }
     
+    /**
+     * peek the current exception table entry.
+     * @return 
+     */
     public ArrayList<CheckDetectEntry> peekExceptionTable(){
         if(exceptionTables.empty()){
             return null;
@@ -58,14 +72,12 @@ public class BytecodeStack {
         }
     }
     
-    public void pushErrorVariable(int varNumber){
-        errorVariableNumber.push(varNumber);
-    }
-    
-    public int popErrorVariable(){
-        return errorVariableNumber.pop();
-    }
-    
+    /**
+     * Push a check detect descriptor for each check/detect block. Each block
+     * should maintain a max variable. This max variable determines where an always
+     * block will begin defining its variables.
+     * @param d 
+     */
     public void pushCheckDetect(CheckDetectDescriptor d) {
         if(!checkDetects.isEmpty())
             d.setMaxVariableSize(checkDetects.peek().getMaxVariableSize());
@@ -73,6 +85,12 @@ public class BytecodeStack {
         checkDetects.push(d);
     }
     
+    /**
+     * pop the current check detect scope. Also will maintain the proper max
+     * variable values.
+     * 
+     * @return 
+     */
     public CheckDetectDescriptor popCheckDetect() {
         if(checkDetects.isEmpty()){
             return null;
@@ -86,6 +104,10 @@ public class BytecodeStack {
         }
     }
     
+    /**
+     * peek the current check detect block.
+     * @return 
+     */
     public CheckDetectDescriptor peekCheckDetect() {
         if(checkDetects.isEmpty()){
             return null;
@@ -94,9 +116,6 @@ public class BytecodeStack {
         }
     }
     
-    public Stack<CheckDetectDescriptor> cloneCheckDetect() {
-        return (Stack<CheckDetectDescriptor>)this.checkDetects.clone();
-    }
     /**
      * Push an integer counter variable onto the counter stack. Since it is an
      * integer, the variable size is always one.
@@ -435,8 +454,6 @@ public class BytecodeStack {
                         int result = get + peek.getMaxVariableSize();
                         if(isStore)
                             registerMaxVariableSize(result);
-                        //else
-                            //result -= get;
                         return result;
                     }else
                         return get;
@@ -495,16 +512,30 @@ public class BytecodeStack {
         return currentNumberIfStatements;
     }
     
+    /**
+     * Register the max variable size with a check detect block
+     * this allows us to determine the variable numbers in the always scope.
+     * 
+     */
     public void registerMaxVariableSize(){
         if(!checkDetects.isEmpty() && checkDetects.peek().getMaxVariableSize() < this.maxVariablesSize)
             checkDetects.peek().setMaxVariableSize(maxVariablesSize);      
     }
     
+    /**
+     * Get the registered max variable from the check detect scope.
+     * @return 
+     */
     public int getRegisteredMaxVariableSize(){
         return checkDetects.peek().getMaxVariableSize();
     }
 
-    void registerMaxVariableSize(int offset) {
+    /**
+     * Register an exact offset amount for the always variable starting position.
+     * 
+     * @param offset 
+     */
+    public void registerMaxVariableSize(int offset) {
         if(offset > maxVariablesSize)
             maxVariablesSize = offset;
         
