@@ -254,5 +254,5 @@ FunctionEnd
 
 ; Launches appropriate documentation
 Function LaunchDocumentation
-	ExecShell "open" "https://sourceforge.net/apps/trac/quorum/wiki/begin"
+	ExecShell "open" "http://quorum.sourceforge.net/download.php"
 FunctionEnd
