@@ -641,6 +641,11 @@ formal_parameter[Vector<ParameterDescriptor> params]
 		d.setColumnBegin($ID.getCharPositionInLine());
 		d.setLineEnd($ID.getLine());
 		d.setColumnEnd($ID.getCharPositionInLine());
+		if($CONSTANT != null){
+			d.setIsConstant(true);
+		}else{
+			d.setIsConstant(false);
+		}
 		
 		if(gdList != null){
 			while(gdList.hasNext()){
