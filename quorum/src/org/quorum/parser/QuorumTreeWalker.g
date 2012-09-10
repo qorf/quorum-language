@@ -1080,7 +1080,7 @@ assignment_statement
 		
 		symbol.addStatementFlagToCurrentFile($ID.line);
 		
-		stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, false, "", cd, isMe);
+		stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, false, "", cd, isMe, false);
 		builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
 	}
 	|	obj=qualified_name (COLON PARENT COLON parent=qualified_name)? COLON ID rhs=assign_right_hand_side
@@ -1111,10 +1111,10 @@ assignment_statement
 			}
 		}
 		
-		stepFactory.addAssignmentStep(location, $obj.type.getStaticKey(), $rhs.eval, $rhs.step, isLocal, $ID.text, cd, false);
+		stepFactory.addAssignmentStep(location, $obj.type.getStaticKey(), $rhs.eval, $rhs.step, isLocal, $ID.text, cd, false, false);
 		builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
 	}
-	|	modifier = access_modifier? type = assignment_declaration name = ID rhs=assign_right_hand_side?
+	|	modifier = access_modifier? CONSTANT? type = assignment_declaration name = ID rhs=assign_right_hand_side?
 	{
                 LineInformation location = new LineInformation (
                     $ID.line,
@@ -1134,11 +1134,11 @@ assignment_statement
                 
 		if($rhs.eval != null)
 		{
-			stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, isLocal);
+			stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, isLocal, true);
 		}
                 else { // are we are trying to instantiate an object?
                 	builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
-                    	stepFactory.addAssignmentStep(location, $ID.text, isLocal);
+                    	stepFactory.addAssignmentStep(location, $ID.text, isLocal, true);
                 }
                 builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
 	}
@@ -2175,7 +2175,7 @@ function_expression_list returns [List list, int firstParam]
 	
 	
 formal_parameter	returns [TypeDescriptor type, String name]
-	:	  ^(FPARAM ad=assignment_declaration ID)
+	:	  ^(FPARAM CONSTANT? ad=assignment_declaration ID)
 	{	
 		$type = $assignment_declaration.myType;
 		$name = $ID.text;

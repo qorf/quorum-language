@@ -20,6 +20,7 @@ public class VariableParameterCommonDescriptor extends Descriptor{
     private ArrayList<GenericDescriptor> templateTypes = new ArrayList<GenericDescriptor>();
     private boolean initialized = false;
     private boolean isField;
+    private boolean isConstant = false;
 
     /**
      * A numeric value that indicates the order in which a particular 
@@ -142,5 +143,25 @@ public class VariableParameterCommonDescriptor extends Descriptor{
      */
     public void setIsFieldVariable(boolean isField) {
         this.isField = isField;
+    }
+
+    /**
+     * Flag the variable as a constant variable. If this is a field variable this
+     * is similar to a static final variable in java. If this is local variable
+     * the variable is final, as in java.
+     * 
+     * @param isConstant 
+     */
+    public void setIsConstant(boolean isConstant){
+        this.isConstant = isConstant;
+    }
+    
+    /**
+     * Returns true if the variable is a constant variable.
+     * 
+     * @return 
+     */
+    public boolean isConstant() {
+        return isConstant;
     }
 }

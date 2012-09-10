@@ -1,4 +1,4 @@
-// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g 2012-09-04 10:27:21
+// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g 2012-09-10 16:02:34
 
 
 
@@ -26,7 +26,7 @@ import org.antlr.runtime.tree.*;
 @SuppressWarnings({"all", "warnings", "unchecked"})
 public class QuorumParser extends Parser {
     public static final String[] tokenNames = new String[] {
-        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "ACTION", "ALERT", "ALWAYS", "AND", "BLUEPRINT", "BOOLEAN", "BOOLEAN_KEYWORD", "CAST", "CHECK", "CLASS", "COLON", "COMMA", "COMMENTS", "CONSTRUCTOR", "DECIMAL", "DETECT", "DIVIDE", "DOUBLE_QUOTE", "ELSE", "ELSE_IF", "ELSE_IF_STATEMENT", "END", "EQUALITY", "EXPRESSION_STATEMENT", "FINAL_ELSE", "FPARAM", "FUNCTION_CALL", "FUNCTION_CALL_PARENT", "FUNCTION_CALL_THIS", "FUNCTION_EXPRESSION_LIST", "GENERIC", "GREATER", "GREATER_EQUAL", "ID", "IF", "INHERITS", "INPUT", "INT", "INTEGER_KEYWORD", "LEFT_PAREN", "LEFT_SQR_BRACE", "LESS", "LESS_EQUAL", "ME", "MINUS", "MODULO", "MULTIPLY", "NATIVE", "NEWLINE", "NOT", "NOTEQUALS", "NOW", "NULL", "NUMBER_KEYWORD", "OF_TYPE", "ON_CREATE", "ON_DESTROY", "OR", "OVER", "PACKAGE_NAME", "PARENT", "PAREN_WRAPPED_EXPRESSION", "PERIOD", "PLUS", "PRINT", "PRIVATE", "PUBLIC", "QUALIFIED_NAME", "QUALIFIED_SOLO_EXPRESSION", "QUALIFIED_SOLO_EXPRESSION_SELECTOR", "QUALIFIED_SOLO_PARENT_EXPRESSON", "REPEAT", "RETURN", "RETURNS", "RIGHT_PAREN", "RIGHT_SQR_BRACE", "ROOT_EXPRESSION", "SAY", "SOLO_FUNCTION_CALL", "SOLO_FUNCTION_CALL_PARENT", "SOLO_FUNCTION_CALL_THIS", "STATEMENT_LIST", "STRING", "TEXT", "TIMES", "UNARY_NOT", "UNTIL", "USE", "WHILE", "WS"
+        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "ACTION", "ALERT", "ALWAYS", "AND", "BLUEPRINT", "BOOLEAN", "BOOLEAN_KEYWORD", "CAST", "CHECK", "CLASS", "COLON", "COMMA", "COMMENTS", "CONSTANT", "CONSTRUCTOR", "DECIMAL", "DETECT", "DIVIDE", "DOUBLE_QUOTE", "ELSE", "ELSE_IF", "ELSE_IF_STATEMENT", "END", "EQUALITY", "EXPRESSION_STATEMENT", "FINAL_ELSE", "FPARAM", "FUNCTION_CALL", "FUNCTION_CALL_PARENT", "FUNCTION_CALL_THIS", "FUNCTION_EXPRESSION_LIST", "GENERIC", "GREATER", "GREATER_EQUAL", "ID", "IF", "INHERITS", "INPUT", "INT", "INTEGER_KEYWORD", "LEFT_PAREN", "LEFT_SQR_BRACE", "LESS", "LESS_EQUAL", "ME", "MINUS", "MODULO", "MULTIPLY", "NATIVE", "NEWLINE", "NOT", "NOTEQUALS", "NOW", "NULL", "NUMBER_KEYWORD", "OF_TYPE", "ON_CREATE", "ON_DESTROY", "OR", "OVER", "PACKAGE_NAME", "PARENT", "PAREN_WRAPPED_EXPRESSION", "PERIOD", "PLUS", "PRINT", "PRIVATE", "PUBLIC", "QUALIFIED_NAME", "QUALIFIED_SOLO_EXPRESSION", "QUALIFIED_SOLO_EXPRESSION_SELECTOR", "QUALIFIED_SOLO_PARENT_EXPRESSON", "REPEAT", "RETURN", "RETURNS", "RIGHT_PAREN", "RIGHT_SQR_BRACE", "ROOT_EXPRESSION", "SAY", "SOLO_FUNCTION_CALL", "SOLO_FUNCTION_CALL_PARENT", "SOLO_FUNCTION_CALL_THIS", "STATEMENT_LIST", "STRING", "TEXT", "TIMES", "UNARY_NOT", "UNTIL", "USE", "WHILE", "WS"
     };
 
     public static final int EOF=-1;
@@ -43,83 +43,84 @@ public class QuorumParser extends Parser {
     public static final int COLON=14;
     public static final int COMMA=15;
     public static final int COMMENTS=16;
-    public static final int CONSTRUCTOR=17;
-    public static final int DECIMAL=18;
-    public static final int DETECT=19;
-    public static final int DIVIDE=20;
-    public static final int DOUBLE_QUOTE=21;
-    public static final int ELSE=22;
-    public static final int ELSE_IF=23;
-    public static final int ELSE_IF_STATEMENT=24;
-    public static final int END=25;
-    public static final int EQUALITY=26;
-    public static final int EXPRESSION_STATEMENT=27;
-    public static final int FINAL_ELSE=28;
-    public static final int FPARAM=29;
-    public static final int FUNCTION_CALL=30;
-    public static final int FUNCTION_CALL_PARENT=31;
-    public static final int FUNCTION_CALL_THIS=32;
-    public static final int FUNCTION_EXPRESSION_LIST=33;
-    public static final int GENERIC=34;
-    public static final int GREATER=35;
-    public static final int GREATER_EQUAL=36;
-    public static final int ID=37;
-    public static final int IF=38;
-    public static final int INHERITS=39;
-    public static final int INPUT=40;
-    public static final int INT=41;
-    public static final int INTEGER_KEYWORD=42;
-    public static final int LEFT_PAREN=43;
-    public static final int LEFT_SQR_BRACE=44;
-    public static final int LESS=45;
-    public static final int LESS_EQUAL=46;
-    public static final int ME=47;
-    public static final int MINUS=48;
-    public static final int MODULO=49;
-    public static final int MULTIPLY=50;
-    public static final int NATIVE=51;
-    public static final int NEWLINE=52;
-    public static final int NOT=53;
-    public static final int NOTEQUALS=54;
-    public static final int NOW=55;
-    public static final int NULL=56;
-    public static final int NUMBER_KEYWORD=57;
-    public static final int OF_TYPE=58;
-    public static final int ON_CREATE=59;
-    public static final int ON_DESTROY=60;
-    public static final int OR=61;
-    public static final int OVER=62;
-    public static final int PACKAGE_NAME=63;
-    public static final int PARENT=64;
-    public static final int PAREN_WRAPPED_EXPRESSION=65;
-    public static final int PERIOD=66;
-    public static final int PLUS=67;
-    public static final int PRINT=68;
-    public static final int PRIVATE=69;
-    public static final int PUBLIC=70;
-    public static final int QUALIFIED_NAME=71;
-    public static final int QUALIFIED_SOLO_EXPRESSION=72;
-    public static final int QUALIFIED_SOLO_EXPRESSION_SELECTOR=73;
-    public static final int QUALIFIED_SOLO_PARENT_EXPRESSON=74;
-    public static final int REPEAT=75;
-    public static final int RETURN=76;
-    public static final int RETURNS=77;
-    public static final int RIGHT_PAREN=78;
-    public static final int RIGHT_SQR_BRACE=79;
-    public static final int ROOT_EXPRESSION=80;
-    public static final int SAY=81;
-    public static final int SOLO_FUNCTION_CALL=82;
-    public static final int SOLO_FUNCTION_CALL_PARENT=83;
-    public static final int SOLO_FUNCTION_CALL_THIS=84;
-    public static final int STATEMENT_LIST=85;
-    public static final int STRING=86;
-    public static final int TEXT=87;
-    public static final int TIMES=88;
-    public static final int UNARY_NOT=89;
-    public static final int UNTIL=90;
-    public static final int USE=91;
-    public static final int WHILE=92;
-    public static final int WS=93;
+    public static final int CONSTANT=17;
+    public static final int CONSTRUCTOR=18;
+    public static final int DECIMAL=19;
+    public static final int DETECT=20;
+    public static final int DIVIDE=21;
+    public static final int DOUBLE_QUOTE=22;
+    public static final int ELSE=23;
+    public static final int ELSE_IF=24;
+    public static final int ELSE_IF_STATEMENT=25;
+    public static final int END=26;
+    public static final int EQUALITY=27;
+    public static final int EXPRESSION_STATEMENT=28;
+    public static final int FINAL_ELSE=29;
+    public static final int FPARAM=30;
+    public static final int FUNCTION_CALL=31;
+    public static final int FUNCTION_CALL_PARENT=32;
+    public static final int FUNCTION_CALL_THIS=33;
+    public static final int FUNCTION_EXPRESSION_LIST=34;
+    public static final int GENERIC=35;
+    public static final int GREATER=36;
+    public static final int GREATER_EQUAL=37;
+    public static final int ID=38;
+    public static final int IF=39;
+    public static final int INHERITS=40;
+    public static final int INPUT=41;
+    public static final int INT=42;
+    public static final int INTEGER_KEYWORD=43;
+    public static final int LEFT_PAREN=44;
+    public static final int LEFT_SQR_BRACE=45;
+    public static final int LESS=46;
+    public static final int LESS_EQUAL=47;
+    public static final int ME=48;
+    public static final int MINUS=49;
+    public static final int MODULO=50;
+    public static final int MULTIPLY=51;
+    public static final int NATIVE=52;
+    public static final int NEWLINE=53;
+    public static final int NOT=54;
+    public static final int NOTEQUALS=55;
+    public static final int NOW=56;
+    public static final int NULL=57;
+    public static final int NUMBER_KEYWORD=58;
+    public static final int OF_TYPE=59;
+    public static final int ON_CREATE=60;
+    public static final int ON_DESTROY=61;
+    public static final int OR=62;
+    public static final int OVER=63;
+    public static final int PACKAGE_NAME=64;
+    public static final int PARENT=65;
+    public static final int PAREN_WRAPPED_EXPRESSION=66;
+    public static final int PERIOD=67;
+    public static final int PLUS=68;
+    public static final int PRINT=69;
+    public static final int PRIVATE=70;
+    public static final int PUBLIC=71;
+    public static final int QUALIFIED_NAME=72;
+    public static final int QUALIFIED_SOLO_EXPRESSION=73;
+    public static final int QUALIFIED_SOLO_EXPRESSION_SELECTOR=74;
+    public static final int QUALIFIED_SOLO_PARENT_EXPRESSON=75;
+    public static final int REPEAT=76;
+    public static final int RETURN=77;
+    public static final int RETURNS=78;
+    public static final int RIGHT_PAREN=79;
+    public static final int RIGHT_SQR_BRACE=80;
+    public static final int ROOT_EXPRESSION=81;
+    public static final int SAY=82;
+    public static final int SOLO_FUNCTION_CALL=83;
+    public static final int SOLO_FUNCTION_CALL_PARENT=84;
+    public static final int SOLO_FUNCTION_CALL_THIS=85;
+    public static final int STATEMENT_LIST=86;
+    public static final int STRING=87;
+    public static final int TEXT=88;
+    public static final int TIMES=89;
+    public static final int UNARY_NOT=90;
+    public static final int UNTIL=91;
+    public static final int USE=92;
+    public static final int WHILE=93;
+    public static final int WS=94;
 
     // delegates
     public Parser[] getDelegates() {
@@ -764,7 +765,7 @@ public TreeAdaptor getTreeAdaptor() {
             if ( (LA8_0==CLASS) ) {
                 alt8=1;
             }
-            else if ( ((LA8_0 >= ACTION && LA8_0 <= ALERT)||LA8_0==BLUEPRINT||LA8_0==BOOLEAN_KEYWORD||LA8_0==CHECK||(LA8_0 >= ID && LA8_0 <= IF)||LA8_0==INTEGER_KEYWORD||LA8_0==ME||LA8_0==NATIVE||LA8_0==NUMBER_KEYWORD||LA8_0==ON_CREATE||LA8_0==PARENT||(LA8_0 >= PRINT && LA8_0 <= PUBLIC)||(LA8_0 >= REPEAT && LA8_0 <= RETURN)||LA8_0==SAY||LA8_0==TEXT) ) {
+            else if ( ((LA8_0 >= ACTION && LA8_0 <= ALERT)||LA8_0==BLUEPRINT||LA8_0==BOOLEAN_KEYWORD||LA8_0==CHECK||LA8_0==CONSTANT||(LA8_0 >= ID && LA8_0 <= IF)||LA8_0==INTEGER_KEYWORD||LA8_0==ME||LA8_0==NATIVE||LA8_0==NUMBER_KEYWORD||LA8_0==ON_CREATE||LA8_0==PARENT||(LA8_0 >= PRINT && LA8_0 <= PUBLIC)||(LA8_0 >= REPEAT && LA8_0 <= RETURN)||LA8_0==SAY||LA8_0==TEXT) ) {
                 alt8=2;
             }
             else {
@@ -878,7 +879,7 @@ public TreeAdaptor getTreeAdaptor() {
                         int alt7=2;
                         int LA7_0 = input.LA(1);
 
-                        if ( (LA7_0==ACTION||LA7_0==BLUEPRINT||LA7_0==BOOLEAN_KEYWORD||LA7_0==ID||LA7_0==INTEGER_KEYWORD||LA7_0==ME||LA7_0==NATIVE||LA7_0==NUMBER_KEYWORD||LA7_0==ON_CREATE||LA7_0==PARENT||(LA7_0 >= PRIVATE && LA7_0 <= PUBLIC)||LA7_0==TEXT) ) {
+                        if ( (LA7_0==ACTION||LA7_0==BLUEPRINT||LA7_0==BOOLEAN_KEYWORD||LA7_0==CONSTANT||LA7_0==ID||LA7_0==INTEGER_KEYWORD||LA7_0==ME||LA7_0==NATIVE||LA7_0==NUMBER_KEYWORD||LA7_0==ON_CREATE||LA7_0==PARENT||(LA7_0 >= PRIVATE && LA7_0 <= PUBLIC)||LA7_0==TEXT) ) {
                             alt7=1;
                         }
 
@@ -918,7 +919,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: END, inherit_stmnts, generic_declaration, class_stmnts, ID, CLASS
+                    // elements: ID, END, generic_declaration, CLASS, class_stmnts, inherit_stmnts
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -1064,6 +1065,7 @@ public TreeAdaptor getTreeAdaptor() {
             case ALERT:
             case BOOLEAN_KEYWORD:
             case CHECK:
+            case CONSTANT:
             case ID:
             case IF:
             case INTEGER_KEYWORD:
@@ -1083,7 +1085,7 @@ public TreeAdaptor getTreeAdaptor() {
                 {
                 int LA12_2 = input.LA(2);
 
-                if ( (LA12_2==BOOLEAN_KEYWORD||LA12_2==ID||LA12_2==INTEGER_KEYWORD||LA12_2==NUMBER_KEYWORD||LA12_2==TEXT) ) {
+                if ( (LA12_2==BOOLEAN_KEYWORD||LA12_2==CONSTANT||LA12_2==ID||LA12_2==INTEGER_KEYWORD||LA12_2==NUMBER_KEYWORD||LA12_2==TEXT) ) {
                     alt12=1;
                 }
                 else if ( (LA12_2==ACTION||LA12_2==BLUEPRINT||LA12_2==NATIVE||LA12_2==ON_CREATE) ) {
@@ -1102,7 +1104,7 @@ public TreeAdaptor getTreeAdaptor() {
                 {
                 int LA12_3 = input.LA(2);
 
-                if ( (LA12_3==BOOLEAN_KEYWORD||LA12_3==ID||LA12_3==INTEGER_KEYWORD||LA12_3==NUMBER_KEYWORD||LA12_3==TEXT) ) {
+                if ( (LA12_3==BOOLEAN_KEYWORD||LA12_3==CONSTANT||LA12_3==ID||LA12_3==INTEGER_KEYWORD||LA12_3==NUMBER_KEYWORD||LA12_3==TEXT) ) {
                     alt12=1;
                 }
                 else if ( (LA12_3==ACTION||LA12_3==BLUEPRINT||LA12_3==NATIVE||LA12_3==ON_CREATE) ) {
@@ -1161,7 +1163,7 @@ public TreeAdaptor getTreeAdaptor() {
                         int alt9=2;
                         int LA9_0 = input.LA(1);
 
-                        if ( (LA9_0==ALERT||LA9_0==BOOLEAN_KEYWORD||LA9_0==CHECK||(LA9_0 >= ID && LA9_0 <= IF)||LA9_0==INTEGER_KEYWORD||LA9_0==ME||LA9_0==NUMBER_KEYWORD||LA9_0==PARENT||(LA9_0 >= PRINT && LA9_0 <= PUBLIC)||(LA9_0 >= REPEAT && LA9_0 <= RETURN)||LA9_0==SAY||LA9_0==TEXT) ) {
+                        if ( (LA9_0==ALERT||LA9_0==BOOLEAN_KEYWORD||LA9_0==CHECK||LA9_0==CONSTANT||(LA9_0 >= ID && LA9_0 <= IF)||LA9_0==INTEGER_KEYWORD||LA9_0==ME||LA9_0==NUMBER_KEYWORD||LA9_0==PARENT||(LA9_0 >= PRINT && LA9_0 <= PUBLIC)||(LA9_0 >= REPEAT && LA9_0 <= RETURN)||LA9_0==SAY||LA9_0==TEXT) ) {
                             alt9=1;
                         }
 
@@ -1450,7 +1452,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
             // AST REWRITE
-            // elements: INHERITS, qualified_name, generic_statement
+            // elements: qualified_name, INHERITS, generic_statement
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -1648,6 +1650,7 @@ public TreeAdaptor getTreeAdaptor() {
             int alt18=2;
             switch ( input.LA(1) ) {
             case BOOLEAN_KEYWORD:
+            case CONSTANT:
             case ID:
             case INTEGER_KEYWORD:
             case ME:
@@ -1662,7 +1665,7 @@ public TreeAdaptor getTreeAdaptor() {
                 {
                 int LA18_2 = input.LA(2);
 
-                if ( (LA18_2==BOOLEAN_KEYWORD||LA18_2==ID||LA18_2==INTEGER_KEYWORD||LA18_2==NUMBER_KEYWORD||LA18_2==TEXT) ) {
+                if ( (LA18_2==BOOLEAN_KEYWORD||LA18_2==CONSTANT||LA18_2==ID||LA18_2==INTEGER_KEYWORD||LA18_2==NUMBER_KEYWORD||LA18_2==TEXT) ) {
                     alt18=1;
                 }
                 else if ( (LA18_2==ACTION||LA18_2==BLUEPRINT||LA18_2==NATIVE||LA18_2==ON_CREATE) ) {
@@ -1681,7 +1684,7 @@ public TreeAdaptor getTreeAdaptor() {
                 {
                 int LA18_3 = input.LA(2);
 
-                if ( (LA18_3==BOOLEAN_KEYWORD||LA18_3==ID||LA18_3==INTEGER_KEYWORD||LA18_3==NUMBER_KEYWORD||LA18_3==TEXT) ) {
+                if ( (LA18_3==BOOLEAN_KEYWORD||LA18_3==CONSTANT||LA18_3==ID||LA18_3==INTEGER_KEYWORD||LA18_3==NUMBER_KEYWORD||LA18_3==TEXT) ) {
                     alt18=1;
                 }
                 else if ( (LA18_3==ACTION||LA18_3==BLUEPRINT||LA18_3==NATIVE||LA18_3==ON_CREATE) ) {
@@ -1985,7 +1988,7 @@ public TreeAdaptor getTreeAdaptor() {
                             int alt20=2;
                             int LA20_0 = input.LA(1);
 
-                            if ( (LA20_0==BOOLEAN_KEYWORD||LA20_0==ID||LA20_0==INTEGER_KEYWORD||LA20_0==NUMBER_KEYWORD||LA20_0==TEXT) ) {
+                            if ( (LA20_0==BOOLEAN_KEYWORD||LA20_0==CONSTANT||LA20_0==ID||LA20_0==INTEGER_KEYWORD||LA20_0==NUMBER_KEYWORD||LA20_0==TEXT) ) {
                                 alt20=1;
                             }
                             switch (alt20) {
@@ -2130,7 +2133,7 @@ public TreeAdaptor getTreeAdaptor() {
                     	
 
                     // AST REWRITE
-                    // elements: RETURNS, ID, END, ACTION, assignment_declaration, formal_parameter, block
+                    // elements: RETURNS, ID, block, ACTION, assignment_declaration, END, formal_parameter
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2234,7 +2237,7 @@ public TreeAdaptor getTreeAdaptor() {
                             int alt24=2;
                             int LA24_0 = input.LA(1);
 
-                            if ( (LA24_0==BOOLEAN_KEYWORD||LA24_0==ID||LA24_0==INTEGER_KEYWORD||LA24_0==NUMBER_KEYWORD||LA24_0==TEXT) ) {
+                            if ( (LA24_0==BOOLEAN_KEYWORD||LA24_0==CONSTANT||LA24_0==ID||LA24_0==INTEGER_KEYWORD||LA24_0==NUMBER_KEYWORD||LA24_0==TEXT) ) {
                                 alt24=1;
                             }
                             switch (alt24) {
@@ -2355,7 +2358,7 @@ public TreeAdaptor getTreeAdaptor() {
                     	
 
                     // AST REWRITE
-                    // elements: assignment_declaration, formal_parameter, BLUEPRINT, RETURNS, ID, ACTION
+                    // elements: BLUEPRINT, assignment_declaration, formal_parameter, ACTION, RETURNS, ID
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2457,7 +2460,7 @@ public TreeAdaptor getTreeAdaptor() {
                             int alt28=2;
                             int LA28_0 = input.LA(1);
 
-                            if ( (LA28_0==BOOLEAN_KEYWORD||LA28_0==ID||LA28_0==INTEGER_KEYWORD||LA28_0==NUMBER_KEYWORD||LA28_0==TEXT) ) {
+                            if ( (LA28_0==BOOLEAN_KEYWORD||LA28_0==CONSTANT||LA28_0==ID||LA28_0==INTEGER_KEYWORD||LA28_0==NUMBER_KEYWORD||LA28_0==TEXT) ) {
                                 alt28=1;
                             }
                             switch (alt28) {
@@ -2578,7 +2581,7 @@ public TreeAdaptor getTreeAdaptor() {
                     	
 
                     // AST REWRITE
-                    // elements: formal_parameter, RETURNS, ID, ACTION, NATIVE, assignment_declaration
+                    // elements: assignment_declaration, RETURNS, ACTION, NATIVE, ID, formal_parameter
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2613,7 +2616,7 @@ public TreeAdaptor getTreeAdaptor() {
                         stream_formal_parameter.reset();
 
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:595:42: ( RETURNS assignment_declaration )?
-                        if ( stream_RETURNS.hasNext()||stream_assignment_declaration.hasNext() ) {
+                        if ( stream_assignment_declaration.hasNext()||stream_RETURNS.hasNext() ) {
                             adaptor.addChild(root_1, 
                             stream_RETURNS.nextNode()
                             );
@@ -2621,8 +2624,8 @@ public TreeAdaptor getTreeAdaptor() {
                             adaptor.addChild(root_1, stream_assignment_declaration.nextTree());
 
                         }
-                        stream_RETURNS.reset();
                         stream_assignment_declaration.reset();
+                        stream_RETURNS.reset();
 
                         adaptor.addChild(root_0, root_1);
                         }
@@ -2684,7 +2687,7 @@ public TreeAdaptor getTreeAdaptor() {
                     	
 
                     // AST REWRITE
-                    // elements: block, ON_CREATE, END
+                    // elements: END, ON_CREATE, block
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2751,7 +2754,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "formal_parameter"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:629:1: formal_parameter[Vector<ParameterDescriptor> params] : assignment_declaration ID -> ^( FPARAM assignment_declaration ID ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:629:1: formal_parameter[Vector<ParameterDescriptor> params] : ( CONSTANT )? assignment_declaration ID -> ^( FPARAM assignment_declaration ID ) ;
     public final QuorumParser.formal_parameter_return formal_parameter(Vector<ParameterDescriptor> params) throws RecognitionException {
         QuorumParser.formal_parameter_return retval = new QuorumParser.formal_parameter_return();
         retval.start = input.LT(1);
@@ -2759,41 +2762,65 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token ID58=null;
-        QuorumParser.assignment_declaration_return assignment_declaration57 =null;
+        Token CONSTANT57=null;
+        Token ID59=null;
+        QuorumParser.assignment_declaration_return assignment_declaration58 =null;
 
 
-        CommonTree ID58_tree=null;
+        CommonTree CONSTANT57_tree=null;
+        CommonTree ID59_tree=null;
+        RewriteRuleTokenStream stream_CONSTANT=new RewriteRuleTokenStream(adaptor,"token CONSTANT");
         RewriteRuleTokenStream stream_ID=new RewriteRuleTokenStream(adaptor,"token ID");
         RewriteRuleSubtreeStream stream_assignment_declaration=new RewriteRuleSubtreeStream(adaptor,"rule assignment_declaration");
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:630:2: ( assignment_declaration ID -> ^( FPARAM assignment_declaration ID ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:630:4: assignment_declaration ID
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:630:2: ( ( CONSTANT )? assignment_declaration ID -> ^( FPARAM assignment_declaration ID ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:630:4: ( CONSTANT )? assignment_declaration ID
             {
-            pushFollow(FOLLOW_assignment_declaration_in_formal_parameter759);
-            assignment_declaration57=assignment_declaration();
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:630:4: ( CONSTANT )?
+            int alt32=2;
+            int LA32_0 = input.LA(1);
+
+            if ( (LA32_0==CONSTANT) ) {
+                alt32=1;
+            }
+            switch (alt32) {
+                case 1 :
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:630:4: CONSTANT
+                    {
+                    CONSTANT57=(Token)match(input,CONSTANT,FOLLOW_CONSTANT_in_formal_parameter759);  
+                    stream_CONSTANT.add(CONSTANT57);
+
+
+                    }
+                    break;
+
+            }
+
+
+            pushFollow(FOLLOW_assignment_declaration_in_formal_parameter762);
+            assignment_declaration58=assignment_declaration();
 
             state._fsp--;
 
-            stream_assignment_declaration.add(assignment_declaration57.getTree());
+            stream_assignment_declaration.add(assignment_declaration58.getTree());
 
-            ID58=(Token)match(input,ID,FOLLOW_ID_in_formal_parameter761);  
-            stream_ID.add(ID58);
+            ID59=(Token)match(input,ID,FOLLOW_ID_in_formal_parameter764);  
+            stream_ID.add(ID59);
 
 
 
-            		TypeDescriptor type = (assignment_declaration57!=null?assignment_declaration57.type:null);		
+            		TypeDescriptor type = (assignment_declaration58!=null?assignment_declaration58.type:null);		
             		ParameterDescriptor d = new ParameterDescriptor();
             		Iterator<GenericDescriptor> gdList = null;
             		if(type != null){
             			gdList = type.getSubTypes();
             		}
             		
-            		d.setName((ID58!=null?ID58.getText():null));
-            		d.setLineBegin(ID58.getLine());
-            		d.setColumnBegin(ID58.getCharPositionInLine());
-            		d.setLineEnd(ID58.getLine());
-            		d.setColumnEnd(ID58.getCharPositionInLine());
+            		d.setName((ID59!=null?ID59.getText():null));
+            		d.setLineBegin(ID59.getLine());
+            		d.setColumnBegin(ID59.getCharPositionInLine());
+            		d.setLineEnd(ID59.getLine());
+            		d.setColumnEnd(ID59.getCharPositionInLine());
             		
             		if(gdList != null){
             			while(gdList.hasNext()){
@@ -2807,7 +2834,7 @@ public TreeAdaptor getTreeAdaptor() {
             		
             		GenericDescriptor gd = null;
             		if(type!=null){
-            		 	gd = symbol.getCurrentClass().getTemplateVariable((assignment_declaration57!=null?assignment_declaration57.type:null).getName());
+            		 	gd = symbol.getCurrentClass().getTemplateVariable((assignment_declaration58!=null?assignment_declaration58.type:null).getName());
             		}
             		
             		if(gd != null){
@@ -2894,11 +2921,11 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token PERIOD59=null;
+        Token PERIOD60=null;
         Token ids=null;
         List list_ids=null;
 
-        CommonTree PERIOD59_tree=null;
+        CommonTree PERIOD60_tree=null;
         CommonTree ids_tree=null;
         RewriteRuleTokenStream stream_ID=new RewriteRuleTokenStream(adaptor,"token ID");
         RewriteRuleTokenStream stream_PERIOD=new RewriteRuleTokenStream(adaptor,"token PERIOD");
@@ -2907,7 +2934,7 @@ public TreeAdaptor getTreeAdaptor() {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:672:2: (ids+= ID ( PERIOD ids+= ID )* -> ^( QUALIFIED_NAME ID ( PERIOD ID )* ) )
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:672:4: ids+= ID ( PERIOD ids+= ID )*
             {
-            ids=(Token)match(input,ID,FOLLOW_ID_in_qualified_name792);  
+            ids=(Token)match(input,ID,FOLLOW_ID_in_qualified_name795);  
             stream_ID.add(ids);
 
             if (list_ids==null) list_ids=new ArrayList();
@@ -2915,25 +2942,25 @@ public TreeAdaptor getTreeAdaptor() {
 
 
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:672:12: ( PERIOD ids+= ID )*
-            loop32:
+            loop33:
             do {
-                int alt32=2;
-                int LA32_0 = input.LA(1);
+                int alt33=2;
+                int LA33_0 = input.LA(1);
 
-                if ( (LA32_0==PERIOD) ) {
-                    alt32=1;
+                if ( (LA33_0==PERIOD) ) {
+                    alt33=1;
                 }
 
 
-                switch (alt32) {
+                switch (alt33) {
             	case 1 :
             	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:672:13: PERIOD ids+= ID
             	    {
-            	    PERIOD59=(Token)match(input,PERIOD,FOLLOW_PERIOD_in_qualified_name795);  
-            	    stream_PERIOD.add(PERIOD59);
+            	    PERIOD60=(Token)match(input,PERIOD,FOLLOW_PERIOD_in_qualified_name798);  
+            	    stream_PERIOD.add(PERIOD60);
 
 
-            	    ids=(Token)match(input,ID,FOLLOW_ID_in_qualified_name799);  
+            	    ids=(Token)match(input,ID,FOLLOW_ID_in_qualified_name802);  
             	    stream_ID.add(ids);
 
             	    if (list_ids==null) list_ids=new ArrayList();
@@ -2944,7 +2971,7 @@ public TreeAdaptor getTreeAdaptor() {
             	    break;
 
             	default :
-            	    break loop32;
+            	    break loop33;
                 }
             } while (true);
 
@@ -2973,7 +3000,7 @@ public TreeAdaptor getTreeAdaptor() {
             		
 
             // AST REWRITE
-            // elements: ID, PERIOD, ID
+            // elements: ID, ID, PERIOD
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -3057,7 +3084,7 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        QuorumParser.statement_return statement60 =null;
+        QuorumParser.statement_return statement61 =null;
 
 
         RewriteRuleSubtreeStream stream_statement=new RewriteRuleSubtreeStream(adaptor,"rule statement");
@@ -3066,32 +3093,32 @@ public TreeAdaptor getTreeAdaptor() {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:697:10: ( statement )*
             {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:697:10: ( statement )*
-            loop33:
+            loop34:
             do {
-                int alt33=2;
-                int LA33_0 = input.LA(1);
+                int alt34=2;
+                int LA34_0 = input.LA(1);
 
-                if ( (LA33_0==ALERT||LA33_0==BOOLEAN_KEYWORD||LA33_0==CHECK||(LA33_0 >= ID && LA33_0 <= IF)||LA33_0==INTEGER_KEYWORD||LA33_0==ME||LA33_0==NUMBER_KEYWORD||LA33_0==PARENT||(LA33_0 >= PRINT && LA33_0 <= PUBLIC)||(LA33_0 >= REPEAT && LA33_0 <= RETURN)||LA33_0==SAY||LA33_0==TEXT) ) {
-                    alt33=1;
+                if ( (LA34_0==ALERT||LA34_0==BOOLEAN_KEYWORD||LA34_0==CHECK||LA34_0==CONSTANT||(LA34_0 >= ID && LA34_0 <= IF)||LA34_0==INTEGER_KEYWORD||LA34_0==ME||LA34_0==NUMBER_KEYWORD||LA34_0==PARENT||(LA34_0 >= PRINT && LA34_0 <= PUBLIC)||(LA34_0 >= REPEAT && LA34_0 <= RETURN)||LA34_0==SAY||LA34_0==TEXT) ) {
+                    alt34=1;
                 }
 
 
-                switch (alt33) {
+                switch (alt34) {
             	case 1 :
             	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:697:10: statement
             	    {
-            	    pushFollow(FOLLOW_statement_in_block833);
-            	    statement60=statement();
+            	    pushFollow(FOLLOW_statement_in_block836);
+            	    statement61=statement();
 
             	    state._fsp--;
 
-            	    stream_statement.add(statement60.getTree());
+            	    stream_statement.add(statement61.getTree());
 
             	    }
             	    break;
 
             	default :
-            	    break loop33;
+            	    break loop34;
                 }
             } while (true);
 
@@ -3170,43 +3197,43 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        QuorumParser.solo_method_call_return solo_method_call61 =null;
+        QuorumParser.solo_method_call_return solo_method_call62 =null;
 
-        QuorumParser.if_statement_return if_statement62 =null;
+        QuorumParser.if_statement_return if_statement63 =null;
 
-        QuorumParser.assignment_statement_return assignment_statement63 =null;
+        QuorumParser.assignment_statement_return assignment_statement64 =null;
 
-        QuorumParser.loop_statement_return loop_statement64 =null;
+        QuorumParser.loop_statement_return loop_statement65 =null;
 
-        QuorumParser.return_statement_return return_statement65 =null;
+        QuorumParser.return_statement_return return_statement66 =null;
 
-        QuorumParser.print_statement_return print_statement66 =null;
+        QuorumParser.print_statement_return print_statement67 =null;
 
-        QuorumParser.speak_statement_return speak_statement67 =null;
+        QuorumParser.speak_statement_return speak_statement68 =null;
 
-        QuorumParser.check_statement_return check_statement68 =null;
+        QuorumParser.check_statement_return check_statement69 =null;
 
-        QuorumParser.alert_statement_return alert_statement69 =null;
+        QuorumParser.alert_statement_return alert_statement70 =null;
 
 
 
         try {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:701:10: ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement )
-            int alt34=9;
-            alt34 = dfa34.predict(input);
-            switch (alt34) {
+            int alt35=9;
+            alt35 = dfa35.predict(input);
+            switch (alt35) {
                 case 1 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:702:3: solo_method_call
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    pushFollow(FOLLOW_solo_method_call_in_statement856);
-                    solo_method_call61=solo_method_call();
+                    pushFollow(FOLLOW_solo_method_call_in_statement859);
+                    solo_method_call62=solo_method_call();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, solo_method_call61.getTree());
+                    adaptor.addChild(root_0, solo_method_call62.getTree());
 
                     }
                     break;
@@ -3216,12 +3243,12 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    pushFollow(FOLLOW_if_statement_in_statement861);
-                    if_statement62=if_statement();
+                    pushFollow(FOLLOW_if_statement_in_statement864);
+                    if_statement63=if_statement();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, if_statement62.getTree());
+                    adaptor.addChild(root_0, if_statement63.getTree());
 
                     }
                     break;
@@ -3231,12 +3258,12 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    pushFollow(FOLLOW_assignment_statement_in_statement866);
-                    assignment_statement63=assignment_statement();
+                    pushFollow(FOLLOW_assignment_statement_in_statement869);
+                    assignment_statement64=assignment_statement();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, assignment_statement63.getTree());
+                    adaptor.addChild(root_0, assignment_statement64.getTree());
 
                     }
                     break;
@@ -3246,12 +3273,12 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    pushFollow(FOLLOW_loop_statement_in_statement871);
-                    loop_statement64=loop_statement();
+                    pushFollow(FOLLOW_loop_statement_in_statement874);
+                    loop_statement65=loop_statement();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, loop_statement64.getTree());
+                    adaptor.addChild(root_0, loop_statement65.getTree());
 
                     }
                     break;
@@ -3261,12 +3288,12 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    pushFollow(FOLLOW_return_statement_in_statement876);
-                    return_statement65=return_statement();
+                    pushFollow(FOLLOW_return_statement_in_statement879);
+                    return_statement66=return_statement();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, return_statement65.getTree());
+                    adaptor.addChild(root_0, return_statement66.getTree());
 
                     }
                     break;
@@ -3276,12 +3303,12 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    pushFollow(FOLLOW_print_statement_in_statement881);
-                    print_statement66=print_statement();
+                    pushFollow(FOLLOW_print_statement_in_statement884);
+                    print_statement67=print_statement();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, print_statement66.getTree());
+                    adaptor.addChild(root_0, print_statement67.getTree());
 
                     }
                     break;
@@ -3291,12 +3318,12 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    pushFollow(FOLLOW_speak_statement_in_statement886);
-                    speak_statement67=speak_statement();
+                    pushFollow(FOLLOW_speak_statement_in_statement889);
+                    speak_statement68=speak_statement();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, speak_statement67.getTree());
+                    adaptor.addChild(root_0, speak_statement68.getTree());
 
                     }
                     break;
@@ -3306,12 +3333,12 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    pushFollow(FOLLOW_check_statement_in_statement891);
-                    check_statement68=check_statement();
+                    pushFollow(FOLLOW_check_statement_in_statement894);
+                    check_statement69=check_statement();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, check_statement68.getTree());
+                    adaptor.addChild(root_0, check_statement69.getTree());
 
                     }
                     break;
@@ -3321,12 +3348,12 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    pushFollow(FOLLOW_alert_statement_in_statement896);
-                    alert_statement69=alert_statement();
+                    pushFollow(FOLLOW_alert_statement_in_statement899);
+                    alert_statement70=alert_statement();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, alert_statement69.getTree());
+                    adaptor.addChild(root_0, alert_statement70.getTree());
 
                     }
                     break;
@@ -3369,63 +3396,63 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token COLON71=null;
-        Token ID72=null;
-        Token LEFT_PAREN73=null;
-        Token COMMA75=null;
-        Token RIGHT_PAREN77=null;
-        Token PARENT78=null;
-        Token COLON79=null;
-        Token COLON81=null;
-        Token ID82=null;
-        Token LEFT_PAREN83=null;
-        Token COMMA85=null;
-        Token RIGHT_PAREN87=null;
-        Token ME88=null;
-        Token COLON89=null;
-        Token COLON91=null;
-        Token ID92=null;
-        Token LEFT_PAREN93=null;
-        Token COMMA95=null;
-        Token RIGHT_PAREN97=null;
-        QuorumParser.qualified_name_return qualified_name70 =null;
+        Token COLON72=null;
+        Token ID73=null;
+        Token LEFT_PAREN74=null;
+        Token COMMA76=null;
+        Token RIGHT_PAREN78=null;
+        Token PARENT79=null;
+        Token COLON80=null;
+        Token COLON82=null;
+        Token ID83=null;
+        Token LEFT_PAREN84=null;
+        Token COMMA86=null;
+        Token RIGHT_PAREN88=null;
+        Token ME89=null;
+        Token COLON90=null;
+        Token COLON92=null;
+        Token ID93=null;
+        Token LEFT_PAREN94=null;
+        Token COMMA96=null;
+        Token RIGHT_PAREN98=null;
+        QuorumParser.qualified_name_return qualified_name71 =null;
 
-        QuorumParser.expression_return expression74 =null;
+        QuorumParser.expression_return expression75 =null;
 
-        QuorumParser.expression_return expression76 =null;
+        QuorumParser.expression_return expression77 =null;
 
-        QuorumParser.qualified_name_return qualified_name80 =null;
+        QuorumParser.qualified_name_return qualified_name81 =null;
 
-        QuorumParser.expression_return expression84 =null;
+        QuorumParser.expression_return expression85 =null;
 
-        QuorumParser.expression_return expression86 =null;
+        QuorumParser.expression_return expression87 =null;
 
-        QuorumParser.qualified_name_return qualified_name90 =null;
+        QuorumParser.qualified_name_return qualified_name91 =null;
 
-        QuorumParser.expression_return expression94 =null;
+        QuorumParser.expression_return expression95 =null;
 
-        QuorumParser.expression_return expression96 =null;
+        QuorumParser.expression_return expression97 =null;
 
 
-        CommonTree COLON71_tree=null;
-        CommonTree ID72_tree=null;
-        CommonTree LEFT_PAREN73_tree=null;
-        CommonTree COMMA75_tree=null;
-        CommonTree RIGHT_PAREN77_tree=null;
-        CommonTree PARENT78_tree=null;
-        CommonTree COLON79_tree=null;
-        CommonTree COLON81_tree=null;
-        CommonTree ID82_tree=null;
-        CommonTree LEFT_PAREN83_tree=null;
-        CommonTree COMMA85_tree=null;
-        CommonTree RIGHT_PAREN87_tree=null;
-        CommonTree ME88_tree=null;
-        CommonTree COLON89_tree=null;
-        CommonTree COLON91_tree=null;
-        CommonTree ID92_tree=null;
-        CommonTree LEFT_PAREN93_tree=null;
-        CommonTree COMMA95_tree=null;
-        CommonTree RIGHT_PAREN97_tree=null;
+        CommonTree COLON72_tree=null;
+        CommonTree ID73_tree=null;
+        CommonTree LEFT_PAREN74_tree=null;
+        CommonTree COMMA76_tree=null;
+        CommonTree RIGHT_PAREN78_tree=null;
+        CommonTree PARENT79_tree=null;
+        CommonTree COLON80_tree=null;
+        CommonTree COLON82_tree=null;
+        CommonTree ID83_tree=null;
+        CommonTree LEFT_PAREN84_tree=null;
+        CommonTree COMMA86_tree=null;
+        CommonTree RIGHT_PAREN88_tree=null;
+        CommonTree ME89_tree=null;
+        CommonTree COLON90_tree=null;
+        CommonTree COLON92_tree=null;
+        CommonTree ID93_tree=null;
+        CommonTree LEFT_PAREN94_tree=null;
+        CommonTree COMMA96_tree=null;
+        CommonTree RIGHT_PAREN98_tree=null;
         RewriteRuleTokenStream stream_COLON=new RewriteRuleTokenStream(adaptor,"token COLON");
         RewriteRuleTokenStream stream_LEFT_PAREN=new RewriteRuleTokenStream(adaptor,"token LEFT_PAREN");
         RewriteRuleTokenStream stream_ME=new RewriteRuleTokenStream(adaptor,"token ME");
@@ -3437,59 +3464,59 @@ public TreeAdaptor getTreeAdaptor() {
         RewriteRuleSubtreeStream stream_qualified_name=new RewriteRuleSubtreeStream(adaptor,"rule qualified_name");
         try {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:714:2: ( qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN -> ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN ) | PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN -> ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN -> ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN ) )
-            int alt43=3;
+            int alt44=3;
             switch ( input.LA(1) ) {
             case ID:
                 {
-                alt43=1;
+                alt44=1;
                 }
                 break;
             case PARENT:
                 {
-                alt43=2;
+                alt44=2;
                 }
                 break;
             case ME:
                 {
-                alt43=3;
+                alt44=3;
                 }
                 break;
             default:
                 NoViableAltException nvae =
-                    new NoViableAltException("", 43, 0, input);
+                    new NoViableAltException("", 44, 0, input);
 
                 throw nvae;
 
             }
 
-            switch (alt43) {
+            switch (alt44) {
                 case 1 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:2: qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN
                     {
-                    pushFollow(FOLLOW_qualified_name_in_solo_method_call909);
-                    qualified_name70=qualified_name();
+                    pushFollow(FOLLOW_qualified_name_in_solo_method_call912);
+                    qualified_name71=qualified_name();
 
                     state._fsp--;
 
-                    stream_qualified_name.add(qualified_name70.getTree());
+                    stream_qualified_name.add(qualified_name71.getTree());
 
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:17: ( COLON ID )?
-                    int alt35=2;
-                    int LA35_0 = input.LA(1);
+                    int alt36=2;
+                    int LA36_0 = input.LA(1);
 
-                    if ( (LA35_0==COLON) ) {
-                        alt35=1;
+                    if ( (LA36_0==COLON) ) {
+                        alt36=1;
                     }
-                    switch (alt35) {
+                    switch (alt36) {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:18: COLON ID
                             {
-                            COLON71=(Token)match(input,COLON,FOLLOW_COLON_in_solo_method_call912);  
-                            stream_COLON.add(COLON71);
+                            COLON72=(Token)match(input,COLON,FOLLOW_COLON_in_solo_method_call915);  
+                            stream_COLON.add(COLON72);
 
 
-                            ID72=(Token)match(input,ID,FOLLOW_ID_in_solo_method_call914);  
-                            stream_ID.add(ID72);
+                            ID73=(Token)match(input,ID,FOLLOW_ID_in_solo_method_call917);  
+                            stream_ID.add(ID73);
 
 
                             }
@@ -3498,59 +3525,59 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    LEFT_PAREN73=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_solo_method_call918);  
-                    stream_LEFT_PAREN.add(LEFT_PAREN73);
+                    LEFT_PAREN74=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_solo_method_call921);  
+                    stream_LEFT_PAREN.add(LEFT_PAREN74);
 
 
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:40: ( expression ( COMMA expression )* )?
-                    int alt37=2;
-                    int LA37_0 = input.LA(1);
+                    int alt38=2;
+                    int LA38_0 = input.LA(1);
 
-                    if ( (LA37_0==BOOLEAN||LA37_0==CAST||LA37_0==DECIMAL||LA37_0==ID||(LA37_0 >= INPUT && LA37_0 <= INT)||LA37_0==LEFT_PAREN||(LA37_0 >= ME && LA37_0 <= MINUS)||LA37_0==NOT||LA37_0==NULL||LA37_0==PARENT||LA37_0==STRING) ) {
-                        alt37=1;
+                    if ( (LA38_0==BOOLEAN||LA38_0==CAST||LA38_0==DECIMAL||LA38_0==ID||(LA38_0 >= INPUT && LA38_0 <= INT)||LA38_0==LEFT_PAREN||(LA38_0 >= ME && LA38_0 <= MINUS)||LA38_0==NOT||LA38_0==NULL||LA38_0==PARENT||LA38_0==STRING) ) {
+                        alt38=1;
                     }
-                    switch (alt37) {
+                    switch (alt38) {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:41: expression ( COMMA expression )*
                             {
-                            pushFollow(FOLLOW_expression_in_solo_method_call921);
-                            expression74=expression();
+                            pushFollow(FOLLOW_expression_in_solo_method_call924);
+                            expression75=expression();
 
                             state._fsp--;
 
-                            stream_expression.add(expression74.getTree());
+                            stream_expression.add(expression75.getTree());
 
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:52: ( COMMA expression )*
-                            loop36:
+                            loop37:
                             do {
-                                int alt36=2;
-                                int LA36_0 = input.LA(1);
+                                int alt37=2;
+                                int LA37_0 = input.LA(1);
 
-                                if ( (LA36_0==COMMA) ) {
-                                    alt36=1;
+                                if ( (LA37_0==COMMA) ) {
+                                    alt37=1;
                                 }
 
 
-                                switch (alt36) {
+                                switch (alt37) {
                             	case 1 :
                             	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:715:53: COMMA expression
                             	    {
-                            	    COMMA75=(Token)match(input,COMMA,FOLLOW_COMMA_in_solo_method_call924);  
-                            	    stream_COMMA.add(COMMA75);
+                            	    COMMA76=(Token)match(input,COMMA,FOLLOW_COMMA_in_solo_method_call927);  
+                            	    stream_COMMA.add(COMMA76);
 
 
-                            	    pushFollow(FOLLOW_expression_in_solo_method_call926);
-                            	    expression76=expression();
+                            	    pushFollow(FOLLOW_expression_in_solo_method_call929);
+                            	    expression77=expression();
 
                             	    state._fsp--;
 
-                            	    stream_expression.add(expression76.getTree());
+                            	    stream_expression.add(expression77.getTree());
 
                             	    }
                             	    break;
 
                             	default :
-                            	    break loop36;
+                            	    break loop37;
                                 }
                             } while (true);
 
@@ -3561,12 +3588,12 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    RIGHT_PAREN77=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_solo_method_call932);  
-                    stream_RIGHT_PAREN.add(RIGHT_PAREN77);
+                    RIGHT_PAREN78=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_solo_method_call935);  
+                    stream_RIGHT_PAREN.add(RIGHT_PAREN78);
 
 
                     // AST REWRITE
-                    // elements: LEFT_PAREN, expression, COMMA, expression, qualified_name, ID, RIGHT_PAREN, COLON
+                    // elements: expression, expression, RIGHT_PAREN, LEFT_PAREN, COMMA, COLON, ID, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -3588,7 +3615,7 @@ public TreeAdaptor getTreeAdaptor() {
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:716:40: ( COLON ID )?
-                        if ( stream_ID.hasNext()||stream_COLON.hasNext() ) {
+                        if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
                             adaptor.addChild(root_1, 
                             stream_COLON.nextNode()
                             );
@@ -3598,19 +3625,19 @@ public TreeAdaptor getTreeAdaptor() {
                             );
 
                         }
-                        stream_ID.reset();
                         stream_COLON.reset();
+                        stream_ID.reset();
 
                         adaptor.addChild(root_1, 
                         stream_LEFT_PAREN.nextNode()
                         );
 
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:716:63: ( expression ( COMMA expression )* )?
-                        if ( stream_expression.hasNext()||stream_COMMA.hasNext()||stream_expression.hasNext() ) {
+                        if ( stream_expression.hasNext()||stream_expression.hasNext()||stream_COMMA.hasNext() ) {
                             adaptor.addChild(root_1, stream_expression.nextTree());
 
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:716:75: ( COMMA expression )*
-                            while ( stream_COMMA.hasNext()||stream_expression.hasNext() ) {
+                            while ( stream_expression.hasNext()||stream_COMMA.hasNext() ) {
                                 adaptor.addChild(root_1, 
                                 stream_COMMA.nextNode()
                                 );
@@ -3618,13 +3645,13 @@ public TreeAdaptor getTreeAdaptor() {
                                 adaptor.addChild(root_1, stream_expression.nextTree());
 
                             }
-                            stream_COMMA.reset();
                             stream_expression.reset();
+                            stream_COMMA.reset();
 
                         }
                         stream_expression.reset();
-                        stream_COMMA.reset();
                         stream_expression.reset();
+                        stream_COMMA.reset();
 
                         adaptor.addChild(root_1, 
                         stream_RIGHT_PAREN.nextNode()
@@ -3643,82 +3670,82 @@ public TreeAdaptor getTreeAdaptor() {
                 case 2 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:717:4: PARENT COLON qualified_name COLON ID LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN
                     {
-                    PARENT78=(Token)match(input,PARENT,FOLLOW_PARENT_in_solo_method_call971);  
-                    stream_PARENT.add(PARENT78);
+                    PARENT79=(Token)match(input,PARENT,FOLLOW_PARENT_in_solo_method_call974);  
+                    stream_PARENT.add(PARENT79);
 
 
-                    COLON79=(Token)match(input,COLON,FOLLOW_COLON_in_solo_method_call973);  
-                    stream_COLON.add(COLON79);
+                    COLON80=(Token)match(input,COLON,FOLLOW_COLON_in_solo_method_call976);  
+                    stream_COLON.add(COLON80);
 
 
-                    pushFollow(FOLLOW_qualified_name_in_solo_method_call975);
-                    qualified_name80=qualified_name();
+                    pushFollow(FOLLOW_qualified_name_in_solo_method_call978);
+                    qualified_name81=qualified_name();
 
                     state._fsp--;
 
-                    stream_qualified_name.add(qualified_name80.getTree());
+                    stream_qualified_name.add(qualified_name81.getTree());
 
-                    COLON81=(Token)match(input,COLON,FOLLOW_COLON_in_solo_method_call977);  
-                    stream_COLON.add(COLON81);
-
-
-                    ID82=(Token)match(input,ID,FOLLOW_ID_in_solo_method_call979);  
-                    stream_ID.add(ID82);
+                    COLON82=(Token)match(input,COLON,FOLLOW_COLON_in_solo_method_call980);  
+                    stream_COLON.add(COLON82);
 
 
-                    LEFT_PAREN83=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_solo_method_call981);  
-                    stream_LEFT_PAREN.add(LEFT_PAREN83);
+                    ID83=(Token)match(input,ID,FOLLOW_ID_in_solo_method_call982);  
+                    stream_ID.add(ID83);
+
+
+                    LEFT_PAREN84=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_solo_method_call984);  
+                    stream_LEFT_PAREN.add(LEFT_PAREN84);
 
 
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:717:52: ( expression ( COMMA expression )* )?
-                    int alt39=2;
-                    int LA39_0 = input.LA(1);
+                    int alt40=2;
+                    int LA40_0 = input.LA(1);
 
-                    if ( (LA39_0==BOOLEAN||LA39_0==CAST||LA39_0==DECIMAL||LA39_0==ID||(LA39_0 >= INPUT && LA39_0 <= INT)||LA39_0==LEFT_PAREN||(LA39_0 >= ME && LA39_0 <= MINUS)||LA39_0==NOT||LA39_0==NULL||LA39_0==PARENT||LA39_0==STRING) ) {
-                        alt39=1;
+                    if ( (LA40_0==BOOLEAN||LA40_0==CAST||LA40_0==DECIMAL||LA40_0==ID||(LA40_0 >= INPUT && LA40_0 <= INT)||LA40_0==LEFT_PAREN||(LA40_0 >= ME && LA40_0 <= MINUS)||LA40_0==NOT||LA40_0==NULL||LA40_0==PARENT||LA40_0==STRING) ) {
+                        alt40=1;
                     }
-                    switch (alt39) {
+                    switch (alt40) {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:717:53: expression ( COMMA expression )*
                             {
-                            pushFollow(FOLLOW_expression_in_solo_method_call984);
-                            expression84=expression();
+                            pushFollow(FOLLOW_expression_in_solo_method_call987);
+                            expression85=expression();
 
                             state._fsp--;
 
-                            stream_expression.add(expression84.getTree());
+                            stream_expression.add(expression85.getTree());
 
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:717:64: ( COMMA expression )*
-                            loop38:
+                            loop39:
                             do {
-                                int alt38=2;
-                                int LA38_0 = input.LA(1);
+                                int alt39=2;
+                                int LA39_0 = input.LA(1);
 
-                                if ( (LA38_0==COMMA) ) {
-                                    alt38=1;
+                                if ( (LA39_0==COMMA) ) {
+                                    alt39=1;
                                 }
 
 
-                                switch (alt38) {
+                                switch (alt39) {
                             	case 1 :
                             	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:717:65: COMMA expression
                             	    {
-                            	    COMMA85=(Token)match(input,COMMA,FOLLOW_COMMA_in_solo_method_call987);  
-                            	    stream_COMMA.add(COMMA85);
+                            	    COMMA86=(Token)match(input,COMMA,FOLLOW_COMMA_in_solo_method_call990);  
+                            	    stream_COMMA.add(COMMA86);
 
 
-                            	    pushFollow(FOLLOW_expression_in_solo_method_call989);
-                            	    expression86=expression();
+                            	    pushFollow(FOLLOW_expression_in_solo_method_call992);
+                            	    expression87=expression();
 
                             	    state._fsp--;
 
-                            	    stream_expression.add(expression86.getTree());
+                            	    stream_expression.add(expression87.getTree());
 
                             	    }
                             	    break;
 
                             	default :
-                            	    break loop38;
+                            	    break loop39;
                                 }
                             } while (true);
 
@@ -3729,12 +3756,12 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    RIGHT_PAREN87=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_solo_method_call995);  
-                    stream_RIGHT_PAREN.add(RIGHT_PAREN87);
+                    RIGHT_PAREN88=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_solo_method_call998);  
+                    stream_RIGHT_PAREN.add(RIGHT_PAREN88);
 
 
                     // AST REWRITE
-                    // elements: LEFT_PAREN, COMMA, COLON, qualified_name, expression, COLON, expression, ID, PARENT, RIGHT_PAREN
+                    // elements: COLON, PARENT, COLON, expression, RIGHT_PAREN, expression, COMMA, LEFT_PAREN, ID, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -3776,11 +3803,11 @@ public TreeAdaptor getTreeAdaptor() {
                         );
 
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:718:80: ( expression ( COMMA expression )* )?
-                        if ( stream_COMMA.hasNext()||stream_expression.hasNext()||stream_expression.hasNext() ) {
+                        if ( stream_expression.hasNext()||stream_expression.hasNext()||stream_COMMA.hasNext() ) {
                             adaptor.addChild(root_1, stream_expression.nextTree());
 
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:718:92: ( COMMA expression )*
-                            while ( stream_COMMA.hasNext()||stream_expression.hasNext() ) {
+                            while ( stream_expression.hasNext()||stream_COMMA.hasNext() ) {
                                 adaptor.addChild(root_1, 
                                 stream_COMMA.nextNode()
                                 );
@@ -3788,13 +3815,13 @@ public TreeAdaptor getTreeAdaptor() {
                                 adaptor.addChild(root_1, stream_expression.nextTree());
 
                             }
-                            stream_COMMA.reset();
                             stream_expression.reset();
+                            stream_COMMA.reset();
 
                         }
+                        stream_expression.reset();
+                        stream_expression.reset();
                         stream_COMMA.reset();
-                        stream_expression.reset();
-                        stream_expression.reset();
 
                         adaptor.addChild(root_1, 
                         stream_RIGHT_PAREN.nextNode()
@@ -3813,38 +3840,38 @@ public TreeAdaptor getTreeAdaptor() {
                 case 3 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:719:4: ME COLON qualified_name ( COLON ID )? LEFT_PAREN ( expression ( COMMA expression )* )? RIGHT_PAREN
                     {
-                    ME88=(Token)match(input,ME,FOLLOW_ME_in_solo_method_call1035);  
-                    stream_ME.add(ME88);
+                    ME89=(Token)match(input,ME,FOLLOW_ME_in_solo_method_call1038);  
+                    stream_ME.add(ME89);
 
 
-                    COLON89=(Token)match(input,COLON,FOLLOW_COLON_in_solo_method_call1037);  
-                    stream_COLON.add(COLON89);
+                    COLON90=(Token)match(input,COLON,FOLLOW_COLON_in_solo_method_call1040);  
+                    stream_COLON.add(COLON90);
 
 
-                    pushFollow(FOLLOW_qualified_name_in_solo_method_call1039);
-                    qualified_name90=qualified_name();
+                    pushFollow(FOLLOW_qualified_name_in_solo_method_call1042);
+                    qualified_name91=qualified_name();
 
                     state._fsp--;
 
-                    stream_qualified_name.add(qualified_name90.getTree());
+                    stream_qualified_name.add(qualified_name91.getTree());
 
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:719:28: ( COLON ID )?
-                    int alt40=2;
-                    int LA40_0 = input.LA(1);
+                    int alt41=2;
+                    int LA41_0 = input.LA(1);
 
-                    if ( (LA40_0==COLON) ) {
-                        alt40=1;
+                    if ( (LA41_0==COLON) ) {
+                        alt41=1;
                     }
-                    switch (alt40) {
+                    switch (alt41) {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:719:29: COLON ID
                             {
-                            COLON91=(Token)match(input,COLON,FOLLOW_COLON_in_solo_method_call1042);  
-                            stream_COLON.add(COLON91);
+                            COLON92=(Token)match(input,COLON,FOLLOW_COLON_in_solo_method_call1045);  
+                            stream_COLON.add(COLON92);
 
 
-                            ID92=(Token)match(input,ID,FOLLOW_ID_in_solo_method_call1044);  
-                            stream_ID.add(ID92);
+                            ID93=(Token)match(input,ID,FOLLOW_ID_in_solo_method_call1047);  
+                            stream_ID.add(ID93);
 
 
                             }
@@ -3853,59 +3880,59 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    LEFT_PAREN93=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_solo_method_call1048);  
-                    stream_LEFT_PAREN.add(LEFT_PAREN93);
+                    LEFT_PAREN94=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_solo_method_call1051);  
+                    stream_LEFT_PAREN.add(LEFT_PAREN94);
 
 
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:719:51: ( expression ( COMMA expression )* )?
-                    int alt42=2;
-                    int LA42_0 = input.LA(1);
+                    int alt43=2;
+                    int LA43_0 = input.LA(1);
 
-                    if ( (LA42_0==BOOLEAN||LA42_0==CAST||LA42_0==DECIMAL||LA42_0==ID||(LA42_0 >= INPUT && LA42_0 <= INT)||LA42_0==LEFT_PAREN||(LA42_0 >= ME && LA42_0 <= MINUS)||LA42_0==NOT||LA42_0==NULL||LA42_0==PARENT||LA42_0==STRING) ) {
-                        alt42=1;
+                    if ( (LA43_0==BOOLEAN||LA43_0==CAST||LA43_0==DECIMAL||LA43_0==ID||(LA43_0 >= INPUT && LA43_0 <= INT)||LA43_0==LEFT_PAREN||(LA43_0 >= ME && LA43_0 <= MINUS)||LA43_0==NOT||LA43_0==NULL||LA43_0==PARENT||LA43_0==STRING) ) {
+                        alt43=1;
                     }
-                    switch (alt42) {
+                    switch (alt43) {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:719:52: expression ( COMMA expression )*
                             {
-                            pushFollow(FOLLOW_expression_in_solo_method_call1051);
-                            expression94=expression();
+                            pushFollow(FOLLOW_expression_in_solo_method_call1054);
+                            expression95=expression();
 
                             state._fsp--;
 
-                            stream_expression.add(expression94.getTree());
+                            stream_expression.add(expression95.getTree());
 
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:719:63: ( COMMA expression )*
-                            loop41:
+                            loop42:
                             do {
-                                int alt41=2;
-                                int LA41_0 = input.LA(1);
+                                int alt42=2;
+                                int LA42_0 = input.LA(1);
 
-                                if ( (LA41_0==COMMA) ) {
-                                    alt41=1;
+                                if ( (LA42_0==COMMA) ) {
+                                    alt42=1;
                                 }
 
 
-                                switch (alt41) {
+                                switch (alt42) {
                             	case 1 :
                             	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:719:64: COMMA expression
                             	    {
-                            	    COMMA95=(Token)match(input,COMMA,FOLLOW_COMMA_in_solo_method_call1054);  
-                            	    stream_COMMA.add(COMMA95);
+                            	    COMMA96=(Token)match(input,COMMA,FOLLOW_COMMA_in_solo_method_call1057);  
+                            	    stream_COMMA.add(COMMA96);
 
 
-                            	    pushFollow(FOLLOW_expression_in_solo_method_call1056);
-                            	    expression96=expression();
+                            	    pushFollow(FOLLOW_expression_in_solo_method_call1059);
+                            	    expression97=expression();
 
                             	    state._fsp--;
 
-                            	    stream_expression.add(expression96.getTree());
+                            	    stream_expression.add(expression97.getTree());
 
                             	    }
                             	    break;
 
                             	default :
-                            	    break loop41;
+                            	    break loop42;
                                 }
                             } while (true);
 
@@ -3916,12 +3943,12 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    RIGHT_PAREN97=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_solo_method_call1062);  
-                    stream_RIGHT_PAREN.add(RIGHT_PAREN97);
+                    RIGHT_PAREN98=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_solo_method_call1065);  
+                    stream_RIGHT_PAREN.add(RIGHT_PAREN98);
 
 
                     // AST REWRITE
-                    // elements: ID, RIGHT_PAREN, qualified_name, COLON, COLON, expression, ME, COMMA, expression, LEFT_PAREN
+                    // elements: RIGHT_PAREN, COLON, qualified_name, expression, COMMA, ID, expression, COLON, ME, LEFT_PAREN
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -3951,7 +3978,7 @@ public TreeAdaptor getTreeAdaptor() {
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:720:54: ( COLON ID )?
-                        if ( stream_ID.hasNext()||stream_COLON.hasNext() ) {
+                        if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
                             adaptor.addChild(root_1, 
                             stream_COLON.nextNode()
                             );
@@ -3961,15 +3988,15 @@ public TreeAdaptor getTreeAdaptor() {
                             );
 
                         }
-                        stream_ID.reset();
                         stream_COLON.reset();
+                        stream_ID.reset();
 
                         adaptor.addChild(root_1, 
                         stream_LEFT_PAREN.nextNode()
                         );
 
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:720:77: ( expression ( COMMA expression )* )?
-                        if ( stream_expression.hasNext()||stream_COMMA.hasNext()||stream_expression.hasNext() ) {
+                        if ( stream_COMMA.hasNext()||stream_expression.hasNext()||stream_expression.hasNext() ) {
                             adaptor.addChild(root_1, stream_expression.nextTree());
 
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:720:89: ( COMMA expression )*
@@ -3985,8 +4012,8 @@ public TreeAdaptor getTreeAdaptor() {
                             stream_COMMA.reset();
 
                         }
-                        stream_expression.reset();
                         stream_COMMA.reset();
+                        stream_expression.reset();
                         stream_expression.reset();
 
                         adaptor.addChild(root_1, 
@@ -4042,15 +4069,15 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token ALERT98=null;
-        Token LEFT_PAREN99=null;
-        Token RIGHT_PAREN101=null;
-        QuorumParser.root_expression_return root_expression100 =null;
+        Token ALERT99=null;
+        Token LEFT_PAREN100=null;
+        Token RIGHT_PAREN102=null;
+        QuorumParser.root_expression_return root_expression101 =null;
 
 
-        CommonTree ALERT98_tree=null;
-        CommonTree LEFT_PAREN99_tree=null;
-        CommonTree RIGHT_PAREN101_tree=null;
+        CommonTree ALERT99_tree=null;
+        CommonTree LEFT_PAREN100_tree=null;
+        CommonTree RIGHT_PAREN102_tree=null;
         RewriteRuleTokenStream stream_LEFT_PAREN=new RewriteRuleTokenStream(adaptor,"token LEFT_PAREN");
         RewriteRuleTokenStream stream_RIGHT_PAREN=new RewriteRuleTokenStream(adaptor,"token RIGHT_PAREN");
         RewriteRuleTokenStream stream_ALERT=new RewriteRuleTokenStream(adaptor,"token ALERT");
@@ -4059,27 +4086,27 @@ public TreeAdaptor getTreeAdaptor() {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:724:2: ( ALERT LEFT_PAREN root_expression RIGHT_PAREN -> ^( ALERT LEFT_PAREN root_expression RIGHT_PAREN ) )
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:724:4: ALERT LEFT_PAREN root_expression RIGHT_PAREN
             {
-            ALERT98=(Token)match(input,ALERT,FOLLOW_ALERT_in_alert_statement1113);  
-            stream_ALERT.add(ALERT98);
+            ALERT99=(Token)match(input,ALERT,FOLLOW_ALERT_in_alert_statement1116);  
+            stream_ALERT.add(ALERT99);
 
 
-            LEFT_PAREN99=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_alert_statement1115);  
-            stream_LEFT_PAREN.add(LEFT_PAREN99);
+            LEFT_PAREN100=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_alert_statement1118);  
+            stream_LEFT_PAREN.add(LEFT_PAREN100);
 
 
-            pushFollow(FOLLOW_root_expression_in_alert_statement1117);
-            root_expression100=root_expression();
+            pushFollow(FOLLOW_root_expression_in_alert_statement1120);
+            root_expression101=root_expression();
 
             state._fsp--;
 
-            stream_root_expression.add(root_expression100.getTree());
+            stream_root_expression.add(root_expression101.getTree());
 
-            RIGHT_PAREN101=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_alert_statement1120);  
-            stream_RIGHT_PAREN.add(RIGHT_PAREN101);
+            RIGHT_PAREN102=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_alert_statement1123);  
+            stream_RIGHT_PAREN.add(RIGHT_PAREN102);
 
 
             // AST REWRITE
-            // elements: LEFT_PAREN, root_expression, ALERT, RIGHT_PAREN
+            // elements: ALERT, RIGHT_PAREN, LEFT_PAREN, root_expression
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -4160,15 +4187,15 @@ public TreeAdaptor getTreeAdaptor() {
         Token always_start=null;
         Token always_start_2=null;
         Token end=null;
-        QuorumParser.block_return block102 =null;
+        QuorumParser.block_return block103 =null;
 
-        QuorumParser.detect_parameter_return detect_parameter103 =null;
-
-        QuorumParser.block_return block104 =null;
+        QuorumParser.detect_parameter_return detect_parameter104 =null;
 
         QuorumParser.block_return block105 =null;
 
         QuorumParser.block_return block106 =null;
+
+        QuorumParser.block_return block107 =null;
 
 
         CommonTree check_start_tree=null;
@@ -4187,7 +4214,7 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            check_start=(Token)match(input,CHECK,FOLLOW_CHECK_in_check_statement1154); 
+            check_start=(Token)match(input,CHECK,FOLLOW_CHECK_in_check_statement1157); 
             check_start_tree = 
             (CommonTree)adaptor.create(check_start)
             ;
@@ -4196,12 +4223,12 @@ public TreeAdaptor getTreeAdaptor() {
 
              block = new BlockDescriptor(); symbol.add(block); 
 
-            pushFollow(FOLLOW_block_in_check_statement1157);
-            block102=block();
+            pushFollow(FOLLOW_block_in_check_statement1160);
+            block103=block();
 
             state._fsp--;
 
-            adaptor.addChild(root_0, block102.getTree());
+            adaptor.addChild(root_0, block103.getTree());
 
              
             		symbol.popScope(); 
@@ -4211,43 +4238,43 @@ public TreeAdaptor getTreeAdaptor() {
             	
 
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:739:6: ( (detect_start= DETECT detect_parameter block )+ (always_start= ALWAYS block )? |always_start_2= ALWAYS block )
-            int alt46=2;
-            int LA46_0 = input.LA(1);
+            int alt47=2;
+            int LA47_0 = input.LA(1);
 
-            if ( (LA46_0==DETECT) ) {
-                alt46=1;
+            if ( (LA47_0==DETECT) ) {
+                alt47=1;
             }
-            else if ( (LA46_0==ALWAYS) ) {
-                alt46=2;
+            else if ( (LA47_0==ALWAYS) ) {
+                alt47=2;
             }
             else {
                 NoViableAltException nvae =
-                    new NoViableAltException("", 46, 0, input);
+                    new NoViableAltException("", 47, 0, input);
 
                 throw nvae;
 
             }
-            switch (alt46) {
+            switch (alt47) {
                 case 1 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:739:7: (detect_start= DETECT detect_parameter block )+ (always_start= ALWAYS block )?
                     {
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:739:7: (detect_start= DETECT detect_parameter block )+
-                    int cnt44=0;
-                    loop44:
+                    int cnt45=0;
+                    loop45:
                     do {
-                        int alt44=2;
-                        int LA44_0 = input.LA(1);
+                        int alt45=2;
+                        int LA45_0 = input.LA(1);
 
-                        if ( (LA44_0==DETECT) ) {
-                            alt44=1;
+                        if ( (LA45_0==DETECT) ) {
+                            alt45=1;
                         }
 
 
-                        switch (alt44) {
+                        switch (alt45) {
                     	case 1 :
                     	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:739:8: detect_start= DETECT detect_parameter block
                     	    {
-                    	    detect_start=(Token)match(input,DETECT,FOLLOW_DETECT_in_check_statement1172); 
+                    	    detect_start=(Token)match(input,DETECT,FOLLOW_DETECT_in_check_statement1175); 
                     	    detect_start_tree = 
                     	    (CommonTree)adaptor.create(detect_start)
                     	    ;
@@ -4262,19 +4289,19 @@ public TreeAdaptor getTreeAdaptor() {
                     	    		symbol.add(block); 
                     	    	
 
-                    	    pushFollow(FOLLOW_detect_parameter_in_check_statement1184);
-                    	    detect_parameter103=detect_parameter();
+                    	    pushFollow(FOLLOW_detect_parameter_in_check_statement1187);
+                    	    detect_parameter104=detect_parameter();
 
                     	    state._fsp--;
 
-                    	    adaptor.addChild(root_0, detect_parameter103.getTree());
+                    	    adaptor.addChild(root_0, detect_parameter104.getTree());
 
-                    	    pushFollow(FOLLOW_block_in_check_statement1186);
-                    	    block104=block();
+                    	    pushFollow(FOLLOW_block_in_check_statement1189);
+                    	    block105=block();
 
                     	    state._fsp--;
 
-                    	    adaptor.addChild(root_0, block104.getTree());
+                    	    adaptor.addChild(root_0, block105.getTree());
 
                     	     symbol.popScope(); 
 
@@ -4288,27 +4315,27 @@ public TreeAdaptor getTreeAdaptor() {
                     	    break;
 
                     	default :
-                    	    if ( cnt44 >= 1 ) break loop44;
+                    	    if ( cnt45 >= 1 ) break loop45;
                                 EarlyExitException eee =
-                                    new EarlyExitException(44, input);
+                                    new EarlyExitException(45, input);
                                 throw eee;
                         }
-                        cnt44++;
+                        cnt45++;
                     } while (true);
 
 
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:754:6: (always_start= ALWAYS block )?
-                    int alt45=2;
-                    int LA45_0 = input.LA(1);
+                    int alt46=2;
+                    int LA46_0 = input.LA(1);
 
-                    if ( (LA45_0==ALWAYS) ) {
-                        alt45=1;
+                    if ( (LA46_0==ALWAYS) ) {
+                        alt46=1;
                     }
-                    switch (alt45) {
+                    switch (alt46) {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:754:7: always_start= ALWAYS block
                             {
-                            always_start=(Token)match(input,ALWAYS,FOLLOW_ALWAYS_in_check_statement1210); 
+                            always_start=(Token)match(input,ALWAYS,FOLLOW_ALWAYS_in_check_statement1213); 
                             always_start_tree = 
                             (CommonTree)adaptor.create(always_start)
                             ;
@@ -4323,12 +4350,12 @@ public TreeAdaptor getTreeAdaptor() {
                             		symbol.add(block); 
                             	
 
-                            pushFollow(FOLLOW_block_in_check_statement1221);
-                            block105=block();
+                            pushFollow(FOLLOW_block_in_check_statement1224);
+                            block106=block();
 
                             state._fsp--;
 
-                            adaptor.addChild(root_0, block105.getTree());
+                            adaptor.addChild(root_0, block106.getTree());
 
                              
                             		symbol.popScope(); 
@@ -4348,7 +4375,7 @@ public TreeAdaptor getTreeAdaptor() {
                 case 2 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:770:6: always_start_2= ALWAYS block
                     {
-                    always_start_2=(Token)match(input,ALWAYS,FOLLOW_ALWAYS_in_check_statement1243); 
+                    always_start_2=(Token)match(input,ALWAYS,FOLLOW_ALWAYS_in_check_statement1246); 
                     always_start_2_tree = 
                     (CommonTree)adaptor.create(always_start_2)
                     ;
@@ -4363,12 +4390,12 @@ public TreeAdaptor getTreeAdaptor() {
                     		symbol.add(block); 
                     	
 
-                    pushFollow(FOLLOW_block_in_check_statement1254);
-                    block106=block();
+                    pushFollow(FOLLOW_block_in_check_statement1257);
+                    block107=block();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, block106.getTree());
+                    adaptor.addChild(root_0, block107.getTree());
 
                      
                     		symbol.popScope();
@@ -4383,7 +4410,7 @@ public TreeAdaptor getTreeAdaptor() {
             }
 
 
-            end=(Token)match(input,END,FOLLOW_END_in_check_statement1269); 
+            end=(Token)match(input,END,FOLLOW_END_in_check_statement1272); 
             end_tree = 
             (CommonTree)adaptor.create(end)
             ;
@@ -4436,17 +4463,17 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token ID107=null;
-        Token OF_TYPE108=null;
-        Token OR110=null;
-        QuorumParser.qualified_name_return qualified_name109 =null;
+        Token ID108=null;
+        Token OF_TYPE109=null;
+        Token OR111=null;
+        QuorumParser.qualified_name_return qualified_name110 =null;
 
-        QuorumParser.qualified_name_return qualified_name111 =null;
+        QuorumParser.qualified_name_return qualified_name112 =null;
 
 
-        CommonTree ID107_tree=null;
-        CommonTree OF_TYPE108_tree=null;
-        CommonTree OR110_tree=null;
+        CommonTree ID108_tree=null;
+        CommonTree OF_TYPE109_tree=null;
+        CommonTree OR111_tree=null;
         RewriteRuleTokenStream stream_ID=new RewriteRuleTokenStream(adaptor,"token ID");
         RewriteRuleTokenStream stream_OF_TYPE=new RewriteRuleTokenStream(adaptor,"token OF_TYPE");
         RewriteRuleTokenStream stream_OR=new RewriteRuleTokenStream(adaptor,"token OR");
@@ -4455,8 +4482,8 @@ public TreeAdaptor getTreeAdaptor() {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:793:2: ( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? -> ^( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? ) )
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:793:5: ID ( OF_TYPE qualified_name ( OR qualified_name )* )?
             {
-            ID107=(Token)match(input,ID,FOLLOW_ID_in_detect_parameter1297);  
-            stream_ID.add(ID107);
+            ID108=(Token)match(input,ID,FOLLOW_ID_in_detect_parameter1300);  
+            stream_ID.add(ID108);
 
 
 
@@ -4464,77 +4491,77 @@ public TreeAdaptor getTreeAdaptor() {
             	TypeDescriptor type = new TypeDescriptor();
             	type.setName("Libraries.Language.Errors.Error");
             	
-            	type.setLineBegin(ID107.getLine());
-            	type.setColumnBegin(ID107.getCharPositionInLine());
+            	type.setLineBegin(ID108.getLine());
+            	type.setColumnBegin(ID108.getCharPositionInLine());
             			
             	new_desc.setAccessModifier(AccessModifierEnum.PRIVATE);
             	           		
             	           		
             	new_desc.setType(type);
-            	new_desc.setName((ID107!=null?ID107.getText():null));
+            	new_desc.setName((ID108!=null?ID108.getText():null));
             	new_desc.setInitialized(true);
                        		
             	CompilerError error = symbol.add(new_desc);
             	if(error != null) {
-            		error.setLineNumber(ID107.getLine());
-            		error.setColumn(ID107.getCharPositionInLine());
+            		error.setLineNumber(ID108.getLine());
+            		error.setColumn(ID108.getCharPositionInLine());
             		vm.getCompilerErrors().addError(error);
             	}	
             	
 
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:818:2: ( OF_TYPE qualified_name ( OR qualified_name )* )?
-            int alt48=2;
-            int LA48_0 = input.LA(1);
+            int alt49=2;
+            int LA49_0 = input.LA(1);
 
-            if ( (LA48_0==OF_TYPE) ) {
-                alt48=1;
+            if ( (LA49_0==OF_TYPE) ) {
+                alt49=1;
             }
-            switch (alt48) {
+            switch (alt49) {
                 case 1 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:818:3: OF_TYPE qualified_name ( OR qualified_name )*
                     {
-                    OF_TYPE108=(Token)match(input,OF_TYPE,FOLLOW_OF_TYPE_in_detect_parameter1309);  
-                    stream_OF_TYPE.add(OF_TYPE108);
+                    OF_TYPE109=(Token)match(input,OF_TYPE,FOLLOW_OF_TYPE_in_detect_parameter1312);  
+                    stream_OF_TYPE.add(OF_TYPE109);
 
 
-                    pushFollow(FOLLOW_qualified_name_in_detect_parameter1311);
-                    qualified_name109=qualified_name();
+                    pushFollow(FOLLOW_qualified_name_in_detect_parameter1314);
+                    qualified_name110=qualified_name();
 
                     state._fsp--;
 
-                    stream_qualified_name.add(qualified_name109.getTree());
+                    stream_qualified_name.add(qualified_name110.getTree());
 
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:818:25: ( OR qualified_name )*
-                    loop47:
+                    loop48:
                     do {
-                        int alt47=2;
-                        int LA47_0 = input.LA(1);
+                        int alt48=2;
+                        int LA48_0 = input.LA(1);
 
-                        if ( (LA47_0==OR) ) {
-                            alt47=1;
+                        if ( (LA48_0==OR) ) {
+                            alt48=1;
                         }
 
 
-                        switch (alt47) {
+                        switch (alt48) {
                     	case 1 :
                     	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:818:26: OR qualified_name
                     	    {
-                    	    OR110=(Token)match(input,OR,FOLLOW_OR_in_detect_parameter1313);  
-                    	    stream_OR.add(OR110);
+                    	    OR111=(Token)match(input,OR,FOLLOW_OR_in_detect_parameter1316);  
+                    	    stream_OR.add(OR111);
 
 
-                    	    pushFollow(FOLLOW_qualified_name_in_detect_parameter1315);
-                    	    qualified_name111=qualified_name();
+                    	    pushFollow(FOLLOW_qualified_name_in_detect_parameter1318);
+                    	    qualified_name112=qualified_name();
 
                     	    state._fsp--;
 
-                    	    stream_qualified_name.add(qualified_name111.getTree());
+                    	    stream_qualified_name.add(qualified_name112.getTree());
 
                     	    }
                     	    break;
 
                     	default :
-                    	    break loop47;
+                    	    break loop48;
                         }
                     } while (true);
 
@@ -4546,7 +4573,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
             // AST REWRITE
-            // elements: OR, OF_TYPE, ID, qualified_name, qualified_name
+            // elements: ID, qualified_name, OR, qualified_name, OF_TYPE
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -4566,7 +4593,7 @@ public TreeAdaptor getTreeAdaptor() {
                 , root_1);
 
                 // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:819:10: ( OF_TYPE qualified_name ( OR qualified_name )* )?
-                if ( stream_OR.hasNext()||stream_OF_TYPE.hasNext()||stream_qualified_name.hasNext()||stream_qualified_name.hasNext() ) {
+                if ( stream_qualified_name.hasNext()||stream_OR.hasNext()||stream_qualified_name.hasNext()||stream_OF_TYPE.hasNext() ) {
                     adaptor.addChild(root_1, 
                     stream_OF_TYPE.nextNode()
                     );
@@ -4574,7 +4601,7 @@ public TreeAdaptor getTreeAdaptor() {
                     adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:819:33: ( OR qualified_name )*
-                    while ( stream_OR.hasNext()||stream_qualified_name.hasNext() ) {
+                    while ( stream_qualified_name.hasNext()||stream_OR.hasNext() ) {
                         adaptor.addChild(root_1, 
                         stream_OR.nextNode()
                         );
@@ -4582,14 +4609,14 @@ public TreeAdaptor getTreeAdaptor() {
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
                     }
-                    stream_OR.reset();
                     stream_qualified_name.reset();
+                    stream_OR.reset();
 
                 }
+                stream_qualified_name.reset();
                 stream_OR.reset();
+                stream_qualified_name.reset();
                 stream_OF_TYPE.reset();
-                stream_qualified_name.reset();
-                stream_qualified_name.reset();
 
                 adaptor.addChild(root_0, root_1);
                 }
@@ -4638,11 +4665,11 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token PRINT112=null;
-        QuorumParser.root_expression_return root_expression113 =null;
+        Token PRINT113=null;
+        QuorumParser.root_expression_return root_expression114 =null;
 
 
-        CommonTree PRINT112_tree=null;
+        CommonTree PRINT113_tree=null;
 
         try {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:822:2: ( PRINT root_expression )
@@ -4651,19 +4678,19 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            PRINT112=(Token)match(input,PRINT,FOLLOW_PRINT_in_print_statement1350); 
-            PRINT112_tree = 
-            (CommonTree)adaptor.create(PRINT112)
+            PRINT113=(Token)match(input,PRINT,FOLLOW_PRINT_in_print_statement1353); 
+            PRINT113_tree = 
+            (CommonTree)adaptor.create(PRINT113)
             ;
-            adaptor.addChild(root_0, PRINT112_tree);
+            adaptor.addChild(root_0, PRINT113_tree);
 
 
-            pushFollow(FOLLOW_root_expression_in_print_statement1352);
-            root_expression113=root_expression();
+            pushFollow(FOLLOW_root_expression_in_print_statement1355);
+            root_expression114=root_expression();
 
             state._fsp--;
 
-            adaptor.addChild(root_0, root_expression113.getTree());
+            adaptor.addChild(root_0, root_expression114.getTree());
 
             }
 
@@ -4704,11 +4731,11 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token SAY114=null;
-        QuorumParser.root_expression_return root_expression115 =null;
+        Token SAY115=null;
+        QuorumParser.root_expression_return root_expression116 =null;
 
 
-        CommonTree SAY114_tree=null;
+        CommonTree SAY115_tree=null;
 
         try {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:826:2: ( SAY root_expression )
@@ -4717,19 +4744,19 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            SAY114=(Token)match(input,SAY,FOLLOW_SAY_in_speak_statement1364); 
-            SAY114_tree = 
-            (CommonTree)adaptor.create(SAY114)
+            SAY115=(Token)match(input,SAY,FOLLOW_SAY_in_speak_statement1367); 
+            SAY115_tree = 
+            (CommonTree)adaptor.create(SAY115)
             ;
-            adaptor.addChild(root_0, SAY114_tree);
+            adaptor.addChild(root_0, SAY115_tree);
 
 
-            pushFollow(FOLLOW_root_expression_in_speak_statement1366);
-            root_expression115=root_expression();
+            pushFollow(FOLLOW_root_expression_in_speak_statement1369);
+            root_expression116=root_expression();
 
             state._fsp--;
 
-            adaptor.addChild(root_0, root_expression115.getTree());
+            adaptor.addChild(root_0, root_expression116.getTree());
 
             }
 
@@ -4770,13 +4797,13 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token RETURN116=null;
-        Token NOW118=null;
-        QuorumParser.root_expression_return root_expression117 =null;
+        Token RETURN117=null;
+        Token NOW119=null;
+        QuorumParser.root_expression_return root_expression118 =null;
 
 
-        CommonTree RETURN116_tree=null;
-        CommonTree NOW118_tree=null;
+        CommonTree RETURN117_tree=null;
+        CommonTree NOW119_tree=null;
 
         try {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:830:2: ( RETURN ( root_expression | NOW ) )
@@ -4785,51 +4812,51 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            RETURN116=(Token)match(input,RETURN,FOLLOW_RETURN_in_return_statement1377); 
-            RETURN116_tree = 
-            (CommonTree)adaptor.create(RETURN116)
+            RETURN117=(Token)match(input,RETURN,FOLLOW_RETURN_in_return_statement1380); 
+            RETURN117_tree = 
+            (CommonTree)adaptor.create(RETURN117)
             ;
-            adaptor.addChild(root_0, RETURN116_tree);
+            adaptor.addChild(root_0, RETURN117_tree);
 
 
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:830:11: ( root_expression | NOW )
-            int alt49=2;
-            int LA49_0 = input.LA(1);
+            int alt50=2;
+            int LA50_0 = input.LA(1);
 
-            if ( (LA49_0==BOOLEAN||LA49_0==CAST||LA49_0==DECIMAL||LA49_0==ID||(LA49_0 >= INPUT && LA49_0 <= INT)||LA49_0==LEFT_PAREN||(LA49_0 >= ME && LA49_0 <= MINUS)||LA49_0==NOT||LA49_0==NULL||LA49_0==PARENT||LA49_0==STRING) ) {
-                alt49=1;
+            if ( (LA50_0==BOOLEAN||LA50_0==CAST||LA50_0==DECIMAL||LA50_0==ID||(LA50_0 >= INPUT && LA50_0 <= INT)||LA50_0==LEFT_PAREN||(LA50_0 >= ME && LA50_0 <= MINUS)||LA50_0==NOT||LA50_0==NULL||LA50_0==PARENT||LA50_0==STRING) ) {
+                alt50=1;
             }
-            else if ( (LA49_0==NOW) ) {
-                alt49=2;
+            else if ( (LA50_0==NOW) ) {
+                alt50=2;
             }
             else {
                 NoViableAltException nvae =
-                    new NoViableAltException("", 49, 0, input);
+                    new NoViableAltException("", 50, 0, input);
 
                 throw nvae;
 
             }
-            switch (alt49) {
+            switch (alt50) {
                 case 1 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:830:13: root_expression
                     {
-                    pushFollow(FOLLOW_root_expression_in_return_statement1381);
-                    root_expression117=root_expression();
+                    pushFollow(FOLLOW_root_expression_in_return_statement1384);
+                    root_expression118=root_expression();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, root_expression117.getTree());
+                    adaptor.addChild(root_0, root_expression118.getTree());
 
                     }
                     break;
                 case 2 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:830:31: NOW
                     {
-                    NOW118=(Token)match(input,NOW,FOLLOW_NOW_in_return_statement1385); 
-                    NOW118_tree = 
-                    (CommonTree)adaptor.create(NOW118)
+                    NOW119=(Token)match(input,NOW,FOLLOW_NOW_in_return_statement1388); 
+                    NOW119_tree = 
+                    (CommonTree)adaptor.create(NOW119)
                     ;
-                    adaptor.addChild(root_0, NOW118_tree);
+                    adaptor.addChild(root_0, NOW119_tree);
 
 
                     }
@@ -4878,15 +4905,15 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token LESS119=null;
-        Token COMMA120=null;
-        Token GREATER121=null;
+        Token LESS120=null;
+        Token COMMA121=null;
+        Token GREATER122=null;
         Token ids=null;
         List list_ids=null;
 
-        CommonTree LESS119_tree=null;
-        CommonTree COMMA120_tree=null;
-        CommonTree GREATER121_tree=null;
+        CommonTree LESS120_tree=null;
+        CommonTree COMMA121_tree=null;
+        CommonTree GREATER122_tree=null;
         CommonTree ids_tree=null;
         RewriteRuleTokenStream stream_GREATER=new RewriteRuleTokenStream(adaptor,"token GREATER");
         RewriteRuleTokenStream stream_ID=new RewriteRuleTokenStream(adaptor,"token ID");
@@ -4897,11 +4924,11 @@ public TreeAdaptor getTreeAdaptor() {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:834:2: ( LESS ids+= ID ( COMMA ids+= ID )* GREATER -> ^( GENERIC LESS ID ( COMMA ID )* GREATER ) )
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:834:4: LESS ids+= ID ( COMMA ids+= ID )* GREATER
             {
-            LESS119=(Token)match(input,LESS,FOLLOW_LESS_in_generic_declaration1402);  
-            stream_LESS.add(LESS119);
+            LESS120=(Token)match(input,LESS,FOLLOW_LESS_in_generic_declaration1405);  
+            stream_LESS.add(LESS120);
 
 
-            ids=(Token)match(input,ID,FOLLOW_ID_in_generic_declaration1406);  
+            ids=(Token)match(input,ID,FOLLOW_ID_in_generic_declaration1409);  
             stream_ID.add(ids);
 
             if (list_ids==null) list_ids=new ArrayList();
@@ -4909,25 +4936,25 @@ public TreeAdaptor getTreeAdaptor() {
 
 
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:834:17: ( COMMA ids+= ID )*
-            loop50:
+            loop51:
             do {
-                int alt50=2;
-                int LA50_0 = input.LA(1);
+                int alt51=2;
+                int LA51_0 = input.LA(1);
 
-                if ( (LA50_0==COMMA) ) {
-                    alt50=1;
+                if ( (LA51_0==COMMA) ) {
+                    alt51=1;
                 }
 
 
-                switch (alt50) {
+                switch (alt51) {
             	case 1 :
             	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:834:18: COMMA ids+= ID
             	    {
-            	    COMMA120=(Token)match(input,COMMA,FOLLOW_COMMA_in_generic_declaration1409);  
-            	    stream_COMMA.add(COMMA120);
+            	    COMMA121=(Token)match(input,COMMA,FOLLOW_COMMA_in_generic_declaration1412);  
+            	    stream_COMMA.add(COMMA121);
 
 
-            	    ids=(Token)match(input,ID,FOLLOW_ID_in_generic_declaration1413);  
+            	    ids=(Token)match(input,ID,FOLLOW_ID_in_generic_declaration1416);  
             	    stream_ID.add(ids);
 
             	    if (list_ids==null) list_ids=new ArrayList();
@@ -4938,13 +4965,13 @@ public TreeAdaptor getTreeAdaptor() {
             	    break;
 
             	default :
-            	    break loop50;
+            	    break loop51;
                 }
             } while (true);
 
 
-            GREATER121=(Token)match(input,GREATER,FOLLOW_GREATER_in_generic_declaration1417);  
-            stream_GREATER.add(GREATER121);
+            GREATER122=(Token)match(input,GREATER,FOLLOW_GREATER_in_generic_declaration1420);  
+            stream_GREATER.add(GREATER122);
 
 
 
@@ -4971,7 +4998,7 @@ public TreeAdaptor getTreeAdaptor() {
             	
 
             // AST REWRITE
-            // elements: COMMA, GREATER, ID, ID, LESS
+            // elements: ID, LESS, GREATER, COMMA, ID
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -5071,15 +5098,15 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token LESS122=null;
-        Token COMMA123=null;
-        Token GREATER124=null;
+        Token LESS123=null;
+        Token COMMA124=null;
+        Token GREATER125=null;
         QuorumParser.assignment_declaration_return type =null;
 
 
-        CommonTree LESS122_tree=null;
-        CommonTree COMMA123_tree=null;
-        CommonTree GREATER124_tree=null;
+        CommonTree LESS123_tree=null;
+        CommonTree COMMA124_tree=null;
+        CommonTree GREATER125_tree=null;
         RewriteRuleTokenStream stream_GREATER=new RewriteRuleTokenStream(adaptor,"token GREATER");
         RewriteRuleTokenStream stream_COMMA=new RewriteRuleTokenStream(adaptor,"token COMMA");
         RewriteRuleTokenStream stream_LESS=new RewriteRuleTokenStream(adaptor,"token LESS");
@@ -5088,15 +5115,15 @@ public TreeAdaptor getTreeAdaptor() {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:863:2: ( LESS type= assignment_declaration ( COMMA type= assignment_declaration )* GREATER -> ^( GENERIC LESS assignment_declaration ( COMMA assignment_declaration )* GREATER ) )
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:863:4: LESS type= assignment_declaration ( COMMA type= assignment_declaration )* GREATER
             {
-            LESS122=(Token)match(input,LESS,FOLLOW_LESS_in_generic_statement1458);  
-            stream_LESS.add(LESS122);
+            LESS123=(Token)match(input,LESS,FOLLOW_LESS_in_generic_statement1461);  
+            stream_LESS.add(LESS123);
 
 
 
             		((generic_statement_scope)generic_statement_stack.peek()).typeList = new ArrayList<TypeDescriptor>();
             	
 
-            pushFollow(FOLLOW_assignment_declaration_in_generic_statement1468);
+            pushFollow(FOLLOW_assignment_declaration_in_generic_statement1471);
             type=assignment_declaration();
 
             state._fsp--;
@@ -5108,25 +5135,25 @@ public TreeAdaptor getTreeAdaptor() {
             	
 
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:871:2: ( COMMA type= assignment_declaration )*
-            loop51:
+            loop52:
             do {
-                int alt51=2;
-                int LA51_0 = input.LA(1);
+                int alt52=2;
+                int LA52_0 = input.LA(1);
 
-                if ( (LA51_0==COMMA) ) {
-                    alt51=1;
+                if ( (LA52_0==COMMA) ) {
+                    alt52=1;
                 }
 
 
-                switch (alt51) {
+                switch (alt52) {
             	case 1 :
             	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:871:3: COMMA type= assignment_declaration
             	    {
-            	    COMMA123=(Token)match(input,COMMA,FOLLOW_COMMA_in_generic_statement1475);  
-            	    stream_COMMA.add(COMMA123);
+            	    COMMA124=(Token)match(input,COMMA,FOLLOW_COMMA_in_generic_statement1478);  
+            	    stream_COMMA.add(COMMA124);
 
 
-            	    pushFollow(FOLLOW_assignment_declaration_in_generic_statement1479);
+            	    pushFollow(FOLLOW_assignment_declaration_in_generic_statement1482);
             	    type=assignment_declaration();
 
             	    state._fsp--;
@@ -5141,13 +5168,13 @@ public TreeAdaptor getTreeAdaptor() {
             	    break;
 
             	default :
-            	    break loop51;
+            	    break loop52;
                 }
             } while (true);
 
 
-            GREATER124=(Token)match(input,GREATER,FOLLOW_GREATER_in_generic_statement1489);  
-            stream_GREATER.add(GREATER124);
+            GREATER125=(Token)match(input,GREATER,FOLLOW_GREATER_in_generic_statement1492);  
+            stream_GREATER.add(GREATER125);
 
 
 
@@ -5177,7 +5204,7 @@ public TreeAdaptor getTreeAdaptor() {
             	
 
             // AST REWRITE
-            // elements: LESS, COMMA, GREATER, assignment_declaration, assignment_declaration
+            // elements: GREATER, LESS, assignment_declaration, COMMA, assignment_declaration
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -5203,7 +5230,7 @@ public TreeAdaptor getTreeAdaptor() {
                 adaptor.addChild(root_1, stream_assignment_declaration.nextTree());
 
                 // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:901:42: ( COMMA assignment_declaration )*
-                while ( stream_COMMA.hasNext()||stream_assignment_declaration.hasNext() ) {
+                while ( stream_assignment_declaration.hasNext()||stream_COMMA.hasNext() ) {
                     adaptor.addChild(root_1, 
                     stream_COMMA.nextNode()
                     );
@@ -5211,8 +5238,8 @@ public TreeAdaptor getTreeAdaptor() {
                     adaptor.addChild(root_1, stream_assignment_declaration.nextTree());
 
                 }
-                stream_COMMA.reset();
                 stream_assignment_declaration.reset();
+                stream_COMMA.reset();
 
                 adaptor.addChild(root_1, 
                 stream_GREATER.nextNode()
@@ -5278,7 +5305,7 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_qualified_name_in_class_type1529);
+            pushFollow(FOLLOW_qualified_name_in_class_type1532);
             qn=qualified_name();
 
             state._fsp--;
@@ -5341,65 +5368,65 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token INTEGER_KEYWORD125=null;
-        Token NUMBER_KEYWORD126=null;
-        Token TEXT127=null;
-        Token BOOLEAN_KEYWORD128=null;
+        Token INTEGER_KEYWORD126=null;
+        Token NUMBER_KEYWORD127=null;
+        Token TEXT128=null;
+        Token BOOLEAN_KEYWORD129=null;
         QuorumParser.qualified_name_return qn =null;
 
         QuorumParser.generic_statement_return gs =null;
 
 
-        CommonTree INTEGER_KEYWORD125_tree=null;
-        CommonTree NUMBER_KEYWORD126_tree=null;
-        CommonTree TEXT127_tree=null;
-        CommonTree BOOLEAN_KEYWORD128_tree=null;
+        CommonTree INTEGER_KEYWORD126_tree=null;
+        CommonTree NUMBER_KEYWORD127_tree=null;
+        CommonTree TEXT128_tree=null;
+        CommonTree BOOLEAN_KEYWORD129_tree=null;
 
         try {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:922:2: (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD )
-            int alt53=5;
+            int alt54=5;
             switch ( input.LA(1) ) {
             case ID:
                 {
-                alt53=1;
+                alt54=1;
                 }
                 break;
             case INTEGER_KEYWORD:
                 {
-                alt53=2;
+                alt54=2;
                 }
                 break;
             case NUMBER_KEYWORD:
                 {
-                alt53=3;
+                alt54=3;
                 }
                 break;
             case TEXT:
                 {
-                alt53=4;
+                alt54=4;
                 }
                 break;
             case BOOLEAN_KEYWORD:
                 {
-                alt53=5;
+                alt54=5;
                 }
                 break;
             default:
                 NoViableAltException nvae =
-                    new NoViableAltException("", 53, 0, input);
+                    new NoViableAltException("", 54, 0, input);
 
                 throw nvae;
 
             }
 
-            switch (alt53) {
+            switch (alt54) {
                 case 1 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:922:4: qn= qualified_name (gs= generic_statement )?
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    pushFollow(FOLLOW_qualified_name_in_assignment_declaration1550);
+                    pushFollow(FOLLOW_qualified_name_in_assignment_declaration1553);
                     qn=qualified_name();
 
                     state._fsp--;
@@ -5407,17 +5434,17 @@ public TreeAdaptor getTreeAdaptor() {
                     adaptor.addChild(root_0, qn.getTree());
 
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:922:26: (gs= generic_statement )?
-                    int alt52=2;
-                    int LA52_0 = input.LA(1);
+                    int alt53=2;
+                    int LA53_0 = input.LA(1);
 
-                    if ( (LA52_0==LESS) ) {
-                        alt52=1;
+                    if ( (LA53_0==LESS) ) {
+                        alt53=1;
                     }
-                    switch (alt52) {
+                    switch (alt53) {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:922:26: gs= generic_statement
                             {
-                            pushFollow(FOLLOW_generic_statement_in_assignment_declaration1554);
+                            pushFollow(FOLLOW_generic_statement_in_assignment_declaration1557);
                             gs=generic_statement();
 
                             state._fsp--;
@@ -5461,18 +5488,18 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    INTEGER_KEYWORD125=(Token)match(input,INTEGER_KEYWORD,FOLLOW_INTEGER_KEYWORD_in_assignment_declaration1563); 
-                    INTEGER_KEYWORD125_tree = 
-                    (CommonTree)adaptor.create(INTEGER_KEYWORD125)
+                    INTEGER_KEYWORD126=(Token)match(input,INTEGER_KEYWORD,FOLLOW_INTEGER_KEYWORD_in_assignment_declaration1566); 
+                    INTEGER_KEYWORD126_tree = 
+                    (CommonTree)adaptor.create(INTEGER_KEYWORD126)
                     ;
-                    adaptor.addChild(root_0, INTEGER_KEYWORD125_tree);
+                    adaptor.addChild(root_0, INTEGER_KEYWORD126_tree);
 
 
 
                     		TypeDescriptor t = new TypeDescriptor();
                     		t.setName(TypeDescriptor.INTEGER);
-                    		t.setLineBegin(INTEGER_KEYWORD125.getLine());
-                    		t.setColumnBegin(INTEGER_KEYWORD125.getCharPositionInLine());
+                    		t.setLineBegin(INTEGER_KEYWORD126.getLine());
+                    		t.setColumnBegin(INTEGER_KEYWORD126.getCharPositionInLine());
                     		retval.type = t;
                     	
 
@@ -5484,18 +5511,18 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    NUMBER_KEYWORD126=(Token)match(input,NUMBER_KEYWORD,FOLLOW_NUMBER_KEYWORD_in_assignment_declaration1571); 
-                    NUMBER_KEYWORD126_tree = 
-                    (CommonTree)adaptor.create(NUMBER_KEYWORD126)
+                    NUMBER_KEYWORD127=(Token)match(input,NUMBER_KEYWORD,FOLLOW_NUMBER_KEYWORD_in_assignment_declaration1574); 
+                    NUMBER_KEYWORD127_tree = 
+                    (CommonTree)adaptor.create(NUMBER_KEYWORD127)
                     ;
-                    adaptor.addChild(root_0, NUMBER_KEYWORD126_tree);
+                    adaptor.addChild(root_0, NUMBER_KEYWORD127_tree);
 
 
 
                     		TypeDescriptor t = new TypeDescriptor();
                     		t.setName(TypeDescriptor.NUMBER);
-                    		t.setLineBegin(NUMBER_KEYWORD126.getLine());
-                    		t.setColumnBegin(NUMBER_KEYWORD126.getCharPositionInLine());
+                    		t.setLineBegin(NUMBER_KEYWORD127.getLine());
+                    		t.setColumnBegin(NUMBER_KEYWORD127.getCharPositionInLine());
                     		retval.type = t;
                     	
 
@@ -5507,18 +5534,18 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    TEXT127=(Token)match(input,TEXT,FOLLOW_TEXT_in_assignment_declaration1579); 
-                    TEXT127_tree = 
-                    (CommonTree)adaptor.create(TEXT127)
+                    TEXT128=(Token)match(input,TEXT,FOLLOW_TEXT_in_assignment_declaration1582); 
+                    TEXT128_tree = 
+                    (CommonTree)adaptor.create(TEXT128)
                     ;
-                    adaptor.addChild(root_0, TEXT127_tree);
+                    adaptor.addChild(root_0, TEXT128_tree);
 
 
 
                     		TypeDescriptor t = new TypeDescriptor();
                     		t.setName(TypeDescriptor.TEXT);
-                    		t.setLineBegin(TEXT127.getLine());
-                    		t.setColumnBegin(TEXT127.getCharPositionInLine());
+                    		t.setLineBegin(TEXT128.getLine());
+                    		t.setColumnBegin(TEXT128.getCharPositionInLine());
                     		retval.type = t;
                     	
 
@@ -5530,18 +5557,18 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    BOOLEAN_KEYWORD128=(Token)match(input,BOOLEAN_KEYWORD,FOLLOW_BOOLEAN_KEYWORD_in_assignment_declaration1587); 
-                    BOOLEAN_KEYWORD128_tree = 
-                    (CommonTree)adaptor.create(BOOLEAN_KEYWORD128)
+                    BOOLEAN_KEYWORD129=(Token)match(input,BOOLEAN_KEYWORD,FOLLOW_BOOLEAN_KEYWORD_in_assignment_declaration1590); 
+                    BOOLEAN_KEYWORD129_tree = 
+                    (CommonTree)adaptor.create(BOOLEAN_KEYWORD129)
                     ;
-                    adaptor.addChild(root_0, BOOLEAN_KEYWORD128_tree);
+                    adaptor.addChild(root_0, BOOLEAN_KEYWORD129_tree);
 
 
 
                     		TypeDescriptor t = new TypeDescriptor();
                     		t.setName(TypeDescriptor.BOOLEAN);
-                    		t.setLineBegin(BOOLEAN_KEYWORD128.getLine());
-                    		t.setColumnBegin(BOOLEAN_KEYWORD128.getCharPositionInLine());
+                    		t.setLineBegin(BOOLEAN_KEYWORD129.getLine());
+                    		t.setColumnBegin(BOOLEAN_KEYWORD129.getCharPositionInLine());
                     		retval.type = t;
                     	
 
@@ -5578,7 +5605,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "assignment_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:977:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:977:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );
     public final QuorumParser.assignment_statement_return assignment_statement() throws RecognitionException {
         QuorumParser.assignment_statement_return retval = new QuorumParser.assignment_statement_return();
         retval.start = input.LT(1);
@@ -5587,13 +5614,14 @@ public TreeAdaptor getTreeAdaptor() {
         CommonTree root_0 = null;
 
         Token name=null;
-        Token COLON129=null;
-        Token ID130=null;
-        Token COLON131=null;
-        Token PARENT132=null;
-        Token COLON133=null;
+        Token COLON130=null;
+        Token ID131=null;
+        Token COLON132=null;
+        Token PARENT133=null;
         Token COLON134=null;
-        Token ID135=null;
+        Token COLON135=null;
+        Token ID136=null;
+        Token CONSTANT137=null;
         QuorumParser.selector_return sel =null;
 
         QuorumParser.assign_right_hand_side_return rhs =null;
@@ -5608,13 +5636,14 @@ public TreeAdaptor getTreeAdaptor() {
 
 
         CommonTree name_tree=null;
-        CommonTree COLON129_tree=null;
-        CommonTree ID130_tree=null;
-        CommonTree COLON131_tree=null;
-        CommonTree PARENT132_tree=null;
-        CommonTree COLON133_tree=null;
+        CommonTree COLON130_tree=null;
+        CommonTree ID131_tree=null;
+        CommonTree COLON132_tree=null;
+        CommonTree PARENT133_tree=null;
         CommonTree COLON134_tree=null;
-        CommonTree ID135_tree=null;
+        CommonTree COLON135_tree=null;
+        CommonTree ID136_tree=null;
+        CommonTree CONSTANT137_tree=null;
 
 
         	Documentation variableDocumentation = null;
@@ -5623,10 +5652,10 @@ public TreeAdaptor getTreeAdaptor() {
         	}
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:984:2: ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? )
-            int alt58=3;
-            alt58 = dfa58.predict(input);
-            switch (alt58) {
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:984:2: ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? )
+            int alt60=3;
+            alt60 = dfa60.predict(input);
+            switch (alt60) {
                 case 1 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:985:3: (sel= selector COLON )? ID rhs= assign_right_hand_side
                     {
@@ -5634,28 +5663,28 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:985:3: (sel= selector COLON )?
-                    int alt54=2;
-                    int LA54_0 = input.LA(1);
+                    int alt55=2;
+                    int LA55_0 = input.LA(1);
 
-                    if ( (LA54_0==ME||LA54_0==PARENT) ) {
-                        alt54=1;
+                    if ( (LA55_0==ME||LA55_0==PARENT) ) {
+                        alt55=1;
                     }
-                    switch (alt54) {
+                    switch (alt55) {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:985:4: sel= selector COLON
                             {
-                            pushFollow(FOLLOW_selector_in_assignment_statement1612);
+                            pushFollow(FOLLOW_selector_in_assignment_statement1613);
                             sel=selector();
 
                             state._fsp--;
 
                             adaptor.addChild(root_0, sel.getTree());
 
-                            COLON129=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1614); 
-                            COLON129_tree = 
-                            (CommonTree)adaptor.create(COLON129)
+                            COLON130=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1615); 
+                            COLON130_tree = 
+                            (CommonTree)adaptor.create(COLON130)
                             ;
-                            adaptor.addChild(root_0, COLON129_tree);
+                            adaptor.addChild(root_0, COLON130_tree);
 
 
                             }
@@ -5664,14 +5693,14 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    ID130=(Token)match(input,ID,FOLLOW_ID_in_assignment_statement1618); 
-                    ID130_tree = 
-                    (CommonTree)adaptor.create(ID130)
+                    ID131=(Token)match(input,ID,FOLLOW_ID_in_assignment_statement1619); 
+                    ID131_tree = 
+                    (CommonTree)adaptor.create(ID131)
                     ;
-                    adaptor.addChild(root_0, ID130_tree);
+                    adaptor.addChild(root_0, ID131_tree);
 
 
-                    pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1624);
+                    pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1625);
                     rhs=assign_right_hand_side();
 
                     state._fsp--;
@@ -5679,7 +5708,7 @@ public TreeAdaptor getTreeAdaptor() {
                     adaptor.addChild(root_0, rhs.getTree());
 
 
-                    			String initMe = (ID130!=null?ID130.getText():null);
+                    			String initMe = (ID131!=null?ID131.getText():null);
                     			ClassDescriptor clazz = symbol.getCurrentClass();
                     			if(clazz != null) {
                     				boolean validConstructorInit = false;
@@ -5706,7 +5735,7 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    pushFollow(FOLLOW_qualified_name_in_assignment_statement1635);
+                    pushFollow(FOLLOW_qualified_name_in_assignment_statement1636);
                     obj=qualified_name();
 
                     state._fsp--;
@@ -5714,42 +5743,42 @@ public TreeAdaptor getTreeAdaptor() {
                     adaptor.addChild(root_0, obj.getTree());
 
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1005:23: ( COLON PARENT COLON parent= qualified_name )?
-                    int alt55=2;
-                    int LA55_0 = input.LA(1);
+                    int alt56=2;
+                    int LA56_0 = input.LA(1);
 
-                    if ( (LA55_0==COLON) ) {
-                        int LA55_1 = input.LA(2);
+                    if ( (LA56_0==COLON) ) {
+                        int LA56_1 = input.LA(2);
 
-                        if ( (LA55_1==PARENT) ) {
-                            alt55=1;
+                        if ( (LA56_1==PARENT) ) {
+                            alt56=1;
                         }
                     }
-                    switch (alt55) {
+                    switch (alt56) {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1005:24: COLON PARENT COLON parent= qualified_name
                             {
-                            COLON131=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1638); 
-                            COLON131_tree = 
-                            (CommonTree)adaptor.create(COLON131)
+                            COLON132=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1639); 
+                            COLON132_tree = 
+                            (CommonTree)adaptor.create(COLON132)
                             ;
-                            adaptor.addChild(root_0, COLON131_tree);
+                            adaptor.addChild(root_0, COLON132_tree);
 
 
-                            PARENT132=(Token)match(input,PARENT,FOLLOW_PARENT_in_assignment_statement1640); 
-                            PARENT132_tree = 
-                            (CommonTree)adaptor.create(PARENT132)
+                            PARENT133=(Token)match(input,PARENT,FOLLOW_PARENT_in_assignment_statement1641); 
+                            PARENT133_tree = 
+                            (CommonTree)adaptor.create(PARENT133)
                             ;
-                            adaptor.addChild(root_0, PARENT132_tree);
+                            adaptor.addChild(root_0, PARENT133_tree);
 
 
-                            COLON133=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1642); 
-                            COLON133_tree = 
-                            (CommonTree)adaptor.create(COLON133)
+                            COLON134=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1643); 
+                            COLON134_tree = 
+                            (CommonTree)adaptor.create(COLON134)
                             ;
-                            adaptor.addChild(root_0, COLON133_tree);
+                            adaptor.addChild(root_0, COLON134_tree);
 
 
-                            pushFollow(FOLLOW_qualified_name_in_assignment_statement1646);
+                            pushFollow(FOLLOW_qualified_name_in_assignment_statement1647);
                             parent=qualified_name();
 
                             state._fsp--;
@@ -5762,21 +5791,21 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    COLON134=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1650); 
-                    COLON134_tree = 
-                    (CommonTree)adaptor.create(COLON134)
+                    COLON135=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1651); 
+                    COLON135_tree = 
+                    (CommonTree)adaptor.create(COLON135)
                     ;
-                    adaptor.addChild(root_0, COLON134_tree);
+                    adaptor.addChild(root_0, COLON135_tree);
 
 
-                    ID135=(Token)match(input,ID,FOLLOW_ID_in_assignment_statement1652); 
-                    ID135_tree = 
-                    (CommonTree)adaptor.create(ID135)
+                    ID136=(Token)match(input,ID,FOLLOW_ID_in_assignment_statement1653); 
+                    ID136_tree = 
+                    (CommonTree)adaptor.create(ID136)
                     ;
-                    adaptor.addChild(root_0, ID135_tree);
+                    adaptor.addChild(root_0, ID136_tree);
 
 
-                    pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1656);
+                    pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1657);
                     rhs=assign_right_hand_side();
 
                     state._fsp--;
@@ -5786,23 +5815,23 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1006:4: (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1006:4: (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )?
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
 
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1006:13: (modifier= access_modifier )?
-                    int alt56=2;
-                    int LA56_0 = input.LA(1);
+                    int alt57=2;
+                    int LA57_0 = input.LA(1);
 
-                    if ( ((LA56_0 >= PRIVATE && LA56_0 <= PUBLIC)) ) {
-                        alt56=1;
+                    if ( ((LA57_0 >= PRIVATE && LA57_0 <= PUBLIC)) ) {
+                        alt57=1;
                     }
-                    switch (alt56) {
+                    switch (alt57) {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1006:13: modifier= access_modifier
                             {
-                            pushFollow(FOLLOW_access_modifier_in_assignment_statement1665);
+                            pushFollow(FOLLOW_access_modifier_in_assignment_statement1666);
                             modifier=access_modifier();
 
                             state._fsp--;
@@ -5823,32 +5852,56 @@ public TreeAdaptor getTreeAdaptor() {
                     			}
                     		
 
-                    pushFollow(FOLLOW_assignment_declaration_in_assignment_statement1677);
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1014:2: ( CONSTANT )?
+                    int alt58=2;
+                    int LA58_0 = input.LA(1);
+
+                    if ( (LA58_0==CONSTANT) ) {
+                        alt58=1;
+                    }
+                    switch (alt58) {
+                        case 1 :
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1014:2: CONSTANT
+                            {
+                            CONSTANT137=(Token)match(input,CONSTANT,FOLLOW_CONSTANT_in_assignment_statement1674); 
+                            CONSTANT137_tree = 
+                            (CommonTree)adaptor.create(CONSTANT137)
+                            ;
+                            adaptor.addChild(root_0, CONSTANT137_tree);
+
+
+                            }
+                            break;
+
+                    }
+
+
+                    pushFollow(FOLLOW_assignment_declaration_in_assignment_statement1681);
                     type=assignment_declaration();
 
                     state._fsp--;
 
                     adaptor.addChild(root_0, type.getTree());
 
-                    name=(Token)match(input,ID,FOLLOW_ID_in_assignment_statement1683); 
+                    name=(Token)match(input,ID,FOLLOW_ID_in_assignment_statement1687); 
                     name_tree = 
                     (CommonTree)adaptor.create(name)
                     ;
                     adaptor.addChild(root_0, name_tree);
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1014:46: (rhs= assign_right_hand_side )?
-                    int alt57=2;
-                    int LA57_0 = input.LA(1);
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1014:56: (rhs= assign_right_hand_side )?
+                    int alt59=2;
+                    int LA59_0 = input.LA(1);
 
-                    if ( (LA57_0==EQUALITY) ) {
-                        alt57=1;
+                    if ( (LA59_0==EQUALITY) ) {
+                        alt59=1;
                     }
-                    switch (alt57) {
+                    switch (alt59) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1014:46: rhs= assign_right_hand_side
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1014:56: rhs= assign_right_hand_side
                             {
-                            pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1689);
+                            pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1693);
                             rhs=assign_right_hand_side();
 
                             state._fsp--;
@@ -5870,6 +5923,11 @@ public TreeAdaptor getTreeAdaptor() {
                     			new_desc.setAccessModifier(accessModifier);
                     			new_desc.setType((type!=null?type.type:null));
                     			new_desc.setName((name!=null?name.getText():null));
+                    			if(CONSTANT137 != null){
+                    				new_desc.setIsConstant(true);
+                    			}else{
+                    				new_desc.setIsConstant(false);
+                    			}
                     			
                     			if(rhs != null && isInClassAssignmentStatementScope) {
                     				new_desc.setIsInitializedClassVariable(true);
@@ -5926,7 +5984,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "assign_right_hand_side"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1047:1: assign_right_hand_side : ( EQUALITY root_expression ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1052:1: assign_right_hand_side : ( EQUALITY root_expression ) ;
     public final QuorumParser.assign_right_hand_side_return assign_right_hand_side() throws RecognitionException {
         QuorumParser.assign_right_hand_side_return retval = new QuorumParser.assign_right_hand_side_return();
         retval.start = input.LT(1);
@@ -5934,35 +5992,35 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token EQUALITY136=null;
-        QuorumParser.root_expression_return root_expression137 =null;
+        Token EQUALITY138=null;
+        QuorumParser.root_expression_return root_expression139 =null;
 
 
-        CommonTree EQUALITY136_tree=null;
+        CommonTree EQUALITY138_tree=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1049:2: ( ( EQUALITY root_expression ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1050:3: ( EQUALITY root_expression )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1054:2: ( ( EQUALITY root_expression ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1055:3: ( EQUALITY root_expression )
             {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1050:3: ( EQUALITY root_expression )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1050:4: EQUALITY root_expression
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1055:3: ( EQUALITY root_expression )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1055:4: EQUALITY root_expression
             {
-            EQUALITY136=(Token)match(input,EQUALITY,FOLLOW_EQUALITY_in_assign_right_hand_side1715); 
-            EQUALITY136_tree = 
-            (CommonTree)adaptor.create(EQUALITY136)
+            EQUALITY138=(Token)match(input,EQUALITY,FOLLOW_EQUALITY_in_assign_right_hand_side1719); 
+            EQUALITY138_tree = 
+            (CommonTree)adaptor.create(EQUALITY138)
             ;
-            adaptor.addChild(root_0, EQUALITY136_tree);
+            adaptor.addChild(root_0, EQUALITY138_tree);
 
 
-            pushFollow(FOLLOW_root_expression_in_assign_right_hand_side1717);
-            root_expression137=root_expression();
+            pushFollow(FOLLOW_root_expression_in_assign_right_hand_side1721);
+            root_expression139=root_expression();
 
             state._fsp--;
 
-            adaptor.addChild(root_0, root_expression137.getTree());
+            adaptor.addChild(root_0, root_expression139.getTree());
 
             }
 
@@ -5998,7 +6056,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "if_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1054:1: if_statement : firstif= IF root_expression block (firstelse= ELSE_IF root_expression block )* (secondelse= ELSE block )? end= END ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1059:1: if_statement : firstif= IF root_expression block (firstelse= ELSE_IF root_expression block )* (secondelse= ELSE block )? end= END ;
     public final QuorumParser.if_statement_return if_statement() throws RecognitionException {
         QuorumParser.if_statement_return retval = new QuorumParser.if_statement_return();
         retval.start = input.LT(1);
@@ -6010,15 +6068,15 @@ public TreeAdaptor getTreeAdaptor() {
         Token firstelse=null;
         Token secondelse=null;
         Token end=null;
-        QuorumParser.root_expression_return root_expression138 =null;
-
-        QuorumParser.block_return block139 =null;
-
         QuorumParser.root_expression_return root_expression140 =null;
 
         QuorumParser.block_return block141 =null;
 
-        QuorumParser.block_return block142 =null;
+        QuorumParser.root_expression_return root_expression142 =null;
+
+        QuorumParser.block_return block143 =null;
+
+        QuorumParser.block_return block144 =null;
 
 
         CommonTree firstif_tree=null;
@@ -6030,34 +6088,34 @@ public TreeAdaptor getTreeAdaptor() {
         	BlockDescriptor block;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1058:2: (firstif= IF root_expression block (firstelse= ELSE_IF root_expression block )* (secondelse= ELSE block )? end= END )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1059:2: firstif= IF root_expression block (firstelse= ELSE_IF root_expression block )* (secondelse= ELSE block )? end= END
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1063:2: (firstif= IF root_expression block (firstelse= ELSE_IF root_expression block )* (secondelse= ELSE block )? end= END )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1064:2: firstif= IF root_expression block (firstelse= ELSE_IF root_expression block )* (secondelse= ELSE block )? end= END
             {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            firstif=(Token)match(input,IF,FOLLOW_IF_in_if_statement1742); 
+            firstif=(Token)match(input,IF,FOLLOW_IF_in_if_statement1746); 
             firstif_tree = 
             (CommonTree)adaptor.create(firstif)
             ;
             adaptor.addChild(root_0, firstif_tree);
 
 
-            pushFollow(FOLLOW_root_expression_in_if_statement1744);
-            root_expression138=root_expression();
+            pushFollow(FOLLOW_root_expression_in_if_statement1748);
+            root_expression140=root_expression();
 
             state._fsp--;
 
-            adaptor.addChild(root_0, root_expression138.getTree());
+            adaptor.addChild(root_0, root_expression140.getTree());
 
              block = new BlockDescriptor(); symbol.add(block); 
 
-            pushFollow(FOLLOW_block_in_if_statement1750);
-            block139=block();
+            pushFollow(FOLLOW_block_in_if_statement1754);
+            block141=block();
 
             state._fsp--;
 
-            adaptor.addChild(root_0, block139.getTree());
+            adaptor.addChild(root_0, block141.getTree());
 
              
             		symbol.popScope(); 
@@ -6066,22 +6124,22 @@ public TreeAdaptor getTreeAdaptor() {
                    		block.setColumnBegin(firstif.getCharPositionInLine());
             	
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1067:2: (firstelse= ELSE_IF root_expression block )*
-            loop59:
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1072:2: (firstelse= ELSE_IF root_expression block )*
+            loop61:
             do {
-                int alt59=2;
-                int LA59_0 = input.LA(1);
+                int alt61=2;
+                int LA61_0 = input.LA(1);
 
-                if ( (LA59_0==ELSE_IF) ) {
-                    alt59=1;
+                if ( (LA61_0==ELSE_IF) ) {
+                    alt61=1;
                 }
 
 
-                switch (alt59) {
+                switch (alt61) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1067:3: firstelse= ELSE_IF root_expression block
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1072:3: firstelse= ELSE_IF root_expression block
             	    {
-            	    firstelse=(Token)match(input,ELSE_IF,FOLLOW_ELSE_IF_in_if_statement1762); 
+            	    firstelse=(Token)match(input,ELSE_IF,FOLLOW_ELSE_IF_in_if_statement1766); 
             	    firstelse_tree = 
             	    (CommonTree)adaptor.create(firstelse)
             	    ;
@@ -6093,21 +6151,21 @@ public TreeAdaptor getTreeAdaptor() {
             	    		block.setColumnEnd((firstelse!=null?firstelse.getText():null).length() + firstelse.getCharPositionInLine());
             	    	
 
-            	    pushFollow(FOLLOW_root_expression_in_if_statement1770);
-            	    root_expression140=root_expression();
+            	    pushFollow(FOLLOW_root_expression_in_if_statement1774);
+            	    root_expression142=root_expression();
 
             	    state._fsp--;
 
-            	    adaptor.addChild(root_0, root_expression140.getTree());
+            	    adaptor.addChild(root_0, root_expression142.getTree());
 
             	     block = new BlockDescriptor(); symbol.add(block); 
 
-            	    pushFollow(FOLLOW_block_in_if_statement1776);
-            	    block141=block();
+            	    pushFollow(FOLLOW_block_in_if_statement1780);
+            	    block143=block();
 
             	    state._fsp--;
 
-            	    adaptor.addChild(root_0, block141.getTree());
+            	    adaptor.addChild(root_0, block143.getTree());
 
             	     
             	    		symbol.popScope(); 
@@ -6120,23 +6178,23 @@ public TreeAdaptor getTreeAdaptor() {
             	    break;
 
             	default :
-            	    break loop59;
+            	    break loop61;
                 }
             } while (true);
 
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1081:2: (secondelse= ELSE block )?
-            int alt60=2;
-            int LA60_0 = input.LA(1);
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1086:2: (secondelse= ELSE block )?
+            int alt62=2;
+            int LA62_0 = input.LA(1);
 
-            if ( (LA60_0==ELSE) ) {
-                alt60=1;
+            if ( (LA62_0==ELSE) ) {
+                alt62=1;
             }
-            switch (alt60) {
+            switch (alt62) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1081:3: secondelse= ELSE block
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1086:3: secondelse= ELSE block
                     {
-                    secondelse=(Token)match(input,ELSE,FOLLOW_ELSE_in_if_statement1794); 
+                    secondelse=(Token)match(input,ELSE,FOLLOW_ELSE_in_if_statement1798); 
                     secondelse_tree = 
                     (CommonTree)adaptor.create(secondelse)
                     ;
@@ -6150,12 +6208,12 @@ public TreeAdaptor getTreeAdaptor() {
                     		symbol.add(block); 
                     	
 
-                    pushFollow(FOLLOW_block_in_if_statement1802);
-                    block142=block();
+                    pushFollow(FOLLOW_block_in_if_statement1806);
+                    block144=block();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, block142.getTree());
+                    adaptor.addChild(root_0, block144.getTree());
 
                      
                     		symbol.popScope(); 
@@ -6170,7 +6228,7 @@ public TreeAdaptor getTreeAdaptor() {
             }
 
 
-            end=(Token)match(input,END,FOLLOW_END_in_if_statement1818); 
+            end=(Token)match(input,END,FOLLOW_END_in_if_statement1822); 
             end_tree = 
             (CommonTree)adaptor.create(end)
             ;
@@ -6213,7 +6271,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "loop_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1103:1: loop_statement : REPEAT ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) ) block END ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1108:1: loop_statement : REPEAT ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) ) block END ;
     public final QuorumParser.loop_statement_return loop_statement() throws RecognitionException {
         QuorumParser.loop_statement_return retval = new QuorumParser.loop_statement_return();
         retval.start = input.LT(1);
@@ -6221,28 +6279,28 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token REPEAT143=null;
-        Token TIMES145=null;
-        Token set146=null;
-        Token END149=null;
-        QuorumParser.root_expression_return root_expression144 =null;
+        Token REPEAT145=null;
+        Token TIMES147=null;
+        Token set148=null;
+        Token END151=null;
+        QuorumParser.root_expression_return root_expression146 =null;
 
-        QuorumParser.root_expression_return root_expression147 =null;
+        QuorumParser.root_expression_return root_expression149 =null;
 
-        QuorumParser.block_return block148 =null;
+        QuorumParser.block_return block150 =null;
 
 
-        CommonTree REPEAT143_tree=null;
-        CommonTree TIMES145_tree=null;
-        CommonTree set146_tree=null;
-        CommonTree END149_tree=null;
+        CommonTree REPEAT145_tree=null;
+        CommonTree TIMES147_tree=null;
+        CommonTree set148_tree=null;
+        CommonTree END151_tree=null;
 
 
         	BlockDescriptor block;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1107:2: ( REPEAT ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) ) block END )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1108:2: REPEAT ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) ) block END
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1112:2: ( REPEAT ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) ) block END )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1113:2: REPEAT ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) ) block END
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -6252,49 +6310,49 @@ public TreeAdaptor getTreeAdaptor() {
             		symbol.add(block);
             	
 
-            REPEAT143=(Token)match(input,REPEAT,FOLLOW_REPEAT_in_loop_statement1843); 
-            REPEAT143_tree = 
-            (CommonTree)adaptor.create(REPEAT143)
+            REPEAT145=(Token)match(input,REPEAT,FOLLOW_REPEAT_in_loop_statement1847); 
+            REPEAT145_tree = 
+            (CommonTree)adaptor.create(REPEAT145)
             ;
-            adaptor.addChild(root_0, REPEAT143_tree);
+            adaptor.addChild(root_0, REPEAT145_tree);
 
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1112:10: ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) )
-            int alt61=2;
-            int LA61_0 = input.LA(1);
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1117:10: ( ( root_expression TIMES ) | ( ( WHILE | UNTIL ) root_expression ) )
+            int alt63=2;
+            int LA63_0 = input.LA(1);
 
-            if ( (LA61_0==BOOLEAN||LA61_0==CAST||LA61_0==DECIMAL||LA61_0==ID||(LA61_0 >= INPUT && LA61_0 <= INT)||LA61_0==LEFT_PAREN||(LA61_0 >= ME && LA61_0 <= MINUS)||LA61_0==NOT||LA61_0==NULL||LA61_0==PARENT||LA61_0==STRING) ) {
-                alt61=1;
+            if ( (LA63_0==BOOLEAN||LA63_0==CAST||LA63_0==DECIMAL||LA63_0==ID||(LA63_0 >= INPUT && LA63_0 <= INT)||LA63_0==LEFT_PAREN||(LA63_0 >= ME && LA63_0 <= MINUS)||LA63_0==NOT||LA63_0==NULL||LA63_0==PARENT||LA63_0==STRING) ) {
+                alt63=1;
             }
-            else if ( (LA61_0==UNTIL||LA61_0==WHILE) ) {
-                alt61=2;
+            else if ( (LA63_0==UNTIL||LA63_0==WHILE) ) {
+                alt63=2;
             }
             else {
                 NoViableAltException nvae =
-                    new NoViableAltException("", 61, 0, input);
+                    new NoViableAltException("", 63, 0, input);
 
                 throw nvae;
 
             }
-            switch (alt61) {
+            switch (alt63) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1128:4: ( root_expression TIMES )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1133:4: ( root_expression TIMES )
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1128:4: ( root_expression TIMES )
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1128:5: root_expression TIMES
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1133:4: ( root_expression TIMES )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1133:5: root_expression TIMES
                     {
-                    pushFollow(FOLLOW_root_expression_in_loop_statement1911);
-                    root_expression144=root_expression();
+                    pushFollow(FOLLOW_root_expression_in_loop_statement1915);
+                    root_expression146=root_expression();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, root_expression144.getTree());
+                    adaptor.addChild(root_0, root_expression146.getTree());
 
-                    TIMES145=(Token)match(input,TIMES,FOLLOW_TIMES_in_loop_statement1913); 
-                    TIMES145_tree = 
-                    (CommonTree)adaptor.create(TIMES145)
+                    TIMES147=(Token)match(input,TIMES,FOLLOW_TIMES_in_loop_statement1917); 
+                    TIMES147_tree = 
+                    (CommonTree)adaptor.create(TIMES147)
                     ;
-                    adaptor.addChild(root_0, TIMES145_tree);
+                    adaptor.addChild(root_0, TIMES147_tree);
 
 
                     }
@@ -6303,17 +6361,17 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1129:5: ( ( WHILE | UNTIL ) root_expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1134:5: ( ( WHILE | UNTIL ) root_expression )
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1129:5: ( ( WHILE | UNTIL ) root_expression )
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1129:6: ( WHILE | UNTIL ) root_expression
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1134:5: ( ( WHILE | UNTIL ) root_expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1134:6: ( WHILE | UNTIL ) root_expression
                     {
-                    set146=(Token)input.LT(1);
+                    set148=(Token)input.LT(1);
 
                     if ( input.LA(1)==UNTIL||input.LA(1)==WHILE ) {
                         input.consume();
                         adaptor.addChild(root_0, 
-                        (CommonTree)adaptor.create(set146)
+                        (CommonTree)adaptor.create(set148)
                         );
                         state.errorRecovery=false;
                     }
@@ -6323,12 +6381,12 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    pushFollow(FOLLOW_root_expression_in_loop_statement1929);
-                    root_expression147=root_expression();
+                    pushFollow(FOLLOW_root_expression_in_loop_statement1933);
+                    root_expression149=root_expression();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, root_expression147.getTree());
+                    adaptor.addChild(root_0, root_expression149.getTree());
 
                     }
 
@@ -6339,26 +6397,26 @@ public TreeAdaptor getTreeAdaptor() {
             }
 
 
-            pushFollow(FOLLOW_block_in_loop_statement1938);
-            block148=block();
+            pushFollow(FOLLOW_block_in_loop_statement1942);
+            block150=block();
 
             state._fsp--;
 
-            adaptor.addChild(root_0, block148.getTree());
+            adaptor.addChild(root_0, block150.getTree());
 
-            END149=(Token)match(input,END,FOLLOW_END_in_loop_statement1940); 
-            END149_tree = 
-            (CommonTree)adaptor.create(END149)
+            END151=(Token)match(input,END,FOLLOW_END_in_loop_statement1944); 
+            END151_tree = 
+            (CommonTree)adaptor.create(END151)
             ;
-            adaptor.addChild(root_0, END149_tree);
+            adaptor.addChild(root_0, END151_tree);
 
 
 
                    			//set the begin and end line column information in the block descriptors.
-                   			block.setLineBegin(REPEAT143.getLine());
-                   			block.setLineEnd(END149.getLine());
-                   			block.setColumnBegin(REPEAT143.getCharPositionInLine());
-                   			block.setColumnEnd((END149!=null?END149.getText():null).length() + END149.getCharPositionInLine());
+                   			block.setLineBegin(REPEAT145.getLine());
+                   			block.setLineEnd(END151.getLine());
+                   			block.setColumnBegin(REPEAT145.getCharPositionInLine());
+                   			block.setColumnEnd((END151!=null?END151.getText():null).length() + END151.getCharPositionInLine());
                    		
 
 
@@ -6397,7 +6455,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "selector"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1145:1: selector returns [ScopeSelector scopeSel] : ( PARENT COLON qn= qualified_name -> ^( PARENT qualified_name ) | ME );
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1150:1: selector returns [ScopeSelector scopeSel] : ( PARENT COLON qn= qualified_name -> ^( PARENT qualified_name ) | ME );
     public final QuorumParser.selector_return selector() throws RecognitionException {
         QuorumParser.selector_return retval = new QuorumParser.selector_return();
         retval.start = input.LT(1);
@@ -6405,49 +6463,49 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token PARENT150=null;
-        Token COLON151=null;
-        Token ME152=null;
+        Token PARENT152=null;
+        Token COLON153=null;
+        Token ME154=null;
         QuorumParser.qualified_name_return qn =null;
 
 
-        CommonTree PARENT150_tree=null;
-        CommonTree COLON151_tree=null;
-        CommonTree ME152_tree=null;
+        CommonTree PARENT152_tree=null;
+        CommonTree COLON153_tree=null;
+        CommonTree ME154_tree=null;
         RewriteRuleTokenStream stream_COLON=new RewriteRuleTokenStream(adaptor,"token COLON");
         RewriteRuleTokenStream stream_PARENT=new RewriteRuleTokenStream(adaptor,"token PARENT");
         RewriteRuleSubtreeStream stream_qualified_name=new RewriteRuleSubtreeStream(adaptor,"rule qualified_name");
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1146:2: ( PARENT COLON qn= qualified_name -> ^( PARENT qualified_name ) | ME )
-            int alt62=2;
-            int LA62_0 = input.LA(1);
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1151:2: ( PARENT COLON qn= qualified_name -> ^( PARENT qualified_name ) | ME )
+            int alt64=2;
+            int LA64_0 = input.LA(1);
 
-            if ( (LA62_0==PARENT) ) {
-                alt62=1;
+            if ( (LA64_0==PARENT) ) {
+                alt64=1;
             }
-            else if ( (LA62_0==ME) ) {
-                alt62=2;
+            else if ( (LA64_0==ME) ) {
+                alt64=2;
             }
             else {
                 NoViableAltException nvae =
-                    new NoViableAltException("", 62, 0, input);
+                    new NoViableAltException("", 64, 0, input);
 
                 throw nvae;
 
             }
-            switch (alt62) {
+            switch (alt64) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1146:4: PARENT COLON qn= qualified_name
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1151:4: PARENT COLON qn= qualified_name
                     {
-                    PARENT150=(Token)match(input,PARENT,FOLLOW_PARENT_in_selector1964);  
-                    stream_PARENT.add(PARENT150);
+                    PARENT152=(Token)match(input,PARENT,FOLLOW_PARENT_in_selector1968);  
+                    stream_PARENT.add(PARENT152);
 
 
-                    COLON151=(Token)match(input,COLON,FOLLOW_COLON_in_selector1966);  
-                    stream_COLON.add(COLON151);
+                    COLON153=(Token)match(input,COLON,FOLLOW_COLON_in_selector1970);  
+                    stream_COLON.add(COLON153);
 
 
-                    pushFollow(FOLLOW_qualified_name_in_selector1970);
+                    pushFollow(FOLLOW_qualified_name_in_selector1974);
                     qn=qualified_name();
 
                     state._fsp--;
@@ -6471,9 +6529,9 @@ public TreeAdaptor getTreeAdaptor() {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1151:4: -> ^( PARENT qualified_name )
+                    // 1156:4: -> ^( PARENT qualified_name )
                     {
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1151:7: ^( PARENT qualified_name )
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1156:7: ^( PARENT qualified_name )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(
@@ -6493,16 +6551,16 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1153:4: ME
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1158:4: ME
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    ME152=(Token)match(input,ME,FOLLOW_ME_in_selector1988); 
-                    ME152_tree = 
-                    (CommonTree)adaptor.create(ME152)
+                    ME154=(Token)match(input,ME,FOLLOW_ME_in_selector1992); 
+                    ME154_tree = 
+                    (CommonTree)adaptor.create(ME154)
                     ;
-                    adaptor.addChild(root_0, ME152_tree);
+                    adaptor.addChild(root_0, ME154_tree);
 
 
 
@@ -6544,7 +6602,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "root_expression"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1161:1: root_expression : expression -> ^( ROOT_EXPRESSION expression ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1166:1: root_expression : expression -> ^( ROOT_EXPRESSION expression ) ;
     public final QuorumParser.root_expression_return root_expression() throws RecognitionException {
         QuorumParser.root_expression_return retval = new QuorumParser.root_expression_return();
         retval.start = input.LT(1);
@@ -6552,20 +6610,20 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        QuorumParser.expression_return expression153 =null;
+        QuorumParser.expression_return expression155 =null;
 
 
         RewriteRuleSubtreeStream stream_expression=new RewriteRuleSubtreeStream(adaptor,"rule expression");
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1162:2: ( expression -> ^( ROOT_EXPRESSION expression ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1162:4: expression
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1167:2: ( expression -> ^( ROOT_EXPRESSION expression ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1167:4: expression
             {
-            pushFollow(FOLLOW_expression_in_root_expression2002);
-            expression153=expression();
+            pushFollow(FOLLOW_expression_in_root_expression2006);
+            expression155=expression();
 
             state._fsp--;
 
-            stream_expression.add(expression153.getTree());
+            stream_expression.add(expression155.getTree());
 
             // AST REWRITE
             // elements: expression
@@ -6578,9 +6636,9 @@ public TreeAdaptor getTreeAdaptor() {
             RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
             root_0 = (CommonTree)adaptor.nil();
-            // 1162:15: -> ^( ROOT_EXPRESSION expression )
+            // 1167:15: -> ^( ROOT_EXPRESSION expression )
             {
-                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1162:18: ^( ROOT_EXPRESSION expression )
+                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1167:18: ^( ROOT_EXPRESSION expression )
                 {
                 CommonTree root_1 = (CommonTree)adaptor.nil();
                 root_1 = (CommonTree)adaptor.becomeRoot(
@@ -6628,7 +6686,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "expression"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1165:1: expression : or ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1170:1: expression : or ;
     public final QuorumParser.expression_return expression() throws RecognitionException {
         QuorumParser.expression_return retval = new QuorumParser.expression_return();
         retval.start = input.LT(1);
@@ -6636,23 +6694,23 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        QuorumParser.or_return or154 =null;
+        QuorumParser.or_return or156 =null;
 
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1166:2: ( or )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1166:4: or
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1171:2: ( or )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1171:4: or
             {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_or_in_expression2022);
-            or154=or();
+            pushFollow(FOLLOW_or_in_expression2026);
+            or156=or();
 
             state._fsp--;
 
-            adaptor.addChild(root_0, or154.getTree());
+            adaptor.addChild(root_0, or156.getTree());
 
             }
 
@@ -6685,7 +6743,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "or"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:1: or : and ( OR ^ and )* ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1174:1: or : and ( OR ^ and )* ;
     public final QuorumParser.or_return or() throws RecognitionException {
         QuorumParser.or_return retval = new QuorumParser.or_return();
         retval.start = input.LT(1);
@@ -6693,62 +6751,62 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token OR156=null;
-        QuorumParser.and_return and155 =null;
-
+        Token OR158=null;
         QuorumParser.and_return and157 =null;
 
+        QuorumParser.and_return and159 =null;
 
-        CommonTree OR156_tree=null;
+
+        CommonTree OR158_tree=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:5: ( and ( OR ^ and )* )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:7: and ( OR ^ and )*
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1174:5: ( and ( OR ^ and )* )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1174:7: and ( OR ^ and )*
             {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_and_in_or2034);
-            and155=and();
+            pushFollow(FOLLOW_and_in_or2038);
+            and157=and();
 
             state._fsp--;
 
-            adaptor.addChild(root_0, and155.getTree());
+            adaptor.addChild(root_0, and157.getTree());
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:11: ( OR ^ and )*
-            loop63:
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1174:11: ( OR ^ and )*
+            loop65:
             do {
-                int alt63=2;
-                int LA63_0 = input.LA(1);
+                int alt65=2;
+                int LA65_0 = input.LA(1);
 
-                if ( (LA63_0==OR) ) {
-                    alt63=1;
+                if ( (LA65_0==OR) ) {
+                    alt65=1;
                 }
 
 
-                switch (alt63) {
+                switch (alt65) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1169:12: OR ^ and
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1174:12: OR ^ and
             	    {
-            	    OR156=(Token)match(input,OR,FOLLOW_OR_in_or2037); 
-            	    OR156_tree = 
-            	    (CommonTree)adaptor.create(OR156)
+            	    OR158=(Token)match(input,OR,FOLLOW_OR_in_or2041); 
+            	    OR158_tree = 
+            	    (CommonTree)adaptor.create(OR158)
             	    ;
-            	    root_0 = (CommonTree)adaptor.becomeRoot(OR156_tree, root_0);
+            	    root_0 = (CommonTree)adaptor.becomeRoot(OR158_tree, root_0);
 
 
-            	    pushFollow(FOLLOW_and_in_or2041);
-            	    and157=and();
+            	    pushFollow(FOLLOW_and_in_or2045);
+            	    and159=and();
 
             	    state._fsp--;
 
-            	    adaptor.addChild(root_0, and157.getTree());
+            	    adaptor.addChild(root_0, and159.getTree());
 
             	    }
             	    break;
 
             	default :
-            	    break loop63;
+            	    break loop65;
                 }
             } while (true);
 
@@ -6784,7 +6842,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "and"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:1: and : equality ( AND ^ equality )* ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1177:1: and : equality ( AND ^ equality )* ;
     public final QuorumParser.and_return and() throws RecognitionException {
         QuorumParser.and_return retval = new QuorumParser.and_return();
         retval.start = input.LT(1);
@@ -6792,62 +6850,62 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token AND159=null;
-        QuorumParser.equality_return equality158 =null;
-
+        Token AND161=null;
         QuorumParser.equality_return equality160 =null;
 
+        QuorumParser.equality_return equality162 =null;
 
-        CommonTree AND159_tree=null;
+
+        CommonTree AND161_tree=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:6: ( equality ( AND ^ equality )* )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:8: equality ( AND ^ equality )*
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1177:6: ( equality ( AND ^ equality )* )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1177:8: equality ( AND ^ equality )*
             {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_equality_in_and2054);
-            equality158=equality();
+            pushFollow(FOLLOW_equality_in_and2058);
+            equality160=equality();
 
             state._fsp--;
 
-            adaptor.addChild(root_0, equality158.getTree());
+            adaptor.addChild(root_0, equality160.getTree());
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:17: ( AND ^ equality )*
-            loop64:
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1177:17: ( AND ^ equality )*
+            loop66:
             do {
-                int alt64=2;
-                int LA64_0 = input.LA(1);
+                int alt66=2;
+                int LA66_0 = input.LA(1);
 
-                if ( (LA64_0==AND) ) {
-                    alt64=1;
+                if ( (LA66_0==AND) ) {
+                    alt66=1;
                 }
 
 
-                switch (alt64) {
+                switch (alt66) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:18: AND ^ equality
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1177:18: AND ^ equality
             	    {
-            	    AND159=(Token)match(input,AND,FOLLOW_AND_in_and2057); 
-            	    AND159_tree = 
-            	    (CommonTree)adaptor.create(AND159)
+            	    AND161=(Token)match(input,AND,FOLLOW_AND_in_and2061); 
+            	    AND161_tree = 
+            	    (CommonTree)adaptor.create(AND161)
             	    ;
-            	    root_0 = (CommonTree)adaptor.becomeRoot(AND159_tree, root_0);
+            	    root_0 = (CommonTree)adaptor.becomeRoot(AND161_tree, root_0);
 
 
-            	    pushFollow(FOLLOW_equality_in_and2061);
-            	    equality160=equality();
+            	    pushFollow(FOLLOW_equality_in_and2065);
+            	    equality162=equality();
 
             	    state._fsp--;
 
-            	    adaptor.addChild(root_0, equality160.getTree());
+            	    adaptor.addChild(root_0, equality162.getTree());
 
             	    }
             	    break;
 
             	default :
-            	    break loop64;
+            	    break loop66;
                 }
             } while (true);
 
@@ -6883,7 +6941,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "equality"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1174:1: equality : isa_operation ( ( EQUALITY ^| NOTEQUALS ^) isa_operation )* ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:1: equality : isa_operation ( ( EQUALITY ^| NOTEQUALS ^) isa_operation )* ;
     public final QuorumParser.equality_return equality() throws RecognitionException {
         QuorumParser.equality_return retval = new QuorumParser.equality_return();
         retval.start = input.LT(1);
@@ -6891,83 +6949,83 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token EQUALITY162=null;
-        Token NOTEQUALS163=null;
-        QuorumParser.isa_operation_return isa_operation161 =null;
+        Token EQUALITY164=null;
+        Token NOTEQUALS165=null;
+        QuorumParser.isa_operation_return isa_operation163 =null;
 
-        QuorumParser.isa_operation_return isa_operation164 =null;
+        QuorumParser.isa_operation_return isa_operation166 =null;
 
 
-        CommonTree EQUALITY162_tree=null;
-        CommonTree NOTEQUALS163_tree=null;
+        CommonTree EQUALITY164_tree=null;
+        CommonTree NOTEQUALS165_tree=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1174:9: ( isa_operation ( ( EQUALITY ^| NOTEQUALS ^) isa_operation )* )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1174:11: isa_operation ( ( EQUALITY ^| NOTEQUALS ^) isa_operation )*
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:9: ( isa_operation ( ( EQUALITY ^| NOTEQUALS ^) isa_operation )* )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:11: isa_operation ( ( EQUALITY ^| NOTEQUALS ^) isa_operation )*
             {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_isa_operation_in_equality2072);
-            isa_operation161=isa_operation();
+            pushFollow(FOLLOW_isa_operation_in_equality2076);
+            isa_operation163=isa_operation();
 
             state._fsp--;
 
-            adaptor.addChild(root_0, isa_operation161.getTree());
+            adaptor.addChild(root_0, isa_operation163.getTree());
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1174:25: ( ( EQUALITY ^| NOTEQUALS ^) isa_operation )*
-            loop66:
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:25: ( ( EQUALITY ^| NOTEQUALS ^) isa_operation )*
+            loop68:
             do {
-                int alt66=2;
-                int LA66_0 = input.LA(1);
+                int alt68=2;
+                int LA68_0 = input.LA(1);
 
-                if ( (LA66_0==EQUALITY||LA66_0==NOTEQUALS) ) {
-                    alt66=1;
+                if ( (LA68_0==EQUALITY||LA68_0==NOTEQUALS) ) {
+                    alt68=1;
                 }
 
 
-                switch (alt66) {
+                switch (alt68) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1174:26: ( EQUALITY ^| NOTEQUALS ^) isa_operation
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:26: ( EQUALITY ^| NOTEQUALS ^) isa_operation
             	    {
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1174:26: ( EQUALITY ^| NOTEQUALS ^)
-            	    int alt65=2;
-            	    int LA65_0 = input.LA(1);
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:26: ( EQUALITY ^| NOTEQUALS ^)
+            	    int alt67=2;
+            	    int LA67_0 = input.LA(1);
 
-            	    if ( (LA65_0==EQUALITY) ) {
-            	        alt65=1;
+            	    if ( (LA67_0==EQUALITY) ) {
+            	        alt67=1;
             	    }
-            	    else if ( (LA65_0==NOTEQUALS) ) {
-            	        alt65=2;
+            	    else if ( (LA67_0==NOTEQUALS) ) {
+            	        alt67=2;
             	    }
             	    else {
             	        NoViableAltException nvae =
-            	            new NoViableAltException("", 65, 0, input);
+            	            new NoViableAltException("", 67, 0, input);
 
             	        throw nvae;
 
             	    }
-            	    switch (alt65) {
+            	    switch (alt67) {
             	        case 1 :
-            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1174:27: EQUALITY ^
+            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:27: EQUALITY ^
             	            {
-            	            EQUALITY162=(Token)match(input,EQUALITY,FOLLOW_EQUALITY_in_equality2076); 
-            	            EQUALITY162_tree = 
-            	            (CommonTree)adaptor.create(EQUALITY162)
+            	            EQUALITY164=(Token)match(input,EQUALITY,FOLLOW_EQUALITY_in_equality2080); 
+            	            EQUALITY164_tree = 
+            	            (CommonTree)adaptor.create(EQUALITY164)
             	            ;
-            	            root_0 = (CommonTree)adaptor.becomeRoot(EQUALITY162_tree, root_0);
+            	            root_0 = (CommonTree)adaptor.becomeRoot(EQUALITY164_tree, root_0);
 
 
             	            }
             	            break;
             	        case 2 :
-            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1174:40: NOTEQUALS ^
+            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:40: NOTEQUALS ^
             	            {
-            	            NOTEQUALS163=(Token)match(input,NOTEQUALS,FOLLOW_NOTEQUALS_in_equality2082); 
-            	            NOTEQUALS163_tree = 
-            	            (CommonTree)adaptor.create(NOTEQUALS163)
+            	            NOTEQUALS165=(Token)match(input,NOTEQUALS,FOLLOW_NOTEQUALS_in_equality2086); 
+            	            NOTEQUALS165_tree = 
+            	            (CommonTree)adaptor.create(NOTEQUALS165)
             	            ;
-            	            root_0 = (CommonTree)adaptor.becomeRoot(NOTEQUALS163_tree, root_0);
+            	            root_0 = (CommonTree)adaptor.becomeRoot(NOTEQUALS165_tree, root_0);
 
 
             	            }
@@ -6976,18 +7034,18 @@ public TreeAdaptor getTreeAdaptor() {
             	    }
 
 
-            	    pushFollow(FOLLOW_isa_operation_in_equality2087);
-            	    isa_operation164=isa_operation();
+            	    pushFollow(FOLLOW_isa_operation_in_equality2091);
+            	    isa_operation166=isa_operation();
 
             	    state._fsp--;
 
-            	    adaptor.addChild(root_0, isa_operation164.getTree());
+            	    adaptor.addChild(root_0, isa_operation166.getTree());
 
             	    }
             	    break;
 
             	default :
-            	    break loop66;
+            	    break loop68;
                 }
             } while (true);
 
@@ -7023,7 +7081,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "isa_operation"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1176:1: isa_operation : comparison ( INHERITS ^ class_type )? ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1181:1: isa_operation : comparison ( INHERITS ^ class_type )? ;
     public final QuorumParser.isa_operation_return isa_operation() throws RecognitionException {
         QuorumParser.isa_operation_return retval = new QuorumParser.isa_operation_return();
         retval.start = input.LT(1);
@@ -7031,52 +7089,52 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token INHERITS166=null;
-        QuorumParser.comparison_return comparison165 =null;
+        Token INHERITS168=null;
+        QuorumParser.comparison_return comparison167 =null;
 
-        QuorumParser.class_type_return class_type167 =null;
+        QuorumParser.class_type_return class_type169 =null;
 
 
-        CommonTree INHERITS166_tree=null;
+        CommonTree INHERITS168_tree=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1177:2: ( comparison ( INHERITS ^ class_type )? )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1177:4: comparison ( INHERITS ^ class_type )?
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1182:2: ( comparison ( INHERITS ^ class_type )? )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1182:4: comparison ( INHERITS ^ class_type )?
             {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_comparison_in_isa_operation2099);
-            comparison165=comparison();
+            pushFollow(FOLLOW_comparison_in_isa_operation2103);
+            comparison167=comparison();
 
             state._fsp--;
 
-            adaptor.addChild(root_0, comparison165.getTree());
+            adaptor.addChild(root_0, comparison167.getTree());
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1177:15: ( INHERITS ^ class_type )?
-            int alt67=2;
-            int LA67_0 = input.LA(1);
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1182:15: ( INHERITS ^ class_type )?
+            int alt69=2;
+            int LA69_0 = input.LA(1);
 
-            if ( (LA67_0==INHERITS) ) {
-                alt67=1;
+            if ( (LA69_0==INHERITS) ) {
+                alt69=1;
             }
-            switch (alt67) {
+            switch (alt69) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1177:16: INHERITS ^ class_type
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1182:16: INHERITS ^ class_type
                     {
-                    INHERITS166=(Token)match(input,INHERITS,FOLLOW_INHERITS_in_isa_operation2102); 
-                    INHERITS166_tree = 
-                    (CommonTree)adaptor.create(INHERITS166)
+                    INHERITS168=(Token)match(input,INHERITS,FOLLOW_INHERITS_in_isa_operation2106); 
+                    INHERITS168_tree = 
+                    (CommonTree)adaptor.create(INHERITS168)
                     ;
-                    root_0 = (CommonTree)adaptor.becomeRoot(INHERITS166_tree, root_0);
+                    root_0 = (CommonTree)adaptor.becomeRoot(INHERITS168_tree, root_0);
 
 
-                    pushFollow(FOLLOW_class_type_in_isa_operation2106);
-                    class_type167=class_type();
+                    pushFollow(FOLLOW_class_type_in_isa_operation2110);
+                    class_type169=class_type();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, class_type167.getTree());
+                    adaptor.addChild(root_0, class_type169.getTree());
 
                     }
                     break;
@@ -7115,7 +7173,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "comparison"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:1: comparison : add ( ( GREATER ^| GREATER_EQUAL ^| LESS ^| LESS_EQUAL ^) add )* ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1184:1: comparison : add ( ( GREATER ^| GREATER_EQUAL ^| LESS ^| LESS_EQUAL ^) add )* ;
     public final QuorumParser.comparison_return comparison() throws RecognitionException {
         QuorumParser.comparison_return retval = new QuorumParser.comparison_return();
         retval.start = input.LT(1);
@@ -7123,125 +7181,125 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token GREATER169=null;
-        Token GREATER_EQUAL170=null;
-        Token LESS171=null;
-        Token LESS_EQUAL172=null;
-        QuorumParser.add_return add168 =null;
+        Token GREATER171=null;
+        Token GREATER_EQUAL172=null;
+        Token LESS173=null;
+        Token LESS_EQUAL174=null;
+        QuorumParser.add_return add170 =null;
 
-        QuorumParser.add_return add173 =null;
+        QuorumParser.add_return add175 =null;
 
 
-        CommonTree GREATER169_tree=null;
-        CommonTree GREATER_EQUAL170_tree=null;
-        CommonTree LESS171_tree=null;
-        CommonTree LESS_EQUAL172_tree=null;
+        CommonTree GREATER171_tree=null;
+        CommonTree GREATER_EQUAL172_tree=null;
+        CommonTree LESS173_tree=null;
+        CommonTree LESS_EQUAL174_tree=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:11: ( add ( ( GREATER ^| GREATER_EQUAL ^| LESS ^| LESS_EQUAL ^) add )* )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:13: add ( ( GREATER ^| GREATER_EQUAL ^| LESS ^| LESS_EQUAL ^) add )*
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1184:11: ( add ( ( GREATER ^| GREATER_EQUAL ^| LESS ^| LESS_EQUAL ^) add )* )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1184:13: add ( ( GREATER ^| GREATER_EQUAL ^| LESS ^| LESS_EQUAL ^) add )*
             {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_add_in_comparison2116);
-            add168=add();
+            pushFollow(FOLLOW_add_in_comparison2120);
+            add170=add();
 
             state._fsp--;
 
-            adaptor.addChild(root_0, add168.getTree());
+            adaptor.addChild(root_0, add170.getTree());
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:17: ( ( GREATER ^| GREATER_EQUAL ^| LESS ^| LESS_EQUAL ^) add )*
-            loop69:
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1184:17: ( ( GREATER ^| GREATER_EQUAL ^| LESS ^| LESS_EQUAL ^) add )*
+            loop71:
             do {
-                int alt69=2;
-                int LA69_0 = input.LA(1);
+                int alt71=2;
+                int LA71_0 = input.LA(1);
 
-                if ( ((LA69_0 >= GREATER && LA69_0 <= GREATER_EQUAL)||(LA69_0 >= LESS && LA69_0 <= LESS_EQUAL)) ) {
-                    alt69=1;
+                if ( ((LA71_0 >= GREATER && LA71_0 <= GREATER_EQUAL)||(LA71_0 >= LESS && LA71_0 <= LESS_EQUAL)) ) {
+                    alt71=1;
                 }
 
 
-                switch (alt69) {
+                switch (alt71) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:18: ( GREATER ^| GREATER_EQUAL ^| LESS ^| LESS_EQUAL ^) add
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1184:18: ( GREATER ^| GREATER_EQUAL ^| LESS ^| LESS_EQUAL ^) add
             	    {
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:18: ( GREATER ^| GREATER_EQUAL ^| LESS ^| LESS_EQUAL ^)
-            	    int alt68=4;
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1184:18: ( GREATER ^| GREATER_EQUAL ^| LESS ^| LESS_EQUAL ^)
+            	    int alt70=4;
             	    switch ( input.LA(1) ) {
             	    case GREATER:
             	        {
-            	        alt68=1;
+            	        alt70=1;
             	        }
             	        break;
             	    case GREATER_EQUAL:
             	        {
-            	        alt68=2;
+            	        alt70=2;
             	        }
             	        break;
             	    case LESS:
             	        {
-            	        alt68=3;
+            	        alt70=3;
             	        }
             	        break;
             	    case LESS_EQUAL:
             	        {
-            	        alt68=4;
+            	        alt70=4;
             	        }
             	        break;
             	    default:
             	        NoViableAltException nvae =
-            	            new NoViableAltException("", 68, 0, input);
+            	            new NoViableAltException("", 70, 0, input);
 
             	        throw nvae;
 
             	    }
 
-            	    switch (alt68) {
+            	    switch (alt70) {
             	        case 1 :
-            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:19: GREATER ^
+            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1184:19: GREATER ^
             	            {
-            	            GREATER169=(Token)match(input,GREATER,FOLLOW_GREATER_in_comparison2120); 
-            	            GREATER169_tree = 
-            	            (CommonTree)adaptor.create(GREATER169)
+            	            GREATER171=(Token)match(input,GREATER,FOLLOW_GREATER_in_comparison2124); 
+            	            GREATER171_tree = 
+            	            (CommonTree)adaptor.create(GREATER171)
             	            ;
-            	            root_0 = (CommonTree)adaptor.becomeRoot(GREATER169_tree, root_0);
+            	            root_0 = (CommonTree)adaptor.becomeRoot(GREATER171_tree, root_0);
 
 
             	            }
             	            break;
             	        case 2 :
-            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:30: GREATER_EQUAL ^
+            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1184:30: GREATER_EQUAL ^
             	            {
-            	            GREATER_EQUAL170=(Token)match(input,GREATER_EQUAL,FOLLOW_GREATER_EQUAL_in_comparison2125); 
-            	            GREATER_EQUAL170_tree = 
-            	            (CommonTree)adaptor.create(GREATER_EQUAL170)
+            	            GREATER_EQUAL172=(Token)match(input,GREATER_EQUAL,FOLLOW_GREATER_EQUAL_in_comparison2129); 
+            	            GREATER_EQUAL172_tree = 
+            	            (CommonTree)adaptor.create(GREATER_EQUAL172)
             	            ;
-            	            root_0 = (CommonTree)adaptor.becomeRoot(GREATER_EQUAL170_tree, root_0);
+            	            root_0 = (CommonTree)adaptor.becomeRoot(GREATER_EQUAL172_tree, root_0);
 
 
             	            }
             	            break;
             	        case 3 :
-            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:47: LESS ^
+            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1184:47: LESS ^
             	            {
-            	            LESS171=(Token)match(input,LESS,FOLLOW_LESS_in_comparison2130); 
-            	            LESS171_tree = 
-            	            (CommonTree)adaptor.create(LESS171)
+            	            LESS173=(Token)match(input,LESS,FOLLOW_LESS_in_comparison2134); 
+            	            LESS173_tree = 
+            	            (CommonTree)adaptor.create(LESS173)
             	            ;
-            	            root_0 = (CommonTree)adaptor.becomeRoot(LESS171_tree, root_0);
+            	            root_0 = (CommonTree)adaptor.becomeRoot(LESS173_tree, root_0);
 
 
             	            }
             	            break;
             	        case 4 :
-            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1179:55: LESS_EQUAL ^
+            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1184:55: LESS_EQUAL ^
             	            {
-            	            LESS_EQUAL172=(Token)match(input,LESS_EQUAL,FOLLOW_LESS_EQUAL_in_comparison2135); 
-            	            LESS_EQUAL172_tree = 
-            	            (CommonTree)adaptor.create(LESS_EQUAL172)
+            	            LESS_EQUAL174=(Token)match(input,LESS_EQUAL,FOLLOW_LESS_EQUAL_in_comparison2139); 
+            	            LESS_EQUAL174_tree = 
+            	            (CommonTree)adaptor.create(LESS_EQUAL174)
             	            ;
-            	            root_0 = (CommonTree)adaptor.becomeRoot(LESS_EQUAL172_tree, root_0);
+            	            root_0 = (CommonTree)adaptor.becomeRoot(LESS_EQUAL174_tree, root_0);
 
 
             	            }
@@ -7250,18 +7308,18 @@ public TreeAdaptor getTreeAdaptor() {
             	    }
 
 
-            	    pushFollow(FOLLOW_add_in_comparison2139);
-            	    add173=add();
+            	    pushFollow(FOLLOW_add_in_comparison2143);
+            	    add175=add();
 
             	    state._fsp--;
 
-            	    adaptor.addChild(root_0, add173.getTree());
+            	    adaptor.addChild(root_0, add175.getTree());
 
             	    }
             	    break;
 
             	default :
-            	    break loop69;
+            	    break loop71;
                 }
             } while (true);
 
@@ -7297,7 +7355,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "add"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1183:1: add : multiply ( ( PLUS ^| MINUS ^) multiply )* ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1188:1: add : multiply ( ( PLUS ^| MINUS ^) multiply )* ;
     public final QuorumParser.add_return add() throws RecognitionException {
         QuorumParser.add_return retval = new QuorumParser.add_return();
         retval.start = input.LT(1);
@@ -7305,83 +7363,83 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token PLUS175=null;
-        Token MINUS176=null;
-        QuorumParser.multiply_return multiply174 =null;
+        Token PLUS177=null;
+        Token MINUS178=null;
+        QuorumParser.multiply_return multiply176 =null;
 
-        QuorumParser.multiply_return multiply177 =null;
+        QuorumParser.multiply_return multiply179 =null;
 
 
-        CommonTree PLUS175_tree=null;
-        CommonTree MINUS176_tree=null;
+        CommonTree PLUS177_tree=null;
+        CommonTree MINUS178_tree=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1183:5: ( multiply ( ( PLUS ^| MINUS ^) multiply )* )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1183:7: multiply ( ( PLUS ^| MINUS ^) multiply )*
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1188:5: ( multiply ( ( PLUS ^| MINUS ^) multiply )* )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1188:7: multiply ( ( PLUS ^| MINUS ^) multiply )*
             {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_multiply_in_add2153);
-            multiply174=multiply();
+            pushFollow(FOLLOW_multiply_in_add2157);
+            multiply176=multiply();
 
             state._fsp--;
 
-            adaptor.addChild(root_0, multiply174.getTree());
+            adaptor.addChild(root_0, multiply176.getTree());
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1183:16: ( ( PLUS ^| MINUS ^) multiply )*
-            loop71:
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1188:16: ( ( PLUS ^| MINUS ^) multiply )*
+            loop73:
             do {
-                int alt71=2;
-                int LA71_0 = input.LA(1);
+                int alt73=2;
+                int LA73_0 = input.LA(1);
 
-                if ( (LA71_0==MINUS||LA71_0==PLUS) ) {
-                    alt71=1;
+                if ( (LA73_0==MINUS||LA73_0==PLUS) ) {
+                    alt73=1;
                 }
 
 
-                switch (alt71) {
+                switch (alt73) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1183:17: ( PLUS ^| MINUS ^) multiply
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1188:17: ( PLUS ^| MINUS ^) multiply
             	    {
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1183:17: ( PLUS ^| MINUS ^)
-            	    int alt70=2;
-            	    int LA70_0 = input.LA(1);
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1188:17: ( PLUS ^| MINUS ^)
+            	    int alt72=2;
+            	    int LA72_0 = input.LA(1);
 
-            	    if ( (LA70_0==PLUS) ) {
-            	        alt70=1;
+            	    if ( (LA72_0==PLUS) ) {
+            	        alt72=1;
             	    }
-            	    else if ( (LA70_0==MINUS) ) {
-            	        alt70=2;
+            	    else if ( (LA72_0==MINUS) ) {
+            	        alt72=2;
             	    }
             	    else {
             	        NoViableAltException nvae =
-            	            new NoViableAltException("", 70, 0, input);
+            	            new NoViableAltException("", 72, 0, input);
 
             	        throw nvae;
 
             	    }
-            	    switch (alt70) {
+            	    switch (alt72) {
             	        case 1 :
-            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1183:18: PLUS ^
+            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1188:18: PLUS ^
             	            {
-            	            PLUS175=(Token)match(input,PLUS,FOLLOW_PLUS_in_add2157); 
-            	            PLUS175_tree = 
-            	            (CommonTree)adaptor.create(PLUS175)
+            	            PLUS177=(Token)match(input,PLUS,FOLLOW_PLUS_in_add2161); 
+            	            PLUS177_tree = 
+            	            (CommonTree)adaptor.create(PLUS177)
             	            ;
-            	            root_0 = (CommonTree)adaptor.becomeRoot(PLUS175_tree, root_0);
+            	            root_0 = (CommonTree)adaptor.becomeRoot(PLUS177_tree, root_0);
 
 
             	            }
             	            break;
             	        case 2 :
-            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1183:26: MINUS ^
+            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1188:26: MINUS ^
             	            {
-            	            MINUS176=(Token)match(input,MINUS,FOLLOW_MINUS_in_add2162); 
-            	            MINUS176_tree = 
-            	            (CommonTree)adaptor.create(MINUS176)
+            	            MINUS178=(Token)match(input,MINUS,FOLLOW_MINUS_in_add2166); 
+            	            MINUS178_tree = 
+            	            (CommonTree)adaptor.create(MINUS178)
             	            ;
-            	            root_0 = (CommonTree)adaptor.becomeRoot(MINUS176_tree, root_0);
+            	            root_0 = (CommonTree)adaptor.becomeRoot(MINUS178_tree, root_0);
 
 
             	            }
@@ -7390,18 +7448,18 @@ public TreeAdaptor getTreeAdaptor() {
             	    }
 
 
-            	    pushFollow(FOLLOW_multiply_in_add2166);
-            	    multiply177=multiply();
+            	    pushFollow(FOLLOW_multiply_in_add2170);
+            	    multiply179=multiply();
 
             	    state._fsp--;
 
-            	    adaptor.addChild(root_0, multiply177.getTree());
+            	    adaptor.addChild(root_0, multiply179.getTree());
 
             	    }
             	    break;
 
             	default :
-            	    break loop71;
+            	    break loop73;
                 }
             } while (true);
 
@@ -7437,7 +7495,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "multiply"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1186:1: multiply : combo_expression ( ( MULTIPLY ^| DIVIDE ^| MODULO ^) combo_expression )* ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1191:1: multiply : combo_expression ( ( MULTIPLY ^| DIVIDE ^| MODULO ^) combo_expression )* ;
     public final QuorumParser.multiply_return multiply() throws RecognitionException {
         QuorumParser.multiply_return retval = new QuorumParser.multiply_return();
         retval.start = input.LT(1);
@@ -7445,106 +7503,106 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token MULTIPLY179=null;
-        Token DIVIDE180=null;
-        Token MODULO181=null;
-        QuorumParser.combo_expression_return combo_expression178 =null;
+        Token MULTIPLY181=null;
+        Token DIVIDE182=null;
+        Token MODULO183=null;
+        QuorumParser.combo_expression_return combo_expression180 =null;
 
-        QuorumParser.combo_expression_return combo_expression182 =null;
+        QuorumParser.combo_expression_return combo_expression184 =null;
 
 
-        CommonTree MULTIPLY179_tree=null;
-        CommonTree DIVIDE180_tree=null;
-        CommonTree MODULO181_tree=null;
+        CommonTree MULTIPLY181_tree=null;
+        CommonTree DIVIDE182_tree=null;
+        CommonTree MODULO183_tree=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1186:9: ( combo_expression ( ( MULTIPLY ^| DIVIDE ^| MODULO ^) combo_expression )* )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1186:11: combo_expression ( ( MULTIPLY ^| DIVIDE ^| MODULO ^) combo_expression )*
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1191:9: ( combo_expression ( ( MULTIPLY ^| DIVIDE ^| MODULO ^) combo_expression )* )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1191:11: combo_expression ( ( MULTIPLY ^| DIVIDE ^| MODULO ^) combo_expression )*
             {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_combo_expression_in_multiply2179);
-            combo_expression178=combo_expression();
+            pushFollow(FOLLOW_combo_expression_in_multiply2183);
+            combo_expression180=combo_expression();
 
             state._fsp--;
 
-            adaptor.addChild(root_0, combo_expression178.getTree());
+            adaptor.addChild(root_0, combo_expression180.getTree());
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1186:28: ( ( MULTIPLY ^| DIVIDE ^| MODULO ^) combo_expression )*
-            loop73:
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1191:28: ( ( MULTIPLY ^| DIVIDE ^| MODULO ^) combo_expression )*
+            loop75:
             do {
-                int alt73=2;
-                int LA73_0 = input.LA(1);
+                int alt75=2;
+                int LA75_0 = input.LA(1);
 
-                if ( (LA73_0==DIVIDE||(LA73_0 >= MODULO && LA73_0 <= MULTIPLY)) ) {
-                    alt73=1;
+                if ( (LA75_0==DIVIDE||(LA75_0 >= MODULO && LA75_0 <= MULTIPLY)) ) {
+                    alt75=1;
                 }
 
 
-                switch (alt73) {
+                switch (alt75) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1186:29: ( MULTIPLY ^| DIVIDE ^| MODULO ^) combo_expression
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1191:29: ( MULTIPLY ^| DIVIDE ^| MODULO ^) combo_expression
             	    {
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1186:29: ( MULTIPLY ^| DIVIDE ^| MODULO ^)
-            	    int alt72=3;
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1191:29: ( MULTIPLY ^| DIVIDE ^| MODULO ^)
+            	    int alt74=3;
             	    switch ( input.LA(1) ) {
             	    case MULTIPLY:
             	        {
-            	        alt72=1;
+            	        alt74=1;
             	        }
             	        break;
             	    case DIVIDE:
             	        {
-            	        alt72=2;
+            	        alt74=2;
             	        }
             	        break;
             	    case MODULO:
             	        {
-            	        alt72=3;
+            	        alt74=3;
             	        }
             	        break;
             	    default:
             	        NoViableAltException nvae =
-            	            new NoViableAltException("", 72, 0, input);
+            	            new NoViableAltException("", 74, 0, input);
 
             	        throw nvae;
 
             	    }
 
-            	    switch (alt72) {
+            	    switch (alt74) {
             	        case 1 :
-            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1186:30: MULTIPLY ^
+            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1191:30: MULTIPLY ^
             	            {
-            	            MULTIPLY179=(Token)match(input,MULTIPLY,FOLLOW_MULTIPLY_in_multiply2183); 
-            	            MULTIPLY179_tree = 
-            	            (CommonTree)adaptor.create(MULTIPLY179)
+            	            MULTIPLY181=(Token)match(input,MULTIPLY,FOLLOW_MULTIPLY_in_multiply2187); 
+            	            MULTIPLY181_tree = 
+            	            (CommonTree)adaptor.create(MULTIPLY181)
             	            ;
-            	            root_0 = (CommonTree)adaptor.becomeRoot(MULTIPLY179_tree, root_0);
+            	            root_0 = (CommonTree)adaptor.becomeRoot(MULTIPLY181_tree, root_0);
 
 
             	            }
             	            break;
             	        case 2 :
-            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1186:42: DIVIDE ^
+            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1191:42: DIVIDE ^
             	            {
-            	            DIVIDE180=(Token)match(input,DIVIDE,FOLLOW_DIVIDE_in_multiply2188); 
-            	            DIVIDE180_tree = 
-            	            (CommonTree)adaptor.create(DIVIDE180)
+            	            DIVIDE182=(Token)match(input,DIVIDE,FOLLOW_DIVIDE_in_multiply2192); 
+            	            DIVIDE182_tree = 
+            	            (CommonTree)adaptor.create(DIVIDE182)
             	            ;
-            	            root_0 = (CommonTree)adaptor.becomeRoot(DIVIDE180_tree, root_0);
+            	            root_0 = (CommonTree)adaptor.becomeRoot(DIVIDE182_tree, root_0);
 
 
             	            }
             	            break;
             	        case 3 :
-            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1186:51: MODULO ^
+            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1191:51: MODULO ^
             	            {
-            	            MODULO181=(Token)match(input,MODULO,FOLLOW_MODULO_in_multiply2192); 
-            	            MODULO181_tree = 
-            	            (CommonTree)adaptor.create(MODULO181)
+            	            MODULO183=(Token)match(input,MODULO,FOLLOW_MODULO_in_multiply2196); 
+            	            MODULO183_tree = 
+            	            (CommonTree)adaptor.create(MODULO183)
             	            ;
-            	            root_0 = (CommonTree)adaptor.becomeRoot(MODULO181_tree, root_0);
+            	            root_0 = (CommonTree)adaptor.becomeRoot(MODULO183_tree, root_0);
 
 
             	            }
@@ -7553,18 +7611,18 @@ public TreeAdaptor getTreeAdaptor() {
             	    }
 
 
-            	    pushFollow(FOLLOW_combo_expression_in_multiply2196);
-            	    combo_expression182=combo_expression();
+            	    pushFollow(FOLLOW_combo_expression_in_multiply2200);
+            	    combo_expression184=combo_expression();
 
             	    state._fsp--;
 
-            	    adaptor.addChild(root_0, combo_expression182.getTree());
+            	    adaptor.addChild(root_0, combo_expression184.getTree());
 
             	    }
             	    break;
 
             	default :
-            	    break loop73;
+            	    break loop75;
                 }
             } while (true);
 
@@ -7600,7 +7658,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "combo_expression"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1189:1: combo_expression : ( NOT atom -> ^( UNARY_NOT NOT atom ) | CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN | atom );
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1194:1: combo_expression : ( NOT atom -> ^( UNARY_NOT NOT atom ) | CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN | atom );
     public final QuorumParser.combo_expression_return combo_expression() throws RecognitionException {
         QuorumParser.combo_expression_return retval = new QuorumParser.combo_expression_return();
         retval.start = input.LT(1);
@@ -7608,39 +7666,39 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token NOT183=null;
-        Token CAST185=null;
-        Token LEFT_PAREN186=null;
-        Token COMMA188=null;
-        Token RIGHT_PAREN190=null;
-        QuorumParser.atom_return atom184 =null;
+        Token NOT185=null;
+        Token CAST187=null;
+        Token LEFT_PAREN188=null;
+        Token COMMA190=null;
+        Token RIGHT_PAREN192=null;
+        QuorumParser.atom_return atom186 =null;
 
-        QuorumParser.assignment_declaration_return assignment_declaration187 =null;
+        QuorumParser.assignment_declaration_return assignment_declaration189 =null;
 
-        QuorumParser.expression_return expression189 =null;
+        QuorumParser.expression_return expression191 =null;
 
-        QuorumParser.atom_return atom191 =null;
+        QuorumParser.atom_return atom193 =null;
 
 
-        CommonTree NOT183_tree=null;
-        CommonTree CAST185_tree=null;
-        CommonTree LEFT_PAREN186_tree=null;
-        CommonTree COMMA188_tree=null;
-        CommonTree RIGHT_PAREN190_tree=null;
+        CommonTree NOT185_tree=null;
+        CommonTree CAST187_tree=null;
+        CommonTree LEFT_PAREN188_tree=null;
+        CommonTree COMMA190_tree=null;
+        CommonTree RIGHT_PAREN192_tree=null;
         RewriteRuleTokenStream stream_NOT=new RewriteRuleTokenStream(adaptor,"token NOT");
         RewriteRuleSubtreeStream stream_atom=new RewriteRuleSubtreeStream(adaptor,"rule atom");
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1190:2: ( NOT atom -> ^( UNARY_NOT NOT atom ) | CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN | atom )
-            int alt74=3;
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1195:2: ( NOT atom -> ^( UNARY_NOT NOT atom ) | CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN | atom )
+            int alt76=3;
             switch ( input.LA(1) ) {
             case NOT:
                 {
-                alt74=1;
+                alt76=1;
                 }
                 break;
             case CAST:
                 {
-                alt74=2;
+                alt76=2;
                 }
                 break;
             case BOOLEAN:
@@ -7655,31 +7713,31 @@ public TreeAdaptor getTreeAdaptor() {
             case PARENT:
             case STRING:
                 {
-                alt74=3;
+                alt76=3;
                 }
                 break;
             default:
                 NoViableAltException nvae =
-                    new NoViableAltException("", 74, 0, input);
+                    new NoViableAltException("", 76, 0, input);
 
                 throw nvae;
 
             }
 
-            switch (alt74) {
+            switch (alt76) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1190:4: NOT atom
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1195:4: NOT atom
                     {
-                    NOT183=(Token)match(input,NOT,FOLLOW_NOT_in_combo_expression2211);  
-                    stream_NOT.add(NOT183);
+                    NOT185=(Token)match(input,NOT,FOLLOW_NOT_in_combo_expression2215);  
+                    stream_NOT.add(NOT185);
 
 
-                    pushFollow(FOLLOW_atom_in_combo_expression2213);
-                    atom184=atom();
+                    pushFollow(FOLLOW_atom_in_combo_expression2217);
+                    atom186=atom();
 
                     state._fsp--;
 
-                    stream_atom.add(atom184.getTree());
+                    stream_atom.add(atom186.getTree());
 
                     // AST REWRITE
                     // elements: NOT, atom
@@ -7692,9 +7750,9 @@ public TreeAdaptor getTreeAdaptor() {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1190:13: -> ^( UNARY_NOT NOT atom )
+                    // 1195:13: -> ^( UNARY_NOT NOT atom )
                     {
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1190:16: ^( UNARY_NOT NOT atom )
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1195:16: ^( UNARY_NOT NOT atom )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(
@@ -7718,67 +7776,67 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1191:4: CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1196:4: CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    CAST185=(Token)match(input,CAST,FOLLOW_CAST_in_combo_expression2228); 
-                    CAST185_tree = 
-                    (CommonTree)adaptor.create(CAST185)
+                    CAST187=(Token)match(input,CAST,FOLLOW_CAST_in_combo_expression2232); 
+                    CAST187_tree = 
+                    (CommonTree)adaptor.create(CAST187)
                     ;
-                    adaptor.addChild(root_0, CAST185_tree);
+                    adaptor.addChild(root_0, CAST187_tree);
 
 
-                    LEFT_PAREN186=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_combo_expression2230); 
-                    LEFT_PAREN186_tree = 
-                    (CommonTree)adaptor.create(LEFT_PAREN186)
+                    LEFT_PAREN188=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_combo_expression2234); 
+                    LEFT_PAREN188_tree = 
+                    (CommonTree)adaptor.create(LEFT_PAREN188)
                     ;
-                    adaptor.addChild(root_0, LEFT_PAREN186_tree);
+                    adaptor.addChild(root_0, LEFT_PAREN188_tree);
 
 
-                    pushFollow(FOLLOW_assignment_declaration_in_combo_expression2232);
-                    assignment_declaration187=assignment_declaration();
+                    pushFollow(FOLLOW_assignment_declaration_in_combo_expression2236);
+                    assignment_declaration189=assignment_declaration();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, assignment_declaration187.getTree());
+                    adaptor.addChild(root_0, assignment_declaration189.getTree());
 
-                    COMMA188=(Token)match(input,COMMA,FOLLOW_COMMA_in_combo_expression2234); 
-                    COMMA188_tree = 
-                    (CommonTree)adaptor.create(COMMA188)
+                    COMMA190=(Token)match(input,COMMA,FOLLOW_COMMA_in_combo_expression2238); 
+                    COMMA190_tree = 
+                    (CommonTree)adaptor.create(COMMA190)
                     ;
-                    adaptor.addChild(root_0, COMMA188_tree);
+                    adaptor.addChild(root_0, COMMA190_tree);
 
 
-                    pushFollow(FOLLOW_expression_in_combo_expression2236);
-                    expression189=expression();
+                    pushFollow(FOLLOW_expression_in_combo_expression2240);
+                    expression191=expression();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, expression189.getTree());
+                    adaptor.addChild(root_0, expression191.getTree());
 
-                    RIGHT_PAREN190=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_combo_expression2238); 
-                    RIGHT_PAREN190_tree = 
-                    (CommonTree)adaptor.create(RIGHT_PAREN190)
+                    RIGHT_PAREN192=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_combo_expression2242); 
+                    RIGHT_PAREN192_tree = 
+                    (CommonTree)adaptor.create(RIGHT_PAREN192)
                     ;
-                    adaptor.addChild(root_0, RIGHT_PAREN190_tree);
+                    adaptor.addChild(root_0, RIGHT_PAREN192_tree);
 
 
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1192:4: atom
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1197:4: atom
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    pushFollow(FOLLOW_atom_in_combo_expression2243);
-                    atom191=atom();
+                    pushFollow(FOLLOW_atom_in_combo_expression2247);
+                    atom193=atom();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, atom191.getTree());
+                    adaptor.addChild(root_0, atom193.getTree());
 
                     }
                     break;
@@ -7813,7 +7871,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "atom"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1195:1: atom : ( qualified_name ( COLON ID )? -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | qualified_name COLON PARENT COLON qualified_name COLON ID -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID ) | qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | selector COLON qualified_name -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | ( MINUS )? INT | BOOLEAN | ( MINUS )? DECIMAL | STRING | NULL | ME | INPUT LEFT_PAREN expression RIGHT_PAREN | LEFT_PAREN expression RIGHT_PAREN -> ^( expression ) );
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1200:1: atom : ( qualified_name ( COLON ID )? -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | qualified_name COLON PARENT COLON qualified_name COLON ID -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID ) | qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | selector COLON qualified_name -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | ( MINUS )? INT | BOOLEAN | ( MINUS )? DECIMAL | STRING | NULL | ME | INPUT LEFT_PAREN expression RIGHT_PAREN | LEFT_PAREN expression RIGHT_PAREN -> ^( expression ) );
     public final QuorumParser.atom_return atom() throws RecognitionException {
         QuorumParser.atom_return retval = new QuorumParser.atom_return();
         retval.start = input.LT(1);
@@ -7821,107 +7879,107 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token COLON193=null;
-        Token ID194=null;
-        Token COLON196=null;
-        Token PARENT197=null;
+        Token COLON195=null;
+        Token ID196=null;
         Token COLON198=null;
+        Token PARENT199=null;
         Token COLON200=null;
-        Token ID201=null;
-        Token COLON203=null;
-        Token ID204=null;
-        Token LEFT_PAREN205=null;
-        Token RIGHT_PAREN207=null;
-        Token COLON209=null;
-        Token PARENT211=null;
-        Token COLON212=null;
+        Token COLON202=null;
+        Token ID203=null;
+        Token COLON205=null;
+        Token ID206=null;
+        Token LEFT_PAREN207=null;
+        Token RIGHT_PAREN209=null;
+        Token COLON211=null;
+        Token PARENT213=null;
         Token COLON214=null;
-        Token ID215=null;
-        Token LEFT_PAREN216=null;
-        Token RIGHT_PAREN218=null;
-        Token ME219=null;
-        Token COLON220=null;
+        Token COLON216=null;
+        Token ID217=null;
+        Token LEFT_PAREN218=null;
+        Token RIGHT_PAREN220=null;
+        Token ME221=null;
         Token COLON222=null;
-        Token ID223=null;
-        Token LEFT_PAREN224=null;
-        Token RIGHT_PAREN226=null;
-        Token MINUS227=null;
-        Token INT228=null;
-        Token BOOLEAN229=null;
-        Token MINUS230=null;
-        Token DECIMAL231=null;
-        Token STRING232=null;
-        Token NULL233=null;
-        Token ME234=null;
-        Token INPUT235=null;
-        Token LEFT_PAREN236=null;
-        Token RIGHT_PAREN238=null;
-        Token LEFT_PAREN239=null;
-        Token RIGHT_PAREN241=null;
-        QuorumParser.qualified_name_return qualified_name192 =null;
+        Token COLON224=null;
+        Token ID225=null;
+        Token LEFT_PAREN226=null;
+        Token RIGHT_PAREN228=null;
+        Token MINUS229=null;
+        Token INT230=null;
+        Token BOOLEAN231=null;
+        Token MINUS232=null;
+        Token DECIMAL233=null;
+        Token STRING234=null;
+        Token NULL235=null;
+        Token ME236=null;
+        Token INPUT237=null;
+        Token LEFT_PAREN238=null;
+        Token RIGHT_PAREN240=null;
+        Token LEFT_PAREN241=null;
+        Token RIGHT_PAREN243=null;
+        QuorumParser.qualified_name_return qualified_name194 =null;
 
-        QuorumParser.qualified_name_return qualified_name195 =null;
+        QuorumParser.qualified_name_return qualified_name197 =null;
 
-        QuorumParser.qualified_name_return qualified_name199 =null;
+        QuorumParser.qualified_name_return qualified_name201 =null;
 
-        QuorumParser.qualified_name_return qualified_name202 =null;
+        QuorumParser.qualified_name_return qualified_name204 =null;
 
-        QuorumParser.function_expression_list_return function_expression_list206 =null;
+        QuorumParser.function_expression_list_return function_expression_list208 =null;
 
-        QuorumParser.selector_return selector208 =null;
+        QuorumParser.selector_return selector210 =null;
 
-        QuorumParser.qualified_name_return qualified_name210 =null;
+        QuorumParser.qualified_name_return qualified_name212 =null;
 
-        QuorumParser.qualified_name_return qualified_name213 =null;
+        QuorumParser.qualified_name_return qualified_name215 =null;
 
-        QuorumParser.function_expression_list_return function_expression_list217 =null;
+        QuorumParser.function_expression_list_return function_expression_list219 =null;
 
-        QuorumParser.qualified_name_return qualified_name221 =null;
+        QuorumParser.qualified_name_return qualified_name223 =null;
 
-        QuorumParser.function_expression_list_return function_expression_list225 =null;
+        QuorumParser.function_expression_list_return function_expression_list227 =null;
 
-        QuorumParser.expression_return expression237 =null;
+        QuorumParser.expression_return expression239 =null;
 
-        QuorumParser.expression_return expression240 =null;
+        QuorumParser.expression_return expression242 =null;
 
 
-        CommonTree COLON193_tree=null;
-        CommonTree ID194_tree=null;
-        CommonTree COLON196_tree=null;
-        CommonTree PARENT197_tree=null;
+        CommonTree COLON195_tree=null;
+        CommonTree ID196_tree=null;
         CommonTree COLON198_tree=null;
+        CommonTree PARENT199_tree=null;
         CommonTree COLON200_tree=null;
-        CommonTree ID201_tree=null;
-        CommonTree COLON203_tree=null;
-        CommonTree ID204_tree=null;
-        CommonTree LEFT_PAREN205_tree=null;
-        CommonTree RIGHT_PAREN207_tree=null;
-        CommonTree COLON209_tree=null;
-        CommonTree PARENT211_tree=null;
-        CommonTree COLON212_tree=null;
+        CommonTree COLON202_tree=null;
+        CommonTree ID203_tree=null;
+        CommonTree COLON205_tree=null;
+        CommonTree ID206_tree=null;
+        CommonTree LEFT_PAREN207_tree=null;
+        CommonTree RIGHT_PAREN209_tree=null;
+        CommonTree COLON211_tree=null;
+        CommonTree PARENT213_tree=null;
         CommonTree COLON214_tree=null;
-        CommonTree ID215_tree=null;
-        CommonTree LEFT_PAREN216_tree=null;
-        CommonTree RIGHT_PAREN218_tree=null;
-        CommonTree ME219_tree=null;
-        CommonTree COLON220_tree=null;
+        CommonTree COLON216_tree=null;
+        CommonTree ID217_tree=null;
+        CommonTree LEFT_PAREN218_tree=null;
+        CommonTree RIGHT_PAREN220_tree=null;
+        CommonTree ME221_tree=null;
         CommonTree COLON222_tree=null;
-        CommonTree ID223_tree=null;
-        CommonTree LEFT_PAREN224_tree=null;
-        CommonTree RIGHT_PAREN226_tree=null;
-        CommonTree MINUS227_tree=null;
-        CommonTree INT228_tree=null;
-        CommonTree BOOLEAN229_tree=null;
-        CommonTree MINUS230_tree=null;
-        CommonTree DECIMAL231_tree=null;
-        CommonTree STRING232_tree=null;
-        CommonTree NULL233_tree=null;
-        CommonTree ME234_tree=null;
-        CommonTree INPUT235_tree=null;
-        CommonTree LEFT_PAREN236_tree=null;
-        CommonTree RIGHT_PAREN238_tree=null;
-        CommonTree LEFT_PAREN239_tree=null;
-        CommonTree RIGHT_PAREN241_tree=null;
+        CommonTree COLON224_tree=null;
+        CommonTree ID225_tree=null;
+        CommonTree LEFT_PAREN226_tree=null;
+        CommonTree RIGHT_PAREN228_tree=null;
+        CommonTree MINUS229_tree=null;
+        CommonTree INT230_tree=null;
+        CommonTree BOOLEAN231_tree=null;
+        CommonTree MINUS232_tree=null;
+        CommonTree DECIMAL233_tree=null;
+        CommonTree STRING234_tree=null;
+        CommonTree NULL235_tree=null;
+        CommonTree ME236_tree=null;
+        CommonTree INPUT237_tree=null;
+        CommonTree LEFT_PAREN238_tree=null;
+        CommonTree RIGHT_PAREN240_tree=null;
+        CommonTree LEFT_PAREN241_tree=null;
+        CommonTree RIGHT_PAREN243_tree=null;
         RewriteRuleTokenStream stream_COLON=new RewriteRuleTokenStream(adaptor,"token COLON");
         RewriteRuleTokenStream stream_LEFT_PAREN=new RewriteRuleTokenStream(adaptor,"token LEFT_PAREN");
         RewriteRuleTokenStream stream_ME=new RewriteRuleTokenStream(adaptor,"token ME");
@@ -7933,37 +7991,37 @@ public TreeAdaptor getTreeAdaptor() {
         RewriteRuleSubtreeStream stream_function_expression_list=new RewriteRuleSubtreeStream(adaptor,"rule function_expression_list");
         RewriteRuleSubtreeStream stream_qualified_name=new RewriteRuleSubtreeStream(adaptor,"rule qualified_name");
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1195:7: ( qualified_name ( COLON ID )? -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | qualified_name COLON PARENT COLON qualified_name COLON ID -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID ) | qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | selector COLON qualified_name -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | ( MINUS )? INT | BOOLEAN | ( MINUS )? DECIMAL | STRING | NULL | ME | INPUT LEFT_PAREN expression RIGHT_PAREN | LEFT_PAREN expression RIGHT_PAREN -> ^( expression ) )
-            int alt80=14;
-            alt80 = dfa80.predict(input);
-            switch (alt80) {
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1200:7: ( qualified_name ( COLON ID )? -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | qualified_name COLON PARENT COLON qualified_name COLON ID -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID ) | qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | selector COLON qualified_name -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | ( MINUS )? INT | BOOLEAN | ( MINUS )? DECIMAL | STRING | NULL | ME | INPUT LEFT_PAREN expression RIGHT_PAREN | LEFT_PAREN expression RIGHT_PAREN -> ^( expression ) )
+            int alt82=14;
+            alt82 = dfa82.predict(input);
+            switch (alt82) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1196:2: qualified_name ( COLON ID )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1201:2: qualified_name ( COLON ID )?
                     {
-                    pushFollow(FOLLOW_qualified_name_in_atom2258);
-                    qualified_name192=qualified_name();
+                    pushFollow(FOLLOW_qualified_name_in_atom2262);
+                    qualified_name194=qualified_name();
 
                     state._fsp--;
 
-                    stream_qualified_name.add(qualified_name192.getTree());
+                    stream_qualified_name.add(qualified_name194.getTree());
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1196:17: ( COLON ID )?
-                    int alt75=2;
-                    int LA75_0 = input.LA(1);
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1201:17: ( COLON ID )?
+                    int alt77=2;
+                    int LA77_0 = input.LA(1);
 
-                    if ( (LA75_0==COLON) ) {
-                        alt75=1;
+                    if ( (LA77_0==COLON) ) {
+                        alt77=1;
                     }
-                    switch (alt75) {
+                    switch (alt77) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1196:18: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1201:18: COLON ID
                             {
-                            COLON193=(Token)match(input,COLON,FOLLOW_COLON_in_atom2261);  
-                            stream_COLON.add(COLON193);
+                            COLON195=(Token)match(input,COLON,FOLLOW_COLON_in_atom2265);  
+                            stream_COLON.add(COLON195);
 
 
-                            ID194=(Token)match(input,ID,FOLLOW_ID_in_atom2263);  
-                            stream_ID.add(ID194);
+                            ID196=(Token)match(input,ID,FOLLOW_ID_in_atom2267);  
+                            stream_ID.add(ID196);
 
 
                             }
@@ -7973,7 +8031,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: qualified_name, COLON, ID
+                    // elements: qualified_name, ID, COLON
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7983,9 +8041,9 @@ public TreeAdaptor getTreeAdaptor() {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1196:29: -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? )
+                    // 1201:29: -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? )
                     {
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1196:32: ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? )
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1201:32: ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(
@@ -7994,8 +8052,8 @@ public TreeAdaptor getTreeAdaptor() {
 
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1196:75: ( COLON ID )?
-                        if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1201:75: ( COLON ID )?
+                        if ( stream_ID.hasNext()||stream_COLON.hasNext() ) {
                             adaptor.addChild(root_1, 
                             stream_COLON.nextNode()
                             );
@@ -8005,8 +8063,8 @@ public TreeAdaptor getTreeAdaptor() {
                             );
 
                         }
-                        stream_COLON.reset();
                         stream_ID.reset();
+                        stream_COLON.reset();
 
                         adaptor.addChild(root_0, root_1);
                         }
@@ -8019,44 +8077,44 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1197:4: qualified_name COLON PARENT COLON qualified_name COLON ID
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1202:4: qualified_name COLON PARENT COLON qualified_name COLON ID
                     {
-                    pushFollow(FOLLOW_qualified_name_in_atom2285);
-                    qualified_name195=qualified_name();
+                    pushFollow(FOLLOW_qualified_name_in_atom2289);
+                    qualified_name197=qualified_name();
 
                     state._fsp--;
 
-                    stream_qualified_name.add(qualified_name195.getTree());
-
-                    COLON196=(Token)match(input,COLON,FOLLOW_COLON_in_atom2287);  
-                    stream_COLON.add(COLON196);
-
-
-                    PARENT197=(Token)match(input,PARENT,FOLLOW_PARENT_in_atom2289);  
-                    stream_PARENT.add(PARENT197);
-
+                    stream_qualified_name.add(qualified_name197.getTree());
 
                     COLON198=(Token)match(input,COLON,FOLLOW_COLON_in_atom2291);  
                     stream_COLON.add(COLON198);
 
 
-                    pushFollow(FOLLOW_qualified_name_in_atom2293);
-                    qualified_name199=qualified_name();
+                    PARENT199=(Token)match(input,PARENT,FOLLOW_PARENT_in_atom2293);  
+                    stream_PARENT.add(PARENT199);
 
-                    state._fsp--;
-
-                    stream_qualified_name.add(qualified_name199.getTree());
 
                     COLON200=(Token)match(input,COLON,FOLLOW_COLON_in_atom2295);  
                     stream_COLON.add(COLON200);
 
 
-                    ID201=(Token)match(input,ID,FOLLOW_ID_in_atom2297);  
-                    stream_ID.add(ID201);
+                    pushFollow(FOLLOW_qualified_name_in_atom2297);
+                    qualified_name201=qualified_name();
+
+                    state._fsp--;
+
+                    stream_qualified_name.add(qualified_name201.getTree());
+
+                    COLON202=(Token)match(input,COLON,FOLLOW_COLON_in_atom2299);  
+                    stream_COLON.add(COLON202);
+
+
+                    ID203=(Token)match(input,ID,FOLLOW_ID_in_atom2301);  
+                    stream_ID.add(ID203);
 
 
                     // AST REWRITE
-                    // elements: COLON, qualified_name, PARENT, ID, qualified_name, COLON, COLON
+                    // elements: COLON, ID, qualified_name, PARENT, COLON, COLON, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8066,9 +8124,9 @@ public TreeAdaptor getTreeAdaptor() {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1197:62: -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID )
+                    // 1202:62: -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID )
                     {
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1197:65: ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID )
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1202:65: ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(
@@ -8110,32 +8168,32 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1198:4: qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1203:4: qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN
                     {
-                    pushFollow(FOLLOW_qualified_name_in_atom2322);
-                    qualified_name202=qualified_name();
+                    pushFollow(FOLLOW_qualified_name_in_atom2326);
+                    qualified_name204=qualified_name();
 
                     state._fsp--;
 
-                    stream_qualified_name.add(qualified_name202.getTree());
+                    stream_qualified_name.add(qualified_name204.getTree());
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1198:19: ( COLON ID )?
-                    int alt76=2;
-                    int LA76_0 = input.LA(1);
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1203:19: ( COLON ID )?
+                    int alt78=2;
+                    int LA78_0 = input.LA(1);
 
-                    if ( (LA76_0==COLON) ) {
-                        alt76=1;
+                    if ( (LA78_0==COLON) ) {
+                        alt78=1;
                     }
-                    switch (alt76) {
+                    switch (alt78) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1198:20: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1203:20: COLON ID
                             {
-                            COLON203=(Token)match(input,COLON,FOLLOW_COLON_in_atom2325);  
-                            stream_COLON.add(COLON203);
+                            COLON205=(Token)match(input,COLON,FOLLOW_COLON_in_atom2329);  
+                            stream_COLON.add(COLON205);
 
 
-                            ID204=(Token)match(input,ID,FOLLOW_ID_in_atom2327);  
-                            stream_ID.add(ID204);
+                            ID206=(Token)match(input,ID,FOLLOW_ID_in_atom2331);  
+                            stream_ID.add(ID206);
 
 
                             }
@@ -8144,23 +8202,23 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    LEFT_PAREN205=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2331);  
-                    stream_LEFT_PAREN.add(LEFT_PAREN205);
+                    LEFT_PAREN207=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2335);  
+                    stream_LEFT_PAREN.add(LEFT_PAREN207);
 
 
-                    pushFollow(FOLLOW_function_expression_list_in_atom2333);
-                    function_expression_list206=function_expression_list();
+                    pushFollow(FOLLOW_function_expression_list_in_atom2337);
+                    function_expression_list208=function_expression_list();
 
                     state._fsp--;
 
-                    stream_function_expression_list.add(function_expression_list206.getTree());
+                    stream_function_expression_list.add(function_expression_list208.getTree());
 
-                    RIGHT_PAREN207=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2335);  
-                    stream_RIGHT_PAREN.add(RIGHT_PAREN207);
+                    RIGHT_PAREN209=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2339);  
+                    stream_RIGHT_PAREN.add(RIGHT_PAREN209);
 
 
                     // AST REWRITE
-                    // elements: LEFT_PAREN, qualified_name, ID, COLON, function_expression_list, RIGHT_PAREN
+                    // elements: qualified_name, ID, LEFT_PAREN, COLON, RIGHT_PAREN, function_expression_list
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8170,9 +8228,9 @@ public TreeAdaptor getTreeAdaptor() {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1198:79: -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
+                    // 1203:79: -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
                     {
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1199:4: ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1204:4: ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(
@@ -8181,7 +8239,7 @@ public TreeAdaptor getTreeAdaptor() {
 
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1199:35: ( COLON ID )?
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1204:35: ( COLON ID )?
                         if ( stream_ID.hasNext()||stream_COLON.hasNext() ) {
                             adaptor.addChild(root_1, 
                             stream_COLON.nextNode()
@@ -8216,25 +8274,25 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 4 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1200:4: selector COLON qualified_name
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1205:4: selector COLON qualified_name
                     {
-                    pushFollow(FOLLOW_selector_in_atom2364);
-                    selector208=selector();
+                    pushFollow(FOLLOW_selector_in_atom2368);
+                    selector210=selector();
 
                     state._fsp--;
 
-                    stream_selector.add(selector208.getTree());
+                    stream_selector.add(selector210.getTree());
 
-                    COLON209=(Token)match(input,COLON,FOLLOW_COLON_in_atom2366);  
-                    stream_COLON.add(COLON209);
+                    COLON211=(Token)match(input,COLON,FOLLOW_COLON_in_atom2370);  
+                    stream_COLON.add(COLON211);
 
 
-                    pushFollow(FOLLOW_qualified_name_in_atom2368);
-                    qualified_name210=qualified_name();
+                    pushFollow(FOLLOW_qualified_name_in_atom2372);
+                    qualified_name212=qualified_name();
 
                     state._fsp--;
 
-                    stream_qualified_name.add(qualified_name210.getTree());
+                    stream_qualified_name.add(qualified_name212.getTree());
 
                     // AST REWRITE
                     // elements: qualified_name, selector, COLON
@@ -8247,9 +8305,9 @@ public TreeAdaptor getTreeAdaptor() {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1200:34: -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name )
+                    // 1205:34: -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name )
                     {
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1201:4: ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name )
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1206:4: ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(
@@ -8275,48 +8333,48 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 5 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1204:4: PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1209:4: PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN
                     {
-                    PARENT211=(Token)match(input,PARENT,FOLLOW_PARENT_in_atom2393);  
-                    stream_PARENT.add(PARENT211);
+                    PARENT213=(Token)match(input,PARENT,FOLLOW_PARENT_in_atom2397);  
+                    stream_PARENT.add(PARENT213);
 
-
-                    COLON212=(Token)match(input,COLON,FOLLOW_COLON_in_atom2395);  
-                    stream_COLON.add(COLON212);
-
-
-                    pushFollow(FOLLOW_qualified_name_in_atom2397);
-                    qualified_name213=qualified_name();
-
-                    state._fsp--;
-
-                    stream_qualified_name.add(qualified_name213.getTree());
 
                     COLON214=(Token)match(input,COLON,FOLLOW_COLON_in_atom2399);  
                     stream_COLON.add(COLON214);
 
 
-                    ID215=(Token)match(input,ID,FOLLOW_ID_in_atom2401);  
-                    stream_ID.add(ID215);
-
-
-                    LEFT_PAREN216=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2403);  
-                    stream_LEFT_PAREN.add(LEFT_PAREN216);
-
-
-                    pushFollow(FOLLOW_function_expression_list_in_atom2405);
-                    function_expression_list217=function_expression_list();
+                    pushFollow(FOLLOW_qualified_name_in_atom2401);
+                    qualified_name215=qualified_name();
 
                     state._fsp--;
 
-                    stream_function_expression_list.add(function_expression_list217.getTree());
+                    stream_qualified_name.add(qualified_name215.getTree());
 
-                    RIGHT_PAREN218=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2407);  
-                    stream_RIGHT_PAREN.add(RIGHT_PAREN218);
+                    COLON216=(Token)match(input,COLON,FOLLOW_COLON_in_atom2403);  
+                    stream_COLON.add(COLON216);
+
+
+                    ID217=(Token)match(input,ID,FOLLOW_ID_in_atom2405);  
+                    stream_ID.add(ID217);
+
+
+                    LEFT_PAREN218=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2407);  
+                    stream_LEFT_PAREN.add(LEFT_PAREN218);
+
+
+                    pushFollow(FOLLOW_function_expression_list_in_atom2409);
+                    function_expression_list219=function_expression_list();
+
+                    state._fsp--;
+
+                    stream_function_expression_list.add(function_expression_list219.getTree());
+
+                    RIGHT_PAREN220=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2411);  
+                    stream_RIGHT_PAREN.add(RIGHT_PAREN220);
 
 
                     // AST REWRITE
-                    // elements: COLON, qualified_name, PARENT, RIGHT_PAREN, COLON, function_expression_list, ID, LEFT_PAREN
+                    // elements: LEFT_PAREN, PARENT, RIGHT_PAREN, ID, qualified_name, COLON, COLON, function_expression_list
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8326,9 +8384,9 @@ public TreeAdaptor getTreeAdaptor() {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1204:89: -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN )
+                    // 1209:89: -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN )
                     {
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1205:4: ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN )
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1210:4: ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(
@@ -8374,40 +8432,40 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 6 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1206:4: ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1211:4: ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN
                     {
-                    ME219=(Token)match(input,ME,FOLLOW_ME_in_atom2437);  
-                    stream_ME.add(ME219);
+                    ME221=(Token)match(input,ME,FOLLOW_ME_in_atom2441);  
+                    stream_ME.add(ME221);
 
 
-                    COLON220=(Token)match(input,COLON,FOLLOW_COLON_in_atom2439);  
-                    stream_COLON.add(COLON220);
+                    COLON222=(Token)match(input,COLON,FOLLOW_COLON_in_atom2443);  
+                    stream_COLON.add(COLON222);
 
 
-                    pushFollow(FOLLOW_qualified_name_in_atom2441);
-                    qualified_name221=qualified_name();
+                    pushFollow(FOLLOW_qualified_name_in_atom2445);
+                    qualified_name223=qualified_name();
 
                     state._fsp--;
 
-                    stream_qualified_name.add(qualified_name221.getTree());
+                    stream_qualified_name.add(qualified_name223.getTree());
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1206:28: ( COLON ID )?
-                    int alt77=2;
-                    int LA77_0 = input.LA(1);
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1211:28: ( COLON ID )?
+                    int alt79=2;
+                    int LA79_0 = input.LA(1);
 
-                    if ( (LA77_0==COLON) ) {
-                        alt77=1;
+                    if ( (LA79_0==COLON) ) {
+                        alt79=1;
                     }
-                    switch (alt77) {
+                    switch (alt79) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1206:29: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1211:29: COLON ID
                             {
-                            COLON222=(Token)match(input,COLON,FOLLOW_COLON_in_atom2444);  
-                            stream_COLON.add(COLON222);
+                            COLON224=(Token)match(input,COLON,FOLLOW_COLON_in_atom2448);  
+                            stream_COLON.add(COLON224);
 
 
-                            ID223=(Token)match(input,ID,FOLLOW_ID_in_atom2446);  
-                            stream_ID.add(ID223);
+                            ID225=(Token)match(input,ID,FOLLOW_ID_in_atom2450);  
+                            stream_ID.add(ID225);
 
 
                             }
@@ -8416,23 +8474,23 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    LEFT_PAREN224=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2450);  
-                    stream_LEFT_PAREN.add(LEFT_PAREN224);
+                    LEFT_PAREN226=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2454);  
+                    stream_LEFT_PAREN.add(LEFT_PAREN226);
 
 
-                    pushFollow(FOLLOW_function_expression_list_in_atom2452);
-                    function_expression_list225=function_expression_list();
+                    pushFollow(FOLLOW_function_expression_list_in_atom2456);
+                    function_expression_list227=function_expression_list();
 
                     state._fsp--;
 
-                    stream_function_expression_list.add(function_expression_list225.getTree());
+                    stream_function_expression_list.add(function_expression_list227.getTree());
 
-                    RIGHT_PAREN226=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2454);  
-                    stream_RIGHT_PAREN.add(RIGHT_PAREN226);
+                    RIGHT_PAREN228=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2458);  
+                    stream_RIGHT_PAREN.add(RIGHT_PAREN228);
 
 
                     // AST REWRITE
-                    // elements: ME, ID, qualified_name, function_expression_list, COLON, RIGHT_PAREN, COLON, LEFT_PAREN
+                    // elements: function_expression_list, LEFT_PAREN, COLON, COLON, qualified_name, ID, RIGHT_PAREN, ME
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8442,9 +8500,9 @@ public TreeAdaptor getTreeAdaptor() {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1206:88: -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
+                    // 1211:88: -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
                     {
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1207:4: ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1212:4: ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(
@@ -8461,8 +8519,8 @@ public TreeAdaptor getTreeAdaptor() {
 
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1207:49: ( COLON ID )?
-                        if ( stream_ID.hasNext()||stream_COLON.hasNext() ) {
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1212:49: ( COLON ID )?
+                        if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
                             adaptor.addChild(root_1, 
                             stream_COLON.nextNode()
                             );
@@ -8472,8 +8530,8 @@ public TreeAdaptor getTreeAdaptor() {
                             );
 
                         }
-                        stream_ID.reset();
                         stream_COLON.reset();
+                        stream_ID.reset();
 
                         adaptor.addChild(root_1, 
                         stream_LEFT_PAREN.nextNode()
@@ -8496,27 +8554,27 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 7 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1208:4: ( MINUS )? INT
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1213:4: ( MINUS )? INT
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1208:4: ( MINUS )?
-                    int alt78=2;
-                    int LA78_0 = input.LA(1);
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1213:4: ( MINUS )?
+                    int alt80=2;
+                    int LA80_0 = input.LA(1);
 
-                    if ( (LA78_0==MINUS) ) {
-                        alt78=1;
+                    if ( (LA80_0==MINUS) ) {
+                        alt80=1;
                     }
-                    switch (alt78) {
+                    switch (alt80) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1208:5: MINUS
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1213:5: MINUS
                             {
-                            MINUS227=(Token)match(input,MINUS,FOLLOW_MINUS_in_atom2488); 
-                            MINUS227_tree = 
-                            (CommonTree)adaptor.create(MINUS227)
+                            MINUS229=(Token)match(input,MINUS,FOLLOW_MINUS_in_atom2492); 
+                            MINUS229_tree = 
+                            (CommonTree)adaptor.create(MINUS229)
                             ;
-                            adaptor.addChild(root_0, MINUS227_tree);
+                            adaptor.addChild(root_0, MINUS229_tree);
 
 
                             }
@@ -8525,52 +8583,52 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    INT228=(Token)match(input,INT,FOLLOW_INT_in_atom2492); 
-                    INT228_tree = 
-                    (CommonTree)adaptor.create(INT228)
+                    INT230=(Token)match(input,INT,FOLLOW_INT_in_atom2496); 
+                    INT230_tree = 
+                    (CommonTree)adaptor.create(INT230)
                     ;
-                    adaptor.addChild(root_0, INT228_tree);
+                    adaptor.addChild(root_0, INT230_tree);
 
 
                     }
                     break;
                 case 8 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1209:4: BOOLEAN
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1214:4: BOOLEAN
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    BOOLEAN229=(Token)match(input,BOOLEAN,FOLLOW_BOOLEAN_in_atom2497); 
-                    BOOLEAN229_tree = 
-                    (CommonTree)adaptor.create(BOOLEAN229)
+                    BOOLEAN231=(Token)match(input,BOOLEAN,FOLLOW_BOOLEAN_in_atom2501); 
+                    BOOLEAN231_tree = 
+                    (CommonTree)adaptor.create(BOOLEAN231)
                     ;
-                    adaptor.addChild(root_0, BOOLEAN229_tree);
+                    adaptor.addChild(root_0, BOOLEAN231_tree);
 
 
                     }
                     break;
                 case 9 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1210:4: ( MINUS )? DECIMAL
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1215:4: ( MINUS )? DECIMAL
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1210:4: ( MINUS )?
-                    int alt79=2;
-                    int LA79_0 = input.LA(1);
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1215:4: ( MINUS )?
+                    int alt81=2;
+                    int LA81_0 = input.LA(1);
 
-                    if ( (LA79_0==MINUS) ) {
-                        alt79=1;
+                    if ( (LA81_0==MINUS) ) {
+                        alt81=1;
                     }
-                    switch (alt79) {
+                    switch (alt81) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1210:5: MINUS
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1215:5: MINUS
                             {
-                            MINUS230=(Token)match(input,MINUS,FOLLOW_MINUS_in_atom2503); 
-                            MINUS230_tree = 
-                            (CommonTree)adaptor.create(MINUS230)
+                            MINUS232=(Token)match(input,MINUS,FOLLOW_MINUS_in_atom2507); 
+                            MINUS232_tree = 
+                            (CommonTree)adaptor.create(MINUS232)
                             ;
-                            adaptor.addChild(root_0, MINUS230_tree);
+                            adaptor.addChild(root_0, MINUS232_tree);
 
 
                             }
@@ -8579,112 +8637,112 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    DECIMAL231=(Token)match(input,DECIMAL,FOLLOW_DECIMAL_in_atom2507); 
-                    DECIMAL231_tree = 
-                    (CommonTree)adaptor.create(DECIMAL231)
+                    DECIMAL233=(Token)match(input,DECIMAL,FOLLOW_DECIMAL_in_atom2511); 
+                    DECIMAL233_tree = 
+                    (CommonTree)adaptor.create(DECIMAL233)
                     ;
-                    adaptor.addChild(root_0, DECIMAL231_tree);
+                    adaptor.addChild(root_0, DECIMAL233_tree);
 
 
                     }
                     break;
                 case 10 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1211:4: STRING
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1216:4: STRING
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    STRING232=(Token)match(input,STRING,FOLLOW_STRING_in_atom2513); 
-                    STRING232_tree = 
-                    (CommonTree)adaptor.create(STRING232)
+                    STRING234=(Token)match(input,STRING,FOLLOW_STRING_in_atom2517); 
+                    STRING234_tree = 
+                    (CommonTree)adaptor.create(STRING234)
                     ;
-                    adaptor.addChild(root_0, STRING232_tree);
+                    adaptor.addChild(root_0, STRING234_tree);
 
 
                     }
                     break;
                 case 11 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1212:4: NULL
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1217:4: NULL
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    NULL233=(Token)match(input,NULL,FOLLOW_NULL_in_atom2518); 
-                    NULL233_tree = 
-                    (CommonTree)adaptor.create(NULL233)
+                    NULL235=(Token)match(input,NULL,FOLLOW_NULL_in_atom2522); 
+                    NULL235_tree = 
+                    (CommonTree)adaptor.create(NULL235)
                     ;
-                    adaptor.addChild(root_0, NULL233_tree);
+                    adaptor.addChild(root_0, NULL235_tree);
 
 
                     }
                     break;
                 case 12 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1213:4: ME
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1218:4: ME
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    ME234=(Token)match(input,ME,FOLLOW_ME_in_atom2523); 
-                    ME234_tree = 
-                    (CommonTree)adaptor.create(ME234)
+                    ME236=(Token)match(input,ME,FOLLOW_ME_in_atom2527); 
+                    ME236_tree = 
+                    (CommonTree)adaptor.create(ME236)
                     ;
-                    adaptor.addChild(root_0, ME234_tree);
+                    adaptor.addChild(root_0, ME236_tree);
 
 
                     }
                     break;
                 case 13 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1214:5: INPUT LEFT_PAREN expression RIGHT_PAREN
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1219:5: INPUT LEFT_PAREN expression RIGHT_PAREN
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    INPUT235=(Token)match(input,INPUT,FOLLOW_INPUT_in_atom2529); 
-                    INPUT235_tree = 
-                    (CommonTree)adaptor.create(INPUT235)
+                    INPUT237=(Token)match(input,INPUT,FOLLOW_INPUT_in_atom2533); 
+                    INPUT237_tree = 
+                    (CommonTree)adaptor.create(INPUT237)
                     ;
-                    adaptor.addChild(root_0, INPUT235_tree);
+                    adaptor.addChild(root_0, INPUT237_tree);
 
 
-                    LEFT_PAREN236=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2531); 
-                    LEFT_PAREN236_tree = 
-                    (CommonTree)adaptor.create(LEFT_PAREN236)
+                    LEFT_PAREN238=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2535); 
+                    LEFT_PAREN238_tree = 
+                    (CommonTree)adaptor.create(LEFT_PAREN238)
                     ;
-                    adaptor.addChild(root_0, LEFT_PAREN236_tree);
+                    adaptor.addChild(root_0, LEFT_PAREN238_tree);
 
 
-                    pushFollow(FOLLOW_expression_in_atom2533);
-                    expression237=expression();
+                    pushFollow(FOLLOW_expression_in_atom2537);
+                    expression239=expression();
 
                     state._fsp--;
 
-                    adaptor.addChild(root_0, expression237.getTree());
+                    adaptor.addChild(root_0, expression239.getTree());
 
-                    RIGHT_PAREN238=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2535); 
-                    RIGHT_PAREN238_tree = 
-                    (CommonTree)adaptor.create(RIGHT_PAREN238)
+                    RIGHT_PAREN240=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2539); 
+                    RIGHT_PAREN240_tree = 
+                    (CommonTree)adaptor.create(RIGHT_PAREN240)
                     ;
-                    adaptor.addChild(root_0, RIGHT_PAREN238_tree);
+                    adaptor.addChild(root_0, RIGHT_PAREN240_tree);
 
 
                     }
                     break;
                 case 14 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1215:4: LEFT_PAREN expression RIGHT_PAREN
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1220:4: LEFT_PAREN expression RIGHT_PAREN
                     {
-                    LEFT_PAREN239=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2540);  
-                    stream_LEFT_PAREN.add(LEFT_PAREN239);
+                    LEFT_PAREN241=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2544);  
+                    stream_LEFT_PAREN.add(LEFT_PAREN241);
 
 
-                    pushFollow(FOLLOW_expression_in_atom2542);
-                    expression240=expression();
+                    pushFollow(FOLLOW_expression_in_atom2546);
+                    expression242=expression();
 
                     state._fsp--;
 
-                    stream_expression.add(expression240.getTree());
+                    stream_expression.add(expression242.getTree());
 
-                    RIGHT_PAREN241=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2544);  
-                    stream_RIGHT_PAREN.add(RIGHT_PAREN241);
+                    RIGHT_PAREN243=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2548);  
+                    stream_RIGHT_PAREN.add(RIGHT_PAREN243);
 
 
                     // AST REWRITE
@@ -8698,9 +8756,9 @@ public TreeAdaptor getTreeAdaptor() {
                     RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
                     root_0 = (CommonTree)adaptor.nil();
-                    // 1215:38: -> ^( expression )
+                    // 1220:38: -> ^( expression )
                     {
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1215:41: ^( expression )
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1220:41: ^( expression )
                         {
                         CommonTree root_1 = (CommonTree)adaptor.nil();
                         root_1 = (CommonTree)adaptor.becomeRoot(stream_expression.nextNode(), root_1);
@@ -8746,7 +8804,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "function_expression_list"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1218:1: function_expression_list : ( expression ( COMMA expression )* )? -> ^( FUNCTION_EXPRESSION_LIST ( expression )* ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1223:1: function_expression_list : ( expression ( COMMA expression )* )? -> ^( FUNCTION_EXPRESSION_LIST ( expression )* ) ;
     public final QuorumParser.function_expression_list_return function_expression_list() throws RecognitionException {
         QuorumParser.function_expression_list_return retval = new QuorumParser.function_expression_list_return();
         retval.start = input.LT(1);
@@ -8754,68 +8812,68 @@ public TreeAdaptor getTreeAdaptor() {
 
         CommonTree root_0 = null;
 
-        Token COMMA243=null;
-        QuorumParser.expression_return expression242 =null;
-
+        Token COMMA245=null;
         QuorumParser.expression_return expression244 =null;
 
+        QuorumParser.expression_return expression246 =null;
 
-        CommonTree COMMA243_tree=null;
+
+        CommonTree COMMA245_tree=null;
         RewriteRuleTokenStream stream_COMMA=new RewriteRuleTokenStream(adaptor,"token COMMA");
         RewriteRuleSubtreeStream stream_expression=new RewriteRuleSubtreeStream(adaptor,"rule expression");
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1219:2: ( ( expression ( COMMA expression )* )? -> ^( FUNCTION_EXPRESSION_LIST ( expression )* ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1220:2: ( expression ( COMMA expression )* )?
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1224:2: ( ( expression ( COMMA expression )* )? -> ^( FUNCTION_EXPRESSION_LIST ( expression )* ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1225:2: ( expression ( COMMA expression )* )?
             {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1220:2: ( expression ( COMMA expression )* )?
-            int alt82=2;
-            int LA82_0 = input.LA(1);
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1225:2: ( expression ( COMMA expression )* )?
+            int alt84=2;
+            int LA84_0 = input.LA(1);
 
-            if ( (LA82_0==BOOLEAN||LA82_0==CAST||LA82_0==DECIMAL||LA82_0==ID||(LA82_0 >= INPUT && LA82_0 <= INT)||LA82_0==LEFT_PAREN||(LA82_0 >= ME && LA82_0 <= MINUS)||LA82_0==NOT||LA82_0==NULL||LA82_0==PARENT||LA82_0==STRING) ) {
-                alt82=1;
+            if ( (LA84_0==BOOLEAN||LA84_0==CAST||LA84_0==DECIMAL||LA84_0==ID||(LA84_0 >= INPUT && LA84_0 <= INT)||LA84_0==LEFT_PAREN||(LA84_0 >= ME && LA84_0 <= MINUS)||LA84_0==NOT||LA84_0==NULL||LA84_0==PARENT||LA84_0==STRING) ) {
+                alt84=1;
             }
-            switch (alt82) {
+            switch (alt84) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1220:3: expression ( COMMA expression )*
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1225:3: expression ( COMMA expression )*
                     {
-                    pushFollow(FOLLOW_expression_in_function_expression_list2564);
-                    expression242=expression();
+                    pushFollow(FOLLOW_expression_in_function_expression_list2568);
+                    expression244=expression();
 
                     state._fsp--;
 
-                    stream_expression.add(expression242.getTree());
+                    stream_expression.add(expression244.getTree());
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1220:14: ( COMMA expression )*
-                    loop81:
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1225:14: ( COMMA expression )*
+                    loop83:
                     do {
-                        int alt81=2;
-                        int LA81_0 = input.LA(1);
+                        int alt83=2;
+                        int LA83_0 = input.LA(1);
 
-                        if ( (LA81_0==COMMA) ) {
-                            alt81=1;
+                        if ( (LA83_0==COMMA) ) {
+                            alt83=1;
                         }
 
 
-                        switch (alt81) {
+                        switch (alt83) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1220:15: COMMA expression
+                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1225:15: COMMA expression
                     	    {
-                    	    COMMA243=(Token)match(input,COMMA,FOLLOW_COMMA_in_function_expression_list2567);  
-                    	    stream_COMMA.add(COMMA243);
+                    	    COMMA245=(Token)match(input,COMMA,FOLLOW_COMMA_in_function_expression_list2571);  
+                    	    stream_COMMA.add(COMMA245);
 
 
-                    	    pushFollow(FOLLOW_expression_in_function_expression_list2569);
-                    	    expression244=expression();
+                    	    pushFollow(FOLLOW_expression_in_function_expression_list2573);
+                    	    expression246=expression();
 
                     	    state._fsp--;
 
-                    	    stream_expression.add(expression244.getTree());
+                    	    stream_expression.add(expression246.getTree());
 
                     	    }
                     	    break;
 
                     	default :
-                    	    break loop81;
+                    	    break loop83;
                         }
                     } while (true);
 
@@ -8837,16 +8895,16 @@ public TreeAdaptor getTreeAdaptor() {
             RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
             root_0 = (CommonTree)adaptor.nil();
-            // 1221:2: -> ^( FUNCTION_EXPRESSION_LIST ( expression )* )
+            // 1226:2: -> ^( FUNCTION_EXPRESSION_LIST ( expression )* )
             {
-                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1221:5: ^( FUNCTION_EXPRESSION_LIST ( expression )* )
+                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1226:5: ^( FUNCTION_EXPRESSION_LIST ( expression )* )
                 {
                 CommonTree root_1 = (CommonTree)adaptor.nil();
                 root_1 = (CommonTree)adaptor.becomeRoot(
                 (CommonTree)adaptor.create(FUNCTION_EXPRESSION_LIST, "FUNCTION_EXPRESSION_LIST")
                 , root_1);
 
-                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1221:32: ( expression )*
+                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1226:32: ( expression )*
                 while ( stream_expression.hasNext() ) {
                     adaptor.addChild(root_1, stream_expression.nextTree());
 
@@ -8888,51 +8946,51 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     protected DFA4 dfa4 = new DFA4(this);
-    protected DFA34 dfa34 = new DFA34(this);
-    protected DFA58 dfa58 = new DFA58(this);
-    protected DFA80 dfa80 = new DFA80(this);
+    protected DFA35 dfa35 = new DFA35(this);
+    protected DFA60 dfa60 = new DFA60(this);
+    protected DFA82 dfa82 = new DFA82(this);
     static final String DFA4_eotS =
         "\16\uffff";
     static final String DFA4_eofS =
         "\16\uffff";
     static final String DFA4_minS =
-        "\1\4\2\45\1\uffff\2\4\1\45\2\uffff\1\45\2\uffff\2\4";
+        "\1\4\2\46\1\uffff\2\4\1\46\2\uffff\1\46\2\uffff\2\4";
     static final String DFA4_maxS =
-        "\1\133\2\45\1\uffff\2\133\1\45\2\uffff\1\45\2\uffff\2\133";
+        "\1\134\2\46\1\uffff\2\134\1\46\2\uffff\1\46\2\uffff\2\134";
     static final String DFA4_acceptS =
         "\3\uffff\1\5\3\uffff\1\1\1\3\1\uffff\1\2\1\4\2\uffff";
     static final String DFA4_specialS =
         "\16\uffff}>";
     static final String[] DFA4_transitionS = {
-            "\2\3\2\uffff\1\3\1\uffff\1\3\1\uffff\2\3\27\uffff\2\3\3\uffff"+
-            "\1\3\4\uffff\1\3\3\uffff\1\3\5\uffff\1\3\1\uffff\1\3\3\uffff"+
-            "\1\1\1\3\3\uffff\3\3\4\uffff\2\3\4\uffff\1\3\5\uffff\1\3\3\uffff"+
-            "\1\2",
+            "\2\3\2\uffff\1\3\1\uffff\1\3\1\uffff\2\3\3\uffff\1\3\24\uffff"+
+            "\2\3\3\uffff\1\3\4\uffff\1\3\3\uffff\1\3\5\uffff\1\3\1\uffff"+
+            "\1\3\3\uffff\1\1\1\3\3\uffff\3\3\4\uffff\2\3\4\uffff\1\3\5\uffff"+
+            "\1\3\3\uffff\1\2",
             "\1\4",
             "\1\5",
             "",
-            "\2\10\2\uffff\1\10\1\uffff\1\10\1\uffff\2\10\27\uffff\2\10"+
-            "\3\uffff\1\10\4\uffff\1\10\3\uffff\1\10\5\uffff\1\10\1\uffff"+
-            "\1\10\4\uffff\1\10\1\uffff\1\6\1\uffff\3\10\4\uffff\2\10\4\uffff"+
-            "\1\10\5\uffff\1\10\3\uffff\1\7",
-            "\2\13\2\uffff\1\13\1\uffff\1\13\1\uffff\2\13\27\uffff\2\13"+
-            "\3\uffff\1\13\4\uffff\1\13\3\uffff\1\13\5\uffff\1\13\1\uffff"+
-            "\1\13\3\uffff\1\12\1\13\1\uffff\1\11\1\uffff\3\13\4\uffff\2"+
-            "\13\4\uffff\1\13\5\uffff\1\13\3\uffff\1\2",
+            "\2\10\2\uffff\1\10\1\uffff\1\10\1\uffff\2\10\3\uffff\1\10\24"+
+            "\uffff\2\10\3\uffff\1\10\4\uffff\1\10\3\uffff\1\10\5\uffff\1"+
+            "\10\1\uffff\1\10\4\uffff\1\10\1\uffff\1\6\1\uffff\3\10\4\uffff"+
+            "\2\10\4\uffff\1\10\5\uffff\1\10\3\uffff\1\7",
+            "\2\13\2\uffff\1\13\1\uffff\1\13\1\uffff\2\13\3\uffff\1\13\24"+
+            "\uffff\2\13\3\uffff\1\13\4\uffff\1\13\3\uffff\1\13\5\uffff\1"+
+            "\13\1\uffff\1\13\3\uffff\1\12\1\13\1\uffff\1\11\1\uffff\3\13"+
+            "\4\uffff\2\13\4\uffff\1\13\5\uffff\1\13\3\uffff\1\2",
             "\1\14",
             "",
             "",
             "\1\15",
             "",
             "",
-            "\2\10\2\uffff\1\10\1\uffff\1\10\1\uffff\2\10\27\uffff\2\10"+
-            "\3\uffff\1\10\4\uffff\1\10\3\uffff\1\10\5\uffff\1\10\1\uffff"+
-            "\1\10\4\uffff\1\10\1\uffff\1\6\1\uffff\3\10\4\uffff\2\10\4\uffff"+
-            "\1\10\5\uffff\1\10\3\uffff\1\7",
-            "\2\13\2\uffff\1\13\1\uffff\1\13\1\uffff\2\13\27\uffff\2\13"+
-            "\3\uffff\1\13\4\uffff\1\13\3\uffff\1\13\5\uffff\1\13\1\uffff"+
-            "\1\13\3\uffff\1\12\1\13\1\uffff\1\11\1\uffff\3\13\4\uffff\2"+
-            "\13\4\uffff\1\13\5\uffff\1\13\3\uffff\1\2"
+            "\2\10\2\uffff\1\10\1\uffff\1\10\1\uffff\2\10\3\uffff\1\10\24"+
+            "\uffff\2\10\3\uffff\1\10\4\uffff\1\10\3\uffff\1\10\5\uffff\1"+
+            "\10\1\uffff\1\10\4\uffff\1\10\1\uffff\1\6\1\uffff\3\10\4\uffff"+
+            "\2\10\4\uffff\1\10\5\uffff\1\10\3\uffff\1\7",
+            "\2\13\2\uffff\1\13\1\uffff\1\13\1\uffff\2\13\3\uffff\1\13\24"+
+            "\uffff\2\13\3\uffff\1\13\4\uffff\1\13\3\uffff\1\13\5\uffff\1"+
+            "\13\1\uffff\1\13\3\uffff\1\12\1\13\1\uffff\1\11\1\uffff\3\13"+
+            "\4\uffff\2\13\4\uffff\1\13\5\uffff\1\13\3\uffff\1\2"
     };
 
     static final short[] DFA4_eot = DFA.unpackEncodedString(DFA4_eotS);
@@ -8968,25 +9026,25 @@ public TreeAdaptor getTreeAdaptor() {
             return "272:3: ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ |)";
         }
     }
-    static final String DFA34_eotS =
+    static final String DFA35_eotS =
         "\31\uffff";
-    static final String DFA34_eofS =
+    static final String DFA35_eofS =
         "\31\uffff";
-    static final String DFA34_minS =
-        "\1\5\3\16\10\uffff\2\45\1\uffff\2\45\1\16\1\32\2\16\2\45\1\16\1"+
-        "\32";
-    static final String DFA34_maxS =
-        "\1\127\1\102\2\16\10\uffff\1\45\1\100\1\uffff\2\45\1\102\1\53\2"+
-        "\102\2\45\1\102\1\53";
-    static final String DFA34_acceptS =
+    static final String DFA35_minS =
+        "\1\5\3\16\10\uffff\2\46\1\uffff\2\46\1\16\1\33\2\16\2\46\1\16\1"+
+        "\33";
+    static final String DFA35_maxS =
+        "\1\130\1\103\2\16\10\uffff\1\46\1\101\1\uffff\2\46\1\103\1\54\2"+
+        "\103\2\46\1\103\1\54";
+    static final String DFA35_acceptS =
         "\4\uffff\1\2\1\3\1\4\1\5\1\6\1\7\1\10\1\11\2\uffff\1\1\12\uffff";
-    static final String DFA34_specialS =
+    static final String DFA35_specialS =
         "\31\uffff}>";
-    static final String[] DFA34_transitionS = {
-            "\1\13\4\uffff\1\5\1\uffff\1\12\30\uffff\1\1\1\4\3\uffff\1\5"+
-            "\4\uffff\1\3\11\uffff\1\5\6\uffff\1\2\3\uffff\1\10\2\5\4\uffff"+
-            "\1\6\1\7\4\uffff\1\11\5\uffff\1\5",
-            "\1\15\13\uffff\1\5\12\uffff\1\5\5\uffff\1\16\1\uffff\1\5\24"+
+    static final String[] DFA35_transitionS = {
+            "\1\13\4\uffff\1\5\1\uffff\1\12\4\uffff\1\5\24\uffff\1\1\1\4"+
+            "\3\uffff\1\5\4\uffff\1\3\11\uffff\1\5\6\uffff\1\2\3\uffff\1"+
+            "\10\2\5\4\uffff\1\6\1\7\4\uffff\1\11\5\uffff\1\5",
+            "\1\15\14\uffff\1\5\12\uffff\1\5\5\uffff\1\16\1\uffff\1\5\24"+
             "\uffff\1\14",
             "\1\17",
             "\1\20",
@@ -9003,135 +9061,135 @@ public TreeAdaptor getTreeAdaptor() {
             "",
             "\1\23",
             "\1\24",
-            "\1\15\26\uffff\1\5\5\uffff\1\16\1\uffff\1\5\24\uffff\1\14",
+            "\1\15\27\uffff\1\5\5\uffff\1\16\1\uffff\1\5\24\uffff\1\14",
             "\1\5\20\uffff\1\16",
-            "\1\26\63\uffff\1\25",
-            "\1\16\13\uffff\1\5\20\uffff\1\16\26\uffff\1\16",
+            "\1\26\64\uffff\1\25",
+            "\1\16\14\uffff\1\5\20\uffff\1\16\26\uffff\1\16",
             "\1\27",
             "\1\30",
-            "\1\26\63\uffff\1\25",
+            "\1\26\64\uffff\1\25",
             "\1\5\20\uffff\1\16"
     };
 
-    static final short[] DFA34_eot = DFA.unpackEncodedString(DFA34_eotS);
-    static final short[] DFA34_eof = DFA.unpackEncodedString(DFA34_eofS);
-    static final char[] DFA34_min = DFA.unpackEncodedStringToUnsignedChars(DFA34_minS);
-    static final char[] DFA34_max = DFA.unpackEncodedStringToUnsignedChars(DFA34_maxS);
-    static final short[] DFA34_accept = DFA.unpackEncodedString(DFA34_acceptS);
-    static final short[] DFA34_special = DFA.unpackEncodedString(DFA34_specialS);
-    static final short[][] DFA34_transition;
+    static final short[] DFA35_eot = DFA.unpackEncodedString(DFA35_eotS);
+    static final short[] DFA35_eof = DFA.unpackEncodedString(DFA35_eofS);
+    static final char[] DFA35_min = DFA.unpackEncodedStringToUnsignedChars(DFA35_minS);
+    static final char[] DFA35_max = DFA.unpackEncodedStringToUnsignedChars(DFA35_maxS);
+    static final short[] DFA35_accept = DFA.unpackEncodedString(DFA35_acceptS);
+    static final short[] DFA35_special = DFA.unpackEncodedString(DFA35_specialS);
+    static final short[][] DFA35_transition;
 
     static {
-        int numStates = DFA34_transitionS.length;
-        DFA34_transition = new short[numStates][];
+        int numStates = DFA35_transitionS.length;
+        DFA35_transition = new short[numStates][];
         for (int i=0; i<numStates; i++) {
-            DFA34_transition[i] = DFA.unpackEncodedString(DFA34_transitionS[i]);
+            DFA35_transition[i] = DFA.unpackEncodedString(DFA35_transitionS[i]);
         }
     }
 
-    class DFA34 extends DFA {
+    class DFA35 extends DFA {
 
-        public DFA34(BaseRecognizer recognizer) {
+        public DFA35(BaseRecognizer recognizer) {
             this.recognizer = recognizer;
-            this.decisionNumber = 34;
-            this.eot = DFA34_eot;
-            this.eof = DFA34_eof;
-            this.min = DFA34_min;
-            this.max = DFA34_max;
-            this.accept = DFA34_accept;
-            this.special = DFA34_special;
-            this.transition = DFA34_transition;
+            this.decisionNumber = 35;
+            this.eot = DFA35_eot;
+            this.eof = DFA35_eof;
+            this.min = DFA35_min;
+            this.max = DFA35_max;
+            this.accept = DFA35_accept;
+            this.special = DFA35_special;
+            this.transition = DFA35_transition;
         }
         public String getDescription() {
             return "701:1: statement : ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement );";
         }
     }
-    static final String DFA58_eotS =
+    static final String DFA60_eotS =
         "\7\uffff";
-    static final String DFA58_eofS =
+    static final String DFA60_eofS =
         "\7\uffff";
-    static final String DFA58_minS =
-        "\1\12\1\uffff\1\16\1\uffff\1\45\1\uffff\1\16";
-    static final String DFA58_maxS =
-        "\1\127\1\uffff\1\102\1\uffff\1\45\1\uffff\1\102";
-    static final String DFA58_acceptS =
+    static final String DFA60_minS =
+        "\1\12\1\uffff\1\16\1\uffff\1\46\1\uffff\1\16";
+    static final String DFA60_maxS =
+        "\1\130\1\uffff\1\103\1\uffff\1\46\1\uffff\1\103";
+    static final String DFA60_acceptS =
         "\1\uffff\1\1\1\uffff\1\3\1\uffff\1\2\1\uffff";
-    static final String DFA58_specialS =
+    static final String DFA60_specialS =
         "\7\uffff}>";
-    static final String[] DFA58_transitionS = {
-            "\1\3\32\uffff\1\2\4\uffff\1\3\4\uffff\1\1\11\uffff\1\3\6\uffff"+
-            "\1\1\4\uffff\2\3\20\uffff\1\3",
+    static final String[] DFA60_transitionS = {
+            "\1\3\6\uffff\1\3\24\uffff\1\2\4\uffff\1\3\4\uffff\1\1\11\uffff"+
+            "\1\3\6\uffff\1\1\4\uffff\2\3\20\uffff\1\3",
             "",
-            "\1\5\13\uffff\1\1\12\uffff\1\3\7\uffff\1\3\24\uffff\1\4",
+            "\1\5\14\uffff\1\1\12\uffff\1\3\7\uffff\1\3\24\uffff\1\4",
             "",
             "\1\6",
             "",
-            "\1\5\26\uffff\1\3\7\uffff\1\3\24\uffff\1\4"
+            "\1\5\27\uffff\1\3\7\uffff\1\3\24\uffff\1\4"
     };
 
-    static final short[] DFA58_eot = DFA.unpackEncodedString(DFA58_eotS);
-    static final short[] DFA58_eof = DFA.unpackEncodedString(DFA58_eofS);
-    static final char[] DFA58_min = DFA.unpackEncodedStringToUnsignedChars(DFA58_minS);
-    static final char[] DFA58_max = DFA.unpackEncodedStringToUnsignedChars(DFA58_maxS);
-    static final short[] DFA58_accept = DFA.unpackEncodedString(DFA58_acceptS);
-    static final short[] DFA58_special = DFA.unpackEncodedString(DFA58_specialS);
-    static final short[][] DFA58_transition;
+    static final short[] DFA60_eot = DFA.unpackEncodedString(DFA60_eotS);
+    static final short[] DFA60_eof = DFA.unpackEncodedString(DFA60_eofS);
+    static final char[] DFA60_min = DFA.unpackEncodedStringToUnsignedChars(DFA60_minS);
+    static final char[] DFA60_max = DFA.unpackEncodedStringToUnsignedChars(DFA60_maxS);
+    static final short[] DFA60_accept = DFA.unpackEncodedString(DFA60_acceptS);
+    static final short[] DFA60_special = DFA.unpackEncodedString(DFA60_specialS);
+    static final short[][] DFA60_transition;
 
     static {
-        int numStates = DFA58_transitionS.length;
-        DFA58_transition = new short[numStates][];
+        int numStates = DFA60_transitionS.length;
+        DFA60_transition = new short[numStates][];
         for (int i=0; i<numStates; i++) {
-            DFA58_transition[i] = DFA.unpackEncodedString(DFA58_transitionS[i]);
+            DFA60_transition[i] = DFA.unpackEncodedString(DFA60_transitionS[i]);
         }
     }
 
-    class DFA58 extends DFA {
+    class DFA60 extends DFA {
 
-        public DFA58(BaseRecognizer recognizer) {
+        public DFA60(BaseRecognizer recognizer) {
             this.recognizer = recognizer;
-            this.decisionNumber = 58;
-            this.eot = DFA58_eot;
-            this.eof = DFA58_eof;
-            this.min = DFA58_min;
-            this.max = DFA58_max;
-            this.accept = DFA58_accept;
-            this.special = DFA58_special;
-            this.transition = DFA58_transition;
+            this.decisionNumber = 60;
+            this.eot = DFA60_eot;
+            this.eof = DFA60_eof;
+            this.min = DFA60_min;
+            this.max = DFA60_max;
+            this.accept = DFA60_accept;
+            this.special = DFA60_special;
+            this.transition = DFA60_transition;
         }
         public String getDescription() {
-            return "977:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );";
+            return "977:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );";
         }
     }
-    static final String DFA80_eotS =
+    static final String DFA82_eotS =
         "\41\uffff";
-    static final String DFA80_eofS =
+    static final String DFA82_eofS =
         "\1\uffff\1\16\1\uffff\1\22\17\uffff\2\16\2\uffff\1\34\6\uffff\2"+
         "\34\1\uffff";
-    static final String DFA80_minS =
-        "\1\11\1\4\1\16\1\4\1\22\7\uffff\2\45\2\uffff\2\45\1\uffff\2\4\1"+
-        "\uffff\1\16\1\4\3\45\2\uffff\1\16\2\4\1\uffff";
-    static final String DFA80_maxS =
-        "\1\126\1\130\1\16\1\130\1\51\7\uffff\1\45\1\100\2\uffff\2\45\1\uffff"+
-        "\2\130\1\uffff\1\102\1\130\3\45\2\uffff\1\102\2\130\1\uffff";
-    static final String DFA80_acceptS =
+    static final String DFA82_minS =
+        "\1\11\1\4\1\16\1\4\1\23\7\uffff\2\46\2\uffff\2\46\1\uffff\2\4\1"+
+        "\uffff\1\16\1\4\3\46\2\uffff\1\16\2\4\1\uffff";
+    static final String DFA82_maxS =
+        "\1\127\1\131\1\16\1\131\1\52\7\uffff\1\46\1\101\2\uffff\2\46\1\uffff"+
+        "\2\131\1\uffff\1\103\1\131\3\46\2\uffff\1\103\2\131\1\uffff";
+    static final String DFA82_acceptS =
         "\5\uffff\1\7\1\10\1\11\1\12\1\13\1\15\1\16\2\uffff\1\1\1\3\2\uffff"+
         "\1\14\2\uffff\1\2\5\uffff\1\6\1\4\3\uffff\1\5";
-    static final String DFA80_specialS =
+    static final String DFA82_specialS =
         "\41\uffff}>";
-    static final String[] DFA80_transitionS = {
-            "\1\6\10\uffff\1\7\22\uffff\1\1\2\uffff\1\12\1\5\1\uffff\1\13"+
+    static final String[] DFA82_transitionS = {
+            "\1\6\11\uffff\1\7\22\uffff\1\1\2\uffff\1\12\1\5\1\uffff\1\13"+
             "\3\uffff\1\3\1\4\7\uffff\1\11\7\uffff\1\2\25\uffff\1\10",
-            "\5\16\1\uffff\1\16\1\uffff\1\16\1\uffff\1\15\1\16\3\uffff\2"+
-            "\16\1\uffff\2\16\1\uffff\2\16\10\uffff\5\16\2\uffff\1\16\1\17"+
-            "\1\uffff\7\16\2\uffff\1\16\2\uffff\1\16\1\uffff\1\16\1\uffff"+
-            "\1\16\2\uffff\1\16\1\uffff\1\14\4\16\4\uffff\2\16\1\uffff\1"+
-            "\16\2\uffff\1\16\5\uffff\2\16",
+            "\5\16\1\uffff\1\16\1\uffff\1\16\1\uffff\1\15\1\16\1\uffff\1"+
+            "\16\2\uffff\2\16\1\uffff\2\16\1\uffff\2\16\10\uffff\5\16\2\uffff"+
+            "\1\16\1\17\1\uffff\7\16\2\uffff\1\16\2\uffff\1\16\1\uffff\1"+
+            "\16\1\uffff\1\16\2\uffff\1\16\1\uffff\1\14\4\16\4\uffff\2\16"+
+            "\1\uffff\1\16\2\uffff\1\16\5\uffff\2\16",
             "\1\20",
-            "\5\22\1\uffff\1\22\1\uffff\1\22\1\uffff\1\21\1\22\3\uffff\2"+
-            "\22\1\uffff\2\22\1\uffff\2\22\10\uffff\5\22\2\uffff\1\22\2\uffff"+
-            "\7\22\2\uffff\1\22\2\uffff\1\22\1\uffff\1\22\1\uffff\1\22\2"+
-            "\uffff\1\22\2\uffff\4\22\4\uffff\2\22\1\uffff\1\22\2\uffff\1"+
-            "\22\5\uffff\2\22",
+            "\5\22\1\uffff\1\22\1\uffff\1\22\1\uffff\1\21\1\22\1\uffff\1"+
+            "\22\2\uffff\2\22\1\uffff\2\22\1\uffff\2\22\10\uffff\5\22\2\uffff"+
+            "\1\22\2\uffff\7\22\2\uffff\1\22\2\uffff\1\22\1\uffff\1\22\1"+
+            "\uffff\1\22\2\uffff\1\22\2\uffff\4\22\4\uffff\2\22\1\uffff\1"+
+            "\22\2\uffff\1\22\5\uffff\2\22",
             "\1\7\26\uffff\1\5",
             "",
             "",
@@ -9147,359 +9205,361 @@ public TreeAdaptor getTreeAdaptor() {
             "\1\26",
             "\1\27",
             "",
-            "\5\16\1\uffff\1\16\1\uffff\1\16\1\uffff\1\15\1\16\3\uffff\2"+
-            "\16\1\uffff\2\16\1\uffff\2\16\10\uffff\5\16\2\uffff\1\16\1\17"+
-            "\1\uffff\7\16\2\uffff\1\16\2\uffff\1\16\1\uffff\1\16\1\uffff"+
-            "\1\16\2\uffff\1\16\1\uffff\1\14\4\16\4\uffff\2\16\1\uffff\1"+
-            "\16\2\uffff\1\16\5\uffff\2\16",
-            "\5\16\1\uffff\1\16\1\uffff\1\16\2\uffff\1\16\3\uffff\2\16\1"+
-            "\uffff\2\16\1\uffff\2\16\10\uffff\5\16\2\uffff\1\16\1\17\1\uffff"+
-            "\7\16\2\uffff\1\16\2\uffff\1\16\1\uffff\1\16\1\uffff\1\16\2"+
-            "\uffff\1\16\2\uffff\4\16\4\uffff\2\16\1\uffff\1\16\2\uffff\1"+
-            "\16\5\uffff\2\16",
+            "\5\16\1\uffff\1\16\1\uffff\1\16\1\uffff\1\15\1\16\1\uffff\1"+
+            "\16\2\uffff\2\16\1\uffff\2\16\1\uffff\2\16\10\uffff\5\16\2\uffff"+
+            "\1\16\1\17\1\uffff\7\16\2\uffff\1\16\2\uffff\1\16\1\uffff\1"+
+            "\16\1\uffff\1\16\2\uffff\1\16\1\uffff\1\14\4\16\4\uffff\2\16"+
+            "\1\uffff\1\16\2\uffff\1\16\5\uffff\2\16",
+            "\5\16\1\uffff\1\16\1\uffff\1\16\2\uffff\1\16\1\uffff\1\16\2"+
+            "\uffff\2\16\1\uffff\2\16\1\uffff\2\16\10\uffff\5\16\2\uffff"+
+            "\1\16\1\17\1\uffff\7\16\2\uffff\1\16\2\uffff\1\16\1\uffff\1"+
+            "\16\1\uffff\1\16\2\uffff\1\16\2\uffff\4\16\4\uffff\2\16\1\uffff"+
+            "\1\16\2\uffff\1\16\5\uffff\2\16",
             "",
-            "\1\31\63\uffff\1\30",
-            "\5\34\1\uffff\1\34\1\uffff\1\34\1\uffff\1\33\1\34\3\uffff\2"+
-            "\34\1\uffff\2\34\1\uffff\2\34\10\uffff\5\34\2\uffff\1\34\1\33"+
-            "\1\uffff\7\34\2\uffff\1\34\2\uffff\1\34\1\uffff\1\34\1\uffff"+
-            "\1\34\2\uffff\1\34\1\uffff\1\32\4\34\4\uffff\2\34\1\uffff\1"+
-            "\34\2\uffff\1\34\5\uffff\2\34",
+            "\1\31\64\uffff\1\30",
+            "\5\34\1\uffff\1\34\1\uffff\1\34\1\uffff\1\33\1\34\1\uffff\1"+
+            "\34\2\uffff\2\34\1\uffff\2\34\1\uffff\2\34\10\uffff\5\34\2\uffff"+
+            "\1\34\1\33\1\uffff\7\34\2\uffff\1\34\2\uffff\1\34\1\uffff\1"+
+            "\34\1\uffff\1\34\2\uffff\1\34\1\uffff\1\32\4\34\4\uffff\2\34"+
+            "\1\uffff\1\34\2\uffff\1\34\5\uffff\2\34",
             "\1\35",
             "\1\36",
             "\1\37",
             "",
             "",
-            "\1\31\63\uffff\1\30",
-            "\5\34\1\uffff\1\34\1\uffff\1\34\2\uffff\1\34\3\uffff\2\34\1"+
-            "\uffff\2\34\1\uffff\2\34\10\uffff\5\34\2\uffff\1\34\1\40\1\uffff"+
-            "\7\34\2\uffff\1\34\2\uffff\1\34\1\uffff\1\34\1\uffff\1\34\2"+
-            "\uffff\1\34\1\uffff\5\34\4\uffff\2\34\1\uffff\1\34\2\uffff\1"+
-            "\34\5\uffff\2\34",
-            "\5\34\1\uffff\1\34\1\uffff\1\34\1\uffff\1\33\1\34\3\uffff\2"+
-            "\34\1\uffff\2\34\1\uffff\2\34\10\uffff\5\34\2\uffff\1\34\1\33"+
-            "\1\uffff\7\34\2\uffff\1\34\2\uffff\1\34\1\uffff\1\34\1\uffff"+
-            "\1\34\2\uffff\1\34\1\uffff\1\32\4\34\4\uffff\2\34\1\uffff\1"+
-            "\34\2\uffff\1\34\5\uffff\2\34",
+            "\1\31\64\uffff\1\30",
+            "\5\34\1\uffff\1\34\1\uffff\1\34\2\uffff\1\34\1\uffff\1\34\2"+
+            "\uffff\2\34\1\uffff\2\34\1\uffff\2\34\10\uffff\5\34\2\uffff"+
+            "\1\34\1\40\1\uffff\7\34\2\uffff\1\34\2\uffff\1\34\1\uffff\1"+
+            "\34\1\uffff\1\34\2\uffff\1\34\1\uffff\5\34\4\uffff\2\34\1\uffff"+
+            "\1\34\2\uffff\1\34\5\uffff\2\34",
+            "\5\34\1\uffff\1\34\1\uffff\1\34\1\uffff\1\33\1\34\1\uffff\1"+
+            "\34\2\uffff\2\34\1\uffff\2\34\1\uffff\2\34\10\uffff\5\34\2\uffff"+
+            "\1\34\1\33\1\uffff\7\34\2\uffff\1\34\2\uffff\1\34\1\uffff\1"+
+            "\34\1\uffff\1\34\2\uffff\1\34\1\uffff\1\32\4\34\4\uffff\2\34"+
+            "\1\uffff\1\34\2\uffff\1\34\5\uffff\2\34",
             ""
     };
 
-    static final short[] DFA80_eot = DFA.unpackEncodedString(DFA80_eotS);
-    static final short[] DFA80_eof = DFA.unpackEncodedString(DFA80_eofS);
-    static final char[] DFA80_min = DFA.unpackEncodedStringToUnsignedChars(DFA80_minS);
-    static final char[] DFA80_max = DFA.unpackEncodedStringToUnsignedChars(DFA80_maxS);
-    static final short[] DFA80_accept = DFA.unpackEncodedString(DFA80_acceptS);
-    static final short[] DFA80_special = DFA.unpackEncodedString(DFA80_specialS);
-    static final short[][] DFA80_transition;
+    static final short[] DFA82_eot = DFA.unpackEncodedString(DFA82_eotS);
+    static final short[] DFA82_eof = DFA.unpackEncodedString(DFA82_eofS);
+    static final char[] DFA82_min = DFA.unpackEncodedStringToUnsignedChars(DFA82_minS);
+    static final char[] DFA82_max = DFA.unpackEncodedStringToUnsignedChars(DFA82_maxS);
+    static final short[] DFA82_accept = DFA.unpackEncodedString(DFA82_acceptS);
+    static final short[] DFA82_special = DFA.unpackEncodedString(DFA82_specialS);
+    static final short[][] DFA82_transition;
 
     static {
-        int numStates = DFA80_transitionS.length;
-        DFA80_transition = new short[numStates][];
+        int numStates = DFA82_transitionS.length;
+        DFA82_transition = new short[numStates][];
         for (int i=0; i<numStates; i++) {
-            DFA80_transition[i] = DFA.unpackEncodedString(DFA80_transitionS[i]);
+            DFA82_transition[i] = DFA.unpackEncodedString(DFA82_transitionS[i]);
         }
     }
 
-    class DFA80 extends DFA {
+    class DFA82 extends DFA {
 
-        public DFA80(BaseRecognizer recognizer) {
+        public DFA82(BaseRecognizer recognizer) {
             this.recognizer = recognizer;
-            this.decisionNumber = 80;
-            this.eot = DFA80_eot;
-            this.eof = DFA80_eof;
-            this.min = DFA80_min;
-            this.max = DFA80_max;
-            this.accept = DFA80_accept;
-            this.special = DFA80_special;
-            this.transition = DFA80_transition;
+            this.decisionNumber = 82;
+            this.eot = DFA82_eot;
+            this.eof = DFA82_eof;
+            this.min = DFA82_min;
+            this.max = DFA82_max;
+            this.accept = DFA82_accept;
+            this.special = DFA82_special;
+            this.transition = DFA82_transition;
         }
         public String getDescription() {
-            return "1195:1: atom : ( qualified_name ( COLON ID )? -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | qualified_name COLON PARENT COLON qualified_name COLON ID -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID ) | qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | selector COLON qualified_name -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | ( MINUS )? INT | BOOLEAN | ( MINUS )? DECIMAL | STRING | NULL | ME | INPUT LEFT_PAREN expression RIGHT_PAREN | LEFT_PAREN expression RIGHT_PAREN -> ^( expression ) );";
+            return "1200:1: atom : ( qualified_name ( COLON ID )? -> ^( QUALIFIED_SOLO_EXPRESSION qualified_name ( COLON ID )? ) | qualified_name COLON PARENT COLON qualified_name COLON ID -> ^( QUALIFIED_SOLO_PARENT_EXPRESSON qualified_name COLON PARENT COLON qualified_name COLON ID ) | qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | selector COLON qualified_name -> ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN ) | ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN -> ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN ) | ( MINUS )? INT | BOOLEAN | ( MINUS )? DECIMAL | STRING | NULL | ME | INPUT LEFT_PAREN expression RIGHT_PAREN | LEFT_PAREN expression RIGHT_PAREN -> ^( expression ) );";
         }
     }
  
 
-    public static final BitSet FOLLOW_package_rule_in_start150 = new BitSet(new long[]{0x0000000000000000L,0x0000000008000000L});
-    public static final BitSet FOLLOW_reference_in_start152 = new BitSet(new long[]{0x0A08846000003530L,0x0000000008821871L});
-    public static final BitSet FOLLOW_reference_in_start159 = new BitSet(new long[]{0x8000000000000000L,0x0000000008000000L});
-    public static final BitSet FOLLOW_package_rule_in_start162 = new BitSet(new long[]{0x0A08846000003530L,0x0000000000821871L});
-    public static final BitSet FOLLOW_package_rule_in_start167 = new BitSet(new long[]{0x0A08846000003530L,0x0000000000821871L});
-    public static final BitSet FOLLOW_reference_in_start172 = new BitSet(new long[]{0x0A08846000003530L,0x0000000008821871L});
+    public static final BitSet FOLLOW_package_rule_in_start150 = new BitSet(new long[]{0x0000000000000000L,0x0000000010000000L});
+    public static final BitSet FOLLOW_reference_in_start152 = new BitSet(new long[]{0x141108C000023530L,0x00000000110430E2L});
+    public static final BitSet FOLLOW_reference_in_start159 = new BitSet(new long[]{0x0000000000000000L,0x0000000010000001L});
+    public static final BitSet FOLLOW_package_rule_in_start162 = new BitSet(new long[]{0x141108C000023530L,0x00000000010430E2L});
+    public static final BitSet FOLLOW_package_rule_in_start167 = new BitSet(new long[]{0x141108C000023530L,0x00000000010430E2L});
+    public static final BitSet FOLLOW_reference_in_start172 = new BitSet(new long[]{0x141108C000023530L,0x00000000110430E2L});
     public static final BitSet FOLLOW_class_declaration_in_start181 = new BitSet(new long[]{0x0000000000000000L});
     public static final BitSet FOLLOW_EOF_in_start184 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_PACKAGE_NAME_in_package_rule195 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_PACKAGE_NAME_in_package_rule195 = new BitSet(new long[]{0x0000004000000000L});
     public static final BitSet FOLLOW_qualified_name_in_package_rule199 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_USE_in_reference217 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_USE_in_reference217 = new BitSet(new long[]{0x0000004000000000L});
     public static final BitSet FOLLOW_qualified_name_in_reference223 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_CLASS_in_class_declaration255 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_class_declaration257 = new BitSet(new long[]{0x0A08A4A002000510L,0x0000000000800061L});
-    public static final BitSet FOLLOW_generic_declaration_in_class_declaration268 = new BitSet(new long[]{0x0A0884A002000510L,0x0000000000800061L});
-    public static final BitSet FOLLOW_inherit_stmnts_in_class_declaration275 = new BitSet(new long[]{0x0A08842002000510L,0x0000000000800061L});
-    public static final BitSet FOLLOW_class_stmnts_in_class_declaration286 = new BitSet(new long[]{0x0A08842002000510L,0x0000000000800061L});
+    public static final BitSet FOLLOW_CLASS_in_class_declaration255 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_class_declaration257 = new BitSet(new long[]{0x1411494004020510L,0x00000000010000C2L});
+    public static final BitSet FOLLOW_generic_declaration_in_class_declaration268 = new BitSet(new long[]{0x1411094004020510L,0x00000000010000C2L});
+    public static final BitSet FOLLOW_inherit_stmnts_in_class_declaration275 = new BitSet(new long[]{0x1411084004020510L,0x00000000010000C2L});
+    public static final BitSet FOLLOW_class_stmnts_in_class_declaration286 = new BitSet(new long[]{0x1411084004020510L,0x00000000010000C2L});
     public static final BitSet FOLLOW_END_in_class_declaration290 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_no_class_stmnts_in_class_declaration324 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_statement_in_no_class_stmnts343 = new BitSet(new long[]{0x0200846000001422L,0x0000000000821871L});
-    public static final BitSet FOLLOW_access_modifier_in_no_class_stmnts352 = new BitSet(new long[]{0x0808000000000110L});
-    public static final BitSet FOLLOW_method_declaration_in_no_class_stmnts355 = new BitSet(new long[]{0x0808000000000112L,0x0000000000000060L});
-    public static final BitSet FOLLOW_INHERITS_in_inherit_stmnts368 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_inherit_stmnts372 = new BitSet(new long[]{0x0000200000008002L});
+    public static final BitSet FOLLOW_statement_in_no_class_stmnts343 = new BitSet(new long[]{0x040108C000021422L,0x00000000010430E2L});
+    public static final BitSet FOLLOW_access_modifier_in_no_class_stmnts352 = new BitSet(new long[]{0x1010000000000110L});
+    public static final BitSet FOLLOW_method_declaration_in_no_class_stmnts355 = new BitSet(new long[]{0x1010000000000112L,0x00000000000000C0L});
+    public static final BitSet FOLLOW_INHERITS_in_inherit_stmnts368 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_inherit_stmnts372 = new BitSet(new long[]{0x0000400000008002L});
     public static final BitSet FOLLOW_generic_statement_in_inherit_stmnts376 = new BitSet(new long[]{0x0000000000008002L});
-    public static final BitSet FOLLOW_COMMA_in_inherit_stmnts384 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_inherit_stmnts388 = new BitSet(new long[]{0x0000200000008002L});
+    public static final BitSet FOLLOW_COMMA_in_inherit_stmnts384 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_inherit_stmnts388 = new BitSet(new long[]{0x0000400000008002L});
     public static final BitSet FOLLOW_generic_statement_in_inherit_stmnts392 = new BitSet(new long[]{0x0000000000008002L});
     public static final BitSet FOLLOW_PUBLIC_in_access_modifier429 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_PRIVATE_in_access_modifier437 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_assignment_statement_in_class_stmnts455 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_access_modifier_in_class_stmnts466 = new BitSet(new long[]{0x0808000000000110L});
+    public static final BitSet FOLLOW_access_modifier_in_class_stmnts466 = new BitSet(new long[]{0x1010000000000110L});
     public static final BitSet FOLLOW_method_declaration_in_class_stmnts474 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ACTION_in_method_declaration492 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_method_declaration494 = new BitSet(new long[]{0x02008C6002001420L,0x0000000000823871L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_method_declaration504 = new BitSet(new long[]{0x0200042000000400L,0x0000000000804000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration507 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_COMMA_in_method_declaration511 = new BitSet(new long[]{0x0200042000000400L,0x0000000000800000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration513 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_method_declaration520 = new BitSet(new long[]{0x0200846002001420L,0x0000000000823871L});
-    public static final BitSet FOLLOW_RETURNS_in_method_declaration526 = new BitSet(new long[]{0x0200042000000400L,0x0000000000800000L});
-    public static final BitSet FOLLOW_assignment_declaration_in_method_declaration532 = new BitSet(new long[]{0x0200846002001420L,0x0000000000821871L});
-    public static final BitSet FOLLOW_block_in_method_declaration542 = new BitSet(new long[]{0x0000000002000000L});
+    public static final BitSet FOLLOW_ACTION_in_method_declaration492 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_method_declaration494 = new BitSet(new long[]{0x040118C004021420L,0x00000000010470E2L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_method_declaration504 = new BitSet(new long[]{0x0400084000020400L,0x0000000001008000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration507 = new BitSet(new long[]{0x0000000000008000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_COMMA_in_method_declaration511 = new BitSet(new long[]{0x0400084000020400L,0x0000000001000000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration513 = new BitSet(new long[]{0x0000000000008000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_method_declaration520 = new BitSet(new long[]{0x040108C004021420L,0x00000000010470E2L});
+    public static final BitSet FOLLOW_RETURNS_in_method_declaration526 = new BitSet(new long[]{0x0400084000000400L,0x0000000001000000L});
+    public static final BitSet FOLLOW_assignment_declaration_in_method_declaration532 = new BitSet(new long[]{0x040108C004021420L,0x00000000010430E2L});
+    public static final BitSet FOLLOW_block_in_method_declaration542 = new BitSet(new long[]{0x0000000004000000L});
     public static final BitSet FOLLOW_END_in_method_declaration545 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_BLUEPRINT_in_method_declaration577 = new BitSet(new long[]{0x0000000000000010L});
-    public static final BitSet FOLLOW_ACTION_in_method_declaration579 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_method_declaration581 = new BitSet(new long[]{0x0000080000000002L,0x0000000000002000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_method_declaration591 = new BitSet(new long[]{0x0200042000000400L,0x0000000000804000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration594 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_COMMA_in_method_declaration598 = new BitSet(new long[]{0x0200042000000400L,0x0000000000800000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration600 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_method_declaration607 = new BitSet(new long[]{0x0000000000000002L,0x0000000000002000L});
-    public static final BitSet FOLLOW_RETURNS_in_method_declaration613 = new BitSet(new long[]{0x0200042000000400L,0x0000000000800000L});
+    public static final BitSet FOLLOW_ACTION_in_method_declaration579 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_method_declaration581 = new BitSet(new long[]{0x0000100000000002L,0x0000000000004000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_method_declaration591 = new BitSet(new long[]{0x0400084000020400L,0x0000000001008000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration594 = new BitSet(new long[]{0x0000000000008000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_COMMA_in_method_declaration598 = new BitSet(new long[]{0x0400084000020400L,0x0000000001000000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration600 = new BitSet(new long[]{0x0000000000008000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_method_declaration607 = new BitSet(new long[]{0x0000000000000002L,0x0000000000004000L});
+    public static final BitSet FOLLOW_RETURNS_in_method_declaration613 = new BitSet(new long[]{0x0400084000000400L,0x0000000001000000L});
     public static final BitSet FOLLOW_assignment_declaration_in_method_declaration619 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_NATIVE_in_method_declaration651 = new BitSet(new long[]{0x0000000000000010L});
-    public static final BitSet FOLLOW_ACTION_in_method_declaration653 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_method_declaration655 = new BitSet(new long[]{0x0000080000000002L,0x0000000000002000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_method_declaration665 = new BitSet(new long[]{0x0200042000000400L,0x0000000000804000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration668 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_COMMA_in_method_declaration672 = new BitSet(new long[]{0x0200042000000400L,0x0000000000800000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration674 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_method_declaration681 = new BitSet(new long[]{0x0000000000000002L,0x0000000000002000L});
-    public static final BitSet FOLLOW_RETURNS_in_method_declaration687 = new BitSet(new long[]{0x0200042000000400L,0x0000000000800000L});
+    public static final BitSet FOLLOW_ACTION_in_method_declaration653 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_method_declaration655 = new BitSet(new long[]{0x0000100000000002L,0x0000000000004000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_method_declaration665 = new BitSet(new long[]{0x0400084000020400L,0x0000000001008000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration668 = new BitSet(new long[]{0x0000000000008000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_COMMA_in_method_declaration672 = new BitSet(new long[]{0x0400084000020400L,0x0000000001000000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration674 = new BitSet(new long[]{0x0000000000008000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_method_declaration681 = new BitSet(new long[]{0x0000000000000002L,0x0000000000004000L});
+    public static final BitSet FOLLOW_RETURNS_in_method_declaration687 = new BitSet(new long[]{0x0400084000000400L,0x0000000001000000L});
     public static final BitSet FOLLOW_assignment_declaration_in_method_declaration693 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ON_CREATE_in_method_declaration725 = new BitSet(new long[]{0x0200846002001420L,0x0000000000821871L});
-    public static final BitSet FOLLOW_block_in_method_declaration732 = new BitSet(new long[]{0x0000000002000000L});
+    public static final BitSet FOLLOW_ON_CREATE_in_method_declaration725 = new BitSet(new long[]{0x040108C004021420L,0x00000000010430E2L});
+    public static final BitSet FOLLOW_block_in_method_declaration732 = new BitSet(new long[]{0x0000000004000000L});
     public static final BitSet FOLLOW_END_in_method_declaration734 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_assignment_declaration_in_formal_parameter759 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_formal_parameter761 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ID_in_qualified_name792 = new BitSet(new long[]{0x0000000000000002L,0x0000000000000004L});
-    public static final BitSet FOLLOW_PERIOD_in_qualified_name795 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_qualified_name799 = new BitSet(new long[]{0x0000000000000002L,0x0000000000000004L});
-    public static final BitSet FOLLOW_statement_in_block833 = new BitSet(new long[]{0x0200846000001422L,0x0000000000821871L});
-    public static final BitSet FOLLOW_solo_method_call_in_statement856 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_if_statement_in_statement861 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_assignment_statement_in_statement866 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_loop_statement_in_statement871 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_return_statement_in_statement876 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_print_statement_in_statement881 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_speak_statement_in_statement886 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_check_statement_in_statement891 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_alert_statement_in_statement896 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_qualified_name_in_solo_method_call909 = new BitSet(new long[]{0x0000080000004000L});
-    public static final BitSet FOLLOW_COLON_in_solo_method_call912 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_solo_method_call914 = new BitSet(new long[]{0x0000080000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call918 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000404001L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call921 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_COMMA_in_solo_method_call924 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call926 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call932 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_PARENT_in_solo_method_call971 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_solo_method_call973 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_solo_method_call975 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_solo_method_call977 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_solo_method_call979 = new BitSet(new long[]{0x0000080000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call981 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000404001L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call984 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_COMMA_in_solo_method_call987 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call989 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call995 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ME_in_solo_method_call1035 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_solo_method_call1037 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_solo_method_call1039 = new BitSet(new long[]{0x0000080000004000L});
-    public static final BitSet FOLLOW_COLON_in_solo_method_call1042 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_solo_method_call1044 = new BitSet(new long[]{0x0000080000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call1048 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000404001L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call1051 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_COMMA_in_solo_method_call1054 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call1056 = new BitSet(new long[]{0x0000000000008000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call1062 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ALERT_in_alert_statement1113 = new BitSet(new long[]{0x0000080000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_alert_statement1115 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_root_expression_in_alert_statement1117 = new BitSet(new long[]{0x0000000000000000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_alert_statement1120 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_CHECK_in_check_statement1154 = new BitSet(new long[]{0x0200846000081460L,0x0000000000821871L});
-    public static final BitSet FOLLOW_block_in_check_statement1157 = new BitSet(new long[]{0x0000000000080040L});
-    public static final BitSet FOLLOW_DETECT_in_check_statement1172 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_detect_parameter_in_check_statement1184 = new BitSet(new long[]{0x0200846002081460L,0x0000000000821871L});
-    public static final BitSet FOLLOW_block_in_check_statement1186 = new BitSet(new long[]{0x0000000002080040L});
-    public static final BitSet FOLLOW_ALWAYS_in_check_statement1210 = new BitSet(new long[]{0x0200846002001420L,0x0000000000821871L});
-    public static final BitSet FOLLOW_block_in_check_statement1221 = new BitSet(new long[]{0x0000000002000000L});
-    public static final BitSet FOLLOW_ALWAYS_in_check_statement1243 = new BitSet(new long[]{0x0200846002001420L,0x0000000000821871L});
-    public static final BitSet FOLLOW_block_in_check_statement1254 = new BitSet(new long[]{0x0000000002000000L});
-    public static final BitSet FOLLOW_END_in_check_statement1269 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ID_in_detect_parameter1297 = new BitSet(new long[]{0x0400000000000002L});
-    public static final BitSet FOLLOW_OF_TYPE_in_detect_parameter1309 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1311 = new BitSet(new long[]{0x2000000000000002L});
-    public static final BitSet FOLLOW_OR_in_detect_parameter1313 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1315 = new BitSet(new long[]{0x2000000000000002L});
-    public static final BitSet FOLLOW_PRINT_in_print_statement1350 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_root_expression_in_print_statement1352 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_SAY_in_speak_statement1364 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_root_expression_in_speak_statement1366 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RETURN_in_return_statement1377 = new BitSet(new long[]{0x01A18B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_root_expression_in_return_statement1381 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NOW_in_return_statement1385 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LESS_in_generic_declaration1402 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_generic_declaration1406 = new BitSet(new long[]{0x0000000800008000L});
-    public static final BitSet FOLLOW_COMMA_in_generic_declaration1409 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_generic_declaration1413 = new BitSet(new long[]{0x0000000800008000L});
-    public static final BitSet FOLLOW_GREATER_in_generic_declaration1417 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LESS_in_generic_statement1458 = new BitSet(new long[]{0x0200042000000400L,0x0000000000800000L});
-    public static final BitSet FOLLOW_assignment_declaration_in_generic_statement1468 = new BitSet(new long[]{0x0000000800008000L});
-    public static final BitSet FOLLOW_COMMA_in_generic_statement1475 = new BitSet(new long[]{0x0200042000000400L,0x0000000000800000L});
-    public static final BitSet FOLLOW_assignment_declaration_in_generic_statement1479 = new BitSet(new long[]{0x0000000800008000L});
-    public static final BitSet FOLLOW_GREATER_in_generic_statement1489 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_qualified_name_in_class_type1529 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_qualified_name_in_assignment_declaration1550 = new BitSet(new long[]{0x0000200000000002L});
-    public static final BitSet FOLLOW_generic_statement_in_assignment_declaration1554 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_INTEGER_KEYWORD_in_assignment_declaration1563 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NUMBER_KEYWORD_in_assignment_declaration1571 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_TEXT_in_assignment_declaration1579 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_BOOLEAN_KEYWORD_in_assignment_declaration1587 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_selector_in_assignment_statement1612 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_assignment_statement1614 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_assignment_statement1618 = new BitSet(new long[]{0x0000000004000000L});
-    public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1624 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_qualified_name_in_assignment_statement1635 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_assignment_statement1638 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000001L});
-    public static final BitSet FOLLOW_PARENT_in_assignment_statement1640 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_assignment_statement1642 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_assignment_statement1646 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_assignment_statement1650 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_assignment_statement1652 = new BitSet(new long[]{0x0000000004000000L});
-    public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1656 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_access_modifier_in_assignment_statement1665 = new BitSet(new long[]{0x0200042000000400L,0x0000000000800000L});
-    public static final BitSet FOLLOW_assignment_declaration_in_assignment_statement1677 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_assignment_statement1683 = new BitSet(new long[]{0x0000000004000002L});
-    public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1689 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_EQUALITY_in_assign_right_hand_side1715 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_root_expression_in_assign_right_hand_side1717 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_IF_in_if_statement1742 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_root_expression_in_if_statement1744 = new BitSet(new long[]{0x0200846002C01420L,0x0000000000821871L});
-    public static final BitSet FOLLOW_block_in_if_statement1750 = new BitSet(new long[]{0x0000000002C00000L});
-    public static final BitSet FOLLOW_ELSE_IF_in_if_statement1762 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_root_expression_in_if_statement1770 = new BitSet(new long[]{0x0200846002C01420L,0x0000000000821871L});
-    public static final BitSet FOLLOW_block_in_if_statement1776 = new BitSet(new long[]{0x0000000002C00000L});
-    public static final BitSet FOLLOW_ELSE_in_if_statement1794 = new BitSet(new long[]{0x0200846002001420L,0x0000000000821871L});
-    public static final BitSet FOLLOW_block_in_if_statement1802 = new BitSet(new long[]{0x0000000002000000L});
-    public static final BitSet FOLLOW_END_in_if_statement1818 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_REPEAT_in_loop_statement1843 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000014400001L});
-    public static final BitSet FOLLOW_root_expression_in_loop_statement1911 = new BitSet(new long[]{0x0000000000000000L,0x0000000001000000L});
-    public static final BitSet FOLLOW_TIMES_in_loop_statement1913 = new BitSet(new long[]{0x0200846002001420L,0x0000000000821871L});
-    public static final BitSet FOLLOW_set_in_loop_statement1921 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_root_expression_in_loop_statement1929 = new BitSet(new long[]{0x0200846002001420L,0x0000000000821871L});
-    public static final BitSet FOLLOW_block_in_loop_statement1938 = new BitSet(new long[]{0x0000000002000000L});
-    public static final BitSet FOLLOW_END_in_loop_statement1940 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_PARENT_in_selector1964 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_selector1966 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_selector1970 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ME_in_selector1988 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_expression_in_root_expression2002 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_or_in_expression2022 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_and_in_or2034 = new BitSet(new long[]{0x2000000000000002L});
-    public static final BitSet FOLLOW_OR_in_or2037 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_and_in_or2041 = new BitSet(new long[]{0x2000000000000002L});
-    public static final BitSet FOLLOW_equality_in_and2054 = new BitSet(new long[]{0x0000000000000082L});
-    public static final BitSet FOLLOW_AND_in_and2057 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_equality_in_and2061 = new BitSet(new long[]{0x0000000000000082L});
-    public static final BitSet FOLLOW_isa_operation_in_equality2072 = new BitSet(new long[]{0x0040000004000002L});
-    public static final BitSet FOLLOW_EQUALITY_in_equality2076 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_NOTEQUALS_in_equality2082 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_isa_operation_in_equality2087 = new BitSet(new long[]{0x0040000004000002L});
-    public static final BitSet FOLLOW_comparison_in_isa_operation2099 = new BitSet(new long[]{0x0000008000000002L});
-    public static final BitSet FOLLOW_INHERITS_in_isa_operation2102 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_class_type_in_isa_operation2106 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_add_in_comparison2116 = new BitSet(new long[]{0x0000601800000002L});
-    public static final BitSet FOLLOW_GREATER_in_comparison2120 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_GREATER_EQUAL_in_comparison2125 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_LESS_in_comparison2130 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_LESS_EQUAL_in_comparison2135 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_add_in_comparison2139 = new BitSet(new long[]{0x0000601800000002L});
-    public static final BitSet FOLLOW_multiply_in_add2153 = new BitSet(new long[]{0x0001000000000002L,0x0000000000000008L});
-    public static final BitSet FOLLOW_PLUS_in_add2157 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_MINUS_in_add2162 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_multiply_in_add2166 = new BitSet(new long[]{0x0001000000000002L,0x0000000000000008L});
-    public static final BitSet FOLLOW_combo_expression_in_multiply2179 = new BitSet(new long[]{0x0006000000100002L});
-    public static final BitSet FOLLOW_MULTIPLY_in_multiply2183 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_DIVIDE_in_multiply2188 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_MODULO_in_multiply2192 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_combo_expression_in_multiply2196 = new BitSet(new long[]{0x0006000000100002L});
-    public static final BitSet FOLLOW_NOT_in_combo_expression2211 = new BitSet(new long[]{0x01018B2000040200L,0x0000000000400001L});
-    public static final BitSet FOLLOW_atom_in_combo_expression2213 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_CAST_in_combo_expression2228 = new BitSet(new long[]{0x0000080000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_combo_expression2230 = new BitSet(new long[]{0x0200042000000400L,0x0000000000800000L});
-    public static final BitSet FOLLOW_assignment_declaration_in_combo_expression2232 = new BitSet(new long[]{0x0000000000008000L});
-    public static final BitSet FOLLOW_COMMA_in_combo_expression2234 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_expression_in_combo_expression2236 = new BitSet(new long[]{0x0000000000000000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_combo_expression2238 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_atom_in_combo_expression2243 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_qualified_name_in_atom2258 = new BitSet(new long[]{0x0000000000004002L});
-    public static final BitSet FOLLOW_COLON_in_atom2261 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_atom2263 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_qualified_name_in_atom2285 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2287 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000001L});
-    public static final BitSet FOLLOW_PARENT_in_atom2289 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2291 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_atom2293 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2295 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_atom2297 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_qualified_name_in_atom2322 = new BitSet(new long[]{0x0000080000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2325 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_atom2327 = new BitSet(new long[]{0x0000080000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2331 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000404001L});
-    public static final BitSet FOLLOW_function_expression_list_in_atom2333 = new BitSet(new long[]{0x0000000000000000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2335 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_selector_in_atom2364 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2366 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_atom2368 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_PARENT_in_atom2393 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2395 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_atom2397 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2399 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_atom2401 = new BitSet(new long[]{0x0000080000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2403 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000404001L});
-    public static final BitSet FOLLOW_function_expression_list_in_atom2405 = new BitSet(new long[]{0x0000000000000000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2407 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ME_in_atom2437 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2439 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_atom2441 = new BitSet(new long[]{0x0000080000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2444 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_ID_in_atom2446 = new BitSet(new long[]{0x0000080000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2450 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000404001L});
-    public static final BitSet FOLLOW_function_expression_list_in_atom2452 = new BitSet(new long[]{0x0000000000000000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2454 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MINUS_in_atom2488 = new BitSet(new long[]{0x0000020000000000L});
-    public static final BitSet FOLLOW_INT_in_atom2492 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_BOOLEAN_in_atom2497 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MINUS_in_atom2503 = new BitSet(new long[]{0x0000000000040000L});
-    public static final BitSet FOLLOW_DECIMAL_in_atom2507 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_STRING_in_atom2513 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NULL_in_atom2518 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ME_in_atom2523 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_INPUT_in_atom2529 = new BitSet(new long[]{0x0000080000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2531 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_expression_in_atom2533 = new BitSet(new long[]{0x0000000000000000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2535 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2540 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_expression_in_atom2542 = new BitSet(new long[]{0x0000000000000000L,0x0000000000004000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2544 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_expression_in_function_expression_list2564 = new BitSet(new long[]{0x0000000000008002L});
-    public static final BitSet FOLLOW_COMMA_in_function_expression_list2567 = new BitSet(new long[]{0x01218B2000040A00L,0x0000000000400001L});
-    public static final BitSet FOLLOW_expression_in_function_expression_list2569 = new BitSet(new long[]{0x0000000000008002L});
+    public static final BitSet FOLLOW_CONSTANT_in_formal_parameter759 = new BitSet(new long[]{0x0400084000000400L,0x0000000001000000L});
+    public static final BitSet FOLLOW_assignment_declaration_in_formal_parameter762 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_formal_parameter764 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ID_in_qualified_name795 = new BitSet(new long[]{0x0000000000000002L,0x0000000000000008L});
+    public static final BitSet FOLLOW_PERIOD_in_qualified_name798 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_qualified_name802 = new BitSet(new long[]{0x0000000000000002L,0x0000000000000008L});
+    public static final BitSet FOLLOW_statement_in_block836 = new BitSet(new long[]{0x040108C000021422L,0x00000000010430E2L});
+    public static final BitSet FOLLOW_solo_method_call_in_statement859 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_if_statement_in_statement864 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_assignment_statement_in_statement869 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_loop_statement_in_statement874 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_return_statement_in_statement879 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_print_statement_in_statement884 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_speak_statement_in_statement889 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_check_statement_in_statement894 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_alert_statement_in_statement899 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_qualified_name_in_solo_method_call912 = new BitSet(new long[]{0x0000100000004000L});
+    public static final BitSet FOLLOW_COLON_in_solo_method_call915 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_solo_method_call917 = new BitSet(new long[]{0x0000100000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call921 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000808002L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call924 = new BitSet(new long[]{0x0000000000008000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_COMMA_in_solo_method_call927 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call929 = new BitSet(new long[]{0x0000000000008000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call935 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_PARENT_in_solo_method_call974 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_solo_method_call976 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_solo_method_call978 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_solo_method_call980 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_solo_method_call982 = new BitSet(new long[]{0x0000100000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call984 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000808002L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call987 = new BitSet(new long[]{0x0000000000008000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_COMMA_in_solo_method_call990 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call992 = new BitSet(new long[]{0x0000000000008000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call998 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ME_in_solo_method_call1038 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_solo_method_call1040 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_solo_method_call1042 = new BitSet(new long[]{0x0000100000004000L});
+    public static final BitSet FOLLOW_COLON_in_solo_method_call1045 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_solo_method_call1047 = new BitSet(new long[]{0x0000100000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call1051 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000808002L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call1054 = new BitSet(new long[]{0x0000000000008000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_COMMA_in_solo_method_call1057 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call1059 = new BitSet(new long[]{0x0000000000008000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call1065 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ALERT_in_alert_statement1116 = new BitSet(new long[]{0x0000100000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_alert_statement1118 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_root_expression_in_alert_statement1120 = new BitSet(new long[]{0x0000000000000000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_alert_statement1123 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_CHECK_in_check_statement1157 = new BitSet(new long[]{0x040108C000121460L,0x00000000010430E2L});
+    public static final BitSet FOLLOW_block_in_check_statement1160 = new BitSet(new long[]{0x0000000000100040L});
+    public static final BitSet FOLLOW_DETECT_in_check_statement1175 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_detect_parameter_in_check_statement1187 = new BitSet(new long[]{0x040108C004121460L,0x00000000010430E2L});
+    public static final BitSet FOLLOW_block_in_check_statement1189 = new BitSet(new long[]{0x0000000004100040L});
+    public static final BitSet FOLLOW_ALWAYS_in_check_statement1213 = new BitSet(new long[]{0x040108C004021420L,0x00000000010430E2L});
+    public static final BitSet FOLLOW_block_in_check_statement1224 = new BitSet(new long[]{0x0000000004000000L});
+    public static final BitSet FOLLOW_ALWAYS_in_check_statement1246 = new BitSet(new long[]{0x040108C004021420L,0x00000000010430E2L});
+    public static final BitSet FOLLOW_block_in_check_statement1257 = new BitSet(new long[]{0x0000000004000000L});
+    public static final BitSet FOLLOW_END_in_check_statement1272 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ID_in_detect_parameter1300 = new BitSet(new long[]{0x0800000000000002L});
+    public static final BitSet FOLLOW_OF_TYPE_in_detect_parameter1312 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1314 = new BitSet(new long[]{0x4000000000000002L});
+    public static final BitSet FOLLOW_OR_in_detect_parameter1316 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1318 = new BitSet(new long[]{0x4000000000000002L});
+    public static final BitSet FOLLOW_PRINT_in_print_statement1353 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_root_expression_in_print_statement1355 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_SAY_in_speak_statement1367 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_root_expression_in_speak_statement1369 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RETURN_in_return_statement1380 = new BitSet(new long[]{0x0343164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_root_expression_in_return_statement1384 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NOW_in_return_statement1388 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_LESS_in_generic_declaration1405 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_generic_declaration1409 = new BitSet(new long[]{0x0000001000008000L});
+    public static final BitSet FOLLOW_COMMA_in_generic_declaration1412 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_generic_declaration1416 = new BitSet(new long[]{0x0000001000008000L});
+    public static final BitSet FOLLOW_GREATER_in_generic_declaration1420 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_LESS_in_generic_statement1461 = new BitSet(new long[]{0x0400084000000400L,0x0000000001000000L});
+    public static final BitSet FOLLOW_assignment_declaration_in_generic_statement1471 = new BitSet(new long[]{0x0000001000008000L});
+    public static final BitSet FOLLOW_COMMA_in_generic_statement1478 = new BitSet(new long[]{0x0400084000000400L,0x0000000001000000L});
+    public static final BitSet FOLLOW_assignment_declaration_in_generic_statement1482 = new BitSet(new long[]{0x0000001000008000L});
+    public static final BitSet FOLLOW_GREATER_in_generic_statement1492 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_qualified_name_in_class_type1532 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_qualified_name_in_assignment_declaration1553 = new BitSet(new long[]{0x0000400000000002L});
+    public static final BitSet FOLLOW_generic_statement_in_assignment_declaration1557 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_INTEGER_KEYWORD_in_assignment_declaration1566 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NUMBER_KEYWORD_in_assignment_declaration1574 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_TEXT_in_assignment_declaration1582 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_BOOLEAN_KEYWORD_in_assignment_declaration1590 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_selector_in_assignment_statement1613 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_assignment_statement1615 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_assignment_statement1619 = new BitSet(new long[]{0x0000000008000000L});
+    public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1625 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_qualified_name_in_assignment_statement1636 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_assignment_statement1639 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
+    public static final BitSet FOLLOW_PARENT_in_assignment_statement1641 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_assignment_statement1643 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_assignment_statement1647 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_assignment_statement1651 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_assignment_statement1653 = new BitSet(new long[]{0x0000000008000000L});
+    public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1657 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_access_modifier_in_assignment_statement1666 = new BitSet(new long[]{0x0400084000020400L,0x0000000001000000L});
+    public static final BitSet FOLLOW_CONSTANT_in_assignment_statement1674 = new BitSet(new long[]{0x0400084000000400L,0x0000000001000000L});
+    public static final BitSet FOLLOW_assignment_declaration_in_assignment_statement1681 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_assignment_statement1687 = new BitSet(new long[]{0x0000000008000002L});
+    public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1693 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_EQUALITY_in_assign_right_hand_side1719 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_root_expression_in_assign_right_hand_side1721 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_IF_in_if_statement1746 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_root_expression_in_if_statement1748 = new BitSet(new long[]{0x040108C005821420L,0x00000000010430E2L});
+    public static final BitSet FOLLOW_block_in_if_statement1754 = new BitSet(new long[]{0x0000000005800000L});
+    public static final BitSet FOLLOW_ELSE_IF_in_if_statement1766 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_root_expression_in_if_statement1774 = new BitSet(new long[]{0x040108C005821420L,0x00000000010430E2L});
+    public static final BitSet FOLLOW_block_in_if_statement1780 = new BitSet(new long[]{0x0000000005800000L});
+    public static final BitSet FOLLOW_ELSE_in_if_statement1798 = new BitSet(new long[]{0x040108C004021420L,0x00000000010430E2L});
+    public static final BitSet FOLLOW_block_in_if_statement1806 = new BitSet(new long[]{0x0000000004000000L});
+    public static final BitSet FOLLOW_END_in_if_statement1822 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_REPEAT_in_loop_statement1847 = new BitSet(new long[]{0x0243164000080A00L,0x0000000028800002L});
+    public static final BitSet FOLLOW_root_expression_in_loop_statement1915 = new BitSet(new long[]{0x0000000000000000L,0x0000000002000000L});
+    public static final BitSet FOLLOW_TIMES_in_loop_statement1917 = new BitSet(new long[]{0x040108C004021420L,0x00000000010430E2L});
+    public static final BitSet FOLLOW_set_in_loop_statement1925 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_root_expression_in_loop_statement1933 = new BitSet(new long[]{0x040108C004021420L,0x00000000010430E2L});
+    public static final BitSet FOLLOW_block_in_loop_statement1942 = new BitSet(new long[]{0x0000000004000000L});
+    public static final BitSet FOLLOW_END_in_loop_statement1944 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_PARENT_in_selector1968 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_selector1970 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_selector1974 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ME_in_selector1992 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_expression_in_root_expression2006 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_or_in_expression2026 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_and_in_or2038 = new BitSet(new long[]{0x4000000000000002L});
+    public static final BitSet FOLLOW_OR_in_or2041 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_and_in_or2045 = new BitSet(new long[]{0x4000000000000002L});
+    public static final BitSet FOLLOW_equality_in_and2058 = new BitSet(new long[]{0x0000000000000082L});
+    public static final BitSet FOLLOW_AND_in_and2061 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_equality_in_and2065 = new BitSet(new long[]{0x0000000000000082L});
+    public static final BitSet FOLLOW_isa_operation_in_equality2076 = new BitSet(new long[]{0x0080000008000002L});
+    public static final BitSet FOLLOW_EQUALITY_in_equality2080 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_NOTEQUALS_in_equality2086 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_isa_operation_in_equality2091 = new BitSet(new long[]{0x0080000008000002L});
+    public static final BitSet FOLLOW_comparison_in_isa_operation2103 = new BitSet(new long[]{0x0000010000000002L});
+    public static final BitSet FOLLOW_INHERITS_in_isa_operation2106 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_class_type_in_isa_operation2110 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_add_in_comparison2120 = new BitSet(new long[]{0x0000C03000000002L});
+    public static final BitSet FOLLOW_GREATER_in_comparison2124 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_GREATER_EQUAL_in_comparison2129 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_LESS_in_comparison2134 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_LESS_EQUAL_in_comparison2139 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_add_in_comparison2143 = new BitSet(new long[]{0x0000C03000000002L});
+    public static final BitSet FOLLOW_multiply_in_add2157 = new BitSet(new long[]{0x0002000000000002L,0x0000000000000010L});
+    public static final BitSet FOLLOW_PLUS_in_add2161 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_MINUS_in_add2166 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_multiply_in_add2170 = new BitSet(new long[]{0x0002000000000002L,0x0000000000000010L});
+    public static final BitSet FOLLOW_combo_expression_in_multiply2183 = new BitSet(new long[]{0x000C000000200002L});
+    public static final BitSet FOLLOW_MULTIPLY_in_multiply2187 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_DIVIDE_in_multiply2192 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_MODULO_in_multiply2196 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_combo_expression_in_multiply2200 = new BitSet(new long[]{0x000C000000200002L});
+    public static final BitSet FOLLOW_NOT_in_combo_expression2215 = new BitSet(new long[]{0x0203164000080200L,0x0000000000800002L});
+    public static final BitSet FOLLOW_atom_in_combo_expression2217 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_CAST_in_combo_expression2232 = new BitSet(new long[]{0x0000100000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_combo_expression2234 = new BitSet(new long[]{0x0400084000000400L,0x0000000001000000L});
+    public static final BitSet FOLLOW_assignment_declaration_in_combo_expression2236 = new BitSet(new long[]{0x0000000000008000L});
+    public static final BitSet FOLLOW_COMMA_in_combo_expression2238 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_expression_in_combo_expression2240 = new BitSet(new long[]{0x0000000000000000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_combo_expression2242 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_atom_in_combo_expression2247 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_qualified_name_in_atom2262 = new BitSet(new long[]{0x0000000000004002L});
+    public static final BitSet FOLLOW_COLON_in_atom2265 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_atom2267 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_qualified_name_in_atom2289 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2291 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
+    public static final BitSet FOLLOW_PARENT_in_atom2293 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2295 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_atom2297 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2299 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_atom2301 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_qualified_name_in_atom2326 = new BitSet(new long[]{0x0000100000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2329 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_atom2331 = new BitSet(new long[]{0x0000100000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2335 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000808002L});
+    public static final BitSet FOLLOW_function_expression_list_in_atom2337 = new BitSet(new long[]{0x0000000000000000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2339 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_selector_in_atom2368 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2370 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_atom2372 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_PARENT_in_atom2397 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2399 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_atom2401 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2403 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_atom2405 = new BitSet(new long[]{0x0000100000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2407 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000808002L});
+    public static final BitSet FOLLOW_function_expression_list_in_atom2409 = new BitSet(new long[]{0x0000000000000000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2411 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ME_in_atom2441 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2443 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_atom2445 = new BitSet(new long[]{0x0000100000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2448 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_atom2450 = new BitSet(new long[]{0x0000100000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2454 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000808002L});
+    public static final BitSet FOLLOW_function_expression_list_in_atom2456 = new BitSet(new long[]{0x0000000000000000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2458 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_MINUS_in_atom2492 = new BitSet(new long[]{0x0000040000000000L});
+    public static final BitSet FOLLOW_INT_in_atom2496 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_BOOLEAN_in_atom2501 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_MINUS_in_atom2507 = new BitSet(new long[]{0x0000000000080000L});
+    public static final BitSet FOLLOW_DECIMAL_in_atom2511 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_STRING_in_atom2517 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NULL_in_atom2522 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ME_in_atom2527 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_INPUT_in_atom2533 = new BitSet(new long[]{0x0000100000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2535 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_expression_in_atom2537 = new BitSet(new long[]{0x0000000000000000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2539 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2544 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_expression_in_atom2546 = new BitSet(new long[]{0x0000000000000000L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2548 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_expression_in_function_expression_list2568 = new BitSet(new long[]{0x0000000000008002L});
+    public static final BitSet FOLLOW_COMMA_in_function_expression_list2571 = new BitSet(new long[]{0x0243164000080A00L,0x0000000000800002L});
+    public static final BitSet FOLLOW_expression_in_function_expression_list2573 = new BitSet(new long[]{0x0000000000008002L});
 
 }

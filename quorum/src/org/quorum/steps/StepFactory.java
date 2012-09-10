@@ -612,9 +612,9 @@ public class StepFactory {
      * @param localOnly
      */
     public void addAssignmentStep(LineInformation location, String variableName,
-            ExpressionValue rightValue, ExecutionStep rightStep, boolean localOnly) {
+            ExpressionValue rightValue, ExecutionStep rightStep, boolean localOnly, boolean validConst) {
         AssignmentStepInformation info = generateAssignmentStepInformation(
-                location, variableName, rightValue, rightStep, localOnly, "", null, false);
+                location, variableName, rightValue, rightStep, localOnly, "", null, false, validConst);
         addAssignmentGeneralStep(info);
     }
 
@@ -632,7 +632,8 @@ public class StepFactory {
     private AssignmentStepInformation generateAssignmentStepInformation(
             LineInformation location, String variableName,
             ExpressionValue rightValue, ExecutionStep rightStep,
-            boolean localOnly, String variableInObjectName, ClassDescriptor parentClazz, boolean isMe) {
+            boolean localOnly, String variableInObjectName,
+            ClassDescriptor parentClazz, boolean isMe, boolean isValidConstantAssignment) {
         AssignmentStepInformation info = new AssignmentStepInformation();
         info.location = location;
         info.variableInObjectName = variableInObjectName;
@@ -642,6 +643,7 @@ public class StepFactory {
         info.localOnly = localOnly;
         info.parent = parentClazz;
         info.isAssignedToMe = isMe;
+        info.isValidConstantAssignment = isValidConstantAssignment;
         return info;
     }
 
@@ -681,6 +683,13 @@ public class StepFactory {
 
             leftType = vd.getType();
 
+            if(vd.isConstant() && !info.isValidConstantAssignment){
+                CompilerError error = new CompilerError(info.location.getStartLine(),
+                    "Cannot assign a new value to the constant variable " + vd.getName(), ErrorType.CONSTANT_REASSIGNMENT);
+                error.setFile(info.location.getFile());
+                machine.getCompilerErrors().addError(error);
+            }
+            
             CompilerError e = this.machine.getSymbolTable().getControlFlow().addStatement(info.location);
             if (e != null) {
                 machine.getCompilerErrors().addError(e);
@@ -923,9 +932,9 @@ public class StepFactory {
      * @param variableName
      * @param localOnly
      */
-    public void addAssignmentStep(LineInformation location, String variableName, boolean localOnly) {
+    public void addAssignmentStep(LineInformation location, String variableName, boolean localOnly, boolean validConst) {
         AssignmentStepInformation info = generateAssignmentStepInformation(
-                location, variableName, null, null, localOnly, "", null, false);
+                location, variableName, null, null, localOnly, "", null, false, validConst);
         addAssignmentGeneralStep(info);
     }
 
@@ -938,9 +947,10 @@ public class StepFactory {
      * @param id
      */
     public void addAssignmentStep(LineInformation location, String variableName,
-            ExpressionValue rightValue, ExecutionStep rightStep, boolean localOnly, String id, ClassDescriptor parent, boolean isMe) {
+            ExpressionValue rightValue, ExecutionStep rightStep, boolean localOnly, String id, ClassDescriptor parent, boolean isMe, boolean validConst) {
         AssignmentStepInformation info = generateAssignmentStepInformation(
-                location, variableName, rightValue, rightStep, localOnly, id, parent, isMe);
+                location, variableName, rightValue, rightStep, localOnly, id,
+                parent, isMe, validConst);
         addAssignmentGeneralStep(info);
     }
 
@@ -2752,5 +2762,6 @@ public class StepFactory {
         boolean localOnly;
         ClassDescriptor parent;
         boolean isAssignedToMe;
+        boolean isValidConstantAssignment;
     }
 }

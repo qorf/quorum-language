@@ -675,6 +675,155 @@ public class PublicPrivateTester {
         assert(r.getLine(1).equals("in blah"));
     }
     
+    @Test
+    public void test_public_constant_field_execute() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "PublicConstantField.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
+        int i = variableValue.getResult().integer;
+        if(i != 4 ) {
+            fail();
+        }        
+    }
+    
+    @Test
+    public void test_public_constant_field_bytecode() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "PublicConstantField.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("4"));
+    }
+    
+    @Test
+    public void test_private_constant_field_execute() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "PrivateConstantField.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
+        int i = variableValue.getResult().integer;
+        if(i != 4 ) {
+            fail();
+        }        
+    }
+    
+    @Test
+    public void test_private_constant_field_bytecode() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "PrivateConstantField.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("4"));
+    }
+    
+    @Test
+    public void test_constant_local_variable_execute() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "ConstantLocalVariable.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
+        int i = variableValue.getResult().integer;
+        if(i != 4 ) {
+            fail();
+        }        
+    }
+    
+    @Test
+    public void test_constant_local_variable_bytecode() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "ConstantLocalVariable.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("4"));
+    }
+        
+    @Test
+    public void test_constant_field_assigned_constant_execute() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "ConstantFieldAssignedConstant.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        int a = variableValue.getResult().integer;
+        ExpressionValue variableValue2 = vm.getDataEnvironment().getVariableValue("i");
+        int i = variableValue2.getResult().integer;
+        if(i != 2 || a != 6 ) {
+            fail();
+        }        
+    }
+    
+    @Test
+    public void test_constant_field_assigned_constant_bytecode() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "ConstantFieldAssignedConstant.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("2"));
+        assert(r.getLine(1).equals("6"));
+    }
+    
+    @Test
+    public void test_constant_field_assigned_nonconstant_execute() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "ConstantFieldAssignedNonConstant.quorum");
+
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }        
+    }
     /***************************************************************************
      * Fail tests
      * 

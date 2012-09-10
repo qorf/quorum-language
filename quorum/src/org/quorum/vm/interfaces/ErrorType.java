@@ -44,6 +44,7 @@ public enum ErrorType {
     METHOD_DUPLICATE("Method already defined"),
     REPEAT_TIMES_NON_INTEGER("Repeat times non-integer"),
     REPEAT_NON_BOOLEAN("Repeat non-boolean"),
+    CONSTANT_REASSIGNMENT("invalid constant assignment"),
     OTHER("other"); 
 
     String errorType = "";

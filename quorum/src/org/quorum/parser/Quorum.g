@@ -627,7 +627,7 @@ Documentation methodDocumentation = getDocumentationFromRecentToken();
 	-> ^(ON_CREATE block END)
 	;
 formal_parameter[Vector<ParameterDescriptor> params]
-	:	assignment_declaration ID
+	:	CONSTANT? assignment_declaration ID
 	{
 		TypeDescriptor type = $assignment_declaration.type;		
 		ParameterDescriptor d = new ParameterDescriptor();
@@ -981,7 +981,7 @@ assignment_statement
 		variableDocumentation = getDocumentationFromRecentToken();
 	}
 }
-	:			
+	:	
 		(sel = selector COLON)? ID rhs = assign_right_hand_side
 		{
 			String initMe = $ID.text;
@@ -1011,7 +1011,7 @@ assignment_statement
 				accessModifier = accessModifier.PRIVATE;
 			}
 		}
-	type = assignment_declaration name = ID rhs = assign_right_hand_side?	
+	CONSTANT? type = assignment_declaration name = ID rhs = assign_right_hand_side?	
 		{
 			VariableDescriptor new_desc = new VariableDescriptor();
 			if(isInClassAssignmentStatementScope) {
@@ -1021,6 +1021,11 @@ assignment_statement
 			new_desc.setAccessModifier(accessModifier);
 			new_desc.setType($type.type);
 			new_desc.setName($name.text);
+			if($CONSTANT != null){
+				new_desc.setIsConstant(true);
+			}else{
+				new_desc.setIsConstant(false);
+			}
 			
 			if(rhs != null && isInClassAssignmentStatementScope) {
 				new_desc.setIsInitializedClassVariable(true);
@@ -1220,6 +1225,7 @@ function_expression_list
 	(expression (COMMA expression)*)?	
 	-> ^(FUNCTION_EXPRESSION_LIST expression*)
 	;
+CONSTANT	:	'constant';
 ELSE_IF :	'elseif';
 ME	:	'me';
 UNTIL	:	'until';
