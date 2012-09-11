@@ -876,6 +876,17 @@ public class PublicPrivateTester {
             fail();
         }        
     }
+    
+    @Test
+    public void test_constant_object_field_assigned_a_value_execute() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "ConstantObjectFieldAssignedAValue.quorum");
+
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }        
+    }
     /***************************************************************************
      * Fail tests
      * 

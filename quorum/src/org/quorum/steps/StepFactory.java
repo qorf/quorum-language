@@ -683,19 +683,7 @@ public class StepFactory {
 
             leftType = vd.getType();
 
-            if(vd.isConstant() && vd.isAssignedAValue()){
-                CompilerError error = new CompilerError(info.location.getStartLine(),
-                    "Cannot assign a new value to the constant variable " + vd.getName(), ErrorType.CONSTANT_REASSIGNMENT);
-                error.setFile(info.location.getFile());
-                machine.getCompilerErrors().addError(error);
-            }else if(vd.isConstant() && !info.hasRightHandSide && vd.getType().isPrimitiveType()){
-                CompilerError error = new CompilerError(info.location.getStartLine(),
-                    "The constant variable " + vd.getName() + " must be assigned a value when it is defined.", ErrorType.CONSTANT_INITIALIZED);
-                error.setFile(info.location.getFile());
-                machine.getCompilerErrors().addError(error);
-            }else if(vd.isConstant()){
-                vd.setIsAssignedAValue(true);
-            }
+            vd = checkConstantVariable(vd, info);
             
             CompilerError e = this.machine.getSymbolTable().getControlFlow().addStatement(info.location);
             if (e != null) {
@@ -720,6 +708,7 @@ public class StepFactory {
                         this.addCompilerError("Variable " + info.variableInObjectName
                                 + " cannot be accessed from " + vd.getName() + " because it is private. ", info.location, ErrorType.MISSING_VARIABLE);
                     }else {
+                        variable = (VariableDescriptor)checkConstantVariable(variable, info);
                         leftType = variable.getType();
                         if(leftType.isTemplated()){ //if the type is templated resolve the type for the assignment
                             ClassDescriptor variablesClass = machine.getSymbolTable().getClassDescriptor(vd.getType().getName());
@@ -2690,6 +2679,23 @@ public class StepFactory {
 
         machine.getBuilder().add(inputStep);
         return result;
+    }
+    
+    private VariableParameterCommonDescriptor checkConstantVariable(VariableParameterCommonDescriptor vd, AssignmentStepInformation info){
+        if(vd.isConstant() && vd.isAssignedAValue()){
+                CompilerError error = new CompilerError(info.location.getStartLine(),
+                    "Cannot assign a new value to the constant variable " + vd.getName(), ErrorType.CONSTANT_REASSIGNMENT);
+                error.setFile(info.location.getFile());
+                machine.getCompilerErrors().addError(error);
+            }else if(vd.isConstant() && !info.hasRightHandSide && vd.getType().isPrimitiveType()){
+                CompilerError error = new CompilerError(info.location.getStartLine(),
+                    "The constant variable " + vd.getName() + " must be assigned a value when it is defined.", ErrorType.CONSTANT_INITIALIZED);
+                error.setFile(info.location.getFile());
+                machine.getCompilerErrors().addError(error);
+            }else if(vd.isConstant()){
+                vd.setIsAssignedAValue(true);
+        }
+        return vd;
     }
 
     /**
