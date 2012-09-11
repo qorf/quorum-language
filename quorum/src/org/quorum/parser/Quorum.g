@@ -627,7 +627,7 @@ Documentation methodDocumentation = getDocumentationFromRecentToken();
 	-> ^(ON_CREATE block END)
 	;
 formal_parameter[Vector<ParameterDescriptor> params]
-	:	CONSTANT? assignment_declaration ID
+	:	assignment_declaration ID
 	{
 		TypeDescriptor type = $assignment_declaration.type;		
 		ParameterDescriptor d = new ParameterDescriptor();
@@ -641,13 +641,6 @@ formal_parameter[Vector<ParameterDescriptor> params]
 		d.setColumnBegin($ID.getCharPositionInLine());
 		d.setLineEnd($ID.getLine());
 		d.setColumnEnd($ID.getCharPositionInLine());
-		if($CONSTANT != null){
-			d.setIsConstant(true);
-			d.setIsAssignedAValue(true);
-		}else{
-			d.setIsConstant(false);
-			d.setIsAssignedAValue(true);
-		}
 		
 		if(gdList != null){
 			while(gdList.hasNext()){

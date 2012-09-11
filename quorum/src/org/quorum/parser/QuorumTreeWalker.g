@@ -2185,7 +2185,7 @@ function_expression_list returns [List list, int firstParam]
 	
 	
 formal_parameter	returns [TypeDescriptor type, String name]
-	:	  ^(FPARAM CONSTANT? ad=assignment_declaration ID)
+	:	  ^(FPARAM ad=assignment_declaration ID)
 	{	
 		$type = $assignment_declaration.myType;
 		$name = $ID.text;

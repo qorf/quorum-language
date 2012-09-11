@@ -1,4 +1,4 @@
-// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2012-09-11 10:03:18
+// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2012-09-11 15:39:32
 
 
 package org.quorum.parser;
@@ -6714,7 +6714,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "formal_parameter"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2187:1: formal_parameter returns [TypeDescriptor type, String name] : ^( FPARAM ( CONSTANT )? ad= assignment_declaration ID ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2187:1: formal_parameter returns [TypeDescriptor type, String name] : ^( FPARAM ad= assignment_declaration ID ) ;
     public final QuorumTreeWalker.formal_parameter_return formal_parameter() throws RecognitionException {
         QuorumTreeWalker.formal_parameter_return retval = new QuorumTreeWalker.formal_parameter_return();
         retval.start = input.LT(1);
@@ -6725,38 +6725,19 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2188:2: ( ^( FPARAM ( CONSTANT )? ad= assignment_declaration ID ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2188:6: ^( FPARAM ( CONSTANT )? ad= assignment_declaration ID )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2188:2: ( ^( FPARAM ad= assignment_declaration ID ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2188:6: ^( FPARAM ad= assignment_declaration ID )
             {
             match(input,FPARAM,FOLLOW_FPARAM_in_formal_parameter2493); 
 
             match(input, Token.DOWN, null); 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2188:15: ( CONSTANT )?
-            int alt65=2;
-            int LA65_0 = input.LA(1);
-
-            if ( (LA65_0==CONSTANT) ) {
-                alt65=1;
-            }
-            switch (alt65) {
-                case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2188:15: CONSTANT
-                    {
-                    match(input,CONSTANT,FOLLOW_CONSTANT_in_formal_parameter2495); 
-
-                    }
-                    break;
-
-            }
-
-
-            pushFollow(FOLLOW_assignment_declaration_in_formal_parameter2500);
+            pushFollow(FOLLOW_assignment_declaration_in_formal_parameter2497);
             ad=assignment_declaration();
 
             state._fsp--;
 
 
-            ID49=(CommonTree)match(input,ID,FOLLOW_ID_in_formal_parameter2502); 
+            ID49=(CommonTree)match(input,ID,FOLLOW_ID_in_formal_parameter2499); 
 
             match(input, Token.UP, null); 
 
@@ -7217,8 +7198,7 @@ public static class STAttrMap extends HashMap {
     public static final BitSet FOLLOW_FUNCTION_EXPRESSION_LIST_in_function_expression_list2452 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_expression_in_function_expression_list2464 = new BitSet(new long[]{0x428FC73388280A88L,0x0000000004800E10L});
     public static final BitSet FOLLOW_FPARAM_in_formal_parameter2493 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_CONSTANT_in_formal_parameter2495 = new BitSet(new long[]{0x0400080000000400L,0x0000000001000100L});
-    public static final BitSet FOLLOW_assignment_declaration_in_formal_parameter2500 = new BitSet(new long[]{0x0000004000000000L});
-    public static final BitSet FOLLOW_ID_in_formal_parameter2502 = new BitSet(new long[]{0x0000000000000008L});
+    public static final BitSet FOLLOW_assignment_declaration_in_formal_parameter2497 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_ID_in_formal_parameter2499 = new BitSet(new long[]{0x0000000000000008L});
 
 }
