@@ -45,7 +45,8 @@ public enum ErrorType {
     REPEAT_TIMES_NON_INTEGER("Repeat times non-integer"),
     REPEAT_NON_BOOLEAN("Repeat non-boolean"),
     CONSTANT_REASSIGNMENT("invalid constant assignment"),
-    OTHER("other"); 
+    OTHER("other"), 
+    CONSTANT_INITIALIZED("constant not initialized"); 
 
     String errorType = "";
     ErrorType(String st) {

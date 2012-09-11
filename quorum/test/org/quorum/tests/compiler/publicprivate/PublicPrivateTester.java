@@ -815,9 +815,61 @@ public class PublicPrivateTester {
     }
     
     @Test
-    public void test_constant_field_assigned_nonconstant_execute() {
+    public void test_constant_field_not_assigned_execute() {
         File[] files = new File[1];
         files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "ConstantFieldAssignedNonConstant.quorum");
+
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }        
+    }
+    
+    @Test
+    public void test_constant_field_assigned_another_value_execute() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "ConstantFieldAssignedAnotherValue.quorum");
+
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }        
+    }
+    
+    @Test
+    public void test_constant_local_variable_assigned_another_value_execute() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "ConstantLocalVariableAssignedAnotherValue.quorum");
+
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }        
+    }
+    
+    @Test
+    public void test_constant_object_variable_execute() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "ConstantObjectVariable.quorum");
+
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        int a = variableValue.getResult().integer;
+        ExpressionValue variableValue2 = vm.getDataEnvironment().getVariableValue("i");
+        int i = variableValue2.getResult().integer;
+        if(a != 4 || i != 6 ) {
+            fail();
+        }        
+    }
+    
+    @Test
+    public void test_constant_object_variable_assigned_another_value_execute() {
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.PUBLIC_PRIVATE + CompilerTestSuite.PASS + "ConstantObjectVariableAssignedAnotherValue.quorum");
 
         CompilerTestSuite.build(files);
         if (vm.getCompilerErrors().isCompilationErrorFree()){

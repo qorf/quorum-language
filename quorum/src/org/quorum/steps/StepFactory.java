@@ -688,7 +688,12 @@ public class StepFactory {
                     "Cannot assign a new value to the constant variable " + vd.getName(), ErrorType.CONSTANT_REASSIGNMENT);
                 error.setFile(info.location.getFile());
                 machine.getCompilerErrors().addError(error);
-            }else if(vd.isConstant() && (info.hasRightHandSide || (!info.hasRightHandSide && !vd.getType().isPrimitiveType()))){
+            }else if(vd.isConstant() && !info.hasRightHandSide && vd.getType().isPrimitiveType()){
+                CompilerError error = new CompilerError(info.location.getStartLine(),
+                    "The constant variable " + vd.getName() + " must be assigned a value when it is defined.", ErrorType.CONSTANT_INITIALIZED);
+                error.setFile(info.location.getFile());
+                machine.getCompilerErrors().addError(error);
+            }else if(vd.isConstant()){
                 vd.setIsAssignedAValue(true);
             }
             
