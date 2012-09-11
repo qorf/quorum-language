@@ -643,8 +643,10 @@ formal_parameter[Vector<ParameterDescriptor> params]
 		d.setColumnEnd($ID.getCharPositionInLine());
 		if($CONSTANT != null){
 			d.setIsConstant(true);
+			d.setIsAssignedAValue(true);
 		}else{
 			d.setIsConstant(false);
+			d.setIsAssignedAValue(true);
 		}
 		
 		if(gdList != null){

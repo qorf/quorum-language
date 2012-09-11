@@ -27,6 +27,7 @@ public class VariableParameterCommonDescriptor extends Descriptor{
      * variable was added to a function or class.
      */
     private int variableNumber = -1;
+    private boolean isAssigned = false;
     
     /**
      * @return the type
@@ -163,5 +164,13 @@ public class VariableParameterCommonDescriptor extends Descriptor{
      */
     public boolean isConstant() {
         return isConstant;
+    }
+    
+    public void setIsAssignedAValue(boolean isAssigned){
+        this.isAssigned = isAssigned;
+    }
+
+    public boolean isAssignedAValue() {
+        return isAssigned;
     }
 }

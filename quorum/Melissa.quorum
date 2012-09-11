@@ -1,10 +1,16 @@
 class Main
 integer i = 2
-constant integer a = i + 4
+constant integer a
 action Main
-test(3)
+integer b = 3
+constant integer j =4
+//j = 33
+a = 3
+
+//test(3)
 end
 action test(constant integer z)
-    z= z+1
+    //z= z+1
+    print z
 end
 end

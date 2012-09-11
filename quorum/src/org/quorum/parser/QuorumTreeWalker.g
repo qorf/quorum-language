@@ -1080,7 +1080,12 @@ assignment_statement
 		
 		symbol.addStatementFlagToCurrentFile($ID.line);
 		
-		stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, false, "", cd, isMe, false);
+		boolean hasRHS = false;
+		if($rhs.eval != null){
+			hasRHS = true;
+		}
+		
+		stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, false, "", cd, isMe, hasRHS);
 		builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
 	}
 	|	obj=qualified_name (COLON PARENT COLON parent=qualified_name)? COLON ID rhs=assign_right_hand_side
@@ -1111,7 +1116,12 @@ assignment_statement
 			}
 		}
 		
-		stepFactory.addAssignmentStep(location, $obj.type.getStaticKey(), $rhs.eval, $rhs.step, isLocal, $ID.text, cd, false, false);
+		boolean hasRHS = false;
+		if($rhs.eval != null){
+			hasRHS = true;
+		}
+		
+		stepFactory.addAssignmentStep(location, $obj.type.getStaticKey(), $rhs.eval, $rhs.step, isLocal, $ID.text, cd, false, hasRHS);
 		builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
 	}
 	|	modifier = access_modifier? CONSTANT? type = assignment_declaration name = ID rhs=assign_right_hand_side?
@@ -1138,7 +1148,7 @@ assignment_statement
 		}
                 else { // are we are trying to instantiate an object?
                 	builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
-                    	stepFactory.addAssignmentStep(location, $ID.text, isLocal, true);
+                    	stepFactory.addAssignmentStep(location, $ID.text, isLocal, false);
                 }
                 builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
 	}
