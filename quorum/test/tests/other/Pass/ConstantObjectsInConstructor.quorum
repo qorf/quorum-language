@@ -1,0 +1,21 @@
+/*
+Expected output:
+7
+false
+*/
+
+use Libraries.System.DateTime
+use Libraries.Compute.Math
+
+class Main
+    on create
+        constant DateTime dateTime
+        constant Math math
+
+        print math:AbsoluteValue(-7)
+        print dateTime:GetEpochTime() <= 0
+    end
+
+    action Main
+    end
+end

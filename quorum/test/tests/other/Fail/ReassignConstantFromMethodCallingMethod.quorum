@@ -1,0 +1,16 @@
+class Main
+    ClassWithConstants k
+
+    action Main
+        ChangeThem(k)
+    end
+
+    action ChangeThem(ClassWithConstants k)
+        ReallyTryTo(k)
+    end
+
+    action ReallyTryTo(ClassWithConstants z)
+        ConstantChanger l
+        l:DoIt(z)
+    end
+end

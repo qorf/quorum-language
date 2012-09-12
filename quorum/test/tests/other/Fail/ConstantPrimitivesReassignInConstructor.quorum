@@ -1,0 +1,30 @@
+/*
+Expected output: should not compile
+*/
+
+class Main
+    constant integer a = 1
+    constant number b = 2.0
+    constant text c = "3"
+    constant boolean d = true
+
+    on create
+        a = 9 + 208 + (7 mod 2)
+        b = 73.0 + a
+        c = "shouldn't work"
+        d = not true
+        d = false
+    end
+
+    action Main
+        constant integer e = 4
+        constant number f = 5.0
+        constant text g = "6"
+        constant boolean h = false
+
+        e = 5
+        f = 9.21
+        g = "nope" + c
+        h = true
+    end
+end

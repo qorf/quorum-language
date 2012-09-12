@@ -1,0 +1,19 @@
+/*
+Expected output:
+
+9
+true
+*/
+
+use Libraries.Compute.Math
+use Libraries.System.DateTime
+class Main
+    constant Math m
+
+    action Main
+        constant DateTime d
+
+        print m:AbsoluteValue(-9)
+        print d:GetEpochTime() > 0
+    end
+end

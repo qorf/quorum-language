@@ -1,0 +1,20 @@
+/*
+Expected output: should not compile
+*/
+
+use Libraries.System.File
+use Libraries.Compute.Random
+use Libraries.Compute.Math
+
+class Main
+    action Main
+        ClassWithConstants t
+
+        t:k = 9
+        t:z = 11.0
+        t:m = undefined
+
+        Math m2
+        t:m = m2
+    end
+end

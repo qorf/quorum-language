@@ -1,0 +1,26 @@
+/*
+Expected output: should not compile
+*/
+
+use Libraries.System.File
+use Libraries.Compute.Random
+use Libraries.Compute.Math
+
+class Main
+    constant number seven = 7
+    constant text z = "101"
+    private constant Random r
+    constant File f
+    action Main
+        APrivateMethod()
+    end
+
+    action APrivateMethod
+        me:seven = 9
+        me:z = "808"
+        me:r = undefined
+
+        File f2
+        me:f = f2
+    end
+end

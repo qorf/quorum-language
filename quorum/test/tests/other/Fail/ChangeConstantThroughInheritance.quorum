@@ -1,0 +1,14 @@
+/*
+Expected output: should not compile
+*/
+
+class Main is a ClassWithConstants
+    on create
+        parent:ClassWithConstants:z = 2.121
+        parent:ClassWithConstants:c = "don't do this"
+    end
+
+    action Main
+        parent:ClassWithConstants:k = parent:ClassWithConstants:k + 1
+    end
+end

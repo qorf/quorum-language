@@ -1067,5 +1067,246 @@ public class OtherTester {
         
         assert(r.getLine(0).equals("Hello"));
     }
+    
+    @Test
+    public void test_ChangeConstantThroughInheritance_bytecode(){
+        File[] files = new File[2];
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ClassWithConstants.quorum");
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.FAIL + "ChangeConstantThroughInheritance.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_ConstantObjectsReassign_bytecode(){
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.FAIL + "ConstantObjectsReassign.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_ConstantObjectsReassignInConstructor_bytecode(){
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.FAIL + "ConstantObjectsReassignInConstructor.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_ConstantPrimitivesReassign_bytecode(){
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.FAIL + "ConstantPrimitivesReassign.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_ConstantPrimitivesReassignInConstructor_bytecode(){
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.FAIL + "ConstantPrimitivesReassignInConstructor.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_ReassignClassConstantWithMethod_bytecode(){
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.FAIL + "ReassignClassConstantWithMethod.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_ReassignConstantFromMethodCallingMethod_bytecode(){
+        File[] files = new File[3];
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ConstantChanger.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ClassWithConstants.quorum");
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.FAIL + "ReassignConstantFromMethodCallingMethod.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_ReassignConstantFromOtherClass_bytecode(){
+        File[] files = new File[2];
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ClassWithConstants.quorum");
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.FAIL + "ReassignConstantFromOtherClass.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_ReassignConstantFromOtherClassThroughMethod_bytecode(){
+        File[] files = new File[2];
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ClassWithConstants.quorum");
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.FAIL + "ReassignConstantFromOtherClassThroughMethod.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_ReassignConstantTemplatedType_bytecode(){
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.FAIL + "ReassignConstantTemplatedType.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_ReassignConstantUsingMe_bytecode(){
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.FAIL + "ReassignConstantUsingMe.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_ReassignConstantUsingMeInPrivateMethod_bytecode(){
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.FAIL + "ReassignConstantUsingMeInPrivateMethod.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_ConstantObjects_bytecode(){
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ConstantObjects.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("9"));
+        assert(r.getLine(1).equals("true"));
+    }
+    
+    @Test
+    public void test_ConstantObjectsInConstructor_bytecode(){
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ConstantObjectsInConstructor.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("7"));
+        assert(r.getLine(1).equals("false"));
+    }
+    
+    @Test
+    public void test_ConstantPrimitives_bytecode(){
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ConstantPrimitives.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
 
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("2.0"));
+        assert(r.getLine(2).equals("3"));
+        assert(r.getLine(3).equals("true"));
+        assert(r.getLine(4).equals("4"));
+        assert(r.getLine(5).equals("5.0"));
+        assert(r.getLine(6).equals("6"));
+        assert(r.getLine(7).equals("false"));
+    }
+    
+    @Test
+    public void test_ConstantPrimitivesInConstructor_bytecode(){
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ConstantPrimitivesInConstructor.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("2.0"));
+        assert(r.getLine(2).equals("3"));
+        assert(r.getLine(3).equals("false"));
+    }
+    
+    @Test
+    public void test_ConstantTemplatedType_bytecode(){
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ConstantTemplatedTypes.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+
+        assert(r.getLine(0).equals("1"));
+        assert(r.getLine(1).equals("2"));
+        assert(r.getLine(2).equals("3"));
+        assert(r.getLine(3).equals("1"));
+        assert(r.getLine(4).equals("2"));
+        assert(r.getLine(5).equals("3"));
+        assert(r.getLine(6).equals("1.0"));
+        assert(r.getLine(7).equals("2.0"));
+        assert(r.getLine(8).equals("3.0"));
+    }
 }

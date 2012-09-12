@@ -1,0 +1,27 @@
+/*
+Expected output: should not compile
+*/
+
+class Main
+    constant integer a = 1
+    constant number b = 2.0
+    constant text c = "3"
+    constant boolean d = true
+
+    action Main
+        a = 9
+        b = 33.0
+        c = "7" + b
+        d = not d
+
+        constant integer e = 4
+        constant number f = 5.0
+        constant text g = "6"
+        constant boolean h = false
+
+        e = 5
+        f = 9.21
+        g = "nope" + c
+        h = true
+    end
+end
