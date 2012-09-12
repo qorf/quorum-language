@@ -1816,6 +1816,8 @@ public class StepFactory {
         TypeDescriptor type = new TypeDescriptor();
         type.setName(TypeDescriptor.TEXT);
         Result res = new Result();
+        //ANTLR passes the entire string the user typed, including double quotes
+        //use the substring method to strip out the double quotes.
         res.text = value.substring(1, value.length() - 1);
         res.type = Result.TEXT;
         return addMoveStep(register, location, type, res);

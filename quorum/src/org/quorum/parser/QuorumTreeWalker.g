@@ -2091,6 +2091,21 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		$eval = result.getValue();
 		$step = result.getStep();
 	}
+	|	QUOTE
+	{
+		LineInformation location = new LineInformation (
+			$QUOTE.getLine(),
+			$QUOTE.getLine(),
+			$QUOTE.getCharPositionInLine(),
+			$QUOTE.getCharPositionInLine() + $QUOTE.text.length()
+		);
+		location.setFile(fileName);
+		//we must pass three double quotes because normal strings strip out the beginning and the end.
+		ResultTuple result = stepFactory.addMoveStep(temp, location, "\"\"\"");
+		temp = result.getNextRegister();
+		$eval = result.getValue();
+		$step = result.getStep();
+	}
 	|	NULL
 	{
 		LineInformation location = new LineInformation (

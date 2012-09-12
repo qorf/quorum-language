@@ -1214,6 +1214,7 @@ atom 	:
 	| BOOLEAN
 	| (MINUS)? DECIMAL 
 	| STRING
+	| QUOTE
 	| NULL
 	| ME
 		| INPUT LEFT_PAREN expression RIGHT_PAREN
@@ -1225,6 +1226,7 @@ function_expression_list
 	(expression (COMMA expression)*)?	
 	-> ^(FUNCTION_EXPRESSION_LIST expression*)
 	;
+QUOTE	:	'quote';
 CONSTANT	:	'constant';
 ELSE_IF :	'elseif';
 ME	:	'me';

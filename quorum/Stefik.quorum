@@ -19,17 +19,10 @@ use Libraries.System.DateTime
 
 class Stefik
     action Main
-        DateTime time
-
-        number begin = time:GetEpochTime()
-        print "Begin: " + begin
-        integer i = 0
-        repeat 100000 times
-            i = i + 1
-        end
-
-        number final = time:GetEpochTime()
-        print "End: " + final
-        print "Total: " + (final - begin)
+        text link = "<a href=" + quote + "www.google.com" + quote
+            + ">Google</a>"
+        
+        //text link = "a"
+        print link
     end
 end
