@@ -522,9 +522,7 @@ public class InheritanceTester {
 
         RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
-            fail();
-    
-        assert(r.getLine(0).equals("Foo2"));
+            fail();    
     }
     
     @Test
