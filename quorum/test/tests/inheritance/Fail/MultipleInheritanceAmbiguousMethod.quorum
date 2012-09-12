@@ -1,0 +1,10 @@
+/*
+Expected output:
+A compiler error -- the proper "Foo" method to call canno be determined in
+this hierarchy.
+*/
+class Main is a CHasMethodFoo, BInheritsMethodFoo
+    action Main
+        Foo()
+    end
+end
