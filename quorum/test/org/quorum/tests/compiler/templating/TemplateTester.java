@@ -1140,4 +1140,84 @@ public class TemplateTester {
             fail();
         }
     }
+    
+    @Test
+    public void test_pass_ExpressionTemplatedMethodParameter_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Returner.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "ExpressionInTemplatedMethodParameter.quorum");
+
+        // Should just compile and run--no output.
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
+        if (!r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_pass_ExpressionTemplatedMethodParameter2_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Returner.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "ExpressionInTemplatedMethodParameter2.quorum");
+
+        // Should just compile and run--no output.
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
+        if (!r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_pass_ExpressionTemplatedMethodParameter3_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Returner.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "ExpressionInTemplatedMethodParameter3.quorum");
+
+        // Should just compile and run--no output.
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
+        if (!r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_pass_ExpressionTemplatedMethodParameter4_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Returner.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "ExpressionInTemplatedMethodParameter4.quorum");
+
+        // Should just compile and run--no output.
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
+        if (!r.isSuccessful())
+            fail();
+    }
+    
+    @Test
+    public void test_pass_ExpressionTemplatedMethodParameter5_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
+        File[] build = new File[2];
+        build[1] = CompilerTestSuite.getQuorumFile(directory + "Returner.quorum");
+        build[0] = CompilerTestSuite.getQuorumFile(directory + "ExpressionInTemplatedMethodParameter5.quorum");
+
+        // Should just compile and run--no output.
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
+        if (!r.isSuccessful())
+            fail();
+    }
 }
