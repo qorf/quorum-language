@@ -512,7 +512,7 @@ public class InheritanceTester {
     public void test_SingleInheritanceParentsHaveFoo_bytecode(){
         File[] files = new File[3];
         files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "AHasMethodFoo.quorum");
-        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "BInheritsMethodFoo.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "BHasMethodFoo.quorum");
         files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "SingleInheritanceParentsHaveFoo.quorum");
         
         CompilerTestSuite.build(files);
@@ -524,7 +524,7 @@ public class InheritanceTester {
         if (!r.isSuccessful())
             fail();
     
-        assert(r.getLine(0).equals("Foo1"));
+        assert(r.getLine(0).equals("Foo2"));
     }
     
     @Test
