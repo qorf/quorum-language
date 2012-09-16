@@ -405,7 +405,9 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                     if (!hasMethodIncompatability(method, curMethod)) {
 
                         //check for ambiguous inheritance of methods
-                        if (parent.getMethod(method.getStaticKey()) == null && this.getMethod(method.getStaticKey()) == null && !curMethod.getParent().getScopeString().equals(method.getParent().getScopeString())) {
+                        if ((parent.getMethod(method.getStaticKey()) == null && parent.getSystemAction(method.getStaticKey()) == null)
+                                && (this.getMethod(method.getStaticKey()) == null && this.getSystemAction(method.getStaticKey()) == null) 
+                                && !curMethod.getParent().getScopeString().equals(method.getParent().getScopeString())) {
                             CompilerError error = new CompilerError(getLineBegin(),
                                     "Ambiguous inheritance of action " + method.getStaticKey() + " from the classes "
                                     + method.getParent().getScopeString() + " and "
