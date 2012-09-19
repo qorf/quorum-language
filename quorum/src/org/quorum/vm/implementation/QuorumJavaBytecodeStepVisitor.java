@@ -1285,7 +1285,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         return tracker;
     }
 
-    private void processCastStep(Vector<ExecutionStep> steps, int i, ArrayList<Integer> visitedCasts) {
+    private int processCastStep(Vector<ExecutionStep> steps, int i, ArrayList<Integer> visitedCasts) {
         //get the next step to be processed and get a cast step location if there is one.
         ExecutionStep step = steps.get(i);
         int castStepLocation = step.getCastStepLocation();
@@ -1327,9 +1327,51 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }else{
                 step.visit(this);
             }
+        }else if(step.getExpressionEndPosition() != -1 && steps.get(step.getExpressionEndPosition()).getCastStepLocation() != -1 && !visitedCasts.contains(steps.get(step.getExpressionEndPosition()).getCastStepLocation())){
+            castStepLocation = steps.get(step.getExpressionEndPosition()).getCastStepLocation();
+            //if we are dealing with an autobox we are dealing with 3 steps.
+            //with a standard cast we will need move the cast step directly after
+            //the visit of the parameter.
+            ExecutionStep createStep = steps.get(castStepLocation + 1);
+            ExecutionStep castStep = steps.get(castStepLocation);
+            if (createStep instanceof AutoBoxCreateStep && !visitedCasts.contains(castStepLocation)) {//autobox
+                castStep = steps.get(castStepLocation);
+                if (!(castStep instanceof UnaryOperationStep)) {
+                    castStep = null;
+                }
+                if(castStep != null){
+                    visitedCasts.add(castStepLocation);
+                }
+                visitedCasts.add(castStepLocation+1);
+                visitedCasts.add(castStepLocation + 2);
+                //}
+                this.visitWithAutoBoxStep(steps, (AutoBoxCreateStep) createStep, castStep, this.getCurrentTracker(), i, step.getExpressionEndPosition() + 1, visitedCasts);
+                i = step.getExpressionEndPosition();
+                //visitedCasts.add(castStepLocation+1);
+                //visitedCasts.add(castStepLocation + 2);
+            } else if (!(castStep instanceof IntegerReverseAutoBoxStep)
+                    && !(castStep instanceof NumberReverseAutoBoxStep)
+                    && !(castStep instanceof TextReverseAutoBoxStep)
+                    && !(castStep instanceof BooleanReverseAutoBoxStep) 
+                    && !(createStep instanceof AutoBoxCreateStep)
+                    && !visitedCasts.contains(castStepLocation)) {//standard cast
+                step.visit(this);
+
+                step = steps.get(castStepLocation);
+                step.visit(this);
+                visitedCasts.add(castStepLocation);
+            } else if(!(createStep instanceof AutoBoxCreateStep) && !visitedCasts.contains(castStepLocation)) {//visit reverse autoboxes on returns
+                castStep.setModifiedReturn(true);
+                step.visit(this);
+                castStep.visit(this);
+                visitedCasts.add(castStepLocation);
+            }else{
+                step.visit(this);
+            }
         } else {//standard visit of a non casting series of steps.
             step.visit(this);
         }
+        return i;
     }
 
     private int processAutoBox(Vector<ExecutionStep> steps, int i, int castStepLocation, int callStepLocation, ArrayList<Integer> visitedCasts, OpcodeTracker tracker) {
@@ -1486,7 +1528,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 }
             }//if no, do nothing
 
-            processCastStep(steps, i, visitedCasts);
+            i = processCastStep(steps, i, visitedCasts);
         }
     }
 

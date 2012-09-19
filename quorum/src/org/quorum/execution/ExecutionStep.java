@@ -33,6 +33,7 @@ public abstract class ExecutionStep {
     protected RuntimeError runtimeError;
     private boolean modifiedReturn = false;
     private boolean isCastStep = false;
+    private int endOfExpression = -1;
 
     /** The absolute path to the file this op-code is relative too
      * 
@@ -439,5 +440,12 @@ public abstract class ExecutionStep {
      */
     public void setIsCastStep(boolean isCastStep) {
         this.isCastStep = isCastStep;
+    }
+
+    public void setExpressionEndPosition(int i) {
+        endOfExpression = i;
+    }
+    public int getExpressionEndPosition(){
+        return endOfExpression;
     }
 }

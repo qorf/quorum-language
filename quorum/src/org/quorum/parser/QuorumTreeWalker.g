@@ -349,6 +349,7 @@ solo_method_call
 	Vector<Integer> registers = new Vector<Integer>();
 	Vector<String> types = new Vector<String>();
 	Vector<TypeDescriptor> argumentTypes = new Vector<TypeDescriptor>();
+	int startLocation = 0;
 }
 	:	
 		^(SOLO_FUNCTION_CALL 
@@ -356,9 +357,13 @@ solo_method_call
 			inCallStep = true;
 			builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
 		}
-		qualified_name (COLON ID)? LEFT_PAREN (
+		qualified_name (COLON ID)? LEFT_PAREN ({if(builder.getCurrentMethod() != null){startLocation = builder.getCurrentMethod().getSteps().size();}}
 		e = expression 
 		{
+			if(builder.getCurrentMethod() != null && startLocation != builder.getCurrentMethod().getSteps().size() -1){
+				builder.getCurrentMethod().getSteps().get(startLocation).setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
+				$e.step.setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
+			}
 			values.add($e.eval);
 			steps.add($e.step);
 			registers.add($e.eval.getRegister());
@@ -367,8 +372,12 @@ solo_method_call
                 	argumentTypes.add($e.eval.getType());
                 	inCallStep = false;
 		}
-		(COMMA e = expression 
+		(COMMA {if(builder.getCurrentMethod() != null){startLocation = builder.getCurrentMethod().getSteps().size();}} e = expression 
 		{
+			if(builder.getCurrentMethod() != null && startLocation != builder.getCurrentMethod().getSteps().size() -1){
+				builder.getCurrentMethod().getSteps().get(startLocation).setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
+				$e.step.setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
+			}
 			values.add($e.eval);
 			steps.add($e.step);
 			registers.add($e.eval.getRegister());
