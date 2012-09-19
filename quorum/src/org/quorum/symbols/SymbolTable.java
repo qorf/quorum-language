@@ -320,7 +320,7 @@ public class SymbolTable {
                     }
                 } else { //the package exists, but the class doesn't
                     CompilerError error = new CompilerError(use.getLineBegin(),
-                            "Package " + use.getNameWithoutLast() + "exists, but there is"
+                            "Package " + use.getNameWithoutLast() + " exists, but there is"
                             + " no class " + use.getLastName()
                             + " inside of it. Did you spell its name correctly?", ErrorType.MISSING_USE);
                         CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
@@ -342,7 +342,7 @@ public class SymbolTable {
                     File entry = library.findClass(name, use.getLastName());
                     if (entry == null) {
                         CompilerError error = new CompilerError(use.getLineBegin(),
-                                "Package " + use.getNameWithoutLast() + "exists, but there is"
+                                "Package " + use.getNameWithoutLast() + " exists, but there is"
                                 + " no class " + use.getLastName()
                                 + " inside of it. Did you spell its name correctly?", ErrorType.MISSING_USE);
                         CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
