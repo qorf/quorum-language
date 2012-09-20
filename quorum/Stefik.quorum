@@ -16,6 +16,7 @@ java -cp "../../../dependencies/phonemic.jar:./" quorum.Stefik
 */
 
 use Libraries.System.DateTime
+use Libraries.Compute.BitwiseOperations
 
 class Stefik
     action Main
@@ -23,6 +24,10 @@ class Stefik
             + ">Google</a>"
         
         //text link = "a"
-        print link
+        integer a = 5
+        integer b = 10
+        BitwiseOperations ops
+        integer value = ops:And(a,b)
+        print value
     end
 end
