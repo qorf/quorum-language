@@ -25,6 +25,7 @@ public class TextPlugin implements Plugin {
     private static final String GET_CHARACTER_NATIVE = "GetCharacterNative:integer";
     private static final String GET_SUBSTRING_NATIVE = "GetSubstringNative:integer:integer";
     private static final String GET_LENGTH = "GetLength";
+    public static final String GET_HASH_CODE = "GetHashCode";
     
     private HashMap<Integer, QuorumText> instances;
 
@@ -69,6 +70,19 @@ public class TextPlugin implements Plugin {
         }
         else if (call.getActionName().equals(GET_LENGTH)) {
             setPluginReturnValue(ret, inst.getLength());
+        }
+        else if(call.getActionName().equals(GET_HASH_CODE)) {
+            ExpressionValue hash = call.getCallingObject().getVariable("value");
+            ExpressionValue value = ExpressionValue.getPrimitiveDefault(TypeDescriptor.getIntegerType());
+            String res = hash.getResult().text;
+            if(res != null) {
+                value.getResult().integer = res.hashCode();
+            }
+            else {
+                value.getResult().integer = call.getCallingObject().getHashKey();
+            }
+            
+            ret.setReturnValue(value);
         }
         return ret;
     }
