@@ -33,4 +33,19 @@ public class Text {
     public int GetLength() {
         return text.length();
     }
+    
+    /**
+     * If the value is valid, return its hashcode. Otherwise, return the 
+     * generic hash for the object.
+     * 
+     * @return 
+     */
+    public int GetHashCode() {
+        if(text != null) {
+            return text.hashCode();
+        }
+        else {
+            return $me.hashCode();
+        }
+    }
 }
