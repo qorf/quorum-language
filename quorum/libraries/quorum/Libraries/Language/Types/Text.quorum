@@ -153,6 +153,20 @@ class Text is a Object
     end
 
     /*
+        This action gets the hash code for an object. In this case, GetHashCode
+        is overriden to be equivalent to the hash code of its containing object,
+        value.
+
+        Attribute: Returns The integer hash code of the object.
+
+        Attribute: Example
+
+        Object o
+        integer hash = o:GetHashCode()
+    */ 
+    system action GetHashCode() returns integer
+
+    /*
         This action returns a substring of the text object.
 
         Attribute: Parameter startIndex The starting index
