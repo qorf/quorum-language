@@ -18,8 +18,8 @@ public class BitwiseOperationsPlugin implements Plugin{
 
     public static final String KEY = "Libraries.Compute.BitwiseOperations";
     public static final String AND_INTEGER_INTEGER = "And:integer:integer";
-    public static final String OR_INTEGER_INTEGER = "And:integer:integer";
-    public static final String EXCLUSIVE_OR_INTEGER_INTEGER = "And:integer:integer";
+    public static final String OR_INTEGER_INTEGER = "Or:integer:integer";
+    public static final String EXCLUSIVE_OR_INTEGER_INTEGER = "ExclusiveOr:integer:integer";
     public static final String Negate = "Negate:integer";
     public static final String SHIFT_LEFT_INTEGER_INTEGER = "ShiftLeft:integer:integer";
     public static final String SHIFT_RIGHT_KEEP_SIGN_INTEGER_INTEGER = "ShiftRightKeepSign:integer:integer";
