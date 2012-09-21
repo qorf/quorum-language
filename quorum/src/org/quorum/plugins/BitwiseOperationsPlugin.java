@@ -117,7 +117,7 @@ public class BitwiseOperationsPlugin implements Plugin{
 
     @Override
     public String getKey() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return KEY;
     }
 
     @Override
