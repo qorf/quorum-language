@@ -103,6 +103,9 @@ public class DefaultPluginLoader {
         //add the speech plugin
         plugin = new SpeechPlugin();
         plugins.add(plugin);
+        
+        plugin = new BitwiseOperationsPlugin();
+        plugins.add(plugin);
 
         loadDynamicLibraries();
     }
