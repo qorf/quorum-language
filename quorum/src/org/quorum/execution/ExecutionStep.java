@@ -9,6 +9,7 @@
 
 package org.quorum.execution;
 
+import java.util.Stack;
 import org.quorum.vm.interfaces.LineInformation;
 import org.quorum.plugins.RuntimeError;
 import org.quorum.symbols.MethodDescriptor;
@@ -33,7 +34,7 @@ public abstract class ExecutionStep {
     protected RuntimeError runtimeError;
     private boolean modifiedReturn = false;
     private boolean isCastStep = false;
-    private int endOfExpression = -1;
+    private Stack<Integer> endOfExpression = new Stack<Integer>();
 
     /** The absolute path to the file this op-code is relative too
      * 
@@ -443,9 +444,13 @@ public abstract class ExecutionStep {
     }
 
     public void setExpressionEndPosition(int i) {
-        endOfExpression = i;
+        endOfExpression.push(i);
     }
     public int getExpressionEndPosition(){
-        return endOfExpression;
+        if(endOfExpression.isEmpty())
+            return -1;
+        else
+            return endOfExpression.peek();
     }
+    
 }

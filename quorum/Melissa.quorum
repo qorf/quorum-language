@@ -1,13 +1,22 @@
+/*
+Expected Output:
+*/
+
 class Main
-public constant Main i = undefined
-on create
-    Main z
-    i = z
-end
-action Main
-    Main m
-    
-end 
-action test(constant integer i)
-end
+    action Main
+        Returner<integer> r
+        //integer i = 1
+        //repeat 5 times
+            integer j = r:ReturnThis(r:ReturnThis(One() * 1000))
+            //i = i + 1
+        //end
+    end
+
+    action One returns integer
+        return 1
+    end
+
+    action Two returns integer
+        return 2
+    end
 end

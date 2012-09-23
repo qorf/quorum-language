@@ -88,20 +88,19 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "<init>", signature, null, null);
         methodVisitor.visitCode();
         methodVisitor.visitVarInsn(ALOAD, THIS);
-        
+
         // If this is a normal class, we can just initialize by calling java/Lang/Object.<init>().
         // If it is an exception class, we must initialize by calling java/lang/Throwable.<init>().
         if (currentClass.getStaticKey().equals("Libraries.Language.Errors.Error")) {
             // invoke <init> on java/lang/Throwable.
             methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Throwable", "<init>", "()V");
-        }else if(currentClass.getParent("Libraries.Language.Errors.Error") != null){
+        } else if (currentClass.getParent("Libraries.Language.Errors.Error") != null) {
             methodVisitor.visitMethodInsn(INVOKESPECIAL, "quorum/Libraries/Language/Errors/Error", "<init>", "()V");
-        }
-        else {
+        } else {
             // invoke <init> on java/lang/Object.
             methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
         }
-        
+
         //now do field initialization
         stack.startMethod(1);
         Vector<ExecutionStep> steps = this.currentClassExecution.getSteps();
@@ -207,7 +206,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             MethodExecution constructor = currentClassExecution.getConstructor();
             currentMethodExecution = constructor;
             visitBlock(constructor, constructor.getTracker());
-            
+
             //after the constructor is visited reset the call step states
             //this allows us to call the constructor two times.
             Iterator<ExecutionStep> iterator = currentMethodExecution.getSteps().iterator();
@@ -545,13 +544,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (step.getParent() != null && !step.getParent().equals(currentClass)) {
             methodVisitor.visitFieldInsn(PUTFIELD, QuorumConverter.convertStaticKeyToBytecodePath(step.getParent().getStaticKey()), variableName, QuorumConverter.convertTypeToBytecodeString(variableType));
         } else if (assigningToObjectVariable) {
-            
-            if(step.getParent() != null){
+
+            if (step.getParent() != null) {
                 methodVisitor.visitMethodInsn(INVOKEINTERFACE, methodParent + "$Interface",
-                    QuorumConverter.generateSetterNameFromSubField(step.getParent().getType(), variableName), QuorumConverter.generateSetterSignatureFromSubField(variableType));
-            }else{
+                        QuorumConverter.generateSetterNameFromSubField(step.getParent().getType(), variableName), QuorumConverter.generateSetterSignatureFromSubField(variableType));
+            } else {
                 methodVisitor.visitMethodInsn(INVOKEINTERFACE, methodParent + "$Interface",
-                    QuorumConverter.generateSetterNameFromSubField(variable.getType(), variableName), QuorumConverter.generateSetterSignatureFromSubField(variableType));
+                        QuorumConverter.generateSetterNameFromSubField(variable.getType(), variableName), QuorumConverter.generateSetterSignatureFromSubField(variableType));
             }
         } else {
             methodVisitor.visitFieldInsn(PUTFIELD, methodParent, variableName, QuorumConverter.convertTypeToBytecodeString(variableType));
@@ -578,8 +577,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
 
             methodVisitor.visitVarInsn(ALOAD, variableNumber);
-            
-            if(!type.hasSubTypes()){
+
+            if (!type.hasSubTypes()) {
                 processExpressions();
                 valueType = stack.popExpressionType();
 
@@ -1168,7 +1167,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 "GetValue", autoBoxMethodSignature);
         stack.pushExpressionType(TypeDescriptor.getNumberType());
     }
-        
+
     /**
      * Cast an arbitrary type to a text value. The type to cast from is popped
      * off the bytecode stack.
@@ -1195,7 +1194,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         String type = QuorumConverter.convertTypeToJavaTypeEquivalent(returnValueType);
         type = type.substring(0, 1).toUpperCase() + type.substring(1);
-        
+
         //create the labels for catching a java exception
         Label beginTry = new Label();
         Label endTry = new Label();
@@ -1203,25 +1202,25 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         Label catchEnd = new Label();
         //build the try catch block for the parse statement (could throw NumberFormatException).
         ArrayList<CheckDetectEntry> peekExceptionTable = stack.peekExceptionTable();
-        if(peekExceptionTable != null){
+        if (peekExceptionTable != null) {
             //ArrayList<CheckDetectEntry> arrayList = new ArrayList<CheckDetectEntry>();
             peekExceptionTable.add(new CheckDetectEntry(beginTry, endTry, catchStart, "java/lang/NumberFormatException"));
             //stack.pushExceptionTable(arrayList);
-        }else{
+        } else {
             methodVisitor.visitTryCatchBlock(beginTry, endTry, catchStart, "java/lang/NumberFormatException");
         }
         methodVisitor.visitLabel(beginTry);
-     
+
         //call parse
         methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertTypeToJavaClassTypeEquivalent(returnValueType),
                 "parse" + type, "(Ljava/lang/String;)" + QuorumConverter.convertTypeToBytecodeString(returnValueType));
         stack.pushExpressionType(returnValueType);
-        
+
         //catch any exception thrown by the parse
         methodVisitor.visitLabel(endTry);
         methodVisitor.visitJumpInsn(GOTO, catchEnd);
         methodVisitor.visitLabel(catchStart);
-        
+
         //create error and re-throw
         methodVisitor.visitTypeInsn(NEW, "quorum/Libraries/Language/Errors/CastError");
         methodVisitor.visitInsn(DUP);
@@ -1229,7 +1228,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         //throw the exception
         methodVisitor.visitInsn(ATHROW);
-        
+
         methodVisitor.visitLabel(catchEnd);
     }
 
@@ -1303,7 +1302,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     castStep = null;
                 }
                 visitWithAutoBoxStep(step, (AutoBoxCreateStep) createStep, castStep);
-                if(castStep != null){
+                if (castStep != null) {
                     visitedCasts.add(castStepLocation);
                 }
                 visitedCasts.add(castStepLocation + 1);
@@ -1311,7 +1310,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             } else if (!(castStep instanceof IntegerReverseAutoBoxStep)
                     && !(castStep instanceof NumberReverseAutoBoxStep)
                     && !(castStep instanceof TextReverseAutoBoxStep)
-                    && !(castStep instanceof BooleanReverseAutoBoxStep) 
+                    && !(castStep instanceof BooleanReverseAutoBoxStep)
                     && !(createStep instanceof AutoBoxCreateStep)
                     && !visitedCasts.contains(castStepLocation)) {//standard cast
                 step.visit(this);
@@ -1319,55 +1318,60 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 step = steps.get(castStepLocation);
                 step.visit(this);
                 visitedCasts.add(castStepLocation);
-            } else if(!(createStep instanceof AutoBoxCreateStep) && !visitedCasts.contains(castStepLocation)) {//visit reverse autoboxes on returns
+            } else if (!(createStep instanceof AutoBoxCreateStep) && !visitedCasts.contains(castStepLocation)) {//visit reverse autoboxes on returns
                 castStep.setModifiedReturn(true);
                 step.visit(this);
                 castStep.visit(this);
                 visitedCasts.add(castStepLocation);
-            }else{
+            } else {
                 step.visit(this);
             }
-        }else if(step.getExpressionEndPosition() != -1 && steps.get(step.getExpressionEndPosition()).getCastStepLocation() != -1 && !visitedCasts.contains(steps.get(step.getExpressionEndPosition()).getCastStepLocation())){
+        } else if (step.getExpressionEndPosition() != -1) {
             castStepLocation = steps.get(step.getExpressionEndPosition()).getCastStepLocation();
-            //if we are dealing with an autobox we are dealing with 3 steps.
-            //with a standard cast we will need move the cast step directly after
-            //the visit of the parameter.
-            ExecutionStep createStep = steps.get(castStepLocation + 1);
-            ExecutionStep castStep = steps.get(castStepLocation);
-            if (createStep instanceof AutoBoxCreateStep && !visitedCasts.contains(castStepLocation)) {//autobox
-                castStep = steps.get(castStepLocation);
-                if (!(castStep instanceof UnaryOperationStep)) {
-                    castStep = null;
-                }
-                if(castStep != null){
-                    visitedCasts.add(castStepLocation);
-                }
-                visitedCasts.add(castStepLocation+1);
-                visitedCasts.add(castStepLocation + 2);
-                //}
-                this.visitWithAutoBoxStep(steps, (AutoBoxCreateStep) createStep, castStep, this.getCurrentTracker(), i, step.getExpressionEndPosition() + 1, visitedCasts);
-                i = step.getExpressionEndPosition();
-                //visitedCasts.add(castStepLocation+1);
-                //visitedCasts.add(castStepLocation + 2);
-            } else if (!(castStep instanceof IntegerReverseAutoBoxStep)
-                    && !(castStep instanceof NumberReverseAutoBoxStep)
-                    && !(castStep instanceof TextReverseAutoBoxStep)
-                    && !(castStep instanceof BooleanReverseAutoBoxStep) 
-                    && !(createStep instanceof AutoBoxCreateStep)
-                    && !visitedCasts.contains(castStepLocation)) {//standard cast
-                step.visit(this);
+            if (castStepLocation != -1) {
+                //if we are dealing with an autobox we are dealing with 3 steps.
+                //with a standard cast we will need move the cast step directly after
+                //the visit of the parameter.
+                ExecutionStep createStep = steps.get(castStepLocation + 1);
+                ExecutionStep castStep = steps.get(castStepLocation);
+                if (createStep instanceof AutoBoxCreateStep && !visitedCasts.contains(castStepLocation)) {//autobox
+                    castStep = steps.get(castStepLocation);
+                    if (!(castStep instanceof UnaryOperationStep)) {
+                        castStep = null;
+                    }
+                    if (castStep != null) {
+                        visitedCasts.add(castStepLocation);
+                    }
+                    visitedCasts.add(castStepLocation + 1);
+                    visitedCasts.add(castStepLocation + 2);
+                    //}
+                    this.visitWithAutoBoxStep(steps, (AutoBoxCreateStep) createStep, castStep, this.getCurrentTracker(), i, step.getExpressionEndPosition() + 1, visitedCasts);
+                    i = step.getExpressionEndPosition();
+                    //visitedCasts.add(castStepLocation+1);
+                    //visitedCasts.add(castStepLocation + 2);
+                } else if (!(castStep instanceof IntegerReverseAutoBoxStep)
+                        && !(castStep instanceof NumberReverseAutoBoxStep)
+                        && !(castStep instanceof TextReverseAutoBoxStep)
+                        && !(castStep instanceof BooleanReverseAutoBoxStep)
+                        && !(createStep instanceof AutoBoxCreateStep)
+                        && !visitedCasts.contains(castStepLocation)) {//standard cast
+                    step.visit(this);
 
-                step = steps.get(castStepLocation);
-                step.visit(this);
-                visitedCasts.add(castStepLocation);
-            } else if(!(createStep instanceof AutoBoxCreateStep) && !visitedCasts.contains(castStepLocation)) {//visit reverse autoboxes on returns
-                castStep.setModifiedReturn(true);
-                step.visit(this);
-                castStep.visit(this);
-                visitedCasts.add(castStepLocation);
-            }else{
+                    step = steps.get(castStepLocation);
+                    step.visit(this);
+                    visitedCasts.add(castStepLocation);
+                } else if (!(createStep instanceof AutoBoxCreateStep) && !visitedCasts.contains(castStepLocation)) {//visit reverse autoboxes on returns
+                    castStep.setModifiedReturn(true);
+                    step.visit(this);
+                    castStep.visit(this);
+                    visitedCasts.add(castStepLocation);
+                } else {
+                    step.visit(this);
+                }
+            } else {
                 step.visit(this);
             }
+
         } else {//standard visit of a non casting series of steps.
             step.visit(this);
         }
@@ -1388,9 +1392,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     castStep = null;
                 }
 
-                if(castStep != null)
+                if (castStep != null) {
                     visitedCasts.add(castStepLocation);
-                
+                }
+
                 visitedCasts.add(castStepLocation + 1);
                 visitedCasts.add(castStepLocation + 2);
 
@@ -1458,11 +1463,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             int castStepLocation = -1;
             ArrayList<Integer> functionParameterMapping = tracker.getFunctionParameterMapping(i);
             if (functionParameterMapping != null) {
-                for(int count = functionParameterMapping.size() - 1; count >= 0; count--){
+                for (int count = functionParameterMapping.size() - 1; count >= 0; count--) {
                     int callStepNumber = functionParameterMapping.get(count);
                     ExecutionStep callStep = steps.get(callStepNumber);
 
-                    if(callStep instanceof CallStep || callStep instanceof InputStep || callStep.isCastStep()){
+                    if (callStep instanceof CallStep || callStep instanceof InputStep || callStep.isCastStep()) {
                         castStepLocation = callStep.getCastStepLocation();
 
                         i = processAutoBox(steps, i, castStepLocation, callStepNumber, visitedCasts, tracker);
@@ -1479,14 +1484,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 ArrayList<Integer> callLocations = tracker.getFunctionParameterMapping(i);
                 for (int k = callLocations.size() - 1; k >= 0; k--) {
                     int opcodeLocation = callLocations.get(k);
-                    if(!visitedCasts.contains(k)){
+                    if (!visitedCasts.contains(k)) {
                         ExecutionStep callStep = steps.get(opcodeLocation);
 
                         boolean newStep = false;
 
                         //opcodeLocation = i;
                         // Make sure this is actually a CallStep.
-                        while (!(callStep instanceof CallStep) && !(callStep instanceof InputStep)&& !(callStep.isCastStep())) {
+                        while (!(callStep instanceof CallStep) && !(callStep instanceof InputStep) && !(callStep.isCastStep())) {
                             opcodeLocation++;
                             callStep = steps.get(opcodeLocation);
                             newStep = true;
@@ -1498,8 +1503,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                             //check the new step for casts
                             if (newStep) {
                                 castStepLocation = call.getCastStepLocation();
-                                
-                                
+
+
                                 i = processAutoBox(steps, i, castStepLocation, opcodeLocation, visitedCasts, tracker);
 
                             }
@@ -1508,18 +1513,18 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                             if (!call.isCalleeLoaded()) {
                                 visitCallSpecial(call);
                             }
-                        }else if(callStep instanceof InputStep || callStep.isCastStep()){
+                        } else if (callStep instanceof InputStep || callStep.isCastStep()) {
 
                             //check the new step for casts
                             if (newStep) {
                                 castStepLocation = callStep.getCastStepLocation();
-                                
-                                
+
+
                                 i = processAutoBox(steps, i, castStepLocation, opcodeLocation, visitedCasts, tracker);
 
                             }
 
-                        }else {
+                        } else {
                             Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
                                     Level.SEVERE, "Function mapping between opcode parameters "
                                     + "and callsteps results in incorrect values. This is a compiler bug.");
@@ -1791,8 +1796,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         //if you need to cheat temporarily, this will compute the maxS
         //function automatically. This is useful for reverse engineering.
-        classWriter = new QuorumClassWriter(ClassWriter.COMPUTE_FRAMES);
-        //classWriter = new ClassWriter(0);
+        //classWriter = new QuorumClassWriter(ClassWriter.COMPUTE_FRAMES);
+        classWriter = new ClassWriter(0);
         interfaceWriter = new QuorumClassWriter(ClassWriter.COMPUTE_FRAMES);
         //interfaceWriter = new QuorumClassWriter(0);
 
@@ -2136,7 +2141,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         visitAllSteps(method, 0, method.getSteps().size(), tracker);
         ArrayList<CheckDetectEntry> exceptionTable = stack.popExceptionTable();
 
-        for(int i = 0; exceptionTable != null && i < exceptionTable.size(); i++){
+        for (int i = 0; exceptionTable != null && i < exceptionTable.size(); i++) {
             CheckDetectEntry entry = exceptionTable.get(i);
             methodVisitor.visitTryCatchBlock(entry.getFrom(), entry.getTo(), entry.getTarget(), entry.getType());
         }
@@ -2193,8 +2198,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
                 if (step instanceof EndScopeStep) {
                     // Is it a loop? If so, skip the incrementation op codes.
-                    if (stack.peekLabel() != null && ((EndScopeStep)step).getBlockTag().equals("loop")&&
-                            (stack.peekLabel().getLabelType().equals(LabelTypeEnum.FROM) || stack.peekLabel().getLabelType().equals(LabelTypeEnum.TIMES))) {
+                    if (stack.peekLabel() != null && ((EndScopeStep) step).getBlockTag().equals("loop")
+                            && (stack.peekLabel().getLabelType().equals(LabelTypeEnum.FROM) || stack.peekLabel().getLabelType().equals(LabelTypeEnum.TIMES))) {
                         methodVisitor.visitInsn(ICONST_1);
                         methodVisitor.visitVarInsn(ILOAD, stack.peekCounterVariable());
                         methodVisitor.visitInsn(IADD);
@@ -2203,12 +2208,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         step = steps.get(i);
                     }
                 }
-                
+
                 //if we have an empty check block we need to mark it and not generate a table.
-                if(step instanceof BeginCheckScopeStep){
+                if (step instanceof BeginCheckScopeStep) {
                     ExecutionStep next = steps.get(i + 1);
-                    if(next instanceof EndScopeStep){
-                        ((BeginCheckScopeStep)step).setIsEmpty(true);
+                    if (next instanceof EndScopeStep) {
+                        ((BeginCheckScopeStep) step).setIsEmpty(true);
                     }
                 }
                 step.visit(this);
@@ -2229,7 +2234,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (main) {
             methodVisitor = classWriter.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
             methodVisitor.visitMethodInsn(INVOKESTATIC, "plugins/quorum/Libraries/System/Quorum", "Load",
-                "()V");
+                    "()V");
             methodVisitor.visitTypeInsn(NEW, processedClazzName);
             methodVisitor.visitInsn(DUP);
             methodVisitor.visitMethodInsn(INVOKESPECIAL, processedClazzName, "<init>", "()V");
@@ -2239,7 +2244,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     method.getMethodDescriptor().getName(),
                     QuorumConverter.convertMethodDescriptorToBytecodeSignature(method.getMethodDescriptor()));
             methodVisitor.visitMethodInsn(INVOKESTATIC, "plugins/quorum/Libraries/System/Quorum", "Unload",
-                "()V");
+                    "()V");
             methodVisitor.visitInsn(RETURN);
             methodVisitor.visitMaxs(2, 2);
             methodVisitor.visitEnd();
@@ -2555,13 +2560,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(BeginCheckScopeStep step) {
         CheckDetectDescriptor desc = new CheckDetectDescriptor();
         stack.pushCheckDetect(desc);
-        
+
         ArrayList<DetectInfo> allDetects = step.getLandingPads().getAllDetects();
         Stack<Label> endLabelStack = new Stack();
         //get all of the blocks associated with the try (all detects and always blocks).
         for (int i = 0; i < allDetects.size(); i++) {
             DetectInfo next = allDetects.get(i);
-            
+
             //if this is a detect parameter build the visit try catch block calls
             if (next.getDetectParameter().errorType != null) {
                 //if there is an always and this is the first detect or
@@ -2571,7 +2576,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     Label endLabel = new Label();
                     endLabelStack.push(endLabel);
                 }
-                
+
             } else if (next.isAlawysBlock()) {
                 //stack.pushAlwaysVariableOffset(0);
                 desc.setAlwaysEnd(new Label());
@@ -2579,12 +2584,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 desc.setBlockName(step.getBlockName());
             }
         }
-        
-        if(step.isEmpty()){
+
+        if (step.isEmpty()) {
             desc.setHasEmptyCheck(true);
         }
-        
-        if(stack.peekExceptionTable() == null){
+
+        if (stack.peekExceptionTable() == null) {
             stack.pushExceptionTable(new ArrayList<CheckDetectEntry>());
         }
 
@@ -2604,22 +2609,23 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(BeginDetectScopeStep step) {
         CheckDetectDescriptor desc = stack.peekCheckDetect();
         ArrayList<CheckDetectEntry> tryCatchTable = stack.peekExceptionTable();
-        
+
         Stack<LabelStackValue> tempStack = new Stack<LabelStackValue>();
         desc.pushDetectStartLabel();
-        
-        if(!desc.isHasAlways())
+
+        if (!desc.isHasAlways()) {
             desc.pushDetectEndLabel();
-            
+        }
+
         //if this is a detect parameter build the visit try catch block calls
         if (step.getDetectParameter().errorType != null && !desc.hasEmptyCheck()) {
             tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.peekDetectStartLabel(), QuorumConverter.convertStaticKeyToBytecodePath(step.getDetectParameter().errorType.getStaticKey())));
-        } 
-        
+        }
+
         while (!tempStack.isEmpty()) {
             stack.pushLabel(tempStack.pop());
         }
-            
+
         methodVisitor.visitJumpInsn(GOTO, desc.getConstructEnd());
 
 
@@ -2646,11 +2652,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
             methodVisitor.visitJumpInsn(GOTO, desc.getConstructEnd());
             methodVisitor.visitLabel(desc.getAlwaysStart());
-            
+
             desc.flagAlwaysScope(true);
             int alwaysOffset = desc.getMaxVariableSize();
             stack.registerMaxVariableSize(1 + alwaysOffset);
-            
+
             methodVisitor.visitVarInsn(ASTORE, 1 + alwaysOffset);
             desc.setStoredDetectVariableNumber(1 + alwaysOffset);
             methodVisitor.visitLabel(desc.getAlwaysEnd());
@@ -2723,7 +2729,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BinaryAddTextBooleanStep step) {
         //Converts a boolean to text.
-        if(!stack.peekExpressionType().equals(TypeDescriptor.getBooleanType())){
+        if (!stack.peekExpressionType().equals(TypeDescriptor.getBooleanType())) {
             stack.popExpressionType();
             stack.pushExpressionType(TypeDescriptor.getBooleanType());
         }
@@ -2736,7 +2742,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(BinaryAddTextIntegerStep step) {
         //Converts an integer to text, then concatenates a text value and the converted
         //integer text.
-        if(!stack.peekExpressionType().equals(TypeDescriptor.getIntegerType())){
+        if (!stack.peekExpressionType().equals(TypeDescriptor.getIntegerType())) {
             stack.popExpressionType();
             stack.pushExpressionType(TypeDescriptor.getIntegerType());
         }
@@ -2748,7 +2754,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     public void visit(BinaryAddTextNumberStep step) {
         //Converts a number to text, then concatenates a text value and the converted
         //number text.
-        if(!stack.peekExpressionType().equals(TypeDescriptor.getNumberType())){
+        if (!stack.peekExpressionType().equals(TypeDescriptor.getNumberType())) {
             stack.popExpressionType();
             stack.pushExpressionType(TypeDescriptor.getNumberType());
         }
@@ -3336,9 +3342,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         // Is the method return type void? If not, push its return type onto the stack.
         if (!step.getMethodCallee().getReturnType().isVoid()) {
             if (step.isSoloMethodCall()) {
-                if(step.getMethodCallee().getReturnType().isNumber()){
+                if (step.getMethodCallee().getReturnType().isNumber()) {
                     methodVisitor.visitInsn(POP2);
-                }else{
+                } else {
                     methodVisitor.visitInsn(POP);
                 }
             } else {
@@ -3557,68 +3563,68 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 //visit the end of the loop label.
                 methodVisitor.visitLabel(label1);
             } else if (!step.getBlockTag().equals("always") && (label.getLabelType().equals(LabelTypeEnum.CHECK) || label.getLabelType().equals(LabelTypeEnum.DETECT))) {//end of the loop will mark the goto and visit the end label.
-                
+
                 //visit any 'always' code that needs to be inserted.
                 CheckDetectDescriptor desc = stack.peekCheckDetect();
                 int alwaysStartPosition = desc.getAlwaysStartPosition() + 2;
-                
+
                 //end of the check or detect
                 stack.popLabel();
-                
+
                 Label endLabel = null;
                 Label startLabel = null;
-                if(label.getLabelType().equals(LabelTypeEnum.CHECK)){
+                if (label.getLabelType().equals(LabelTypeEnum.CHECK)) {
                     methodVisitor.visitLabel(desc.getCheckEnd());
-                }else{
+                } else {
                     endLabel = desc.getNextDetectEndLabel();
                     Label label1 = label.getLabel();
                     if (label1 != null && endLabel == null) {
                         methodVisitor.visitLabel(label1);
-                    }else if(endLabel != null){
+                    } else if (endLabel != null) {
                         methodVisitor.visitLabel(endLabel);
                         startLabel = desc.getNextDetectStartLabel();
                     }
                 }
-                
+
                 int alwaysEndPosition = alwaysStartPosition;
                 Vector<ExecutionStep> steps = this.currentMethodExecution.getSteps();
                 boolean found = false;
                 while (desc.getAlwaysStartPosition() != -1 && !found) {
                     ExecutionStep futureStep = steps.get(alwaysEndPosition);
-                    if(futureStep instanceof AlwaysEndStep){
-                        AlwaysEndStep endStep = (AlwaysEndStep)futureStep;
-                        if(desc.getBlockName().equals(endStep.getCheckDetectLabel())){
+                    if (futureStep instanceof AlwaysEndStep) {
+                        AlwaysEndStep endStep = (AlwaysEndStep) futureStep;
+                        if (desc.getBlockName().equals(endStep.getCheckDetectLabel())) {
                             found = true;
-                        }else{
+                        } else {
                             alwaysEndPosition++;
                         }
-                    }else{
+                    } else {
                         alwaysEndPosition++;
                     }
                 }
-                
+
                 //if there is an always block insert the always into the check or detect block
                 if (desc.getAlwaysStartPosition() != -1) {
                     visitAllSteps(this.currentMethodExecution, alwaysStartPosition, alwaysEndPosition, this.getCurrentTracker());
                 }
-                
+
                 //if this is a detect block process the table entries or labels.
-                if (label.getLabelType().equals(LabelTypeEnum.DETECT)) {                    
+                if (label.getLabelType().equals(LabelTypeEnum.DETECT)) {
                     ArrayList<CheckDetectEntry> tryCatchTable = stack.peekExceptionTable();
-                    
+
                     if (desc.isHasAlways() && desc.isLastDetect() && !desc.hasEmptyCheck()) {
                         desc.setHasAlways(true);
                         tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.getAlwaysStart(), null)); // null means "catch any type"
-                        while(desc.hasProcessedDetect()){
+                        while (desc.hasProcessedDetect()) {
                             tryCatchTable.add(new CheckDetectEntry(desc.popProcessedDetectStart(), desc.popProcessedDetectEnd(), desc.getAlwaysStart(), null));
                         }
                         tryCatchTable.add(new CheckDetectEntry(startLabel, endLabel, desc.getAlwaysStart(), null));
-                    }else if(startLabel != null && endLabel != null){
+                    } else if (startLabel != null && endLabel != null) {
                         desc.addProcessedDetectStart(startLabel);
                         desc.addProcessedDetectEnd(endLabel);
                     }
                 }
-                
+
 
             }
         }
@@ -3813,7 +3819,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             VariableDescriptor varDescriptor = (VariableDescriptor) step.getValue();
             if (varDescriptor != null && varDescriptor.isInitializedClassVariable()) {
                 methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()), 
+                methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()),
                         QuorumConverter.convertParentStaticKeyToValidName(step.getLocatedInClass().getStaticKey()), QuorumConverter.convertTypeToBytecodeString(step.getLocatedInClass().getType()));
                 methodVisitor.visitFieldInsn(GETFIELD, QuorumConverter.convertStaticKeyToBytecodePath(step.getLocatedInClass().getStaticKey()),
                         varDescriptor.getName(), QuorumConverter.convertTypeToBytecodeString(varDescriptor.getType()));
@@ -3884,7 +3890,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (runtimeError != null) {
             methodVisitor.visitLdcInsn(runtimeError.getErrorMessage());
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "quorum/Libraries/Language/Errors/Error", "SetErrorMessage", "(Ljava/lang/String;)V");
-        }else{
+        } else {
             processExpressions();
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "quorum/Libraries/Language/Errors/Error", "SetErrorMessage", "(Ljava/lang/String;)V");
         }
@@ -3907,7 +3913,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(TextAutoBoxStep step) {
-        if (step instanceof TextReverseAutoBoxStep  && !stack.isExpressionTypeEmpty()) {
+        if (step instanceof TextReverseAutoBoxStep && !stack.isExpressionTypeEmpty()) {
             TypeDescriptor currentType = stack.popExpressionType();
 
             if (currentType.getName().equals("Libraries.Language.Object")) {
@@ -4007,7 +4013,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(UnaryNumberIntegerCastStep step) {
-        stack.pushExpressionType(TypeDescriptor.getIntegerType());        
+        stack.pushExpressionType(TypeDescriptor.getIntegerType());
         castValueToValue(TypeDescriptor.getNumberType());
     }
 
@@ -4061,8 +4067,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         } else {
             pushVariable(variable.getType(), variable.getVariableNumber() - currentClass.getNumberOfVariables());
         }
-        
-        
+
+
 
         //visit the field instruction
         String name = step.getVariableName();
@@ -4071,11 +4077,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if (!type.isPrimitiveType()) {
             type.setBytecodeInterface(true);
         }
-        
-        if(step.getParent() != null){
+
+        if (step.getParent() != null) {
             methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getStaticKey() + "$Interface"),
                     QuorumConverter.generateGetterNameFromSubField(step.getParent().getType(), name), QuorumConverter.generateGetterSignatureFromSubField(type));
-        }else{
+        } else {
             methodVisitor.visitMethodInsn(INVOKEINTERFACE, QuorumConverter.convertStaticKeyToBytecodePath(variable.getType().getStaticKey() + "$Interface"),
                     QuorumConverter.generateGetterNameFromSubField(variable.getType(), name), QuorumConverter.generateGetterSignatureFromSubField(type));
         }
@@ -4100,7 +4106,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 variable = varDescriptor.getType();
             } else {//otherwise get the variable number and push the new variable onto the bytecode stack
                 int variableNumber = step.getValue().getVariableNumber() - currentClass.getNumberOfVariables();
-                int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getValue().getType(),false);
+                int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getValue().getType(), false);
                 variable = stack.getVariable(mappedVariableNumber);
                 pushVariable(step.getValue().getType(), variableNumber);
             }

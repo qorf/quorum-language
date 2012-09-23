@@ -430,17 +430,26 @@ solo_method_call
 		inCallStep = true;
 		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
 	}
-	PARENT COLON qualified_name COLON ID LEFT_PAREN 
+	PARENT COLON qualified_name COLON ID LEFT_PAREN {if(builder.getCurrentMethod() != null){startLocation = builder.getCurrentMethod().getSteps().size();}}
 		(e = expression
 		{
+			if(builder.getCurrentMethod() != null && startLocation != builder.getCurrentMethod().getSteps().size() -1){
+				builder.getCurrentMethod().getSteps().get(startLocation).setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
+				$e.step.setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
+			}
 			values.add($e.eval);
 			steps.add($e.step);
 			registers.add($e.eval.getRegister());
 			types.add($e.eval.getType().getStaticKey());
                 	argumentTypes.add($e.eval.getType());
                 	inCallStep = false;
-		} (COMMA e = expression
+		} (COMMA{if(builder.getCurrentMethod() != null){startLocation = builder.getCurrentMethod().getSteps().size();}}
+		 e = expression
 		{
+			if(builder.getCurrentMethod() != null && startLocation != builder.getCurrentMethod().getSteps().size() -1){
+				builder.getCurrentMethod().getSteps().get(startLocation).setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
+				$e.step.setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
+			}
 			values.add($e.eval);
 			steps.add($e.step);
 			registers.add($e.eval.getRegister());
@@ -492,17 +501,26 @@ solo_method_call
 		inCallStep = true;
 		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
 	}
-	ME COLON qualified_name (COLON ID)? LEFT_PAREN 
+	ME COLON qualified_name (COLON ID)? LEFT_PAREN {if(builder.getCurrentMethod() != null){startLocation = builder.getCurrentMethod().getSteps().size();}}
 		(e = expression 
 		{
+			if(builder.getCurrentMethod() != null && startLocation != builder.getCurrentMethod().getSteps().size() -1){
+				builder.getCurrentMethod().getSteps().get(startLocation).setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
+				$e.step.setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
+			}
 			values.add($e.eval);
 			steps.add($e.step);
 			registers.add($e.eval.getRegister());
 			types.add($e.eval.getType().getStaticKey());
                 	argumentTypes.add($e.eval.getType());
                 	inCallStep = false;
-		}(COMMA e = expression
+		}(COMMA{if(builder.getCurrentMethod() != null){startLocation = builder.getCurrentMethod().getSteps().size();}}
+		 e = expression
 		{
+			if(builder.getCurrentMethod() != null && startLocation != builder.getCurrentMethod().getSteps().size() -1){
+				builder.getCurrentMethod().getSteps().get(startLocation).setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
+				$e.step.setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
+			}
 			values.add($e.eval);
 			steps.add($e.step);
 			registers.add($e.eval.getRegister());
@@ -2190,7 +2208,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 	;
 
 function_expression_list returns [List list, int firstParam]
-@init{$list = new ArrayList(); $firstParam = -1;}
+@init{$list = new ArrayList(); $firstParam = -1;int startLocation = 0;}
 	:
 	^(FUNCTION_EXPRESSION_LIST (
 	{
@@ -2200,9 +2218,14 @@ function_expression_list returns [List list, int firstParam]
 		if($list.size() == 0){
 			$firstParam = builder.addParameterLabel();
 		}
+		if(builder.getCurrentMethod() != null){startLocation = builder.getCurrentMethod().getSteps().size();}
 	}
 	e = expression 
 	{
+		if(builder.getCurrentMethod() != null && startLocation != builder.getCurrentMethod().getSteps().size() -1){
+				builder.getCurrentMethod().getSteps().get(startLocation).setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
+				$e.step.setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
+		}
 		$list.add(e);
 	} )*)
 	;
