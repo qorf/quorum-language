@@ -348,6 +348,9 @@ public class ClassDescriptor extends Descriptor implements Scopable {
             }
 
             MethodDescriptor curMethod = this.getMethod(mName);
+            if(curMethod == null)
+                curMethod = this.getSystemAction(mName);
+            
             if(curMethod != null){//if we found a parent method in the child methods
                 if(resolvedMethod != null){
                     if(hasMethodOverridingIncompatability(resolvedMethod, curMethod)){
