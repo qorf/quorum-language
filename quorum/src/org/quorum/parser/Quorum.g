@@ -48,6 +48,7 @@ import org.quorum.vm.interfaces.ErrorType;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
 import org.quorum.vm.interfaces.CompilerErrorManager;
 import org.quorum.vm.interfaces.CompilerError;
+import org.quorum.vm.interfaces.ErrorType;
 }
 
 @lexer::members {
@@ -73,6 +74,11 @@ import org.quorum.vm.interfaces.CompilerError;
 		if(vm != null) {
 			String message = super.getErrorMessage(re, null);
 			CompilerError error = new CompilerError();
+			if(re instanceof NoViableAltException){
+    				message = "Incomplete or invalid statement at " + super.getCharErrorDisplay(re.c);
+    				error.setErrorType(ErrorType.OTHER);
+    			}
+			
 			error.setLineNumber(re.line);
 			error.setColumn(re.charPositionInLine);
 			error.setError(message);
