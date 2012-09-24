@@ -34,13 +34,25 @@ public class BlockDescriptor extends Descriptor implements Scopable{
         return children.iterator();
     }
 
+    @Override
     public VariableParameterCommonDescriptor getVariable(String key) {
         VariableParameterCommonDescriptor var = variables.get(key);
         if(var == null)
             var = parent.getVariable(key);
         return var;
     }
+    
+    /**
+     * Returns all variables defined in this block. Note that this does not
+     * return variables defined in a child's scope.
+     * 
+     * @return 
+     */
+    public Iterator<VariableParameterCommonDescriptor> getVariables() {
+        return variables.values().iterator();
+    }
 
+    @Override
     public MethodDescriptor getMethod(String key) {
         if(parent != null) {
             return parent.getMethod(key);
@@ -50,11 +62,13 @@ public class BlockDescriptor extends Descriptor implements Scopable{
         }
     }
 
+    @Override
     public ClassDescriptor getClass(String key) {
         return null;
 
     }
 
+    @Override
     public CompilerError add(VariableDescriptor descriptor) {        
         CompilerError error = super.isDefined(descriptor, variables);
         if (error == null) {
@@ -66,6 +80,7 @@ public class BlockDescriptor extends Descriptor implements Scopable{
         return error;
     }
 
+    @Override
     public CompilerError add(ParameterDescriptor descriptor) {        
         CompilerError error = super.isDefined(descriptor, variables);
         if (error == null) {
@@ -74,30 +89,37 @@ public class BlockDescriptor extends Descriptor implements Scopable{
         return error;
     }
 
+    @Override
     public CompilerError add(BlueprintDescriptor descriptor) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
     public CompilerError add(MethodDescriptor descriptor) {
         throw new UnsupportedOperationException("Cannot add a action to a block.");
     }
 
+    @Override
     public CompilerError add(SystemActionDescriptor descriptor) {
         throw new UnsupportedOperationException("Cannot add a system function to a block.");
     }
 
+    @Override
     public CompilerError add(ClassDescriptor descriptor) {
         throw new UnsupportedOperationException("Cannot add a class to a block.");
     }
 
+    @Override
     public void setParent(Scopable parent) {
         this.parent = parent;
     }
 
+    @Override
     public Scopable getParent() {
         return parent;
     }
 
+    @Override
     public void add(BlockDescriptor descriptor) {
        descriptor.setParent(this);
        Integer k = (Integer)children.size();
@@ -111,11 +133,13 @@ public class BlockDescriptor extends Descriptor implements Scopable{
      * @return
      */
     @Deprecated
+    @Override
     public BlockDescriptor getNextBlock() {
         return children.get(currentBlock++);
 
     }
 
+    @Override
     public String getScopeString() {
         if(parent == null) {
             return getName();
@@ -125,6 +149,7 @@ public class BlockDescriptor extends Descriptor implements Scopable{
         }
     }
 
+    @Override
     public BlueprintDescriptor getBlueprint(String key) {
         return null;
     }

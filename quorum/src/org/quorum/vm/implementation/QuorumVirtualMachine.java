@@ -1054,25 +1054,25 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     }
 
     private void addExpressionResults(CodeCompletionResult result, CodeCompletionRequest request) {
-        String expression = request.getLine().substring(0, request.getStartOffset());
+        String expression = request.getLine().substring(0, request.getStartOffset()).trim();
         inputExpression = expression;
         
-        int begin = 0;
-        int end = 0;
-        int index = request.getStartOffset() - (request.getLine().length() - expression.length());
-        if (index >= expression.length()) {
-            index = expression.length() - 1;
-        }
+//        int begin = 0;
+//        int end = 0;
+//        int index = request.getStartOffset() - (request.getLine().length() - expression.length());
+//        if (index >= expression.length()) {
+//            index = expression.length() - 1;
+//        }
 
-        while (index > 0) {
-            if (Character.isWhitespace(expression.charAt(index))
-                    || expression.charAt(index) == '=') {
-                expression = expression.substring(index + 1, request.getStartOffset());
-                expression = expression.trim();
-                index = -1;
-            }
-            index = index - 1;
-        }
+//        while (index > 0) {
+//            if (Character.isWhitespace(expression.charAt(index))
+//                    || expression.charAt(index) == '=') {
+//                expression = expression.substring(index + 1, request.getStartOffset());
+//                expression = expression.trim();
+//                index = -1;
+//            }
+//            index = index - 1;
+//        }
         //now split the string into pieces
         String[] split = expression.split(":");
 
@@ -1111,45 +1111,58 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             //if the method is null, it must be a class variable (or garbage)
             boolean isMe = false;
             if (method != null) {
-                if (split.length == 1) {
-                    String left = split[0].trim();
-                    if (left.equals(me)) {
-                        isMe = true;
-                    }
-                    if (left.equals(me) || result.getFilter().length() > 0) {
-                        addClassToResult(result, clazz, isMe);
-                    }
-                    if (left.equals(parent)) {
-                        addParentClasses(result, clazz);
-                    } else if (left.matches("\\s*")) {
-                        isMe = true;
-                        addClassToResult(result, clazz, isMe);
-                    } else {
-                        VariableParameterCommonDescriptor variable = method.getVariable(left);
-                        if (variable == null) {
-                            variable = findVariableInBlocks(request, method, left);
-                        }
-                        if (variable != null) {
-                            String staticKey = variable.getType().getStaticKey();
-                            addToCodeCompletionResult(result, staticKey, clazz);
-                        }
-                    }
-                } else if (split.length == 0) {
-                    return;
-                } else { //do fancier parsing
+//                if (split.length == 1) {
+//                    String left = split[0].trim();
+//                    if (left.equals(me)) {
+//                        isMe = true;
+//                    }
+//                    if (left.equals(me) || result.getFilter().length() > 0) {
+//                        addClassToResult(result, clazz, isMe);
+//                    }
+//                    if (left.equals(parent)) {
+//                        addParentClasses(result, clazz);
+//                    } else if (left.matches("\\s*")) {
+//                        isMe = true;
+//                        addClassToResult(result, clazz, isMe);
+//                    } else {
+//                        VariableParameterCommonDescriptor variable = method.getVariable(left);
+//                        if (variable == null) {
+//                            variable = findVariableInBlocks(request, method, left);
+//                        }
+//                        if (variable != null) {
+//                            String staticKey = variable.getType().getStaticKey();
+//                            addToCodeCompletionResult(result, staticKey, clazz);
+//                        }
+//                    }
+//                } else if (split.length == 0) {
+//                    return;
+//                } else { //do fancier parsing
                     String left = split[0];
                     String partialLine = request.getLine().substring(0, request.getStartOffset() + 1);
                     //parse left, starting from the start offset, working
                     for(int i = request.getStartOffset(); i >= 0; i--) {
                         if(partialLine.charAt(i) == '(' ||
-                           partialLine.charAt(i) == ',') { //this is the end of this expression
+                           partialLine.charAt(i) == ',' ||
+                           partialLine.charAt(i) == '*' ||
+                           partialLine.charAt(i) == '/' ||
+                           partialLine.charAt(i) == '+' ||
+                           partialLine.charAt(i) == '-' ||     
+                           partialLine.charAt(i) == ' ' ||
+                           isMod(partialLine, i)
+                                //make this work for mod --- if it's a d, check backwards and ensure that it's not part of another word
+                                
+                                
+                                ) { //this is the end of this expression
                             partialLine = partialLine.substring(i + 1, request.getStartOffset() + 1);
                             //resplit it
+                            partialLine = partialLine.trim();
                             split = partialLine.split(":");
                             left = split[0];
                             i = -1; //finish early.
                         }
                     }
+                    
+                    partialLine = partialLine.trim();
                     
                     if (left.equals(parent)) {
                         if (split.length > 2) {
@@ -1183,18 +1196,99 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                             
                             if(split[split.length - 1].equals(parent)){
                                 clazz = this.getSymbolTable().findClassDescriptorFromCurrentClass(staticKey);
-                                if(clazz != null)
+                                if(clazz != null) {
                                     addParentClasses(result, clazz);
+                                }
                             }else{
                                 addToCodeCompletionResult(result, staticKey, clazz);
                             }
                         }
+                        else {
+                            addDefaultValues(partialLine, result, request, clazz, method);
+                        }
                     }
-                }
+              //  }
             }
         }
     }
 
+    /**
+     * This method adds a set of variables and methods to the result. Potentially,
+     * this includes any information that is potentially useful to the user, like
+     * auto-completing variables, primitives, classes that can be instantiated,
+     * or other information.
+     * 
+     * @param result
+     * @param method 
+     */
+    private void addDefaultValues(String partial, CodeCompletionResult result, 
+            CodeCompletionRequest request, ClassDescriptor clazz, 
+            MethodDescriptor method) {
+        //toss in any variables defined in the method, or blocks, where the names
+        //start with partial and that are defined above this value
+        //also include any class variables
+        Iterator<VariableDescriptor> classVars = clazz.getAllClassVariables().iterator();
+        while(classVars.hasNext()) {
+            VariableDescriptor var = classVars.next();
+            if(var.getName().startsWith(partial)) {
+                addVariableCompletionItem(var, var.getName(), result, new CodeCompletionItem());
+            }
+        }
+        
+        Iterator<BlockDescriptor> children = method.getChildren();
+        boolean done = false;
+        while (children.hasNext() && !done) {
+            BlockDescriptor block = children.next();
+            if (request.getLineNumber() >= block.getLineBegin()
+                    && request.getLineNumber() <= block.getLineEnd()) {
+                done = true;
+                //grab all variables and variables from parent blocks
+                Iterator<VariableParameterCommonDescriptor> variables = block.getVariables();
+                while(variables.hasNext()) {
+                    VariableParameterCommonDescriptor next = variables.next();
+                    if(next.getName().startsWith(partial) && next instanceof VariableDescriptor) {
+                        VariableDescriptor var = (VariableDescriptor) next;
+                        addVariableCompletionItem(var, var.getName(), result, new CodeCompletionItem());
+                    }
+                }
+            }
+        }
+        
+        //add filtered parameters
+        
+        
+        //add filtered class methods
+        
+        
+        //add filtered classes you can instantiate
+        
+        
+        //add filtered primitive values you can use.
+    }
+    
+    /**
+     * Determines, at a given point in a string, whether that string has a mod
+     * operator immediately preceeding it.
+     * 
+     * @param partial
+     * @param i
+     * @return 
+     */
+    private boolean isMod(String partial, int i) {
+        if(i - 3 < 0) {            
+            return false;
+        }
+        
+        if(partial.charAt(i) == 'd' &&
+           partial.charAt(i - 1) == 'o' &&
+           partial.charAt(i - 2) == 'm' &&
+           partial.charAt(i - 3) == ' ') {
+            return true;
+        }
+        
+        return false;
+    }
+    
     private void addParentClasses(CodeCompletionResult result, ClassDescriptor clazz) {
         Iterator<ClassDescriptor> parents = clazz.getFlattenedListOfParents();
         while (parents.hasNext()) {
