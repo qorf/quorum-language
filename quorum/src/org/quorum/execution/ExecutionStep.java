@@ -447,10 +447,19 @@ public abstract class ExecutionStep {
         endOfExpression.push(i);
     }
     public int getExpressionEndPosition(){
-        if(endOfExpression.isEmpty())
+        if(endOfExpression.isEmpty()){
             return -1;
-        else
+        }else{
             return endOfExpression.peek();
+        }
+    }
+
+    public int popExpressionEndPosition() {
+        if(endOfExpression.isEmpty()){
+            return -1;
+        }else{
+            return endOfExpression.pop();
+        }
     }
     
 }

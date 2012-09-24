@@ -1,22 +1,14 @@
-/*
-Expected Output:
-*/
-
 class Main
     action Main
-        Returner<integer> r
-        //integer i = 1
-        //repeat 5 times
-            integer j = r:ReturnThis(r:ReturnThis(One() * 1000))
-            //i = i + 1
-        //end
+        number k = bar(foo(4))
+        print k
     end
 
-    action One returns integer
-        return 1
+    action foo(integer a) returns integer
+        return a
     end
 
-    action Two returns integer
-        return 2
+    action bar(number a) returns number
+        return a
     end
 end

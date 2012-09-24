@@ -59,4 +59,8 @@ public class DataStackPopStep  extends IntermediateStep {
     public void setCastStepLocation(int castStepLocation) {
         call.setCastStepLocation(castStepLocation);
     }
+
+    public int getCastStepLocation() {
+        return call.getCastStepLocation();
+    }
 }

@@ -1327,7 +1327,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 step.visit(this);
             }
         } else if (step.getExpressionEndPosition() != -1) {
-            castStepLocation = steps.get(step.getExpressionEndPosition()).getCastStepLocation();
+            int endPosition = step.getExpressionEndPosition();
+            castStepLocation = steps.get(endPosition).getCastStepLocation();
+            ExecutionStep get = steps.get(endPosition);
+            if(get instanceof DataStackPopStep){
+                castStepLocation = ((DataStackPopStep)get).getCastStepLocation();
+            }
+            
             if (castStepLocation != -1) {
                 //if we are dealing with an autobox we are dealing with 3 steps.
                 //with a standard cast we will need move the cast step directly after
@@ -1336,35 +1342,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 ExecutionStep castStep = steps.get(castStepLocation);
                 if (createStep instanceof AutoBoxCreateStep && !visitedCasts.contains(castStepLocation)) {//autobox
                     castStep = steps.get(castStepLocation);
-                    if (!(castStep instanceof UnaryOperationStep)) {
+                    if (!(castStep instanceof UnaryOperationStep))
                         castStep = null;
-                    }
-                    if (castStep != null) {
+                    
+                    if (castStep != null)
                         visitedCasts.add(castStepLocation);
-                    }
+                    
                     visitedCasts.add(castStepLocation + 1);
                     visitedCasts.add(castStepLocation + 2);
-                    //}
-                    this.visitWithAutoBoxStep(steps, (AutoBoxCreateStep) createStep, castStep, this.getCurrentTracker(), i, step.getExpressionEndPosition() + 1, visitedCasts);
-                    i = step.getExpressionEndPosition();
-                    //visitedCasts.add(castStepLocation+1);
-                    //visitedCasts.add(castStepLocation + 2);
-                } else if (!(castStep instanceof IntegerReverseAutoBoxStep)
-                        && !(castStep instanceof NumberReverseAutoBoxStep)
-                        && !(castStep instanceof TextReverseAutoBoxStep)
-                        && !(castStep instanceof BooleanReverseAutoBoxStep)
-                        && !(createStep instanceof AutoBoxCreateStep)
-                        && !visitedCasts.contains(castStepLocation)) {//standard cast
-                    step.visit(this);
-
-                    step = steps.get(castStepLocation);
-                    step.visit(this);
-                    visitedCasts.add(castStepLocation);
-                } else if (!(createStep instanceof AutoBoxCreateStep) && !visitedCasts.contains(castStepLocation)) {//visit reverse autoboxes on returns
-                    castStep.setModifiedReturn(true);
-                    step.visit(this);
-                    castStep.visit(this);
-                    visitedCasts.add(castStepLocation);
+                    
+                    this.visitWithAutoBoxStep(steps, (AutoBoxCreateStep) createStep, castStep, this.getCurrentTracker(), i, endPosition + 1, visitedCasts);
+                    i = endPosition;
                 } else {
                     step.visit(this);
                 }
@@ -1709,8 +1697,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private void visitWithAutoBoxStep(Vector<ExecutionStep> steps, AutoBoxCreateStep createStep, ExecutionStep castStep, OpcodeTracker tracker, int begin, int end, ArrayList<Integer> visitedCasts) {
 
         String autoBoxClassName = null;
-
         String autoBoxMethodSignature = null;
+        
+        //pop the visited autobox end position from the expression to mark the autobox as processed.
+        steps.get(begin).popExpressionEndPosition();
 
         if (createStep.getPrimitiveType().isInteger()) {
             autoBoxClassName = "quorum/Libraries/Language/Types/Integer";
