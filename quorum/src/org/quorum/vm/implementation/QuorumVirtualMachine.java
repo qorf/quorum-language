@@ -5,8 +5,6 @@ package org.quorum.vm.implementation;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -22,32 +20,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.ANTLRStringStream;
-import org.antlr.stringtemplate.*;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
-import org.quorum.vm.interfaces.AbstractVirtualMachine;
-import org.quorum.vm.interfaces.CodeCompletionItem;
-import org.quorum.vm.interfaces.CodeCompletionRequest;
-import org.quorum.vm.interfaces.CodeCompletionResult;
-import org.quorum.vm.interfaces.CompilerErrorManager;
-import org.quorum.vm.interfaces.LibraryIndexEntry;
-import org.quorum.vm.interfaces.VariableWatch;
-import org.quorum.vm.interfaces.VirtualMachineEvent;
+//import org.antlr.stringtemplate.*;
 import org.quorum.documentation.DocumentationGenerator;
 import org.quorum.documentation.DocumentationStyle;
-import org.quorum.documentation.TracWikiDocumentationGenerator;
 import org.quorum.execution.DataEnvironment;
 import org.quorum.execution.Execution;
 import org.quorum.execution.ExecutionStep;
+import org.quorum.execution.ExpressionValue;
 import org.quorum.execution.Linker;
+import org.quorum.execution.RuntimeObject;
+import org.quorum.execution.TimeStamp;
 import org.quorum.parser.QuorumLexer;
 import org.quorum.parser.QuorumParser;
 import org.quorum.parser.QuorumParser.start_return;
-import org.quorum.execution.ExpressionValue;
-import org.quorum.execution.RuntimeObject;
-import org.quorum.execution.TimeStamp;
 import org.quorum.parser.QuorumTreeWalker;
 import org.quorum.steps.ClassExecution;
 import org.quorum.steps.ContainerExecution;
@@ -65,6 +54,14 @@ import org.quorum.symbols.TypeChecker;
 import org.quorum.symbols.TypeDescriptor;
 import org.quorum.symbols.VariableDescriptor;
 import org.quorum.symbols.VariableParameterCommonDescriptor;
+import org.quorum.vm.interfaces.AbstractVirtualMachine;
+import org.quorum.vm.interfaces.CodeCompletionItem;
+import org.quorum.vm.interfaces.CodeCompletionRequest;
+import org.quorum.vm.interfaces.CodeCompletionResult;
+import org.quorum.vm.interfaces.CompilerErrorManager;
+import org.quorum.vm.interfaces.LibraryIndexEntry;
+import org.quorum.vm.interfaces.VariableWatch;
+import org.quorum.vm.interfaces.VirtualMachineEvent;
 
 /**
  * This virtual machine implements the Quorum Programming language.
@@ -85,6 +82,17 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private static final Logger logger = Logger.getLogger(QuorumVirtualMachine.class.getName());
     private String inputExpression = "";
     private boolean auditoryDebugging = true;
+    
+    /**
+     * A flag determining if the last build was successful.
+     */
+    private boolean lastBuildSuccessful = false;
+    
+    /**
+     * This file descriptor is a cached copy that can be used by the code
+     * completion system if the last build was not successful.
+     */
+    private FileDescriptor cache = null;
     
     /**
      * This instance of QuorumVirtualMachine is used only if verification of
@@ -330,7 +338,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             //phase 3 - semantic analysis
             QuorumFile hf = getQuorumFileFromCache(file);
             semanticAnalysis(hf);
-
+            
+            //if the build was successful, the cache should be updated.
+            updateCache(file); 
             this.compilerErrors.resetToDefaultKey();
             throwBuildEvent();
         } catch (Exception exception) {
@@ -367,6 +377,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             QuorumFile hf = getQuorumFileFromCache(file);
             semanticAnalysis(hf);
 
+            //if the build was successful, the cache should be updated.
+            updateCache(file); 
             this.compilerErrors.resetToDefaultKey();
             throwBuildEvent();
         } catch (Exception exception) {
@@ -374,6 +386,39 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         }
     }
 
+    /**
+     * This method updates the cache in build all events.
+     */
+    private void updateCache() {
+        if(this.compilerErrors.isCompilationErrorFree()) {
+            if(cache != null) {
+                File file = cache.getFile();
+                if(file != null) {
+                    String key = file.getAbsolutePath();
+                    FileDescriptor cacheMe = this.getSymbolTable().getFileDescriptor(file.getAbsolutePath());
+                    cache = cacheMe;
+                }
+            }
+        }
+    }
+    
+    /**
+     * This method updates the cache when a specific file is being parsed.
+     * 
+     * @param file 
+     */
+    private void updateCache(File file) {
+        if(this.compilerErrors.isCompilationErrorFree()) {
+            lastBuildSuccessful = true;
+            //update the cache by copying it
+            FileDescriptor cacheMe = this.getSymbolTable().getFileDescriptor(file.getAbsolutePath());
+            this.cache = cacheMe;
+        }
+        else {
+            lastBuildSuccessful = false;
+        }
+    }
+    
     private boolean parseSingle(File file, String text) {
         currentFile = file;
         String name = stripFileName(file.getName());
@@ -460,8 +505,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
         //remove from the parse hash
         parseHash.remove(file.getAbsolutePath());
-
-        //matcher.clear();
     }
 
     private void computeStandardLibraryFiles() {
@@ -525,6 +568,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         public void run() {
             try {
                 buildActual(source);
+                updateCache();
             } catch (Exception exception) {
                 logger.log(Level.INFO, "The Quorum Compiler threw an exception in build(File[]).", exception);
             }
@@ -576,6 +620,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         }
         //if it worked, link it
         link();
+        updateCache();
     }
 
     private void link() {
@@ -655,7 +700,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             while (it.hasNext()) {
                 QuorumFile file = it.next();
                 this.compilerErrors.setErrorKey(file.getFile().getAbsolutePath());
-                generateJavaCode(file);
             }
         }
 
@@ -756,45 +800,18 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private boolean semanticAnalysis(QuorumFile file) {
         if (parsed) {
             try {
-                ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-                InputStream inp = classLoader.getResourceAsStream("org/quorum/parser/Quorum.stg");
-                InputStreamReader groupFileR = new InputStreamReader(inp);
-                StringTemplateGroup templates = new StringTemplateGroup(groupFileR);
-                groupFileR.close();
                 builder.setCurrentFileKey(file.getFile().getAbsolutePath());
                 table.enterFile(file.getFile().getAbsolutePath());
                 CommonTreeNodeStream nodes = new CommonTreeNodeStream(file.getSyntaxTree());
                 nodes.setTokenStream(file.getTokens());
                 QuorumTreeWalker symbol = new QuorumTreeWalker(nodes);
-                //symbol.setTemplateLib(templates);
                 symbol.setGrammarFileNameNoExtension(stripFileName(file.getFile().getName()));
                 symbol.setQuorumVirtualMachine(this);
-                //file.setTree(symbol.start());
                 QuorumTreeWalker.start_return tree = symbol.start();
                 file.setTree(tree);
             } catch (RecognitionException exception) {
                 logger.log(Level.INFO, "Could not do IO operation in file: " + file.getFile().getAbsolutePath(), exception);
-            } catch (IOException exception) {
-                logger.log(Level.INFO, "Could not do IO operation in file: " + file.getFile().getAbsolutePath(), exception);
             }
-        }
-        return true;
-    }
-
-    private boolean generateJavaCode(QuorumFile file) {
-        if (parsed) {
-            /*try{
-            String filename = stripFileName(file.getFile().getName());
-            StringTemplate output = (StringTemplate)file.getTree().getTemplate();
-            FileWriter out = new FileWriter(filename + ".java");
-            if (output != null){
-            out.write(output.toString());}
-            out.close();
-            } catch (IOException ex) {
-            Exceptions.printStackTrace(ex);
-            } catch (Exception ex) {
-            Exceptions.printStackTrace(ex);
-            }*/
         }
         return true;
     }
@@ -830,16 +847,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     public void clean() {
         Clean clean = new Clean();
         executionManager.add(clean);
-//        resetBuild();
-//        //check the build and distribution folders and delete them if they exist
-//        File build = this.getCodeGenerator().getBuildFolder();
-//        File distribute = this.getCodeGenerator().getDistributionFolder();
-//        delete(build);
-//        delete(distribute);
     }
 
     private class Clean implements Runnable {
-
         @Override
         public void run() {
             resetBuild();
@@ -1074,7 +1084,13 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             }
         }
 
-        FileDescriptor file = this.getSymbolTable().getFileDescriptor(request.getFileKey());
+        FileDescriptor file = null;
+        if(!this.lastBuildSuccessful) {
+            file = cache;
+        } else {
+            file = this.getSymbolTable().getFileDescriptor(request.getFileKey());
+        }
+        
         ClassDescriptor clazz = null;
         if (file != null) {
             Iterator<ClassDescriptor> classIterator = file.getClassIterator();
