@@ -2259,6 +2259,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AlertStep step) {
+        visitLineNumber(step);
         processExpressions();
         //throw the exception
         methodVisitor.visitInsn(ATHROW);
@@ -2283,6 +2284,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignIntegerObjectToNumberAutoBoxLocalStep step) {
+        visitLineNumber(step);
         //TODO:make test cases for these
         //process the expressions
         TypeDescriptor pop = null;
@@ -2314,6 +2316,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignIntegerObjectToNumberAutoBoxStep step) {
+        visitLineNumber(step);
         //TODO:make test cases for these
         //process the expressions
         TypeDescriptor pop = null;
@@ -2345,6 +2348,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignObjectAutoBoxLocalStep step) {
+        visitLineNumber(step);
         //TODO:Check to make sure this only triggers on a primitive/Object pair
         //if it fires on a Object/Parent pair we need to modify this solution.
         //process the expressions
@@ -2368,6 +2372,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignObjectAutoBoxStep step) {
+        visitLineNumber(step);
         //TODO:Check to make sure this only triggers on a primitive/Object pair
         //if it fires on a Object/Parent pair we need to modify this solution.
         //process the expressions
@@ -2391,6 +2396,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentCustomLocalStep step) {
+        visitLineNumber(step);
         //process the expressions
         TypeDescriptor pop = null;
         if (step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()) {
@@ -2404,6 +2410,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentCustomStep step) {
+        visitLineNumber(step);
         //process the expressions
         TypeDescriptor pop = null;
         if (step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()) {
@@ -2417,6 +2424,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentNumberIntegerLocalStep step) {
+        visitLineNumber(step);
         //process the expressions
         TypeDescriptor pop = null;
         String conversion = null;
@@ -2435,6 +2443,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentNumberIntegerStep step) {
+        visitLineNumber(step);
         //process the expressions
         TypeDescriptor pop = null;
         String conversion = null;
@@ -2452,6 +2461,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentBooleanLocalStep step) {
+        visitLineNumber(step);
         //Assigns a boolean to a local variable or field of type boolean
         TypeDescriptor pop = null;
         if (step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()) {
@@ -2463,6 +2473,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentBooleanStep step) {
+        visitLineNumber(step);
         //Assigns a boolean to a field of type boolean
         TypeDescriptor pop = null;
         if (step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()) {
@@ -2474,6 +2485,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentIntegerLocalStep step) {
+        visitLineNumber(step);
         //process the expressions in the queue
         TypeDescriptor pop = null;
         if (step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()) {
@@ -2486,6 +2498,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentIntegerStep step) {
+        visitLineNumber(step);
         //Assigns an integer to a field of type integer
         TypeDescriptor pop = null;
 
@@ -2498,6 +2511,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentNumberLocalStep step) {
+        visitLineNumber(step);
         //Assigns a number to a local variable or field of type number.
         TypeDescriptor pop = null;
         if (step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()) {
@@ -2509,6 +2523,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentNumberStep step) {
+        visitLineNumber(step);
         //Assigns a number to a field of type number.
         TypeDescriptor pop = null;
         if (step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()) {
@@ -2520,6 +2535,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentTextLocalStep step) {
+        visitLineNumber(step);
         //Assigns a number to a local variable or field of type text.
         TypeDescriptor pop = null;
         if (step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()) {
@@ -2531,6 +2547,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(AssignmentTextStep step) {
+        visitLineNumber(step);
         //remove the constant from the bytecode stack and assign a number to 
         //a field of type text.
         TypeDescriptor pop = null;
@@ -3222,6 +3239,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(CallStep step) {
+        visitLineNumber(step);
         boolean isParameter = false;
         boolean isCalledOnField = false;
         boolean isCalledOnInterface = false;
@@ -3392,6 +3410,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(ConditionalJumpIfStep step) {
+        visitLineNumber(step);
         //process the expressions
         processExpressions();
 
@@ -3411,6 +3430,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(ConditionalJumpLoopStep step) {
+        visitLineNumber(step);
         LabelTypeEnum loopType = LabelTypeEnum.LOOP;
         //if this is a from step we need to process the extra root expression.
         if (step.getLoopType().equals(LoopType.FROM)) {
@@ -3456,6 +3476,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(CreateObjectStep step) {
+        visitLineNumber(step);
         boolean isField = false;
         ClassDescriptor clazz = step.getClazz();
 
@@ -3828,6 +3849,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(PrintStep step) {
+        
+        visitLineNumber(step);
+        
         methodVisitor.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
 
         // Insert the appropriate steps for this statement.
@@ -3846,6 +3870,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(ReturnStep step) {
+        visitLineNumber(step);
         // partial - handles only primitive types and text
         TypeDescriptor returnType = step.getMethodDescriptor().getReturnType();
         processExpressions();
@@ -3867,6 +3892,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(SimpleAlertStep step) {
+        visitLineNumber(step);
         RuntimeError runtimeError = step.getRuntimeError();
 
 
@@ -3892,6 +3918,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
     @Override
     public void visit(SpeakStep step) {
+        visitLineNumber(step);
         // Insert the appropriate steps for this statement.
         processExpressions();
         TypeDescriptor typeToPrint = stack.popExpressionType();
@@ -4111,5 +4138,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         //push the type of the variable on the top of the stack
         stack.pushExpressionType(variable);
+    }
+
+    private void visitLineNumber(ExecutionStep step) {
+        Label start = new Label();
+        methodVisitor.visitLabel(start);
+        methodVisitor.visitLineNumber(step.getBeginLine(), start);
     }
 }
