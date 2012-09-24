@@ -1112,7 +1112,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             boolean isMe = false;
             if (method != null) {
                 if (split.length == 1) {
-                    String left = split[0];
+                    String left = split[0].trim();
                     if (left.equals(me)) {
                         isMe = true;
                     }
@@ -1138,7 +1138,19 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                     return;
                 } else { //do fancier parsing
                     String left = split[0];
-
+                    String partialLine = request.getLine().substring(0, request.getStartOffset() + 1);
+                    //parse left, starting from the start offset, working
+                    for(int i = request.getStartOffset(); i >= 0; i--) {
+                        if(partialLine.charAt(i) == '(' ||
+                           partialLine.charAt(i) == ',') { //this is the end of this expression
+                            partialLine = partialLine.substring(i + 1, request.getStartOffset() + 1);
+                            //resplit it
+                            split = partialLine.split(":");
+                            left = split[0];
+                            i = -1; //finish early.
+                        }
+                    }
+                    
                     if (left.equals(parent)) {
                         if (split.length > 2) {
                             String resolvedName = clazz.resolveParentName(split[1]);
