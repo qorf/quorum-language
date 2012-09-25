@@ -79,6 +79,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private CompilerErrorManager compilerErrors;
     private DocumentationGenerator documentor = DocumentationStyle.getDocumentationGenerator(DocumentationStyle.HTML);
     private static final String USE = "use";
+    private static final String PACKAGE = "package";
     private static final Logger logger = Logger.getLogger(QuorumVirtualMachine.class.getName());
     private String inputExpression = "";
     private boolean auditoryDebugging = true;
@@ -977,8 +978,11 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         }
 
         boolean useStart = line.startsWith(USE);
+        boolean packageStart = line.startsWith(PACKAGE);
         if (useStart) {
-            addUseResults(result, request);
+            addUseResults(result, request, true);
+        } else if(!useStart && packageStart) {
+            addUseResults(result, request, false);
         } else if (!useStart && !isDot) { //if it is a dot request, ignore it.
             addExpressionResults(result, request);
         }
@@ -987,14 +991,43 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     }
 
     /**
+     * Adds custom classes defined by the user into the code completion.
+     * 
+     * @param result
+     * @param request
+     * @param pack 
+     */
+    private void addCustomClasses(CodeCompletionResult result, CodeCompletionRequest request, String pack) {
+        //this is slow, but check all classes that are compiled.
+        //if they aren't in the standard library, make sure they make it into
+        //the code completion, as they are user defined.
+        Iterator<ClassDescriptor> classes = table.getClassDescriptors();
+        while(classes.hasNext()) {
+            ClassDescriptor clazz = classes.next();
+            if(standardLibrary.findClass(clazz.getContainer().getContainer(), clazz.getName()) == null
+               && clazz.getContainer().getContainer().compareTo(pack) == 0) {
+                CodeCompletionItem item2 = new CodeCompletionItem();
+                item2.setCompletion(clazz.getName());
+                item2.setDisplayName(clazz.getName());
+                result.add(item2);
+            }
+        }
+    }
+    
+    /**
      * This method calculates the possible options for the use statement.
      * 
      * @param result
      * @param line 
+     * @param isUse if this is false, pull out the word package, otherwise, use
      */
-    private void addUseResults(CodeCompletionResult result, CodeCompletionRequest request) {
-        String line = request.getLine();
-        line = line.substring(USE.length(), line.length());
+    private void addUseResults(CodeCompletionResult result, CodeCompletionRequest request, boolean isUse) {
+        String line = request.getLine().trim();
+        if(isUse) {
+            line = line.substring(USE.length(), line.length());
+        } else {
+            line = line.substring(PACKAGE.length(), line.length());
+        }
         line = line.trim();
         String[] split = line.split("\\.");
 
@@ -1014,8 +1047,11 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 item.setCompletion(root);
                 item.setDisplayName(root);
                 result.add(item);
+                addCustomClasses(result, request, root);
+                
             } else if (left.equals(root)) {
                 addSubpackagesAndClasses(result, standardLibrary.getStandardLibraryRootName());
+                addCustomClasses(result, request, standardLibrary.getStandardLibraryRootName());
             }
         } else {
             String pack = "";
@@ -1031,7 +1067,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 }
             }
             addSubpackagesAndClasses(result, pack);
+            addCustomClasses(result, request, pack);
         }
+        
     }
 
     private void addSubpackagesAndClasses(CodeCompletionResult result, String name) {
@@ -1541,15 +1579,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 else {
                     signature = method.getMethodSignature(true, variable, clazz);
                 }
-                
-//                TypeDescriptor returnType = method.getReturnType();
-//                if (!returnType.isVoid()) {
-//                    //if (returnType.isTemplated()) {
-//                    //    signature += " returns " + returnType.getTemplateName();
-//                    //} else {
-//                        signature += " returns " + returnType.getStaticKey();
-//                    //}
-//                }
 
                 String description = "";
                 String[] paragraphs = Documentation.breakStringIntoParagraphArray(method.getDocumentation().getDescription());
