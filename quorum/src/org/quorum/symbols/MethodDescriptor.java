@@ -250,8 +250,121 @@ public class MethodDescriptor extends Descriptor implements Scopable {
             }
         }
         key += ")";
+        
+        TypeDescriptor myReturn = this.getReturnType();
+        key += " " + myReturn.getStaticKey();
+        
         return key;
     }
+    
+    /**
+     * This method returns an appropriately formatted string of subtypes for a
+     * generic descriptor.
+     * 
+     * @param type
+     * @return 
+     */
+    private String getSubtypeString(TypeDescriptor type) {
+        if(!type.hasSubTypes()) {
+            return "";
+        }
+        String typeString = "<";
+        Iterator<GenericDescriptor> subit = type.getSubTypes();
+        while(subit.hasNext()) {
+            GenericDescriptor next = subit.next();
+            TypeDescriptor sub = next.getType();
+            if(sub.hasSubTypes()) {
+                typeString += sub.getStaticKey() + getSubtypeString(sub);
+            } else {
+                typeString += sub.getStaticKey();
+            }
+            
+            if(subit.hasNext()) {
+                typeString += ", ";
+            }
+            else {
+                typeString += ">";
+            }
+        }
+        return typeString;
+    }
+    
+    /**
+     * This method returns a method signature. If this method is templated,
+     * variable must be non-null and pass a variable with correct templated
+     * types. If this method does not use any templated types in its parameter
+     * list, this value will have no effect. This method does not impact
+     * the correctness of the compiler in any way, and is used only as a 
+     * pretty printing algorithm.
+     * 
+     * @param printVariableNames
+     * @param variable
+     * @return 
+     */
+    public String getMethodSignature(boolean printVariableNames, 
+            VariableParameterCommonDescriptor variable, ClassDescriptor clazz) {
+        if(variable == null) {
+            return getMethodSignature(printVariableNames);
+        }        
+        
+        HashMap<String, String> templates = new HashMap<String, String>();
+        Iterator<GenericDescriptor> generics = variable.getTemplateTypes();
+        Iterator<GenericDescriptor> templateNames = clazz.getTemplateVariables();
+        while(generics.hasNext()) {
+            //this one is the actual template value (e.g., text)
+            GenericDescriptor generic = generics.next();
+            
+            //this one is the template name (e.g., Key, Value)
+            GenericDescriptor name = templateNames.next();
+            
+            String theKey = name.getType().getTemplateName();
+            String value = generic.getType().getStaticKey();
+            
+            //fill this out with subtype information for testing
+            if(generic.getType().hasSubTypes()) {
+                value += getSubtypeString(generic.getType());
+            }
+            
+            
+            templates.put(theKey, value);
+        }
+        String theKey = "";
+        theKey += this.getName() + "(";
+        for (int i = 0; i < parameters.size(); i++) {
+            ParameterDescriptor descriptor = parameters.get(i);
+            TypeDescriptor type = descriptor.getType();
+            if(type != null) {
+                String templateName = type.getTemplateName();
+                if(templateName != null && templates.containsKey(templateName)) {
+                    theKey += templates.get(templateName);
+                } else {
+                    theKey += parameters.get(i).getType().getStaticKey();
+                }
+            }//if this is null, the user may have a compiler error in their source.
+            
+            if(printVariableNames) {
+                theKey += " " + descriptor.getName();
+            }
+            
+            if(i != parameters.size() - 1) {
+                theKey += ", ";
+            }
+        }
+        theKey += ")";
+        TypeDescriptor myReturn = this.getReturnType();
+        String returnTemplateName = null;
+        returnTemplateName = myReturn.getTemplateName();
+        if(returnTemplateName != null && templates.containsKey(returnTemplateName) &&
+                !myReturn.isVoid()) {
+            theKey += " returns " + templates.get(returnTemplateName);
+        } else if(!myReturn.isVoid()){
+            theKey += " " + myReturn.getStaticKey();
+        }
+        
+        
+        return theKey;
+    }
+    
     /**
      * Inserts a flag at a given line for this file, indicating that
      * a step over command should stop here, as it is the beginning of a new

@@ -1169,14 +1169,14 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                             String resolvedName = clazz.resolveParentName(split[1]);
                             ClassDescriptor par = clazz.getParent(resolvedName);
                             if (par != null) {
-                                addClassToResult(result, par, isMe);
+                                addClassToResult(null, result, par, isMe);
                             }
                         } else if (split.length == 2) {
                             if (result.getFilter().length() == 0) {
                                 String resolvedName = clazz.resolveParentName(split[1]);
                                 ClassDescriptor par = clazz.getParent(resolvedName);
                                 if (par != null) {
-                                    addClassToResult(result, par, isMe);
+                                    addClassToResult(null, result, par, isMe);
                                 }
                             } else {
                                 addParentClasses(result, clazz);
@@ -1185,7 +1185,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
                     } else if (left.equals(me)) {
                         isMe = true;
-                        addClassToResult(result, clazz, isMe);
+                        addClassToResult(null, result, clazz, isMe);
                     } else { //This should work until chaining is in place.
                         VariableParameterCommonDescriptor variable = method.getVariable(left);
                         if (variable == null) {
@@ -1200,7 +1200,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                                     addParentClasses(result, clazz);
                                 }
                             }else{
-                                addToCodeCompletionResult(result, staticKey, clazz);
+                                addToCodeCompletionResult(variable, result, staticKey, clazz);
                             }
                         }
                         else {
@@ -1495,7 +1495,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         return variable;
     }
 
-    private void addToCodeCompletionResult(CodeCompletionResult result, String classStaticKey, ClassDescriptor containingClass) {
+    private void addToCodeCompletionResult(VariableParameterCommonDescriptor variable, CodeCompletionResult result, String classStaticKey, ClassDescriptor containingClass) {
         ClassDescriptor clazz = this.getSymbolTable().getClassDescriptor(classStaticKey);
         if (clazz == null) { //can the name be resolved from the parser?
             if (classStaticKey.length() > 0) {
@@ -1503,10 +1503,21 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 clazz = validatedClassUse;
             }
         }
-        addClassToResult(result, clazz, false);
+        addClassToResult(variable, result, clazz, false);
     }
 
-    private void addClassToResult(CodeCompletionResult result, ClassDescriptor clazz, boolean isCurrentClass) {
+    /**
+     * This method adds a class to the results. This class may or may not be templated.
+     * If it is, a variable must be passed which contains correct templated type
+     * information.
+     * 
+     * @param variable if this call is templated, this is the variable by which 
+     * template information should be gathered
+     * @param result
+     * @param clazz
+     * @param isCurrentClass 
+     */
+    private void addClassToResult(VariableParameterCommonDescriptor variable, CodeCompletionResult result, ClassDescriptor clazz, boolean isCurrentClass) {
         if (clazz != null) {
             addVariablesToResults(result, clazz, isCurrentClass);
 
@@ -1523,15 +1534,22 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 CodeCompletionItem item = new CodeCompletionItem();
 
 
-                String signature = method.getMethodSignature(true);
-                TypeDescriptor returnType = method.getReturnType();
-                if (!returnType.isVoid()) {
-                    //if (returnType.isTemplated()) {
-                    //    signature += " returns " + returnType.getTemplateName();
-                    //} else {
-                        signature += " returns " + returnType.getStaticKey();
-                    //}
+                String signature = "";
+                if(variable == null) {
+                    signature = method.getMethodSignature(true);
                 }
+                else {
+                    signature = method.getMethodSignature(true, variable, clazz);
+                }
+                
+//                TypeDescriptor returnType = method.getReturnType();
+//                if (!returnType.isVoid()) {
+//                    //if (returnType.isTemplated()) {
+//                    //    signature += " returns " + returnType.getTemplateName();
+//                    //} else {
+//                        signature += " returns " + returnType.getStaticKey();
+//                    //}
+//                }
 
                 String description = "";
                 String[] paragraphs = Documentation.breakStringIntoParagraphArray(method.getDocumentation().getDescription());
@@ -1543,6 +1561,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 description += "<PRE><CODE>" + method.getDocumentation().getExample()
                         + "</PRE></CODE>";
 
+                //convert the signature to an HTML friendly format
+                signature = signature.replaceAll("<", "&lt;");
+                signature = signature.replaceAll(">", "&gt;");
                 item.setDisplayName(signature);
                 item.setDocumentation(description);
                 item.setCompletion(method.getName());
