@@ -1085,7 +1085,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         }
 
         FileDescriptor file = null;
-        if(!this.lastBuildSuccessful) {
+        if(!this.lastBuildSuccessful && cache != null) {
             file = cache;
         } else {
             file = this.getSymbolTable().getFileDescriptor(request.getFileKey());
@@ -1213,8 +1213,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     }
 
     /**
-     * This method adds a set of variables and methods to the result. Potentially,
-     * this includes any information that is potentially useful to the user, like
+     * This method adds a set of variables and methods to the result. This 
+     * includes any information that is potentially useful to the user, like
      * auto-completing variables, primitives, classes that can be instantiated,
      * or other information.
      * 
@@ -1236,22 +1236,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         }
         
         Iterator<BlockDescriptor> children = method.getChildren();
-        boolean done = false;
-        while (children.hasNext() && !done) {
+        while (children.hasNext()) {
             BlockDescriptor block = children.next();
-            if (request.getLineNumber() >= block.getLineBegin()
-                    && request.getLineNumber() <= block.getLineEnd()) {
-                done = true;
-                //grab all variables and variables from parent blocks
-                Iterator<VariableParameterCommonDescriptor> variables = block.getVariables();
-                while(variables.hasNext()) {
-                    VariableParameterCommonDescriptor next = variables.next();
-                    if(next.getName().startsWith(partial) && next instanceof VariableDescriptor) {
-                        VariableDescriptor var = (VariableDescriptor) next;
-                        addVariableCompletionItem(var, var.getName(), result, new CodeCompletionItem());
-                    }
-                }
-            }
+            addVariablesInScope(block, result,request,partial);
         }
         
         //add filtered parameters
@@ -1264,6 +1251,154 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         
         
         //add filtered primitive values you can use.
+        addPrimitiveValues(result, request, partial);
+        
+    }
+    
+    private void addPrimitiveValues(CodeCompletionResult result, 
+        CodeCompletionRequest request, String partial) {
+        
+        //do integers
+        CodeCompletionItem integer = new CodeCompletionItem();
+        String signature = "integer";
+        String name = "integer";
+
+        String description = "";
+        description += "<h1>" + signature + "</h1>" +
+            "<p align=\"justify\">An integer is a primitive type that contains values from "
+                + "-2,147,483,648 to 2,147,483,647. The integer, with a lower "
+                + "case letter i at the beginning is called a primitive. There is "
+                + "another version of integer that can be used, the Libraries.Language.Types.Integer class. "
+                + "The advantage of using the primitive version is that computations "
+                + "are faster, while the advantage of using the Integer class is that "
+                + "we can call actions on the value it contains.</p>";
+        description += "<h2>" + "Code Example:" + "</h2>";
+        description += "<PRE><CODE>" + 
+            "integer a = 5\n"
+            + "intger b = 10\n"
+            + "integer c = a + b\n"
+            + "print c"
+            + "</PRE></CODE>";
+
+        integer.setDisplayName(name);
+        integer.setDocumentation(description);
+        integer.setCompletion(name);
+        
+        //do integers
+        CodeCompletionItem number = new CodeCompletionItem();
+        signature = "number";
+        name = "number";
+
+        description = "";
+        description += "<h1>" + signature + "</h1>" +
+            "<p align=\"justify\">A number is a primitive type that contains values that potentially "
+                + "have a decimal place. These numbers can be very small or very "
+                + "large. Using scientific notation, this range is from "
+                + "4.94065645841246544e-324d to 1.79769313486231570e+308d. "
+                + "Numbers, therefore, are 64-bit values. "
+                + "In addition to the number primitive type, with a lower "
+                + "case letter n at the beginningn, there is "
+                + "another version of number that can be used, the Libraries.Language.Types.Number class. "
+                + "The advantage of using the primitive version is that computations "
+                + "are faster, while the advantage of using the Number class is that "
+                + "we can call actions on the value it contains.</p>";
+        description += "<h2>" + "Code Example:" + "</h2>";
+        description += "<PRE><CODE>" + 
+            "number a = 5.0\n"
+            + "number b = 10.0\n"
+            + "number c = a + b\n"
+            + "print c"
+            + "</PRE></CODE>";
+
+        number.setDisplayName(name);
+        number.setDocumentation(description);
+        number.setCompletion(name);
+        
+        CodeCompletionItem bool = new CodeCompletionItem();
+        signature = "boolean";
+        name = "boolean";
+
+        description = "";
+        description += "<h1>" + signature + "</h1>" +
+            "<p align=\"justify\">A boolean is a primitive type that contains values that are "
+                + "either true or false. Boolean values take up very little space "
+                + "in primitive form, only 1-bit. "
+                + "In addition to the boolean primitive type, with a lower "
+                + "case letter b at the beginningn, there is "
+                + "another version of boolean that can be used, the Libraries.Language.Types.Boolean class. "
+                + "The advantage of using the primitive version is that computations "
+                + "are faster, while the advantage of using the boolean class is that "
+                + "we can call actions on the value it contains.</p>";
+        description += "<h2>" + "Code Example:" + "</h2>";
+        description += "<PRE><CODE>" + 
+            "boolean a = true\n"
+            + "boolean b = false\n"
+            + "boolean c = a or b\n"
+            + "print c"
+            + "</PRE></CODE>";
+
+        bool.setDisplayName(name);
+        bool.setDocumentation(description);
+        bool.setCompletion(name);
+        
+        CodeCompletionItem text = new CodeCompletionItem();
+        signature = "text";
+        name = "text";
+
+        description = "";
+        description += "<h1>" + signature + "</h1>" +
+            "<p align=\"justify\">A text value is a list of sequential characters in the alphabet. "
+                + "In Quorum, a text value is a literal set of characters, where "
+                + "typing  a tab places a tab in the output, or pressing enter "
+                + "places a new line in the output. The one exception is that a double "
+                + "quote cannot be typed, as this terminates a string. As such, "
+                + "to use a double quote, use the + operator, "
+                + "and type quote, as shown in the example.</p>"
+                + "<p align=\"justify\">In addition to the text primitive type, with a lower "
+                + "case letter t at the beginningn, there is "
+                + "another version of text that can be used, the Libraries.Language.Types.Text class. "
+                + "This class contains extra helper actions related to using text values."
+                + "</p>";
+        description += "<h2>" + "Code Example:" + "</h2>";
+        description += "<PRE><CODE>" + 
+            "text a = \"Hello\"\n"
+            + "text b = \", World!\"\n"
+            + "//The next line will have the words Hello, World!, surrounded in double quotes"
+            + "text c = quote + a + b + quote\n"
+            + "print c"
+            + "</PRE></CODE>";
+
+        text.setDisplayName(name);
+        text.setDocumentation(description);
+        text.setCompletion(name);
+        
+        result.add(integer);
+        result.add(number);
+        result.add(bool);
+        result.add(text);
+    }
+    
+    private void addVariablesInScope(BlockDescriptor block, CodeCompletionResult result, 
+            CodeCompletionRequest request, String partial) {
+        Iterator<BlockDescriptor> children = block.getChildren();
+        boolean done = false;
+        while (children.hasNext() && !done) {
+            BlockDescriptor b = children.next();
+//            if (request.getLineNumber() >= block.getLineBegin()
+//                    && request.getLineNumber() <= block.getLineEnd()) {
+                done = true;
+                //grab all variables and variables from parent blocks
+                Iterator<VariableParameterCommonDescriptor> variables = block.getVariables();
+                while(variables.hasNext()) {
+                    VariableParameterCommonDescriptor next = variables.next();
+                    if(next.getName().startsWith(partial) && next instanceof VariableDescriptor
+                       && next.getLineBegin() < request.getLineNumber()) {
+                        VariableDescriptor var = (VariableDescriptor) next;
+                        addVariableCompletionItem(var, var.getName(), result, new CodeCompletionItem());
+                    }
+                }
+//            }
+        }
     }
     
     /**
