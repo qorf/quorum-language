@@ -66,14 +66,13 @@ import org.quorum.vm.interfaces.VirtualMachineEvent;
 
 /**
  * This virtual machine implements the Quorum Programming language.
- * 
+ *
  * @author Andreas Stefik
  */
 public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     private boolean parsed = false;
     private boolean buildAllEvent = false;
-    private int errors = 0;
     private File currentFile;
     private IntermediateExecutionBuilder builder;
     private HashMap<String, QuorumFile> parseHash;
@@ -82,33 +81,26 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private static final String USE = "use";
     private static final String PACKAGE = "package";
     private static final Logger logger = Logger.getLogger(QuorumVirtualMachine.class.getName());
-    private String inputExpression = "";
     private boolean auditoryDebugging = true;
-    
     /**
      * A flag determining if the last build was successful.
      */
     private boolean lastBuildSuccessful = false;
-    
     /**
      * This file descriptor is a cached copy that can be used by the code
      * completion system if the last build was not successful.
      */
     private FileDescriptor cache = null;
-    
     /**
      * This instance of QuorumVirtualMachine is used only if verification of
-     * documentation example code is enabled. 
+     * documentation example code is enabled.
      */
     private QuorumVirtualMachine verifierVM = null;
-    
     /**
      * Used in the build(String) method to guarantee unique tokens.
      */
     private SecureRandom random = new SecureRandom();
     
-    //private BuildManager buildManager;
-
     public QuorumVirtualMachine() {
         compilerErrors = new CompilerErrorManager();
         builder = new IntermediateExecutionBuilder();
@@ -117,20 +109,16 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         typeChecker = new TypeChecker();
         standardLibrary = new QuorumStandardLibrary();
         generator = new QuorumBytecodeGenerator();
-        //buildManager = new BuildManager();
     }
 
     private void resetBuild() {
-        //TODO: Change this to be more efficient
         table = new SymbolTable();
         table.setVirtualMachine(this);
         getTypeChecker().clear();
         parseHash.clear();
         currentFile = null;
-        errors = 0;
         this.getCompilerErrors().clear();
         builder.clear();
-        //matcher.clear();
         getExecution().clear();
         getExecution().restartExecution();
         this.getDataEnvironment().clear();
@@ -178,7 +166,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     public boolean generateAllDocumentation(File[] files, boolean verify) {
         documentor.clearIndex();
         Iterator<ContainerExecution> containers = this.builder.getContainers();
-        
+
         if (verify) {
             // Spawn a new VM for documentation verification.
             verifierVM = new QuorumVirtualMachine();
@@ -188,7 +176,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             Iterator<ClassExecution> classes = containerExec.getClasses();
             while (classes.hasNext()) {
                 ClassExecution classExec = classes.next();
-                
+
                 if (verify) {
                     // Verify that all documentaiton compiles.
                     verifyDocumentaitonCompilation(classExec.getClassDescriptor());
@@ -201,7 +189,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         documentor.finishIndex();
         String index = documentor.getIndex();
         generateIndexFile(index);
-        
+
         //copy over the CSS file
         File documentation = new File(documentationPath);
         File standardLibraryRoot = this.getStandardLibrary().getRootFolder();
@@ -231,7 +219,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             logger.log(Level.INFO, "Could not output index to file.", exception);
         }
     }
-    
+
     private void documentationToFile(ClassDescriptor clazz, String string) {
         String root = documentationPath;
         String container = clazz.getContainer().getContainer();
@@ -272,16 +260,13 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             } catch (IOException exception) {
                 logger.log(Level.INFO, "Could not output documentation to file.", exception);
             }
-
-
         }
     }
 
     /**
-     * This test function allows you to run the virtual machine raw,
-     * in block mode. It is useful for running tests, but should not
-     * be called unless the desired behavior is to block the current
-     * thread.
+     * This test function allows you to run the virtual machine raw, in block
+     * mode. It is useful for running tests, but should not be called unless the
+     * desired behavior is to block the current thread.
      */
     public void blockRun() {
         Execution exec = getExecution();
@@ -340,9 +325,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             //phase 3 - semantic analysis
             QuorumFile hf = getQuorumFileFromCache(file);
             semanticAnalysis(hf);
-            
+
             //if the build was successful, the cache should be updated.
-            updateCache(file); 
+            updateCache(file);
             this.compilerErrors.resetToDefaultKey();
             throwBuildEvent();
         } catch (Exception exception) {
@@ -351,9 +336,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     }
 
     /**
-     * This method uses the file as a key for where in the parse the system
-     * is, but actually computes the parse from the String text. This allows
-     * us to fix the bug
+     * This method uses the file as a key for where in the parse the system is,
+     * but actually computes the parse from the String text. This allows us to
+     * fix the bug
      *
      * @param file
      * @param text
@@ -380,7 +365,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             semanticAnalysis(hf);
 
             //if the build was successful, the cache should be updated.
-            updateCache(file); 
+            updateCache(file);
             this.compilerErrors.resetToDefaultKey();
             throwBuildEvent();
         } catch (Exception exception) {
@@ -392,10 +377,10 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
      * This method updates the cache in build all events.
      */
     private void updateCache() {
-        if(this.compilerErrors.isCompilationErrorFree()) {
-            if(cache != null) {
+        if (this.compilerErrors.isCompilationErrorFree()) {
+            if (cache != null) {
                 File file = cache.getFile();
-                if(file != null) {
+                if (file != null) {
                     String key = file.getAbsolutePath();
                     FileDescriptor cacheMe = this.getSymbolTable().getFileDescriptor(file.getAbsolutePath());
                     cache = cacheMe;
@@ -403,24 +388,23 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             }
         }
     }
-    
+
     /**
      * This method updates the cache when a specific file is being parsed.
-     * 
-     * @param file 
+     *
+     * @param file
      */
     private void updateCache(File file) {
-        if(this.compilerErrors.isCompilationErrorFree()) {
+        if (this.compilerErrors.isCompilationErrorFree()) {
             lastBuildSuccessful = true;
             //update the cache by copying it
             FileDescriptor cacheMe = this.getSymbolTable().getFileDescriptor(file.getAbsolutePath());
             this.cache = cacheMe;
-        }
-        else {
+        } else {
             lastBuildSuccessful = false;
         }
     }
-    
+
     private boolean parseSingle(File file, String text) {
         currentFile = file;
         String name = stripFileName(file.getName());
@@ -545,7 +529,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     private void verifyDocumentaitonCompilation(ClassDescriptor clazz) {
         Iterator<MethodDescriptor> methods = clazz.getMethods();
-        
+
         while (methods.hasNext()) {
             //verifierVM = new QuorumVirtualMachine();
             verifierVM.resetBuild();
@@ -563,9 +547,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     }
 
     private class Build implements Runnable {
-
         public File[] source;
-
         @Override
         public void run() {
             try {
@@ -589,12 +571,11 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     }
 
     /**
-     * This function builds source code directly from a string that is
-     * not necessarily saved to disk. Since quorum requires files be 
-     * associated with the source code, Quorum internally creates a fake
-     * file with a unique key.
-     * 
-     * @param source 
+     * This function builds source code directly from a string that is not
+     * necessarily saved to disk. Since quorum requires files be associated with
+     * the source code, Quorum internally creates a fake file with a unique key.
+     *
+     * @param source
      */
     public void build(String source) {
         String token = new BigInteger(130, random).toString(32);
@@ -649,10 +630,10 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     }
 
     /**
-     * This function builds the source, but does so in an unsafe way to 
-     * allow automated testers to check for any potential problems with exceptions
-     * or other issues.
-     * 
+     * This function builds the source, but does so in an unsafe way to allow
+     * automated testers to check for any potential problems with exceptions or
+     * other issues.
+     *
      * @param source
      */
     public void testBuild(File[] source) {
@@ -672,8 +653,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         //now compute all of the package and use references
         //to make sure that each file is referencing something known
         //to the system
-
-
 
         computeStandardLibraryFiles();
         getSymbolTable().compilePackageUseTables();
@@ -712,6 +691,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     /**
      * Determines whether the current file has already been parsed.
+     *
      * @param fileKey
      * @return
      */
@@ -726,10 +706,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private QuorumFile getQuorumFileFromCache(File file) {
         QuorumFile hf = parseHash.get(file.getAbsolutePath());
         return hf;
-    }
-
-    private QuorumFile removeQuorumFileFromCache(File file) {
-        return parseHash.remove(file.getAbsolutePath());
     }
 
     private String stripFileName(String name) {
@@ -852,6 +828,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     }
 
     private class Clean implements Runnable {
+
         @Override
         public void run() {
             resetBuild();
@@ -875,8 +852,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     /**
      * This method deletes a folder from the system.
-     * 
-     * @param dir 
+     *
+     * @param dir
      */
     private static void delete(File dir) {
         if (dir == null || !dir.exists()) {
@@ -948,7 +925,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     @Override
     public void undoCreateExpressionValue(RuntimeObject variable) {
         DataEnvironment de = getDataEnvironment();
-        //VariableParameterCommonDescriptor associatedObjectVariable = variable.getAssociatedObjectVariable();
         de.removeObject(variable.getHashKey());
 
         de.callStackUndo();
@@ -957,8 +933,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         //return to original scope
         int newScope = de.callingClassStackPeek().getHashKey();
         de.setThisPointer(newScope);
-
-        //de.callingClassStackUndo();
 
         getDataEnvironment().undoCreateObjectOpcode();
     }
@@ -970,7 +944,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         //It can probably be removed by carefully synchronizing 
         //code completion and parser calls.
         building = true;
-        
+
         CodeCompletionResult result = new CodeCompletionResult();
         String line = request.getLine();
         line = line.trim();
@@ -988,7 +962,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         boolean packageStart = line.startsWith(PACKAGE);
         if (useStart) {
             addUseResults(result, request, true);
-        } else if(!useStart && packageStart) {
+        } else if (!useStart && packageStart) {
             addUseResults(result, request, false);
         } else if (!useStart && !isDot) { //if it is a dot request, ignore it.
             addExpressionResults(result, request);
@@ -1000,20 +974,20 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     /**
      * Adds custom classes defined by the user into the code completion.
-     * 
+     *
      * @param result
      * @param request
-     * @param pack 
+     * @param pack
      */
     private void addCustomClasses(CodeCompletionResult result, CodeCompletionRequest request, String pack) {
         //this is slow, but check all classes that are compiled.
         //if they aren't in the standard library, make sure they make it into
         //the code completion, as they are user defined.
         Iterator<ClassDescriptor> classes = table.getClassDescriptors();
-        while(classes.hasNext()) {
+        while (classes.hasNext()) {
             ClassDescriptor clazz = classes.next();
-            if(standardLibrary.findClass(clazz.getContainer().getContainer(), clazz.getName()) == null
-               && clazz.getContainer().getContainer().compareTo(pack) == 0) {
+            if (standardLibrary.findClass(clazz.getContainer().getContainer(), clazz.getName()) == null
+                    && clazz.getContainer().getContainer().compareTo(pack) == 0) {
                 CodeCompletionItem item2 = new CodeCompletionItem();
                 item2.setCompletion(clazz.getName());
                 item2.setDisplayName(clazz.getName());
@@ -1021,17 +995,17 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             }
         }
     }
-    
+
     /**
      * This method calculates the possible options for the use statement.
-     * 
+     *
      * @param result
-     * @param line 
+     * @param line
      * @param isUse if this is false, pull out the word package, otherwise, use
      */
     private void addUseResults(CodeCompletionResult result, CodeCompletionRequest request, boolean isUse) {
         String line = request.getLine().trim();
-        if(isUse) {
+        if (isUse) {
             line = line.substring(USE.length(), line.length());
         } else {
             line = line.substring(PACKAGE.length(), line.length());
@@ -1056,7 +1030,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 item.setDisplayName(root);
                 result.add(item);
                 addCustomClasses(result, request, root);
-                
+
             } else if (left.equals(root)) {
                 addSubpackagesAndClasses(result, standardLibrary.getStandardLibraryRootName());
                 addCustomClasses(result, request, standardLibrary.getStandardLibraryRootName());
@@ -1077,7 +1051,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             addSubpackagesAndClasses(result, pack);
             addCustomClasses(result, request, pack);
         }
-        
+
     }
 
     private void addSubpackagesAndClasses(CodeCompletionResult result, String name) {
@@ -1101,24 +1075,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     private void addExpressionResults(CodeCompletionResult result, CodeCompletionRequest request) {
         String expression = request.getLine().substring(0, request.getStartOffset()).trim();
-        inputExpression = expression;
-        
-//        int begin = 0;
-//        int end = 0;
-//        int index = request.getStartOffset() - (request.getLine().length() - expression.length());
-//        if (index >= expression.length()) {
-//            index = expression.length() - 1;
-//        }
-
-//        while (index > 0) {
-//            if (Character.isWhitespace(expression.charAt(index))
-//                    || expression.charAt(index) == '=') {
-//                expression = expression.substring(index + 1, request.getStartOffset());
-//                expression = expression.trim();
-//                index = -1;
-//            }
-//            index = index - 1;
-//        }
         //now split the string into pieces
         String[] split = expression.split(":");
 
@@ -1131,12 +1087,12 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         }
 
         FileDescriptor file = null;
-        if(!this.lastBuildSuccessful && cache != null) {
+        if (!this.lastBuildSuccessful && cache != null) {
             file = cache;
         } else {
             file = this.getSymbolTable().getFileDescriptor(request.getFileKey());
         }
-        
+
         ClassDescriptor clazz = null;
         if (file != null) {
             Iterator<ClassDescriptor> classIterator = file.getClassIterator();
@@ -1157,153 +1113,121 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             //if the method is null, it must be a class variable (or garbage)
             boolean isMe = false;
             if (method != null) {
-//                if (split.length == 1) {
-//                    String left = split[0].trim();
-//                    if (left.equals(me)) {
-//                        isMe = true;
-//                    }
-//                    if (left.equals(me) || result.getFilter().length() > 0) {
-//                        addClassToResult(result, clazz, isMe);
-//                    }
-//                    if (left.equals(parent)) {
-//                        addParentClasses(result, clazz);
-//                    } else if (left.matches("\\s*")) {
-//                        isMe = true;
-//                        addClassToResult(result, clazz, isMe);
-//                    } else {
-//                        VariableParameterCommonDescriptor variable = method.getVariable(left);
-//                        if (variable == null) {
-//                            variable = findVariableInBlocks(request, method, left);
-//                        }
-//                        if (variable != null) {
-//                            String staticKey = variable.getType().getStaticKey();
-//                            addToCodeCompletionResult(result, staticKey, clazz);
-//                        }
-//                    }
-//                } else if (split.length == 0) {
-//                    return;
-//                } else { //do fancier parsing
-                    String left = split[0];
-                    String partialLine = request.getLine().substring(0, request.getStartOffset());
-                    //parse left, starting from the start offset, working
-                    for(int i = request.getStartOffset() - 1; i >= 0; i--) {
-                        if(partialLine.charAt(i) == '(' ||
-                           partialLine.charAt(i) == ',' ||
-                           partialLine.charAt(i) == '*' ||
-                           partialLine.charAt(i) == '/' ||
-                           partialLine.charAt(i) == '+' ||
-                           partialLine.charAt(i) == '-' ||     
-                           partialLine.charAt(i) == ' ' ||
-                           isMod(partialLine, i)
-                                //make this work for mod --- if it's a d, check backwards and ensure that it's not part of another word
-                                
-                                
-                                ) { //this is the end of this expression
-                            partialLine = partialLine.substring(i + 1, request.getStartOffset());
-                            //resplit it
-                            partialLine = partialLine.trim();
-                            split = partialLine.split(":");
-                            left = split[0];
-                            i = -1; //finish early.
-                        }
+                String left = split[0];
+                String partialLine = request.getLine().substring(0, request.getStartOffset());
+                //parse left, starting from the start offset, working
+                for (int i = request.getStartOffset() - 1; i >= 0; i--) {
+                    if (partialLine.charAt(i) == '('
+                            || partialLine.charAt(i) == ','
+                            || partialLine.charAt(i) == '*'
+                            || partialLine.charAt(i) == '/'
+                            || partialLine.charAt(i) == '+'
+                            || partialLine.charAt(i) == '-'
+                            || partialLine.charAt(i) == ' '
+                            || isMod(partialLine, i) //make this work for mod --- if it's a d, check backwards and ensure that it's not part of another word
+                            ) { //this is the end of this expression
+                        partialLine = partialLine.substring(i + 1, request.getStartOffset());
+                        //resplit it
+                        partialLine = partialLine.trim();
+                        split = partialLine.split(":");
+                        left = split[0];
+                        i = -1; //finish early.
                     }
-                    
-                    partialLine = partialLine.trim();
-                    
-                    if (left.equals(parent)) {
-                        if (split.length > 2) {
+                }
+
+                partialLine = partialLine.trim();
+
+                if (left.equals(parent)) {
+                    if (split.length > 2) {
+                        String resolvedName = clazz.resolveParentName(split[1]);
+                        ClassDescriptor par = clazz.getParent(resolvedName);
+                        if (par != null) {
+                            addClassToResult(null, result, par, isMe);
+                        }
+                    } else if (split.length == 2) {
+                        if (result.getFilter().length() == 0) {
                             String resolvedName = clazz.resolveParentName(split[1]);
                             ClassDescriptor par = clazz.getParent(resolvedName);
                             if (par != null) {
                                 addClassToResult(null, result, par, isMe);
                             }
-                        } else if (split.length == 2) {
-                            if (result.getFilter().length() == 0) {
-                                String resolvedName = clazz.resolveParentName(split[1]);
-                                ClassDescriptor par = clazz.getParent(resolvedName);
-                                if (par != null) {
-                                    addClassToResult(null, result, par, isMe);
-                                }
-                            } else {
-                                addParentClasses(result, clazz);
-                            }
-                        }
-
-                    } else if (left.equals(me)) {
-                        isMe = true;
-                        addClassToResult(null, result, clazz, isMe);
-                    } else { //This should work until chaining is in place.
-                        VariableParameterCommonDescriptor variable = method.getVariable(left);
-                        if (variable == null) {
-                            variable = findVariableInBlocks(request, method, left);
-                        }
-                        if (variable != null) {
-                            String staticKey = variable.getType().getStaticKey();
-                            
-                            if(split[split.length - 1].equals(parent)){
-                                clazz = this.getSymbolTable().findClassDescriptorFromCurrentClass(staticKey);
-                                if(clazz != null) {
-                                    addParentClasses(result, clazz);
-                                }
-                            }else{
-                                addToCodeCompletionResult(variable, result, staticKey, clazz);
-                            }
-                        }
-                        else {
-                            addDefaultValues(partialLine, result, request, clazz, method);
+                        } else {
+                            addParentClasses(result, clazz);
                         }
                     }
-              //  }
+
+                } else if (left.equals(me)) {
+                    isMe = true;
+                    addClassToResult(null, result, clazz, isMe);
+                } else { //This should work until chaining is in place.
+                    VariableParameterCommonDescriptor variable = method.getVariable(left);
+                    if (variable == null) {
+                        variable = findVariableInBlocks(request, method, left);
+                    }
+                    if (variable != null) {
+                        String staticKey = variable.getType().getStaticKey();
+
+                        if (split[split.length - 1].equals(parent)) {
+                            clazz = this.getSymbolTable().findClassDescriptorFromCurrentClass(staticKey);
+                            if (clazz != null) {
+                                addParentClasses(result, clazz);
+                            }
+                        } else {
+                            addToCodeCompletionResult(variable, result, staticKey, clazz);
+                        }
+                    } else {
+                        addDefaultValues(partialLine, result, request, clazz, method);
+                    }
+                }
             }
         }
     }
 
     /**
-     * This method adds a set of variables and methods to the result. This 
+     * This method adds a set of variables and methods to the result. This
      * includes any information that is potentially useful to the user, like
      * auto-completing variables, primitives, classes that can be instantiated,
      * or other information.
-     * 
+     *
      * @param result
-     * @param method 
+     * @param method
      */
-    private void addDefaultValues(String partial, CodeCompletionResult result, 
-            CodeCompletionRequest request, ClassDescriptor clazz, 
+    private void addDefaultValues(String partial, CodeCompletionResult result,
+            CodeCompletionRequest request, ClassDescriptor clazz,
             MethodDescriptor method) {
         addClassToResult(null, result, clazz, true);
-        
+
         BlockDescriptor scope = method.getBlockAtLine(request.getLineNumber());
         Iterator<VariableParameterCommonDescriptor> variables = null;
-        if(scope != null) { //grab all of the variables and all those from its parents
+        if (scope != null) { //grab all of the variables and all those from its parents
             variables = scope.getAllVariablesExceptInClass(request.getLineNumber());
+        } else {      //just grab the variables from the method and call it good.
+            variables = method.getVariables();
         }
-        else {      //just grab the variables from the method and call it good.
-            variables = method.getVariables();  
-        }
-        
-        if(variables != null) {
-            while(variables.hasNext()) {
+
+        if (variables != null) {
+            while (variables.hasNext()) {
                 VariableParameterCommonDescriptor var = variables.next();
-                if(var.getName().startsWith(partial) && var.getLineBegin() <= request.getLineNumber()) {
+                if (var.getName().startsWith(partial) && var.getLineBegin() <= request.getLineNumber()) {
                     addVariableCompletionItem(var, var.getName(), result, new CodeCompletionItem());
                 }
             }
         }
         //add filtered classes you can instantiate
         addValidClassUses(partial, result, request, clazz);
-        
+
         //add common control structures
         addControlStructures(result);
-        
+
         //add filtered primitive values you can use.
         addPrimitiveValues(result);
-        
+
     }
-    
+
     /**
      * Adds code completion items for several control structures.
-     * 
-     * @param result 
+     *
+     * @param result
      */
     private void addControlStructures(CodeCompletionResult result) {
         //repeat times
@@ -1312,8 +1236,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         String name = "repeat times";
 
         String description = "";
-        description += "<h1>" + signature + "</h1>" +
-            "<p align=\"justify\">The word "
+        description += "<h1>" + signature + "</h1>"
+                + "<p align=\"justify\">The word "
                 + "repeat starts a control structure that tells the computer to "
                 + "do something 0 or more times. In the case of the repeat times "
                 + "control structure, the computer will conduct the repetition "
@@ -1321,127 +1245,128 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 + "repeats is computed before the first iteration."
                 + "</p>";
         description += "<h2>" + "Code Example:" + "</h2>";
-        description += "<PRE><CODE>" + 
-            "integer i = 0\n"
-            + "repeat 10 times"
-            + "\n\ti = i + 1"
-            + "\n\tprint i"
-            + "\nend"
-            + "</PRE></CODE>";
+        description += "<PRE><CODE>"
+                + "integer i = 0\n"
+                + "repeat 10 times"
+                + "\n\ti = i + 1"
+                + "\n\tprint i"
+                + "\nend"
+                + "</PRE></CODE>";
 
         item.setDisplayName(name);
         item.setDocumentation(description);
         item.setCompletion("repeat 10 times\nend\n");
         result.add(item);
-        
+
         //repeat while
         item = new CodeCompletionItem();
         signature = "repeat while";
         name = "repeat while";
 
         description = "";
-        description += "<h1>" + signature + "</h1>" +
-            "<p align=\"justify\">The word "
+        description += "<h1>" + signature + "</h1>"
+                + "<p align=\"justify\">The word "
                 + "repeat starts a control structure that tells the computer to "
                 + "do something 0 or more times. In the case of the repeat while "
                 + "control structure, the computer will conduct the repetition "
                 + "until the expression after the word while is false."
                 + "</p>";
         description += "<h2>" + "Code Example:" + "</h2>";
-        description += "<PRE><CODE>" + 
-            "integer i = 0\n"
-            + "repeat while i < 10"
-            + "\n\ti = i + 1"
-            + "\n\tprint i"
-            + "\nend"
-            + "</PRE></CODE>";
+        description += "<PRE><CODE>"
+                + "integer i = 0\n"
+                + "repeat while i < 10"
+                + "\n\ti = i + 1"
+                + "\n\tprint i"
+                + "\nend"
+                + "</PRE></CODE>";
 
         item.setDisplayName(name);
         item.setDocumentation(description);
         item.setCompletion("repeat while false\nend\n");
         result.add(item);
-        
+
         //repeat while
         item = new CodeCompletionItem();
         signature = "repeat until";
         name = "repeat until";
 
         description = "";
-        description += "<h1>" + signature + "</h1>" +
-            "<p align=\"justify\">The word "
+        description += "<h1>" + signature + "</h1>"
+                + "<p align=\"justify\">The word "
                 + "repeat starts a control structure that tells the computer to "
                 + "do something 0 or more times. In the case of the repeat while "
                 + "control structure, the computer will conduct the repetition "
                 + "until the expression after the word while is false."
                 + "</p>";
         description += "<h2>" + "Code Example:" + "</h2>";
-        description += "<PRE><CODE>" + 
-            "integer i = 0\n"
-            + "repeat until i >= 10"
-            + "\n\ti = i + 1"
-            + "\n\tprint i"
-            + "\nend"
-            + "</PRE></CODE>";
+        description += "<PRE><CODE>"
+                + "integer i = 0\n"
+                + "repeat until i >= 10"
+                + "\n\ti = i + 1"
+                + "\n\tprint i"
+                + "\nend"
+                + "</PRE></CODE>";
 
         item.setDisplayName(name);
         item.setDocumentation(description);
         item.setCompletion("repeat until true\nend\n");
         result.add(item);
-        
+
         //conditional statements
         item = new CodeCompletionItem();
         signature = "if";
         name = "if";
 
         description = "";
-        description += "<h1>" + signature + "</h1>" +
-            "<p align=\"justify\">The word "
+        description += "<h1>" + signature + "</h1>"
+                + "<p align=\"justify\">The word "
                 + "if begins a control structure that allows the computer to make "
                 + "a decision based on its input. For example, a conditional "
                 + "statement might execute only on a particular operating system "
                 + "or only if a particular variable is greater than 10."
                 + "</p>";
         description += "<h2>" + "Code Example:" + "</h2>";
-        description += "<PRE><CODE>" + 
-            "integer i = 0\n"
-            + "if i = 0\n"
-            + "\tprint i\n"
-            + "end"
-            + "</PRE></CODE>";
+        description += "<PRE><CODE>"
+                + "integer i = 0\n"
+                + "if i = 0\n"
+                + "\tprint i\n"
+                + "end"
+                + "</PRE></CODE>";
 
         item.setDisplayName(name);
         item.setDocumentation(description);
         item.setCompletion("if true\nend\n");
         result.add(item);
     }
-    
+
     /**
-     * This method adds completion for the classes that are accessible from 
-     * a particular class
+     * This method adds completion for the classes that are accessible from a
+     * particular class
+     *
      * @param partial
      * @param result
-     * @param request 
+     * @param request
      */
-    private void addValidClassUses(String partial, CodeCompletionResult result, 
+    private void addValidClassUses(String partial, CodeCompletionResult result,
             CodeCompletionRequest request, ClassDescriptor clazz) {
         Iterator<ClassDescriptor> uses = clazz.getValidUses();
-        while(uses.hasNext()) {
+        while (uses.hasNext()) {
             ClassDescriptor next = uses.next();
             CodeCompletionItem classCompletionItem = getClassCompletionItem(next);
             result.add(classCompletionItem);
         }
     }
-    
+
     private void addPrimitiveValues(CodeCompletionResult result) {
-        
+
         //do integers
         CodeCompletionItem integer = new CodeCompletionItem();
         String signature = "integer";
         String name = "integer";
 
         String description = "";
-        description += "<h1>" + signature + "</h1>" +
-            "<p align=\"justify\">An integer is a primitive type that contains values from "
+        description += "<h1>" + signature + "</h1>"
+                + "<p align=\"justify\">An integer is a primitive type that contains values from "
                 + "-2,147,483,648 to 2,147,483,647. The integer, with a lower "
                 + "case letter i at the beginning is called a primitive. There is "
                 + "another version of integer that can be used, the Libraries.Language.Types.Integer class. "
@@ -1449,25 +1374,25 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 + "are faster, while the advantage of using the Integer class is that "
                 + "we can call actions on the value it contains.</p>";
         description += "<h2>" + "Code Example:" + "</h2>";
-        description += "<PRE><CODE>" + 
-            "integer a = 5\n"
-            + "intger b = 10\n"
-            + "integer c = a + b\n"
-            + "print c"
-            + "</PRE></CODE>";
+        description += "<PRE><CODE>"
+                + "integer a = 5\n"
+                + "intger b = 10\n"
+                + "integer c = a + b\n"
+                + "print c"
+                + "</PRE></CODE>";
 
         integer.setDisplayName(name);
         integer.setDocumentation(description);
         integer.setCompletion(name);
-        
+
         //do integers
         CodeCompletionItem number = new CodeCompletionItem();
         signature = "number";
         name = "number";
 
         description = "";
-        description += "<h1>" + signature + "</h1>" +
-            "<p align=\"justify\">A number is a primitive type that contains values that potentially "
+        description += "<h1>" + signature + "</h1>"
+                + "<p align=\"justify\">A number is a primitive type that contains values that potentially "
                 + "have a decimal place. These numbers can be very small or very "
                 + "large. Using scientific notation, this range is from "
                 + "4.94065645841246544e-324d to 1.79769313486231570e+308d. "
@@ -1479,24 +1404,24 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 + "are faster, while the advantage of using the Number class is that "
                 + "we can call actions on the value it contains.</p>";
         description += "<h2>" + "Code Example:" + "</h2>";
-        description += "<PRE><CODE>" + 
-            "number a = 5.0\n"
-            + "number b = 10.0\n"
-            + "number c = a + b\n"
-            + "print c"
-            + "</PRE></CODE>";
+        description += "<PRE><CODE>"
+                + "number a = 5.0\n"
+                + "number b = 10.0\n"
+                + "number c = a + b\n"
+                + "print c"
+                + "</PRE></CODE>";
 
         number.setDisplayName(name);
         number.setDocumentation(description);
         number.setCompletion(name);
-        
+
         CodeCompletionItem bool = new CodeCompletionItem();
         signature = "boolean";
         name = "boolean";
 
         description = "";
-        description += "<h1>" + signature + "</h1>" +
-            "<p align=\"justify\">A boolean is a primitive type that contains values that are "
+        description += "<h1>" + signature + "</h1>"
+                + "<p align=\"justify\">A boolean is a primitive type that contains values that are "
                 + "either true or false. Boolean values take up very little space "
                 + "in primitive form, only 1-bit. "
                 + "In addition to the boolean primitive type, with a lower "
@@ -1506,24 +1431,24 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 + "are faster, while the advantage of using the boolean class is that "
                 + "we can call actions on the value it contains.</p>";
         description += "<h2>" + "Code Example:" + "</h2>";
-        description += "<PRE><CODE>" + 
-            "boolean a = true\n"
-            + "boolean b = false\n"
-            + "boolean c = a or b\n"
-            + "print c"
-            + "</PRE></CODE>";
+        description += "<PRE><CODE>"
+                + "boolean a = true\n"
+                + "boolean b = false\n"
+                + "boolean c = a or b\n"
+                + "print c"
+                + "</PRE></CODE>";
 
         bool.setDisplayName(name);
         bool.setDocumentation(description);
         bool.setCompletion(name);
-        
+
         CodeCompletionItem text = new CodeCompletionItem();
         signature = "text";
         name = "text";
 
         description = "";
-        description += "<h1>" + signature + "</h1>" +
-            "<p align=\"justify\">A text value is a list of sequential characters in the alphabet. "
+        description += "<h1>" + signature + "</h1>"
+                + "<p align=\"justify\">A text value is a list of sequential characters in the alphabet. "
                 + "In Quorum, a text value is a literal set of characters, where "
                 + "typing  a tab places a tab in the output, or pressing enter "
                 + "places a new line in the output. The one exception is that a double "
@@ -1536,70 +1461,47 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 + "This class contains extra helper actions related to using text values."
                 + "</p>";
         description += "<h2>" + "Code Example:" + "</h2>";
-        description += "<PRE><CODE>" + 
-            "text a = \"Hello\"\n"
-            + "text b = \", World!\"\n"
-            + "//The next line will have the words Hello, World!, surrounded in double quotes"
-            + "text c = quote + a + b + quote\n"
-            + "print c"
-            + "</PRE></CODE>";
+        description += "<PRE><CODE>"
+                + "text a = \"Hello\"\n"
+                + "text b = \", World!\"\n"
+                + "//The next line will have the words Hello, World!, surrounded in double quotes"
+                + "text c = quote + a + b + quote\n"
+                + "print c"
+                + "</PRE></CODE>";
 
         text.setDisplayName(name);
         text.setDocumentation(description);
         text.setCompletion(name);
-        
+
         result.add(integer);
         result.add(number);
         result.add(bool);
         result.add(text);
     }
-    
-    private void addVariablesInScope(BlockDescriptor block, CodeCompletionResult result, 
-            CodeCompletionRequest request, String partial) {
-        Iterator<BlockDescriptor> children = block.getChildren();
-        boolean done = false;
-        while (children.hasNext() && !done) {
-            BlockDescriptor b = children.next();
-//            if (request.getLineNumber() >= block.getLineBegin()
-//                    && request.getLineNumber() <= block.getLineEnd()) {
-                done = true;
-                //grab all variables and variables from parent blocks
-                Iterator<VariableParameterCommonDescriptor> variables = block.getVariables();
-                while(variables.hasNext()) {
-                    VariableParameterCommonDescriptor next = variables.next();
-                    if(next.getName().startsWith(partial) && next instanceof VariableDescriptor
-                       && next.getLineBegin() < request.getLineNumber()) {
-                        VariableDescriptor var = (VariableDescriptor) next;
-                        addVariableCompletionItem(var, var.getName(), result, new CodeCompletionItem());
-                    }
-                }
-//            }
-        }
-    }
-    
+
     /**
      * Determines, at a given point in a string, whether that string has a mod
      * operator immediately preceeding it.
-     * 
+     *
      * @param partial
      * @param i
-     * @return 
+     * @return
      */
     private boolean isMod(String partial, int i) {
-        if(i - 3 < 0) {            
+        if (i - 3 < 0) {
             return false;
         }
-        
-        if(partial.charAt(i) == 'd' &&
-           partial.charAt(i - 1) == 'o' &&
-           partial.charAt(i - 2) == 'm' &&
-           partial.charAt(i - 3) == ' ') {
+
+        if (partial.charAt(i) == 'd'
+                && partial.charAt(i - 1) == 'o'
+                && partial.charAt(i - 2) == 'm'
+                && partial.charAt(i - 3) == ' ') {
             return true;
         }
-        
+
         return false;
     }
-    
+
     private void addParentClasses(CodeCompletionResult result, ClassDescriptor clazz) {
         Iterator<ClassDescriptor> parents = clazz.getFlattenedListOfParents();
         while (parents.hasNext()) {
@@ -1683,15 +1585,15 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     }
 
     /**
-     * This method adds a class to the results. This class may or may not be templated.
-     * If it is, a variable must be passed which contains correct templated type
-     * information.
-     * 
-     * @param variable if this call is templated, this is the variable by which 
+     * This method adds a class to the results. This class may or may not be
+     * templated. If it is, a variable must be passed which contains correct
+     * templated type information.
+     *
+     * @param variable if this call is templated, this is the variable by which
      * template information should be gathered
      * @param result
      * @param clazz
-     * @param isCurrentClass 
+     * @param isCurrentClass
      */
     private void addClassToResult(VariableParameterCommonDescriptor variable, CodeCompletionResult result, ClassDescriptor clazz, boolean isCurrentClass) {
         if (clazz != null) {
@@ -1711,10 +1613,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
 
                 String signature = "";
-                if(variable == null) {
+                if (variable == null) {
                     signature = method.getMethodSignature(true);
-                }
-                else {
+                } else {
                     signature = method.getMethodSignature(true, variable, clazz);
                 }
 
@@ -1765,7 +1666,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             }
         }
     }
-    
+
     private void addVariableCompletionItem(VariableParameterCommonDescriptor variable, String signature, CodeCompletionResult result, CodeCompletionItem item) {
         TypeDescriptor type = variable.getType();
         String displayType = "";
@@ -1776,16 +1677,15 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 displayType = type.getStaticKey();
             }
         }
-        
+
         String description = "";
-        if(variable instanceof VariableDescriptor){
+        if (variable instanceof VariableDescriptor) {
             VariableDescriptor var = (VariableDescriptor) variable;
             description = var.getAccessModifier().toString() + " " + displayType + " " + signature;
-        }
-        else {
+        } else {
             description = displayType + " " + signature;
         }
-        
+
         String[] paragraphs = Documentation.breakStringIntoParagraphArray(variable.getDocumentation().getDescription());
         for (int i = 0; i < paragraphs.length; i++) {
             description += "<p>" + paragraphs[i] + "</p>";
