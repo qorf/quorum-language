@@ -24,7 +24,6 @@ import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
-//import org.antlr.stringtemplate.*;
 import org.quorum.documentation.DocumentationGenerator;
 import org.quorum.documentation.DocumentationStyle;
 import org.quorum.execution.DataEnvironment;
@@ -45,6 +44,7 @@ import org.quorum.steps.NullIntermediateStep;
 import org.quorum.steps.ObjectInitPopStep;
 import org.quorum.symbols.AccessModifierEnum;
 import org.quorum.symbols.BlockDescriptor;
+import org.quorum.symbols.BlueprintDescriptor;
 import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.Documentation;
 import org.quorum.symbols.FileDescriptor;
@@ -52,6 +52,7 @@ import org.quorum.symbols.MethodDescriptor;
 import org.quorum.symbols.ParameterDescriptor;
 import org.quorum.symbols.Scopable;
 import org.quorum.symbols.SymbolTable;
+import org.quorum.symbols.SystemActionDescriptor;
 import org.quorum.symbols.TypeChecker;
 import org.quorum.symbols.TypeDescriptor;
 import org.quorum.symbols.VariableDescriptor;
@@ -1029,7 +1030,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             String left = split[0];
             if (left.matches("\\s*") || result.getFilter().length() != 0) {
                 CodeCompletionItem item = new CodeCompletionItem();
-                item.setCodeCompletionType(CodeCompletionType.CLASS);
+                item.setCodeCompletionType(CodeCompletionType.PACKAGE);
                 item.setCompletion(root);
                 item.setDisplayName(root);
                 result.add(item);
@@ -1063,7 +1064,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         while (subs.hasNext()) {
             String next = subs.next();
             CodeCompletionItem item = new CodeCompletionItem();
-            item.setCodeCompletionType(CodeCompletionType.CLASS);
+            item.setCodeCompletionType(CodeCompletionType.PACKAGE);
             item.setCompletion(next);
             item.setDisplayName(next);
             result.add(item);
@@ -1634,8 +1635,20 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             while (iterator.hasNext()) {
                 MethodDescriptor method = iterator.next();
                 CodeCompletionItem item = new CodeCompletionItem();
-                item.setCodeCompletionType(CodeCompletionType.CLASS);
-
+                if(method.getAccessModifier() == AccessModifierEnum.PUBLIC && method instanceof MethodDescriptor) {
+                    item.setCodeCompletionType(CodeCompletionType.PUBLIC_ACTION);
+                } else if(method.getAccessModifier() == AccessModifierEnum.PRIVATE && method instanceof MethodDescriptor) {
+                    item.setCodeCompletionType(CodeCompletionType.PRIVATE_ACTION);
+                } else if(method.getAccessModifier() == AccessModifierEnum.PUBLIC && method instanceof BlueprintDescriptor) {
+                    item.setCodeCompletionType(CodeCompletionType.PUBLIC_BLUEPRINT_ACTION);
+                } else if(method.getAccessModifier() == AccessModifierEnum.PRIVATE && method instanceof BlueprintDescriptor) {
+                    item.setCodeCompletionType(CodeCompletionType.PRIVATE_BLUEPRINT_ACTION);
+                } else if(method.getAccessModifier() == AccessModifierEnum.PUBLIC && method instanceof SystemActionDescriptor) {
+                    item.setCodeCompletionType(CodeCompletionType.PUBLIC_SYSTEM_ACTION);
+                } else if(method.getAccessModifier() == AccessModifierEnum.PRIVATE && method instanceof SystemActionDescriptor) {
+                    item.setCodeCompletionType(CodeCompletionType.PRIVATE_SYSTEM_ACTION);
+                }
+                
                 String signature = "";
                 if (variable == null) {
                     signature = method.getMethodSignature(true);
