@@ -1237,6 +1237,16 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         ClassDescriptor cd = validUses.get(clazz);
         return cd;
     }
+    
+    /**
+     * Returns an iterator of all classes that can be legally accessed from 
+     * this location.
+     * 
+     * @return 
+     */
+    public Iterator<ClassDescriptor> getValidUses() {
+        return validUses.values().iterator();
+    }
 
     /**
      * Takes the fully qualified name of a particular class and checks

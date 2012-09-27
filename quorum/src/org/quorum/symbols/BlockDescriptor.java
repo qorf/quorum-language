@@ -51,6 +51,52 @@ public class BlockDescriptor extends Descriptor implements Scopable{
     public Iterator<VariableParameterCommonDescriptor> getVariables() {
         return variables.values().iterator();
     }
+    
+    /**
+     * This method grabs all variables defined in this scope and all parent
+     * scopes, except for those in a parent class descriptor. These variables
+     * are filtered based on line number, whereby variables that are not
+     * defined before the current line are not included. 
+     * 
+     * @param line
+     * @return 
+     */
+    public Iterator<VariableParameterCommonDescriptor> getAllVariablesExceptInClass(int line) {
+        //first create a hash of all variables in this scope
+        HashMap<String, VariableParameterCommonDescriptor> map = new HashMap<String, VariableParameterCommonDescriptor>();
+        Iterator<VariableParameterCommonDescriptor> val = map.values().iterator();
+        while(val.hasNext()) {
+            VariableParameterCommonDescriptor next = val.next();
+            if(!map.containsKey(next.getStaticKey()) && next.getLineBegin() < line) {
+                map.put(next.getStaticKey(), next);
+            }
+        }
+        
+        //now grab all parents except for the class descriptor and see if they mask
+        //any variables. If they do, do not put in the masked variable
+        Scopable currentParent = parent;
+        while(currentParent != null) {
+            if(currentParent instanceof BlockDescriptor) {
+                BlockDescriptor block = (BlockDescriptor) currentParent;
+                val = block.variables.values().iterator();                
+                currentParent = currentParent.getParent();
+            }
+            else if (currentParent instanceof MethodDescriptor){
+                MethodDescriptor block = (MethodDescriptor) currentParent;
+                val = block.getVariables();                
+                currentParent = null;
+            }
+            
+            while(val.hasNext()) {
+                VariableParameterCommonDescriptor next = val.next();
+                if(!map.containsKey(next.getStaticKey()) && next.getLineBegin() < line) {
+                    map.put(next.getStaticKey(), next);
+                }
+            }
+        }
+        
+        return map.values().iterator();
+    }
 
     @Override
     public MethodDescriptor getMethod(String key) {

@@ -1026,6 +1026,7 @@ assignment_statement
 			Iterator<GenericDescriptor> gdList = $type.type.getSubTypes();
 			new_desc.setAccessModifier(accessModifier);
 			new_desc.setType($type.type);
+			new_desc.setLineBegin($type.type.getLineBegin());
 			new_desc.setName($name.text);
 			if($CONSTANT != null){
 				new_desc.setIsConstant(true);

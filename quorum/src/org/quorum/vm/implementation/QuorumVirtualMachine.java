@@ -49,6 +49,7 @@ import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.Documentation;
 import org.quorum.symbols.FileDescriptor;
 import org.quorum.symbols.MethodDescriptor;
+import org.quorum.symbols.Scopable;
 import org.quorum.symbols.SymbolTable;
 import org.quorum.symbols.TypeChecker;
 import org.quorum.symbols.TypeDescriptor;
@@ -964,6 +965,12 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     @Override
     public CodeCompletionResult requestCodeCompletionResult(CodeCompletionRequest request) {
+        //tell the parser not to parse while we are doing this update.
+        //technically, there's a potential (and very rare) race condition here.
+        //It can probably be removed by carefully synchronizing 
+        //code completion and parser calls.
+        building = true;
+        
         CodeCompletionResult result = new CodeCompletionResult();
         String line = request.getLine();
         line = line.trim();
@@ -987,6 +994,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             addExpressionResults(result, request);
         }
 
+        building = false;
         return result;
     }
 
@@ -1176,9 +1184,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 //                    return;
 //                } else { //do fancier parsing
                     String left = split[0];
-                    String partialLine = request.getLine().substring(0, request.getStartOffset() + 1);
+                    String partialLine = request.getLine().substring(0, request.getStartOffset());
                     //parse left, starting from the start offset, working
-                    for(int i = request.getStartOffset(); i >= 0; i--) {
+                    for(int i = request.getStartOffset() - 1; i >= 0; i--) {
                         if(partialLine.charAt(i) == '(' ||
                            partialLine.charAt(i) == ',' ||
                            partialLine.charAt(i) == '*' ||
@@ -1191,7 +1199,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                                 
                                 
                                 ) { //this is the end of this expression
-                            partialLine = partialLine.substring(i + 1, request.getStartOffset() + 1);
+                            partialLine = partialLine.substring(i + 1, request.getStartOffset());
                             //resplit it
                             partialLine = partialLine.trim();
                             split = partialLine.split(":");
@@ -1262,39 +1270,169 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private void addDefaultValues(String partial, CodeCompletionResult result, 
             CodeCompletionRequest request, ClassDescriptor clazz, 
             MethodDescriptor method) {
-        //toss in any variables defined in the method, or blocks, where the names
-        //start with partial and that are defined above this value
-        //also include any class variables
-        Iterator<VariableDescriptor> classVars = clazz.getAllClassVariables().iterator();
-        while(classVars.hasNext()) {
-            VariableDescriptor var = classVars.next();
-            if(var.getName().startsWith(partial)) {
-                addVariableCompletionItem(var, var.getName(), result, new CodeCompletionItem());
+        addClassToResult(null, result, clazz, true);
+        
+        BlockDescriptor scope = method.getBlockAtLine(request.getLineNumber());
+        Iterator<VariableParameterCommonDescriptor> variables = null;
+        if(scope != null) { //grab all of the variables and all those from its parents
+            variables = scope.getAllVariablesExceptInClass(request.getLineNumber());
+        }
+        else {      //just grab the variables from the method and call it good.
+            variables = method.getVariables();  
+        }
+        
+        if(variables != null) {
+            while(variables.hasNext()) {
+                VariableParameterCommonDescriptor var = variables.next();
+                if(var.getName().startsWith(partial) && var.getLineBegin() <= request.getLineNumber()) {
+                    addVariableCompletionItem(var, var.getName(), result, new CodeCompletionItem());
+                }
             }
         }
-        
-        Iterator<BlockDescriptor> children = method.getChildren();
-        while (children.hasNext()) {
-            BlockDescriptor block = children.next();
-            addVariablesInScope(block, result,request,partial);
-        }
-        
-        //add filtered parameters
-        
-        
-        //add filtered class methods
-        
-        
         //add filtered classes you can instantiate
+        addValidClassUses(partial, result, request, clazz);
         
+        //add common control structures
+        addControlStructures(result);
         
         //add filtered primitive values you can use.
-        addPrimitiveValues(result, request, partial);
+        addPrimitiveValues(result);
         
     }
     
-    private void addPrimitiveValues(CodeCompletionResult result, 
-        CodeCompletionRequest request, String partial) {
+    /**
+     * Adds code completion items for several control structures.
+     * 
+     * @param result 
+     */
+    private void addControlStructures(CodeCompletionResult result) {
+        //repeat times
+        CodeCompletionItem item = new CodeCompletionItem();
+        String signature = "repeat times";
+        String name = "repeat times";
+
+        String description = "";
+        description += "<h1>" + signature + "</h1>" +
+            "<p align=\"justify\">The word "
+                + "repeat starts a control structure that tells the computer to "
+                + "do something 0 or more times. In the case of the repeat times "
+                + "control structure, the computer will conduct the repetition "
+                + "a predetermined number of times. The number of times the loop "
+                + "repeats is computed before the first iteration."
+                + "</p>";
+        description += "<h2>" + "Code Example:" + "</h2>";
+        description += "<PRE><CODE>" + 
+            "integer i = 0\n"
+            + "repeat 10 times"
+            + "\n\ti = i + 1"
+            + "\n\tprint i"
+            + "\nend"
+            + "</PRE></CODE>";
+
+        item.setDisplayName(name);
+        item.setDocumentation(description);
+        item.setCompletion("repeat 10 times\nend\n");
+        result.add(item);
+        
+        //repeat while
+        item = new CodeCompletionItem();
+        signature = "repeat while";
+        name = "repeat while";
+
+        description = "";
+        description += "<h1>" + signature + "</h1>" +
+            "<p align=\"justify\">The word "
+                + "repeat starts a control structure that tells the computer to "
+                + "do something 0 or more times. In the case of the repeat while "
+                + "control structure, the computer will conduct the repetition "
+                + "until the expression after the word while is false."
+                + "</p>";
+        description += "<h2>" + "Code Example:" + "</h2>";
+        description += "<PRE><CODE>" + 
+            "integer i = 0\n"
+            + "repeat while i < 10"
+            + "\n\ti = i + 1"
+            + "\n\tprint i"
+            + "\nend"
+            + "</PRE></CODE>";
+
+        item.setDisplayName(name);
+        item.setDocumentation(description);
+        item.setCompletion("repeat while false\nend\n");
+        result.add(item);
+        
+        //repeat while
+        item = new CodeCompletionItem();
+        signature = "repeat until";
+        name = "repeat until";
+
+        description = "";
+        description += "<h1>" + signature + "</h1>" +
+            "<p align=\"justify\">The word "
+                + "repeat starts a control structure that tells the computer to "
+                + "do something 0 or more times. In the case of the repeat while "
+                + "control structure, the computer will conduct the repetition "
+                + "until the expression after the word while is false."
+                + "</p>";
+        description += "<h2>" + "Code Example:" + "</h2>";
+        description += "<PRE><CODE>" + 
+            "integer i = 0\n"
+            + "repeat until i >= 10"
+            + "\n\ti = i + 1"
+            + "\n\tprint i"
+            + "\nend"
+            + "</PRE></CODE>";
+
+        item.setDisplayName(name);
+        item.setDocumentation(description);
+        item.setCompletion("repeat until true\nend\n");
+        result.add(item);
+        
+        //conditional statements
+        item = new CodeCompletionItem();
+        signature = "if";
+        name = "if";
+
+        description = "";
+        description += "<h1>" + signature + "</h1>" +
+            "<p align=\"justify\">The word "
+                + "if begins a control structure that allows the computer to make "
+                + "a decision based on its input. For example, a conditional "
+                + "statement might execute only on a particular operating system "
+                + "or only if a particular variable is greater than 10."
+                + "</p>";
+        description += "<h2>" + "Code Example:" + "</h2>";
+        description += "<PRE><CODE>" + 
+            "integer i = 0\n"
+            + "if i = 0\n"
+            + "\tprint i\n"
+            + "end"
+            + "</PRE></CODE>";
+
+        item.setDisplayName(name);
+        item.setDocumentation(description);
+        item.setCompletion("if true\nend\n");
+        result.add(item);
+    }
+    
+    /**
+     * This method adds completion for the classes that are accessible from 
+     * a particular class
+     * @param partial
+     * @param result
+     * @param request 
+     */
+    private void addValidClassUses(String partial, CodeCompletionResult result, 
+            CodeCompletionRequest request, ClassDescriptor clazz) {
+        Iterator<ClassDescriptor> uses = clazz.getValidUses();
+        while(uses.hasNext()) {
+            ClassDescriptor next = uses.next();
+            CodeCompletionItem classCompletionItem = getClassCompletionItem(next);
+            result.add(classCompletionItem);
+        }
+    }
+    
+    private void addPrimitiveValues(CodeCompletionResult result) {
         
         //do integers
         CodeCompletionItem integer = new CodeCompletionItem();
@@ -1628,7 +1766,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         }
     }
     
-    private void addVariableCompletionItem(VariableDescriptor variable, String signature, CodeCompletionResult result, CodeCompletionItem item) {
+    private void addVariableCompletionItem(VariableParameterCommonDescriptor variable, String signature, CodeCompletionResult result, CodeCompletionItem item) {
         TypeDescriptor type = variable.getType();
         String displayType = "";
         if (!type.isVoid()) {
@@ -1638,8 +1776,16 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 displayType = type.getStaticKey();
             }
         }
-        String description = variable.getAccessModifier().toString() + " " + displayType + " " + signature;
-
+        
+        String description = "";
+        if(variable instanceof VariableDescriptor){
+            VariableDescriptor var = (VariableDescriptor) variable;
+            description = var.getAccessModifier().toString() + " " + displayType + " " + signature;
+        }
+        else {
+            description = displayType + " " + signature;
+        }
+        
         String[] paragraphs = Documentation.breakStringIntoParagraphArray(variable.getDocumentation().getDescription());
         for (int i = 0; i < paragraphs.length; i++) {
             description += "<p>" + paragraphs[i] + "</p>";

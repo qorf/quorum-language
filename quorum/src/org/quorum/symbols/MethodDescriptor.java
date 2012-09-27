@@ -47,9 +47,9 @@ public class MethodDescriptor extends Descriptor implements Scopable {
     }
 
     public CompilerError add(VariableDescriptor descriptor) {
-        CompilerError error = super.isDefined(descriptor, getVariables());
+        CompilerError error = super.isDefined(descriptor, getVariablesHashMap());
         if (error == null) {
-            getVariables().put(descriptor.getStaticKey(), descriptor);
+            getVariablesHashMap().put(descriptor.getStaticKey(), descriptor);
             descriptor.setVariableNumber(getNumberOfVariables());
         }
 
@@ -153,7 +153,7 @@ public class MethodDescriptor extends Descriptor implements Scopable {
     }
 
     public VariableParameterCommonDescriptor getVariable(String key) {
-        VariableParameterCommonDescriptor var = getVariables().get(key);
+        VariableParameterCommonDescriptor var = getVariablesHashMap().get(key);
         if (var == null) {
             var = parent.getVariable(key);
         }
@@ -173,6 +173,51 @@ public class MethodDescriptor extends Descriptor implements Scopable {
         return info;
     }
 
+    private BlockDescriptor getBlockAtLine(BlockDescriptor block, int line) {
+        BlockDescriptor best = null;
+        Iterator<BlockDescriptor> iterator = children.iterator();
+        while(iterator.hasNext()) {
+            BlockDescriptor child = iterator.next();
+            if(child.getLineBegin() <= line && line <= child.getLineEnd()) {
+                best = child;
+                BlockDescriptor b = getBlockAtLine(child, line);
+                if(b != null) { //no child was better than the parent
+                    best = b;
+                }
+            }
+        }
+        return best;
+    }
+    
+    private BlockDescriptor getBlockAtLine(Iterator<BlockDescriptor> iterator, int line) {
+        BlockDescriptor best = null;
+        while(iterator.hasNext()) {
+            BlockDescriptor child = iterator.next();
+            if(child.getLineBegin() <= line && line <= child.getLineEnd()) {
+                best = child;
+                Iterator<BlockDescriptor> childIterator = child.getChildren();
+                BlockDescriptor b = getBlockAtLine(childIterator, line);
+                if(b != null) { //no child was better than the parent
+                    best = b;
+                }
+            }
+        }
+        return best;
+    }
+    public BlockDescriptor getBlockAtLine(int line) {
+        BlockDescriptor scope = null;
+        if(children != null && !children.isEmpty()) {
+            //dig through all children and find the one that is the most
+            //constrained in line and column number
+            Iterator<BlockDescriptor> iterator = children.iterator();
+            BlockDescriptor block = getBlockAtLine(iterator, line);
+            if(block != null) {
+                scope = block;
+            }
+        }
+        
+        return scope;
+    }
     /**
      * Ultimately, replace this method with autoGenerateKey.
      * 
@@ -510,10 +555,20 @@ public class MethodDescriptor extends Descriptor implements Scopable {
     /**
      * @return the variables
      */
-    private HashMap<String, VariableParameterCommonDescriptor> getVariables() {
+    private HashMap<String, VariableParameterCommonDescriptor> getVariablesHashMap() {
         return variables;
     }
 
+    /**
+     * Returns an iterator of all variables defined in the method. This includes
+     * all parameters.
+     * 
+     * @return 
+     */
+    public Iterator<VariableParameterCommonDescriptor> getVariables() {
+        return variables.values().iterator();
+    }
+    
     /**
      * @return the child scopes one level lower than this MethodDescriptor's scope
      */
@@ -624,7 +679,7 @@ public class MethodDescriptor extends Descriptor implements Scopable {
 
     @Override
     public int getNumberOfVariables() {
-        return parent.getNumberOfVariables() + getVariables().size();
+        return parent.getNumberOfVariables() + getVariablesHashMap().size();
     }
 
     /**
