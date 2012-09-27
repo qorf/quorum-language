@@ -13,7 +13,7 @@ public class CodeCompletionItem {
     protected String completion = "";
     protected String displayName = "";
     protected String displayType = "";
-
+    private CodeCompletionType codeCompletionType = CodeCompletionType.LOCAL_VARIABLE;
     /**
      * @return the documentation
      */
@@ -68,5 +68,19 @@ public class CodeCompletionItem {
      */
     public void setDisplayType(String displayType) {
         this.displayType = displayType;
+    }
+
+    /**
+     * @return the codeCompletionType
+     */
+    public CodeCompletionType getCodeCompletionType() {
+        return codeCompletionType;
+    }
+
+    /**
+     * @param codeCompletionType the codeCompletionType to set
+     */
+    public void setCodeCompletionType(CodeCompletionType codeCompletionType) {
+        this.codeCompletionType = codeCompletionType;
     }
 }

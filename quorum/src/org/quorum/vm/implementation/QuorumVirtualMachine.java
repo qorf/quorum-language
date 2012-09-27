@@ -49,6 +49,7 @@ import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.Documentation;
 import org.quorum.symbols.FileDescriptor;
 import org.quorum.symbols.MethodDescriptor;
+import org.quorum.symbols.ParameterDescriptor;
 import org.quorum.symbols.Scopable;
 import org.quorum.symbols.SymbolTable;
 import org.quorum.symbols.TypeChecker;
@@ -59,6 +60,7 @@ import org.quorum.vm.interfaces.AbstractVirtualMachine;
 import org.quorum.vm.interfaces.CodeCompletionItem;
 import org.quorum.vm.interfaces.CodeCompletionRequest;
 import org.quorum.vm.interfaces.CodeCompletionResult;
+import org.quorum.vm.interfaces.CodeCompletionType;
 import org.quorum.vm.interfaces.CompilerErrorManager;
 import org.quorum.vm.interfaces.LibraryIndexEntry;
 import org.quorum.vm.interfaces.VariableWatch;
@@ -989,6 +991,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             if (standardLibrary.findClass(clazz.getContainer().getContainer(), clazz.getName()) == null
                     && clazz.getContainer().getContainer().compareTo(pack) == 0) {
                 CodeCompletionItem item2 = new CodeCompletionItem();
+                item2.setCodeCompletionType(CodeCompletionType.CLASS);
                 item2.setCompletion(clazz.getName());
                 item2.setDisplayName(clazz.getName());
                 result.add(item2);
@@ -1026,6 +1029,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             String left = split[0];
             if (left.matches("\\s*") || result.getFilter().length() != 0) {
                 CodeCompletionItem item = new CodeCompletionItem();
+                item.setCodeCompletionType(CodeCompletionType.CLASS);
                 item.setCompletion(root);
                 item.setDisplayName(root);
                 result.add(item);
@@ -1059,6 +1063,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         while (subs.hasNext()) {
             String next = subs.next();
             CodeCompletionItem item = new CodeCompletionItem();
+            item.setCodeCompletionType(CodeCompletionType.CLASS);
             item.setCompletion(next);
             item.setDisplayName(next);
             result.add(item);
@@ -1067,6 +1072,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         while (classes.hasNext()) {
             LibraryIndexEntry next = classes.next();
             CodeCompletionItem item = new CodeCompletionItem();
+            item.setCodeCompletionType(CodeCompletionType.CLASS);
             item.setCompletion(next.getName());
             item.setDisplayName(next.getName());
             result.add(item);
@@ -1209,7 +1215,17 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             while (variables.hasNext()) {
                 VariableParameterCommonDescriptor var = variables.next();
                 if (var.getName().startsWith(partial) && var.getLineBegin() <= request.getLineNumber()) {
-                    addVariableCompletionItem(var, var.getName(), result, new CodeCompletionItem());
+                    CodeCompletionItem item = new CodeCompletionItem();
+                    if(var instanceof VariableDescriptor) {
+                        item.setCodeCompletionType(getVariableCompletionType((VariableDescriptor) var));
+                    }
+                    else if(var instanceof ParameterDescriptor){
+                        item.setCodeCompletionType(CodeCompletionType.PARAMETER);
+                    }
+                    else {
+                        item.setCodeCompletionType(CodeCompletionType.LOCAL_VARIABLE);
+                    }
+                    addVariableCompletionItem(var, var.getName(), result, item);
                 }
             }
         }
@@ -1232,6 +1248,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private void addControlStructures(CodeCompletionResult result) {
         //repeat times
         CodeCompletionItem item = new CodeCompletionItem();
+        item.setCodeCompletionType(CodeCompletionType.CONTROL_STRUCTURE);
         String signature = "repeat times";
         String name = "repeat times";
 
@@ -1260,6 +1277,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
         //repeat while
         item = new CodeCompletionItem();
+        item.setCodeCompletionType(CodeCompletionType.CONTROL_STRUCTURE);
         signature = "repeat while";
         name = "repeat while";
 
@@ -1287,6 +1305,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
         //repeat while
         item = new CodeCompletionItem();
+        item.setCodeCompletionType(CodeCompletionType.CONTROL_STRUCTURE);
         signature = "repeat until";
         name = "repeat until";
 
@@ -1314,6 +1333,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
         //conditional statements
         item = new CodeCompletionItem();
+        item.setCodeCompletionType(CodeCompletionType.CONTROL_STRUCTURE);
         signature = "if";
         name = "if";
 
@@ -1361,6 +1381,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
         //do integers
         CodeCompletionItem integer = new CodeCompletionItem();
+        integer.setCodeCompletionType(CodeCompletionType.PRIMITIVE);
         String signature = "integer";
         String name = "integer";
 
@@ -1387,6 +1408,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
         //do integers
         CodeCompletionItem number = new CodeCompletionItem();
+        number.setCodeCompletionType(CodeCompletionType.PRIMITIVE);
         signature = "number";
         name = "number";
 
@@ -1416,6 +1438,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         number.setCompletion(name);
 
         CodeCompletionItem bool = new CodeCompletionItem();
+        bool.setCodeCompletionType(CodeCompletionType.PRIMITIVE);
         signature = "boolean";
         name = "boolean";
 
@@ -1443,6 +1466,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         bool.setCompletion(name);
 
         CodeCompletionItem text = new CodeCompletionItem();
+        text.setCodeCompletionType(CodeCompletionType.PRIMITIVE);
         signature = "text";
         name = "text";
 
@@ -1513,7 +1537,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     private CodeCompletionItem getClassCompletionItem(ClassDescriptor clazz) {
         CodeCompletionItem item = new CodeCompletionItem();
-
+        item.setCodeCompletionType(CodeCompletionType.CLASS);
 
         String signature = clazz.getStaticKey();
         String name = clazz.getName();
@@ -1610,7 +1634,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             while (iterator.hasNext()) {
                 MethodDescriptor method = iterator.next();
                 CodeCompletionItem item = new CodeCompletionItem();
-
+                item.setCodeCompletionType(CodeCompletionType.CLASS);
 
                 String signature = "";
                 if (variable == null) {
@@ -1639,6 +1663,23 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             }
         }
     }
+    
+    /**
+     * Returns the code completion type from the variable descriptor.
+     * 
+     * @param variable
+     * @return 
+     */
+    public CodeCompletionType getVariableCompletionType(VariableDescriptor variable) {
+        if(variable.isFieldVariable() && variable.getAccessModifier() == AccessModifierEnum.PUBLIC) {
+            return CodeCompletionType.PUBLIC_FIELD_VARIABLE;
+        } else if(variable.isFieldVariable() && variable.getAccessModifier() == AccessModifierEnum.PRIVATE) {
+            return CodeCompletionType.PRIVATE_FIELD_VARIABLE;
+        }
+        else {
+            return CodeCompletionType.LOCAL_VARIABLE;
+        }
+    }
 
     public void addVariablesToResults(CodeCompletionResult result, ClassDescriptor clazz, boolean isCurrentClass) {
         //add all of its methods
@@ -1656,12 +1697,16 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             VariableDescriptor variable = iterator.next();
 
             String signature = variable.getName();
-            addVariableCompletionItem(variable, signature, result, new CodeCompletionItem());
+            CodeCompletionItem item = new CodeCompletionItem();
+            item.setCodeCompletionType(getVariableCompletionType(variable));
+            addVariableCompletionItem(variable, signature, result, item);
             for (int i = 0; i < clazz.getNumFlatParents(); i++) {
                 ClassDescriptor next = clazz.getFlatParent(i);
                 if (next.getVariable(variable.getStaticKey()) != null) {
                     signature = "parent:" + next.getName() + ":" + variable.getName();
-                    addVariableCompletionItem(variable, signature, result, new CodeCompletionItem());
+                    CodeCompletionItem item2 = new CodeCompletionItem();
+                    item.setCodeCompletionType(getVariableCompletionType(variable));
+                    addVariableCompletionItem(variable, signature, result, item2);
                 }
             }
         }
