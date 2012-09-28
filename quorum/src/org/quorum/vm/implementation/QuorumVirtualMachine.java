@@ -993,11 +993,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                     && clazz.getContainer().getContainer().compareTo(pack) == 0) {
                 CodeCompletionItem classCompletionItem = getClassCompletionItem(clazz);
                 result.add(classCompletionItem);
-//                CodeCompletionItem item2 = new CodeCompletionItem();
-//                item2.setCodeCompletionType(CodeCompletionType.CLASS);
-//                item2.setCompletion(clazz.getName());
-//                item2.setDisplayName(clazz.getName());
-//                result.add(item2);
             }
         }
     }

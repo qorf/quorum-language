@@ -64,10 +64,10 @@ public class BlockDescriptor extends Descriptor implements Scopable{
     public Iterator<VariableParameterCommonDescriptor> getAllVariablesExceptInClass(int line) {
         //first create a hash of all variables in this scope
         HashMap<String, VariableParameterCommonDescriptor> map = new HashMap<String, VariableParameterCommonDescriptor>();
-        Iterator<VariableParameterCommonDescriptor> val = map.values().iterator();
+        Iterator<VariableParameterCommonDescriptor> val = this.getVariables();
         while(val.hasNext()) {
             VariableParameterCommonDescriptor next = val.next();
-            if(!map.containsKey(next.getStaticKey()) && next.getLineBegin() < line) {
+            if(!map.containsKey(next.getStaticKey()) && next.getLineBegin() <= line) {
                 map.put(next.getStaticKey(), next);
             }
         }
@@ -89,7 +89,7 @@ public class BlockDescriptor extends Descriptor implements Scopable{
             
             while(val.hasNext()) {
                 VariableParameterCommonDescriptor next = val.next();
-                if(!map.containsKey(next.getStaticKey()) && next.getLineBegin() < line) {
+                if(!map.containsKey(next.getStaticKey()) && next.getLineBegin() <= line) {
                     map.put(next.getStaticKey(), next);
                 }
             }
