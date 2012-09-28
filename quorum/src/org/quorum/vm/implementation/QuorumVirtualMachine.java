@@ -991,11 +991,13 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             ClassDescriptor clazz = classes.next();
             if (standardLibrary.findClass(clazz.getContainer().getContainer(), clazz.getName()) == null
                     && clazz.getContainer().getContainer().compareTo(pack) == 0) {
-                CodeCompletionItem item2 = new CodeCompletionItem();
-                item2.setCodeCompletionType(CodeCompletionType.CLASS);
-                item2.setCompletion(clazz.getName());
-                item2.setDisplayName(clazz.getName());
-                result.add(item2);
+                CodeCompletionItem classCompletionItem = getClassCompletionItem(clazz);
+                result.add(classCompletionItem);
+//                CodeCompletionItem item2 = new CodeCompletionItem();
+//                item2.setCodeCompletionType(CodeCompletionType.CLASS);
+//                item2.setCompletion(clazz.getName());
+//                item2.setDisplayName(clazz.getName());
+//                result.add(item2);
             }
         }
     }
@@ -1072,11 +1074,18 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         Iterator<LibraryIndexEntry> classes = standardLibrary.findAllClassesInPackage(name);
         while (classes.hasNext()) {
             LibraryIndexEntry next = classes.next();
-            CodeCompletionItem item = new CodeCompletionItem();
-            item.setCodeCompletionType(CodeCompletionType.CLASS);
-            item.setCompletion(next.getName());
-            item.setDisplayName(next.getName());
-            result.add(item);
+            String key = next.getFullClassName();
+            ClassDescriptor clazz = table.getClassDescriptor(key);
+            if(clazz != null) {
+                CodeCompletionItem classCompletionItem = getClassCompletionItem(clazz);
+                result.add(classCompletionItem);
+            } else {
+                CodeCompletionItem item = new CodeCompletionItem();
+                item.setCodeCompletionType(CodeCompletionType.CLASS);
+                item.setCompletion(next.getName());
+                item.setDisplayName(next.getName());
+                result.add(item);
+            }
         }
     }
 
@@ -1635,6 +1644,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             while (iterator.hasNext()) {
                 MethodDescriptor method = iterator.next();
                 CodeCompletionItem item = new CodeCompletionItem();
+                
                 if(method.getAccessModifier() == AccessModifierEnum.PUBLIC && method instanceof MethodDescriptor) {
                     item.setCodeCompletionType(CodeCompletionType.PUBLIC_ACTION);
                 } else if(method.getAccessModifier() == AccessModifierEnum.PRIVATE && method instanceof MethodDescriptor) {
@@ -1648,6 +1658,12 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 } else if(method.getAccessModifier() == AccessModifierEnum.PRIVATE && method instanceof SystemActionDescriptor) {
                     item.setCodeCompletionType(CodeCompletionType.PRIVATE_SYSTEM_ACTION);
                 }
+                
+                //if the method exists in the base class, mark it as such
+                if(clazz.getMethod(method.getStaticKey()) != null) { //it's in the base
+                    item.setIsBaseClassMethod(true);
+                }
+                
                 
                 String signature = "";
                 if (variable == null) {

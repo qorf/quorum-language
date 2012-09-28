@@ -14,6 +14,21 @@ public class CodeCompletionItem {
     protected String displayName = "";
     protected String displayType = "";
     private CodeCompletionType codeCompletionType = CodeCompletionType.LOCAL_VARIABLE;
+    private boolean isBaseClassMethod = false;
+    /**
+     * @return the isBaseClassMethod
+     */
+    public boolean isBaseClassMethod() {
+        return isBaseClassMethod;
+    }
+
+    /**
+     * @param isBaseClassMethod the isBaseClassMethod to set
+     */
+    public void setIsBaseClassMethod(boolean isBaseClassMethod) {
+        this.isBaseClassMethod = isBaseClassMethod;
+    }
+    
     /**
      * @return the documentation
      */

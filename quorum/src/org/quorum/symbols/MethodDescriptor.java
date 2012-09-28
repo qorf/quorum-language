@@ -297,7 +297,9 @@ public class MethodDescriptor extends Descriptor implements Scopable {
         key += ")";
         
         TypeDescriptor myReturn = this.getReturnType();
-        key += " " + myReturn.getStaticKey();
+        if(!myReturn.isVoid()) {
+            key += " " + myReturn.getStaticKey();
+        }
         
         return key;
     }
