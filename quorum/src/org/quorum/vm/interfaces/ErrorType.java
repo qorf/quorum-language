@@ -46,7 +46,8 @@ public enum ErrorType {
     REPEAT_NON_BOOLEAN("Repeat non-boolean"),
     CONSTANT_REASSIGNMENT("invalid constant assignment"),
     OTHER("other"), 
-    CONSTANT_INITIALIZED("constant not initialized"); 
+    CONSTANT_INITIALIZED("constant not initialized"), 
+    VARIABLE_INFERRENCE("Cannot infer type"); 
 
     String errorType = "";
     ErrorType(String st) {

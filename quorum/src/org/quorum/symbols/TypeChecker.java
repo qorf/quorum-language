@@ -1081,6 +1081,14 @@ public class TypeChecker {
                 result.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
             }
         }
+        
+        if(right != null && left != null && !assignment){
+            if(right.isLiteral() && left.isLiteral()){
+                result.getResult().setLiteral(true);
+            }else if(right.isLiteral() || left.isLiteral()){
+                result.getResult().setWasLiteral(true);
+            }
+        }
         return result;
     }
 

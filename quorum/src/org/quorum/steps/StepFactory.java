@@ -677,6 +677,21 @@ public class StepFactory {
                 error.setFile(info.location.getFile());
                 machine.getCompilerErrors().addError(error);
             }
+        }else if(vd == null && info.rightValue != null && info.rightValue.getType().isLiteral()){
+            VariableDescriptor new_desc = new VariableDescriptor();
+            new_desc.setType(info.rightValue.getType());
+            new_desc.getType().setLiteral(false);
+            new_desc.setLineBegin(info.location.getStartLine());
+            new_desc.setName(info.variableName);
+            new_desc.setIsInitializedClassVariable(true);
+
+            CompilerError error = machine.getSymbolTable().add(new_desc);
+            if (error != null) {
+                error.setLineNumber(info.location.getStartLine());
+                error.setColumn(info.location.getStartColumn());
+                machine.getCompilerErrors().addError(error);
+            }
+            vd = machine.getSymbolTable().getVariable(info.variableName);
         }
 
         if (vd != null) {
@@ -913,9 +928,15 @@ public class StepFactory {
                 machine.getCompilerErrors().addError(error);
             }
         } else { //throw a compiler error
+            ErrorType errorType = ErrorType.MISSING_VARIABLE;
+            
+            if(info.rightValue != null && info.rightValue.getType().wasLiteral()){
+                errorType = ErrorType.VARIABLE_INFERRENCE;
+            }
+            
             CompilerError error = new CompilerError(info.location.getStartLine(),
-                    "The variable " + info.variableName + " cannot be assigned"
-                    + " a value in this context, as it does not exist.", ErrorType.MISSING_VARIABLE);
+                    info.variableName + " is not a defined variable and its type cannot be inferred."
+                    + " Please define a type for the variable " + info.variableName + ".", errorType);
             error.setFile(info.location.getFile());
             machine.getCompilerErrors().addError(error);
         }
@@ -1750,6 +1771,7 @@ public class StepFactory {
     public ResultTuple addMoveStep(int register, LineInformation location, boolean value) {
         TypeDescriptor type = new TypeDescriptor();
         type.setName(TypeDescriptor.BOOLEAN);
+        type.setLiteral(true);
         Result res = new Result();
         res.boolean_value = value;
         res.type = Result.BOOLEAN;
@@ -1781,6 +1803,7 @@ public class StepFactory {
     public ResultTuple addMoveStep(int register, LineInformation location, double value) {
         TypeDescriptor type = new TypeDescriptor();
         type.setName(TypeDescriptor.NUMBER);
+        type.setLiteral(true);
         Result res = new Result();
         res.number = value;
         res.type = Result.NUMBER;
@@ -1798,6 +1821,7 @@ public class StepFactory {
     public ResultTuple addMoveStep(int register, LineInformation location, int value) {
         TypeDescriptor type = new TypeDescriptor();
         type.setName(TypeDescriptor.INTEGER);
+        type.setLiteral(true);
         Result res = new Result();
         res.integer = value;
         res.type = Result.INTEGER;
@@ -1815,6 +1839,7 @@ public class StepFactory {
     public ResultTuple addMoveStep(int register, LineInformation location, String value) {
         TypeDescriptor type = new TypeDescriptor();
         type.setName(TypeDescriptor.TEXT);
+        type.setLiteral(true);
         Result res = new Result();
         //ANTLR passes the entire string the user typed, including double quotes
         //use the substring method to strip out the double quotes.

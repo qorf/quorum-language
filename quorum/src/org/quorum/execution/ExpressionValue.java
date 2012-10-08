@@ -240,4 +240,4 @@ public class ExpressionValue {
         value.setObjectHash(-1); //a null pointer, on purpose, as this is not on the heap.
         return value;
     }
-}
+    }

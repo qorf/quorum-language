@@ -30,6 +30,8 @@ public class TypeDescriptor extends Descriptor {
     public static final String NULL = "NULL_TYPE";
 
     private boolean bytecodeInterface = false;
+    private boolean isLiteral = false;
+    private boolean wasLiteral = false;
     
     private String templateName = null;
     private ArrayList<GenericDescriptor> subTypes = new ArrayList<GenericDescriptor>();
@@ -553,5 +555,26 @@ public class TypeDescriptor extends Descriptor {
      */
     public void setBytecodeInterface(boolean bytecodeInterface) {
         this.bytecodeInterface = bytecodeInterface;
+    }
+
+    public boolean isLiteral(){
+        return isLiteral;
+    }
+    public void setLiteral(boolean isLiteral) {
+        this.isLiteral = isLiteral;
+    }
+
+    /**
+     * @return the wasLiteral
+     */
+    public boolean wasLiteral() {
+        return wasLiteral;
+    }
+
+    /**
+     * @param wasLiteral the wasLiteral to set
+     */
+    public void setWasLiteral(boolean wasLiteral) {
+        this.wasLiteral = wasLiteral;
     }
 }
