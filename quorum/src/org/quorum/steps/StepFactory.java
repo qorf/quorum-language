@@ -677,7 +677,7 @@ public class StepFactory {
                 error.setFile(info.location.getFile());
                 machine.getCompilerErrors().addError(error);
             }
-        }else if(vd == null && info.rightValue != null && info.rightValue.getType().isLiteral()){
+        }else if(vd == null && info.rightValue != null && info.rightValue.getType() != null && info.rightValue.getType().isLiteral()){
             VariableDescriptor new_desc = new VariableDescriptor();
             new_desc.setType(info.rightValue.getType());
             new_desc.getType().setLiteral(false);
@@ -930,7 +930,7 @@ public class StepFactory {
         } else { //throw a compiler error
             ErrorType errorType = ErrorType.MISSING_VARIABLE;
             
-            if(info.rightValue != null && info.rightValue.getType().wasLiteral()){
+            if(info.rightValue != null && info.rightValue.getType() != null && info.rightValue.getType().wasLiteral()){
                 errorType = ErrorType.VARIABLE_INFERRENCE;
             }
             
