@@ -2222,7 +2222,7 @@ function_expression_list returns [List list, int firstParam]
 	}
 	e = expression 
 	{
-		if(builder.getCurrentMethod() != null && startLocation != builder.getCurrentMethod().getSteps().size() -1){
+		if(builder.getCurrentMethod() != null && builder.getCurrentMethod().getSteps().size() != 0 && startLocation != builder.getCurrentMethod().getSteps().size() -1){
 				builder.getCurrentMethod().getSteps().get(startLocation).setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
 				$e.step.setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
 		}
