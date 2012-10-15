@@ -1082,11 +1082,13 @@ public class TypeChecker {
             }
         }
         
-        if(right != null && left != null && !assignment){
-            if(right.isLiteral() && left.isLiteral()){
-                result.getResult().setLiteral(true);
-            }else if(right.isLiteral() || left.isLiteral()){
-                result.getResult().setWasLiteral(true);
+        if(right != null && left != null && !assignment && result.getResult() != null){
+            if(right.getExpressionLevel() == 0 && left.getExpressionLevel() == 0){
+                if(left.isInferable() && right.isInferable() && left.getStaticKey().compareTo(right.getStaticKey()) == 0){
+                    result.getResult().setInferable(true);
+                }else{
+                    result.getResult().setInferable(false);
+                }
             }
         }
         return result;

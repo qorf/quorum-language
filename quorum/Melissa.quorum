@@ -1,13 +1,17 @@
-class Main
-    action Main
-        integer j = 5;
-    end
+class main
+action main
 
-    action foo(integer a) returns integer
-        return a
-    end
 
-    action bar(number a) returns number
-        return a
-    end
+Object o
+m = o
+a = 5.5
+b = "10"
+e = a + test("1" + 2) + cast(number, "1.0") + cast(number, input("give me a number."))
+print e
+end
+
+action test( text i) returns number
+    number result = cast(number, i)
+    return result
+end
 end

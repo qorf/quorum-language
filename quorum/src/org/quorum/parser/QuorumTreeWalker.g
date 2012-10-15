@@ -38,6 +38,7 @@ import java.util.Enumeration;
 	//used to create unique label hashes
 	static int labelCounter = 0;
 	static int sub_counter = 0;
+	static int expressionDepth = 0;
 	boolean inCallStep = false;
 	
 	//the register number, used to place values into fake registers in the computer
@@ -1573,9 +1574,10 @@ root_expression returns[ExpressionValue eval, ExecutionStep step]
 	}
 	^(ROOT_EXPRESSION expression) 
 	{
-		
+		expressionDepth = 0;
 		$eval = $expression.eval;
 		$step = $expression.step;
+		$eval.getResult().getType().setExpressionLevel(expressionDepth );
 	}
 	;
 
@@ -1695,9 +1697,11 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 			inCallStep = true;
 			unsetFlag = true;
 		}
+		 expressionDepth++;
 	}
 		 fel = function_expression_list RIGHT_PAREN) //the id is non-null example: Animal.Dog:walk(50), null walk(50)
-	{							//Dog.walk(50) should be dissallowed during semantic analysis
+	{	
+								//Dog.walk(50) should be dissallowed during semantic analysis
 		LineInformation location = new LineInformation();
                 location.setEndColumn($qualified_name.type.getColumnEnd());
                 location.setEndLine($qualified_name.type.getLineEnd());
@@ -1761,6 +1765,9 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		temp = result.getNextRegister();
 		$eval = result.getValue();
 		$step = result.getStep();
+		
+		expressionDepth--;
+		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 		if(fel!=null){
 			builder.addStepLabel(OpcodeType.METHOD_CALL, result.getStepCount());
 		}
@@ -1796,6 +1803,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		temp++;
 		$eval = result.getValue();
 		$step = result.getStep();
+		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 
 
 	}
@@ -1835,6 +1843,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		temp++;
 		$eval = result.getValue();
 		$step = result.getStep();
+		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 	}
 	|	^(QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name)
 	{
@@ -1862,6 +1871,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		temp++;
 		$eval = result.getValue();
 		$step = result.getStep();
+		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 		
 	}
 	// s k |	^(QUALIFIED_SOLO_PARENT_EXPRESSON qn1=qualified_name COLON PARENT COLON qn2=qualified_name)
@@ -1874,6 +1884,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 			inCallStep = true;
 			unsetFlag = true;
 		}
+		expressionDepth++;
 	}
 	fel = function_expression_list RIGHT_PAREN)
 	{
@@ -1932,9 +1943,11 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		ResultTuple result =  stepFactory.addParentCallStep(info);
 		
 		temp = result.getNextRegister();
+		expressionDepth--;
 		$eval = result.getValue();
 		$step = result.getStep();
 		
+		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 		if(fel!=null){
 			builder.addStepLabel(OpcodeType.METHOD_CALL, result.getStepCount());
 		}
@@ -1953,6 +1966,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 			inCallStep = true;
 			unsetFlag = true;
 		}
+		expressionDepth++;
 	}
 	fel = function_expression_list RIGHT_PAREN)
 	{
@@ -2022,6 +2036,8 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		$eval = result.getValue();
 		$step = result.getStep();
 		
+		expressionDepth--;
+		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 		if(fel!=null){
 			builder.addStepLabel(OpcodeType.METHOD_CALL, result.getStepCount());
 		}
@@ -2043,6 +2059,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		temp = result.getNextRegister();
 		$eval = result.getValue();
 		$step = result.getStep();
+		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 	}
 	|	(MINUS)? DECIMAL
 	{
@@ -2074,6 +2091,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		temp = result.getNextRegister();
 		$eval = result.getValue();
 		$step = result.getStep();
+		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 	}
 	|	(MINUS)? INT
 	{
@@ -2103,6 +2121,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		temp = result.getNextRegister();
 		$eval = result.getValue();
 		$step = result.getStep();
+		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 	}
 	|	STRING
 	{
@@ -2117,6 +2136,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		temp = result.getNextRegister();
 		$eval = result.getValue();
 		$step = result.getStep();
+		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 	}
 	|	QUOTE
 	{
@@ -2132,6 +2152,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		temp = result.getNextRegister();
 		$eval = result.getValue();
 		$step = result.getStep();
+		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 	}
 	|	NULL
 	{
@@ -2146,6 +2167,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		temp = result.getNextRegister();
 		$eval = result.getValue();
 		$step = result.getStep();
+		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 	}
 	|	ME
 	{
@@ -2164,8 +2186,9 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		temp++;
 		$eval = result.getValue();
 		$step = result.getStep();
+		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 	}
-	|	INPUT{inCallStep = true; int parameterPosition = builder.addParameterLabel();} LEFT_PAREN input_expr=expression RIGHT_PAREN
+	|	INPUT{inCallStep = true; int parameterPosition = builder.addParameterLabel();} LEFT_PAREN {expressionDepth++;} input_expr=expression RIGHT_PAREN
 	{
 		LineInformation location = new LineInformation (
 			$LEFT_PAREN.getLine(),
@@ -2182,11 +2205,13 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		ResultTuple result = stepFactory.addInputStep(location, value, step, temp);
 		
 		temp = result.getNextRegister();
+		expressionDepth--;
 		$eval = result.getValue();
 		$step = result.getStep();
 		inCallStep = false;
+		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 	}
-	|	CAST LEFT_PAREN castqn=assignment_declaration COMMA cast_expr=expression castrpn=RIGHT_PAREN
+	|	CAST LEFT_PAREN castqn=assignment_declaration COMMA {expressionDepth++;}cast_expr=expression castrpn=RIGHT_PAREN
 	{
 		LineInformation location = new LineInformation (
 			$CAST.getLine(),
@@ -2202,8 +2227,10 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		ResultTuple result = stepFactory.addCastStep(location, type, value, step, temp);
 		
 		temp = result.getNextRegister();
+		expressionDepth--;
 		$eval = result.getValue();
 		$step = result.getStep();
+		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 	}
 	;
 

@@ -1,19 +1,4 @@
-class Returner<T>
-    action One returns integer
-        return 1
-    end
-
-    action ReturnThis(T t) returns T
-        return t
-    end
-
-    action ShowThese(T t1, T t2)
-    end
-
-    action NoTemplatedParam(integer k) returns integer
-        return k
-    end
-
-    action MixTemplateAndNonTemplate(integer k, T t1)
+class Returner<T, Z>
+    action ShowThese(T t1, Z t2)
     end
 end

@@ -30,11 +30,11 @@ public class TypeDescriptor extends Descriptor {
     public static final String NULL = "NULL_TYPE";
 
     private boolean bytecodeInterface = false;
-    private boolean isLiteral = false;
-    private boolean wasLiteral = false;
+    private boolean inferable = true;
     
     private String templateName = null;
     private ArrayList<GenericDescriptor> subTypes = new ArrayList<GenericDescriptor>();
+    private int expressionLevel = 0;
     
     /**
      * Gets a TypeDescriptor representing a void type
@@ -557,24 +557,29 @@ public class TypeDescriptor extends Descriptor {
         this.bytecodeInterface = bytecodeInterface;
     }
 
-    public boolean isLiteral(){
-        return isLiteral;
+    /**
+     * set the expression level of this type.
+     * 
+     * @param expressionLevel 
+     */
+    public void setExpressionLevel(int expressionLevel){
+        this.expressionLevel = expressionLevel;
     }
-    public void setLiteral(boolean isLiteral) {
-        this.isLiteral = isLiteral;
+    
+    /**
+     * get the expression level of this type.
+     * 
+     * @return expression level of the current type descriptor
+     */
+    public int getExpressionLevel(){
+        return expressionLevel;
     }
 
-    /**
-     * @return the wasLiteral
-     */
-    public boolean wasLiteral() {
-        return wasLiteral;
+    public void setInferable(boolean b) {
+        inferable = b;
     }
-
-    /**
-     * @param wasLiteral the wasLiteral to set
-     */
-    public void setWasLiteral(boolean wasLiteral) {
-        this.wasLiteral = wasLiteral;
+    
+    public boolean isInferable(){
+        return inferable;
     }
 }
