@@ -48,4 +48,14 @@ public class Text {
             return $me.hashCode();
         }
     }
+//    
+//    public static void main(String[] args) {
+//        Text text = new Text();
+//        Text text2 = new Text();
+//        text.SetValueNative("Hi");
+//        text2.SetValueNative("Hi");
+//        
+//        int hash = text.GetHashCode();
+//        int hash2 = text2.GetHashCode();
+//    }
 }
