@@ -1847,6 +1847,117 @@ public class TypeCheckTester {
             fail();
         }
     }
+    
+    @Test
+    public void test_pass_TypeInferenceInteger_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "TypeInferenceInteger.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("c");
+        int a = variableValue.getResult().integer;
+        if(a != 3) {
+            fail();
+        }
+    }
+    @Test
+    public void test_pass_TypeInferenceNumber_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "TypeInferenceNumber.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("c");
+        double a = variableValue.getResult().number;
+        if(a != 3.0) {
+            fail();
+        }
+    }
+    @Test
+    public void test_pass_TypeInferenceText_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "TypeInferenceText.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("c");
+        String a = variableValue.getResult().text;
+        if(a.compareTo("hello world") != 0) {
+            fail();
+        }
+    }
+    @Test
+    public void test_pass_TypeInferenceBoolean_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "TypeInferenceBoolean.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("c");
+        boolean a = variableValue.getResult().boolean_value;
+        if(!a) {
+            fail();
+        }
+    }
+    @Test
+    public void test_pass_TypeInferenceCast_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "TypeInferenceCast.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        int a = variableValue.getResult().integer;
+        if(a != 3) {
+            fail();
+        }
+    }
+    @Test
+    public void test_pass_TypeInferenceLiterals_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "TypeInferenceLiterals.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        int a = variableValue.getResult().integer;
+        variableValue = vm.getDataEnvironment().getVariableValue("b");
+        double b = variableValue.getResult().number;
+        variableValue = vm.getDataEnvironment().getVariableValue("c");
+        boolean c = variableValue.getResult().boolean_value;
+        variableValue = vm.getDataEnvironment().getVariableValue("d");
+        String d = variableValue.getResult().text;
+        if(a != 1 || b != 1.9 || c != true || d.compareTo("hello") != 0) {
+            fail();
+        }
+    }
+    @Test
+    public void test_pass_TypeInferenceReturnTypes_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "TypeInferenceReturnTypes.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("c");
+        int a = variableValue.getResult().integer;
+        if(a != 3) {
+            fail();
+        }
+    }
+    @Test
+    public void test_pass_TypeInferenceNestedFunctionCalls_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "TypeInferenceNestedFunctionCalls.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+        int a = variableValue.getResult().integer;
+        if(a != 4) {
+            fail();
+        }
+    }
 
 /*
  *
@@ -2891,6 +3002,28 @@ public class TypeCheckTester {
         files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "D.quorum");
 
         CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_fail_TypeInferenceDifferentLiteralTypes_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "TypeInferenceDifferentLiteralTypes.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    @Test
+    public void test_fail_TypeInferenceDifferentReturnTypes_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "TypeInferenceDifferentReturnTypes.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    @Test
+    public void test_fail_TypeInferenceDifferentTypes_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "TypeInferenceDifferentTypes.quorum"));
         if (vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
