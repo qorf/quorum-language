@@ -54,6 +54,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private final String PLUGIN_NAME = "<plugin>";
     private int fieldSize = 1;
     private boolean first = true;
+    private Label startLabel;
+    private Label endLabel;
 
     public QuorumJavaBytecodeStepVisitor() {
     }
@@ -2128,13 +2130,21 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * @param method 
      */
     public void visitBlock(MethodExecution method, OpcodeTracker tracker) {
+        startLabel = new Label();
+        endLabel = new Label();
+        methodVisitor.visitLabel(startLabel);
+        
         visitAllSteps(method, 0, method.getSteps().size(), tracker);
+        
         ArrayList<CheckDetectEntry> exceptionTable = stack.popExceptionTable();
-
         for (int i = 0; exceptionTable != null && i < exceptionTable.size(); i++) {
             CheckDetectEntry entry = exceptionTable.get(i);
             methodVisitor.visitTryCatchBlock(entry.getFrom(), entry.getTo(), entry.getTarget(), entry.getType());
         }
+        
+        methodVisitor.visitLabel(endLabel);
+        
+        visitLocalVariable(method);
     }
 
     /**
@@ -3556,7 +3566,6 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     if (step.getBlockTag().equals("elseif")) {
                         stack.undoLabel();
                     }
-
                     stack.popLabel();
                     Label pop = label.getLabel();
                     methodVisitor.visitLabel(pop);
@@ -3635,13 +3644,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         desc.addProcessedDetectEnd(endLabel);
                     }
                 }
-
-
             }
         }
         //register the variables to determine the proper variable numbers in the always scope.
         stack.registerMaxVariableSize();
-
+        
     }
 
     @Override
@@ -4144,5 +4151,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         Label start = new Label();
         methodVisitor.visitLabel(start);
         methodVisitor.visitLineNumber(step.getBeginLine(), start);
+    }
+    
+    private void visitLocalVariable(MethodExecution method){
+//        Iterator<VariableParameterCommonDescriptor> scopeVariables = method.getMethodDescriptor().getVariables();
+//        while(scopeVariables.hasNext()){
+//            VariableParameterCommonDescriptor next = scopeVariables.next();
+//            methodVisitor.visitLocalVariable(next.getName(), QuorumConverter.convertTypeToBytecodeString(next.getType()), null, startLabel, endLabel, stack.getMappedVariableNumber(next.getVariableNumber() - currentClass.getNumberOfVariables(), next.getType(), false));
+//        }
+//        stack.clearScopeVariables();
     }
 }
