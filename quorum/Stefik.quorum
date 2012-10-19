@@ -20,14 +20,9 @@ use Libraries.Compute.BitwiseOperations
 
 class Stefik
     action Main
-        text link = "<a href=" + quote + "www.google.com" + quote
-            + ">Google</a>"
-        
-        //text link = "a"
-        integer a = 5
-        integer b = 10
-        BitwiseOperations ops
-        integer value = ops:And(a,b)
-        print value
+        Integer i
+
+        a = i:minimumValue
+        print a
     end
 end
