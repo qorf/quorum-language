@@ -20,6 +20,7 @@ import org.quorum.execution.NullExecutionStep;
 import org.quorum.plugins.RuntimeError;
 import org.quorum.steps.*;
 import org.quorum.symbols.AccessModifierEnum;
+import org.quorum.symbols.BlockDescriptor;
 import org.quorum.symbols.BlueprintDescriptor;
 import org.quorum.symbols.ClassDescriptor;
 import org.quorum.symbols.GenericDescriptor;
@@ -2620,6 +2621,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         stack.pushLabel(new LabelStackValue(LabelTypeEnum.CHECK, GOTO, desc.getCheckEnd()));
         //visit the try label
         methodVisitor.visitLabel(desc.getCheckStart());
+        ScopeLabel scope = new ScopeLabel(desc.getCheckStart(), desc.getCheckEnd());
+        stack.pushScope(scope);
     }
 
     @Override
@@ -2647,7 +2650,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
 
         methodVisitor.visitLabel(desc.peekDetectStartLabel());
-
+        
         // Store the error. This is essentially a "hidden" variable.
         int variableNumber = step.getDetectParameter().getVariableNumber();
         int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameter().getType(), false);
@@ -2660,6 +2663,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitVarInsn(ASTORE, mappedVariableNumber);
 
         stack.pushLabel(new LabelStackValue(LabelTypeEnum.DETECT, GOTO, desc.peekDetectEndLabel()));
+        
+        ScopeLabel scope = new ScopeLabel(desc.peekDetectStartLabel(), desc.peekDetectEndLabel());
+        stack.pushScope(scope);
     }
 
     @Override
@@ -2677,6 +2683,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor.visitVarInsn(ASTORE, 1 + alwaysOffset);
             desc.setStoredDetectVariableNumber(1 + alwaysOffset);
             methodVisitor.visitLabel(desc.getAlwaysEnd());
+            ScopeLabel scope = new ScopeLabel(desc.getAlwaysStart(), desc.getAlwaysEnd());
+            stack.pushScope(scope);
 
         }
 
@@ -3435,6 +3443,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             label.setIfValue(stack.getCurrentNumberOfIfStatements());
         }
         stack.pushLabel(label);
+        ScopeLabel scope = new ScopeLabel(label0, new Label());
+        stack.pushScope(scope);
 
     }
 
@@ -3545,7 +3555,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     } else {
                         label1 = new Label();
                     }
-
+                    
+                    stack.peekScope().endLabel = label1;
                     methodVisitor.visitJumpInsn(GOTO, label1);
                     LabelStackValue newLabel = new LabelStackValue(LabelTypeEnum.IF, GOTO, label1);
                     newLabel.setIfValue(stack.getCurrentNumberOfIfStatements());
@@ -3648,6 +3659,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         //register the variables to determine the proper variable numbers in the always scope.
         stack.registerMaxVariableSize();
+        BlockDescriptor blockAtLine = step.getMethodDescriptor().getBlockAtLine(2);
+        if(blockAtLine != null)
+            visitLocalVariable(blockAtLine);
+        
         
     }
 
@@ -4154,11 +4169,31 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     }
     
     private void visitLocalVariable(MethodExecution method){
-//        Iterator<VariableParameterCommonDescriptor> scopeVariables = method.getMethodDescriptor().getVariables();
-//        while(scopeVariables.hasNext()){
-//            VariableParameterCommonDescriptor next = scopeVariables.next();
-//            methodVisitor.visitLocalVariable(next.getName(), QuorumConverter.convertTypeToBytecodeString(next.getType()), null, startLabel, endLabel, stack.getMappedVariableNumber(next.getVariableNumber() - currentClass.getNumberOfVariables(), next.getType(), false));
-//        }
+        Iterator<VariableParameterCommonDescriptor> scopeVariables = method.getMethodDescriptor().getVariables();
+        while(scopeVariables.hasNext()){
+            VariableParameterCommonDescriptor next = scopeVariables.next();
+            
+            if(next.getVariableNumber() != -1){
+                int mappedVariableNumber = stack.getMappedVariableNumber(next.getVariableNumber() - currentClass.getNumberOfVariables(), next.getType(), false);
+                methodVisitor.visitLocalVariable(next.getName(), QuorumConverter.convertTypeToBytecodeString(next.getType()), null, startLabel, endLabel, mappedVariableNumber);
+            }else{
+                methodVisitor.visitLocalVariable(next.getName(), QuorumConverter.convertTypeToBytecodeString(next.getType()), null, startLabel, endLabel, stack.getParameterNumber(next.getStaticKey()));
+            }
+        }
 //        stack.clearScopeVariables();
+    }
+    
+    private void visitLocalVariable(BlockDescriptor block){
+        Iterator<VariableParameterCommonDescriptor> scopeVariables = block.getVariables();
+        while(scopeVariables.hasNext()){
+            VariableParameterCommonDescriptor next = scopeVariables.next();
+            
+            if(next.getVariableNumber() != -1){
+                int mappedVariableNumber = stack.getMappedVariableNumber(next.getVariableNumber() - currentClass.getNumberOfVariables(), next.getType(), false);
+                methodVisitor.visitLocalVariable(next.getName(), QuorumConverter.convertTypeToBytecodeString(next.getType()), null, startLabel, endLabel, mappedVariableNumber);
+            }else{
+                methodVisitor.visitLocalVariable(next.getName(), QuorumConverter.convertTypeToBytecodeString(next.getType()), null, startLabel, endLabel, stack.getParameterNumber(next.getStaticKey()));
+            }
+        }
     }
 }

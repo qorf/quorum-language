@@ -36,6 +36,7 @@ public class BytecodeStack {
     private int currentNumberIfStatements = 0;
     private Stack<CheckDetectDescriptor> checkDetects = new Stack<CheckDetectDescriptor>();
     private Stack<Integer> errorVariableNumber = new Stack<Integer>();
+    private Stack<ScopeLabel> scopes = new Stack<ScopeLabel>();
     private int currentAlwaysOffset = 0;
  
     /**
@@ -540,5 +541,22 @@ public class BytecodeStack {
             maxVariablesSize = offset;
         
         this.registerMaxVariableSize();
+    }
+    public void pushScope(ScopeLabel scopeLabel){
+        scopes.push(scopeLabel);
+    }
+    public ScopeLabel popScope(){
+        if(scopes.isEmpty()){
+            return null;
+        }else{
+            return scopes.pop();
+        }
+    }
+    public ScopeLabel peekScope(){
+        if(scopes.isEmpty()){
+            return null;
+        }else{
+            return scopes.peek();
+        }
     }
 }
