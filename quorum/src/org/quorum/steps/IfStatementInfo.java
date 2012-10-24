@@ -32,6 +32,8 @@ public class IfStatementInfo {
     public ArrayList<ConditionalJumpIfStep> elseIfConditionalSteps;
     public ArrayList<LineInformation> elseIfLocations;
     public JumpStep elseJumpStep;
+    
+    public LineInformation elseLocation;
 
     //labels
     public final String START = "_start";

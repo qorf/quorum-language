@@ -7,6 +7,7 @@ package org.quorum.steps;
 
 import org.quorum.execution.DataEnvironment;
 import org.quorum.execution.ExecutionStepVisitor;
+import org.quorum.symbols.Scopable;
 
 /**
  * Opcode used to close a scope.
@@ -16,6 +17,7 @@ import org.quorum.execution.ExecutionStepVisitor;
 public class EndScopeStep extends IntermediateStep{
     protected String blockTag;
     private boolean lastIfScope = false;
+    private Scopable scope;
 
     @Override
     public void execute() {
@@ -48,5 +50,13 @@ public class EndScopeStep extends IntermediateStep{
     
     public boolean isLastIfScope(){
         return lastIfScope;
+    }
+
+    public void setCurrentScope(Scopable currentScope) {
+        scope = currentScope;
+    }
+    
+    public Scopable getCurrentScope(){
+        return scope;
     }
 }

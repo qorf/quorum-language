@@ -22,7 +22,9 @@ public class ExceptionInfo {
     public String alwaysStartLabel;
     public String alwaysEndLabel;
     public boolean hasAlways;
-    public LineInformation location;
+    public LineInformation checkLocation;
+    public ArrayList<LineInformation> detectLocations;
+    public LineInformation alwaysLocation;
 
     //jumps and types
     public ArrayList<JumpBaseStep> detectJumps;
@@ -40,6 +42,7 @@ public class ExceptionInfo {
         detectEndLabels = new ArrayList<String>();
         detectJumps = new ArrayList<JumpBaseStep>();
         detectParameters = new ArrayList<DetectParameter>();
+        detectLocations = new ArrayList<LineInformation>();
         checkJump = new JumpStep();
     }
 

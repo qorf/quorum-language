@@ -655,7 +655,7 @@ scope {
 	}
 	check = CHECK 
 	{
-		$check_statement::info.location = new LineInformation(
+		$check_statement::info.checkLocation = new LineInformation(
 			$CHECK.getLine(),
 			$CHECK.getLine(),
 			$CHECK.getCharPositionInLine(),
@@ -673,6 +673,11 @@ scope {
 	(	//detect statement with optional always  
 	    	(detect_start = DETECT
 	    	{
+	    		$check_statement::info.detectLocations.add(new LineInformation(
+				$detect_start.getLine(),
+				$detect_start.getLine(),
+				$detect_start.getCharPositionInLine(),
+				$detect_start.text.length() + $detect_start.getCharPositionInLine()));
 	    		if($check_statement::startSymbol.equals("check")){
 		    		$check_statement::info.checkJump.setBeginLine($detect_start.getLine());
 				stepFactory.endCheck($check_statement::info);
@@ -724,6 +729,11 @@ scope {
 	    	)+ //ends 1 or more detect statements
 	    	(always = ALWAYS
 	    	{
+		    	$check_statement::info.alwaysLocation = new LineInformation(
+				$always.getLine(),
+				$always.getLine(),
+				$always.getCharPositionInLine(),
+				$always.text.length() + $always.getCharPositionInLine());
 	    		$check_statement::detectJump.setBeginLine($always.getLine());
 	    		stepFactory.endDetect($check_statement::info, $check_statement::detect_counter);
 	    		$check_statement::detect_counter = $check_statement::detect_counter + 1;
@@ -739,6 +749,11 @@ scope {
 	    |   //always statements with no detect statements.
 	    	always=ALWAYS 
 	    	{
+	    		$check_statement::info.alwaysLocation = new LineInformation(
+				$always.getLine(),
+				$always.getLine(),
+				$always.getCharPositionInLine(),
+				$always.text.length() + $always.getCharPositionInLine());
 		    	$check_statement::info.checkJump.setBeginLine($always.getLine());
 			stepFactory.endCheck($check_statement::info);
 			
@@ -1306,6 +1321,11 @@ scope {
 		)*					
 		(begin_else = ELSE
 		{
+			$if_statement::info.elseLocation = new LineInformation(
+				$begin_else.getLine(),
+				$begin_else.getLine(),
+				$begin_else.getCharPositionInLine(),
+				$begin_else.text.length() + $begin_if.getCharPositionInLine());
 			if($if_statement::endMatch.equals("if"))
 			{
 				$if_statement::info.ifJumpStep.setBeginLine($begin_else.getLine());
@@ -1340,7 +1360,7 @@ scope {
 			}
 			else
 			{
-				stepFactory.endElse();
+				stepFactory.endElse($if_statement::info);
 			}
 			
 			stepFactory.endIfBlock($if_statement::info);
@@ -1499,7 +1519,7 @@ scope {
 	
 	block[true]
 	{
-		stepFactory.addEndScopeStep("loop");
+		stepFactory.addEndScopeStep("loop", $loop_statement::location);
 		symbol.popScope();
 		if($loop_statement::type == 1)
 		{
@@ -2223,7 +2243,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		TypeDescriptor type = $castqn.myType;
 		ExecutionStep step = $cast_expr.step;
 		ExpressionValue value = $cast_expr.eval;
-
+		
 		ResultTuple result = stepFactory.addCastStep(location, type, value, step, temp);
 		
 		temp = result.getNextRegister();

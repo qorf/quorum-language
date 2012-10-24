@@ -1920,7 +1920,7 @@ public class StepFactory {
      */
     public void addIfEndJumpStep(IfStatementInfo info){
         //end the block
-        addEndScopeStep("if");
+        addEndScopeStep("if", info.ifLocation);
 
         IntermediateExecutionBuilder builder = this.machine.getBuilder();
         String al = info.endLabel;
@@ -1975,7 +1975,7 @@ public class StepFactory {
      */
     public void addElseIfEndJumpStep(IfStatementInfo info, int counter) {
         //end the block
-        addEndScopeStep("elseif");
+        addEndScopeStep("elseif", info.elseIfLocations.get(counter));
 
         JumpBaseStep jump = info.elseIfJumpSteps.get(counter);
         IntermediateExecutionBuilder builder = this.machine.getBuilder();
@@ -2020,9 +2020,9 @@ public class StepFactory {
     /**
      * End the else block and it's scopes.
      */
-    public void endElse(){
+    public void endElse(IfStatementInfo info){
         //end the block
-        addEndScopeStep("else");
+        addEndScopeStep("else", info.elseLocation);
         
         SymbolTable symbolTable = this.machine.getSymbolTable();
         symbolTable.getControlFlow().elseEnd();
@@ -2076,7 +2076,7 @@ public class StepFactory {
         checkLandingPads.setMethod(symbolTable.getCurrentMethod());
         this.machine.addCheckLandingPads(info.checkStartLabel, checkLandingPads);
 
-        CompilerError e = symbolTable.getControlFlow().addStatement(info.location);
+        CompilerError e = symbolTable.getControlFlow().addStatement(info.checkLocation);
         if (e != null) {
                 machine.getCompilerErrors().addError(e);
         }
@@ -2132,9 +2132,11 @@ public class StepFactory {
      * such as if statements or loops.
      *
      */
-    public void addEndScopeStep(String tag){
+    public void addEndScopeStep(String tag, LineInformation info){
         EndScopeStep step = new EndScopeStep();
+        step.setCurrentScope(this.machine.getSymbolTable().getCurrentScope());
         step.setBlockTag(tag);
+        step.setLineInformation(info);
         machine.getBuilder().add(step);
     }
 
@@ -2146,7 +2148,7 @@ public class StepFactory {
      */
     public void addCheckEndJumpStep(ExceptionInfo info) {
         //end the block
-        addEndScopeStep("check");
+        addEndScopeStep("check", info.checkLocation);
 
         IntermediateExecutionBuilder builder = this.machine.getBuilder();
         String al = info.alwaysStartLabel;
@@ -2223,7 +2225,7 @@ public class StepFactory {
      */
     public void addDetectEndJumpStep(ExceptionInfo info, JumpBaseStep jump) {
         //end the scope
-        this.addEndScopeStep("detect");
+        this.addEndScopeStep("detect", info.detectLocations.get(info.detectLocations.size() - 1));
         
         IntermediateExecutionBuilder builder = this.machine.getBuilder();
         String al = info.alwaysStartLabel;
@@ -2285,12 +2287,13 @@ public class StepFactory {
         IntermediateExecutionBuilder builder = this.machine.getBuilder();
         if(info.hasAlways){
             //end the block
-            this.addEndScopeStep("always");
+            this.addEndScopeStep("always", info.alwaysLocation);
             SymbolTable symbolTable = this.machine.getSymbolTable();
             symbolTable.popScope();
         }
         
         AlwaysEndStep step = new AlwaysEndStep();
+        step.setLineInformation(info.alwaysLocation);
         step.addCheckDetectLabel(info.checkStartLabel);
         builder.add(step);
     }
