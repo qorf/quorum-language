@@ -166,11 +166,13 @@ public abstract class ExecutionStep {
      * @param location
      */
     public void setLineInformation(LineInformation location) {
-        this.beginLine = location.getStartLine();
-        this.beginColumn = location.getStartColumn();
-        this.endLine = location.getEndLine();
-        this.endColumn = location.getEndColumn();
-        this.lineInformation = location;
+        if(location != null){
+            this.beginLine = location.getStartLine();
+            this.beginColumn = location.getStartColumn();
+            this.endLine = location.getEndLine();
+            this.endColumn = location.getEndColumn();
+            this.lineInformation = location;
+        }
 
 
     }
