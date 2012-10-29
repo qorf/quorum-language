@@ -2145,6 +2145,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         
         methodVisitor.visitLabel(endLabel);
         
+        //visit the this
+        visitMeLocalVariable(currentClassExecution);
+        
+        //visit all local variables
         visitLocalVariable(method);
         stack.popScope();
     }
@@ -3622,11 +3626,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitJumpInsn(GOTO, label0);
                 //visit the end of the loop label.
                 methodVisitor.visitLabel(label1);
-                stack.peekScope().endLabel = label1;
-                BlockDescriptor blockAtLine = step.getMethodDescriptor().getBlockAtLine(step.getBeginLine());
-                if(blockAtLine != null){
-                    visitLocalVariable(blockAtLine);
-                    stack.popScope();
+                if (!label.getLabelType().equals(LabelTypeEnum.FROM) && !label.getLabelType().equals(LabelTypeEnum.TIMES)) {
+                    stack.peekScope().endLabel = label1;
+                    BlockDescriptor blockAtLine = step.getMethodDescriptor().getBlockAtLine(step.getBeginLine());
+                    if(blockAtLine != null){
+                        visitLocalVariable(blockAtLine);
+                        stack.popScope();
+                    }
                 }
             } else if (!step.getBlockTag().equals("always") && (label.getLabelType().equals(LabelTypeEnum.CHECK) || label.getLabelType().equals(LabelTypeEnum.DETECT))) {//end of the loop will mark the goto and visit the end label.
 
@@ -3777,6 +3783,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitJumpInsn(GOTO, label0);
                 //visit the end of the loop label.
                 methodVisitor.visitLabel(label1);
+                stack.peekScope().endLabel = label1;
+                BlockDescriptor blockAtLine = step.getMethodDescriptor().getBlockAtLine(step.getBeginLine());
+                if(blockAtLine != null){
+                    visitLocalVariable(blockAtLine);
+                    stack.popScope();
+                }
             } else if (label.getLabelType().equals(LabelTypeEnum.LOOP)) {//if the label is for the general loop just pop off the remaining label.
                 //methodVisitor.visitLabel(label.getLabel());
                 stack.popLabel();
@@ -4221,10 +4233,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 if(next.getVariableNumber() != -1){
                     int mappedVariableNumber = stack.getMappedVariableNumber(next.getVariableNumber() - currentClass.getNumberOfVariables(), next.getType(), false);
                     ScopeLabel popScope = stack.peekScope();
-                    methodVisitor.visitLocalVariable(next.getName(), QuorumConverter.convertTypeToBytecodeString(next.getType()), null, popScope.startLabel, popScope.endLabel, mappedVariableNumber);
+                    methodVisitor.visitLocalVariable(next.getName(), QuorumConverter.convertTypeToBytecodeString(next.getType()), QuorumConverter.convertTypeToBytecodeString(next.getType()), popScope.startLabel, popScope.endLabel, mappedVariableNumber);
                 }else{
                     ScopeLabel popScope = stack.peekScope();
-                    methodVisitor.visitLocalVariable(next.getName(), QuorumConverter.convertTypeToBytecodeString(next.getType()), null, popScope.startLabel, popScope.endLabel, stack.getParameterNumber(next.getStaticKey()));
+                    methodVisitor.visitLocalVariable(next.getName(), QuorumConverter.convertTypeToBytecodeString(next.getType()), QuorumConverter.convertTypeToBytecodeString(next.getType()), popScope.startLabel, popScope.endLabel, stack.getParameterNumber(next.getStaticKey()));
                 }
             }
         }
@@ -4239,11 +4251,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 if(next.getVariableNumber() != -1){
                     int mappedVariableNumber = stack.getMappedVariableNumber(next.getVariableNumber() - currentClass.getNumberOfVariables(), next.getType(), false);
                     ScopeLabel popScope = stack.peekScope();
-                    methodVisitor.visitLocalVariable(next.getName(), QuorumConverter.convertTypeToBytecodeString(next.getType()), null, popScope.startLabel, popScope.endLabel, mappedVariableNumber);
+                    methodVisitor.visitLocalVariable(next.getName(), QuorumConverter.convertTypeToBytecodeString(next.getType()), QuorumConverter.convertTypeToBytecodeString(next.getType()), popScope.startLabel, popScope.endLabel, mappedVariableNumber);
                 }else{
                     ScopeLabel popScope = stack.peekScope();
-                    methodVisitor.visitLocalVariable(next.getName(), QuorumConverter.convertTypeToBytecodeString(next.getType()), null, popScope.startLabel, popScope.endLabel, stack.getParameterNumber(next.getStaticKey()));
+                    methodVisitor.visitLocalVariable(next.getName(), QuorumConverter.convertTypeToBytecodeString(next.getType()), QuorumConverter.convertTypeToBytecodeString(next.getType()), popScope.startLabel, popScope.endLabel, stack.getParameterNumber(next.getStaticKey()));
                 }
+            }
+        }
+    }
+
+    private void visitMeLocalVariable(ClassExecution currentClassExecution) {
+        if(LOCAL_VARIABLE_NAMES_VISITED){
+            if(currentClassExecution != null){
+                TypeDescriptor type = currentClassExecution.getClassDescriptor().getType();
+                methodVisitor.visitLocalVariable("me", QuorumConverter.convertTypeToBytecodeString(type), QuorumConverter.convertTypeToBytecodeString(type), stack.peekScope().startLabel, stack.peekScope().endLabel, 0);
             }
         }
     }
