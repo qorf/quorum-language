@@ -4249,9 +4249,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             Iterator<VariableParameterCommonDescriptor> scopeVariables = block.getVariables();
             while(scopeVariables.hasNext()){
                 VariableParameterCommonDescriptor next = scopeVariables.next();
-
+                
                 if(next.getVariableNumber() != -1){
                     int mappedVariableNumber = stack.getMappedVariableNumber(next.getVariableNumber() - currentClass.getNumberOfVariables(), next.getType(), false);
+                    if(mappedVariableNumber == -1)
+                        mappedVariableNumber = next.getVariableNumber() - currentClass.getNumberOfVariables();
                     ScopeLabel popScope = stack.peekScope();
                     methodVisitor.visitLocalVariable(next.getName(), QuorumConverter.convertTypeToBytecodeString(next.getType()), QuorumConverter.convertTypeToBytecodeString(next.getType()), popScope.startLabel, popScope.endLabel, mappedVariableNumber);
                 }else{
