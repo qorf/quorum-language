@@ -1,4 +1,4 @@
-// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2012-10-24 15:12:29
+// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2012-10-30 10:18:48
 
 
 package org.quorum.parser;
@@ -6511,7 +6511,7 @@ public static class STAttrMap extends HashMap {
                     		}catch(NumberFormatException e){
                     			CompilerError error = new CompilerError();
                     			error.setLineNumber(INT41.getLine());
-                    			error.setError((INT41!=null?INT41.getText():null) + " is an invalid integer. The integer may be too large.");
+                    			error.setError("The integer " + (INT41!=null?INT41.getText():null) + " is not valid. All integers must be between the range of -2,147,483,648 and 2,147,483,647");
                     			error.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
                     			error.setColumn(INT41.getCharPositionInLine());
                     			error.setFile(getGrammarFileNameNoExtension());

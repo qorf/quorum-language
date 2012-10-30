@@ -2128,7 +2128,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		}catch(NumberFormatException e){
 			CompilerError error = new CompilerError();
 			error.setLineNumber($INT.getLine());
-			error.setError($INT.text + " is an invalid integer. The integer may be too large.");
+			error.setError("The integer " + $INT.text + " is not valid. All integers must be between the range of -2,147,483,648 and 2,147,483,647");
 			error.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
 			error.setColumn($INT.getCharPositionInLine());
 			error.setFile(getGrammarFileNameNoExtension());
