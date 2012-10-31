@@ -677,20 +677,15 @@ public class StepFactory {
                 error.setFile(info.location.getFile());
                 machine.getCompilerErrors().addError(error);
             }
-          }else if(vd == null && info.rightValue != null && info.rightValue.getType() != null && info.rightValue.getType().isInferable()){
-            VariableDescriptor new_desc = new VariableDescriptor();
-            new_desc.setType(info.rightValue.getType());
-            new_desc.setLineBegin(info.location.getStartLine());
-            new_desc.setName(info.variableName);
-            new_desc.setIsInitializedClassVariable(true);
-
-            CompilerError error = machine.getSymbolTable().add(new_desc);
-            if (error != null) {
-                error.setLineNumber(info.location.getStartLine());
-                error.setColumn(info.location.getStartColumn());
-                machine.getCompilerErrors().addError(error);
+        }
+        
+        if(vd != null && vd.getType() == null){
+            if(info.rightValue != null && info.rightValue.getType() != null && info.rightValue.getType().isInferable()){
+                vd.setType(info.rightValue.getType());
+                info.localOnly = true;
+            }else{
+                vd = null;
             }
-            vd = machine.getSymbolTable().getVariable(info.variableName);
         }
 
         if (vd != null) {

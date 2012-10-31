@@ -59,7 +59,7 @@ public class OtherTester {
         catch(Exception e) {
             fail();
         }
-        if (vm.getCompilerErrors().isCompilationErrorFree()){
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
     }

@@ -1176,7 +1176,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
     }
 
     private void resolve(VariableParameterCommonDescriptor vpd) {
-        if (!vpd.getType().isPrimitiveType()) {
+        if (vpd.getType() != null && !vpd.getType().isPrimitiveType()) {
             ClassDescriptor clazz =
                     this.getVirtualMachine().getSymbolTable().findClassDescriptorFromClass(
                     this.getStaticKey(), vpd.getType().getName());

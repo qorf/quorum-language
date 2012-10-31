@@ -1000,7 +1000,31 @@ assignment_statement
 						validConstructorInit = true;	
 					}					
 				}
-				else {
+				else if(rhs != null){
+					VariableParameterCommonDescriptor variable = symbol.getCurrentScope().getVariable(initMe);
+			                                            if(variable == null){
+			                                            	VariableDescriptor new_desc = new VariableDescriptor();
+			                                            	if(isInClassAssignmentStatementScope) {
+							new_desc.setDocumentation(variableDocumentation);
+						}
+						//Iterator<GenericDescriptor> gdList = $type.type.getSubTypes();
+						new_desc.setAccessModifier(accessModifier.PRIVATE);
+						new_desc.setLineBegin($ID.getLine());
+						new_desc.setName(initMe);
+						new_desc.setIsConstant(false);
+				                                            if( isInClassAssignmentStatementScope) {
+							new_desc.setIsInitializedClassVariable(true);
+						}
+						
+						CompilerError error = symbol.add(new_desc);
+						if(error != null) {
+							error.setLineNumber($ID.getLine());
+							error.setColumn($ID.getCharPositionInLine());
+							vm.getCompilerErrors().addError(error);
+						}
+			                                            }
+					validConstructorInit = true;
+				}else{
 					validConstructorInit = true;
 				}
 				if(validConstructorInit) {

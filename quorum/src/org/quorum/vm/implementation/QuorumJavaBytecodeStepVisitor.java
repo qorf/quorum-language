@@ -813,7 +813,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * helper method: swap values and prepare for concatenation.
      */
     private void prepareValueTextConcatenation() {
-        //pop the text type off the stack and grab the first value in the concatination.
+        //pop the text type off the stack and grab the first value in the concatenation.
         TypeDescriptor textType = stack.popExpressionType();
         TypeDescriptor otherType = stack.peekExpressionType();
 
