@@ -2042,7 +2042,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		info.variable = $qualified_name.type;
 		info.argumentTypes = argumentTypes;
 		info.methodName = myMethodName;
-		info.isObjectCall = false;
+		info.isObjectCall = ($ID!=null);
 		info.isThisCall = true;
 		info.isNested = nested;
 		
