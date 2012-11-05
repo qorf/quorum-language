@@ -536,7 +536,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         return false;
     }
 
-    private MethodDescriptor getResolvedTemplatedMethod(ClassDescriptor clazz, MethodDescriptor method){
+    public MethodDescriptor getResolvedTemplatedMethod(ClassDescriptor clazz, MethodDescriptor method){
         MethodDescriptor newMethod = new MethodDescriptor();
 
         //if clazz is a parent of the current class

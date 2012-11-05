@@ -582,4 +582,25 @@ public class TypeDescriptor extends Descriptor {
     public boolean isInferable(){
         return inferable;
     }
+
+    public boolean compare(TypeDescriptor returnType) {
+        if(this.getStaticKey().compareTo(returnType.getStaticKey()) == 0){
+            if(this.hasSubTypes() && returnType.hasSubTypes()){
+                Iterator<GenericDescriptor> thisSubTypes = this.getSubTypes();
+                Iterator<GenericDescriptor> returnSubTypes = returnType.getSubTypes();
+                if(thisSubTypes.hasNext() && returnSubTypes.hasNext()){
+                    TypeDescriptor thisTypes = thisSubTypes.next().getType();
+                    TypeDescriptor returnTypes = returnSubTypes.next().getType();
+                    if(thisTypes.compare(returnTypes)){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }else{
+            return false;
+        }
+    }
 }

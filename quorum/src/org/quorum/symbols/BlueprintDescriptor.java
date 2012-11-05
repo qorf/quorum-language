@@ -5,6 +5,7 @@
 package org.quorum.symbols;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import org.quorum.vm.interfaces.CompilerError;
 
 /**
@@ -116,8 +117,28 @@ public class BlueprintDescriptor extends MethodDescriptor {
      */
     private static boolean compare(BlueprintDescriptor bp, MethodDescriptor md) {
         if (bp != null && md != null) {
-            if (bp.getStaticKey().equals(md.getStaticKey()) && bp.getReturnType().getStaticKey().equals(md.getReturnType().getStaticKey())) {
+            if (bp.getStaticKey().equals(md.getStaticKey()) && bp.getReturnType().getStaticKey().equals(md.getReturnType().getStaticKey())) { 
                 return true;
+            }else if(bp.getStaticKey().equals(md.getStaticKey()) && bp.getReturnType().isTemplated()){
+                MethodDescriptor resolvedTemplatedMethod = ((ClassDescriptor)md.getParent()).getResolvedTemplatedMethod((ClassDescriptor)bp.getParent(), bp);
+                if(resolvedTemplatedMethod != null && resolvedTemplatedMethod.getReturnType().compare(md.getReturnType())){
+                    if(md.getReturnType().hasSubTypes() && resolvedTemplatedMethod.getReturnType().hasSubTypes()){
+                        Iterator<GenericDescriptor> bpSubTypes = resolvedTemplatedMethod.getReturnType().getSubTypes();
+                        Iterator<GenericDescriptor> mdSubTypes = md.getReturnType().getSubTypes();
+                        GenericDescriptor bpNext = null;
+                        GenericDescriptor mdNext = null;
+                        while(bpSubTypes.hasNext() && mdSubTypes.hasNext()){
+                            bpNext = bpSubTypes.next();
+                            mdNext = mdSubTypes.next();
+                        }
+                        if(bpNext != null && mdNext != null){
+                            return bpNext.getType().compare(mdNext.getType());
+                        }else{
+                            return false;
+                        }
+                    }
+                    return true;
+                }
             }
         } else if (bp == null && md == null) {
             return true;
