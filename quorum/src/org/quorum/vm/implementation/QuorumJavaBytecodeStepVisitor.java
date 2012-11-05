@@ -4268,7 +4268,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         if(LOCAL_VARIABLE_NAMES_VISITED){
             if(currentClassExecution != null){
                 TypeDescriptor type = currentClassExecution.getClassDescriptor().getType();
-                methodVisitor.visitLocalVariable("me", QuorumConverter.convertTypeToBytecodeString(type), QuorumConverter.convertTypeToBytecodeString(type), stack.peekScope().startLabel, stack.peekScope().endLabel, 0);
+                methodVisitor.visitLocalVariable("this", QuorumConverter.convertTypeToBytecodeString(type), QuorumConverter.convertTypeToBytecodeString(type), stack.peekScope().startLabel, stack.peekScope().endLabel, 0);
             }
         }
     }
