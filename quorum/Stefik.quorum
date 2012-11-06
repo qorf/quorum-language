@@ -15,14 +15,19 @@ java -cp "../../../dependencies/phonemic.jar:./" quorum.Stefik
 
 */
 
-use Libraries.System.DateTime
-use Libraries.Compute.BitwiseOperations
+use Libraries.System.Console
+use Libraries.Containers.Array
 
-class Stefik
-    action Main
-        Integer i
+Console console
+Array<text> arg = console:GetConsoleArguments()
 
-        a = i:minimumValue
-        print a
-    end
+print "Hello, we are about to print the command line arguments."
+
+
+integer i = 0
+repeat while i < arg:GetSize()
+    print arg:Get(i)
+    i = i + 1
 end
+
+print "We are now ending."

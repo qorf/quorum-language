@@ -2253,6 +2253,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     QuorumConverter.convertMethodDescriptorToBytecodeSignature(method.getMethodDescriptor()));
             methodVisitor.visitMethodInsn(INVOKESTATIC, "plugins/quorum/Libraries/System/Quorum", "Unload",
                     "()V");
+            //methodVisitor.visitMethodInsn(INVOKESTATIC, "plugins/quorum/Libraries/System/Quorum", "out", "Ljava/io/PrintStream;");
             methodVisitor.visitInsn(RETURN);
             methodVisitor.visitMaxs(2, 2);
             methodVisitor.visitEnd();
