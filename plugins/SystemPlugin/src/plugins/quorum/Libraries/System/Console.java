@@ -25,7 +25,7 @@ public class Console {
     private static JDialog dialog = null;
     private static boolean useDialog = false;
     private static TextToSpeech speech = null;
-    private static String[] commandLineArguments = new String[0];
+    public static String[] commandLineArguments = new String[0];
 
     static {
         try {
@@ -149,8 +149,7 @@ public class Console {
     }
     
     public String GetConsoleArgument(int index) {
-        if(commandLineArguments != null && index > commandLineArguments.length) {
-            System.out.println("Made it in: " + commandLineArguments[index]);
+        if(commandLineArguments != null && index <= commandLineArguments.length) {
             return commandLineArguments[index];
         }
         return null;
@@ -162,7 +161,6 @@ public class Console {
         Attribute: Return the number of console arguments.
     */
     public int GetNumberConsoleArguments() {
-        System.out.println("length: " + commandLineArguments.length);
         return commandLineArguments.length;
     }
 }
