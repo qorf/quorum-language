@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -24,6 +25,7 @@ import org.quorum.vm.implementation.QuorumVirtualMachine;
 import org.quorum.vm.interfaces.CodeGenerator;
 import org.quorum.vm.interfaces.CompilerError;
 import org.quorum.vm.interfaces.CompilerErrorManager;
+import org.quorum.web.QuorumServer;
 
 /**
  * This is the Main class for running Quorum programs. This class will
@@ -191,6 +193,12 @@ public class Main {
      * A folder for documentation to be generated into.
      */
     private static final String DOCUMENTATION_DIRECTORY = "Documentation";
+    
+    /**
+     * Adding this flag will start a web server and display a quorum web project
+     * in the default browser.
+     */
+    private static final String WEB = "-web";
     
     /**
      * @param args the command line arguments
@@ -426,15 +434,25 @@ public class Main {
   "of files. Legal flags are as follows:\n\n"+
   
   "-interpret This causes the VM to run in interpreted mode.\n\n"+
+                
   "-compile This causes the VM to compile Quorum code to java bytecode. This is the default setting.\n"+
   "\tCode will not be run in this mode, only compiled.\n\n"+
+                
   "-document This causes the VM to compile Quorum code normally, but instead of outputting"+
   " bytecode or interpreting the code, it outputs documentation for the code. This feature is currently"+
   " in the experimental stage and only outputs `wiki' formatted documentation. In the future, HTML output is" +
   " planned.\n\n"+
+                
   "-verify This causes Quorum to output documentation and ensure that enclosed code examples for "+
   "actions compile. This is highly experimental and does not state the precise errors encountered. It is also very "+
   "slow.\n\n"+
+  
+  "-web [/Absolute/path/to/jar] This will start a web server and run the"+
+  " specified jar file as a website. The server will use http://localhost:8000/"+
+  " for the root of all addresses. If you need to make changes to your web"+
+  " project just re-compile and click refresh in your browser. There is no need"+
+  " to restart the web server.\n\n"+
+                
   "-name [String] This sets the name which is output for the corresponding distribution files."+
   "An example might be -name Music. This would cause Quorum to output a "+
   "jar file by the name of Music.jar into the folder distribute.\n\n"+
@@ -496,6 +514,17 @@ public class Main {
             else if(arg.compareTo(HELP) == 0){
                 outputHelp();
             }
+            else if(arg.compareTo(WEB) == 0){
+                if((index + 1) < args.length) {
+                    startWebServer(args[(index + 1)]);
+                }
+                else {
+                    // The user didn't provide a parameter for the `-name' flag...
+                    System.err.println("The `-web' flag requires an argument."+
+                            " For example, -web /Users/Jeff/WebSite/Default.jar");
+                    //outputHelp();
+                }
+            }
             else if(arg.compareTo(DOCUMENT) == 0){
                 isDocumentation = true;
             }
@@ -551,5 +580,29 @@ public class Main {
             }
             index++;
         }
+    }
+
+    private static void startWebServer(String jarFile) {
+        try {
+            File path = new File(jarFile);
+            if (path.exists()) {
+                QuorumServer qs = new QuorumServer(jarFile);
+               qs.start();
+                System.out.println("A web server will open the file: " + jarFile +
+                        " using http://localhost:8000/. If you wish to make changes" +
+                        " to your QuorumWeb project there is no need to restart" +
+                        " the web server just re-compile and click refresh in your" +
+                        " browser.");
+            }else
+                System.err.println("The path, "+ jarFile +", passed to -web was"+
+                        " not found: " + jarFile + ". Please try again; be sure"+
+                        " to use the absolute path.");
+
+        } catch (IOException ex) {
+            System.err.println("Couldn't start server: " + ex.getMessage());
+        } catch (URISyntaxException ex) {
+            System.err.println("Web address not recognized: " + ex.getMessage());
+        }
+        System.exit(0); // exit the system
     }
 }
