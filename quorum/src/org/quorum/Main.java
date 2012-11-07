@@ -587,7 +587,7 @@ public class Main {
             File path = new File(jarFile);
             if (path.exists()) {
                 QuorumServer qs = new QuorumServer(jarFile);
-               qs.start();
+                //qs.start();
                 System.out.println("A web server will open the file: " + jarFile +
                         " using http://localhost:8000/. If you wish to make changes" +
                         " to your QuorumWeb project there is no need to restart" +
@@ -602,7 +602,7 @@ public class Main {
             System.err.println("Couldn't start server: " + ex.getMessage());
         } catch (URISyntaxException ex) {
             System.err.println("Web address not recognized: " + ex.getMessage());
-        }
-        System.exit(0); // exit the system
+        } 
+        //System.exit(0); // exit the system
     }
 }
