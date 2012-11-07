@@ -201,6 +201,12 @@ public class Main {
     private static final String WEB = "-web";
     
     /**
+     * Whether or not to start the web server instead of compiling/interpreting. 
+     * This is off by default.
+     */
+    private static boolean isWeb = false;
+    
+    /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
@@ -275,20 +281,34 @@ public class Main {
         processFlags(args);
         
         // Now we will process remaining flags.
-        if(args.length >= 1 ) {
+        if (isWeb) {
+            if (args.length >= 1) {
+                startWebServer(args[1]);
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException ex) {
+                    System.err.println("Failed to start web server: " + ex.getLocalizedMessage());
+                }
+            } else {
+                // The user didn't provide a parameter for the `-web' flag...
+                System.err.println("The `-web' flag requires an argument."
+                        + " For example, -web /Users/Jeff/WebSite/Default.jar");
+            }
+        } else if (args.length >= 1) {
             File[] files = new File[args.length - argumentIndex];
             int fileIndex = 0; // file index is different from command line index.
-            for(int i = argumentIndex; i < args.length; i++) {
+            for (int i = argumentIndex; i < args.length; i++) {
                 String path = args[i];
                 path = path.replaceAll("\\%20", " ");
                 File next = new File(args[i]);
                 files[fileIndex] = next;
                 // If compiling, show the user some information.
-                if (!isInterpret)
+                if (!isInterpret) {
                     System.out.println("Preparing to build " + files[fileIndex]);
+                }
                 fileIndex++;
             }
-            
+
             //setup the VM
             vm.setGenerateCode(true);
             vm.setBuildFolder(build);
@@ -299,7 +319,7 @@ public class Main {
             vm.setPluginFolder(pluginFolder);
             vm.setMain(files[0].getAbsolutePath());
             //build
-            
+
             // If compling or documenting, let the user know we're building.
             if (!isInterpret) {
                 System.out.print("\nBuilding files...");
@@ -309,43 +329,43 @@ public class Main {
             else {
                 vm.build(files, true);
             }
-            
+
             if (!vm.getCompilerErrors().isCompilationErrorFree()) {
                 System.out.println("The code did not build correctly. Here is a list of errors:");
                 CompilerErrorManager compilerErrors = vm.getCompilerErrors();
                 Iterator<CompilerError> errors = compilerErrors.iterator();
-                
+
                 int i = 1;
                 while (errors.hasNext()) {
                     System.err.println(i + ": " + errors.next().toString());
                 }
-            }
-            else {
+            } else {
                 // Should we execute, build the documentation, or clean up?
                 if (isDocumentation) {
                     // Set the documentation directory to the distribution folder.
                     vm.setDocumentationPath(documentation.getAbsolutePath());
-                    
-                    if (!isVerifyDocumentation)
+
+                    if (!isVerifyDocumentation) {
                         System.out.print("Generating documentation...");
-                    else
+                    } else {
                         System.out.println("Generating and verifying documentation...");
-                    
+                    }
+
                     vm.generateAllDocumentation(files, isVerifyDocumentation);
-                    
-                    if (!isVerifyDocumentation)
+
+                    if (!isVerifyDocumentation) {
                         System.out.println(" done.");
-                    else
+                    } else {
                         System.out.println("Done. Any non-compiling examples are shown above.");
-                    
+                    }
+
                     System.out.println("Documentation placed in the folder: " + documentation.getAbsolutePath());
-                }
-                else if (isInterpret) {
+                } else if (isInterpret) {
                     // Generate code without dumping to disk.
                     CodeGenerator g = vm.getCodeGenerator();
                     g.setCompileToDisk(false);
                     vm.build(files, true);
-                    
+
                     // Load the main quorum class and invoke the static main(String[] args) method with no arguments.
                     String mainClassName = g.getMainClassName();
                     QuorumClassLoader classLoader = new QuorumClassLoader();
@@ -356,50 +376,50 @@ public class Main {
                         quorumClass = classLoader.loadClass(mainClassName.replaceAll("/", "."));
                         Method declaredMethod = quorumClass.getDeclaredMethod("main", new Class[]{String[].class});
                         String[] programArguments = {}; // TODO: In the future, this can be used to pass arguments to a program running in interpreted mode.
-                        declaredMethod.invoke(null, (Object)programArguments);
+                        declaredMethod.invoke(null, (Object) programArguments);
                     } catch (InvocationTargetException e) {
-                        if (e.getCause() != null){ 
+                        if (e.getCause() != null) {
                             System.err.println("Unable to run interpreter: ");
                             e.printStackTrace();
-                        }else
+                        } else {
                             System.err.println("Unable to run interpreter: " + e.getMessage());
-                        
+                        }
+
                         // Bail with an error code.
                         System.exit(1);
                     } catch (Exception e) {
                         // TODO: Handle this in a more friendly manner.
                         System.err.println("Unable to run interpreter: " + e.getMessage());
-                        
+
                         // Bail with an error code.
                         System.exit(1);
                     }
-                }
-                else {
+                } else {
                     // Not generating documentation or running, so we're compiling.
                     System.out.println("Build completed successfully.\n");
 
                     // Tell the user how to run their program.
                     System.out.println("To run your program, type:\n");
-                    
+
                     // Show appropriate pathing.
                     String pathSep = "/";
-                    if (System.getProperty("os.name").contains("Windows"))
+                    if (System.getProperty("os.name").contains("Windows")) {
                         pathSep = "\\";
+                    }
                     String fullPath = "" + DISTRIBUTE_DIRECTORY + pathSep + name + ".jar";
-                    
+
                     System.out.println("java -jar " + fullPath + "\n");
                     System.out.println("into this command prompt.");
-                    
+
                     // If they used the default name, let them know that they
                     // can change it.
                     if (name.equals("Default")) {
-                        System.out.println("(Note that if you want to name your file something other than `Default.jar', " +
-                                "you can do so using the `-name' flag. Type `quorum -help' for details.)");
+                        System.out.println("(Note that if you want to name your file something other than `Default.jar', "
+                                + "you can do so using the `-name' flag. Type `quorum -help' for details.)");
                     }
                 }
             }
-        }
-        else {
+        } else {
             // Tell the user that they need to pass a file to process!
             System.err.println("Please pass the files you would like to compile on the command line. For example, you might type quorum Main.quorum.");
             vm.build("say \"Please pass the files you would like to compile on the command line. For example, you might type quorum Main.quorum.\"");
@@ -515,15 +535,8 @@ public class Main {
                 outputHelp();
             }
             else if(arg.compareTo(WEB) == 0){
-                if((index + 1) < args.length) {
-                    startWebServer(args[(index + 1)]);
-                }
-                else {
-                    // The user didn't provide a parameter for the `-name' flag...
-                    System.err.println("The `-web' flag requires an argument."+
-                            " For example, -web /Users/Jeff/WebSite/Default.jar");
-                    //outputHelp();
-                }
+                isWeb = true;
+                flagsFinished = true;
             }
             else if(arg.compareTo(DOCUMENT) == 0){
                 isDocumentation = true;
@@ -587,7 +600,6 @@ public class Main {
             File path = new File(jarFile);
             if (path.exists()) {
                 QuorumServer qs = new QuorumServer(jarFile);
-                //qs.start();
                 System.out.println("A web server will open the file: " + jarFile +
                         " using http://localhost:8000/. If you wish to make changes" +
                         " to your QuorumWeb project there is no need to restart" +

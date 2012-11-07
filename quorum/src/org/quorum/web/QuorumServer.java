@@ -36,19 +36,7 @@ public class QuorumServer {
         }
         Desktop.getDesktop().browse(new URI("http://localhost:8000/" + address));
 
-    }
-    
-//    public void start() throws URISyntaxException, IOException{
-//        
-//        //try {
-//           
-//            server.start();
-//            //Thread.sleep(1000);
-//            //Desktop.getDesktop().browse(new URI("http://localhost:8000/" + address));
-//        //} catch (InterruptedException ex) {
-//        //    Logger.getLogger(QuorumServer.class.getName()).log(Level.SEVERE, null, ex);
-//        //}
-//    }
+    } 
     
     private String parsePath(String uriPath){
         
