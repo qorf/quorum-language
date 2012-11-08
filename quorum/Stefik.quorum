@@ -15,19 +15,11 @@ java -cp "../../../dependencies/phonemic.jar:./" quorum.Stefik
 
 */
 
-use Libraries.System.Console
-use Libraries.Containers.Array
+print "<html><body>"
 
-Console console
-Array<text> arg = console:GetConsoleArguments()
-
-print "Hello, we are about to print the command line arguments."
-
-
-integer i = 0
-repeat while i < arg:GetSize()
-    print arg:Get(i)
-    i = i + 1
+repeat 10 times
+    print "<p> Howdy </p>"
 end
 
-print "We are now ending."
+
+print "</body><html>"

@@ -596,25 +596,22 @@ public class Main {
     }
 
     private static void startWebServer(String jarFile) {
-        try {
-            File path = new File(jarFile);
-            if (path.exists()) {
-                QuorumServer qs = new QuorumServer(jarFile);
-                System.out.println("A web server will open the file: " + jarFile +
-                        " using http://localhost:8000/. If you wish to make changes" +
-                        " to your QuorumWeb project there is no need to restart" +
-                        " the web server just re-compile and click refresh in your" +
-                        " browser.");
-            }else
-                System.err.println("The path, "+ jarFile +", passed to -web was"+
-                        " not found: " + jarFile + ". Please try again; be sure"+
-                        " to use the absolute path.");
+        File path = new File(jarFile);
+        if (path.exists()) {
+            QuorumServer qs = new QuorumServer();
+            qs.setJarLocation(jarFile);
+            qs.start();
+            System.out.println("A web server will open the file: " + jarFile
+                    + " using http://localhost:8000/. If you wish to make changes"
+                    + " to your QuorumWeb project there is no need to restart"
+                    + " the web server just re-compile and click refresh in your"
+                    + " browser.");
+            
+        } else {
+            System.err.println("The path, " + jarFile + ", passed to -web was"
+                    + " not found: " + jarFile + ". Please try again; be sure"
+                    + " to use the absolute path.");
+        }
 
-        } catch (IOException ex) {
-            System.err.println("Couldn't start server: " + ex.getMessage());
-        } catch (URISyntaxException ex) {
-            System.err.println("Web address not recognized: " + ex.getMessage());
-        } 
-        //System.exit(0); // exit the system
     }
 }
