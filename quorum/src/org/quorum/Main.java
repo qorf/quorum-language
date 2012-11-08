@@ -339,6 +339,7 @@ public class Main {
                 while (errors.hasNext()) {
                     System.err.println(i + ": " + errors.next().toString());
                 }
+                System.exit(0);
             } else {
                 // Should we execute, build the documentation, or clean up?
                 if (isDocumentation) {
@@ -419,13 +420,14 @@ public class Main {
                     }
                 }
             }
+            System.exit(0);
         } else {
             // Tell the user that they need to pass a file to process!
             System.err.println("Please pass the files you would like to compile on the command line. For example, you might type quorum Main.quorum.");
             vm.build("say \"Please pass the files you would like to compile on the command line. For example, you might type quorum Main.quorum.\"");
             vm.run();
+            System.exit(0);
         }
-        System.exit(0);
     }
     
     /**
@@ -608,17 +610,12 @@ public class Main {
             QuorumServer qs = new QuorumServer();
             qs.setJarLocation(jarFile);
             qs.start();
-            System.out.println("A web server will open the file: " + jarFile
-                    + " using http://localhost:8000/. If you wish to make changes"
-                    + " to your QuorumWeb project there is no need to restart"
-                    + " the web server just re-compile and click refresh in your"
-                    + " browser.");
-            
+            System.out.println("Opening the default web browser on the system at"
+                    + " http://localhost:8000/.");
         } else {
             System.err.println("The path, " + jarFile + ", passed to -web was"
                     + " not found: " + jarFile + ". Please try again; be sure"
                     + " to use the absolute path.");
         }
-
     }
 }

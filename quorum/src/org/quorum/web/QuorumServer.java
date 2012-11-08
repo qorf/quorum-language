@@ -42,11 +42,10 @@ public class QuorumServer {
             server.createContext("/", new MyHandler());
             server.setExecutor(null); // creates a default executor
             server.start();
-            
             while (jarLocation.startsWith("/")){
                 jarLocation = jarLocation.substring(1);
             }
-            Desktop.getDesktop().browse(new URI("http://localhost:8000/" + getJarLocation()));
+            Desktop.getDesktop().browse(new URI("http://localhost:8000/"));
         } catch (URISyntaxException ex) {
             Logger.getLogger(QuorumServer.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -68,11 +67,11 @@ public class QuorumServer {
         this.jarLocation = jarLocation;
     }
     
-    private static class MyHandler implements HttpHandler {
+    private class MyHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
             String response = "";
-            Process p = Runtime.getRuntime().exec("java -jar " + t.getRequestURI());
+            Process p = Runtime.getRuntime().exec("java -jar " + jarLocation + " " + t.getRequestURI());
             t.sendResponseHeaders(200, response.length());
             OutputStream os = t.getResponseBody();
             Integer input = p.getInputStream().read();
