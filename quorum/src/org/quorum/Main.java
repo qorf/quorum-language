@@ -595,6 +595,13 @@ public class Main {
         }
     }
 
+    /**
+     * This method starts a web server to allow for responding to HTTP
+     * requests. The parameter involves the jar file to run for this server.
+     * 
+     * @param jarFile The valid jar file to run. If the jar file is not valid,
+     * this method will fail.
+     */
     private static void startWebServer(String jarFile) {
         File path = new File(jarFile);
         if (path.exists()) {
