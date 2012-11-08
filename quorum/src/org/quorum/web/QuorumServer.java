@@ -70,17 +70,24 @@ public class QuorumServer {
     private class MyHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
-            String response = "";
-            Process p = Runtime.getRuntime().exec("java -jar " + jarLocation + " " + t.getRequestURI());
-            t.sendResponseHeaders(200, response.length());
             OutputStream os = t.getResponseBody();
-            Integer input = p.getInputStream().read();
-            while (input != -1) {
-                os.write(input.byteValue());
-                input = p.getInputStream().read();
+            String response = "";
+            if(t.getRequestURI().toString().compareTo("/" + jarLocation)==0) {
+                response = "<html><body><h2>404 Error</h2>"
+                        + "<p>We could not find the page you were looking for.</p></body></html>";
+                t.sendResponseHeaders(200, response.length());
+                os.write(response.getBytes());
+            } else {
+                Process p = Runtime.getRuntime().exec("java -jar " + jarLocation + " " + t.getRequestURI());
+                t.sendResponseHeaders(200, response.length());
+
+                Integer input = p.getInputStream().read();
+                while (input != -1) {
+                    os.write(input.byteValue());
+                    input = p.getInputStream().read();
+                }
             }
             os.close();
         }
     }
-    
 }

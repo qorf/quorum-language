@@ -284,15 +284,10 @@ public class Main {
         if (isWeb) {
             if (args.length >= 1) {
                 startWebServer(args[1]);
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException ex) {
-                    System.err.println("Failed to start web server: " + ex.getLocalizedMessage());
-                }
             } else {
                 // The user didn't provide a parameter for the `-web' flag...
-                System.err.println("The `-web' flag requires an argument."
-                        + " For example, -web /Users/Jeff/WebSite/Default.jar");
+                System.err.println("The `-web' flag requires that you specify a jar file to run when the web server is active."
+                        + " For example, -web /Users/Jeff/WebSite/Default.jar would run the jar Default.jar whenever the server is hit.");
             }
         } else if (args.length >= 1) {
             File[] files = new File[args.length - argumentIndex];
