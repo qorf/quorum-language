@@ -774,13 +774,13 @@ public class ClassDescriptor extends Descriptor implements Scopable {
      * @param types
      * @return
      */
-    public MethodDescriptor getResolvedMethod(String name, Vector<TypeDescriptor> types, VariableParameterCommonDescriptor callee, LineInformation callInformation) {
+    public MethodDescriptor getResolvedMethod(String name, Vector<TypeDescriptor> types, VariableParameterCommonDescriptor callee, LineInformation callInformation, boolean isThisCall) {
         MethodDescriptor method = null;
 
-        method = checkMethodIterator(name, types, methods.values(), callee, callInformation);
+        method = checkMethodIterator(name, types, methods.values(), callee, callInformation, isThisCall);
 
         if (method == null) { //do the parents have a method?
-            method = checkMethodIterator(name, types, virtualMethods.values(), callee, callInformation);
+            method = checkMethodIterator(name, types, virtualMethods.values(), callee, callInformation, isThisCall);
         }
 
         return method;
@@ -795,17 +795,17 @@ public class ClassDescriptor extends Descriptor implements Scopable {
      * @param callee
      * @return
      */
-    public SystemActionDescriptor getResolvedSystemMethod(String name, Vector<TypeDescriptor> types, VariableParameterCommonDescriptor callee, LineInformation callInformation) {
+    public SystemActionDescriptor getResolvedSystemMethod(String name, Vector<TypeDescriptor> types, VariableParameterCommonDescriptor callee, LineInformation callInformation, boolean isThisCall) {
         MethodDescriptor method = null;
 
         Vector<MethodDescriptor> methodVector = new Vector<MethodDescriptor>();
 
         methodVector.addAll(systemActions.values());
 
-        method = checkMethodIterator(name, types, methodVector, callee, callInformation);
+        method = checkMethodIterator(name, types, methodVector, callee, callInformation, isThisCall);
 
         if (method == null) { //do the parents have a method?
-            method = checkMethodIterator(name, types, virtualMethods.values(), callee, callInformation);
+            method = checkMethodIterator(name, types, virtualMethods.values(), callee, callInformation, isThisCall);
         }
 
 //        if (method != null) {
@@ -839,7 +839,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
      * @return
      */
     private MethodDescriptor checkMethodIterator(String name, Vector<TypeDescriptor> types,
-            Collection<MethodDescriptor> methods, VariableParameterCommonDescriptor vd, LineInformation callLocation) {
+            Collection<MethodDescriptor> methods, VariableParameterCommonDescriptor vd, LineInformation callLocation, boolean isThisCall) {
         ArrayList<Integer> matchScores = new ArrayList<Integer>();
         ArrayList<MethodDescriptor> matches = new ArrayList<MethodDescriptor>();
 
@@ -869,8 +869,14 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                                 Iterator<GenericDescriptor> clazzTemplates = this.getTemplateVariables();
 
 
-                                if (vd != null) {
-                                    Iterator<GenericDescriptor> variableTemplates = vd.getTemplateTypes();
+                                if (vd != null || (vd == null && specified.isTemplated() && isThisCall)) {
+                                    
+                                    Iterator<GenericDescriptor> variableTemplates = null;
+                                    if(vd != null){
+                                        variableTemplates = vd.getTemplateTypes();
+                                    }else{
+                                        variableTemplates = ((ClassDescriptor)m.getParent()).getTemplateVariables();
+                                    }
 
                                     TypeDescriptor resolvedTypeVirtualMethod = null;
                                     if (!((ClassDescriptor) m.getParent()).equals(this)) {

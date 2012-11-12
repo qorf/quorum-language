@@ -64,6 +64,10 @@ public class VariableParameterCommonDescriptor extends Descriptor{
     public Iterator<GenericDescriptor> getTemplateTypes(){
         return templateTypes.iterator();
     }
+    
+    public ArrayList<GenericDescriptor> getListOfTemplateTypes(){
+        return templateTypes;
+    }
 
     /**
      *

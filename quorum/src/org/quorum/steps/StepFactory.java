@@ -4,6 +4,7 @@
  */
 package org.quorum.steps;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import org.quorum.plugins.RuntimeError;
 import org.quorum.vm.interfaces.LineInformation;
@@ -1071,7 +1072,7 @@ public class StepFactory {
         }
 
         if (info.isObjectCall) { //we're calling on an object
-             vd = machine.getSymbolTable().getCurrentScope().getVariable(info.variable.getName());
+            vd = machine.getSymbolTable().getCurrentScope().getVariable(info.variable.getName());
             if (vd == null) { //Compiler error, object was not found
                 CompilerError error = new CompilerError();
                 error.setLineNumber(info.location.getStartLine());
@@ -1107,9 +1108,9 @@ public class StepFactory {
         }
 
         //clazz.resolveVirtualMethodTemplates();
-        method = clazz.getResolvedMethod(info.methodName, info.argumentTypes, vd, info.location);
+        method = clazz.getResolvedMethod(info.methodName, info.argumentTypes, vd, info.location,info.isThisCall);
         BlueprintDescriptor blueprint = clazz.getBlueprint(methodKey);
-        SystemActionDescriptor systemAction = clazz.getResolvedSystemMethod(info.methodName, info.argumentTypes, vd, info.location);
+        SystemActionDescriptor systemAction = clazz.getResolvedSystemMethod(info.methodName, info.argumentTypes, vd, info.location, info.isThisCall);
 
         boolean isMethodErrorChecked = checkActionAccessModifier(method, vd, info.location);
         boolean isSystemActionErrorChecked = checkActionAccessModifier(systemAction, vd, info.location);
@@ -1160,11 +1161,14 @@ public class StepFactory {
             } else if(method == null && blueprint == null) {
                 method = systemAction;
             } else{
-
+                
                 MethodExecution me = ce.getMethod(method.getStaticKey());
                 //Bug Fix(Melissa): prevents inherited methods from being directly added
                 //this may alter the way the program counter functions and could be brittle.
                 MethodDescriptor virtualMethod = clazz.getVirtualMethod(method.getStaticKey());
+                if(virtualMethod == null){
+                    virtualMethod = clazz.getVirtualMethod(clazz.getResolvedTemplatedMethod((ClassDescriptor)method.getParent(), method).getStaticKey());
+                }
                 if (me == null && virtualMethod == null) { //The method to call has not been added to the builder so add it here
                     me = new MethodExecution();
                     me.setMethodDescriptor(method);
@@ -1207,15 +1211,16 @@ public class StepFactory {
             ExpressionValue value = new ExpressionValue();
             
             TypeDescriptor returnType = method.getReturnType();
+            boolean evaluated = false;
             //set type depending on whether we are dealing with a templated type
             if(vd != null){
                 if(returnType.getTemplateName() != null){
                     MethodDescriptor resolvedTypeVirtualMethod = clazz.getResolvedTypeVirtualMethod(method.getStaticKey());
                     if(resolvedTypeVirtualMethod != null && resolvedTypeVirtualMethod.getReturnType() != null){
-                        value = setReturnTemplateType(resolvedTypeVirtualMethod.getReturnType().getTemplateName(), resolvedTypeVirtualMethod.getReturnType(), clazz, vd);
+                        value = setReturnTemplateType(resolvedTypeVirtualMethod.getReturnType().getTemplateName(), resolvedTypeVirtualMethod.getReturnType(), clazz, vd.getListOfTemplateTypes());
                         method.addMappedTemplateType(value.getType().getTemplateName(), returnType);
                     }else{ //there were no virtual methods of resolved type
-                        value = setReturnTemplateType(returnType.getTemplateName(), returnType, clazz, vd);
+                        value = setReturnTemplateType(returnType.getTemplateName(), returnType, clazz, vd.getListOfTemplateTypes());
                         method.addMappedTemplateType(value.getType().getTemplateName(), returnType);
                     }
                 }else if(returnType.hasSubTypes()){
@@ -1225,12 +1230,22 @@ public class StepFactory {
                 }else{
                     value.setType(returnType);
                 }
-            } else {
-              value.setType(returnType);
+            } else if(vd == null && returnType.getTemplateName() != null && info.isThisCall){
+                    MethodDescriptor resolvedTypeVirtualMethod = clazz.getResolvedTypeVirtualMethod(method.getStaticKey());
+                    if(resolvedTypeVirtualMethod != null && resolvedTypeVirtualMethod.getReturnType() != null){
+                        value = setReturnTemplateType(returnType.getTemplateName(), resolvedTypeVirtualMethod.getReturnType(), clazz, clazz.getUnresolvedParentTemplate(((ClassDescriptor)method.getParent()).getName()));
+                        method.addMappedTemplateType(returnType.getTemplateName(), value.getResult().getType());
+                        evaluated = true;
+                    }else{
+                        value.setType(returnType);
+                    }
+            }else {
+                value.setType(returnType);
             }
             
-            if(value != null && value.getType() != null && value.getType().getTemplateName() != null)
+            if(value != null && value.getType() != null && !evaluated){
                 method.addMappedTemplateType(value.getType().getTemplateName(), returnType);
+            }
             
             value.setRegister(info.register);
             tuple.setNextRegister(info.register);
@@ -1245,9 +1260,16 @@ public class StepFactory {
             machine.getBuilder().add(step);
 
 
-            if(vd != null){
-                Iterator<GenericDescriptor> templateTypes = vd.getTemplateTypes();
-                while(templateTypes.hasNext()){//loop through variable descriptor template types
+            if(vd != null || (vd == null && returnType.getTemplateName() != null && info.isThisCall)){
+                Iterator<GenericDescriptor> templateTypes = null;
+                if(vd != null){
+                     templateTypes = vd.getTemplateTypes();
+                }else{
+                    ArrayList<GenericDescriptor> unresolvedParentTemplate = clazz.getUnresolvedParentTemplate(((ClassDescriptor)method.getParent()).getName());
+                    if(unresolvedParentTemplate != null)
+                        templateTypes = unresolvedParentTemplate.iterator();
+                }
+                while(templateTypes != null && templateTypes.hasNext()){//loop through variable descriptor template types
                     GenericDescriptor next = templateTypes.next();
                     Iterator<TypeDescriptor> allTypes = next.getAllTypes();
                     String typeName = next.getName();
@@ -1323,7 +1345,7 @@ public class StepFactory {
                 next.setName(next.getType().getName());
             }
         }else if(type.getTemplateName() != null){
-            ExpressionValue val = setReturnTemplateType(type.getTemplateName(),type,clazz,vd);
+            ExpressionValue val = setReturnTemplateType(type.getTemplateName(),type,clazz,vd.getListOfTemplateTypes());
             return val.getType();
         }
         return type;
@@ -1338,10 +1360,10 @@ public class StepFactory {
      * @param vd
      * @return
      */
-    private ExpressionValue setReturnTemplateType(String templateName,TypeDescriptor defaultType, ClassDescriptor clazz, VariableParameterCommonDescriptor vd){
+    private ExpressionValue setReturnTemplateType(String templateName,TypeDescriptor defaultType, ClassDescriptor clazz, ArrayList<GenericDescriptor> vd){
             boolean typeNotSet = true;
             ExpressionValue value = new ExpressionValue();
-            Iterator<GenericDescriptor> templateTypes = vd.getTemplateTypes();
+            Iterator<GenericDescriptor> templateTypes = vd.iterator();
             Iterator<GenericDescriptor> templateVariables = clazz.getTemplateVariables();
             while(templateTypes.hasNext() && templateVariables.hasNext()){
                 GenericDescriptor callerType = templateTypes.next();
@@ -1397,8 +1419,8 @@ public class StepFactory {
             tuple.setValue(new ExpressionValue());
         } else {
             //clazz.resolveVirtualMethodTemplates();
-            method = clazz.getResolvedMethod(info.methodName, info.argumentTypes, null, info.location);
-            SystemActionDescriptor systemAction = clazz.getResolvedSystemMethod(info.methodName, info.argumentTypes, null, info.location);
+            method = clazz.getResolvedMethod(info.methodName, info.argumentTypes, null, info.location, info.isThisCall);
+            SystemActionDescriptor systemAction = clazz.getResolvedSystemMethod(info.methodName, info.argumentTypes, null, info.location, info.isThisCall);
 
             if (method != null) {
                 addMethodCasts(info, method, null, null);
