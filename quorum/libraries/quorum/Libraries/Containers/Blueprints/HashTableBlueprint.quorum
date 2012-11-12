@@ -4,6 +4,7 @@ use Libraries.Containers.Blueprints.KeyedAddable
 use Libraries.Containers.Blueprints.Copyable
 use Libraries.Containers.Blueprints.Container
 use Libraries.Containers.Blueprints.Iterative
+use Libraries.Containers.Blueprints.KeyedIterative
 
 /*
 
@@ -42,4 +43,9 @@ class HashTableBlueprint<Key, Value> is a KeyedAddable<Key, Value>, Copyable, Co
         Attribute: Returns Returns the key in the key-value pair. 
     */
     blueprint action GetKey(Value value) returns Key
+
+
+
+
+
 end
