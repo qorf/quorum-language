@@ -5,21 +5,16 @@
 package org.quorum;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.quorum.plugins.DefaultPluginLoader;
 import org.quorum.vm.implementation.QuorumClassLoader;
-import org.quorum.vm.implementation.QuorumJarGenerator;
 import org.quorum.vm.implementation.QuorumStandardLibrary;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
 import org.quorum.vm.interfaces.CodeGenerator;
@@ -51,6 +46,14 @@ import org.quorum.web.QuorumServer;
  * -plugins [Path] This sets an absolute path for the location of plugins to 
  *                  override the location used by Quorum. By default, if this flag is not
  *                  set, it is set to a path relative to Quorum.jar/libraries/plugins.
+ * -web [jar file] This flag starts a web server (http protocol), which then
+ *                  executes the jar file passed to the system whenever
+ *                  it receives a connection from a web client.
+ * 
+ * -update  This will cause Quorum to check the Internet for updates to
+ *          1) the updater, 2) the compiler itself, 3) all libraries
+ *          used in the language, and 4) all compiler plugins.
+ * 
  * -help This causes help to be output to the command line.
  * 
  * After entering any flags desired, a list of files indicates to the compiler
@@ -201,16 +204,30 @@ public class Main {
     private static final String WEB = "-web";
     
     /**
+     * This flag tells the Quorum compiler to update itself and then shuts down.
+     */
+    private static final String UPDATE = "-update";
+    
+    /**
+     * If this flag is true, Quorum will start a process to update itself and
+     * shut down.
+     */
+    private static boolean isUpdate = false;
+    
+    /**
      * Whether or not to start the web server instead of compiling/interpreting. 
      * This is off by default.
      */
     private static boolean isWeb = false;
     
     /**
+     * This file represents the folder where Quorum is located.
+     */
+    private static File root = null;
+    /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        File root = null;
         try {
             String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
             String decodedPath = URLDecoder.decode(path, "UTF-8");
@@ -289,7 +306,9 @@ public class Main {
                 System.err.println("The `-web' flag requires that you specify a jar file to run when the web server is active."
                         + " For example, -web /Users/Jeff/WebSite/Default.jar would run the jar Default.jar whenever the server is hit.");
             }
-        } else if (args.length >= 1) {
+        } else if(isUpdate) {
+            updateQuorum();
+        }else if (args.length >= 1) {
             File[] files = new File[args.length - argumentIndex];
             int fileIndex = 0; // file index is different from command line index.
             for (int i = argumentIndex; i < args.length; i++) {
@@ -467,8 +486,12 @@ public class Main {
   "-web [/Absolute/path/to/jar] This will start a web server and run the"+
   " specified jar file as a website. The server will use http://localhost:8000/"+
   " for the root of all addresses. If you need to make changes to your web"+
-  " project just re-compile and click refresh in your browser. There is no need"+
-  " to restart the web server.\n\n"+
+  " project, re-compile the code and restart the server.\n\n"+
+       
+  "-update  This will cause Quorum to check the Internet for updates to"
+                + " 1) the updater, 2) the compiler itself, 3) all libraries"
+                + " used in the language, and 4) all compiler plugins.\n\n"+
+                
                 
   "-name [String] This sets the name which is output for the corresponding distribution files."+
   "An example might be -name Music. This would cause Quorum to output a "+
@@ -535,6 +558,10 @@ public class Main {
                 isWeb = true;
                 flagsFinished = true;
             }
+            else if(arg.compareTo(UPDATE) == 0) {
+                isUpdate = true;
+                flagsFinished = true;
+            }
             else if(arg.compareTo(DOCUMENT) == 0){
                 isDocumentation = true;
             }
@@ -589,6 +616,22 @@ public class Main {
                 //outputHelp();
             }
             index++;
+        }
+    }
+    
+    private static void updateQuorum() {
+        File updater = new File(root.getAbsolutePath() +
+                "/Update.jar");
+        if (updater.exists()) {
+            try {
+                Process p = Runtime.getRuntime().exec("java -jar " + updater.getAbsolutePath());
+                System.exit(0);
+            } catch (IOException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            System.err.println("The quorum updater could not be found on the system at location"
+                    + ": " + updater.getAbsolutePath());
         }
     }
 
