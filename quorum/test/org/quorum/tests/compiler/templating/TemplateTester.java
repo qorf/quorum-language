@@ -891,8 +891,50 @@ public class TemplateTester {
         if (!r.isSuccessful())
             fail();
     }
+    
+    @Test
+    public void test_pass_TemplatedParentAutoBox_execute(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
 
+        try {
+            CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(directory + "TemplatedParentAutoBox.quorum"));
+        }
+        catch(Exception e) {
+            fail();
+        }
+        
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
+        int x = variableValue.getResult().integer;
+        if(x!=1) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_TemplatedParentAutoBox_bytecode(){
+        String directory = CompilerTestSuite.TEMPLATING + CompilerTestSuite.PASS;
 
+        try {
+            CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(directory + "TemplatedParentAutoBox.quorum"));
+        }
+        catch(Exception e) {
+            fail();
+        }
+        
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+    }
     /*
      * 
      * 
