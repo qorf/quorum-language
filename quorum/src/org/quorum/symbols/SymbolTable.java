@@ -1230,6 +1230,10 @@ public class SymbolTable {
      * @return 
      */
     public String getClassIndexer(String className){
-        return indexer.get(className);
+        if(indexer.containsKey(className)){
+            return indexer.get(className);
+        }else{
+            return null;
+        }
     }
 }
