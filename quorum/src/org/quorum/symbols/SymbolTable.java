@@ -36,6 +36,7 @@ public class SymbolTable {
      */
     private ControlFlowAnalyzer controlFlow;
     private HashMap<String, Boolean> scopes;
+    private HashMap<String, String> indexer;
     /**
      * This hash stores classes according to their name and returns a
      * hash of class descriptors. This second hash uses a "container" string
@@ -67,6 +68,7 @@ public class SymbolTable {
         classContainers = new HashMap<String, HashMap<String, ClassDescriptor>>();
         scopes = new HashMap<String, Boolean>();
         controlFlow = new ControlFlowAnalyzer();
+        indexer = new HashMap<String, String>();
     }
 
     /**
@@ -1205,5 +1207,29 @@ public class SymbolTable {
      */
     public ControlFlowAnalyzer getControlFlow() {
         return controlFlow;
+    }
+    
+    /**
+     * Add the xml representation for the parsed code for a file containing quorum code.
+     * This xml logs the line numbers of assignment statements, if statements,
+     * check/detect statements, and loops. This allows structures to then be spoken in
+     * the TOD debugger.
+     * 
+     * @param className the complete class name.
+     * @param xml The xml structure.
+     */
+    public void addClassIndexer(String className, String xml){
+        indexer.put(className, xml);
+    }
+            
+    
+    /**
+     * Get the xml representation for a class.
+     * 
+     * @param className
+     * @return 
+     */
+    public String getClassIndexer(String className){
+        return indexer.get(className);
     }
 }

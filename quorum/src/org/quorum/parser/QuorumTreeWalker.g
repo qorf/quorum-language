@@ -40,6 +40,8 @@ import java.util.Enumeration;
 	static int sub_counter = 0;
 	static int expressionDepth = 0;
 	boolean inCallStep = false;
+	StringBuffer  indexer = new StringBuffer();
+	String className = "";
 	
 	//the register number, used to place values into fake registers in the computer
 	static int temp = 0;
@@ -95,7 +97,11 @@ class_declaration 	:
 		//get the class from the symbol table
 		String container = thisPackage.toString();
 		ClassDescriptor cl = symbol.enterClass(name, container);
+		className = cl.getStaticKey();
 		builder.begin(cl);
+		indexer.append("<debug><class><name>");
+		indexer.append(className);
+		indexer.append("</name>");
 	}
 	generic_declaration?
 	{
@@ -108,6 +114,8 @@ class_declaration 	:
 	{
 		builder.endClass();
 		symbol.popScope();
+		indexer.append("</class></debug>");
+		symbol.addClassIndexer(className, indexer.toString());
 	})
 	|
 	{
@@ -115,11 +123,15 @@ class_declaration 	:
 		String container = thisPackage.toString();
 		ClassDescriptor cl = symbol.enterClass(name, container);
 		builder.begin(cl);
+		indexer.append("<debug><class>");
+		className = cl.getStaticKey();
 	}
 	no_class_stmnts
 	{
 		builder.endClass();
 		symbol.popScope();
+		indexer.append("</class></debug>");
+		symbol.addClassIndexer(className, indexer.toString());
 	}
 	;
 
@@ -663,6 +675,10 @@ scope {
 		$check_statement::info.checkStartLabel = builder.getCurrentClass().getStaticKey() + "_" + $check.text + $check_statement::tempLabelCounter + $check_statement::info.START;
 		stepFactory.startCheck($check_statement::info);
 		$check_statement::startSymbol = "check";
+		
+		indexer.append("<check line = \"");
+		indexer.append($check.getLine());
+		indexer.append("\" ");
 	} block[true] 
 	{
 		$check_statement::info.checkJump.setBeginColumn($check.getCharPositionInLine());
@@ -681,10 +697,24 @@ scope {
 	    		if($check_statement::startSymbol.equals("check")){
 		    		$check_statement::info.checkJump.setBeginLine($detect_start.getLine());
 				stepFactory.endCheck($check_statement::info);
+				
+				indexer.append("<check line = \"");
+				indexer.append($check_statement::info.checkLocation.getStartLine());
+				indexer.append("\" end = \"");
+				indexer.append($detect_start.getLine());
+				indexer.append("\"/>");
 			}else{
 				$check_statement::detectJump.setBeginLine($detect_start.getLine());
 		    		stepFactory.endDetect($check_statement::info, $check_statement::detect_counter);
 		    		$check_statement::detect_counter = $check_statement::detect_counter + 1;
+		    		
+		    		indexer.append("<detect line = \"");
+				indexer.append($check_statement::info.detectLocations.get($check_statement::info.detectLocations.size() - 1).getStartLine());
+				indexer.append("\" end = \"");
+				indexer.append($detect_start.getLine());
+				indexer.append("\" type = \"");
+				indexer.append($check_statement::info.detectParameters.get($check_statement::info.detectParameters.size() - 1).getType().getName());
+				indexer.append("\"/>");
 			}
 	    		
 	    		$check_statement::info.addDetectLabel($detect_start.text + $check_statement::detect_counter
@@ -699,6 +729,7 @@ scope {
 	    	det_param = detect_parameter 
 	    	{
 	    		Iterator<ErrorTypeDescriptor> detectParamIt = det_param.exceptionTypeList.iterator();
+	    		StringBuffer types = new StringBuffer();
 	    		while(detectParamIt.hasNext()){
 		    		VariableParameterCommonDescriptor d = new VariableParameterCommonDescriptor();
 		    		DetectParameter er = new DetectParameter();
@@ -710,8 +741,8 @@ scope {
 		    		t.setName(er.errorType.getName());
 		    		er.setType(t);
 		    		er.setName($det_param.name);
-		    		
 		    		$check_statement::info.addDetectParameter(er);
+		    		types.append(t.getName());
 	    		}
 	    		stepFactory.startDetect($check_statement::info, $check_statement::detect_counter);
 	    	}
@@ -742,6 +773,14 @@ scope {
 	    		$check_statement::info.hasAlways = true;
 	    		stepFactory.startAlways($check_statement::info, true);
 	    		$check_statement::startSymbol = "always";
+	    		
+	    		indexer.append("<detect line = \"");
+			indexer.append($check_statement::info.detectLocations.get($check_statement::info.detectLocations.size() - 1).getStartLine());
+			indexer.append("\" end = \"");
+			indexer.append($detect_start.getLine());
+			indexer.append("\" type = \"");
+			indexer.append($check_statement::info.detectParameters.get($check_statement::info.detectParameters.size() - 1).getType().getName());
+			indexer.append("\"/>");
 	    	}
 	    	block[true]
 	    	)? 
@@ -761,6 +800,12 @@ scope {
 	    		$check_statement::info.hasAlways = true;
 	    		stepFactory.startAlways($check_statement::info, true);
 	    		$check_statement::startSymbol = "always";
+	    		
+	    		indexer.append("<check line = \"");
+			indexer.append($check_statement::info.checkLocation.getStartLine());
+			indexer.append("\" end = \"");
+			indexer.append($detect_start.getLine());
+			indexer.append("\"/>");
 	    	}
 	    
 	    	block[true]
@@ -769,6 +814,12 @@ scope {
     	{
     		if($check_statement::startSymbol.equals("always")){
 	    		stepFactory.endAlways($check_statement::info);
+	    		
+	    		indexer.append("<always line = \"");
+			indexer.append($check_statement::info.alwaysLocation.getStartLine());
+			indexer.append("\" end = \"");
+			indexer.append($detect_start.getLine());
+			indexer.append("\"/>");
 		}else{
 			$check_statement::detectJump.setBeginLine($end.getLine());
 	    		stepFactory.endDetect($check_statement::info, $check_statement::detect_counter);
@@ -779,6 +830,14 @@ scope {
 	    			stepFactory.startAlways($check_statement::info, false);
 	    			stepFactory.endAlways($check_statement::info);
     			}
+    			
+    			indexer.append("<detect line = \"");
+			indexer.append($check_statement::info.detectLocations.get($check_statement::info.detectLocations.size() - 1).getStartLine());
+			indexer.append("\" end = \"");
+			indexer.append($detect_start.getLine());
+			indexer.append("\" type = \"");
+			indexer.append($check_statement::info.detectParameters.get($check_statement::info.detectParameters.size() - 1).getType().getName());
+			indexer.append("\"/>");
 		}
 
 		sub_counter--;
@@ -1104,6 +1163,7 @@ assignment_statement
 			 $ID.getCharPositionInLine(),
 			 0
 		);
+		
 		location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
                 location.setClassName(symbol.getCurrentClass().getStaticKey());
                 if(symbol.getCurrentMethod() != null){
@@ -1130,6 +1190,12 @@ assignment_statement
 		
 		stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, false, "", cd, isMe, hasRHS);
 		builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
+		
+		indexer.append("<assignment line = \"");
+		indexer.append($ID.line);
+		indexer.append("\" variable = \"");
+		indexer.append($ID.text);
+		indexer.append("\"/>");
 	}
 	|	obj=qualified_name (COLON PARENT COLON parent=qualified_name)? COLON ID rhs=assign_right_hand_side
 	{
@@ -1166,34 +1232,45 @@ assignment_statement
 		
 		stepFactory.addAssignmentStep(location, $obj.type.getStaticKey(), $rhs.eval, $rhs.step, isLocal, $ID.text, cd, false, hasRHS);
 		builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
+		
+		indexer.append("<assignment line = \"");
+		indexer.append($ID.line);
+		indexer.append("\" variable = \"");
+		indexer.append($ID.text);
+		indexer.append("\"/>");
 	}
 	|	modifier = access_modifier? CONSTANT? type = assignment_declaration name = ID rhs=assign_right_hand_side?
 	{
-                LineInformation location = new LineInformation (
-                    $ID.line,
-                    0,
-                    $ID.getCharPositionInLine(),
-                    0
-                );
-                location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
-                location.setClassName(symbol.getCurrentClass().getStaticKey());
-                if(symbol.getCurrentMethod() != null){
-                	location.setMethodName(symbol.getCurrentMethod().getStaticKey());
-                }
+	                	LineInformation location = new LineInformation (
+	                    		$ID.line,
+	                    		0,
+	                    		$ID.getCharPositionInLine(),
+	 		0
+		);
+                		location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
+                		location.setClassName(symbol.getCurrentClass().getStaticKey());
+                		if(symbol.getCurrentMethod() != null){
+                			location.setMethodName(symbol.getCurrentMethod().getStaticKey());
+                		}
                 
-                boolean isLocal = $type.myType != null;
+                		boolean isLocal = $type.myType != null;
                 
-                symbol.addStatementFlagToCurrentFile($ID.line);
+                		symbol.addStatementFlagToCurrentFile($ID.line);
                 
 		if($rhs.eval != null)
 		{
 			stepFactory.addAssignmentStep(location, $ID.text, $rhs.eval, $rhs.step, isLocal, true);
 		}
-                else { // are we are trying to instantiate an object?
-                	builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
-                    	stepFactory.addAssignmentStep(location, $ID.text, isLocal, false);
-                }
-                builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
+	                	else { // are we are trying to instantiate an object?
+	                		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
+	                    		stepFactory.addAssignmentStep(location, $ID.text, isLocal, false);
+	                	}
+	                	builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
+		indexer.append("<assignment line = \"");
+		indexer.append($ID.line);
+		indexer.append("\" variable = \"");
+		indexer.append($ID.text);
+		indexer.append("\"/>");
 	}
 	;
 assign_right_hand_side returns[ExpressionValue eval, ExecutionStep step]
@@ -1221,7 +1298,8 @@ scope {
 			$if_statement::info.ifFalseLabel =$begin_if.text + labelCounter + $if_statement::info.FALSE;
 			$if_statement::info.ifStartLabel =$begin_if.text + labelCounter + $if_statement::info.START;
 			symbol.addStatementFlagToCurrentFile($begin_if.getLine());
-			labelCounter++;		
+			labelCounter++;
+					
 		}
 			condition = root_expression 
 		{
@@ -1263,12 +1341,24 @@ scope {
 			{
 				$if_statement::info.ifJumpStep.setBeginLine($begin_else_if.getLine());
 				stepFactory.endIf($if_statement::info);
+				
+				indexer.append("<if line = \"");
+				indexer.append($if_statement::info.ifLocation.getStartLine());
+				indexer.append("\" end = \"");
+				indexer.append($begin_else_if.getLine());
+				indexer.append("\"/>");
 			}
 			else
 			{
 				$if_statement::info.elseIfJumpSteps.get($if_statement::else_if_counter).setBeginLine($begin_else_if.getLine());
 				stepFactory.endElseIf($if_statement::info, $if_statement::else_if_counter);
 				$if_statement::else_if_counter = $if_statement::else_if_counter + 1;
+				
+				indexer.append("<elseif line = \"");
+				indexer.append($if_statement::info.elseIfLocations.get($if_statement::info.elseIfLocations.size() - 1).getStartLine());
+				indexer.append("\" end = \"");
+				indexer.append($begin_else_if.getLine());
+				indexer.append("\"/>");
 			}
 			$if_statement::endMatch = "elseif";
 			
@@ -1277,7 +1367,8 @@ scope {
 			$if_statement::info.elseIfStartLabels.add($begin_else_if.text + + labelCounter + $if_statement::info.START + $if_statement::else_if_counter);	
 			
 			symbol.addStatementFlagToCurrentFile($begin_else_if.getLine());		
-			labelCounter++;					
+			labelCounter++;
+					
 		}
 		condition2 = root_expression
 		{
@@ -1330,12 +1421,24 @@ scope {
 			{
 				$if_statement::info.ifJumpStep.setBeginLine($begin_else.getLine());
 				stepFactory.endIf($if_statement::info);
+				
+				indexer.append("<if line = \"");
+				indexer.append($if_statement::info.ifLocation.getStartLine());
+				indexer.append("\" end = \"");
+				indexer.append($begin_else.getLine());
+				indexer.append("\"/>");
 			}
 			else
 			{
 				$if_statement::info.elseIfJumpSteps.get($if_statement::else_if_counter).setBeginLine($begin_else.getLine());
 				stepFactory.endElseIf($if_statement::info, $if_statement::else_if_counter);
 				$if_statement::else_if_counter = $if_statement::else_if_counter + 1;
+				
+				indexer.append("<elseif line = \"");
+				indexer.append($if_statement::info.elseIfLocations.get($if_statement::info.elseIfLocations.size() - 1).getStartLine());
+				indexer.append("\" end = \"");
+				indexer.append($begin_else.getLine());
+				indexer.append("\"/>");
 			}
 			$if_statement::endMatch = "else";
 			
@@ -1343,6 +1446,7 @@ scope {
 			$if_statement::info.hasElse = true;
 			labelCounter++;	
 			stepFactory.startElse($if_statement::info);	
+			
 		}
 		b=block[true])?
 		end=END
@@ -1351,16 +1455,34 @@ scope {
 			{
 				$if_statement::info.ifJumpStep.setBeginLine($end.getLine());
 				stepFactory.endIf($if_statement::info);
+				
+				indexer.append("<if line = \"");
+				indexer.append($if_statement::info.ifLocation.getStartLine());
+				indexer.append("\" end = \"");
+				indexer.append($end.getLine());
+				indexer.append("\"/>");
 			}
 			else if($if_statement::endMatch.equals("elseif"))
 			{
 				$if_statement::info.elseIfJumpSteps.get($if_statement::else_if_counter).setBeginLine($end.getLine());
 				stepFactory.endElseIf($if_statement::info, $if_statement::else_if_counter);
 				// $if_statement::else_if_counter = $if_statement::else_if_counter + 1;
+				
+				indexer.append("<elseif line = \"");
+				indexer.append($if_statement::info.elseIfLocations.get($if_statement::info.elseIfLocations.size() - 1).getStartLine());
+				indexer.append("\" end = \"");
+				indexer.append($end.getLine());
+				indexer.append("\"/>");
 			}
 			else
 			{
 				stepFactory.endElse($if_statement::info);
+				
+				indexer.append("<else line = \"");
+				indexer.append($if_statement::info.elseLocation.getStartLine());
+				indexer.append("\" end = \"");
+				indexer.append($end.getLine());
+				indexer.append("\"/>");
 			}
 			
 			stepFactory.endIfBlock($if_statement::info);
@@ -1414,11 +1536,12 @@ scope {
 		$loop_statement::cJumpStep = null;
 		
 		CompilerError e = symbol.getControlFlow().addStatement($loop_statement::location);
-	        if (e != null) {
-	                this.builder.getVirtualMachine().getCompilerErrors().addError(e);
-	        }
+	        	if (e != null) {
+	                		this.builder.getVirtualMachine().getCompilerErrors().addError(e);
+	        	}
 	        
 		symbol.getControlFlow().repeatStart();
+		
 	}
 
 	(
@@ -1542,6 +1665,12 @@ scope {
 	{
 		
 		symbol.getControlFlow().repeatEnd();
+		
+		indexer.append("<loop line = \"");
+		indexer.append($loop_statement::location.getStartLine());
+		indexer.append("\" end = \"");
+		indexer.append($END.getLine());
+		indexer.append("\"/>");
 	}
 		;
 
@@ -2218,7 +2347,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		);
 		location.setFile(fileName);
 		
-		ExecutionStep step = $input_expr.step;
+				ExecutionStep step = $input_expr.step;
 		ExpressionValue value = $input_expr.eval;
 
 		builder.addCallLabel(parameterPosition);
