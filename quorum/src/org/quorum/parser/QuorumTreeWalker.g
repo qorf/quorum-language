@@ -370,7 +370,13 @@ solo_method_call
 			inCallStep = true;
 			builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
 		}
-		qualified_name (COLON ID)? LEFT_PAREN ({if(builder.getCurrentMethod() != null){startLocation = builder.getCurrentMethod().getSteps().size();}}
+		qualified_name (COLON ID)? LEFT_PAREN (
+		{
+			if(builder.getCurrentMethod() != null)
+			{
+				startLocation = builder.getCurrentMethod().getSteps().size();
+			}
+		}
 		e = expression 
 		{
 			if(builder.getCurrentMethod() != null && startLocation != builder.getCurrentMethod().getSteps().size() -1){
@@ -382,10 +388,17 @@ solo_method_call
 			registers.add($e.eval.getRegister());
 			if($e.eval.getType() != null)
 				types.add($e.eval.getType().getStaticKey());
-                	argumentTypes.add($e.eval.getType());
-                	inCallStep = false;
+                			argumentTypes.add($e.eval.getType());
+                			inCallStep = false;
 		}
-		(COMMA {if(builder.getCurrentMethod() != null){startLocation = builder.getCurrentMethod().getSteps().size();}} e = expression 
+		(COMMA 
+		{
+			if(builder.getCurrentMethod() != null)
+			{
+				startLocation = builder.getCurrentMethod().getSteps().size();
+			}
+		} 
+		e = expression 
 		{
 			if(builder.getCurrentMethod() != null && startLocation != builder.getCurrentMethod().getSteps().size() -1){
 				builder.getCurrentMethod().getSteps().get(startLocation).setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
@@ -396,47 +409,51 @@ solo_method_call
 			registers.add($e.eval.getRegister());
 			if($e.eval.getType() != null)
 				types.add($e.eval.getType().getStaticKey());
-                	argumentTypes.add($e.eval.getType());
+                			argumentTypes.add($e.eval.getType());
 		}
 		)*)? RIGHT_PAREN) 
 		{
-		LineInformation location = new LineInformation();
-                location.setEndColumn($qualified_name.type.getColumnEnd());
-                location.setEndLine($qualified_name.type.getLineEnd());
-                location.setStartColumn($qualified_name.type.getColumnBegin());
-                location.setStartLine($qualified_name.type.getLineBegin());
-                location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
-                location.setClassName(symbol.getCurrentClass().getStaticKey());
-                location.setMethodName(symbol.getCurrentMethod().getStaticKey());
+			LineInformation location = new LineInformation();
+                			location.setEndColumn($qualified_name.type.getColumnEnd());
+                			location.setEndLine($qualified_name.type.getLineEnd());
+                			location.setStartColumn($qualified_name.type.getColumnBegin());
+               	 		location.setStartLine($qualified_name.type.getLineBegin());
+                			location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
+                			location.setClassName(symbol.getCurrentClass().getStaticKey());
+                			location.setMethodName(symbol.getCurrentMethod().getStaticKey());
                 
                 
-                symbol.addStatementFlagToCurrentFile($qualified_name.type.getLineBegin());
+                			symbol.addStatementFlagToCurrentFile($qualified_name.type.getLineBegin());
+                			
+                			indexer.append("<action line = \"");
+			indexer.append($qualified_name.type.getLineBegin());
+			indexer.append("\" />");
                 
-                String key = "";
-                String myMethodName = "";
-                if($ID == null) {
-                	key = MethodDescriptor.generateKey($qualified_name.type.getStaticKey(), types);
-                	myMethodName = $qualified_name.type.getStaticKey();
-		}
-		else {
-			key = MethodDescriptor.generateKey($ID.text, types);
-			myMethodName = $ID.text;
-		}
-		CallInfo info = new CallInfo();
-		info.register = temp;
-		info.location = location;
-		info.argumentRegisters = registers;
-		info.argumentSteps = steps;
-		info.variable = $qualified_name.type;
-		info.argumentTypes = argumentTypes;
-		info.methodName = myMethodName;
-		info.isObjectCall = ($ID != null);
-		info.isSoloMethod = true;
+                			String key = "";
+                			String myMethodName = "";
+                			if($ID == null) {
+                				key = MethodDescriptor.generateKey($qualified_name.type.getStaticKey(), types);
+                				myMethodName = $qualified_name.type.getStaticKey();
+			}
+			else {
+				key = MethodDescriptor.generateKey($ID.text, types);
+				myMethodName = $ID.text;
+			}
+			CallInfo info = new CallInfo();
+			info.register = temp;
+			info.location = location;
+			info.argumentRegisters = registers;
+			info.argumentSteps = steps;
+			info.variable = $qualified_name.type;
+			info.argumentTypes = argumentTypes;
+			info.methodName = myMethodName;
+			info.isObjectCall = ($ID != null);
+			info.isSoloMethod = true;
 		
-		ResultTuple result =  stepFactory.addCallStep(info);
-		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL, result.getStepCount());		
+			ResultTuple result =  stepFactory.addCallStep(info);
+			builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL, result.getStepCount());		
 		
-		temp = result.getNextRegister();
+			temp = result.getNextRegister();
 		}
 	|	^(SOLO_FUNCTION_CALL_PARENT 
 	{
@@ -454,9 +471,16 @@ solo_method_call
 			steps.add($e.step);
 			registers.add($e.eval.getRegister());
 			types.add($e.eval.getType().getStaticKey());
-                	argumentTypes.add($e.eval.getType());
-                	inCallStep = false;
-		} (COMMA{if(builder.getCurrentMethod() != null){startLocation = builder.getCurrentMethod().getSteps().size();}}
+                			argumentTypes.add($e.eval.getType());
+                			inCallStep = false;
+		} 
+		(COMMA
+		{
+			if(builder.getCurrentMethod() != null)
+			{
+				startLocation = builder.getCurrentMethod().getSteps().size();
+			}
+		}
 		 e = expression
 		{
 			if(builder.getCurrentMethod() != null && startLocation != builder.getCurrentMethod().getSteps().size() -1){
@@ -467,54 +491,64 @@ solo_method_call
 			steps.add($e.step);
 			registers.add($e.eval.getRegister());
 			types.add($e.eval.getType().getStaticKey());
-                	argumentTypes.add($e.eval.getType());
+                			argumentTypes.add($e.eval.getType());
 		})*)? RIGHT_PAREN)
 		{
-		LineInformation location = new LineInformation();
-                location.setEndColumn($qualified_name.type.getColumnEnd());
-                location.setEndLine($qualified_name.type.getLineEnd());
-                location.setStartColumn($qualified_name.type.getColumnBegin());
-                location.setStartLine($qualified_name.type.getLineBegin());
-                location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
-                location.setClassName(symbol.getCurrentClass().getStaticKey());
-                location.setMethodName(symbol.getCurrentMethod().getStaticKey());
+			LineInformation location = new LineInformation();
+                			location.setEndColumn($qualified_name.type.getColumnEnd());
+                			location.setEndLine($qualified_name.type.getLineEnd());
+               	 		location.setStartColumn($qualified_name.type.getColumnBegin());
+                			location.setStartLine($qualified_name.type.getLineBegin());
+                			location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
+                			location.setClassName(symbol.getCurrentClass().getStaticKey());
+                			location.setMethodName(symbol.getCurrentMethod().getStaticKey());
                 
-                symbol.addStatementFlagToCurrentFile($qualified_name.type.getLineBegin());
+                			symbol.addStatementFlagToCurrentFile($qualified_name.type.getLineBegin());
+                			
+                			indexer.append("<action line = \"");
+			indexer.append($qualified_name.type.getLineBegin());
+			indexer.append("\" />");
                 
-                String key = "";
-                String myMethodName = "";
-                if($ID == null) {
-                	key = MethodDescriptor.generateKey($qualified_name.type.getStaticKey(), types);
-                	myMethodName = $qualified_name.type.getStaticKey();
-		}
-		else {
-			key = MethodDescriptor.generateKey($ID.text, types);
-			myMethodName = $ID.text;
-		}
-		CallInfo info = new CallInfo();
-		info.register = temp;
-		info.location = location;
-		info.argumentRegisters = registers;
-		info.argumentSteps = steps;
-		info.variable = $qualified_name.type;
-		info.locatedIn = $qualified_name.type.getStaticKey();
-		info.argumentTypes = argumentTypes;
-		info.methodName = myMethodName;
-		info.isObjectCall = ($ID != null);
-		info.isSoloMethod = true;
+                			String key = "";
+                			String myMethodName = "";
+                			if($ID == null) {
+                				key = MethodDescriptor.generateKey($qualified_name.type.getStaticKey(), types);
+                				myMethodName = $qualified_name.type.getStaticKey();
+			}
+			else {
+				key = MethodDescriptor.generateKey($ID.text, types);
+				myMethodName = $ID.text;
+			}
+			CallInfo info = new CallInfo();
+			info.register = temp;
+			info.location = location;
+			info.argumentRegisters = registers;
+			info.argumentSteps = steps;
+			info.variable = $qualified_name.type;
+			info.locatedIn = $qualified_name.type.getStaticKey();
+			info.argumentTypes = argumentTypes;
+			info.methodName = myMethodName;
+			info.isObjectCall = ($ID != null);
+			info.isSoloMethod = true;
 		
-		ResultTuple result =  stepFactory.addParentCallStep(info);
-		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL, result.getStepCount());
+			ResultTuple result =  stepFactory.addParentCallStep(info);
+			builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL, result.getStepCount());
 		
-		temp = result.getNextRegister();
-		inCallStep = false;
+			temp = result.getNextRegister();
+			inCallStep = false;
 		}
 	|	^(SOLO_FUNCTION_CALL_THIS 
 	{
 		inCallStep = true;
 		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
 	}
-	ME COLON qualified_name (COLON ID)? LEFT_PAREN {if(builder.getCurrentMethod() != null){startLocation = builder.getCurrentMethod().getSteps().size();}}
+	ME COLON qualified_name (COLON ID)? LEFT_PAREN 
+	{
+		if(builder.getCurrentMethod() != null)
+		{
+			startLocation = builder.getCurrentMethod().getSteps().size();
+		}
+	}
 		(e = expression 
 		{
 			if(builder.getCurrentMethod() != null && startLocation != builder.getCurrentMethod().getSteps().size() -1){
@@ -525,9 +559,15 @@ solo_method_call
 			steps.add($e.step);
 			registers.add($e.eval.getRegister());
 			types.add($e.eval.getType().getStaticKey());
-                	argumentTypes.add($e.eval.getType());
-                	inCallStep = false;
-		}(COMMA{if(builder.getCurrentMethod() != null){startLocation = builder.getCurrentMethod().getSteps().size();}}
+                			argumentTypes.add($e.eval.getType());
+                			inCallStep = false;
+		}(COMMA
+		{
+			if(builder.getCurrentMethod() != null)
+			{
+				startLocation = builder.getCurrentMethod().getSteps().size();
+			}
+		}
 		 e = expression
 		{
 			if(builder.getCurrentMethod() != null && startLocation != builder.getCurrentMethod().getSteps().size() -1){
@@ -538,44 +578,49 @@ solo_method_call
 			steps.add($e.step);
 			registers.add($e.eval.getRegister());
 			types.add($e.eval.getType().getStaticKey());
-                	argumentTypes.add($e.eval.getType());
-		})*)? RIGHT_PAREN)
+                			argumentTypes.add($e.eval.getType());
+		}
+		)*)? RIGHT_PAREN)
 		{
-		LineInformation location = new LineInformation();
-                location.setEndColumn($qualified_name.type.getColumnEnd());
-                location.setEndLine($qualified_name.type.getLineEnd());
-                location.setStartColumn($qualified_name.type.getColumnBegin());
-                location.setStartLine($qualified_name.type.getLineBegin());
-                location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
-                location.setClassName(symbol.getCurrentClass().getStaticKey());
-                location.setMethodName(symbol.getCurrentMethod().getStaticKey());
-                
-                symbol.addStatementFlagToCurrentFile($qualified_name.type.getLineBegin());
-                
-                String key = "";
-                String myMethodName = "";
-                if($ID == null) {
-                	key = MethodDescriptor.generateKey($qualified_name.type.getStaticKey(), types);
-                	myMethodName = $qualified_name.type.getStaticKey();
-		}
-		else {
-			key = MethodDescriptor.generateKey($ID.text, types);
-			myMethodName = $ID.text;
-		}
-		CallInfo info = new CallInfo();
-		info.register = temp;
-		info.location = location;
-		info.argumentRegisters = registers;
-		info.argumentSteps = steps;
-		info.variable = $qualified_name.type;
-		info.argumentTypes = argumentTypes;
-		info.methodName = myMethodName;
-		info.isObjectCall = ($ID != null);
-		info.isSoloMethod = true;
-		
-		ResultTuple result =  stepFactory.addCallStep(info);
-		builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL, result.getStepCount());
-		temp = result.getNextRegister();
+			LineInformation location = new LineInformation();
+	                		location.setEndColumn($qualified_name.type.getColumnEnd());
+	                		location.setEndLine($qualified_name.type.getLineEnd());
+	                		location.setStartColumn($qualified_name.type.getColumnBegin());
+	                		location.setStartLine($qualified_name.type.getLineBegin());
+	                		location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
+	                		location.setClassName(symbol.getCurrentClass().getStaticKey());
+	                		location.setMethodName(symbol.getCurrentMethod().getStaticKey());
+	                
+	                		symbol.addStatementFlagToCurrentFile($qualified_name.type.getLineBegin());
+	                
+	               		indexer.append("<action line = \"");
+			indexer.append($qualified_name.type.getLineBegin());
+			indexer.append("\" />");
+			
+	                		String key = "";
+	                		String myMethodName = "";
+	                		if($ID == null) {
+	                			key = MethodDescriptor.generateKey($qualified_name.type.getStaticKey(), types);
+	                			myMethodName = $qualified_name.type.getStaticKey();
+			}
+			else {
+				key = MethodDescriptor.generateKey($ID.text, types);
+				myMethodName = $ID.text;
+			}
+			CallInfo info = new CallInfo();
+			info.register = temp;
+			info.location = location;
+			info.argumentRegisters = registers;
+			info.argumentSteps = steps;
+			info.variable = $qualified_name.type;
+			info.argumentTypes = argumentTypes;
+			info.methodName = myMethodName;
+			info.isObjectCall = ($ID != null);
+			info.isSoloMethod = true;
+			
+			ResultTuple result =  stepFactory.addCallStep(info);
+			builder.addStepLabel(OpcodeType.SOLO_METHOD_CALL, result.getStepCount());
+			temp = result.getNextRegister();
 		}
 	;
 alert_statement 
@@ -627,17 +672,21 @@ scope{
 		LineInformation location = new LineInformation();
                 
 		location.setEndColumn($alert_statement::errorStep.getEndColumn());
-                location.setEndLine($alert_statement::errorStep.getEndLine());
-                location.setStartColumn($alert_statement::errorStep.getBeginColumn());
-                location.setStartLine($alert_statement::errorStep.getBeginLine());
-                location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
-                location.setClassName(symbol.getCurrentClass().getStaticKey());
-                location.setMethodName(symbol.getCurrentMethod().getStaticKey());
+                		location.setEndLine($alert_statement::errorStep.getEndLine());
+                		location.setStartColumn($alert_statement::errorStep.getBeginColumn());
+                		location.setStartLine($alert_statement::errorStep.getBeginLine());
+                		location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
+                		location.setClassName(symbol.getCurrentClass().getStaticKey());
+                		location.setMethodName(symbol.getCurrentMethod().getStaticKey());
                 
                 
 		stepFactory.addAlertStep(location, $alert_statement::errorType, $alert_statement::errorValue, $alert_statement::errorStep);
 		builder.addStepLabel(OpcodeType.ALERT, -1);
 		symbol.addStatementFlagToCurrentFile(location.getStartLine());
+		
+		indexer.append("<alert line = \"");
+		indexer.append(location.getStartLine());
+		indexer.append("\" />");
 		
 	}
 	)
@@ -951,16 +1000,20 @@ print_statement
 		ExpressionValue value = $root_expression.eval;
 
 		LineInformation location = new LineInformation();
-                location.setEndColumn(step.getEndColumn());
-                location.setEndLine(step.getEndLine());
-                location.setStartColumn(step.getBeginColumn());
-                location.setStartLine(step.getBeginLine());
-                location.setFile(getGrammarFileNameNoExtension());
-
-                symbol.addStatementFlagToCurrentFile(step.getBeginLine());
+	                	location.setEndColumn(step.getEndColumn());
+	               	location.setEndLine(step.getEndLine());
+	               	location.setStartColumn(step.getBeginColumn());
+	           	location.setStartLine(step.getBeginLine());
+	            	location.setFile(getGrammarFileNameNoExtension());
+	
+                		symbol.addStatementFlagToCurrentFile(step.getBeginLine());
                 
 		stepFactory.addPrintStep(location, $root_expression.eval, $root_expression.step);
 		builder.addStepLabel(OpcodeType.PRINT, -1);
+		
+		indexer.append("<print line = \"");
+		indexer.append(step.getBeginLine());
+		indexer.append("\" />");
 	}
 	;
 
@@ -972,15 +1025,19 @@ speak_statement
 		ExpressionValue value = $root_expression.eval;
 
 		LineInformation location = new LineInformation();
-                location.setEndColumn(step.getEndColumn());
-                location.setEndLine(step.getEndLine());
-                location.setStartColumn(step.getBeginColumn());
-                location.setStartLine(step.getBeginLine());
-                location.setFile(getGrammarFileNameNoExtension());
+                		location.setEndColumn(step.getEndColumn());
+                		location.setEndLine(step.getEndLine());
+                		location.setStartColumn(step.getBeginColumn());
+                		location.setStartLine(step.getBeginLine());
+                		location.setFile(getGrammarFileNameNoExtension());
 
-                symbol.addStatementFlagToCurrentFile(step.getBeginLine());
+                		symbol.addStatementFlagToCurrentFile(step.getBeginLine());
 		stepFactory.addSpeakStep(location, $root_expression.eval, $root_expression.step);
 		builder.addStepLabel(OpcodeType.SAY, -1);
+		
+		indexer.append("<say line = \"");
+		indexer.append(step.getBeginLine());
+		indexer.append("\" />");
 	}
 	;
 
@@ -992,28 +1049,36 @@ return_statement
 		ExpressionValue value = $root_expression.eval;
 
 		LineInformation location = new LineInformation();
-                location.setEndColumn(step.getEndColumn());
-                location.setEndLine(step.getEndLine());
-                location.setStartColumn(step.getBeginColumn());
-                location.setStartLine(step.getBeginLine());
-                location.setFile(getGrammarFileNameNoExtension());
+                		location.setEndColumn(step.getEndColumn());
+                		location.setEndLine(step.getEndLine());
+                		location.setStartColumn(step.getBeginColumn());
+                		location.setStartLine(step.getBeginLine());
+                		location.setFile(getGrammarFileNameNoExtension());
 
-                symbol.addStatementFlagToCurrentFile(step.getBeginLine());
+                		symbol.addStatementFlagToCurrentFile(step.getBeginLine());
 		stepFactory.addReturnStep(location, $root_expression.eval, $root_expression.step);
 		builder.addStepLabel(OpcodeType.RETURN, -1);
+		
+		indexer.append("<return line = \"");
+		indexer.append(step.getBeginLine());
+		indexer.append("\" />");
 	}
 	| NOW 
 	{
 		LineInformation location = new LineInformation();
-                location.setEndColumn($NOW.getCharPositionInLine());
-                location.setEndLine($NOW.getLine());
-                location.setStartColumn($RETURN.getCharPositionInLine());
-                location.setStartLine($RETURN.getLine());
-                location.setFile(getGrammarFileNameNoExtension());
+                		location.setEndColumn($NOW.getCharPositionInLine());
+                		location.setEndLine($NOW.getLine());
+                		location.setStartColumn($RETURN.getCharPositionInLine());
+                		location.setStartLine($RETURN.getLine());
+                		location.setFile(getGrammarFileNameNoExtension());
 
-                symbol.addStatementFlagToCurrentFile($RETURN.getLine());
+                		symbol.addStatementFlagToCurrentFile($RETURN.getLine());
 		stepFactory.addReturnStep(location, null, null);
 		builder.addStepLabel(OpcodeType.RETURN, -1);
+		
+		indexer.append("<return line = \"");
+		indexer.append($RETURN.getLine());
+		indexer.append("\" />");
 	}
 	)
 	;
@@ -1165,10 +1230,10 @@ assignment_statement
 		);
 		
 		location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
-                location.setClassName(symbol.getCurrentClass().getStaticKey());
-                if(symbol.getCurrentMethod() != null){
-                	location.setMethodName(symbol.getCurrentMethod().getStaticKey());
-                }
+                		location.setClassName(symbol.getCurrentClass().getStaticKey());
+                		if(symbol.getCurrentMethod() != null){
+                			location.setMethodName(symbol.getCurrentMethod().getStaticKey());
+                		}
                 
 		ScopeSelector scope = $selector.scopeSel;
 		ClassDescriptor cd = null;
@@ -1206,10 +1271,10 @@ assignment_statement
 			 0
 		);
 		location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
-                location.setClassName(symbol.getCurrentClass().getStaticKey());
-                if(symbol.getCurrentMethod() != null){
-                	location.setMethodName(symbol.getCurrentMethod().getStaticKey());
-                }
+                		location.setClassName(symbol.getCurrentClass().getStaticKey());
+                		if(symbol.getCurrentMethod() != null){
+                			location.setMethodName(symbol.getCurrentMethod().getStaticKey());
+                		}
                 
 		boolean isLocal = $type.myType != null;
 		
@@ -1328,9 +1393,9 @@ scope {
 			b=block[true] //<< true code 
 		{
                         
-                        $if_statement::info.ifJumpStep.setBeginColumn($begin_if.getCharPositionInLine());
+                        		$if_statement::info.ifJumpStep.setBeginColumn($begin_if.getCharPositionInLine());
 			$if_statement::info.ifJumpStep.setEndColumn($begin_if.getCharPositionInLine() + ($begin_if.text.length()));
-	                $if_statement::info.ifJumpStep.setEndLine($begin_if.getLine());
+	                		$if_statement::info.ifJumpStep.setEndLine($begin_if.getLine());
 			stepFactory.addIfEndJumpStep($if_statement::info);
 			
 		}		
