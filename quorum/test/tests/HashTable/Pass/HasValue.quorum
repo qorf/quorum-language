@@ -1,0 +1,12 @@
+use Libraries.Containers.HashTable
+use Libraries.Containers.Blueprints.Iterator
+class Main
+    action Main
+        HashTable<text, integer> table
+        table:Add("age", 23)
+        table:Add("height", 65)
+
+        boolean isEmpty = table:HasValue(65)
+        print isEmpty
+    end
+end

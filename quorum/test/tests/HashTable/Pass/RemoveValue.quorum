@@ -1,0 +1,12 @@
+use Libraries.Containers.HashTable
+class Main
+    action Main
+        HashTable<text, integer> table
+        table:Add("age", 23)
+        table:Add("height", 65)
+        
+        text age = table:RemoveValue(23)
+
+        print age
+    end
+end
