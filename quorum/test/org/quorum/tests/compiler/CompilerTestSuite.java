@@ -52,6 +52,7 @@ import org.quorum.tests.compiler.Expressions.ExpressionsTester;
 import org.quorum.tests.compiler.File.FileRandomAccessTester;
 import org.quorum.tests.compiler.File.FileReaderTester;
 import org.quorum.tests.compiler.File.FileWriterTester;
+import org.quorum.tests.compiler.HashTable.HashTableTester;
 import org.quorum.tests.compiler.other.OtherTester;
 import org.quorum.tests.compiler.publicprivate.PublicPrivateTester;
 import org.quorum.tests.compiler.templating.TemplateTester;
@@ -65,7 +66,7 @@ import org.quorum.tests.compiler.use.UseTester;
 @Suite.SuiteClasses(value={TypeCheckTester.class, ListTester.class, RandomTester.class, StackTester.class,
     CurriculumTester.class, ActionsTester.class, ExceptionsTester.class, ArrayTester.class, TableTester.class,
     MathTester.class, QueueTester.class, IfStatementTester.class, InheritanceTester.class, LoopsTester.class,
-    NativeFunctionsTester.class, OtherTester.class, PublicPrivateTester.class, TemplateTester.class,
+    NativeFunctionsTester.class, OtherTester.class, PublicPrivateTester.class, TemplateTester.class, HashTableTester.class,
     UseTester.class, FileTester.class, ExpressionsTester.class, FileReaderTester.class, FileWriterTester.class, FileRandomAccessTester.class})
 
 public class CompilerTestSuite {
@@ -100,10 +101,12 @@ public class CompilerTestSuite {
     public static final String STACK = "Stack" + File.separatorChar;
     public static final String PRIORITYQUEUE = "PriorityQueue"+File.separatorChar;
     public static final String TABLE = "Table"+File.separatorChar;
+    public static final String HASHTABLE = "HashTable" + File.separatorChar;
     private static QuorumVirtualMachine vm;
     private static File systemRoot;
     private static File pluginFolder;
     private static boolean setup = false;
+    
     
     @BeforeClass
     public static void setUpClass() throws Exception {
