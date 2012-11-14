@@ -26,10 +26,12 @@ public class Console {
     private static boolean useDialog = false;
     private static TextToSpeech speech = null;
     public static String[] commandLineArguments = new String[0];
-
+    public static boolean loadAWT = true;
+    
     static {
         try {
-            if (System.getProperty(Quorum.QUORUM_TEST_JVM_FLAG) == null) {
+            if (System.getProperty(Quorum.QUORUM_TEST_JVM_FLAG) == null
+                    && loadAWT) {
                 optionPane = new JOptionPane();
                 optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
                 optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
