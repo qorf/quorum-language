@@ -45,6 +45,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     private static final Logger logger = Logger.getLogger(QuorumBytecodeGenerator.class.getName());
     private String mainClassName = "";
     private boolean compileToDisk = true;
+    private boolean hasInput = false;
     
     /**
      * This method generates java bytecode for all classes on the system.
@@ -54,6 +55,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     public void generate() {
         classHash.clear();
         Iterator<ContainerExecution> containers = builder.getContainers();
+        hasInput = builder.hasInput();
         while (containers.hasNext()) {
             ContainerExecution exe = containers.next();
             generate(exe);
@@ -66,6 +68,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         while (classes.hasNext()) {
             try {
                 ClassExecution clazz = classes.next();
+                clazz.setHasInput(hasInput);
                 currentClass = clazz.getClassDescriptor();
                 
                 //grab the file and check to see if the path matches the main file

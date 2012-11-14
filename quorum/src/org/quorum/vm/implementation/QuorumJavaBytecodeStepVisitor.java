@@ -55,7 +55,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     private final String PLUGIN_NAME = "<plugin>";
     private final boolean LOCAL_VARIABLE_NAMES_VISITED = true;
     private int fieldSize = 1;
-    private boolean first = true;
+    private boolean hasInput = false;
 
     public QuorumJavaBytecodeStepVisitor() {
     }
@@ -1786,6 +1786,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
      * @param clazz 
      */
     public void visit(ClassExecution clazz) {
+        hasInput = clazz.hasInput();
         //classWriter = new ClassWriter(0);
 
         //if you need to cheat temporarily, this will compute the maxS
@@ -2243,6 +2244,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             methodVisitor = classWriter.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
             methodVisitor.visitVarInsn(ALOAD, 0);
             methodVisitor.visitFieldInsn(PUTSTATIC, "plugins/quorum/Libraries/System/Console", "commandLineArguments", "[Ljava/lang/String;");
+            
+            //if there is an input call, do nothing
+            //if there is no input call, weave in
+            if(!hasInput){
+                methodVisitor.visitInsn(Opcodes.ICONST_0);
+                methodVisitor.visitFieldInsn(PUTSTATIC, "plugins/quorum/Libraries/System/Console", "loadAWT", "Z");
+            }
+            
             methodVisitor.visitMethodInsn(INVOKESTATIC, "plugins/quorum/Libraries/System/Quorum", "Load",
                     "()V");
             methodVisitor.visitTypeInsn(NEW, processedClazzName);

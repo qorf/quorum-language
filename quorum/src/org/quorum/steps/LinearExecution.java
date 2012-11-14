@@ -28,6 +28,7 @@ public class LinearExecution {
     private OpcodeTracker tracker;
     private boolean built;
     private int address;
+    private boolean hasInput;
 
     public LinearExecution() {
         steps = new Vector<ExecutionStep>();
@@ -160,5 +161,19 @@ public class LinearExecution {
      */
     public OpcodeTracker getTracker() {
         return tracker;
+    }
+
+    /**
+     * @return the hasInput
+     */
+    public boolean hasInput() {
+        return hasInput;
+    }
+
+    /**
+     * @param hasInput the hasInput to set
+     */
+    public void setHasInput(boolean hasInput) {
+        this.hasInput = hasInput;
     }
 }

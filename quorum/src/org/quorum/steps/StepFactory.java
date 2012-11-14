@@ -2720,6 +2720,7 @@ public class StepFactory {
         result.setStep(inputStep);
 
         machine.getBuilder().add(inputStep);
+        machine.getBuilder().setHasInput(true);
         return result;
     }
     

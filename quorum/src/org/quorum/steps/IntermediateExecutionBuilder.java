@@ -28,6 +28,7 @@ public class IntermediateExecutionBuilder {
     private ContainerExecution currentContainer;
     private HashMap<String, Integer> labelFinalMarkerPositionHash = new HashMap<String, Integer>();
     private HashMap<String, JumpBucket> unresolvedJump = new HashMap<String, JumpBucket>();
+    private boolean hasInput = false;
 
     public IntermediateExecutionBuilder() {
         containers = new HashMap<String, ContainerExecution>();
@@ -422,5 +423,19 @@ public class IntermediateExecutionBuilder {
      */
     public void setCurrentFileKey(String currentFileKey) {
         this.currentFileKey = currentFileKey;
+    }
+
+    /**
+     * @return the hasInput
+     */
+    public boolean hasInput() {
+        return hasInput;
+    }
+
+    /**
+     * @param hasInput the hasInput to set
+     */
+    public void setHasInput(boolean hasInput) {
+        this.hasInput = hasInput;
     }
 }
