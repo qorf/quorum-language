@@ -318,6 +318,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             this.compilerErrors.setErrorKey(file.getAbsolutePath());
             parse(file);
 
+            //if the build was successful, the cache should be updated.
+            updateCache(file);
+            
             //phase 2.5 - semantic analysis pre-processing
             computeStandardLibraryFiles();
             getSymbolTable().calculatePackageUseForFile(file.getAbsolutePath());
@@ -329,8 +332,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             QuorumFile hf = getQuorumFileFromCache(file);
             semanticAnalysis(hf);
 
-            //if the build was successful, the cache should be updated.
-            updateCache(file);
+            
             this.compilerErrors.resetToDefaultKey();
             throwBuildEvent();
         } catch (Exception exception) {
@@ -355,7 +357,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             removeFromBuild(file);
             this.compilerErrors.setErrorKey(file.getAbsolutePath());
             parseSingle(file, text);
-
+            //if the build was successful, the cache should be updated.
+            updateCache(file);
+            
             //phase 2.5 - semantic analysis pre-processing
             computeStandardLibraryFiles();
             getSymbolTable().calculatePackageUseForFile(file.getAbsolutePath());
@@ -366,9 +370,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             //phase 3 - semantic analysis
             QuorumFile hf = getQuorumFileFromCache(file);
             semanticAnalysis(hf);
-
-            //if the build was successful, the cache should be updated.
-            updateCache(file);
+            
             this.compilerErrors.resetToDefaultKey();
             throwBuildEvent();
         } catch (Exception exception) {
@@ -398,7 +400,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
      * @param file
      */
     private void updateCache(File file) {
-        if (this.compilerErrors.isCompilationErrorFree()) {
+        if (this.compilerErrors.isFileErrorFree(file.getAbsolutePath())) {
             lastBuildSuccessful = true;
             //update the cache by copying it
             FileDescriptor cacheMe = this.getSymbolTable().getFileDescriptor(file.getAbsolutePath());
@@ -435,6 +437,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             //start parsing and create a structure for housing any
             //information found during the parse.
             start_return start = parser.start();
+            updateCache(file);
             CommonTree syntaxTree = (CommonTree) start.getTree();
             QuorumFile hf = new QuorumFile();
             hf.setFile(file);
@@ -449,6 +452,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
             if (!this.getCompilerErrors().isCompilationErrorFree()) {
                 parsed = false;
+                updateCache(file);
             } else {
                 parsed = true;
             }
@@ -465,6 +469,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     public void parseSingle(File file) {
         if (!this.parseHash.containsKey(file.getAbsolutePath())) {
             parse(file);
+            updateCache(file);
             getSymbolTable().calculatePackageUseForFile(file.getAbsolutePath());
         }
     }
@@ -586,7 +591,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         this.setMain(main.getAbsolutePath());
 
         this.parseSingle(main, source);
-
+        updateCache();
+        
         computeStandardLibraryFiles();
         getSymbolTable().compilePackageUseTables();
         getSymbolTable().resolveAllMethods();
@@ -606,7 +612,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         }
         //if it worked, link it
         link();
-        updateCache();
+        
     }
 
     private void link() {
@@ -652,6 +658,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             File file = source[i];
             this.compilerErrors.setErrorKey(file.getAbsolutePath());
             parse(file);
+            updateCache(file);
         }
         //now compute all of the package and use references
         //to make sure that each file is referencing something known
@@ -748,6 +755,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             //start parsing and create a structure for housing any
             //information found during the parse.
             start_return start = parser.start();
+            //update the cache if it parsed
+            updateCache(file);
             CommonTree syntaxTree = (CommonTree) start.getTree();
             QuorumFile hf = new QuorumFile();
             hf.setFile(file);
@@ -1165,6 +1174,13 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                         } else {
                             addParentClasses(result, clazz);
                         }
+                    } else if(split.length == 1) { //they are requesting a list of parents
+                        Iterator<ClassDescriptor> parents = clazz.getFlattenedListOfParents();
+                        while(parents.hasNext()) {
+                            ClassDescriptor par = parents.next();
+                            CodeCompletionItem classCompletionItem = getClassCompletionItem(par);
+                            result.add(classCompletionItem);
+                        }
                     }
 
                 } else if (left.equals(me)) {
@@ -1178,6 +1194,18 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                     if (variable != null) {
                         String staticKey = variable.getType().getStaticKey();
 
+                        //if the name is the same, it won't be resolved
+                        //check for this case and manually set the static
+                        //key to the current class if it happens.
+                        //there may be rare instances of a variable having
+                        //the same unresolved name, with an accidental compiler
+                        //error of no use statement, which happens to have
+                        //the same name as the containing class. This, however,
+                        //seems like an exceedingly unlikely user error.
+                        if(staticKey.compareTo(clazz.getName()) == 0) {
+                            staticKey = clazz.getStaticKey();
+                        }
+                        
                         if (split[split.length - 1].equals(parent)) {
                             clazz = this.getSymbolTable().findClassDescriptorFromCurrentClass(staticKey);
                             if (clazz != null) {
@@ -1186,7 +1214,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                         } else {
                             addToCodeCompletionResult(variable, result, staticKey, clazz);
                         }
-                    } else {
+                    } else if(variable == null && 
+                            (left == null || left.isEmpty() || left.matches("\\s"))) {
                         addDefaultValues(partialLine, result, request, clazz, method);
                     }
                 }

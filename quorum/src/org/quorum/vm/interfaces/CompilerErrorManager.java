@@ -139,6 +139,23 @@ public class CompilerErrorManager {
             return new LinkedList<CompilerError>().iterator();
         }
     }
+    
+    /**
+     * Determines whether a particular file is error free for a particular
+     * compile.
+     * 
+     * @param fileKey
+     * @return 
+     */
+    public boolean isFileErrorFree(String fileKey) {
+        LinkedList<CompilerError> errors = errorsPerFile.get(fileKey);
+        if(errors != null) {
+            return errors.size() > 0;
+        } else {
+            return true;
+        }
+    }
+    
     /**
      * @return the errorKey
      */
