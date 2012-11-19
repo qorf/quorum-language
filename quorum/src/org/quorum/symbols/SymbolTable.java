@@ -776,6 +776,21 @@ public class SymbolTable {
     }
 
     /**
+     * This method returns a class descriptor from a package. The first parameter
+     * 
+     * @param className the name of the class. This is not a full static key.
+     * @param location This is the package name.
+     * @return 
+     */
+    public ClassDescriptor getClassDescriptorFromPackage(String className, String location) {
+        HashMap<String, ClassDescriptor> get = classContainers.get(location);
+        if(get != null) {
+            return get.get(className);
+        }
+        return null;
+    }
+    
+    /**
      * This method helps the tree walker set what item is currently in scope
      * so that variables and methods can be easily queried.
      * @param scope

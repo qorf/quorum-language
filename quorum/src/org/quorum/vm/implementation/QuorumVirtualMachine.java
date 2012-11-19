@@ -93,7 +93,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
      * This file descriptor is a cached copy that can be used by the code
      * completion system if the last build was not successful.
      */
-    private FileDescriptor cache = null;
+    private HashMap<String, FileDescriptor> cache = null;
     /**
      * This instance of QuorumVirtualMachine is used only if verification of
      * documentation example code is enabled.
@@ -112,6 +112,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         typeChecker = new TypeChecker();
         standardLibrary = new QuorumStandardLibrary();
         generator = new QuorumBytecodeGenerator();
+        cache = new HashMap<String, FileDescriptor>();
     }
 
     private void resetBuild() {
@@ -126,6 +127,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         getExecution().restartExecution();
         this.getDataEnvironment().clear();
         getPluginManager().clear();
+        cache.clear();
     }
 
     @Override
@@ -381,18 +383,18 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     /**
      * This method updates the cache in build all events.
      */
-    private void updateCache() {
-        if (this.compilerErrors.isCompilationErrorFree()) {
-            if (cache != null) {
-                File file = cache.getFile();
-                if (file != null) {
-                    String key = file.getAbsolutePath();
-                    FileDescriptor cacheMe = this.getSymbolTable().getFileDescriptor(file.getAbsolutePath());
-                    cache = cacheMe;
-                }
-            }
-        }
-    }
+//    private void updateCache() {
+//        if (this.compilerErrors.isCompilationErrorFree()) {
+//            if (cache != null) {
+//                File file = cache.getFile();
+//                if (file != null) {
+//                    String key = file.getAbsolutePath();
+//                    FileDescriptor cacheMe = this.getSymbolTable().getFileDescriptor(file.getAbsolutePath());
+//                    cache = cacheMe;
+//                }
+//            }
+//        }
+//    }
 
     /**
      * This method updates the cache when a specific file is being parsed.
@@ -404,7 +406,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             lastBuildSuccessful = true;
             //update the cache by copying it
             FileDescriptor cacheMe = this.getSymbolTable().getFileDescriptor(file.getAbsolutePath());
-            this.cache = cacheMe;
+            cache.put(file.getAbsolutePath(), cacheMe);
+            //this.cache = cacheMe;
         } else {
             lastBuildSuccessful = false;
         }
@@ -560,7 +563,13 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         public void run() {
             try {
                 buildActual(source);
-                updateCache();
+                if(source == null) {
+                    return;
+                }
+                for(int i = 0; i < source.length; i++) {
+                    updateCache(source[i]);
+                }
+                //updateCache();
             } catch (Exception exception) {
                 logger.log(Level.INFO, "The Quorum Compiler threw an exception in build(File[]).", exception);
             }
@@ -591,7 +600,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         this.setMain(main.getAbsolutePath());
 
         this.parseSingle(main, source);
-        updateCache();
+        updateCache(main);
         
         computeStandardLibraryFiles();
         getSymbolTable().compilePackageUseTables();
@@ -1107,8 +1116,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         }
 
         FileDescriptor file = null;
-        if (!this.lastBuildSuccessful && cache != null) {
-            file = cache;
+        if (!this.lastBuildSuccessful && cache != null && cache.containsKey(request.getFileKey())) {
+            file = cache.get(request.getFileKey());
         } else {
             file = this.getSymbolTable().getFileDescriptor(request.getFileKey());
         }
@@ -1194,6 +1203,15 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                     if (variable != null) {
                         String staticKey = variable.getType().getStaticKey();
 
+                        ClassDescriptor validKey = table.getClassDescriptor(staticKey);
+                        if(validKey == null) { //check if the class is in the same package
+                            ClassDescriptor checker = table.getClassDescriptorFromPackage(
+                                staticKey, clazz.getContainer().getContainer());
+                            if(checker != null) {
+                                staticKey = checker.getStaticKey();
+                            }
+                        }
+                        
                         //if the name is the same, it won't be resolved
                         //check for this case and manually set the static
                         //key to the current class if it happens.
@@ -1202,9 +1220,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                         //error of no use statement, which happens to have
                         //the same name as the containing class. This, however,
                         //seems like an exceedingly unlikely user error.
-                        if(staticKey.compareTo(clazz.getName()) == 0) {
-                            staticKey = clazz.getStaticKey();
-                        }
+//                        if(staticKey.compareTo(clazz.getName()) == 0) {
+//                            staticKey = clazz.getStaticKey();
+//                        } 
                         
                         if (split[split.length - 1].equals(parent)) {
                             clazz = this.getSymbolTable().findClassDescriptorFromCurrentClass(staticKey);

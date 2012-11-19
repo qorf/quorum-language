@@ -150,7 +150,7 @@ public class CompilerErrorManager {
     public boolean isFileErrorFree(String fileKey) {
         LinkedList<CompilerError> errors = errorsPerFile.get(fileKey);
         if(errors != null) {
-            return errors.size() > 0;
+            return errors.size() == 0;
         } else {
             return true;
         }
