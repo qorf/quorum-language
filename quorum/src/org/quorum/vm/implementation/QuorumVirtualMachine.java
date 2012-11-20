@@ -1143,7 +1143,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             boolean isMe = false;
             if (method != null) {
                 String left = split[0];
-                String partialLine = request.getLine().substring(0, request.getStartOffset());
+                String original = request.getLine().substring(0, request.getStartOffset());
+                String partialLine = original;
                 //parse left, starting from the start offset, working
                 for (int i = request.getStartOffset() - 1; i >= 0; i--) {
                     if (partialLine.charAt(i) == '('
@@ -1160,12 +1161,16 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                         partialLine = partialLine.trim();
                         split = partialLine.split(":");
                         left = split[0];
+                        if(split.length > 1 || !partialLine.contains(":")) {
+                            result.setFilter(split[split.length - 1]);
+                        } else {
+                            result.setFilter("");
+                        }
                         i = -1; //finish early.
                     }
                 }
 
                 partialLine = partialLine.trim();
-
                 if (left.equals(parent)) {
                     if (split.length > 2) {
                         String resolvedName = clazz.resolveParentName(split[1]);
@@ -1174,12 +1179,11 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                             addClassToResult(null, result, par, isMe);
                         }
                     } else if (split.length == 2) {
-                        if (result.getFilter().length() == 0) {
-                            String resolvedName = clazz.resolveParentName(split[1]);
-                            ClassDescriptor par = clazz.getParent(resolvedName);
-                            if (par != null) {
-                                addClassToResult(null, result, par, isMe);
-                            }
+                        String resolvedName = clazz.resolveParentName(split[1]);
+                        ClassDescriptor par = clazz.getParent(resolvedName);
+                        if (par != null) {
+                            result.setFilter("");
+                            addClassToResult(null, result, par, isMe);
                         } else {
                             addParentClasses(result, clazz);
                         }
@@ -1192,7 +1196,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                         }
                     }
 
-                } else if (left.equals(me)) {
+                } else if (left.equals(me) || left.isEmpty() || left.matches("\\s")) {
                     isMe = true;
                     addClassToResult(null, result, clazz, isMe);
                 } else { //This should work until chaining is in place.
@@ -1232,8 +1236,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                         } else {
                             addToCodeCompletionResult(variable, result, staticKey, clazz);
                         }
-                    } else if(variable == null && 
-                            (left == null || left.isEmpty() || left.matches("\\s"))) {
+                    } else if(variable == null) {
                         addDefaultValues(partialLine, result, request, clazz, method);
                     }
                 }
