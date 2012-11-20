@@ -1,6 +1,15 @@
+use Libraries.Containers.HashTable
+use Libraries.Containers.Blueprints.Iterator
 class Main
-action Main
-    text yo = "ello" //input("what you want?")
-    print yo
-end
+    HashTable<Text,Object> hash
+    action Main
+        Object o
+        Test(o)
+    end
+    action Test(Object o)
+        hash:Add("" + o:GetHashCode(), o)
+        Iterator<Object> it = hash:GetValueIterator()
+        print it:HasNext()
+        print hash:GetSize()
+    end
 end
