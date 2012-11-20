@@ -15,11 +15,20 @@ java -cp "../../../dependencies/phonemic.jar:./" quorum.Stefik
 
 */
 
-print "<html><body>"
+use Libraries.Containers.HashTable
+use Libraries.Containers.Blueprints.Iterator
 
-repeat 10 times
-    print "<p> Howdy </p>"
+class Main
+    HashTable<Text,Object> hash
+    action Main
+        Object o
+        Test(o)
+    end
+
+    action Test(Object o)
+        hash:Add("" + o:GetHashCode(), o)
+        Iterator<Object> it = hash:GetValueIterator()
+        print it:HasNext()
+        print hash:GetSize()
+    end
 end
-
-
-print "</body><html>"
