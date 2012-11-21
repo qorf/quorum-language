@@ -1,3 +1,5 @@
+<!--Developed and written by Brandon Spencer-->
+<!--9/28/2012-->
 <?php include("../../include/header.php"); ?>
 <script type="text/javascript">
     document.title = 'Chapter 6';
@@ -80,10 +82,11 @@
 </ul>
 </ul>
 <h2>Challenge Programming Projects</h2>
-<!-- <ul>
+<ul>
 <li><a href="assignment6_4.php">Assignment Manual 6.4</a></li>
 <ul>
-<li>Build a Super Hero factory</li>
-<li>Use the Libraries.Sound.Music</li>
-<li>Use inheritance and blueprint actions</li> -->
+<li>Build an interactive battle simulator</li>
+<li>Use the Libraries.Sound.Audio library</li>
+<li>Use inheritance and blueprint actions</li>
+    
 <?php include("../../include/footer.php"); ?>
