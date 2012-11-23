@@ -1141,65 +1141,66 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             MethodDescriptor method = clazz.getMethodAtLine(request.getLineNumber());
             //if the method is null, it must be a class variable (or garbage)
             boolean isMe = false;
-            if (method != null) {
-                String left = split[0];
-                String original = request.getLine().substring(0, request.getStartOffset());
-                String partialLine = original;
-                //parse left, starting from the start offset, working
-                for (int i = request.getStartOffset() - 1; i >= 0; i--) {
-                    if (partialLine.charAt(i) == '('
-                            || partialLine.charAt(i) == ','
-                            || partialLine.charAt(i) == '*'
-                            || partialLine.charAt(i) == '/'
-                            || partialLine.charAt(i) == '+'
-                            || partialLine.charAt(i) == '-'
-                            || partialLine.charAt(i) == ' '
-                            || isMod(partialLine, i) //make this work for mod --- if it's a d, check backwards and ensure that it's not part of another word
-                            ) { //this is the end of this expression
-                        partialLine = partialLine.substring(i + 1, request.getStartOffset());
-                        //resplit it
-                        partialLine = partialLine.trim();
-                        split = partialLine.split(":");
-                        left = split[0];
-                        if(split.length > 1 || !partialLine.contains(":")) {
-                            result.setFilter(split[split.length - 1]);
-                        } else {
-                            result.setFilter("");
-                        }
-                        i = -1; //finish early.
+            //if (method != null) {
+            String left = split[0];
+            String original = request.getLine().substring(0, request.getStartOffset());
+            String partialLine = original;
+            //parse left, starting from the start offset, working
+            for (int i = request.getStartOffset() - 1; i >= 0; i--) {
+                if (partialLine.charAt(i) == '('
+                        || partialLine.charAt(i) == ','
+                        || partialLine.charAt(i) == '*'
+                        || partialLine.charAt(i) == '/'
+                        || partialLine.charAt(i) == '+'
+                        || partialLine.charAt(i) == '-'
+                        || partialLine.charAt(i) == ' '
+                        || isMod(partialLine, i) //make this work for mod --- if it's a d, check backwards and ensure that it's not part of another word
+                        ) { //this is the end of this expression
+                    partialLine = partialLine.substring(i + 1, request.getStartOffset());
+                    //resplit it
+                    partialLine = partialLine.trim();
+                    split = partialLine.split(":");
+                    left = split[0];
+                    if (split.length > 1 || !partialLine.contains(":")) {
+                        result.setFilter(split[split.length - 1]);
+                    } else {
+                        result.setFilter("");
+                    }
+                    i = -1; //finish early.
+                }
+            }
+
+            partialLine = partialLine.trim();
+            if (left.equals(parent)) {
+                if (split.length > 2) {
+                    String resolvedName = clazz.resolveParentName(split[1]);
+                    ClassDescriptor par = clazz.getParent(resolvedName);
+                    if (par != null) {
+                        addClassToResult(null, result, par, isMe);
+                    }
+                } else if (split.length == 2) {
+                    String resolvedName = clazz.resolveParentName(split[1]);
+                    ClassDescriptor par = clazz.getParent(resolvedName);
+                    if (par != null) {
+                        result.setFilter("");
+                        addClassToResult(null, result, par, isMe);
+                    } else {
+                        addParentClasses(result, clazz);
+                    }
+                } else if (split.length == 1) { //they are requesting a list of parents
+                    Iterator<ClassDescriptor> parents = clazz.getFlattenedListOfParents();
+                    while (parents.hasNext()) {
+                        ClassDescriptor par = parents.next();
+                        CodeCompletionItem classCompletionItem = getClassCompletionItem(par);
+                        result.add(classCompletionItem);
                     }
                 }
 
-                partialLine = partialLine.trim();
-                if (left.equals(parent)) {
-                    if (split.length > 2) {
-                        String resolvedName = clazz.resolveParentName(split[1]);
-                        ClassDescriptor par = clazz.getParent(resolvedName);
-                        if (par != null) {
-                            addClassToResult(null, result, par, isMe);
-                        }
-                    } else if (split.length == 2) {
-                        String resolvedName = clazz.resolveParentName(split[1]);
-                        ClassDescriptor par = clazz.getParent(resolvedName);
-                        if (par != null) {
-                            result.setFilter("");
-                            addClassToResult(null, result, par, isMe);
-                        } else {
-                            addParentClasses(result, clazz);
-                        }
-                    } else if(split.length == 1) { //they are requesting a list of parents
-                        Iterator<ClassDescriptor> parents = clazz.getFlattenedListOfParents();
-                        while(parents.hasNext()) {
-                            ClassDescriptor par = parents.next();
-                            CodeCompletionItem classCompletionItem = getClassCompletionItem(par);
-                            result.add(classCompletionItem);
-                        }
-                    }
-
-                } else if (left.equals(me) || left.isEmpty() || left.matches("\\s")) {
-                    isMe = true;
-                    addClassToResult(null, result, clazz, isMe);
-                } else { //This should work until chaining is in place.
+            } else if (left.equals(me) || left.isEmpty() || left.matches("\\s")) {
+                isMe = true;
+                addClassToResult(null, result, clazz, isMe);
+            } else { //This should work until chaining is in place.
+                if (method != null) {
                     VariableParameterCommonDescriptor variable = method.getVariable(left);
                     if (variable == null) {
                         variable = findVariableInBlocks(request, method, left);
@@ -1208,26 +1209,14 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                         String staticKey = variable.getType().getStaticKey();
 
                         ClassDescriptor validKey = table.getClassDescriptor(staticKey);
-                        if(validKey == null) { //check if the class is in the same package
+                        if (validKey == null) { //check if the class is in the same package
                             ClassDescriptor checker = table.getClassDescriptorFromPackage(
-                                staticKey, clazz.getContainer().getContainer());
-                            if(checker != null) {
+                                    staticKey, clazz.getContainer().getContainer());
+                            if (checker != null) {
                                 staticKey = checker.getStaticKey();
                             }
                         }
-                        
-                        //if the name is the same, it won't be resolved
-                        //check for this case and manually set the static
-                        //key to the current class if it happens.
-                        //there may be rare instances of a variable having
-                        //the same unresolved name, with an accidental compiler
-                        //error of no use statement, which happens to have
-                        //the same name as the containing class. This, however,
-                        //seems like an exceedingly unlikely user error.
-//                        if(staticKey.compareTo(clazz.getName()) == 0) {
-//                            staticKey = clazz.getStaticKey();
-//                        } 
-                        
+
                         if (split[split.length - 1].equals(parent)) {
                             clazz = this.getSymbolTable().findClassDescriptorFromCurrentClass(staticKey);
                             if (clazz != null) {
@@ -1236,11 +1225,14 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                         } else {
                             addToCodeCompletionResult(variable, result, staticKey, clazz);
                         }
-                    } else if(variable == null) {
-                        addDefaultValues(partialLine, result, request, clazz, method);
+                    } else if (variable == null) {
+                        if(split.length == 0) {
+                            addDefaultValues(partialLine, result, request, clazz, method);
+                        }
                     }
                 }
             }
+            //    }
         }
     }
 
