@@ -2475,37 +2475,40 @@ public class StepFactory {
     public ResultTuple addParentVariableMoveStep(LineInformation location,
             ExpressionValue expressionValue, ExecutionStep expressionStep,
             int resultRegister, QualifiedNameDescriptor variableName, ClassDescriptor parent) {
-
+        
         ResultTuple result = new ResultTuple();
         result.setNextRegister(resultRegister + 1);
+        VariableDescriptor vd = null;
 
         boolean foundParent = false;
 
         ParentVariableMoveStep step = new ParentVariableMoveStep();
         step.setLineInformation(location);
 
-        Iterator<ClassDescriptor> ancestors = machine.getSymbolTable().getCurrentClass().getFlattenedListOfParents();
-        while (!foundParent && ancestors.hasNext()) {
-            ClassDescriptor anc = ancestors.next();
-            if (anc.getStaticKey().equals(parent.getStaticKey())) {
-                foundParent = true;
+        if(parent != null){
+            Iterator<ClassDescriptor> ancestors = machine.getSymbolTable().getCurrentClass().getFlattenedListOfParents();
+            while (!foundParent && ancestors.hasNext()) {
+                ClassDescriptor anc = ancestors.next();
+                if (anc.getStaticKey().equals(parent.getStaticKey())) {
+                    foundParent = true;
+                }
             }
+
+            if (!foundParent) {
+                CompilerError error = new CompilerError();
+
+                error.setLineNumber(location.getStartLine());
+                error.setError("The class '" + parent.getStaticKey() + "' is not a parent of the class "
+                        + machine.getSymbolTable().getCurrentClass().getStaticKey() + ".");
+                error.setColumn(location.getStartColumn());
+                error.setErrorType(ErrorType.MISSING_PARENT);
+                error.setFile(location.getFile());
+                machine.getCompilerErrors().addError(error);
+            }
+
+            vd = parent.getVariable(variableName.getStaticKey());
         }
-
-        if (!foundParent) {
-            CompilerError error = new CompilerError();
-
-            error.setLineNumber(location.getStartLine());
-            error.setError("The class '" + parent.getStaticKey() + "' is not a parent of the class "
-                    + machine.getSymbolTable().getCurrentClass().getStaticKey() + ".");
-            error.setColumn(location.getStartColumn());
-            error.setErrorType(ErrorType.MISSING_PARENT);
-            error.setFile(location.getFile());
-            machine.getCompilerErrors().addError(error);
-        }
-
-        VariableDescriptor vd = parent.getVariable(variableName.getStaticKey());
-
+        
         ExpressionValue resultValue;
         if (vd == null) {
             resultValue = new ExpressionValue();

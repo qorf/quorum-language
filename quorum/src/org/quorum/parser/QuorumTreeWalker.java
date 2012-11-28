@@ -1,4 +1,4 @@
-// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2012-11-13 09:31:28
+// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2012-11-28 10:46:01
 
 
 package org.quorum.parser;
@@ -161,7 +161,7 @@ public static class STAttrMap extends HashMap {
   }
 }
     public String[] getTokenNames() { return QuorumTreeWalker.tokenNames; }
-    public String getGrammarFileName() { return "/Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g"; }
+    public String getGrammarFileName() { return "/Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g"; }
 
 
     	QuorumVirtualMachine vm;
@@ -211,22 +211,22 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "start"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:66:1: start : ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ |) class_declaration EOF ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:66:1: start : ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ |) class_declaration EOF ;
     public final QuorumTreeWalker.start_return start() throws RecognitionException {
         QuorumTreeWalker.start_return retval = new QuorumTreeWalker.start_return();
         retval.start = input.LT(1);
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:66:7: ( ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ |) class_declaration EOF )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:66:9: ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ |) class_declaration EOF
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:66:7: ( ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ |) class_declaration EOF )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:66:9: ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ |) class_declaration EOF
             {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:66:9: ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ |)
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:66:9: ( package_rule ( reference )+ | ( reference )+ package_rule | package_rule | ( reference )+ |)
             int alt4=5;
             alt4 = dfa4.predict(input);
             switch (alt4) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:66:10: package_rule ( reference )+
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:66:10: package_rule ( reference )+
                     {
                     pushFollow(FOLLOW_package_rule_in_start51);
                     package_rule();
@@ -234,7 +234,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:66:23: ( reference )+
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:66:23: ( reference )+
                     int cnt1=0;
                     loop1:
                     do {
@@ -248,7 +248,7 @@ public static class STAttrMap extends HashMap {
 
                         switch (alt1) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:66:23: reference
+                    	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:66:23: reference
                     	    {
                     	    pushFollow(FOLLOW_reference_in_start53);
                     	    reference();
@@ -272,9 +272,9 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:67:4: ( reference )+ package_rule
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:67:4: ( reference )+ package_rule
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:67:4: ( reference )+
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:67:4: ( reference )+
                     int cnt2=0;
                     loop2:
                     do {
@@ -288,7 +288,7 @@ public static class STAttrMap extends HashMap {
 
                         switch (alt2) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:67:4: reference
+                    	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:67:4: reference
                     	    {
                     	    pushFollow(FOLLOW_reference_in_start59);
                     	    reference();
@@ -318,7 +318,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:68:4: package_rule
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:68:4: package_rule
                     {
                     pushFollow(FOLLOW_package_rule_in_start67);
                     package_rule();
@@ -329,9 +329,9 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 4 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:69:4: ( reference )+
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:69:4: ( reference )+
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:69:4: ( reference )+
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:69:4: ( reference )+
                     int cnt3=0;
                     loop3:
                     do {
@@ -345,7 +345,7 @@ public static class STAttrMap extends HashMap {
 
                         switch (alt3) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:69:4: reference
+                    	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:69:4: reference
                     	    {
                     	    pushFollow(FOLLOW_reference_in_start72);
                     	    reference();
@@ -369,7 +369,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 5 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:70:4: 
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:70:4: 
                     {
                     }
                     break;
@@ -409,7 +409,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "package_rule"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:74:1: package_rule : PACKAGE_NAME qn= qualified_name ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:74:1: package_rule : PACKAGE_NAME qn= qualified_name ;
     public final QuorumTreeWalker.package_rule_return package_rule() throws RecognitionException {
         QuorumTreeWalker.package_rule_return retval = new QuorumTreeWalker.package_rule_return();
         retval.start = input.LT(1);
@@ -419,8 +419,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:74:15: ( PACKAGE_NAME qn= qualified_name )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:74:17: PACKAGE_NAME qn= qualified_name
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:74:15: ( PACKAGE_NAME qn= qualified_name )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:74:17: PACKAGE_NAME qn= qualified_name
             {
             match(input,PACKAGE_NAME,FOLLOW_PACKAGE_NAME_in_package_rule96); 
 
@@ -458,15 +458,15 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "reference"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:80:1: reference : USE qualified_name ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:80:1: reference : USE qualified_name ;
     public final QuorumTreeWalker.reference_return reference() throws RecognitionException {
         QuorumTreeWalker.reference_return retval = new QuorumTreeWalker.reference_return();
         retval.start = input.LT(1);
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:80:11: ( USE qualified_name )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:80:13: USE qualified_name
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:80:11: ( USE qualified_name )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:80:13: USE qualified_name
             {
             match(input,USE,FOLLOW_USE_in_reference113); 
 
@@ -504,7 +504,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "class_declaration"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:86:1: class_declaration : ( ^( CLASS ID ( generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END ) | no_class_stmnts );
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:86:1: class_declaration : ( ^( CLASS ID ( generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END ) | no_class_stmnts );
     public final QuorumTreeWalker.class_declaration_return class_declaration() throws RecognitionException {
         QuorumTreeWalker.class_declaration_return retval = new QuorumTreeWalker.class_declaration_return();
         retval.start = input.LT(1);
@@ -513,7 +513,7 @@ public static class STAttrMap extends HashMap {
         CommonTree ID1=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:86:20: ( ^( CLASS ID ( generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END ) | no_class_stmnts )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:86:20: ( ^( CLASS ID ( generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END ) | no_class_stmnts )
             int alt8=2;
             int LA8_0 = input.LA(1);
 
@@ -532,7 +532,7 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt8) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:87:2: ^( CLASS ID ( generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:87:2: ^( CLASS ID ( generic_declaration )? ( inherit_stmnts )? ( class_stmnts )* END )
                     {
                     match(input,CLASS,FOLLOW_CLASS_in_class_declaration131); 
 
@@ -558,7 +558,7 @@ public static class STAttrMap extends HashMap {
                     		indexer.append("</name>");
                     	
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:106:2: ( generic_declaration )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:106:2: ( generic_declaration )?
                     int alt5=2;
                     int LA5_0 = input.LA(1);
 
@@ -567,7 +567,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt5) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:106:2: generic_declaration
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:106:2: generic_declaration
                             {
                             pushFollow(FOLLOW_generic_declaration_in_class_declaration139);
                             generic_declaration();
@@ -585,7 +585,7 @@ public static class STAttrMap extends HashMap {
 
                     	
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:110:2: ( inherit_stmnts )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:110:2: ( inherit_stmnts )?
                     int alt6=2;
                     int LA6_0 = input.LA(1);
 
@@ -594,7 +594,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt6) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:110:2: inherit_stmnts
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:110:2: inherit_stmnts
                             {
                             pushFollow(FOLLOW_inherit_stmnts_in_class_declaration146);
                             inherit_stmnts();
@@ -611,7 +611,7 @@ public static class STAttrMap extends HashMap {
 
                     	
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:113:2: ( class_stmnts )*
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:113:2: ( class_stmnts )*
                     loop7:
                     do {
                         int alt7=2;
@@ -624,7 +624,7 @@ public static class STAttrMap extends HashMap {
 
                         switch (alt7) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:113:2: class_stmnts
+                    	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:113:2: class_stmnts
                     	    {
                     	    pushFollow(FOLLOW_class_stmnts_in_class_declaration153);
                     	    class_stmnts();
@@ -656,7 +656,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:121:2: no_class_stmnts
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:121:2: no_class_stmnts
                     {
 
                     		String name = getGrammarFileNameNoExtension();
@@ -706,7 +706,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "no_class_stmnts"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:138:1: no_class_stmnts : ( ( statement )+ | ( (modEnum= access_modifier )? method_declaration )+ );
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:138:1: no_class_stmnts : ( ( statement )+ | ( (modEnum= access_modifier )? method_declaration )+ );
     public final QuorumTreeWalker.no_class_stmnts_return no_class_stmnts() throws RecognitionException {
         QuorumTreeWalker.no_class_stmnts_return retval = new QuorumTreeWalker.no_class_stmnts_return();
         retval.start = input.LT(1);
@@ -716,7 +716,7 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:139:2: ( ( statement )+ | ( (modEnum= access_modifier )? method_declaration )+ )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:139:2: ( ( statement )+ | ( (modEnum= access_modifier )? method_declaration )+ )
             int alt12=2;
             switch ( input.LA(1) ) {
             case ALERT:
@@ -798,14 +798,14 @@ public static class STAttrMap extends HashMap {
 
             switch (alt12) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:140:2: ( statement )+
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:140:2: ( statement )+
                     {
                     //enter the fake method main
                     		MethodDescriptor md = symbol.enterMethod("main");
                     		builder.begin(md);
                     	
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:144:3: ( statement )+
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:144:3: ( statement )+
                     int cnt9=0;
                     loop9:
                     do {
@@ -819,7 +819,7 @@ public static class STAttrMap extends HashMap {
 
                         switch (alt9) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:144:3: statement
+                    	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:144:3: statement
                     	    {
                     	    pushFollow(FOLLOW_statement_in_no_class_stmnts189);
                     	    statement();
@@ -860,9 +860,9 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:161:4: ( (modEnum= access_modifier )? method_declaration )+
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:161:4: ( (modEnum= access_modifier )? method_declaration )+
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:161:4: ( (modEnum= access_modifier )? method_declaration )+
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:161:4: ( (modEnum= access_modifier )? method_declaration )+
                     int cnt11=0;
                     loop11:
                     do {
@@ -876,9 +876,9 @@ public static class STAttrMap extends HashMap {
 
                         switch (alt11) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:161:5: (modEnum= access_modifier )? method_declaration
+                    	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:161:5: (modEnum= access_modifier )? method_declaration
                     	    {
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:161:13: (modEnum= access_modifier )?
+                    	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:161:13: (modEnum= access_modifier )?
                     	    int alt10=2;
                     	    int LA10_0 = input.LA(1);
 
@@ -887,7 +887,7 @@ public static class STAttrMap extends HashMap {
                     	    }
                     	    switch (alt10) {
                     	        case 1 :
-                    	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:161:13: modEnum= access_modifier
+                    	            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:161:13: modEnum= access_modifier
                     	            {
                     	            pushFollow(FOLLOW_access_modifier_in_no_class_stmnts203);
                     	            modEnum=access_modifier();
@@ -953,7 +953,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "inherit_stmnts"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:170:1: inherit_stmnts : ^( INHERITS (qn= qualified_name (gd= generic_statement )? )+ ) ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:170:1: inherit_stmnts : ^( INHERITS (qn= qualified_name (gd= generic_statement )? )+ ) ;
     public final QuorumTreeWalker.inherit_stmnts_return inherit_stmnts() throws RecognitionException {
         QuorumTreeWalker.inherit_stmnts_return retval = new QuorumTreeWalker.inherit_stmnts_return();
         retval.start = input.LT(1);
@@ -965,13 +965,13 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:171:2: ( ^( INHERITS (qn= qualified_name (gd= generic_statement )? )+ ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:171:4: ^( INHERITS (qn= qualified_name (gd= generic_statement )? )+ )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:171:2: ( ^( INHERITS (qn= qualified_name (gd= generic_statement )? )+ ) )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:171:4: ^( INHERITS (qn= qualified_name (gd= generic_statement )? )+ )
             {
             match(input,INHERITS,FOLLOW_INHERITS_in_inherit_stmnts225); 
 
             match(input, Token.DOWN, null); 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:171:15: (qn= qualified_name (gd= generic_statement )? )+
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:171:15: (qn= qualified_name (gd= generic_statement )? )+
             int cnt14=0;
             loop14:
             do {
@@ -985,7 +985,7 @@ public static class STAttrMap extends HashMap {
 
                 switch (alt14) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:171:17: qn= qualified_name (gd= generic_statement )?
+            	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:171:17: qn= qualified_name (gd= generic_statement )?
             	    {
             	    pushFollow(FOLLOW_qualified_name_in_inherit_stmnts233);
             	    qn=qualified_name();
@@ -993,7 +993,7 @@ public static class STAttrMap extends HashMap {
             	    state._fsp--;
 
 
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:171:40: (gd= generic_statement )?
+            	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:171:40: (gd= generic_statement )?
             	    int alt13=2;
             	    int LA13_0 = input.LA(1);
 
@@ -1002,7 +1002,7 @@ public static class STAttrMap extends HashMap {
             	    }
             	    switch (alt13) {
             	        case 1 :
-            	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:171:40: gd= generic_statement
+            	            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:171:40: gd= generic_statement
             	            {
             	            pushFollow(FOLLOW_generic_statement_in_inherit_stmnts239);
             	            gd=generic_statement();
@@ -1057,14 +1057,14 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "access_modifier"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:173:1: access_modifier returns [AccessModifierEnum amEnum] : ( PUBLIC | PRIVATE );
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:173:1: access_modifier returns [AccessModifierEnum amEnum] : ( PUBLIC | PRIVATE );
     public final QuorumTreeWalker.access_modifier_return access_modifier() throws RecognitionException {
         QuorumTreeWalker.access_modifier_return retval = new QuorumTreeWalker.access_modifier_return();
         retval.start = input.LT(1);
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:174:2: ( PUBLIC | PRIVATE )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:174:2: ( PUBLIC | PRIVATE )
             int alt15=2;
             int LA15_0 = input.LA(1);
 
@@ -1083,7 +1083,7 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt15) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:174:4: PUBLIC
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:174:4: PUBLIC
                     {
                     match(input,PUBLIC,FOLLOW_PUBLIC_in_access_modifier257); 
 
@@ -1094,7 +1094,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:178:4: PRIVATE
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:178:4: PRIVATE
                     {
                     match(input,PRIVATE,FOLLOW_PRIVATE_in_access_modifier265); 
 
@@ -1128,7 +1128,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "class_stmnts"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:183:1: class_stmnts : ( assignment_statement | (modEnum= access_modifier )? method_declaration );
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:183:1: class_stmnts : ( assignment_statement | (modEnum= access_modifier )? method_declaration );
     public final QuorumTreeWalker.class_stmnts_return class_stmnts() throws RecognitionException {
         QuorumTreeWalker.class_stmnts_return retval = new QuorumTreeWalker.class_stmnts_return();
         retval.start = input.LT(1);
@@ -1138,7 +1138,7 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:184:2: ( assignment_statement | (modEnum= access_modifier )? method_declaration )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:184:2: ( assignment_statement | (modEnum= access_modifier )? method_declaration )
             int alt17=2;
             switch ( input.LA(1) ) {
             case BOOLEAN_KEYWORD:
@@ -1210,7 +1210,7 @@ public static class STAttrMap extends HashMap {
 
             switch (alt17) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:184:4: assignment_statement
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:184:4: assignment_statement
                     {
                     pushFollow(FOLLOW_assignment_statement_in_class_stmnts279);
                     assignment_statement();
@@ -1221,9 +1221,9 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:185:4: (modEnum= access_modifier )? method_declaration
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:185:4: (modEnum= access_modifier )? method_declaration
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:185:12: (modEnum= access_modifier )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:185:12: (modEnum= access_modifier )?
                     int alt16=2;
                     int LA16_0 = input.LA(1);
 
@@ -1232,7 +1232,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt16) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:185:12: modEnum= access_modifier
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:185:12: modEnum= access_modifier
                             {
                             pushFollow(FOLLOW_access_modifier_in_class_stmnts288);
                             modEnum=access_modifier();
@@ -1293,7 +1293,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "method_declaration"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:196:1: method_declaration : ( ^( ACTION ID (fp= formal_parameter )* ( RETURNS ad= assignment_declaration )? block[false] END ) | ^( BLUEPRINT ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? ) | ^( NATIVE ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? ) | ^( ON_CREATE block[true] END ) );
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:196:1: method_declaration : ( ^( ACTION ID (fp= formal_parameter )* ( RETURNS ad= assignment_declaration )? block[false] END ) | ^( BLUEPRINT ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? ) | ^( NATIVE ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? ) | ^( ON_CREATE block[true] END ) );
     public final QuorumTreeWalker.method_declaration_return method_declaration() throws RecognitionException {
         method_declaration_stack.push(new method_declaration_scope());
         QuorumTreeWalker.method_declaration_return retval = new QuorumTreeWalker.method_declaration_return();
@@ -1309,7 +1309,7 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:200:2: ( ^( ACTION ID (fp= formal_parameter )* ( RETURNS ad= assignment_declaration )? block[false] END ) | ^( BLUEPRINT ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? ) | ^( NATIVE ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? ) | ^( ON_CREATE block[true] END ) )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:200:2: ( ^( ACTION ID (fp= formal_parameter )* ( RETURNS ad= assignment_declaration )? block[false] END ) | ^( BLUEPRINT ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? ) | ^( NATIVE ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? ) | ^( ON_CREATE block[true] END ) )
             int alt24=4;
             switch ( input.LA(1) ) {
             case ACTION:
@@ -1342,7 +1342,7 @@ public static class STAttrMap extends HashMap {
 
             switch (alt24) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:200:4: ^( ACTION ID (fp= formal_parameter )* ( RETURNS ad= assignment_declaration )? block[false] END )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:200:4: ^( ACTION ID (fp= formal_parameter )* ( RETURNS ad= assignment_declaration )? block[false] END )
                     {
                     match(input,ACTION,FOLLOW_ACTION_in_method_declaration314); 
 
@@ -1353,7 +1353,7 @@ public static class STAttrMap extends HashMap {
                     match(input, Token.DOWN, null); 
                     ID2=(CommonTree)match(input,ID,FOLLOW_ID_in_method_declaration320); 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:206:5: (fp= formal_parameter )*
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:206:5: (fp= formal_parameter )*
                     loop18:
                     do {
                         int alt18=2;
@@ -1366,7 +1366,7 @@ public static class STAttrMap extends HashMap {
 
                         switch (alt18) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:206:6: fp= formal_parameter
+                    	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:206:6: fp= formal_parameter
                     	    {
                     	    pushFollow(FOLLOW_formal_parameter_in_method_declaration325);
                     	    fp=formal_parameter();
@@ -1394,7 +1394,7 @@ public static class STAttrMap extends HashMap {
 
                     	
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:216:3: ( RETURNS ad= assignment_declaration )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:216:3: ( RETURNS ad= assignment_declaration )?
                     int alt19=2;
                     int LA19_0 = input.LA(1);
 
@@ -1403,7 +1403,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt19) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:216:4: RETURNS ad= assignment_declaration
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:216:4: RETURNS ad= assignment_declaration
                             {
                             match(input,RETURNS,FOLLOW_RETURNS_in_method_declaration338); 
 
@@ -1464,7 +1464,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:246:6: ^( BLUEPRINT ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:246:6: ^( BLUEPRINT ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? )
                     {
                     match(input,BLUEPRINT,FOLLOW_BLUEPRINT_in_method_declaration366); 
 
@@ -1477,7 +1477,7 @@ public static class STAttrMap extends HashMap {
 
                     match(input,ID,FOLLOW_ID_in_method_declaration375); 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:250:6: (fp= formal_parameter )*
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:250:6: (fp= formal_parameter )*
                     loop20:
                     do {
                         int alt20=2;
@@ -1490,7 +1490,7 @@ public static class STAttrMap extends HashMap {
 
                         switch (alt20) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:250:7: fp= formal_parameter
+                    	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:250:7: fp= formal_parameter
                     	    {
                     	    pushFollow(FOLLOW_formal_parameter_in_method_declaration380);
                     	    fp=formal_parameter();
@@ -1509,7 +1509,7 @@ public static class STAttrMap extends HashMap {
                     } while (true);
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:251:4: ( RETURNS assignment_declaration )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:251:4: ( RETURNS assignment_declaration )?
                     int alt21=2;
                     int LA21_0 = input.LA(1);
 
@@ -1518,7 +1518,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt21) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:251:5: RETURNS assignment_declaration
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:251:5: RETURNS assignment_declaration
                             {
                             match(input,RETURNS,FOLLOW_RETURNS_in_method_declaration389); 
 
@@ -1540,7 +1540,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:252:4: ^( NATIVE ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:252:4: ^( NATIVE ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? )
                     {
                     match(input,NATIVE,FOLLOW_NATIVE_in_method_declaration400); 
 
@@ -1553,7 +1553,7 @@ public static class STAttrMap extends HashMap {
 
                     match(input,ID,FOLLOW_ID_in_method_declaration409); 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:256:5: (fp= formal_parameter )*
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:256:5: (fp= formal_parameter )*
                     loop22:
                     do {
                         int alt22=2;
@@ -1566,7 +1566,7 @@ public static class STAttrMap extends HashMap {
 
                         switch (alt22) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:256:6: fp= formal_parameter
+                    	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:256:6: fp= formal_parameter
                     	    {
                     	    pushFollow(FOLLOW_formal_parameter_in_method_declaration414);
                     	    fp=formal_parameter();
@@ -1585,7 +1585,7 @@ public static class STAttrMap extends HashMap {
                     } while (true);
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:257:4: ( RETURNS assignment_declaration )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:257:4: ( RETURNS assignment_declaration )?
                     int alt23=2;
                     int LA23_0 = input.LA(1);
 
@@ -1594,7 +1594,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt23) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:257:5: RETURNS assignment_declaration
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:257:5: RETURNS assignment_declaration
                             {
                             match(input,RETURNS,FOLLOW_RETURNS_in_method_declaration423); 
 
@@ -1616,7 +1616,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 4 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:258:4: ^( ON_CREATE block[true] END )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:258:4: ^( ON_CREATE block[true] END )
                     {
                     match(input,ON_CREATE,FOLLOW_ON_CREATE_in_method_declaration434); 
 
@@ -1693,7 +1693,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "qualified_name"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:294:1: qualified_name returns [QualifiedNameDescriptor type] : ^( QUALIFIED_NAME ids+= ID ( PERIOD ids+= ID )* ) ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:294:1: qualified_name returns [QualifiedNameDescriptor type] : ^( QUALIFIED_NAME ids+= ID ( PERIOD ids+= ID )* ) ;
     public final QuorumTreeWalker.qualified_name_return qualified_name() throws RecognitionException {
         QuorumTreeWalker.qualified_name_return retval = new QuorumTreeWalker.qualified_name_return();
         retval.start = input.LT(1);
@@ -1704,8 +1704,8 @@ public static class STAttrMap extends HashMap {
         List list_ids=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:295:2: ( ^( QUALIFIED_NAME ids+= ID ( PERIOD ids+= ID )* ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:295:4: ^( QUALIFIED_NAME ids+= ID ( PERIOD ids+= ID )* )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:295:2: ( ^( QUALIFIED_NAME ids+= ID ( PERIOD ids+= ID )* ) )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:295:4: ^( QUALIFIED_NAME ids+= ID ( PERIOD ids+= ID )* )
             {
             match(input,QUALIFIED_NAME,FOLLOW_QUALIFIED_NAME_in_qualified_name467); 
 
@@ -1715,7 +1715,7 @@ public static class STAttrMap extends HashMap {
             list_ids.add(ids);
 
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:295:30: ( PERIOD ids+= ID )*
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:295:30: ( PERIOD ids+= ID )*
             loop25:
             do {
                 int alt25=2;
@@ -1728,7 +1728,7 @@ public static class STAttrMap extends HashMap {
 
                 switch (alt25) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:295:31: PERIOD ids+= ID
+            	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:295:31: PERIOD ids+= ID
             	    {
             	    PERIOD5=(CommonTree)match(input,PERIOD,FOLLOW_PERIOD_in_qualified_name475); 
 
@@ -1799,7 +1799,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "block"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:323:1: block[boolean bool] : ^( STATEMENT_LIST ( statement )* ) ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:323:1: block[boolean bool] : ^( STATEMENT_LIST ( statement )* ) ;
     public final QuorumTreeWalker.block_return block(boolean bool) throws RecognitionException {
         QuorumTreeWalker.block_return retval = new QuorumTreeWalker.block_return();
         retval.start = input.LT(1);
@@ -1808,8 +1808,8 @@ public static class STAttrMap extends HashMap {
         CommonTree STATEMENT_LIST6=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:323:22: ( ^( STATEMENT_LIST ( statement )* ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:323:24: ^( STATEMENT_LIST ( statement )* )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:323:22: ( ^( STATEMENT_LIST ( statement )* ) )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:323:24: ^( STATEMENT_LIST ( statement )* )
             {
             STATEMENT_LIST6=(CommonTree)match(input,STATEMENT_LIST,FOLLOW_STATEMENT_LIST_in_block498); 
 
@@ -1826,7 +1826,7 @@ public static class STAttrMap extends HashMap {
 
             if ( input.LA(1)==Token.DOWN ) {
                 match(input, Token.DOWN, null); 
-                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:334:3: ( statement )*
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:334:3: ( statement )*
                 loop26:
                 do {
                     int alt26=2;
@@ -1839,7 +1839,7 @@ public static class STAttrMap extends HashMap {
 
                     switch (alt26) {
                 	case 1 :
-                	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:334:3: statement
+                	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:334:3: statement
                 	    {
                 	    pushFollow(FOLLOW_statement_in_block505);
                 	    statement();
@@ -1894,14 +1894,14 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:345:1: statement : ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement );
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:345:1: statement : ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement );
     public final QuorumTreeWalker.statement_return statement() throws RecognitionException {
         QuorumTreeWalker.statement_return retval = new QuorumTreeWalker.statement_return();
         retval.start = input.LT(1);
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:345:10: ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:345:10: ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement )
             int alt27=9;
             switch ( input.LA(1) ) {
             case SOLO_FUNCTION_CALL:
@@ -1971,7 +1971,7 @@ public static class STAttrMap extends HashMap {
 
             switch (alt27) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:347:3: solo_method_call
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:347:3: solo_method_call
                     {
                     pushFollow(FOLLOW_solo_method_call_in_statement522);
                     solo_method_call();
@@ -1982,7 +1982,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:348:4: if_statement
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:348:4: if_statement
                     {
                     pushFollow(FOLLOW_if_statement_in_statement527);
                     if_statement();
@@ -1993,7 +1993,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:349:4: assignment_statement
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:349:4: assignment_statement
                     {
                     pushFollow(FOLLOW_assignment_statement_in_statement532);
                     assignment_statement();
@@ -2004,7 +2004,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 4 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:350:4: loop_statement
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:350:4: loop_statement
                     {
                     pushFollow(FOLLOW_loop_statement_in_statement537);
                     loop_statement();
@@ -2015,7 +2015,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 5 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:351:4: return_statement
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:351:4: return_statement
                     {
                     pushFollow(FOLLOW_return_statement_in_statement542);
                     return_statement();
@@ -2026,7 +2026,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 6 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:352:4: print_statement
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:352:4: print_statement
                     {
                     pushFollow(FOLLOW_print_statement_in_statement547);
                     print_statement();
@@ -2037,7 +2037,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 7 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:353:4: speak_statement
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:353:4: speak_statement
                     {
                     pushFollow(FOLLOW_speak_statement_in_statement552);
                     speak_statement();
@@ -2048,7 +2048,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 8 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:354:4: check_statement
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:354:4: check_statement
                     {
                     pushFollow(FOLLOW_check_statement_in_statement557);
                     check_statement();
@@ -2059,7 +2059,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 9 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:355:4: alert_statement
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:355:4: alert_statement
                     {
                     pushFollow(FOLLOW_alert_statement_in_statement562);
                     alert_statement();
@@ -2093,7 +2093,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "solo_method_call"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:358:1: solo_method_call : ( ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) );
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:358:1: solo_method_call : ( ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) );
     public final QuorumTreeWalker.solo_method_call_return solo_method_call() throws RecognitionException {
         QuorumTreeWalker.solo_method_call_return retval = new QuorumTreeWalker.solo_method_call_return();
         retval.start = input.LT(1);
@@ -2120,7 +2120,7 @@ public static class STAttrMap extends HashMap {
         	int startLocation = 0;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:367:2: ( ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:367:2: ( ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) )
             int alt36=3;
             switch ( input.LA(1) ) {
             case SOLO_FUNCTION_CALL:
@@ -2148,7 +2148,7 @@ public static class STAttrMap extends HashMap {
 
             switch (alt36) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:368:3: ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:368:3: ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN )
                     {
                     match(input,SOLO_FUNCTION_CALL,FOLLOW_SOLO_FUNCTION_CALL_in_solo_method_call582); 
 
@@ -2164,7 +2164,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:373:18: ( COLON ID )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:373:18: ( COLON ID )?
                     int alt28=2;
                     int LA28_0 = input.LA(1);
 
@@ -2173,7 +2173,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt28) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:373:19: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:373:19: COLON ID
                             {
                             match(input,COLON,FOLLOW_COLON_in_solo_method_call594); 
 
@@ -2187,7 +2187,7 @@ public static class STAttrMap extends HashMap {
 
                     match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_solo_method_call600); 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:373:41: (e= expression ( COMMA e= expression )* )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:373:41: (e= expression ( COMMA e= expression )* )?
                     int alt30=2;
                     int LA30_0 = input.LA(1);
 
@@ -2196,7 +2196,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt30) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:374:3: e= expression ( COMMA e= expression )*
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:374:3: e= expression ( COMMA e= expression )*
                             {
 
                             			if(builder.getCurrentMethod() != null)
@@ -2225,7 +2225,7 @@ public static class STAttrMap extends HashMap {
                                             			inCallStep = false;
                             		
 
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:394:3: ( COMMA e= expression )*
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:394:3: ( COMMA e= expression )*
                             loop29:
                             do {
                                 int alt29=2;
@@ -2238,7 +2238,7 @@ public static class STAttrMap extends HashMap {
 
                                 switch (alt29) {
                             	case 1 :
-                            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:394:4: COMMA e= expression
+                            	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:394:4: COMMA e= expression
                             	    {
                             	    match(input,COMMA,FOLLOW_COMMA_in_solo_method_call624); 
 
@@ -2335,7 +2335,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:458:4: ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:458:4: ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN )
                     {
                     match(input,SOLO_FUNCTION_CALL_PARENT,FOLLOW_SOLO_FUNCTION_CALL_PARENT_in_solo_method_call664); 
 
@@ -2363,7 +2363,7 @@ public static class STAttrMap extends HashMap {
 
                     if(builder.getCurrentMethod() != null){startLocation = builder.getCurrentMethod().getSteps().size();}
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:464:3: (e= expression ( COMMA e= expression )* )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:464:3: (e= expression ( COMMA e= expression )* )?
                     int alt32=2;
                     int LA32_0 = input.LA(1);
 
@@ -2372,7 +2372,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt32) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:464:4: e= expression ( COMMA e= expression )*
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:464:4: e= expression ( COMMA e= expression )*
                             {
                             pushFollow(FOLLOW_expression_in_solo_method_call692);
                             e=expression();
@@ -2393,7 +2393,7 @@ public static class STAttrMap extends HashMap {
                                             			inCallStep = false;
                             		
 
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:477:3: ( COMMA e= expression )*
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:477:3: ( COMMA e= expression )*
                             loop31:
                             do {
                                 int alt31=2;
@@ -2406,7 +2406,7 @@ public static class STAttrMap extends HashMap {
 
                                 switch (alt31) {
                             	case 1 :
-                            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:477:4: COMMA e= expression
+                            	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:477:4: COMMA e= expression
                             	    {
                             	    match(input,COMMA,FOLLOW_COMMA_in_solo_method_call702); 
 
@@ -2503,7 +2503,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:540:4: ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:540:4: ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN )
                     {
                     match(input,SOLO_FUNCTION_CALL_THIS,FOLLOW_SOLO_FUNCTION_CALL_THIS_in_solo_method_call736); 
 
@@ -2523,7 +2523,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:545:26: ( COLON ID )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:545:26: ( COLON ID )?
                     int alt33=2;
                     int LA33_0 = input.LA(1);
 
@@ -2532,7 +2532,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt33) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:545:27: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:545:27: COLON ID
                             {
                             match(input,COLON,FOLLOW_COLON_in_solo_method_call750); 
 
@@ -2553,7 +2553,7 @@ public static class STAttrMap extends HashMap {
                     		}
                     	
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:552:3: (e= expression ( COMMA e= expression )* )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:552:3: (e= expression ( COMMA e= expression )* )?
                     int alt35=2;
                     int LA35_0 = input.LA(1);
 
@@ -2562,7 +2562,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt35) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:552:4: e= expression ( COMMA e= expression )*
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:552:4: e= expression ( COMMA e= expression )*
                             {
                             pushFollow(FOLLOW_expression_in_solo_method_call769);
                             e=expression();
@@ -2583,7 +2583,7 @@ public static class STAttrMap extends HashMap {
                                             			inCallStep = false;
                             		
 
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:564:4: ( COMMA e= expression )*
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:564:4: ( COMMA e= expression )*
                             loop34:
                             do {
                                 int alt34=2;
@@ -2596,7 +2596,7 @@ public static class STAttrMap extends HashMap {
 
                                 switch (alt34) {
                             	case 1 :
-                            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:564:5: COMMA e= expression
+                            	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:564:5: COMMA e= expression
                             	    {
                             	    match(input,COMMA,FOLLOW_COMMA_in_solo_method_call776); 
 
@@ -2721,7 +2721,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "alert_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:626:1: alert_statement : ^( ALERT LEFT_PAREN ex= root_expression RIGHT_PAREN ) ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:626:1: alert_statement : ^( ALERT LEFT_PAREN ex= root_expression RIGHT_PAREN ) ;
     public final QuorumTreeWalker.alert_statement_return alert_statement() throws RecognitionException {
         alert_statement_stack.push(new alert_statement_scope());
         QuorumTreeWalker.alert_statement_return retval = new QuorumTreeWalker.alert_statement_return();
@@ -2733,8 +2733,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:632:2: ( ^( ALERT LEFT_PAREN ex= root_expression RIGHT_PAREN ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:632:4: ^( ALERT LEFT_PAREN ex= root_expression RIGHT_PAREN )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:632:2: ( ^( ALERT LEFT_PAREN ex= root_expression RIGHT_PAREN ) )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:632:4: ^( ALERT LEFT_PAREN ex= root_expression RIGHT_PAREN )
             {
             match(input,ALERT,FOLLOW_ALERT_in_alert_statement822); 
 
@@ -2848,7 +2848,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "check_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:695:1: check_statement :check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:695:1: check_statement :check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END ;
     public final QuorumTreeWalker.check_statement_return check_statement() throws RecognitionException {
         check_statement_stack.push(new check_statement_scope());
         QuorumTreeWalker.check_statement_return retval = new QuorumTreeWalker.check_statement_return();
@@ -2863,8 +2863,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:705:2: (check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:706:2: check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:705:2: (check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:706:2: check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END
             {
             	
             		((check_statement_scope)check_statement_stack.peek()).detectJump = new JumpStep();
@@ -2908,7 +2908,7 @@ public static class STAttrMap extends HashMap {
             		stepFactory.addCheckEndJumpStep(((check_statement_scope)check_statement_stack.peek()).info);
             	
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:738:2: ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:738:2: ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] )
             int alt39=2;
             int LA39_0 = input.LA(1);
 
@@ -2927,9 +2927,9 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt39) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:739:7: (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:739:7: (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )?
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:739:7: (detect_start= DETECT det_param= detect_parameter block[true] )+
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:739:7: (detect_start= DETECT det_param= detect_parameter block[true] )+
                     int cnt37=0;
                     loop37:
                     do {
@@ -2943,7 +2943,7 @@ public static class STAttrMap extends HashMap {
 
                         switch (alt37) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:739:8: detect_start= DETECT det_param= detect_parameter block[true]
+                    	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:739:8: detect_start= DETECT det_param= detect_parameter block[true]
                     	    {
                     	    detect_start=(CommonTree)match(input,DETECT,FOLLOW_DETECT_in_check_statement902); 
 
@@ -3040,7 +3040,7 @@ public static class STAttrMap extends HashMap {
                     } while (true);
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:810:7: (always= ALWAYS block[true] )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:810:7: (always= ALWAYS block[true] )?
                     int alt38=2;
                     int LA38_0 = input.LA(1);
 
@@ -3049,7 +3049,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt38) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:810:8: always= ALWAYS block[true]
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:810:8: always= ALWAYS block[true]
                             {
                             always=(CommonTree)match(input,ALWAYS,FOLLOW_ALWAYS_in_check_statement986); 
 
@@ -3092,7 +3092,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:838:7: always= ALWAYS block[true]
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:838:7: always= ALWAYS block[true]
                     {
                     always=(CommonTree)match(input,ALWAYS,FOLLOW_ALWAYS_in_check_statement1034); 
 
@@ -3198,7 +3198,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "detect_parameter"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:898:1: detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionTypeList] : ^(id= ID ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )? ) ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:898:1: detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionTypeList] : ^(id= ID ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )? ) ;
     public final QuorumTreeWalker.detect_parameter_return detect_parameter() throws RecognitionException {
         detect_parameter_stack.push(new detect_parameter_scope());
         QuorumTreeWalker.detect_parameter_return retval = new QuorumTreeWalker.detect_parameter_return();
@@ -3210,14 +3210,14 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:902:2: ( ^(id= ID ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )? ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:902:4: ^(id= ID ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )? )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:902:2: ( ^(id= ID ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )? ) )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:902:4: ^(id= ID ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )? )
             {
             id=(CommonTree)match(input,ID,FOLLOW_ID_in_detect_parameter1095); 
 
             if ( input.LA(1)==Token.DOWN ) {
                 match(input, Token.DOWN, null); 
-                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:903:2: ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )?
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:903:2: ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )?
                 int alt41=2;
                 int LA41_0 = input.LA(1);
 
@@ -3226,7 +3226,7 @@ public static class STAttrMap extends HashMap {
                 }
                 switch (alt41) {
                     case 1 :
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:903:3: OF_TYPE qn= qualified_name ( OR qn= qualified_name )*
+                        // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:903:3: OF_TYPE qn= qualified_name ( OR qn= qualified_name )*
                         {
                         match(input,OF_TYPE,FOLLOW_OF_TYPE_in_detect_parameter1100); 
 
@@ -3278,7 +3278,7 @@ public static class STAttrMap extends HashMap {
                         		((detect_parameter_scope)detect_parameter_stack.peek()).exceptionList.add(t);
                         	
 
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:945:2: ( OR qn= qualified_name )*
+                        // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:945:2: ( OR qn= qualified_name )*
                         loop40:
                         do {
                             int alt40=2;
@@ -3291,7 +3291,7 @@ public static class STAttrMap extends HashMap {
 
                             switch (alt40) {
                         	case 1 :
-                        	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:945:3: OR qn= qualified_name
+                        	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:945:3: OR qn= qualified_name
                         	    {
                         	    match(input,OR,FOLLOW_OR_in_detect_parameter1116); 
 
@@ -3394,7 +3394,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "print_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:996:1: print_statement : PRINT root_expression ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:996:1: print_statement : PRINT root_expression ;
     public final QuorumTreeWalker.print_statement_return print_statement() throws RecognitionException {
         QuorumTreeWalker.print_statement_return retval = new QuorumTreeWalker.print_statement_return();
         retval.start = input.LT(1);
@@ -3404,8 +3404,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:997:2: ( PRINT root_expression )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:997:4: PRINT root_expression
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:997:2: ( PRINT root_expression )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:997:4: PRINT root_expression
             {
             match(input,PRINT,FOLLOW_PRINT_in_print_statement1147); 
 
@@ -3460,7 +3460,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "speak_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1021:1: speak_statement : SAY root_expression ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1021:1: speak_statement : SAY root_expression ;
     public final QuorumTreeWalker.speak_statement_return speak_statement() throws RecognitionException {
         QuorumTreeWalker.speak_statement_return retval = new QuorumTreeWalker.speak_statement_return();
         retval.start = input.LT(1);
@@ -3470,8 +3470,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1022:2: ( SAY root_expression )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1022:4: SAY root_expression
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1022:2: ( SAY root_expression )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1022:4: SAY root_expression
             {
             match(input,SAY,FOLLOW_SAY_in_speak_statement1165); 
 
@@ -3525,7 +3525,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "return_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1044:1: return_statement : RETURN ( root_expression | NOW ) ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1044:1: return_statement : RETURN ( root_expression | NOW ) ;
     public final QuorumTreeWalker.return_statement_return return_statement() throws RecognitionException {
         QuorumTreeWalker.return_statement_return retval = new QuorumTreeWalker.return_statement_return();
         retval.start = input.LT(1);
@@ -3537,12 +3537,12 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1045:2: ( RETURN ( root_expression | NOW ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1045:4: RETURN ( root_expression | NOW )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1045:2: ( RETURN ( root_expression | NOW ) )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1045:4: RETURN ( root_expression | NOW )
             {
             RETURN18=(CommonTree)match(input,RETURN,FOLLOW_RETURN_in_return_statement1181); 
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1045:11: ( root_expression | NOW )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1045:11: ( root_expression | NOW )
             int alt42=2;
             int LA42_0 = input.LA(1);
 
@@ -3561,7 +3561,7 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt42) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1045:12: root_expression
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1045:12: root_expression
                     {
                     pushFollow(FOLLOW_root_expression_in_return_statement1184);
                     root_expression16=root_expression();
@@ -3593,7 +3593,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1066:4: NOW
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1066:4: NOW
                     {
                     NOW17=(CommonTree)match(input,NOW,FOLLOW_NOW_in_return_statement1192); 
 
@@ -3644,7 +3644,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "generic_declaration"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1085:1: generic_declaration : ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER ) ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1085:1: generic_declaration : ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER ) ;
     public final QuorumTreeWalker.generic_declaration_return generic_declaration() throws RecognitionException {
         QuorumTreeWalker.generic_declaration_return retval = new QuorumTreeWalker.generic_declaration_return();
         retval.start = input.LT(1);
@@ -3654,8 +3654,8 @@ public static class STAttrMap extends HashMap {
         List list_ids=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1086:2: ( ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1086:4: ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1086:2: ( ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER ) )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1086:4: ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER )
             {
             match(input,GENERIC,FOLLOW_GENERIC_in_generic_declaration1210); 
 
@@ -3667,7 +3667,7 @@ public static class STAttrMap extends HashMap {
             list_ids.add(ids);
 
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1086:27: ( COMMA ids+= ID )*
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1086:27: ( COMMA ids+= ID )*
             loop43:
             do {
                 int alt43=2;
@@ -3680,7 +3680,7 @@ public static class STAttrMap extends HashMap {
 
                 switch (alt43) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1086:28: COMMA ids+= ID
+            	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1086:28: COMMA ids+= ID
             	    {
             	    match(input,COMMA,FOLLOW_COMMA_in_generic_declaration1219); 
 
@@ -3728,7 +3728,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "generic_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1089:1: generic_statement returns [ArrayList<GenericDescriptor> templateTypes] : ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER ) ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1089:1: generic_statement returns [ArrayList<GenericDescriptor> templateTypes] : ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER ) ;
     public final QuorumTreeWalker.generic_statement_return generic_statement() throws RecognitionException {
         QuorumTreeWalker.generic_statement_return retval = new QuorumTreeWalker.generic_statement_return();
         retval.start = input.LT(1);
@@ -3740,8 +3740,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1090:2: ( ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1090:4: ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1090:2: ( ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER ) )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1090:4: ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER )
             {
             match(input,GENERIC,FOLLOW_GENERIC_in_generic_statement1245); 
 
@@ -3772,7 +3772,7 @@ public static class STAttrMap extends HashMap {
             		types.add(genericType);
             	
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1108:3: ( COMMA a= assignment_declaration )*
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1108:3: ( COMMA a= assignment_declaration )*
             loop44:
             do {
                 int alt44=2;
@@ -3785,7 +3785,7 @@ public static class STAttrMap extends HashMap {
 
                 switch (alt44) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1108:4: COMMA a= assignment_declaration
+            	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1108:4: COMMA a= assignment_declaration
             	    {
             	    match(input,COMMA,FOLLOW_COMMA_in_generic_statement1264); 
 
@@ -3853,7 +3853,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "class_type"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1135:1: class_type returns [TypeDescriptor myType] : qn= qualified_name ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1135:1: class_type returns [TypeDescriptor myType] : qn= qualified_name ;
     public final QuorumTreeWalker.class_type_return class_type() throws RecognitionException {
         QuorumTreeWalker.class_type_return retval = new QuorumTreeWalker.class_type_return();
         retval.start = input.LT(1);
@@ -3863,8 +3863,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1136:2: (qn= qualified_name )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1136:4: qn= qualified_name
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1136:2: (qn= qualified_name )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1136:4: qn= qualified_name
             {
             pushFollow(FOLLOW_qualified_name_in_class_type1309);
             qn=qualified_name();
@@ -3924,7 +3924,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "assignment_declaration"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1165:1: assignment_declaration returns [TypeDescriptor myType] : (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD );
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1165:1: assignment_declaration returns [TypeDescriptor myType] : (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD );
     public final QuorumTreeWalker.assignment_declaration_return assignment_declaration() throws RecognitionException {
         QuorumTreeWalker.assignment_declaration_return retval = new QuorumTreeWalker.assignment_declaration_return();
         retval.start = input.LT(1);
@@ -3936,7 +3936,7 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1166:2: (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1166:2: (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD )
             int alt46=5;
             switch ( input.LA(1) ) {
             case QUALIFIED_NAME:
@@ -3974,7 +3974,7 @@ public static class STAttrMap extends HashMap {
 
             switch (alt46) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1166:4: qn= qualified_name (gs= generic_statement )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1166:4: qn= qualified_name (gs= generic_statement )?
                     {
                     pushFollow(FOLLOW_qualified_name_in_assignment_declaration1331);
                     qn=qualified_name();
@@ -3982,7 +3982,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1166:26: (gs= generic_statement )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1166:26: (gs= generic_statement )?
                     int alt45=2;
                     int LA45_0 = input.LA(1);
 
@@ -3991,7 +3991,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt45) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1166:26: gs= generic_statement
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1166:26: gs= generic_statement
                             {
                             pushFollow(FOLLOW_generic_statement_in_assignment_declaration1335);
                             gs=generic_statement();
@@ -4038,7 +4038,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1196:4: INTEGER_KEYWORD
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1196:4: INTEGER_KEYWORD
                     {
                     match(input,INTEGER_KEYWORD,FOLLOW_INTEGER_KEYWORD_in_assignment_declaration1344); 
 
@@ -4051,7 +4051,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1202:4: NUMBER_KEYWORD
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1202:4: NUMBER_KEYWORD
                     {
                     match(input,NUMBER_KEYWORD,FOLLOW_NUMBER_KEYWORD_in_assignment_declaration1352); 
 
@@ -4064,7 +4064,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 4 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1208:4: TEXT
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1208:4: TEXT
                     {
                     match(input,TEXT,FOLLOW_TEXT_in_assignment_declaration1360); 
 
@@ -4077,7 +4077,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 5 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1214:4: BOOLEAN_KEYWORD
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1214:4: BOOLEAN_KEYWORD
                     {
                     match(input,BOOLEAN_KEYWORD,FOLLOW_BOOLEAN_KEYWORD_in_assignment_declaration1368); 
 
@@ -4113,7 +4113,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "assignment_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1220:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1220:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );
     public final QuorumTreeWalker.assignment_statement_return assignment_statement() throws RecognitionException {
         QuorumTreeWalker.assignment_statement_return retval = new QuorumTreeWalker.assignment_statement_return();
         retval.start = input.LT(1);
@@ -4137,14 +4137,14 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1221:2: ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1221:2: ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? )
             int alt52=3;
             alt52 = dfa52.predict(input);
             switch (alt52) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1222:3: (sel= selector COLON )? ID rhs= assign_right_hand_side
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1222:3: (sel= selector COLON )? ID rhs= assign_right_hand_side
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1222:3: (sel= selector COLON )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1222:3: (sel= selector COLON )?
                     int alt47=2;
                     int LA47_0 = input.LA(1);
 
@@ -4153,7 +4153,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt47) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1222:4: sel= selector COLON
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1222:4: sel= selector COLON
                             {
                             pushFollow(FOLLOW_selector_in_assignment_statement1384);
                             sel=selector();
@@ -4223,7 +4223,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1265:4: obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1265:4: obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side
                     {
                     pushFollow(FOLLOW_qualified_name_in_assignment_statement1404);
                     obj=qualified_name();
@@ -4231,7 +4231,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1265:23: ( COLON PARENT COLON parent= qualified_name )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1265:23: ( COLON PARENT COLON parent= qualified_name )?
                     int alt48=2;
                     int LA48_0 = input.LA(1);
 
@@ -4244,7 +4244,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt48) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1265:24: COLON PARENT COLON parent= qualified_name
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1265:24: COLON PARENT COLON parent= qualified_name
                             {
                             match(input,COLON,FOLLOW_COLON_in_assignment_statement1407); 
 
@@ -4319,9 +4319,9 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1307:4: (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1307:4: (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )?
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1307:13: (modifier= access_modifier )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1307:13: (modifier= access_modifier )?
                     int alt49=2;
                     int LA49_0 = input.LA(1);
 
@@ -4330,7 +4330,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt49) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1307:13: modifier= access_modifier
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1307:13: modifier= access_modifier
                             {
                             pushFollow(FOLLOW_access_modifier_in_assignment_statement1437);
                             modifier=access_modifier();
@@ -4344,7 +4344,7 @@ public static class STAttrMap extends HashMap {
                     }
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1307:32: ( CONSTANT )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1307:32: ( CONSTANT )?
                     int alt50=2;
                     int LA50_0 = input.LA(1);
 
@@ -4353,7 +4353,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt50) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1307:32: CONSTANT
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1307:32: CONSTANT
                             {
                             match(input,CONSTANT,FOLLOW_CONSTANT_in_assignment_statement1440); 
 
@@ -4371,7 +4371,7 @@ public static class STAttrMap extends HashMap {
 
                     name=(CommonTree)match(input,ID,FOLLOW_ID_in_assignment_statement1453); 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1307:85: (rhs= assign_right_hand_side )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1307:85: (rhs= assign_right_hand_side )?
                     int alt51=2;
                     int LA51_0 = input.LA(1);
 
@@ -4380,7 +4380,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt51) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1307:85: rhs= assign_right_hand_side
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1307:85: rhs= assign_right_hand_side
                             {
                             pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1457);
                             rhs=assign_right_hand_side();
@@ -4455,7 +4455,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "assign_right_hand_side"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1341:1: assign_right_hand_side returns [ExpressionValue eval, ExecutionStep step] : ( EQUALITY root_expression ) ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1341:1: assign_right_hand_side returns [ExpressionValue eval, ExecutionStep step] : ( EQUALITY root_expression ) ;
     public final QuorumTreeWalker.assign_right_hand_side_return assign_right_hand_side() throws RecognitionException {
         QuorumTreeWalker.assign_right_hand_side_return retval = new QuorumTreeWalker.assign_right_hand_side_return();
         retval.start = input.LT(1);
@@ -4465,11 +4465,11 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1342:2: ( ( EQUALITY root_expression ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1343:3: ( EQUALITY root_expression )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1342:2: ( ( EQUALITY root_expression ) )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1343:3: ( EQUALITY root_expression )
             {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1343:3: ( EQUALITY root_expression )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1343:4: EQUALITY root_expression
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1343:3: ( EQUALITY root_expression )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1343:4: EQUALITY root_expression
             {
             match(input,EQUALITY,FOLLOW_EQUALITY_in_assign_right_hand_side1478); 
 
@@ -4519,7 +4519,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "if_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1351:1: if_statement : begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1351:1: if_statement : begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END ;
     public final QuorumTreeWalker.if_statement_return if_statement() throws RecognitionException {
         if_statement_stack.push(new if_statement_scope());
         QuorumTreeWalker.if_statement_return retval = new QuorumTreeWalker.if_statement_return();
@@ -4538,8 +4538,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1357:3: (begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1357:5: begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1357:3: (begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1357:5: begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END
             {
             begin_if=(CommonTree)match(input,IF,FOLLOW_IF_in_if_statement1506); 
 
@@ -4600,7 +4600,7 @@ public static class STAttrMap extends HashMap {
             			
             		
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1402:3: (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )*
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1402:3: (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )*
             loop53:
             do {
                 int alt53=2;
@@ -4613,7 +4613,7 @@ public static class STAttrMap extends HashMap {
 
                 switch (alt53) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1402:4: begin_else_if= ELSE_IF condition2= root_expression b= block[true]
+            	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1402:4: begin_else_if= ELSE_IF condition2= root_expression b= block[true]
             	    {
             	    begin_else_if=(CommonTree)match(input,ELSE_IF,FOLLOW_ELSE_IF_in_if_statement1548); 
 
@@ -4714,7 +4714,7 @@ public static class STAttrMap extends HashMap {
             } while (true);
 
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1478:3: (begin_else= ELSE b= block[true] )?
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1478:3: (begin_else= ELSE b= block[true] )?
             int alt54=2;
             int LA54_0 = input.LA(1);
 
@@ -4723,7 +4723,7 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt54) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1478:4: begin_else= ELSE b= block[true]
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1478:4: begin_else= ELSE b= block[true]
                     {
                     begin_else=(CommonTree)match(input,ELSE,FOLLOW_ELSE_in_if_statement1605); 
 
@@ -4863,7 +4863,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "loop_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1558:1: loop_statement : REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1558:1: loop_statement : REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END ;
     public final QuorumTreeWalker.loop_statement_return loop_statement() throws RecognitionException {
         loop_statement_stack.push(new loop_statement_scope());
         QuorumTreeWalker.loop_statement_return retval = new QuorumTreeWalker.loop_statement_return();
@@ -4877,8 +4877,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1577:2: ( REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1578:2: REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1577:2: ( REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1578:2: REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END
             {
             REPEAT23=(CommonTree)match(input,REPEAT,FOLLOW_REPEAT_in_loop_statement1647); 
 
@@ -4915,7 +4915,7 @@ public static class STAttrMap extends HashMap {
             		
             	
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1612:2: ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1612:2: ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) )
             int alt56=2;
             int LA56_0 = input.LA(1);
 
@@ -4934,10 +4934,10 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt56) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1642:3: (expr= root_expression TIMES )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1642:3: (expr= root_expression TIMES )
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1642:3: (expr= root_expression TIMES )
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1642:4: expr= root_expression TIMES
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1642:3: (expr= root_expression TIMES )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1642:4: expr= root_expression TIMES
                     {
                     pushFollow(FOLLOW_root_expression_in_loop_statement1720);
                     expr=root_expression();
@@ -4981,12 +4981,12 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1670:4: ( ( WHILE | UNTIL ) expr= root_expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1670:4: ( ( WHILE | UNTIL ) expr= root_expression )
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1670:4: ( ( WHILE | UNTIL ) expr= root_expression )
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1670:5: ( WHILE | UNTIL ) expr= root_expression
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1670:4: ( ( WHILE | UNTIL ) expr= root_expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1670:5: ( WHILE | UNTIL ) expr= root_expression
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1670:5: ( WHILE | UNTIL )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1670:5: ( WHILE | UNTIL )
                     int alt55=2;
                     int LA55_0 = input.LA(1);
 
@@ -5005,7 +5005,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt55) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1670:6: WHILE
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1670:6: WHILE
                             {
                             match(input,WHILE,FOLLOW_WHILE_in_loop_statement1733); 
 
@@ -5014,7 +5014,7 @@ public static class STAttrMap extends HashMap {
                             }
                             break;
                         case 2 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1670:49: UNTIL
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1670:49: UNTIL
                             {
                             match(input,UNTIL,FOLLOW_UNTIL_in_loop_statement1739); 
 
@@ -5144,7 +5144,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "selector"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1762:1: selector returns [ScopeSelector scopeSel] : ( ^( PARENT qualified_name ) | ME );
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1762:1: selector returns [ScopeSelector scopeSel] : ( ^( PARENT qualified_name ) | ME );
     public final QuorumTreeWalker.selector_return selector() throws RecognitionException {
         QuorumTreeWalker.selector_return retval = new QuorumTreeWalker.selector_return();
         retval.start = input.LT(1);
@@ -5155,7 +5155,7 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1763:2: ( ^( PARENT qualified_name ) | ME )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1763:2: ( ^( PARENT qualified_name ) | ME )
             int alt57=2;
             int LA57_0 = input.LA(1);
 
@@ -5174,7 +5174,7 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt57) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1763:4: ^( PARENT qualified_name )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1763:4: ^( PARENT qualified_name )
                     {
                     PARENT27=(CommonTree)match(input,PARENT,FOLLOW_PARENT_in_selector1812); 
 
@@ -5204,7 +5204,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1776:4: ME
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1776:4: ME
                     {
                     match(input,ME,FOLLOW_ME_in_selector1823); 
 
@@ -5242,7 +5242,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "root_expression"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1784:1: root_expression returns [ExpressionValue eval, ExecutionStep step] : ^( ROOT_EXPRESSION expression ) ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1784:1: root_expression returns [ExpressionValue eval, ExecutionStep step] : ^( ROOT_EXPRESSION expression ) ;
     public final QuorumTreeWalker.root_expression_return root_expression() throws RecognitionException {
         QuorumTreeWalker.root_expression_return retval = new QuorumTreeWalker.root_expression_return();
         retval.start = input.LT(1);
@@ -5252,8 +5252,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1785:2: ( ^( ROOT_EXPRESSION expression ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1786:2: ^( ROOT_EXPRESSION expression )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1785:2: ( ^( ROOT_EXPRESSION expression ) )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1786:2: ^( ROOT_EXPRESSION expression )
             {
 
             		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
@@ -5304,7 +5304,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "expression"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1798:1: expression returns [ExpressionValue eval, ExecutionStep step] : ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | QUOTE | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN );
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1798:1: expression returns [ExpressionValue eval, ExecutionStep step] : ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | QUOTE | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN );
     public final QuorumTreeWalker.expression_return expression() throws RecognitionException {
         QuorumTreeWalker.expression_return retval = new QuorumTreeWalker.expression_return();
         retval.start = input.LT(1);
@@ -5361,7 +5361,7 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1799:2: ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | QUOTE | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1799:2: ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | QUOTE | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN )
             int alt63=30;
             switch ( input.LA(1) ) {
             case UNARY_NOT:
@@ -5547,7 +5547,7 @@ public static class STAttrMap extends HashMap {
 
             switch (alt63) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1800:3: ^( UNARY_NOT NOT expr= expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1800:3: ^( UNARY_NOT NOT expr= expression )
                     {
                     match(input,UNARY_NOT,FOLLOW_UNARY_NOT_in_expression1873); 
 
@@ -5573,7 +5573,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1807:4: ^( EQUALITY left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1807:4: ^( EQUALITY left= expression right= expression )
                     {
                     match(input,EQUALITY,FOLLOW_EQUALITY_in_expression1893); 
 
@@ -5603,7 +5603,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1814:4: ^( NOTEQUALS left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1814:4: ^( NOTEQUALS left= expression right= expression )
                     {
                     match(input,NOTEQUALS,FOLLOW_NOTEQUALS_in_expression1915); 
 
@@ -5633,7 +5633,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 4 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1821:4: ^( GREATER left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1821:4: ^( GREATER left= expression right= expression )
                     {
                     match(input,GREATER,FOLLOW_GREATER_in_expression1937); 
 
@@ -5663,7 +5663,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 5 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1828:4: ^( GREATER_EQUAL left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1828:4: ^( GREATER_EQUAL left= expression right= expression )
                     {
                     match(input,GREATER_EQUAL,FOLLOW_GREATER_EQUAL_in_expression1959); 
 
@@ -5693,7 +5693,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 6 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1835:4: ^( INHERITS left= expression dec= class_type )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1835:4: ^( INHERITS left= expression dec= class_type )
                     {
                     match(input,INHERITS,FOLLOW_INHERITS_in_expression1981); 
 
@@ -5723,7 +5723,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 7 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1842:4: ^( LESS left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1842:4: ^( LESS left= expression right= expression )
                     {
                     match(input,LESS,FOLLOW_LESS_in_expression1999); 
 
@@ -5753,7 +5753,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 8 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1849:4: ^( LESS_EQUAL left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1849:4: ^( LESS_EQUAL left= expression right= expression )
                     {
                     match(input,LESS_EQUAL,FOLLOW_LESS_EQUAL_in_expression2021); 
 
@@ -5783,7 +5783,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 9 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1856:4: ^( OR left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1856:4: ^( OR left= expression right= expression )
                     {
                     match(input,OR,FOLLOW_OR_in_expression2043); 
 
@@ -5813,7 +5813,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 10 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1863:4: ^( AND left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1863:4: ^( AND left= expression right= expression )
                     {
                     match(input,AND,FOLLOW_AND_in_expression2065); 
 
@@ -5843,7 +5843,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 11 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1870:4: ^( PLUS left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1870:4: ^( PLUS left= expression right= expression )
                     {
                     match(input,PLUS,FOLLOW_PLUS_in_expression2087); 
 
@@ -5873,7 +5873,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 12 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1877:4: ^( MINUS left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1877:4: ^( MINUS left= expression right= expression )
                     {
                     match(input,MINUS,FOLLOW_MINUS_in_expression2109); 
 
@@ -5903,7 +5903,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 13 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1884:4: ^( MULTIPLY left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1884:4: ^( MULTIPLY left= expression right= expression )
                     {
                     match(input,MULTIPLY,FOLLOW_MULTIPLY_in_expression2131); 
 
@@ -5933,7 +5933,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 14 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1891:4: ^( DIVIDE left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1891:4: ^( DIVIDE left= expression right= expression )
                     {
                     match(input,DIVIDE,FOLLOW_DIVIDE_in_expression2153); 
 
@@ -5963,7 +5963,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 15 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1898:4: ^( MODULO left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1898:4: ^( MODULO left= expression right= expression )
                     {
                     match(input,MODULO,FOLLOW_MODULO_in_expression2175); 
 
@@ -5993,7 +5993,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 16 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1905:4: ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1905:4: ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
                     {
                     match(input,FUNCTION_CALL,FOLLOW_FUNCTION_CALL_in_expression2197); 
 
@@ -6004,7 +6004,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1905:34: ( COLON ID )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1905:34: ( COLON ID )?
                     int alt58=2;
                     int LA58_0 = input.LA(1);
 
@@ -6013,7 +6013,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt58) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1905:35: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1905:35: COLON ID
                             {
                             match(input,COLON,FOLLOW_COLON_in_expression2201); 
 
@@ -6129,7 +6129,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 17 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1993:4: ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1993:4: ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? )
                     {
                     match(input,QUALIFIED_SOLO_EXPRESSION,FOLLOW_QUALIFIED_SOLO_EXPRESSION_in_expression2232); 
 
@@ -6140,7 +6140,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1993:51: ( COLON ID )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1993:51: ( COLON ID )?
                     int alt59=2;
                     int LA59_0 = input.LA(1);
 
@@ -6149,7 +6149,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt59) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1993:52: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1993:52: COLON ID
                             {
                             match(input,COLON,FOLLOW_COLON_in_expression2239); 
 
@@ -6198,7 +6198,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 18 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2024:4: ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2024:4: ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID )
                     {
                     match(input,QUALIFIED_SOLO_PARENT_EXPRESSON,FOLLOW_QUALIFIED_SOLO_PARENT_EXPRESSON_in_expression2253); 
 
@@ -6269,7 +6269,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 19 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2062:4: ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2062:4: ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name )
                     {
                     match(input,QUALIFIED_SOLO_EXPRESSION_SELECTOR,FOLLOW_QUALIFIED_SOLO_EXPRESSION_SELECTOR_in_expression2281); 
 
@@ -6323,7 +6323,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 20 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2092:4: ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2092:4: ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
                     {
                     match(input,FUNCTION_CALL_PARENT,FOLLOW_FUNCTION_CALL_PARENT_in_expression2299); 
 
@@ -6440,7 +6440,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 21 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2174:4: ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2174:4: ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
                     {
                     match(input,FUNCTION_CALL_THIS,FOLLOW_FUNCTION_CALL_THIS_in_expression2336); 
 
@@ -6455,7 +6455,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2174:49: ( COLON ID )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2174:49: ( COLON ID )?
                     int alt60=2;
                     int LA60_0 = input.LA(1);
 
@@ -6464,7 +6464,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt60) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2174:50: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2174:50: COLON ID
                             {
                             match(input,COLON,FOLLOW_COLON_in_expression2345); 
 
@@ -6580,7 +6580,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 22 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2262:4: BOOLEAN
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2262:4: BOOLEAN
                     {
                     BOOLEAN39=(CommonTree)match(input,BOOLEAN,FOLLOW_BOOLEAN_in_expression2373); 
 
@@ -6603,9 +6603,9 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 23 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2278:4: ( MINUS )? DECIMAL
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2278:4: ( MINUS )? DECIMAL
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2278:4: ( MINUS )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2278:4: ( MINUS )?
                     int alt61=2;
                     int LA61_0 = input.LA(1);
 
@@ -6614,7 +6614,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt61) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2278:5: MINUS
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2278:5: MINUS
                             {
                             MINUS41=(CommonTree)match(input,MINUS,FOLLOW_MINUS_in_expression2382); 
 
@@ -6661,9 +6661,9 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 24 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2310:4: ( MINUS )? INT
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2310:4: ( MINUS )? INT
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2310:4: ( MINUS )?
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2310:4: ( MINUS )?
                     int alt62=2;
                     int LA62_0 = input.LA(1);
 
@@ -6672,7 +6672,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt62) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2310:5: MINUS
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2310:5: MINUS
                             {
                             MINUS43=(CommonTree)match(input,MINUS,FOLLOW_MINUS_in_expression2395); 
 
@@ -6717,7 +6717,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 25 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2340:4: STRING
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2340:4: STRING
                     {
                     STRING44=(CommonTree)match(input,STRING,FOLLOW_STRING_in_expression2407); 
 
@@ -6739,7 +6739,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 26 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2355:4: QUOTE
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2355:4: QUOTE
                     {
                     QUOTE45=(CommonTree)match(input,QUOTE,FOLLOW_QUOTE_in_expression2415); 
 
@@ -6762,7 +6762,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 27 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2371:4: NULL
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2371:4: NULL
                     {
                     NULL46=(CommonTree)match(input,NULL,FOLLOW_NULL_in_expression2423); 
 
@@ -6784,7 +6784,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 28 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2386:4: ME
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2386:4: ME
                     {
                     ME47=(CommonTree)match(input,ME,FOLLOW_ME_in_expression2431); 
 
@@ -6810,7 +6810,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 29 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2405:4: INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2405:4: INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN
                     {
                     match(input,INPUT,FOLLOW_INPUT_in_expression2439); 
 
@@ -6854,7 +6854,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 30 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2428:4: CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2428:4: CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN
                     {
                     CAST50=(CommonTree)match(input,CAST,FOLLOW_CAST_in_expression2458); 
 
@@ -6927,7 +6927,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "function_expression_list"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2451:1: function_expression_list returns [List list, int firstParam] : ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2451:1: function_expression_list returns [List list, int firstParam] : ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) ;
     public final QuorumTreeWalker.function_expression_list_return function_expression_list() throws RecognitionException {
         QuorumTreeWalker.function_expression_list_return retval = new QuorumTreeWalker.function_expression_list_return();
         retval.start = input.LT(1);
@@ -6938,14 +6938,14 @@ public static class STAttrMap extends HashMap {
 
         retval.list = new ArrayList(); retval.firstParam = -1;int startLocation = 0;
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2453:2: ( ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2454:2: ^( FUNCTION_EXPRESSION_LIST (e= expression )* )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2453:2: ( ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2454:2: ^( FUNCTION_EXPRESSION_LIST (e= expression )* )
             {
             match(input,FUNCTION_EXPRESSION_LIST,FOLLOW_FUNCTION_EXPRESSION_LIST_in_function_expression_list2499); 
 
             if ( input.LA(1)==Token.DOWN ) {
                 match(input, Token.DOWN, null); 
-                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2454:29: (e= expression )*
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2454:29: (e= expression )*
                 loop64:
                 do {
                     int alt64=2;
@@ -6958,7 +6958,7 @@ public static class STAttrMap extends HashMap {
 
                     switch (alt64) {
                 	case 1 :
-                	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2455:2: e= expression
+                	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2455:2: e= expression
                 	    {
 
                 	    		if(retval.list.size() >= 1){
@@ -6977,7 +6977,7 @@ public static class STAttrMap extends HashMap {
 
 
 
-                	    		if(builder.getCurrentMethod() != null && builder.getCurrentMethod().getSteps().size() != 0 && startLocation != builder.getCurrentMethod().getSteps().size() -1){
+                	    		if(builder.getCurrentMethod() != null && builder.getCurrentMethod().getSteps().size() != 0 && startLocation < builder.getCurrentMethod().getSteps().size()){
                 	    				builder.getCurrentMethod().getSteps().get(startLocation).setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
                 	    				(e!=null?e.step:null).setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
                 	    		}
@@ -7023,7 +7023,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "formal_parameter"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2475:1: formal_parameter returns [TypeDescriptor type, String name] : ^( FPARAM ad= assignment_declaration ID ) ;
+    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2475:1: formal_parameter returns [TypeDescriptor type, String name] : ^( FPARAM ad= assignment_declaration ID ) ;
     public final QuorumTreeWalker.formal_parameter_return formal_parameter() throws RecognitionException {
         QuorumTreeWalker.formal_parameter_return retval = new QuorumTreeWalker.formal_parameter_return();
         retval.start = input.LT(1);
@@ -7034,8 +7034,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2476:2: ( ^( FPARAM ad= assignment_declaration ID ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2476:6: ^( FPARAM ad= assignment_declaration ID )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2476:2: ( ^( FPARAM ad= assignment_declaration ID ) )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2476:6: ^( FPARAM ad= assignment_declaration ID )
             {
             match(input,FPARAM,FOLLOW_FPARAM_in_formal_parameter2540); 
 
