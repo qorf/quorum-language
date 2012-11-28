@@ -2517,7 +2517,7 @@ public class StepFactory {
         } else {
             if (!vd.isInitializedClassVariable() && !vd.isInitialized()) {
                 this.addCompilerError("Variable " + vd.getName()
-                        + " is not initialized in the parent class's initialization block.", location, ErrorType.MISSING_VARIABLE);
+                        + " has not been initialized.", location, ErrorType.MISSING_VARIABLE);
             }
             resultValue = StepFactory.createExpressionValue(resultRegister, new Result(), vd.getType());
             step.setTemp(resultRegister);

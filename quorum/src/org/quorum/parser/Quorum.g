@@ -1058,7 +1058,7 @@ assignment_statement
 				new_desc.setIsConstant(false);
 			}
 			
-			if((rhs != null && isInClassAssignmentStatementScope) || rhs == null) {
+			if((rhs != null && isInClassAssignmentStatementScope) || (rhs == null && !new_desc.getType().isPrimitiveType())) {
 				new_desc.setIsInitializedClassVariable(true);
 			}
 			if(gdList != null){
