@@ -164,5 +164,16 @@
         <a href="assignment8_4.php">Assignment Manual 8.4</a>
     </li>
 </ul>
+<ul>
+    <li>
+        How to handle multiple sets of parsed text
+    </li>
+    <li>
+        How to parse text
+    </li>
+    <li>
+        How to read/write from/to a file
+    </li>
+</ul>
 
 <?php include("../../include/footer.php"); ?>
