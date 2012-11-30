@@ -24,6 +24,7 @@ public class Documentation{
     private final String PARAMETER = "Parameter";
     private final String RETURNS = "Returns";
     private final String EXAMPLE = "Example";
+    private boolean documentationExists = false;
     
     public void parseDocumentationString(String value) {
         if(value != null) {
@@ -75,7 +76,7 @@ public class Documentation{
             }
 
             documentationString = value;
-
+            documentationExists = true;
         }
     }
     
@@ -310,4 +311,10 @@ public class Documentation{
         return paragraphs;
     }
 
+    /**
+     * @return the documentationExists
+     */
+    public boolean doesDocumentationExist() {
+        return documentationExists;
+    }
 }

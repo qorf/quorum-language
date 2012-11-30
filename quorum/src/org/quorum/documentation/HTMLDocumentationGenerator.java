@@ -45,6 +45,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     private boolean indexed = true;
     private String indexPage = "";
     private ArrayList<ClassDescriptor> classes = new ArrayList<ClassDescriptor>();
+    private ClassDescriptor currentClass = null;
     
     @Override
     public boolean isIndexed() {
@@ -155,19 +156,6 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
                     "/curriculum.php\" class=\"quorum_header\">Curriculum</a></li>";
         result += "<li class=\"quorum_header\"> <a href=\"" + 
                     "/download.php\" class=\"quorum_header\">Downloads</a></li>";
-        
-        
-        
-        
-        
-        
-//        result += "<li class=\"quorum_header_start\">Quorum</li>";
-//        result += "<li class=\"quorum_header\"><a href=\"" + root + "intro.php" 
-//                + "\" class=\"quorum_header\">Index</a></li>";
-//        result += "<li class=\"quorum_header\"><a href=\"https://sourceforge.net/apps/trac/quorum" 
-//                + "\" class=\"quorum_header\">Wiki</a></li>";
-//        result += "<li class=\"quorum_header\"><a href=\"https://sourceforge.net/apps/trac/quorum/wiki/documentation" 
-//                + "\" class=\"quorum_header\">Syntax</a></li>";
         result += "</ul>";
         result += "</div>";
         return result;
@@ -188,6 +176,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         result += "<body>\n";
         result += "<h1 class=\"page_title\">"+pageTitle+"</h1>\n";
         indexPage = result;
+        currentClass = null;
     }
     
     
@@ -302,6 +291,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     
     @Override
     public String generate(ClassDescriptor clazz) {
+        currentClass = clazz;
         computeRelativeRoot(clazz);
         addToIndex(clazz);
         String result = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n";
@@ -773,6 +763,43 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     }
 
     public String getMethodDocumentation(MethodDescriptor method) {
+        Documentation documentation = method.getDocumentation();
+        //check if there's documentation. If there isn't,
+        //then check parents to see if it's available.
+        if(!documentation.doesDocumentationExist() && currentClass != null) {
+            //check all parents and inspect for conflicts
+            Documentation parentDoc = null;
+            MethodDescriptor parentMethod = null;
+            for(int i = 0; i < currentClass.getNumFlatParents(); i++) {
+                ClassDescriptor parent = currentClass.getFlatParent(i);
+                MethodDescriptor currentMethod = parent.getMethod(method.getStaticKey());
+                if(currentMethod == null) {
+                    currentMethod = parent.getBlueprint(method.getStaticKey());
+                }
+                
+                if(currentMethod == null) {
+                    currentMethod = parent.getSystemAction(method.getStaticKey());
+                }
+                
+                
+                if(currentMethod != null && parentMethod == null) {
+                    parentMethod = currentMethod;
+                    if(currentMethod.getDocumentation().doesDocumentationExist()) {
+                        parentDoc = parentMethod.getDocumentation();
+                    }
+                } else if(currentMethod != null && parentMethod != null) {
+                    //if there is no multiple inheritance conflict, use the 
+                    //parent's if one is not defined.
+                    parentDoc = null;
+                    parentMethod = null;
+                    i = currentClass.getNumFlatParents() + 1;
+                }
+            }
+            if(parentDoc != null) {
+                documentation = parentDoc;
+            }
+        }
+        
         String result = "";
         Parameters parameters = method.getParameters();
         String params = "";
@@ -798,7 +825,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
                     params += currentParam;
                     paramList += "<li>";
                     paramList +=  bold(currentParam) + " " + italics(parameters.get(i).getName()) + ": ";
-                    String parameterDocumentation = method.getDocumentation().getParameter(parameters.get(i).getName());
+                    String parameterDocumentation = documentation.getParameter(parameters.get(i).getName());
                     paramList += parameterDocumentation;
                     paramList += "</li>\n\n";
                 }
@@ -808,7 +835,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
         String methodSignature = getMethodSignature(method);
         result += "\n\t" + headingSurround(methodSignature, 3, "action_title") + "\n";
 
-        Documentation documentation = method.getDocumentation();
+        
         if(documentation != null) {
             String[] array = Documentation.breakStringIntoParagraphArray(documentation.getDescription());
             result += "\n\t" + breakIntoParagraphs(array);
