@@ -695,27 +695,27 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
     }
     
     private String pascalCaseChecker(String string) {
-        if(string.length() == 0) {
-            return "";
-        }
-        boolean hasMoreThanTwoUppers = false;
-        int numUpper = 0;
-        for(int i = 0; i < string.length(); i++) {
-            boolean upper = Character.isUpperCase(string.charAt(i));
-            if(upper) {
-                numUpper++;
-            }
-        }
-        
-        if(numUpper >= 2) {
-            hasMoreThanTwoUppers = true;
-        }
-        boolean first = Character.isUpperCase(string.charAt(0));
-        String result = string;
-        if(hasMoreThanTwoUppers && first) {
-            result = "!" + result;
-        }
-        return result;
+//        if(string.length() == 0) {
+//            return "";
+//        }
+//        boolean hasMoreThanTwoUppers = false;
+//        int numUpper = 0;
+//        for(int i = 0; i < string.length(); i++) {
+//            boolean upper = Character.isUpperCase(string.charAt(i));
+//            if(upper) {
+//                numUpper++;
+//            }
+//        }
+//        
+//        if(numUpper >= 2) {
+//            hasMoreThanTwoUppers = true;
+//        }
+//        boolean first = Character.isUpperCase(string.charAt(0));
+//        String result = string;
+//        if(hasMoreThanTwoUppers && first) {
+//            result = "!" + result;
+//        }
+        return string;
     }
     
     private String getMethodSignature(MethodDescriptor method) {
