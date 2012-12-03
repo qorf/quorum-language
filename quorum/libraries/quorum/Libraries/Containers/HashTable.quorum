@@ -498,7 +498,12 @@ class HashTable<Key, Value> is a HashTableBlueprint<Key, Value>
 
     action Copy returns Object
         HashTable<Key, Value> copy
-        Array<HashNode<Key, Value>> arrayCopy = copy:array
-        return undefined
+
+        Iterator<HashNode<Key, Value>> nodeIterator = array:GetIterator()
+        repeat while nodeIterator:HasNext()
+            HashNode<Key,Value> node = nodeIterator:Next()
+            copy:Add(node:key, node:value)
+        end
+        return copy
     end
 end

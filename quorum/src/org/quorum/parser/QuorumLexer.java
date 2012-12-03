@@ -1,4 +1,4 @@
-// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g 2012-11-28 15:07:15
+// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g 2012-12-03 15:11:17
 package org.quorum.parser;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
 import org.quorum.vm.interfaces.CompilerErrorManager;
@@ -29,83 +29,84 @@ public class QuorumLexer extends Lexer {
     public static final int COMMENTS=16;
     public static final int CONSTANT=17;
     public static final int CONSTRUCTOR=18;
-    public static final int DECIMAL=19;
-    public static final int DETECT=20;
-    public static final int DIVIDE=21;
-    public static final int DOUBLE_QUOTE=22;
-    public static final int ELSE=23;
-    public static final int ELSE_IF=24;
-    public static final int ELSE_IF_STATEMENT=25;
-    public static final int END=26;
-    public static final int EQUALITY=27;
-    public static final int EXPRESSION_STATEMENT=28;
-    public static final int FINAL_ELSE=29;
-    public static final int FPARAM=30;
-    public static final int FUNCTION_CALL=31;
-    public static final int FUNCTION_CALL_PARENT=32;
-    public static final int FUNCTION_CALL_THIS=33;
-    public static final int FUNCTION_EXPRESSION_LIST=34;
-    public static final int GENERIC=35;
-    public static final int GREATER=36;
-    public static final int GREATER_EQUAL=37;
-    public static final int ID=38;
-    public static final int IF=39;
-    public static final int INHERITS=40;
-    public static final int INPUT=41;
-    public static final int INT=42;
-    public static final int INTEGER_KEYWORD=43;
-    public static final int LEFT_PAREN=44;
-    public static final int LEFT_SQR_BRACE=45;
-    public static final int LESS=46;
-    public static final int LESS_EQUAL=47;
-    public static final int ME=48;
-    public static final int MINUS=49;
-    public static final int MODULO=50;
-    public static final int MULTIPLY=51;
-    public static final int NATIVE=52;
-    public static final int NEWLINE=53;
-    public static final int NOT=54;
-    public static final int NOTEQUALS=55;
-    public static final int NOW=56;
-    public static final int NULL=57;
-    public static final int NUMBER_KEYWORD=58;
-    public static final int OF_TYPE=59;
-    public static final int ON_CREATE=60;
-    public static final int ON_DESTROY=61;
-    public static final int OR=62;
-    public static final int OVER=63;
-    public static final int PACKAGE_NAME=64;
-    public static final int PARENT=65;
-    public static final int PAREN_WRAPPED_EXPRESSION=66;
-    public static final int PERIOD=67;
-    public static final int PLUS=68;
-    public static final int PRINT=69;
-    public static final int PRIVATE=70;
-    public static final int PUBLIC=71;
-    public static final int QUALIFIED_NAME=72;
-    public static final int QUALIFIED_SOLO_EXPRESSION=73;
-    public static final int QUALIFIED_SOLO_EXPRESSION_SELECTOR=74;
-    public static final int QUALIFIED_SOLO_PARENT_EXPRESSON=75;
-    public static final int QUOTE=76;
-    public static final int REPEAT=77;
-    public static final int RETURN=78;
-    public static final int RETURNS=79;
-    public static final int RIGHT_PAREN=80;
-    public static final int RIGHT_SQR_BRACE=81;
-    public static final int ROOT_EXPRESSION=82;
-    public static final int SAY=83;
-    public static final int SOLO_FUNCTION_CALL=84;
-    public static final int SOLO_FUNCTION_CALL_PARENT=85;
-    public static final int SOLO_FUNCTION_CALL_THIS=86;
-    public static final int STATEMENT_LIST=87;
-    public static final int STRING=88;
-    public static final int TEXT=89;
-    public static final int TIMES=90;
-    public static final int UNARY_NOT=91;
-    public static final int UNTIL=92;
-    public static final int USE=93;
-    public static final int WHILE=94;
-    public static final int WS=95;
+    public static final int CREATE=19;
+    public static final int DECIMAL=20;
+    public static final int DESTROY=21;
+    public static final int DETECT=22;
+    public static final int DIVIDE=23;
+    public static final int DOUBLE_QUOTE=24;
+    public static final int ELSE=25;
+    public static final int ELSE_IF=26;
+    public static final int ELSE_IF_STATEMENT=27;
+    public static final int END=28;
+    public static final int EQUALITY=29;
+    public static final int EXPRESSION_STATEMENT=30;
+    public static final int FINAL_ELSE=31;
+    public static final int FPARAM=32;
+    public static final int FUNCTION_CALL=33;
+    public static final int FUNCTION_CALL_PARENT=34;
+    public static final int FUNCTION_CALL_THIS=35;
+    public static final int FUNCTION_EXPRESSION_LIST=36;
+    public static final int GENERIC=37;
+    public static final int GREATER=38;
+    public static final int GREATER_EQUAL=39;
+    public static final int ID=40;
+    public static final int IF=41;
+    public static final int INHERITS=42;
+    public static final int INPUT=43;
+    public static final int INT=44;
+    public static final int INTEGER_KEYWORD=45;
+    public static final int LEFT_PAREN=46;
+    public static final int LEFT_SQR_BRACE=47;
+    public static final int LESS=48;
+    public static final int LESS_EQUAL=49;
+    public static final int ME=50;
+    public static final int MINUS=51;
+    public static final int MODULO=52;
+    public static final int MULTIPLY=53;
+    public static final int NATIVE=54;
+    public static final int NEWLINE=55;
+    public static final int NOT=56;
+    public static final int NOTEQUALS=57;
+    public static final int NOW=58;
+    public static final int NULL=59;
+    public static final int NUMBER_KEYWORD=60;
+    public static final int OF_TYPE=61;
+    public static final int ON=62;
+    public static final int OR=63;
+    public static final int OVER=64;
+    public static final int PACKAGE_NAME=65;
+    public static final int PARENT=66;
+    public static final int PAREN_WRAPPED_EXPRESSION=67;
+    public static final int PERIOD=68;
+    public static final int PLUS=69;
+    public static final int PRINT=70;
+    public static final int PRIVATE=71;
+    public static final int PUBLIC=72;
+    public static final int QUALIFIED_NAME=73;
+    public static final int QUALIFIED_SOLO_EXPRESSION=74;
+    public static final int QUALIFIED_SOLO_EXPRESSION_SELECTOR=75;
+    public static final int QUALIFIED_SOLO_PARENT_EXPRESSON=76;
+    public static final int QUOTE=77;
+    public static final int REPEAT=78;
+    public static final int RETURN=79;
+    public static final int RETURNS=80;
+    public static final int RIGHT_PAREN=81;
+    public static final int RIGHT_SQR_BRACE=82;
+    public static final int ROOT_EXPRESSION=83;
+    public static final int SAY=84;
+    public static final int SOLO_FUNCTION_CALL=85;
+    public static final int SOLO_FUNCTION_CALL_PARENT=86;
+    public static final int SOLO_FUNCTION_CALL_THIS=87;
+    public static final int STATEMENT_LIST=88;
+    public static final int STRING=89;
+    public static final int TEXT=90;
+    public static final int TIMES=91;
+    public static final int UNARY_NOT=92;
+    public static final int UNTIL=93;
+    public static final int USE=94;
+    public static final int WHILE=95;
+    public static final int WS=96;
 
     	public static final int HIDDEN_DOCUMENTATION = 100;
     	QuorumVirtualMachine vm;
@@ -161,13 +162,82 @@ public class QuorumLexer extends Lexer {
     }
     public String getGrammarFileName() { return "/Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g"; }
 
+    // $ANTLR start "ON"
+    public final void mON() throws RecognitionException {
+        try {
+            int _type = ON;
+            int _channel = DEFAULT_TOKEN_CHANNEL;
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1260:4: ( 'on' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1260:6: 'on'
+            {
+            match("on"); 
+
+
+
+            }
+
+            state.type = _type;
+            state.channel = _channel;
+        }
+        finally {
+        	// do for sure before leaving
+        }
+    }
+    // $ANTLR end "ON"
+
+    // $ANTLR start "DESTROY"
+    public final void mDESTROY() throws RecognitionException {
+        try {
+            int _type = DESTROY;
+            int _channel = DEFAULT_TOKEN_CHANNEL;
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1261:9: ( 'destroy' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1261:11: 'destroy'
+            {
+            match("destroy"); 
+
+
+
+            }
+
+            state.type = _type;
+            state.channel = _channel;
+        }
+        finally {
+        	// do for sure before leaving
+        }
+    }
+    // $ANTLR end "DESTROY"
+
+    // $ANTLR start "CREATE"
+    public final void mCREATE() throws RecognitionException {
+        try {
+            int _type = CREATE;
+            int _channel = DEFAULT_TOKEN_CHANNEL;
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1262:8: ( 'create' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1262:10: 'create'
+            {
+            match("create"); 
+
+
+
+            }
+
+            state.type = _type;
+            state.channel = _channel;
+        }
+        finally {
+        	// do for sure before leaving
+        }
+    }
+    // $ANTLR end "CREATE"
+
     // $ANTLR start "QUOTE"
     public final void mQUOTE() throws RecognitionException {
         try {
             int _type = QUOTE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1260:7: ( 'quote' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1260:9: 'quote'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1263:7: ( 'quote' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1263:9: 'quote'
             {
             match("quote"); 
 
@@ -189,8 +259,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = CONSTANT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1261:10: ( 'constant' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1261:12: 'constant'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1264:10: ( 'constant' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1264:12: 'constant'
             {
             match("constant"); 
 
@@ -212,8 +282,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = ELSE_IF;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1262:9: ( 'elseif' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1262:11: 'elseif'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1265:9: ( 'elseif' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1265:11: 'elseif'
             {
             match("elseif"); 
 
@@ -235,8 +305,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = ME;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1263:4: ( 'me' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1263:6: 'me'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1266:4: ( 'me' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1266:6: 'me'
             {
             match("me"); 
 
@@ -258,8 +328,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = UNTIL;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1264:7: ( 'until' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1264:9: 'until'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1267:7: ( 'until' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1267:9: 'until'
             {
             match("until"); 
 
@@ -276,59 +346,13 @@ public class QuorumLexer extends Lexer {
     }
     // $ANTLR end "UNTIL"
 
-    // $ANTLR start "ON_DESTROY"
-    public final void mON_DESTROY() throws RecognitionException {
-        try {
-            int _type = ON_DESTROY;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1266:2: ( 'on destroy' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1266:4: 'on destroy'
-            {
-            match("on destroy"); 
-
-
-
-            }
-
-            state.type = _type;
-            state.channel = _channel;
-        }
-        finally {
-        	// do for sure before leaving
-        }
-    }
-    // $ANTLR end "ON_DESTROY"
-
-    // $ANTLR start "ON_CREATE"
-    public final void mON_CREATE() throws RecognitionException {
-        try {
-            int _type = ON_CREATE;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1268:2: ( 'on create' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1268:4: 'on create'
-            {
-            match("on create"); 
-
-
-
-            }
-
-            state.type = _type;
-            state.channel = _channel;
-        }
-        finally {
-        	// do for sure before leaving
-        }
-    }
-    // $ANTLR end "ON_CREATE"
-
     // $ANTLR start "OF_TYPE"
     public final void mOF_TYPE() throws RecognitionException {
         try {
             int _type = OF_TYPE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1269:9: ( 'of type' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1269:11: 'of type'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1268:9: ( 'of type' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1268:11: 'of type'
             {
             match("of type"); 
 
@@ -350,8 +374,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = PUBLIC;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1270:8: ( 'public' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1270:10: 'public'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1269:8: ( 'public' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1269:10: 'public'
             {
             match("public"); 
 
@@ -373,8 +397,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = PRIVATE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1271:9: ( 'private' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1271:11: 'private'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1270:9: ( 'private' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1270:11: 'private'
             {
             match("private"); 
 
@@ -396,8 +420,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = ALERT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1272:7: ( 'alert' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1272:9: 'alert'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1271:7: ( 'alert' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1271:9: 'alert'
             {
             match("alert"); 
 
@@ -419,8 +443,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = DETECT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1273:8: ( 'detect' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1273:10: 'detect'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1272:8: ( 'detect' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1272:10: 'detect'
             {
             match("detect"); 
 
@@ -442,8 +466,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = ALWAYS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1274:8: ( 'always' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1274:10: 'always'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1273:8: ( 'always' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1273:10: 'always'
             {
             match("always"); 
 
@@ -465,8 +489,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = CHECK;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1275:7: ( 'check' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1275:9: 'check'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1274:7: ( 'check' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1274:9: 'check'
             {
             match("check"); 
 
@@ -488,8 +512,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = PARENT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1276:8: ( 'parent' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1276:10: 'parent'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1275:8: ( 'parent' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1275:10: 'parent'
             {
             match("parent"); 
 
@@ -511,8 +535,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = BLUEPRINT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1277:11: ( 'blueprint' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1277:13: 'blueprint'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1276:11: ( 'blueprint' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1276:13: 'blueprint'
             {
             match("blueprint"); 
 
@@ -534,8 +558,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = NATIVE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1278:8: ( 'system' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1278:10: 'system'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1277:8: ( 'system' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1277:10: 'system'
             {
             match("system"); 
 
@@ -557,8 +581,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = INHERITS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1279:10: ( 'is a' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1279:12: 'is a'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1278:10: ( 'is a' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1278:12: 'is a'
             {
             match("is a"); 
 
@@ -580,8 +604,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = CAST;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1280:6: ( 'cast' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1280:8: 'cast'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1279:6: ( 'cast' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1279:8: 'cast'
             {
             match("cast"); 
 
@@ -603,8 +627,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = PRINT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1281:7: ( 'print' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1281:9: 'print'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1280:7: ( 'print' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1280:9: 'print'
             {
             match("print"); 
 
@@ -626,8 +650,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = INPUT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1282:7: ( 'input' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1282:9: 'input'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1281:7: ( 'input' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1281:9: 'input'
             {
             match("input"); 
 
@@ -649,8 +673,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = SAY;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1283:5: ( 'say' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1283:7: 'say'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1282:5: ( 'say' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1282:7: 'say'
             {
             match("say"); 
 
@@ -672,8 +696,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = NOW;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1284:5: ( 'now' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1284:7: 'now'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1283:5: ( 'now' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1283:7: 'now'
             {
             match("now"); 
 
@@ -695,8 +719,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = WHILE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1285:7: ( 'while' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1285:9: 'while'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1284:7: ( 'while' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1284:9: 'while'
             {
             match("while"); 
 
@@ -718,8 +742,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = PACKAGE_NAME;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1286:14: ( 'package' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1286:16: 'package'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1285:14: ( 'package' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1285:16: 'package'
             {
             match("package"); 
 
@@ -741,8 +765,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = TIMES;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1288:7: ( 'times' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1288:9: 'times'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1287:7: ( 'times' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1287:9: 'times'
             {
             match("times"); 
 
@@ -764,8 +788,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = REPEAT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1289:8: ( 'repeat' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1289:10: 'repeat'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1288:8: ( 'repeat' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1288:10: 'repeat'
             {
             match("repeat"); 
 
@@ -787,8 +811,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = OVER;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1290:6: ( 'over' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1290:8: 'over'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1289:6: ( 'over' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1289:8: 'over'
             {
             match("over"); 
 
@@ -810,8 +834,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = ELSE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1291:7: ( 'else' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1291:9: 'else'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1290:7: ( 'else' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1290:9: 'else'
             {
             match("else"); 
 
@@ -833,8 +857,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = RETURNS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1292:9: ( 'returns' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1292:11: 'returns'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1291:9: ( 'returns' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1291:11: 'returns'
             {
             match("returns"); 
 
@@ -856,8 +880,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = RETURN;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1293:9: ( 'return' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1293:11: 'return'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1292:9: ( 'return' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1292:11: 'return'
             {
             match("return"); 
 
@@ -879,8 +903,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = AND;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1294:5: ( 'and' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1294:7: 'and'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1293:5: ( 'and' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1293:7: 'and'
             {
             match("and"); 
 
@@ -902,8 +926,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = OR;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1295:5: ( 'or' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1295:7: 'or'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1294:5: ( 'or' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1294:7: 'or'
             {
             match("or"); 
 
@@ -925,8 +949,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = NULL;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1297:6: ( 'undefined' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1297:8: 'undefined'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1296:6: ( 'undefined' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1296:8: 'undefined'
             {
             match("undefined"); 
 
@@ -948,8 +972,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = ACTION;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1299:2: ( 'action' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1299:4: 'action'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1298:2: ( 'action' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1298:4: 'action'
             {
             match("action"); 
 
@@ -971,8 +995,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = COLON;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1301:7: ( ':' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1301:9: ':'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1300:7: ( ':' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1300:9: ':'
             {
             match(':'); 
 
@@ -992,8 +1016,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = INTEGER_KEYWORD;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1304:2: ( 'integer' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1304:4: 'integer'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1303:2: ( 'integer' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1303:4: 'integer'
             {
             match("integer"); 
 
@@ -1015,8 +1039,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = NUMBER_KEYWORD;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1306:2: ( 'number' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1306:4: 'number'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1305:2: ( 'number' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1305:4: 'number'
             {
             match("number"); 
 
@@ -1038,8 +1062,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = TEXT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1308:2: ( 'text' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1308:4: 'text'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1307:2: ( 'text' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1307:4: 'text'
             {
             match("text"); 
 
@@ -1061,8 +1085,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = BOOLEAN_KEYWORD;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1310:2: ( 'boolean' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1310:4: 'boolean'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1309:2: ( 'boolean' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1309:4: 'boolean'
             {
             match("boolean"); 
 
@@ -1084,8 +1108,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = USE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1311:6: ( 'use' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1311:8: 'use'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1310:6: ( 'use' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1310:8: 'use'
             {
             match("use"); 
 
@@ -1107,7 +1131,7 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = NOT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1313:5: ( 'not' | 'Not' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1312:5: ( 'not' | 'Not' )
             int alt1=2;
             int LA1_0 = input.LA(1);
 
@@ -1126,7 +1150,7 @@ public class QuorumLexer extends Lexer {
             }
             switch (alt1) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1313:7: 'not'
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1312:7: 'not'
                     {
                     match("not"); 
 
@@ -1135,7 +1159,7 @@ public class QuorumLexer extends Lexer {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1313:15: 'Not'
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1312:15: 'Not'
                     {
                     match("Not"); 
 
@@ -1159,8 +1183,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = NOTEQUALS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1315:2: ( ( 'n' | 'N' ) 'ot=' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1315:4: ( 'n' | 'N' ) 'ot='
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1314:2: ( ( 'n' | 'N' ) 'ot=' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1314:4: ( 'n' | 'N' ) 'ot='
             {
             if ( input.LA(1)=='N'||input.LA(1)=='n' ) {
                 input.consume();
@@ -1192,8 +1216,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = PERIOD;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1316:8: ( '.' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1316:10: '.'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1315:8: ( '.' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1315:10: '.'
             {
             match('.'); 
 
@@ -1213,8 +1237,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = COMMA;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1317:7: ( ',' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1317:9: ','
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1316:7: ( ',' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1316:9: ','
             {
             match(','); 
 
@@ -1234,8 +1258,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = EQUALITY;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1318:9: ( '=' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1318:11: '='
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1317:9: ( '=' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1317:11: '='
             {
             match('='); 
 
@@ -1255,8 +1279,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = GREATER;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1319:9: ( '>' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1319:11: '>'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1318:9: ( '>' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1318:11: '>'
             {
             match('>'); 
 
@@ -1276,8 +1300,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = GREATER_EQUAL;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1321:2: ( '>=' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1321:4: '>='
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1320:2: ( '>=' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1320:4: '>='
             {
             match(">="); 
 
@@ -1299,8 +1323,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = LESS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1322:6: ( '<' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1322:8: '<'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1321:6: ( '<' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1321:8: '<'
             {
             match('<'); 
 
@@ -1320,8 +1344,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = LESS_EQUAL;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1324:2: ( '<=' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1324:4: '<='
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1323:2: ( '<=' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1323:4: '<='
             {
             match("<="); 
 
@@ -1343,8 +1367,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = PLUS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1325:6: ( '+' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1325:8: '+'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1324:6: ( '+' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1324:8: '+'
             {
             match('+'); 
 
@@ -1364,8 +1388,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = MINUS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1326:7: ( '-' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1326:9: '-'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1325:7: ( '-' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1325:9: '-'
             {
             match('-'); 
 
@@ -1385,8 +1409,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = MULTIPLY;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1327:9: ( '*' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1327:11: '*'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1326:9: ( '*' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1326:11: '*'
             {
             match('*'); 
 
@@ -1406,8 +1430,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = DIVIDE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1328:8: ( '/' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1328:10: '/'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1327:8: ( '/' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1327:10: '/'
             {
             match('/'); 
 
@@ -1427,8 +1451,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = MODULO;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1329:8: ( 'mod' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1329:10: 'mod'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1328:8: ( 'mod' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1328:10: 'mod'
             {
             match("mod"); 
 
@@ -1450,8 +1474,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = LEFT_SQR_BRACE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1331:2: ( '[' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1331:4: '['
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1330:2: ( '[' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1330:4: '['
             {
             match('['); 
 
@@ -1471,8 +1495,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = RIGHT_SQR_BRACE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1333:2: ( ']' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1333:4: ']'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1332:2: ( ']' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1332:4: ']'
             {
             match(']'); 
 
@@ -1492,8 +1516,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = LEFT_PAREN;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1335:2: ( '(' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1335:4: '('
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1334:2: ( '(' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1334:4: '('
             {
             match('('); 
 
@@ -1513,8 +1537,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = RIGHT_PAREN;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1337:2: ( ')' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1337:4: ')'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1336:2: ( ')' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1336:4: ')'
             {
             match(')'); 
 
@@ -1534,8 +1558,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = DOUBLE_QUOTE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1339:2: ( '\"' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1339:4: '\"'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1338:2: ( '\"' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1338:4: '\"'
             {
             match('\"'); 
 
@@ -1555,8 +1579,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = IF;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1340:4: ( 'if' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1340:6: 'if'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1339:4: ( 'if' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1339:6: 'if'
             {
             match("if"); 
 
@@ -1578,8 +1602,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = END;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1341:5: ( 'end' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1341:7: 'end'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1340:5: ( 'end' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1340:7: 'end'
             {
             match("end"); 
 
@@ -1601,8 +1625,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = CLASS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1342:7: ( 'class' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1342:9: 'class'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1341:7: ( 'class' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1341:9: 'class'
             {
             match("class"); 
 
@@ -1624,7 +1648,7 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = BOOLEAN;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1343:9: ( 'true' | 'false' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1342:9: ( 'true' | 'false' )
             int alt2=2;
             int LA2_0 = input.LA(1);
 
@@ -1643,7 +1667,7 @@ public class QuorumLexer extends Lexer {
             }
             switch (alt2) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1343:11: 'true'
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1342:11: 'true'
                     {
                     match("true"); 
 
@@ -1652,7 +1676,7 @@ public class QuorumLexer extends Lexer {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1343:20: 'false'
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1342:20: 'false'
                     {
                     match("false"); 
 
@@ -1676,10 +1700,10 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = INT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1344:6: ( ( '0' .. '9' )+ )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1344:8: ( '0' .. '9' )+
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1343:6: ( ( '0' .. '9' )+ )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1343:8: ( '0' .. '9' )+
             {
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1344:8: ( '0' .. '9' )+
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1343:8: ( '0' .. '9' )+
             int cnt3=0;
             loop3:
             do {
@@ -1734,10 +1758,10 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = DECIMAL;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1345:9: ( ( '0' .. '9' )+ ( PERIOD ( '0' .. '9' )* )? )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1345:11: ( '0' .. '9' )+ ( PERIOD ( '0' .. '9' )* )?
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1344:9: ( ( '0' .. '9' )+ ( PERIOD ( '0' .. '9' )* )? )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1344:11: ( '0' .. '9' )+ ( PERIOD ( '0' .. '9' )* )?
             {
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1345:11: ( '0' .. '9' )+
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1344:11: ( '0' .. '9' )+
             int cnt4=0;
             loop4:
             do {
@@ -1776,7 +1800,7 @@ public class QuorumLexer extends Lexer {
             } while (true);
 
 
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1345:21: ( PERIOD ( '0' .. '9' )* )?
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1344:21: ( PERIOD ( '0' .. '9' )* )?
             int alt6=2;
             int LA6_0 = input.LA(1);
 
@@ -1785,12 +1809,12 @@ public class QuorumLexer extends Lexer {
             }
             switch (alt6) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1345:22: PERIOD ( '0' .. '9' )*
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1344:22: PERIOD ( '0' .. '9' )*
                     {
                     mPERIOD(); 
 
 
-                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1345:29: ( '0' .. '9' )*
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1344:29: ( '0' .. '9' )*
                     loop5:
                     do {
                         int alt5=2;
@@ -1846,8 +1870,8 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = ID;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1346:5: ( ( 'a' .. 'z' | 'A' .. 'Z' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )* )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1346:8: ( 'a' .. 'z' | 'A' .. 'Z' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )*
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1345:5: ( ( 'a' .. 'z' | 'A' .. 'Z' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )* )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1345:8: ( 'a' .. 'z' | 'A' .. 'Z' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )*
             {
             if ( (input.LA(1) >= 'A' && input.LA(1) <= 'Z')||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
                 input.consume();
@@ -1859,7 +1883,7 @@ public class QuorumLexer extends Lexer {
             }
 
 
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1346:27: ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )*
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1345:27: ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )*
             loop7:
             do {
                 int alt7=2;
@@ -1909,13 +1933,13 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = STRING;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1347:8: ( DOUBLE_QUOTE (~ ( DOUBLE_QUOTE ) )* DOUBLE_QUOTE )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1347:10: DOUBLE_QUOTE (~ ( DOUBLE_QUOTE ) )* DOUBLE_QUOTE
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1346:8: ( DOUBLE_QUOTE (~ ( DOUBLE_QUOTE ) )* DOUBLE_QUOTE )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1346:10: DOUBLE_QUOTE (~ ( DOUBLE_QUOTE ) )* DOUBLE_QUOTE
             {
             mDOUBLE_QUOTE(); 
 
 
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1347:23: (~ ( DOUBLE_QUOTE ) )*
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1346:23: (~ ( DOUBLE_QUOTE ) )*
             loop8:
             do {
                 int alt8=2;
@@ -1968,10 +1992,10 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = NEWLINE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1350:9: ( ( '\\r' )? '\\n' )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1350:12: ( '\\r' )? '\\n'
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1349:9: ( ( '\\r' )? '\\n' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1349:12: ( '\\r' )? '\\n'
             {
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1350:12: ( '\\r' )?
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1349:12: ( '\\r' )?
             int alt9=2;
             int LA9_0 = input.LA(1);
 
@@ -1980,7 +2004,7 @@ public class QuorumLexer extends Lexer {
             }
             switch (alt9) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1350:12: '\\r'
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1349:12: '\\r'
                     {
                     match('\r'); 
 
@@ -2010,10 +2034,10 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = WS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1351:4: ( ( ' ' | '\\t' | '\\n' | '\\r' )+ )
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1351:6: ( ' ' | '\\t' | '\\n' | '\\r' )+
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1350:4: ( ( ' ' | '\\t' | '\\n' | '\\r' )+ )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1350:6: ( ' ' | '\\t' | '\\n' | '\\r' )+
             {
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1351:6: ( ' ' | '\\t' | '\\n' | '\\r' )+
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1350:6: ( ' ' | '\\t' | '\\n' | '\\r' )+
             int cnt10=0;
             loop10:
             do {
@@ -2070,7 +2094,7 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = COMMENTS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1354:5: ( '//' (~ ( '\\n' | '\\r' ) )* ( ( ( '\\r' )? '\\n' ) | EOF ) | '/*' ( options {greedy=false; } : . )* '*/' )
+            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1353:5: ( '//' (~ ( '\\n' | '\\r' ) )* ( ( ( '\\r' )? '\\n' ) | EOF ) | '/*' ( options {greedy=false; } : . )* '*/' )
             int alt15=2;
             int LA15_0 = input.LA(1);
 
@@ -2100,13 +2124,13 @@ public class QuorumLexer extends Lexer {
             }
             switch (alt15) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1354:9: '//' (~ ( '\\n' | '\\r' ) )* ( ( ( '\\r' )? '\\n' ) | EOF )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1353:9: '//' (~ ( '\\n' | '\\r' ) )* ( ( ( '\\r' )? '\\n' ) | EOF )
                     {
                     match("//"); 
 
 
 
-                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1354:14: (~ ( '\\n' | '\\r' ) )*
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1353:14: (~ ( '\\n' | '\\r' ) )*
                     loop11:
                     do {
                         int alt11=2;
@@ -2140,7 +2164,7 @@ public class QuorumLexer extends Lexer {
                     } while (true);
 
 
-                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1354:28: ( ( ( '\\r' )? '\\n' ) | EOF )
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1353:28: ( ( ( '\\r' )? '\\n' ) | EOF )
                     int alt13=2;
                     int LA13_0 = input.LA(1);
 
@@ -2152,12 +2176,12 @@ public class QuorumLexer extends Lexer {
                     }
                     switch (alt13) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1354:29: ( ( '\\r' )? '\\n' )
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1353:29: ( ( '\\r' )? '\\n' )
                             {
-                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1354:29: ( ( '\\r' )? '\\n' )
-                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1354:30: ( '\\r' )? '\\n'
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1353:29: ( ( '\\r' )? '\\n' )
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1353:30: ( '\\r' )? '\\n'
                             {
-                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1354:30: ( '\\r' )?
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1353:30: ( '\\r' )?
                             int alt12=2;
                             int LA12_0 = input.LA(1);
 
@@ -2166,7 +2190,7 @@ public class QuorumLexer extends Lexer {
                             }
                             switch (alt12) {
                                 case 1 :
-                                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1354:30: '\\r'
+                                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1353:30: '\\r'
                                     {
                                     match('\r'); 
 
@@ -2184,7 +2208,7 @@ public class QuorumLexer extends Lexer {
                             }
                             break;
                         case 2 :
-                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1354:44: EOF
+                            // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1353:44: EOF
                             {
                             match(EOF); 
 
@@ -2200,13 +2224,13 @@ public class QuorumLexer extends Lexer {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1355:9: '/*' ( options {greedy=false; } : . )* '*/'
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1354:9: '/*' ( options {greedy=false; } : . )* '*/'
                     {
                     match("/*"); 
 
 
 
-                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1355:14: ( options {greedy=false; } : . )*
+                    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1354:14: ( options {greedy=false; } : . )*
                     loop14:
                     do {
                         int alt14=2;
@@ -2231,7 +2255,7 @@ public class QuorumLexer extends Lexer {
 
                         switch (alt14) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1355:42: .
+                    	    // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1354:42: .
                     	    {
                     	    matchAny(); 
 
@@ -2264,572 +2288,580 @@ public class QuorumLexer extends Lexer {
     // $ANTLR end "COMMENTS"
 
     public void mTokens() throws RecognitionException {
-        // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:8: ( QUOTE | CONSTANT | ELSE_IF | ME | UNTIL | ON_DESTROY | ON_CREATE | OF_TYPE | PUBLIC | PRIVATE | ALERT | DETECT | ALWAYS | CHECK | PARENT | BLUEPRINT | NATIVE | INHERITS | CAST | PRINT | INPUT | SAY | NOW | WHILE | PACKAGE_NAME | TIMES | REPEAT | OVER | ELSE | RETURNS | RETURN | AND | OR | NULL | ACTION | COLON | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD | USE | NOT | NOTEQUALS | PERIOD | COMMA | EQUALITY | GREATER | GREATER_EQUAL | LESS | LESS_EQUAL | PLUS | MINUS | MULTIPLY | DIVIDE | MODULO | LEFT_SQR_BRACE | RIGHT_SQR_BRACE | LEFT_PAREN | RIGHT_PAREN | DOUBLE_QUOTE | IF | END | CLASS | BOOLEAN | INT | DECIMAL | ID | STRING | NEWLINE | WS | COMMENTS )
-        int alt16=71;
+        // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:8: ( ON | DESTROY | CREATE | QUOTE | CONSTANT | ELSE_IF | ME | UNTIL | OF_TYPE | PUBLIC | PRIVATE | ALERT | DETECT | ALWAYS | CHECK | PARENT | BLUEPRINT | NATIVE | INHERITS | CAST | PRINT | INPUT | SAY | NOW | WHILE | PACKAGE_NAME | TIMES | REPEAT | OVER | ELSE | RETURNS | RETURN | AND | OR | NULL | ACTION | COLON | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD | USE | NOT | NOTEQUALS | PERIOD | COMMA | EQUALITY | GREATER | GREATER_EQUAL | LESS | LESS_EQUAL | PLUS | MINUS | MULTIPLY | DIVIDE | MODULO | LEFT_SQR_BRACE | RIGHT_SQR_BRACE | LEFT_PAREN | RIGHT_PAREN | DOUBLE_QUOTE | IF | END | CLASS | BOOLEAN | INT | DECIMAL | ID | STRING | NEWLINE | WS | COMMENTS )
+        int alt16=72;
         alt16 = dfa16.predict(input);
         switch (alt16) {
             case 1 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:10: QUOTE
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:10: ON
+                {
+                mON(); 
+
+
+                }
+                break;
+            case 2 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:13: DESTROY
+                {
+                mDESTROY(); 
+
+
+                }
+                break;
+            case 3 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:21: CREATE
+                {
+                mCREATE(); 
+
+
+                }
+                break;
+            case 4 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:28: QUOTE
                 {
                 mQUOTE(); 
 
 
                 }
                 break;
-            case 2 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:16: CONSTANT
+            case 5 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:34: CONSTANT
                 {
                 mCONSTANT(); 
 
 
                 }
                 break;
-            case 3 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:25: ELSE_IF
+            case 6 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:43: ELSE_IF
                 {
                 mELSE_IF(); 
 
 
                 }
                 break;
-            case 4 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:33: ME
+            case 7 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:51: ME
                 {
                 mME(); 
 
 
                 }
                 break;
-            case 5 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:36: UNTIL
+            case 8 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:54: UNTIL
                 {
                 mUNTIL(); 
 
 
                 }
                 break;
-            case 6 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:42: ON_DESTROY
-                {
-                mON_DESTROY(); 
-
-
-                }
-                break;
-            case 7 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:53: ON_CREATE
-                {
-                mON_CREATE(); 
-
-
-                }
-                break;
-            case 8 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:63: OF_TYPE
+            case 9 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:60: OF_TYPE
                 {
                 mOF_TYPE(); 
 
 
                 }
                 break;
-            case 9 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:71: PUBLIC
+            case 10 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:68: PUBLIC
                 {
                 mPUBLIC(); 
 
 
                 }
                 break;
-            case 10 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:78: PRIVATE
+            case 11 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:75: PRIVATE
                 {
                 mPRIVATE(); 
 
 
                 }
                 break;
-            case 11 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:86: ALERT
+            case 12 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:83: ALERT
                 {
                 mALERT(); 
 
 
                 }
                 break;
-            case 12 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:92: DETECT
+            case 13 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:89: DETECT
                 {
                 mDETECT(); 
 
 
                 }
                 break;
-            case 13 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:99: ALWAYS
+            case 14 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:96: ALWAYS
                 {
                 mALWAYS(); 
 
 
                 }
                 break;
-            case 14 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:106: CHECK
+            case 15 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:103: CHECK
                 {
                 mCHECK(); 
 
 
                 }
                 break;
-            case 15 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:112: PARENT
+            case 16 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:109: PARENT
                 {
                 mPARENT(); 
 
 
                 }
                 break;
-            case 16 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:119: BLUEPRINT
+            case 17 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:116: BLUEPRINT
                 {
                 mBLUEPRINT(); 
 
 
                 }
                 break;
-            case 17 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:129: NATIVE
+            case 18 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:126: NATIVE
                 {
                 mNATIVE(); 
 
 
                 }
                 break;
-            case 18 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:136: INHERITS
+            case 19 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:133: INHERITS
                 {
                 mINHERITS(); 
 
 
                 }
                 break;
-            case 19 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:145: CAST
+            case 20 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:142: CAST
                 {
                 mCAST(); 
 
 
                 }
                 break;
-            case 20 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:150: PRINT
+            case 21 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:147: PRINT
                 {
                 mPRINT(); 
 
 
                 }
                 break;
-            case 21 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:156: INPUT
+            case 22 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:153: INPUT
                 {
                 mINPUT(); 
 
 
                 }
                 break;
-            case 22 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:162: SAY
+            case 23 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:159: SAY
                 {
                 mSAY(); 
 
 
                 }
                 break;
-            case 23 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:166: NOW
+            case 24 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:163: NOW
                 {
                 mNOW(); 
 
 
                 }
                 break;
-            case 24 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:170: WHILE
+            case 25 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:167: WHILE
                 {
                 mWHILE(); 
 
 
                 }
                 break;
-            case 25 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:176: PACKAGE_NAME
+            case 26 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:173: PACKAGE_NAME
                 {
                 mPACKAGE_NAME(); 
 
 
                 }
                 break;
-            case 26 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:189: TIMES
+            case 27 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:186: TIMES
                 {
                 mTIMES(); 
 
 
                 }
                 break;
-            case 27 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:195: REPEAT
+            case 28 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:192: REPEAT
                 {
                 mREPEAT(); 
 
 
                 }
                 break;
-            case 28 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:202: OVER
+            case 29 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:199: OVER
                 {
                 mOVER(); 
 
 
                 }
                 break;
-            case 29 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:207: ELSE
+            case 30 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:204: ELSE
                 {
                 mELSE(); 
 
 
                 }
                 break;
-            case 30 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:212: RETURNS
+            case 31 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:209: RETURNS
                 {
                 mRETURNS(); 
 
 
                 }
                 break;
-            case 31 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:220: RETURN
+            case 32 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:217: RETURN
                 {
                 mRETURN(); 
 
 
                 }
                 break;
-            case 32 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:227: AND
+            case 33 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:224: AND
                 {
                 mAND(); 
 
 
                 }
                 break;
-            case 33 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:231: OR
+            case 34 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:228: OR
                 {
                 mOR(); 
 
 
                 }
                 break;
-            case 34 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:234: NULL
+            case 35 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:231: NULL
                 {
                 mNULL(); 
 
 
                 }
                 break;
-            case 35 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:239: ACTION
+            case 36 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:236: ACTION
                 {
                 mACTION(); 
 
 
                 }
                 break;
-            case 36 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:246: COLON
+            case 37 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:243: COLON
                 {
                 mCOLON(); 
 
 
                 }
                 break;
-            case 37 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:252: INTEGER_KEYWORD
+            case 38 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:249: INTEGER_KEYWORD
                 {
                 mINTEGER_KEYWORD(); 
 
 
                 }
                 break;
-            case 38 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:268: NUMBER_KEYWORD
+            case 39 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:265: NUMBER_KEYWORD
                 {
                 mNUMBER_KEYWORD(); 
 
 
                 }
                 break;
-            case 39 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:283: TEXT
+            case 40 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:280: TEXT
                 {
                 mTEXT(); 
 
 
                 }
                 break;
-            case 40 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:288: BOOLEAN_KEYWORD
+            case 41 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:285: BOOLEAN_KEYWORD
                 {
                 mBOOLEAN_KEYWORD(); 
 
 
                 }
                 break;
-            case 41 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:304: USE
+            case 42 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:301: USE
                 {
                 mUSE(); 
 
 
                 }
                 break;
-            case 42 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:308: NOT
+            case 43 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:305: NOT
                 {
                 mNOT(); 
 
 
                 }
                 break;
-            case 43 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:312: NOTEQUALS
+            case 44 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:309: NOTEQUALS
                 {
                 mNOTEQUALS(); 
 
 
                 }
                 break;
-            case 44 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:322: PERIOD
+            case 45 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:319: PERIOD
                 {
                 mPERIOD(); 
 
 
                 }
                 break;
-            case 45 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:329: COMMA
+            case 46 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:326: COMMA
                 {
                 mCOMMA(); 
 
 
                 }
                 break;
-            case 46 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:335: EQUALITY
+            case 47 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:332: EQUALITY
                 {
                 mEQUALITY(); 
 
 
                 }
                 break;
-            case 47 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:344: GREATER
+            case 48 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:341: GREATER
                 {
                 mGREATER(); 
 
 
                 }
                 break;
-            case 48 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:352: GREATER_EQUAL
+            case 49 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:349: GREATER_EQUAL
                 {
                 mGREATER_EQUAL(); 
 
 
                 }
                 break;
-            case 49 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:366: LESS
+            case 50 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:363: LESS
                 {
                 mLESS(); 
 
 
                 }
                 break;
-            case 50 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:371: LESS_EQUAL
+            case 51 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:368: LESS_EQUAL
                 {
                 mLESS_EQUAL(); 
 
 
                 }
                 break;
-            case 51 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:382: PLUS
+            case 52 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:379: PLUS
                 {
                 mPLUS(); 
 
 
                 }
                 break;
-            case 52 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:387: MINUS
+            case 53 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:384: MINUS
                 {
                 mMINUS(); 
 
 
                 }
                 break;
-            case 53 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:393: MULTIPLY
+            case 54 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:390: MULTIPLY
                 {
                 mMULTIPLY(); 
 
 
                 }
                 break;
-            case 54 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:402: DIVIDE
+            case 55 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:399: DIVIDE
                 {
                 mDIVIDE(); 
 
 
                 }
                 break;
-            case 55 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:409: MODULO
+            case 56 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:406: MODULO
                 {
                 mMODULO(); 
 
 
                 }
                 break;
-            case 56 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:416: LEFT_SQR_BRACE
+            case 57 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:413: LEFT_SQR_BRACE
                 {
                 mLEFT_SQR_BRACE(); 
 
 
                 }
                 break;
-            case 57 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:431: RIGHT_SQR_BRACE
+            case 58 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:428: RIGHT_SQR_BRACE
                 {
                 mRIGHT_SQR_BRACE(); 
 
 
                 }
                 break;
-            case 58 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:447: LEFT_PAREN
+            case 59 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:444: LEFT_PAREN
                 {
                 mLEFT_PAREN(); 
 
 
                 }
                 break;
-            case 59 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:458: RIGHT_PAREN
+            case 60 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:455: RIGHT_PAREN
                 {
                 mRIGHT_PAREN(); 
 
 
                 }
                 break;
-            case 60 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:470: DOUBLE_QUOTE
+            case 61 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:467: DOUBLE_QUOTE
                 {
                 mDOUBLE_QUOTE(); 
 
 
                 }
                 break;
-            case 61 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:483: IF
+            case 62 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:480: IF
                 {
                 mIF(); 
 
 
                 }
                 break;
-            case 62 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:486: END
+            case 63 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:483: END
                 {
                 mEND(); 
 
 
                 }
                 break;
-            case 63 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:490: CLASS
+            case 64 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:487: CLASS
                 {
                 mCLASS(); 
 
 
                 }
                 break;
-            case 64 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:496: BOOLEAN
+            case 65 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:493: BOOLEAN
                 {
                 mBOOLEAN(); 
 
 
                 }
                 break;
-            case 65 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:504: INT
+            case 66 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:501: INT
                 {
                 mINT(); 
 
 
                 }
                 break;
-            case 66 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:508: DECIMAL
+            case 67 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:505: DECIMAL
                 {
                 mDECIMAL(); 
 
 
                 }
                 break;
-            case 67 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:516: ID
+            case 68 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:513: ID
                 {
                 mID(); 
 
 
                 }
                 break;
-            case 68 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:519: STRING
+            case 69 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:516: STRING
                 {
                 mSTRING(); 
 
 
                 }
                 break;
-            case 69 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:526: NEWLINE
+            case 70 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:523: NEWLINE
                 {
                 mNEWLINE(); 
 
 
                 }
                 break;
-            case 70 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:534: WS
+            case 71 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:531: WS
                 {
                 mWS(); 
 
 
                 }
                 break;
-            case 71 :
-                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:537: COMMENTS
+            case 72 :
+                // /Users/melissa/NetBeansProjects/quorum-code/trunk/quorum/src/org/quorum/parser/Quorum.g:1:534: COMMENTS
                 {
                 mCOMMENTS(); 
 
@@ -2844,343 +2876,355 @@ public class QuorumLexer extends Lexer {
 
     protected DFA16 dfa16 = new DFA16(this);
     static final String DFA16_eotS =
-        "\1\uffff\20\43\1\uffff\1\43\3\uffff\1\115\1\117\3\uffff\1\121\4"+
-        "\uffff\1\122\1\43\1\125\1\uffff\1\46\1\127\1\uffff\7\43\1\137\6"+
-        "\43\1\147\15\43\1\170\10\43\10\uffff\1\43\3\uffff\6\43\1\u008a\1"+
-        "\uffff\1\u008b\2\43\1\u008e\2\uffff\1\43\1\uffff\6\43\1\u0099\5"+
-        "\43\1\u009f\1\uffff\2\43\1\uffff\1\u00a2\1\u00a4\7\43\1\u00a4\4"+
-        "\43\1\u00b0\1\43\1\u00b3\2\uffff\2\43\3\uffff\1\u00b6\7\43\1\uffff"+
-        "\5\43\1\uffff\2\43\3\uffff\3\43\1\u00c8\1\u00c9\3\43\1\u00cd\1\43"+
-        "\1\u00cf\1\uffff\1\u00d0\1\43\1\uffff\1\u00d2\1\43\1\uffff\2\43"+
-        "\1\u00d6\2\43\1\u00d9\6\43\1\u00e0\2\43\1\u00e3\1\u00e4\2\uffff"+
-        "\2\43\1\u00c9\1\uffff\1\43\2\uffff\1\u00e8\1\uffff\1\43\1\u00ea"+
-        "\1\43\1\uffff\1\u00ec\1\43\1\uffff\1\u00ee\1\u00ef\1\u00f0\2\43"+
-        "\1\u00f3\1\uffff\1\43\1\u00f5\2\uffff\1\u00f6\1\u00f8\1\43\1\uffff"+
-        "\1\43\1\uffff\1\u00fb\1\uffff\1\u00fc\3\uffff\1\43\1\u00fe\1\uffff"+
-        "\1\u00ff\2\uffff\1\u0100\1\uffff\1\u0101\1\43\2\uffff\1\43\4\uffff"+
-        "\1\u0104\1\u0105\2\uffff";
+        "\1\uffff\20\43\1\uffff\1\43\3\uffff\1\116\1\120\3\uffff\1\122\4"+
+        "\uffff\1\123\1\43\1\126\1\uffff\1\46\1\130\1\uffff\1\131\2\43\1"+
+        "\134\11\43\1\147\17\43\1\173\10\43\10\uffff\1\43\5\uffff\1\43\1"+
+        "\uffff\11\43\1\u0091\1\uffff\1\u0092\2\43\1\u0095\6\43\1\u009d\4"+
+        "\43\1\u00a2\1\uffff\2\43\1\uffff\1\u00a5\1\u00a7\7\43\1\u00a7\1"+
+        "\43\1\u00b0\5\43\1\u00b6\2\43\1\u00ba\2\uffff\2\43\1\uffff\7\43"+
+        "\1\uffff\4\43\1\uffff\2\43\3\uffff\3\43\1\u00cd\1\u00ce\3\43\1\uffff"+
+        "\4\43\1\u00d6\1\uffff\1\u00d7\1\u00d8\1\43\1\uffff\1\u00da\3\43"+
+        "\1\u00de\2\43\1\u00e1\5\43\1\u00e7\2\43\1\u00ea\1\u00eb\2\uffff"+
+        "\2\43\1\u00ce\1\43\1\u00ef\1\u00f0\1\43\3\uffff\1\u00f2\1\uffff"+
+        "\1\43\1\u00f4\1\43\1\uffff\1\u00f6\1\43\1\uffff\1\u00f8\1\u00f9"+
+        "\2\43\1\u00fc\1\uffff\1\43\1\u00fe\2\uffff\1\u00ff\1\u0101\1\u0102"+
+        "\2\uffff\1\43\1\uffff\1\43\1\uffff\1\u0105\1\uffff\1\u0106\2\uffff"+
+        "\1\43\1\u0108\1\uffff\1\u0109\2\uffff\1\u010a\2\uffff\1\u010b\1"+
+        "\43\2\uffff\1\43\4\uffff\1\u010e\1\u010f\2\uffff";
     static final String DFA16_eofS =
-        "\u0106\uffff";
+        "\u0110\uffff";
     static final String DFA16_minS =
-        "\1\11\1\165\1\141\1\154\1\145\1\156\1\146\1\141\1\143\1\145\1\154"+
+        "\1\11\1\146\1\145\1\141\1\165\1\154\1\145\1\156\1\141\1\143\1\154"+
         "\1\141\1\146\1\157\1\150\2\145\1\uffff\1\157\3\uffff\2\75\3\uffff"+
-        "\1\52\4\uffff\1\0\1\141\1\56\1\uffff\1\12\1\11\1\uffff\1\157\1\156"+
-        "\1\145\1\163\1\141\1\163\1\144\1\60\2\144\1\145\2\40\1\145\1\60"+
-        "\1\142\1\151\1\143\1\145\1\144\2\164\1\165\1\157\1\163\1\171\1\40"+
-        "\1\160\1\60\1\164\1\155\1\151\1\155\1\170\1\165\1\160\1\164\10\uffff"+
-        "\1\154\3\uffff\1\164\1\163\1\143\1\164\1\163\1\145\1\60\1\uffff"+
-        "\1\60\1\151\1\145\1\60\1\143\1\uffff\1\162\1\uffff\1\154\1\156\1"+
-        "\145\1\153\1\162\1\141\1\60\1\151\2\145\1\154\1\164\1\60\1\uffff"+
-        "\1\165\1\145\1\uffff\2\60\1\142\1\154\1\145\1\164\2\145\1\165\1"+
-        "\60\1\163\1\145\1\164\1\153\1\60\1\163\1\60\2\uffff\1\154\1\146"+
-        "\3\uffff\1\60\1\151\1\141\1\164\1\156\1\141\1\164\1\171\1\uffff"+
-        "\1\157\1\143\1\160\2\145\1\uffff\1\164\1\147\3\uffff\2\145\1\163"+
-        "\2\60\1\141\1\162\1\145\1\60\1\141\1\60\1\uffff\1\60\1\146\1\uffff"+
-        "\1\60\1\151\1\uffff\1\143\1\164\1\60\1\164\1\147\1\60\1\163\1\156"+
-        "\1\164\1\162\1\141\1\155\1\60\1\145\1\162\2\60\2\uffff\1\164\1\156"+
-        "\1\60\1\uffff\1\156\2\uffff\1\60\1\uffff\1\156\1\60\1\145\1\uffff"+
-        "\1\60\1\145\1\uffff\3\60\1\151\1\156\1\60\1\uffff\1\162\1\60\2\uffff"+
-        "\2\60\1\164\1\uffff\1\145\1\uffff\1\60\1\uffff\1\60\3\uffff\1\156"+
-        "\1\60\1\uffff\1\60\2\uffff\1\60\1\uffff\1\60\1\144\2\uffff\1\164"+
-        "\4\uffff\2\60\2\uffff";
+        "\1\52\4\uffff\1\0\1\141\1\56\1\uffff\1\12\1\11\1\uffff\1\60\1\40"+
+        "\1\145\1\60\1\163\1\145\1\156\1\145\1\163\1\141\1\157\1\163\1\144"+
+        "\1\60\2\144\1\145\1\142\1\151\1\143\1\145\1\144\1\164\1\165\1\157"+
+        "\1\163\1\171\1\40\1\160\1\60\1\164\1\155\1\151\1\155\1\170\1\165"+
+        "\1\160\1\164\10\uffff\1\154\5\uffff\1\162\1\uffff\1\164\1\145\1"+
+        "\141\1\163\1\143\1\164\1\163\1\164\1\145\1\60\1\uffff\1\60\1\151"+
+        "\1\145\1\60\1\154\1\156\1\145\1\153\1\162\1\141\1\60\1\151\1\145"+
+        "\1\154\1\164\1\60\1\uffff\1\165\1\145\1\uffff\2\60\1\142\1\154\1"+
+        "\145\1\164\2\145\1\165\1\60\1\163\1\60\1\162\1\143\2\164\1\153\1"+
+        "\60\1\163\1\145\1\60\2\uffff\1\154\1\146\1\uffff\1\151\1\141\1\164"+
+        "\1\156\1\141\1\164\1\171\1\uffff\1\157\1\160\2\145\1\uffff\1\164"+
+        "\1\147\3\uffff\2\145\1\163\2\60\1\141\1\162\1\145\1\uffff\1\157"+
+        "\1\164\1\145\1\141\1\60\1\uffff\2\60\1\146\1\uffff\1\60\1\151\1"+
+        "\143\1\164\1\60\1\164\1\147\1\60\1\163\1\156\1\162\1\141\1\155\1"+
+        "\60\1\145\1\162\2\60\2\uffff\1\164\1\156\1\60\1\171\2\60\1\156\3"+
+        "\uffff\1\60\1\uffff\1\156\1\60\1\145\1\uffff\1\60\1\145\1\uffff"+
+        "\2\60\1\151\1\156\1\60\1\uffff\1\162\1\60\2\uffff\3\60\2\uffff\1"+
+        "\164\1\uffff\1\145\1\uffff\1\60\1\uffff\1\60\2\uffff\1\156\1\60"+
+        "\1\uffff\1\60\2\uffff\1\60\2\uffff\1\60\1\144\2\uffff\1\164\4\uffff"+
+        "\2\60\2\uffff";
     static final String DFA16_maxS =
-        "\1\172\1\165\1\157\1\156\1\157\1\163\1\166\1\165\1\156\1\145\1\157"+
+        "\1\172\1\166\1\145\1\162\1\165\1\156\1\157\1\163\1\165\1\156\1\157"+
         "\1\171\1\163\1\165\1\150\1\162\1\145\1\uffff\1\157\3\uffff\2\75"+
         "\3\uffff\1\57\4\uffff\1\uffff\1\141\1\71\1\uffff\1\12\1\40\1\uffff"+
-        "\1\157\1\156\1\145\1\163\1\141\1\163\1\144\1\172\1\144\1\164\1\145"+
-        "\2\40\1\145\1\172\1\142\1\151\1\162\1\167\1\144\2\164\1\165\1\157"+
-        "\1\163\1\171\1\40\1\164\1\172\1\167\1\155\1\151\1\155\1\170\1\165"+
-        "\2\164\10\uffff\1\154\3\uffff\1\164\1\163\1\143\1\164\1\163\1\145"+
-        "\1\172\1\uffff\1\172\1\151\1\145\1\172\1\144\1\uffff\1\162\1\uffff"+
-        "\1\154\1\166\1\145\1\153\1\162\1\141\1\172\1\151\2\145\1\154\1\164"+
-        "\1\172\1\uffff\1\165\1\145\1\uffff\2\172\1\142\1\154\1\145\1\164"+
-        "\2\145\1\165\1\172\1\163\1\145\1\164\1\153\1\172\1\163\1\172\2\uffff"+
-        "\1\154\1\146\3\uffff\1\172\1\151\1\141\1\164\1\156\1\141\1\164\1"+
-        "\171\1\uffff\1\157\1\143\1\160\2\145\1\uffff\1\164\1\147\3\uffff"+
-        "\2\145\1\163\2\172\1\141\1\162\1\145\1\172\1\141\1\172\1\uffff\1"+
-        "\172\1\146\1\uffff\1\172\1\151\1\uffff\1\143\1\164\1\172\1\164\1"+
-        "\147\1\172\1\163\1\156\1\164\1\162\1\141\1\155\1\172\1\145\1\162"+
-        "\2\172\2\uffff\1\164\1\156\1\172\1\uffff\1\156\2\uffff\1\172\1\uffff"+
-        "\1\156\1\172\1\145\1\uffff\1\172\1\145\1\uffff\3\172\1\151\1\156"+
-        "\1\172\1\uffff\1\162\1\172\2\uffff\2\172\1\164\1\uffff\1\145\1\uffff"+
-        "\1\172\1\uffff\1\172\3\uffff\1\156\1\172\1\uffff\1\172\2\uffff\1"+
-        "\172\1\uffff\1\172\1\144\2\uffff\1\164\4\uffff\2\172\2\uffff";
+        "\1\172\1\40\1\145\1\172\1\164\1\145\1\156\1\145\1\163\1\141\1\157"+
+        "\1\163\1\144\1\172\1\144\1\164\1\145\1\142\1\151\1\162\1\167\1\144"+
+        "\1\164\1\165\1\157\1\163\1\171\1\40\1\164\1\172\1\167\1\155\1\151"+
+        "\1\155\1\170\1\165\2\164\10\uffff\1\154\5\uffff\1\162\1\uffff\1"+
+        "\164\1\145\1\141\1\163\1\143\1\164\1\163\1\164\1\145\1\172\1\uffff"+
+        "\1\172\1\151\1\145\1\172\1\154\1\166\1\145\1\153\1\162\1\141\1\172"+
+        "\1\151\1\145\1\154\1\164\1\172\1\uffff\1\165\1\145\1\uffff\2\172"+
+        "\1\142\1\154\1\145\1\164\2\145\1\165\1\172\1\163\1\172\1\162\1\143"+
+        "\2\164\1\153\1\172\1\163\1\145\1\172\2\uffff\1\154\1\146\1\uffff"+
+        "\1\151\1\141\1\164\1\156\1\141\1\164\1\171\1\uffff\1\157\1\160\2"+
+        "\145\1\uffff\1\164\1\147\3\uffff\2\145\1\163\2\172\1\141\1\162\1"+
+        "\145\1\uffff\1\157\1\164\1\145\1\141\1\172\1\uffff\2\172\1\146\1"+
+        "\uffff\1\172\1\151\1\143\1\164\1\172\1\164\1\147\1\172\1\163\1\156"+
+        "\1\162\1\141\1\155\1\172\1\145\1\162\2\172\2\uffff\1\164\1\156\1"+
+        "\172\1\171\2\172\1\156\3\uffff\1\172\1\uffff\1\156\1\172\1\145\1"+
+        "\uffff\1\172\1\145\1\uffff\2\172\1\151\1\156\1\172\1\uffff\1\162"+
+        "\1\172\2\uffff\3\172\2\uffff\1\164\1\uffff\1\145\1\uffff\1\172\1"+
+        "\uffff\1\172\2\uffff\1\156\1\172\1\uffff\1\172\2\uffff\1\172\2\uffff"+
+        "\1\172\1\144\2\uffff\1\164\4\uffff\2\172\2\uffff";
     static final String DFA16_acceptS =
-        "\21\uffff\1\44\1\uffff\1\54\1\55\1\56\2\uffff\1\63\1\64\1\65\1\uffff"+
-        "\1\70\1\71\1\72\1\73\3\uffff\1\103\2\uffff\1\106\45\uffff\1\60\1"+
-        "\57\1\62\1\61\1\107\1\66\1\74\1\104\1\uffff\1\101\1\102\1\105\7"+
-        "\uffff\1\4\5\uffff\1\10\1\uffff\1\41\15\uffff\1\22\2\uffff\1\75"+
-        "\21\uffff\1\76\1\67\2\uffff\1\51\1\6\1\7\10\uffff\1\40\5\uffff\1"+
-        "\26\2\uffff\1\27\1\53\1\52\13\uffff\1\23\2\uffff\1\35\2\uffff\1"+
-        "\34\21\uffff\1\47\1\100\3\uffff\1\1\1\uffff\1\16\1\77\1\uffff\1"+
-        "\5\3\uffff\1\24\2\uffff\1\13\6\uffff\1\25\2\uffff\1\30\1\32\3\uffff"+
-        "\1\3\1\uffff\1\11\1\uffff\1\17\1\uffff\1\15\1\43\1\14\2\uffff\1"+
-        "\21\1\uffff\1\46\1\33\1\uffff\1\37\2\uffff\1\12\1\31\1\uffff\1\50"+
-        "\1\45\1\36\1\2\2\uffff\1\42\1\20";
+        "\21\uffff\1\45\1\uffff\1\55\1\56\1\57\2\uffff\1\64\1\65\1\66\1\uffff"+
+        "\1\71\1\72\1\73\1\74\3\uffff\1\104\2\uffff\1\107\46\uffff\1\61\1"+
+        "\60\1\63\1\62\1\110\1\67\1\75\1\105\1\uffff\1\102\1\103\1\106\1"+
+        "\1\1\11\1\uffff\1\42\12\uffff\1\7\20\uffff\1\23\2\uffff\1\76\25"+
+        "\uffff\1\77\1\70\2\uffff\1\52\7\uffff\1\41\4\uffff\1\27\2\uffff"+
+        "\1\30\1\54\1\53\10\uffff\1\35\5\uffff\1\24\3\uffff\1\36\22\uffff"+
+        "\1\50\1\101\7\uffff\1\17\1\100\1\4\1\uffff\1\10\3\uffff\1\25\2\uffff"+
+        "\1\14\5\uffff\1\26\2\uffff\1\31\1\33\3\uffff\1\15\1\3\1\uffff\1"+
+        "\6\1\uffff\1\12\1\uffff\1\20\1\uffff\1\16\1\44\2\uffff\1\22\1\uffff"+
+        "\1\47\1\34\1\uffff\1\40\1\2\2\uffff\1\13\1\32\1\uffff\1\51\1\46"+
+        "\1\37\1\5\2\uffff\1\43\1\21";
     static final String DFA16_specialS =
-        "\40\uffff\1\0\u00e5\uffff}>";
+        "\40\uffff\1\0\u00ef\uffff}>";
     static final String[] DFA16_transitionS = {
             "\1\46\1\45\2\uffff\1\44\22\uffff\1\46\1\uffff\1\40\5\uffff\1"+
             "\36\1\37\1\32\1\30\1\24\1\31\1\23\1\33\12\42\1\21\1\uffff\1"+
             "\27\1\25\1\26\2\uffff\15\43\1\22\14\43\1\34\1\uffff\1\35\3\uffff"+
-            "\1\10\1\12\1\2\1\11\1\3\1\41\2\43\1\14\3\43\1\4\1\15\1\6\1\7"+
-            "\1\1\1\20\1\13\1\17\1\5\1\43\1\16\3\43",
-            "\1\47",
-            "\1\52\6\uffff\1\51\3\uffff\1\53\2\uffff\1\50",
-            "\1\54\1\uffff\1\55",
-            "\1\56\11\uffff\1\57",
-            "\1\60\4\uffff\1\61",
-            "\1\63\7\uffff\1\62\3\uffff\1\65\3\uffff\1\64",
-            "\1\70\20\uffff\1\67\2\uffff\1\66",
-            "\1\73\10\uffff\1\71\1\uffff\1\72",
-            "\1\74",
-            "\1\75\2\uffff\1\76",
-            "\1\100\27\uffff\1\77",
-            "\1\103\7\uffff\1\102\4\uffff\1\101",
-            "\1\104\5\uffff\1\105",
-            "\1\106",
-            "\1\110\3\uffff\1\107\10\uffff\1\111",
-            "\1\112",
-            "",
+            "\1\11\1\12\1\3\1\2\1\5\1\41\2\43\1\14\3\43\1\6\1\15\1\1\1\10"+
+            "\1\4\1\20\1\13\1\17\1\7\1\43\1\16\3\43",
+            "\1\50\7\uffff\1\47\3\uffff\1\52\3\uffff\1\51",
+            "\1\53",
+            "\1\57\6\uffff\1\56\3\uffff\1\60\2\uffff\1\55\2\uffff\1\54",
+            "\1\61",
+            "\1\62\1\uffff\1\63",
+            "\1\64\11\uffff\1\65",
+            "\1\66\4\uffff\1\67",
+            "\1\72\20\uffff\1\71\2\uffff\1\70",
+            "\1\75\10\uffff\1\73\1\uffff\1\74",
+            "\1\76\2\uffff\1\77",
+            "\1\101\27\uffff\1\100",
+            "\1\104\7\uffff\1\103\4\uffff\1\102",
+            "\1\105\5\uffff\1\106",
+            "\1\107",
+            "\1\111\3\uffff\1\110\10\uffff\1\112",
             "\1\113",
             "",
-            "",
-            "",
             "\1\114",
-            "\1\116",
             "",
             "",
             "",
-            "\1\120\4\uffff\1\120",
+            "\1\115",
+            "\1\117",
+            "",
+            "",
+            "",
+            "\1\121\4\uffff\1\121",
             "",
             "",
             "",
             "",
-            "\0\123",
-            "\1\124",
-            "\1\126\1\uffff\12\42",
+            "\0\124",
+            "\1\125",
+            "\1\127\1\uffff\12\42",
             "",
             "\1\45",
             "\2\46\2\uffff\1\46\22\uffff\1\46",
             "",
-            "\1\130",
-            "\1\131",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
             "\1\132",
             "\1\133",
-            "\1\134",
-            "\1\135",
-            "\1\136",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "\1\135\1\136",
+            "\1\137",
             "\1\140",
-            "\1\142\17\uffff\1\141",
+            "\1\141",
+            "\1\142",
             "\1\143",
             "\1\144",
             "\1\145",
             "\1\146",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
             "\1\150",
-            "\1\151",
-            "\1\153\16\uffff\1\152",
-            "\1\154\21\uffff\1\155",
-            "\1\156",
-            "\1\157",
-            "\1\160",
-            "\1\161",
+            "\1\152\17\uffff\1\151",
+            "\1\153",
+            "\1\154",
+            "\1\155",
+            "\1\157\16\uffff\1\156",
+            "\1\160\21\uffff\1\161",
             "\1\162",
             "\1\163",
             "\1\164",
             "\1\165",
-            "\1\166\3\uffff\1\167",
+            "\1\166",
+            "\1\167",
+            "\1\170",
+            "\1\171\3\uffff\1\172",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "\1\172\2\uffff\1\171",
-            "\1\173",
-            "\1\174",
-            "\1\175",
+            "\1\175\2\uffff\1\174",
             "\1\176",
             "\1\177",
-            "\1\u0080\3\uffff\1\u0081",
+            "\1\u0080",
+            "\1\u0081",
             "\1\u0082",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "\1\u0083",
-            "",
-            "",
-            "",
-            "\1\u0084",
+            "\1\u0083\3\uffff\1\u0084",
             "\1\u0085",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
             "\1\u0086",
+            "",
+            "",
+            "",
+            "",
+            "",
             "\1\u0087",
+            "",
             "\1\u0088",
             "\1\u0089",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "\1\u008a",
+            "\1\u008b",
             "\1\u008c",
             "\1\u008d",
+            "\1\u008e",
+            "\1\u008f",
+            "\1\u0090",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "\1\u0090\1\u008f",
             "",
-            "\1\u0091",
-            "",
-            "\1\u0092",
-            "\1\u0094\7\uffff\1\u0093",
-            "\1\u0095",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "\1\u0093",
+            "\1\u0094",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
             "\1\u0096",
-            "\1\u0097",
-            "\1\u0098",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "\1\u0098\7\uffff\1\u0097",
+            "\1\u0099",
             "\1\u009a",
             "\1\u009b",
             "\1\u009c",
-            "\1\u009d",
-            "\1\u009e",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "",
+            "\1\u009e",
+            "\1\u009f",
             "\1\u00a0",
             "\1\u00a1",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "",
+            "\1\u00a3",
+            "\1\u00a4",
             "",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "\12\43\3\uffff\1\u00a3\3\uffff\32\43\4\uffff\1\43\1\uffff\32"+
+            "\12\43\3\uffff\1\u00a6\3\uffff\32\43\4\uffff\1\43\1\uffff\32"+
             "\43",
-            "\1\u00a5",
-            "\1\u00a6",
-            "\1\u00a7",
             "\1\u00a8",
             "\1\u00a9",
             "\1\u00aa",
             "\1\u00ab",
-            "\12\43\3\uffff\1\u00a3\3\uffff\32\43\4\uffff\1\43\1\uffff\32"+
-            "\43",
             "\1\u00ac",
             "\1\u00ad",
             "\1\u00ae",
+            "\12\43\3\uffff\1\u00a6\3\uffff\32\43\4\uffff\1\43\1\uffff\32"+
+            "\43",
             "\1\u00af",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
             "\1\u00b1",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\10\43\1\u00b2\21"+
-            "\43",
-            "",
-            "",
+            "\1\u00b2",
+            "\1\u00b3",
             "\1\u00b4",
             "\1\u00b5",
-            "",
-            "",
-            "",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
             "\1\u00b7",
             "\1\u00b8",
-            "\1\u00b9",
-            "\1\u00ba",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\10\43\1\u00b9\21"+
+            "\43",
+            "",
+            "",
             "\1\u00bb",
             "\1\u00bc",
-            "\1\u00bd",
             "",
+            "\1\u00bd",
             "\1\u00be",
             "\1\u00bf",
             "\1\u00c0",
             "\1\u00c1",
             "\1\u00c2",
-            "",
             "\1\u00c3",
+            "",
             "\1\u00c4",
-            "",
-            "",
-            "",
             "\1\u00c5",
             "\1\u00c6",
             "\1\u00c7",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "",
+            "\1\u00c8",
+            "\1\u00c9",
+            "",
+            "",
+            "",
             "\1\u00ca",
             "\1\u00cb",
             "\1\u00cc",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "\1\u00ce",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "\1\u00cf",
+            "\1\u00d0",
             "\1\u00d1",
             "",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "\1\u00d2",
             "\1\u00d3",
-            "",
             "\1\u00d4",
             "\1\u00d5",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "\1\u00d7",
-            "\1\u00d8",
+            "",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "\1\u00da",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "\1\u00d9",
+            "",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
             "\1\u00db",
             "\1\u00dc",
             "\1\u00dd",
-            "\1\u00de",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
             "\1\u00df",
+            "\1\u00e0",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "\1\u00e1",
             "\1\u00e2",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "",
-            "",
+            "\1\u00e3",
+            "\1\u00e4",
             "\1\u00e5",
             "\1\u00e6",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "",
-            "\1\u00e7",
-            "",
-            "",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "",
+            "\1\u00e8",
             "\1\u00e9",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "\1\u00eb",
-            "",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "",
+            "",
+            "\1\u00ec",
             "\1\u00ed",
-            "",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "\1\u00ee",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
             "\1\u00f1",
-            "\1\u00f2",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
             "",
-            "\1\u00f4",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
             "",
             "",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\22\43\1\u00f7\7\43",
-            "\1\u00f9",
             "",
+            "\1\u00f3",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "\1\u00f5",
+            "",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "\1\u00f7",
+            "",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
             "\1\u00fa",
-            "",
+            "\1\u00fb",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "",
-            "",
             "",
             "\1\u00fd",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
             "",
-            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "",
             "",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\22\43\1\u0100\7\43",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
-            "\1\u0102",
             "",
             "",
             "\1\u0103",
+            "",
+            "\1\u0104",
+            "",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "",
+            "",
+            "\1\u0107",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "",
+            "",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "",
+            "",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
+            "\1\u010c",
+            "",
+            "",
+            "\1\u010d",
             "",
             "",
             "",
@@ -3221,7 +3265,7 @@ public class QuorumLexer extends Lexer {
             this.transition = DFA16_transition;
         }
         public String getDescription() {
-            return "1:1: Tokens : ( QUOTE | CONSTANT | ELSE_IF | ME | UNTIL | ON_DESTROY | ON_CREATE | OF_TYPE | PUBLIC | PRIVATE | ALERT | DETECT | ALWAYS | CHECK | PARENT | BLUEPRINT | NATIVE | INHERITS | CAST | PRINT | INPUT | SAY | NOW | WHILE | PACKAGE_NAME | TIMES | REPEAT | OVER | ELSE | RETURNS | RETURN | AND | OR | NULL | ACTION | COLON | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD | USE | NOT | NOTEQUALS | PERIOD | COMMA | EQUALITY | GREATER | GREATER_EQUAL | LESS | LESS_EQUAL | PLUS | MINUS | MULTIPLY | DIVIDE | MODULO | LEFT_SQR_BRACE | RIGHT_SQR_BRACE | LEFT_PAREN | RIGHT_PAREN | DOUBLE_QUOTE | IF | END | CLASS | BOOLEAN | INT | DECIMAL | ID | STRING | NEWLINE | WS | COMMENTS );";
+            return "1:1: Tokens : ( ON | DESTROY | CREATE | QUOTE | CONSTANT | ELSE_IF | ME | UNTIL | OF_TYPE | PUBLIC | PRIVATE | ALERT | DETECT | ALWAYS | CHECK | PARENT | BLUEPRINT | NATIVE | INHERITS | CAST | PRINT | INPUT | SAY | NOW | WHILE | PACKAGE_NAME | TIMES | REPEAT | OVER | ELSE | RETURNS | RETURN | AND | OR | NULL | ACTION | COLON | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD | USE | NOT | NOTEQUALS | PERIOD | COMMA | EQUALITY | GREATER | GREATER_EQUAL | LESS | LESS_EQUAL | PLUS | MINUS | MULTIPLY | DIVIDE | MODULO | LEFT_SQR_BRACE | RIGHT_SQR_BRACE | LEFT_PAREN | RIGHT_PAREN | DOUBLE_QUOTE | IF | END | CLASS | BOOLEAN | INT | DECIMAL | ID | STRING | NEWLINE | WS | COMMENTS );";
         }
         public int specialStateTransition(int s, IntStream _input) throws NoViableAltException {
             IntStream input = _input;
@@ -3231,9 +3275,9 @@ public class QuorumLexer extends Lexer {
                         int LA16_32 = input.LA(1);
 
                         s = -1;
-                        if ( ((LA16_32 >= '\u0000' && LA16_32 <= '\uFFFF')) ) {s = 83;}
+                        if ( ((LA16_32 >= '\u0000' && LA16_32 <= '\uFFFF')) ) {s = 84;}
 
-                        else s = 82;
+                        else s = 83;
 
                         if ( s>=0 ) return s;
                         break;

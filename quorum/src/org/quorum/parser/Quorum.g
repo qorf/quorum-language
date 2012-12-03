@@ -599,14 +599,14 @@ Documentation methodDocumentation = getDocumentationFromRecentToken();
                 }
 	}	
 	-> ^(NATIVE ACTION ID formal_parameter* (RETURNS assignment_declaration)?)
-	| ON_CREATE
+	| ON CREATE
 	{
 		$method_declaration::method = new MethodDescriptor();
-		$method_declaration::method.setName($ON_CREATE.text);
+		$method_declaration::method.setName($CREATE.text);
 		$method_declaration::method.flagMethodAsConstructor();
 		$method_declaration::method.setAccessModifier(AccessModifierEnum.PRIVATE);
-		$method_declaration::method.setLineBegin($ON_CREATE.getLine());
-		$method_declaration::method.setColumnBegin($ON_CREATE.getCharPositionInLine());
+		$method_declaration::method.setLineBegin($CREATE.getLine());
+		$method_declaration::method.setColumnBegin($CREATE.getCharPositionInLine());
 		
 		TypeDescriptor t = new TypeDescriptor();
 		t.setName(TypeDescriptor.VOID);
@@ -614,8 +614,8 @@ Documentation methodDocumentation = getDocumentationFromRecentToken();
 			
 		CompilerError error = symbol.add($method_declaration::method);
                 if(error != null) {
-                	error.setColumn($ON_CREATE.getCharPositionInLine());
-                	error.setLineNumber($ON_CREATE.getLine());
+                	error.setColumn($CREATE.getCharPositionInLine());
+                	error.setLineNumber($CREATE.getLine());
                 	error.setFile(getGrammarFileNameNoExtension());
                         vm.getCompilerErrors().addError(error);    
                 }
@@ -630,7 +630,7 @@ Documentation methodDocumentation = getDocumentationFromRecentToken();
 		symbol.popScope();
 		isInConstructorScope = false;
 	}
-	-> ^(ON_CREATE block END)
+	-> ^(ON CREATE block END)
 	;
 formal_parameter[Vector<ParameterDescriptor> params]
 	:	assignment_declaration ID
@@ -1257,15 +1257,14 @@ function_expression_list
 	(expression (COMMA expression)*)?	
 	-> ^(FUNCTION_EXPRESSION_LIST expression*)
 	;
+ON	:	'on';
+DESTROY	:	'destroy';
+CREATE	:	'create';
 QUOTE	:	'quote';
 CONSTANT	:	'constant';
 ELSE_IF :	'elseif';
 ME	:	'me';
 UNTIL	:	'until';
-ON_DESTROY
-	:	'on destroy';
-ON_CREATE
-	:	'on create';
 OF_TYPE :	'of type';
 PUBLIC	:	'public';
 PRIVATE	:	'private';	

@@ -205,10 +205,9 @@ scope {
 	}
 	ID (fp=formal_parameter { $method_declaration::types.add((fp).type); })*
 	{
-                String key = MethodDescriptor.autoGenerateKey($ID.text, 
-                	$method_declaration::types);
-                MethodDescriptor md = symbol.enterMethod(key);
-                md.setAccessModifier(accessModifier);
+	                String key = MethodDescriptor.autoGenerateKey($ID.text, $method_declaration::types);
+	                MethodDescriptor md = symbol.enterMethod(key);
+	               	md.setAccessModifier(accessModifier);
 		builder.begin(md);
 
 	}
@@ -255,7 +254,7 @@ scope {
 	}
 	ID (fp=formal_parameter{ $method_declaration::types.add((fp).type); })*
 	  (RETURNS assignment_declaration)?)
-	| ^(ON_CREATE
+	| ^(ON CREATE
 	{
 		MethodDescriptor construct = symbol.enterConstructor();
                 construct.setAccessModifier(AccessModifierEnum.PRIVATE);
