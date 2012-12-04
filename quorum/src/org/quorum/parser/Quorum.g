@@ -602,7 +602,7 @@ Documentation methodDocumentation = getDocumentationFromRecentToken();
 	| ON CREATE
 	{
 		$method_declaration::method = new MethodDescriptor();
-		$method_declaration::method.setName($CREATE.text);
+		$method_declaration::method.setName($ON.text + ' ' + $CREATE.text);
 		$method_declaration::method.flagMethodAsConstructor();
 		$method_declaration::method.setAccessModifier(AccessModifierEnum.PRIVATE);
 		$method_declaration::method.setLineBegin($CREATE.getLine());
