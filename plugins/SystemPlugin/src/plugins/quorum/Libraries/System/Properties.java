@@ -9,6 +9,7 @@ package plugins.quorum.Libraries.System;
  * @author astefik
  */
 public class Properties {
+    public java.lang.Object $me = null;
     private String GetPropertyNative(String key) {
         String property = System.getProperty(key);
         return property;
