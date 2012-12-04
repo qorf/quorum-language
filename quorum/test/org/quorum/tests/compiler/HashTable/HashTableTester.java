@@ -441,4 +441,43 @@ public class HashTableTester {
         assert(r.getLine(0).equals("true"));
         assert(r.getLine(1).equals("false"));
     }
+    
+    @Test
+    public void test_Copy_pass_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.HASHTABLE + CompilerTestSuite.PASS + "Copy.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        vm.blockRun();
+        
+        if(vm.getExceptions().hasExceptions()){
+            fail();
+        }else{
+            ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("size");
+            int r1 = variableValue.getResult().integer;
+            ExpressionValue variableValue2 = vm.getDataEnvironment().getVariableValue("three");
+            int r2 = variableValue2.getResult().integer;
+
+            if( r1 != 10  || r2 != 3)
+            {
+                fail();
+            }
+        }
+        vm.stop();
+    }
+    
+    @Test
+    public void test_Copy_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.HASHTABLE + CompilerTestSuite.PASS + "Copy.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("10"));
+        assert(r.getLine(1).equals("3"));
+    }
 }
