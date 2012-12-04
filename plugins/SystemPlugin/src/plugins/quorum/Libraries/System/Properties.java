@@ -10,11 +10,11 @@ package plugins.quorum.Libraries.System;
  */
 public class Properties {
     public java.lang.Object $me = null;
-    private String GetPropertyNative(String key) {
+    public String GetPropertyNative(String key) {
         String property = System.getProperty(key);
         return property;
     }
-    private boolean HasPropertyNative(String key) {
+    public boolean HasPropertyNative(String key) {
         String property = System.getProperty(key);
         if (property == null) {
             return false;
