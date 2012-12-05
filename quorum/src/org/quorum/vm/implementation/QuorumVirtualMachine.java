@@ -1765,7 +1765,13 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             String signature = variable.getName();
             CodeCompletionItem item = new CodeCompletionItem();
             item.setCodeCompletionType(getVariableCompletionType(variable));
-            addVariableCompletionItem(variable, signature, result, item);
+            
+            //add any local variables or field variables not inherited.
+            if(!variable.isFieldVariable() || clazz.getVariable(variable.getName()) != null){
+                addVariableCompletionItem(variable, signature, result, item);
+            }
+            
+            //add any inherited variables
             for (int i = 0; i < clazz.getNumFlatParents(); i++) {
                 ClassDescriptor next = clazz.getFlatParent(i);
                 if (next.getVariable(variable.getStaticKey()) != null) {

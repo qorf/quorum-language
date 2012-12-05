@@ -47,7 +47,8 @@ public enum ErrorType {
     CONSTANT_REASSIGNMENT("invalid constant assignment"),
     OTHER("other"), 
     CONSTANT_INITIALIZED("constant not initialized"), 
-    VARIABLE_INFERRENCE("Cannot infer type"); 
+    VARIABLE_INFERRENCE("Cannot infer type"),
+    INITIALIZED_OUT_OF_BOUNDS("Cannot initialize parent variable"); 
 
     String errorType = "";
     ErrorType(String st) {

@@ -998,6 +998,14 @@ assignment_statement
 					ScopeSelector select = $sel.scopeSel;
 					if(!select.isParent()) {
 						validConstructorInit = true;	
+					}else if(isInClassAssignmentStatementScope){
+					                	CompilerError error = new CompilerError();
+						error.setLineNumber($ID.getLine());
+						error.setError("Cannot assign a value to the parents' variable, " + $ID.text + ", in the initialization scope of this class. Try assigning a value to the variable in an 'action' or an 'on create' statement.");
+						error.setErrorType(ErrorType.INITIALIZED_OUT_OF_BOUNDS);
+						error.setColumn($ID.getCharPositionInLine());
+						error.setFile(getGrammarFileNameNoExtension());
+						vm.getCompilerErrors().addError(error);
 					}					
 				}
 				else if(rhs != null){
