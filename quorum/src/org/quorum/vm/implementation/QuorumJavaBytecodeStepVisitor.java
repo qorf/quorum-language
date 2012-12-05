@@ -3228,7 +3228,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 } else if (step instanceof BooleanReverseAutoBoxToTextStep) {
                     getBooleanFromBooleanObject();
                     castValueToText();
-                } else if (step instanceof BooleanReverseAutoBoxStep && step.hasModifiedReturn()) {
+                } else if (step instanceof BooleanReverseAutoBoxStep && (step.hasModifiedReturn() || currentType.getName().equals("Libraries.Language.Types.Boolean"))) {
                     getBooleanFromBooleanObject();
                 } else {
                     stack.pushExpressionType(currentType);
@@ -3769,7 +3769,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     //pop integer off stack and change to boolean
                     stack.popExpressionType();
                     stack.pushExpressionType(TypeDescriptor.getBooleanType());
-                } else if (step instanceof IntegerReverseAutoBoxStep && step.hasModifiedReturn()) {
+                } else if (step instanceof IntegerReverseAutoBoxStep && (step.hasModifiedReturn() || currentType.getName().equals("Libraries.Language.Types.Integer"))) {
                     getIntegerFromIntegerObject();
                 } else {
                     stack.pushExpressionType(currentType);
@@ -3879,7 +3879,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     //pop integer off stack and change to boolean
                     stack.popExpressionType();
                     stack.pushExpressionType(TypeDescriptor.getBooleanType());
-                } else if (step instanceof NumberReverseAutoBoxStep && step.hasModifiedReturn()) {
+                } else if (step instanceof NumberReverseAutoBoxStep && (step.hasModifiedReturn() || currentType.getName().equals("Libraries.Language.Types.Number"))) {
                     getNumberFromNumberObject();
                 } else {
                     stack.pushExpressionType(currentType);
@@ -4045,7 +4045,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 } else if (step instanceof TextReverseAutoBoxToBooleanStep) {
                     getTextFromTextObject();
                     castTextToValue(TypeDescriptor.getBooleanType());
-                } else if (step instanceof TextReverseAutoBoxStep && step.hasModifiedReturn()) {
+                } else if (step instanceof TextReverseAutoBoxStep && (step.hasModifiedReturn() || currentType.getName().equals("Libraries.Language.Types.Text"))) {
                     getTextFromTextObject();
                 } else {
                     stack.pushExpressionType(currentType);
