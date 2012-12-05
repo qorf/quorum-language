@@ -1176,14 +1176,14 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                     String resolvedName = clazz.resolveParentName(split[1]);
                     ClassDescriptor par = clazz.getParent(resolvedName);
                     if (par != null) {
-                        addClassToResult(null, result, par, isMe);
+                        addClassToResult(null, request, result, par, isMe, null);
                     }
                 } else if (split.length == 2) {
                     String resolvedName = clazz.resolveParentName(split[1]);
                     ClassDescriptor par = clazz.getParent(resolvedName);
                     if (par != null) {
                         result.setFilter("");
-                        addClassToResult(null, result, par, isMe);
+                        addClassToResult(null, null, result, par, isMe, null);
                     } else {
                         addParentClasses(result, clazz);
                     }
@@ -1198,7 +1198,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
             } else if (left.equals(me) || left.isEmpty() || left.matches("\\s")) {
                 isMe = true;
-                addClassToResult(null, result, clazz, isMe);
+                addClassToResult(null, request, result, clazz, isMe, method);
             } else { //This should work until chaining is in place.
                 if (method != null) {
                     VariableParameterCommonDescriptor variable = method.getVariable(left);
@@ -1248,8 +1248,62 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private void addDefaultValues(String partial, CodeCompletionResult result,
             CodeCompletionRequest request, ClassDescriptor clazz,
             MethodDescriptor method) {
-        addClassToResult(null, result, clazz, true);
+        addClassToResult(null, null, result, clazz, true, null);
 
+        addVariablesForMethod(partial, result, request, clazz, method);
+        
+//        BlockDescriptor scope = method.getBlockAtLine(request.getLineNumber());
+//        Iterator<VariableParameterCommonDescriptor> variables = null;
+//        if (scope != null) { //grab all of the variables and all those from its parents
+//            variables = scope.getAllVariablesExceptInClass(request.getLineNumber());
+//        } else {      //just grab the variables from the method and call it good.
+//            variables = method.getVariables();
+//        }
+//
+//        if (variables != null) {
+//            while (variables.hasNext()) {
+//                VariableParameterCommonDescriptor var = variables.next();
+//                if (var.getName().startsWith(partial) && var.getLineBegin() <= request.getLineNumber()) {
+//                    CodeCompletionItem item = new CodeCompletionItem();
+//                    if(var instanceof VariableDescriptor) {
+//                        item.setCodeCompletionType(getVariableCompletionType((VariableDescriptor) var));
+//                    }
+//                    else if(var instanceof ParameterDescriptor){
+//                        item.setCodeCompletionType(CodeCompletionType.PARAMETER);
+//                    }
+//                    else {
+//                        item.setCodeCompletionType(CodeCompletionType.LOCAL_VARIABLE);
+//                    }
+//                    addVariableCompletionItem(var, var.getName(), result, item);
+//                }
+//            }
+//        }
+        //add filtered classes you can instantiate
+        addValidClassUses(partial, result, request, clazz);
+
+        //add common control structures
+        addControlStructures(result);
+
+        //add filtered primitive values you can use.
+        addPrimitiveValues(result);
+
+    }
+    
+    /**
+     * Adds all variables for a particular class. This method looks at the current
+     * scope and tries to determine exactly which variables should be placed
+     * in code completion. Its decision is based on scoping information, 
+     * what the user has typed, and the line number the request is on.
+     * 
+     * @param partial
+     * @param result
+     * @param request
+     * @param clazz
+     * @param method 
+     */
+    private void addVariablesForMethod(String partial, CodeCompletionResult result,
+            CodeCompletionRequest request, ClassDescriptor clazz,
+            MethodDescriptor method) {
         BlockDescriptor scope = method.getBlockAtLine(request.getLineNumber());
         Iterator<VariableParameterCommonDescriptor> variables = null;
         if (scope != null) { //grab all of the variables and all those from its parents
@@ -1276,15 +1330,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 }
             }
         }
-        //add filtered classes you can instantiate
-        addValidClassUses(partial, result, request, clazz);
-
-        //add common control structures
-        addControlStructures(result);
-
-        //add filtered primitive values you can use.
-        addPrimitiveValues(result);
-
     }
 
     /**
@@ -1652,7 +1697,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 clazz = validatedClassUse;
             }
         }
-        addClassToResult(variable, result, clazz, false);
+        addClassToResult(variable, null, result, clazz, false, null);
     }
 
     /**
@@ -1666,7 +1711,10 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
      * @param clazz
      * @param isCurrentClass
      */
-    private void addClassToResult(VariableParameterCommonDescriptor variable, CodeCompletionResult result, ClassDescriptor clazz, boolean isCurrentClass) {
+    private void addClassToResult(VariableParameterCommonDescriptor variable, 
+            CodeCompletionRequest request, 
+            CodeCompletionResult result, ClassDescriptor clazz, 
+            boolean isCurrentClass, MethodDescriptor insideMethod) {
         if (clazz != null) {
             addVariablesToResults(result, clazz, isCurrentClass);
 
@@ -1727,6 +1775,10 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 item.setCompletion(method.getName());
                 result.add(item);
             }
+        }
+        
+        if(insideMethod != null) {
+            addVariablesForMethod("", result, request, clazz, insideMethod);
         }
     }
     
