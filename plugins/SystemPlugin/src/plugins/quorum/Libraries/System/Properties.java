@@ -22,4 +22,18 @@ public class Properties {
             return true;
         }
     }
+    
+    public String GetEnvironmentVariableNative(String key) {
+        String env = System.getenv(key);
+        return env;
+    }
+    
+    public boolean HasEnvironmentVariableNative(String key) {
+        String property = System.getenv(key);
+        if (property == null) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 }
