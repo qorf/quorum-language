@@ -1084,7 +1084,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             item.setDisplayName(next);
             result.add(item);
         }
+        
         Iterator<LibraryIndexEntry> classes = standardLibrary.findAllClassesInPackage(name);
+        boolean hasAny = classes.hasNext();
         while (classes.hasNext()) {
             LibraryIndexEntry next = classes.next();
             String key = next.getFullClassName();
@@ -1099,6 +1101,37 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 item.setDisplayName(next.getName());
                 result.add(item);
             }
+        }
+        
+        
+        //if there is at least one class in this package, prompt the user that
+        //they can use the "all" option
+        if(hasAny) {
+            CodeCompletionItem item = new CodeCompletionItem();
+            item.setCodeCompletionType(CodeCompletionType.PACKAGE);
+            String signature = "Use all classes with the \"all\" keyword.";
+            String itemName = "all";
+
+            String description = "";
+            description += "<h1>" + signature + "</h1>"
+                    + "<p align=\"justify\">The word "
+                    + "all indicates to quorum that we would like to"
+                    + " have access to all classes in the package. For "
+                    + "example, the phrase Libraries.Containers.all would indicate "
+                    + "that we want to use any class in the Libraries.Containers "
+                    + "package."
+                    + "</p>";
+            description += "<h2>" + "Code Example:" + "</h2>";
+            description += "<PRE><CODE>"
+                    + "use Libraries.Containers.all\n\n"
+                    + "List&lt;integer&gt; list\n"
+                    + "Array&lt;integer&gt; array"
+                    + "</PRE></CODE>";
+
+            item.setDisplayName(itemName);
+            item.setDocumentation(description);
+            item.setCompletion("all");
+            result.add(item);
         }
     }
 
@@ -1252,32 +1285,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
         addVariablesForMethod(partial, result, request, clazz, method);
         
-//        BlockDescriptor scope = method.getBlockAtLine(request.getLineNumber());
-//        Iterator<VariableParameterCommonDescriptor> variables = null;
-//        if (scope != null) { //grab all of the variables and all those from its parents
-//            variables = scope.getAllVariablesExceptInClass(request.getLineNumber());
-//        } else {      //just grab the variables from the method and call it good.
-//            variables = method.getVariables();
-//        }
-//
-//        if (variables != null) {
-//            while (variables.hasNext()) {
-//                VariableParameterCommonDescriptor var = variables.next();
-//                if (var.getName().startsWith(partial) && var.getLineBegin() <= request.getLineNumber()) {
-//                    CodeCompletionItem item = new CodeCompletionItem();
-//                    if(var instanceof VariableDescriptor) {
-//                        item.setCodeCompletionType(getVariableCompletionType((VariableDescriptor) var));
-//                    }
-//                    else if(var instanceof ParameterDescriptor){
-//                        item.setCodeCompletionType(CodeCompletionType.PARAMETER);
-//                    }
-//                    else {
-//                        item.setCodeCompletionType(CodeCompletionType.LOCAL_VARIABLE);
-//                    }
-//                    addVariableCompletionItem(var, var.getName(), result, item);
-//                }
-//            }
-//        }
         //add filtered classes you can instantiate
         addValidClassUses(partial, result, request, clazz);
 
