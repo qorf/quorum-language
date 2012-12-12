@@ -8,11 +8,14 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import java.awt.Desktop;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,9 +45,9 @@ public class QuorumServer {
             server.createContext("/", new MyHandler());
             server.setExecutor(null); // creates a default executor
             server.start();
-            while (jarLocation.startsWith("/")){
-                jarLocation = jarLocation.substring(1);
-            }
+            //while (jarLocation.startsWith("/")){
+            //    jarLocation = jarLocation.substring(1);
+           // }
             Desktop.getDesktop().browse(new URI("http://localhost:8000/"));
         } catch (URISyntaxException ex) {
             Logger.getLogger(QuorumServer.class.getName()).log(Level.SEVERE, null, ex);
@@ -78,13 +81,30 @@ public class QuorumServer {
                 t.sendResponseHeaders(200, response.length());
                 os.write(response.getBytes());
             } else {
-                Process p = Runtime.getRuntime().exec("java -jar " + jarLocation + " " + t.getRequestURI());
+                
+                URI uri = t.getRequestURI();
+                String request = "";
+                if(uri != null) {
+                    request += uri.toString();
+                    if(request != null && !request.isEmpty()) {
+                        request = request.substring(1);
+                    }
+                }
+                
+                final String URL_PROPERTY_NAME = "quorum.url";
+                ProcessBuilder builder = new ProcessBuilder("java", "-Dsodbeans=1", "-jar", jarLocation);
+                builder.redirectErrorStream(true);  
+                Map<String,String> env = builder.environment(); 
+                env.put(URL_PROPERTY_NAME, request);  
+                
+                Process process = builder.start();  
                 t.sendResponseHeaders(200, response.length());
-
-                Integer input = p.getInputStream().read();
-                while (input != -1) {
-                    os.write(input.byteValue());
-                    input = p.getInputStream().read();
+                BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));  
+                
+                String line;  
+                while ((line = in.readLine()) != null)  
+                {  
+                    os.write(line.getBytes());
                 }
             }
             os.close();
