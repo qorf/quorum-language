@@ -15,24 +15,7 @@ java -cp "../../../dependencies/phonemic.jar:./" quorum.Stefik
 
 */
 
-use Libraries.Containers.HashTable
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.System.Properties
 
-class Main
-    HashTable<Text,Object> hash
-    action Main
-        Object o
-        Test(o)
-    end
-
-    action Test(Object o)
-        hash:Add("" + o:GetHashCode(), o)
-        Iterator<Object> it = hash:GetValueIterator()
-        print it:HasNext()
-        print hash:GetSize()
-    end
-
-    action sdfsdf(Object object, HashTable phil) returns HashTable
-        return undefined
-    end 
-end
+Properties prop
+print prop:GetOperatingSystemName() + " and " + prop:GetRequestedWebPage()
