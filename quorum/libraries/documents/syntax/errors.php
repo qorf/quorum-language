@@ -6,7 +6,7 @@
 <p>
     In Quorum, you may occasionally encounter an error. These errors are 
     typically caused by invalid user input. For example, if the user attempts 
-    to divide a number by zero a !DivideByZeroError will by generated.
+    to divide a number by zero a DivideByZeroError will by generated.
 </p>
 <p><pre class="code"><code>
 number result = 12/0
@@ -16,15 +16,15 @@ number result = 12/0
     hear an error message, indicating that a divide by zero error has occurred.
 </p>
 <p>
-    Sometimes you may want Quorum to do something more intelligent when an error 
+    Sometimes we may want Quorum to do something more intelligent when an error 
     is encountered. This is what error handling will allow us to do. In the 
     sections to follow you will learn how to handle errors that might happen 
-    and how to create your own custom errors.
+    and how to create our own custom errors.
 </p>
 <h2>The Error class</h2>
 <p>
     The error class is a class in the Quorum standard library that represents a 
-    general error in Quorum(Quorum.Language.Error). This error stores an error 
+    general error in Quorum(Quorum.Language.Errors.Error). This error stores an error 
     message, a general message telling the user something about the error, and 
     a stack trace, the state of the call stack when the error occurred.
 </p>
@@ -94,8 +94,9 @@ end
     executed the always will be called and a result will be given.
 </p>
 <p><pre class="code"><code>
-use Libraries.Language.Error
-use Libraries.Language.DivideByZeroError
+use Libraries.Language.Errors.Error
+use Libraries.Language.Errors.DivideByZeroError
+
 class Main
     action Main
         number result = 0
@@ -103,11 +104,9 @@ class Main
             text userInput = input(&quot;divide by?&quot;)
             integer divisor = cast(integer, userInput)
             result = 12/divisor
-        end
         detect e of type Error or DivideByZeroError
             say e:GetErrorMessage()
             result = 12/1
-        end
         always
             say &quot;calculating result&quot;
         end
@@ -117,7 +116,7 @@ end
 </code></pre></p>
 <h2>Alerts</h2>
 <p>
-    Sometimes you may need to trigger an error manually. This can be done using 
+    Sometimes we may need to trigger an error manually. This can be done using 
     alerts which follow two formats, alert(&lt;text&gt;) and alert(&lt;error&gt;). 
     In the first format an error of type Error is generated with the message 
     specified by &lt;text&gt;.
@@ -135,11 +134,11 @@ alert(error)
 </code></pre></p>
 <h2>Custom Errors</h2>
 <p>
-    Creating your own custom errors in Quorum is fairly straight forward. All 
-    you need is to inherit from the Error class.
+    Creating your own custom errors in Quorum is requires that we extend
+    the Libraries.Language.Errors.Error class.
 </p>
 <p><pre class="code"><code>
-use Libraries.Language.Error
+use Libraries.Language.Errors.Error
 class MyError is a Error
 end
 </code></pre></p>
