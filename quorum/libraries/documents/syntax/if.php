@@ -11,7 +11,7 @@ the command if. For example, suppose we wanted to test whether an integer is
 greater than 10, we could do this in Quorum like so:
 </p>
 <p><pre class="code"><code>
-if a &gt; 10 then
+if a &gt; 10
 end
 </code></pre></p>
 <p>
@@ -27,10 +27,9 @@ are true, like so:
 integer a = 1
 integer b = 1000
 integer c = 0
-if a &gt; 100 then
+if a &gt; 100 
      c = 1
-end
-else if b = 100 then
+elseif b = 100
      c = 2
 end
 </code></pre></p>
@@ -41,13 +40,11 @@ or
 integer a = 1
 integer b = 1000
 integer c = 0
-if a &gt; 100 then
+if a &gt; 100
      c = 1
-end
-else if b = 100 then
+elseif b = 100
      c = 2
-end
-else then
+else
      c = 3
 end
 </code></pre></p>
