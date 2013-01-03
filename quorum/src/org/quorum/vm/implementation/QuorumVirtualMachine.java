@@ -1314,7 +1314,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         BlockDescriptor scope = method.getBlockAtLine(request.getLineNumber());
         Iterator<VariableParameterCommonDescriptor> variables = null;
         if (scope != null) { //grab all of the variables and all those from its parents
-            variables = scope.getAllVariablesExceptInClass(request.getLineNumber());
+            variables = scope.getAllVariablesExceptInClass(request.getLineNumber()).values().iterator();
         } else {      //just grab the variables from the method and call it good.
             variables = method.getVariables();
         }

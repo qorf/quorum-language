@@ -17,8 +17,8 @@ class Main
             print e:GetErrorMessage()
             check
                 alert("C")
-            detect e of type Error
-                 print e:GetErrorMessage()
+            detect f of type Error
+                 print f:GetErrorMessage()
             always
                 print "inner always 2"
             end

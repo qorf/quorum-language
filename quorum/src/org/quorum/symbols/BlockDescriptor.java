@@ -61,7 +61,7 @@ public class BlockDescriptor extends Descriptor implements Scopable{
      * @param line
      * @return 
      */
-    public Iterator<VariableParameterCommonDescriptor> getAllVariablesExceptInClass(int line) {
+    public HashMap<String, VariableParameterCommonDescriptor> getAllVariablesExceptInClass(int line) {
         //first create a hash of all variables in this scope
         HashMap<String, VariableParameterCommonDescriptor> map = new HashMap<String, VariableParameterCommonDescriptor>();
         Iterator<VariableParameterCommonDescriptor> val = this.getVariables();
@@ -95,7 +95,7 @@ public class BlockDescriptor extends Descriptor implements Scopable{
             }
         }
         
-        return map.values().iterator();
+        return map;
     }
 
     @Override
@@ -115,8 +115,9 @@ public class BlockDescriptor extends Descriptor implements Scopable{
     }
 
     @Override
-    public CompilerError add(VariableDescriptor descriptor) {        
-        CompilerError error = super.isDefined(descriptor, variables);
+    public CompilerError add(VariableDescriptor descriptor) {   
+        
+        CompilerError error = super.isDefined(descriptor, this.getAllVariablesExceptInClass(descriptor.getLineBegin()));
         if (error == null) {
             variables.put(descriptor.getStaticKey(), descriptor);
             parent.getNumberOfVariables();
