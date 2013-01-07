@@ -1,6 +1,29 @@
-Child child
-print "It's going to break"
+use Libraries.Language.Types.Text
 
-child:Breaker()
+/**
+ * Uses:
+ * action Add( Type value )
+ * action Get( integer index ) returns Type
+**/
 
-print "It probably broke"
+/**
+ * Description:
+ * The purpose of this test case is to test the Add action of the LinkedList
+ * class.
+**/
+
+/**
+ * Expected Results:
+ * textTotal = "FirstPurpleDinosaurChairWhiteCouchLego"
+**/
+
+/*
+ * @author Elliot Motl
+*/
+class Main
+    action Main
+       Text t
+       t:SetValue("hllo")
+       print t:GetValue()
+    end
+end

@@ -128,7 +128,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
         }
 
-
+        //set hidden variable to this object
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitFieldInsn(PUTFIELD, QuorumConverter.convertStaticKeyToBytecodePath(currentClass.getStaticKey()), 
+                QuorumConverter.getChildID(), 
+                QuorumConverter.convertStaticKeyToBytecodePathTypeName(QuorumConverter.convertClassNameToInterfaceName(currentClass.getStaticKey())));
+        
         if (isParent) {
             //initialize all of the parent objects as fields
             Iterator<ClassDescriptor> parents = currentClass.getFlattenedListOfParents();
