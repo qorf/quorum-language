@@ -145,6 +145,18 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitInsn(ICONST_0);
                 methodVisitor.visitMethodInsn(INVOKESPECIAL, converted, "<init>", "(Z)V");
                 methodVisitor.visitFieldInsn(PUTFIELD, name, parentName, QuorumConverter.convertStaticKeyToBytecodePathTypeName(parentKey));
+                
+                //get the parent and set the child
+                String convertedParentNameType = QuorumConverter.convertStaticKeyToBytecodePathTypeName(parentKey);
+                String convertedHiddenType = QuorumConverter.convertStaticKeyToBytecodePathTypeName(QuorumConverter.convertClassNameToInterfaceName(parentKey));
+                String convertedParentName = QuorumConverter.convertStaticKeyToBytecodePath(parentKey);
+                String childName = QuorumConverter.getChildID();
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitFieldInsn(GETFIELD, this.processedClazzName, parentName, convertedParentNameType);
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                //put it into the appropriate parent
+                methodVisitor.visitFieldInsn(PUTFIELD, convertedParentName, childName, convertedHiddenType);
+                
             }
 
             //now that all parents have been instantiated, get 
@@ -1851,6 +1863,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             //this will have to be modified for inheritance conversion
             classWriter.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, "java/lang/Object", new String[]{interfaceName});
         }
+        
+        //weave in hidden child/this variable
+        String hiddenKey = QuorumConverter.getChildID();
+        String hiddenName = QuorumConverter.convertStaticKeyToBytecodePathTypeName(QuorumConverter.convertClassNameToInterfaceName(currentClass.getStaticKey()));
+        fieldVisitor = classWriter.visitField(ACC_PUBLIC, hiddenKey, hiddenName, null, null);
+        fieldVisitor.visitEnd();
+        fieldSize += 2;
+        
         //first weave in the parents of the class and initialize them          
         //Add parents as extra behind the scenes fields.        
         Iterator<ClassDescriptor> parents = currentClass.getFlattenedListOfParents();
@@ -3303,6 +3323,17 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 methodVisitor.visitVarInsn(ALOAD, 0);
             } else if (step.isSoloMethodCall() && !step.isCalleeLoaded()) {
                 methodVisitor.visitVarInsn(ALOAD, 0);
+                
+                //This is an artifact of the multiple inheritance scheme. We must load
+                //a different "this" object before we can call a method.
+                String key = currentClass.getStaticKey();
+                String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
+                String convertedHiddenType = QuorumConverter.convertStaticKeyToBytecodePathTypeName(QuorumConverter.convertClassNameToInterfaceName(currentClass.getStaticKey()));
+                String hiddenName = QuorumConverter.getChildID();
+                methodVisitor.visitFieldInsn(GETFIELD, className, hiddenName, convertedHiddenType);
+                isCalledOnInterface = true;
+                converted = QuorumConverter.convertStaticKeyToBytecodePath(QuorumConverter.convertClassNameToInterfaceName(currentClass.getStaticKey()));
+                
                 processExpressions();
             } else if (!step.isCalleeLoaded()) {
                 processExpressions();

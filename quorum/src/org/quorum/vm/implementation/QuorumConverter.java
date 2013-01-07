@@ -201,6 +201,17 @@ public class QuorumConverter {
     }
     
     /**
+     * This method takes a static key from a parent object of a class
+     * and converts it to a valid name to be used by a class.
+     * 
+     * @param key
+     * @return 
+     */
+    public static String getChildID() {
+        return "$hidden$";
+    }
+    
+    /**
      * Converts a static key for a class into a full class name.
      * @param key
      * @return 
