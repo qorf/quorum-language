@@ -537,4 +537,43 @@ public class InheritanceTester {
             fail();
         }
     }
+    
+    @Test
+    public void test_MultipleInheritanceBlueprints_bytecode(){
+        File[] files = new File[3];
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "ParentCallingBlueprint.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "ChildImplementingBlueprint.quorum");
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "CallMethodCallingBlueprint.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
+        if (!r.isSuccessful())
+            fail();
+    
+        assert(r.getLine(0).equals("child"));
+    }
+    
+    @Test
+    public void test_MultipleInheritanceCallingInheritedBlueprints_bytecode(){
+        File[] files = new File[4];
+        files[3] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "ParentCallingBlueprint.quorum");
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "GrandChildImplementingBlueprint.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "ChildCallingBlueprint.quorum");
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "CallMethodCallingInheritedBlueprint.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
+        if (!r.isSuccessful())
+            fail();
+    
+        assert(r.getLine(0).equals("grandchild"));
+    }
 }

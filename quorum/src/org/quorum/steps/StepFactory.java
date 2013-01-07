@@ -845,12 +845,29 @@ public class StepFactory {
                     //containing blueprints) and add a compiler error if it is.
                     if (cd.hasBlueprints() || !cd.isInstantiatable()) {
                         //throw a compiler error, this is not allowed
-                        CompilerError error = new CompilerError(
-                                info.location.getStartLine(),
-                                "You cannot instantiate the abstract class "
-                                + cd.getName() + ". This class has not implemented all necessary blueprints.", ErrorType.INSTANTIATE_ABSTRACT);
-                        error.setFile(info.location.getFile());
-                        machine.getCompilerErrors().addError(error);
+                        Iterator<BlueprintDescriptor> unimplementedInheritedBlueprints = cd.getUnImplementedInheritedBlueprints();
+                        while(unimplementedInheritedBlueprints.hasNext()){
+                            BlueprintDescriptor next = unimplementedInheritedBlueprints.next();
+                            CompilerError error = new CompilerError(
+                                    info.location.getStartLine(),
+                                    "You cannot instantiate the abstract class "
+                                    + cd.getName() + ". This class does not have an implemention for the " + next.getMethodSignature(false) + " blueprint in the " + ((ClassDescriptor)next.getParent()).getName() +" class.", ErrorType.INSTANTIATE_ABSTRACT);
+                            error.setFile(info.location.getFile());
+                            machine.getCompilerErrors().addError(error);
+                        }
+                        
+                        Iterator<BlueprintDescriptor> unimplementedBlueprints = cd.getBlueprints();
+                        while(unimplementedBlueprints.hasNext()){
+                            BlueprintDescriptor next = unimplementedBlueprints.next();
+                            CompilerError error = new CompilerError(
+                                    info.location.getStartLine(),
+                                    "You cannot instantiate the abstract class "
+                                    + cd.getName() + ". This class does not have an implemention for the " + next.getMethodSignature(false) + " blueprint in the " + ((ClassDescriptor)next.getParent()).getName() +" class.", ErrorType.INSTANTIATE_ABSTRACT);
+                            error.setFile(info.location.getFile());
+                            machine.getCompilerErrors().addError(error);
+                        }
+                        
+                        
                     }
 
                     //determine whether this object is of the same type,

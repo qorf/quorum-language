@@ -3332,13 +3332,15 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 
                 //This is an artifact of the multiple inheritance scheme. We must load
                 //a different "this" object before we can call a method.
-                String key = currentClass.getStaticKey();
-                String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
-                String convertedHiddenType = QuorumConverter.convertStaticKeyToBytecodePathTypeName(QuorumConverter.convertClassNameToInterfaceName(currentClass.getStaticKey()));
-                String hiddenName = QuorumConverter.getChildID();
-                methodVisitor.visitFieldInsn(GETFIELD, className, hiddenName, convertedHiddenType);
-                isCalledOnInterface = true;
-                converted = QuorumConverter.convertStaticKeyToBytecodePath(QuorumConverter.convertClassNameToInterfaceName(currentClass.getStaticKey()));
+                if(callee.getAccessModifier().equals(AccessModifierEnum.PUBLIC)){
+                    String key = currentClass.getStaticKey();
+                    String className = QuorumConverter.convertStaticKeyToBytecodePath(key);
+                    String convertedHiddenType = QuorumConverter.convertStaticKeyToBytecodePathTypeName(QuorumConverter.convertClassNameToInterfaceName(currentClass.getStaticKey()));
+                    String hiddenName = QuorumConverter.getChildID();
+                    methodVisitor.visitFieldInsn(GETFIELD, className, hiddenName, convertedHiddenType);
+                    isCalledOnInterface = true;
+                    converted = QuorumConverter.convertStaticKeyToBytecodePath(QuorumConverter.convertClassNameToInterfaceName(currentClass.getStaticKey()));
+                }
                 
                 processExpressions();
             } else if (!step.isCalleeLoaded()) {

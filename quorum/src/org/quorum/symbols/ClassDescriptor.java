@@ -42,6 +42,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
     private ArrayList<ClassDescriptor> flatListOfParents = new ArrayList<ClassDescriptor>();
     private ArrayList<GenericDescriptor> templateVariables = new ArrayList<GenericDescriptor>();
     private HashMap<String, MethodDescriptor> resolvedTypeVirtualMethods;
+    private HashMap<String, BlueprintDescriptor> inheritedBlueprints;
     /**
      * This hash stores the methods inherited by this class.
      */
@@ -78,6 +79,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         resolvedTypeVirtualMethods = new HashMap<String, MethodDescriptor>();
         blueprints = new HashMap<String, BlueprintDescriptor>();
         systemActions = new HashMap<String, SystemActionDescriptor>();
+        inheritedBlueprints = new HashMap<String, BlueprintDescriptor>();
         
         initUses();
     }
@@ -276,7 +278,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
     }
 
     /**
-     * Check to make sure all the parents blue prints have been implemented.
+     * Check to make sure all the parents blueprints have been implemented.
      * If they have not, a compiler error is created for each.
      * @param descriptor
      */
@@ -302,6 +304,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                     //check for inherited blueprints that have not been implmented
                     if (!parentBlueprint.compare(implMethod)) {
                         if(!parentBlueprint.compare(implSystemMethod)){
+                            inheritedBlueprints.put(parentBlueprint.getStaticKey(), parentBlueprint);
                             this.setImplementable(false);
                         }
                     }
@@ -1466,8 +1469,13 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         return this.methods.size();
     }
     
+    @Override
     public BlueprintDescriptor getBlueprint(String key) {
-        return blueprints.get(key);
+        BlueprintDescriptor blueprint = blueprints.get(key);
+        if(blueprint == null){
+            blueprint = inheritedBlueprints.get(key);
+        }
+        return blueprint;
     }
 
     /**
@@ -1831,5 +1839,9 @@ public class ClassDescriptor extends Descriptor implements Scopable {
     @Override
     public int getNumberOfVariables() {
         return variables.size();
+    }
+
+    public Iterator<BlueprintDescriptor> getUnImplementedInheritedBlueprints() {
+        return inheritedBlueprints.values().iterator();
     }
 }
