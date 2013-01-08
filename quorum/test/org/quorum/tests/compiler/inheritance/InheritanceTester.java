@@ -576,4 +576,25 @@ public class InheritanceTester {
     
         assert(r.getLine(0).equals("grandchild"));
     }
+    
+    @Test
+    public void test_MultipleInheritanceCallingAmbiguousBlueprints_bytecode(){
+        File[] files = new File[5];
+        files[4] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "GrandChildWithMultiple.quorum");
+        files[3] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "ParentCallingBlueprint.quorum");
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "Aunt.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "ChildInheritingBlueprintAction.quorum");
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "MultipleInheritanceCallingAmbiguousBlueprints.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
+        if (!r.isSuccessful())
+            fail();
+    
+        assert(r.getLine(0).equals("grandchild"));
+    }
 }

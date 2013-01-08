@@ -295,7 +295,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                 //check if the access modifier is erroniously set to private
                 if (implMethod!=null && implMethod.getAccessModifier().equals(AccessModifierEnum.PRIVATE)) {
                     CompilerError error = new CompilerError(implMethod.getLineBegin(),
-                            "The blueprint action " + implMethod.getStaticKey() + " cannot be private.", ErrorType.INHERITANCE_MODIFIER_DOWNGRADE);
+                            "The blueprint action " + implMethod.getMethodSignature(false) + " cannot be private.", ErrorType.INHERITANCE_MODIFIER_DOWNGRADE);
                     CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                     errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
                     errorManager.addError(error);
@@ -329,8 +329,8 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                 if (this.getMethod(mName) == null && !curMethod.getParent().getScopeString().equals(method.getParent().getScopeString())) {
                     CompilerError error = new CompilerError(getLineBegin(),
                             "Ambiguous inheritance of action " + mName + " from the classes "
-                            + method.getParent().getScopeString() + " and "
-                            + curMethod.getParent().getScopeString()
+                            + ((ClassDescriptor)method.getParent()).getName() + " and "
+                            + ((ClassDescriptor)curMethod.getParent()).getName()
                             + ". You must implement this action in the class "
                             + getName(), ErrorType.INHERITANCE_AMBIGUOUS);
                     CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
@@ -380,14 +380,24 @@ public class ClassDescriptor extends Descriptor implements Scopable {
     private void addVirtualMethods(ClassDescriptor parent) {
         Iterator<MethodDescriptor> methodIterator = parent.getMethods();
         while (methodIterator.hasNext()) {
-             MethodDescriptor method = methodIterator.next();
-             addVirtualMethod(parent, method);
+            MethodDescriptor method = methodIterator.next();
+            addVirtualMethod(parent, method);
+            BlueprintDescriptor currentBlueprint = getLocalBlueprint(method.getStaticKey());
+            if (currentBlueprint != null) {
+                CompilerError error = new CompilerError(getLineBegin(),
+                        "The blueprint action " + currentBlueprint.getMethodSignature(false) + " from the class "
+                        + ((ClassDescriptor)currentBlueprint.getParent()).getName() + " has already been implemented in the class "
+                        + parent.getName() + ".", ErrorType.METHOD_DUPLICATE);
+                CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
+                errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
+                errorManager.addError(error);
+            }
         }
 
         Iterator<SystemActionDescriptor> systemIterator = parent.getSystemActions();
         while (systemIterator.hasNext()) {
-             MethodDescriptor method = systemIterator.next();
-             addVirtualMethod(parent, method);
+            MethodDescriptor method = systemIterator.next();
+            addVirtualMethod(parent, method);
         }
     }
 
@@ -416,8 +426,8 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                                 && !curMethod.getParent().getScopeString().equals(method.getParent().getScopeString())) {
                             CompilerError error = new CompilerError(getLineBegin(),
                                     "Ambiguous inheritance of action " + method.getStaticKey() + " from the classes "
-                                    + method.getParent().getScopeString() + " and "
-                                    + curMethod.getParent().getScopeString()
+                                    + ((ClassDescriptor)method.getParent()).getName() + " and "
+                                    + ((ClassDescriptor)curMethod.getParent()).getName()
                                     + ". You must implement this action in the class "
                                     + getName(), ErrorType.INHERITANCE_AMBIGUOUS);
                             CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
@@ -498,10 +508,10 @@ public class ClassDescriptor extends Descriptor implements Scopable {
             if (!method1.getReturnType().getStaticKey().equals(method2.getReturnType().getStaticKey())) {
                 CompilerError error = new CompilerError(getLineBegin(),
                         "Invalid return types for inherited methods."
-                        + "Action " + method1.getStaticKey() + "(return type " + method1.getReturnType().getStaticKey()
-                        + ") in class " + method1.getParent().getScopeString() + " and action " + method2.getStaticKey()
+                        + "Action " + method1.getMethodSignature(false) + "(return type " + method1.getReturnType().getStaticKey()
+                        + ") in class " + ((ClassDescriptor)method1.getParent()).getName() + " and action " + method2.getMethodSignature(false)
                         + "(return type " + method2.getReturnType().getStaticKey()
-                        + ") in class " + method2.getParent().getScopeString() + " are incompatible.", ErrorType.INHERITANCE_MISSMATCHED_RETURN);
+                        + ") in class " + ((ClassDescriptor)method2.getParent()).getName() + " are incompatible.", ErrorType.INHERITANCE_MISSMATCHED_RETURN);
                 CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                 errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
                 errorManager.addError(error);
@@ -516,18 +526,18 @@ public class ClassDescriptor extends Descriptor implements Scopable {
             if (!originalMethod.getReturnType().getStaticKey().equals(overridingMethod.getReturnType().getStaticKey())) {
                 CompilerError error = new CompilerError(overridingMethod.getLineBegin(),
                         "Invalid return type for overriding method. "
-                        + "Action " + originalMethod.getStaticKey() + "(return type " + originalMethod.getReturnType().getStaticKey()
-                        + ") in class " + originalMethod.getParent().getScopeString() + " and action "
-                        + overridingMethod.getStaticKey() + "(return type " + overridingMethod.getReturnType().getStaticKey()
-                        + ") in class " + overridingMethod.getParent().getScopeString() + " are incompatible.  ", ErrorType.INHERITANCE_MISSMATCHED_RETURN);
+                        + "Action " + originalMethod.getMethodSignature(false) + "(return type " + originalMethod.getReturnType().getStaticKey()
+                        + ") in class " + ((ClassDescriptor)originalMethod.getParent()).getName() + " and action "
+                        + overridingMethod.getMethodSignature(false) + "(return type " + overridingMethod.getReturnType().getStaticKey()
+                        + ") in class " + ((ClassDescriptor)overridingMethod.getParent()).getName() + " are incompatible.  ", ErrorType.INHERITANCE_MISSMATCHED_RETURN);
                 CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                 errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
                 errorManager.addError(error);
                 return true;
             } else if (originalMethod.getAccessModifier().equals(AccessModifierEnum.PUBLIC) && overridingMethod.getAccessModifier().equals(AccessModifierEnum.PRIVATE)) {
                 CompilerError error = new CompilerError(overridingMethod.getLineBegin(),
-                        "The action " + originalMethod.getStaticKey() + " is public, but the overriding action " 
-                        + overridingMethod.getStaticKey() + " is private. The overriding action must be public.", ErrorType.INHERITANCE_MODIFIER_DOWNGRADE);
+                        "The action " + originalMethod.getMethodSignature(false) + " is public, but the overriding action " 
+                        + overridingMethod.getMethodSignature(false) + " is private. The overriding action must be public.", ErrorType.INHERITANCE_MODIFIER_DOWNGRADE);
                 CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
                 errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
                 errorManager.addError(error);
@@ -1476,6 +1486,16 @@ public class ClassDescriptor extends Descriptor implements Scopable {
             blueprint = inheritedBlueprints.get(key);
         }
         return blueprint;
+    }
+    
+    /**
+     * Get the current classes defined blueprint actions. This does not include
+     * inherited blueprint actions.
+     * @param key
+     * @return 
+     */
+    public BlueprintDescriptor getLocalBlueprint(String key){
+        return blueprints.get(key);
     }
 
     /**
