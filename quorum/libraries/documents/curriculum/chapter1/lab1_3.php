@@ -1,3 +1,5 @@
+<!--Edited by: Brandon Spencer-->
+<!--1/2/13-->
 <?php include("../../include/header.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab 1.3';
@@ -6,20 +8,20 @@
 <h1>Lab 1.3: Deploying Applications</h1>
 <h2>Objectives</h2>
 <p>
-After completing this lab, the students will understand the following concepts:
+The goal of this lab is learn the following:
 </p>
 <ul>
 <li>How to deploy a Quorum program</li>
 <li>Java Bytecode</li>
-<li>Using the Command Line</li>
+<li>How to Use the Command Line</li>
 </ul>
 <h2>Overview</h2>
 <p>
-The goal of this lab is to demonstrate building and deploying a Quorum application. For this lab, the students will open and use the Hangman sample project (A zip file is provided at the bottom of the page for download). Students will also learn to run jar files from the command line.
+The goal of this lab is to demonstrate building and deploying a Quorum application. For this lab, you will open and use the Hangman sample project (A zip file is provided at the bottom of the page for download).  You will also learn to run jar files from the command line.
 </p>
 <h2>Task 1: Building the Hangman Project</h2>
 <p>
-First, start Sodbeans. The main tutorial window may appear, go ahead and close this window or select the check box to prevent it from showing up every time you start Sodbeans.  There are two options to access the Hangman project: 1) use the provided sample project in Sodbeans and 2) download the project from the wiki and open that existing project in Sodbeans.
+First, start Sodbeans. The main tutorial window may appear, go ahead and close this window or select the check box to prevent it from showing up every time you start Sodbeans.  There are two options to access the Hangman project: 1) use the provided sample project in Sodbeans and 2) download the project from the web site and open that existing project in Sodbeans.
 </p>
 <p>
 Create a new project by using the keyboard shortcuts or going to the File menu.  The New Project dialog appears.  Use the arrow keys to navigate to the Samples folder in the Categories tree view.  Then, make sure the Quorum folder is selected under the Samples folder.  Use the keyboard shortcuts to switch the focus to the Projects tree view.  Select the Hangman project and press Enter.  In lieu of the keyboard shortcuts, the mouse can be used to select the project.  Leave the project name and location at default for now and press Enter (if the project name already exists on the computer make sure a unique name is chosen).
@@ -59,7 +61,7 @@ More information on Jar files can be found on <a class="ext-link" href="http://e
 </p>
 <h2>Task 3: Execute the Jar File</h2>
 <p>
-It’s time to do the first run of the game from the command line!  To run the program, open a command prompt by going to the Start Menu and typing cmd into the search text box and press Return. Once the command prompt is open navigate to the file containing the Default.jar file. As a reminder, &quot;cd &lt;name of director&gt;&quot; will change the directory you are in (&quot;cd ..&quot; will back you out of the directory) and &quot;dir&quot; will list the directories available.
+It’s time to do the first run of the game from the command line!  To run the program, open a command prompt by going to the Start Menu and typing cmd into the search text box and pressing Enter. Once the command prompt is open navigate to the file containing the Default.jar file. As a reminder, &quot;cd &lt;name of director&gt;&quot; will change the directory you are in (&quot;cd ..&quot; will back you out of the directory) and &quot;dir&quot; will list the directories available.
 </p>
 <p>
 You might do something like:

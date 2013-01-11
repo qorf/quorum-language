@@ -1,3 +1,5 @@
+<!--Edited by Brandon Spencer-->
+<!--1/5/13-->
 <?php include("../../include/header.php"); ?>
 <script type="text/javascript">
     document.title = 'Assignment3_1';
@@ -6,16 +8,16 @@
 <h1>Short Assignment: Travel Reservation</h1>
 <h2>Objectives</h2>
 <p>
-The goal of this assignment is to understand the following concepts:
+The goal of this assignment is to learn the following:
 </p>
 <ul>
 <li>More practice with conditionals</li>
 <li>More practice with lexical scoping</li>
-<li>Analyzing problem statements in plain English</li>
+<li>How to analyze problem statements in plain English</li>
 </ul>
 <h2>Overview</h2>
 <p>
-Write a small travel reservation program for a travel agency to book vacation packages for clients.  The program will ask the user to pick one of the offered destinations for flights and have an option of booking a hotel room.  At the end of the reservation process provide the user with all of the booking information.
+  Write a small travel reservation program for a travel agency to book vacation packages for clients.  The program will ask the user to pick one of the offered destinations for flights and have an option of booking a hotel room.  At the end of the reservation process provide the user with all of the booking information. Create a new project and name it <b>Travel</b>.
 </p>
 <h2>Description</h2>
 <p>
@@ -76,7 +78,7 @@ The input dialog statements are included in the sample output.  They are identif
 <b>Flights and Hotel Reservation</b>
 </p>
 <p><pre class="code"><code>
-Welcome to the travel agency. We offer travel packages for our vacation destinations.
+Welcome to the travel agency. You offer travel packages for your vacation destinations.
 [Input Dialog] How many people will be traveling? 4
 Select one of the destinations to book a flight: 1 - Chicago ($200), 2 - Los Angeles ($360), 3 - Miami ($320), 4 - Orlando ($310), 5 - Seattle ($330)
 [Input Dialog] Enter the destination number: 3
@@ -94,7 +96,7 @@ Total package price for flights and hotel is $1575.5
 <b>Flights Reservation Only</b>
 </p>
 <p><pre class="code"><code>
-Welcome to the travel agency. We offer travel packages for our vacation destinations.
+Welcome to the travel agency. You offer travel packages for your vacation destinations.
 [Input Dialog] How many people will be traveling? 3
 Select one of the destinations to book a flight: 1 - Chicago ($200), 2 - Los Angeles ($360), 3 - Miami ($320), 4 - Orlando ($310), 5 - Seattle ($330)
 [Input Dialog] Enter the destination number: 5
@@ -106,7 +108,7 @@ Total flight price to Seattle for 3 traveler(s) is $990.0
 <b>No Reservation</b>
 </p>
 <p><pre class="code"><code>
-Welcome to the travel agency. We offer travel packages for our vacation destinations.
+Welcome to the travel agency. You offer travel packages for your vacation destinations.
 [Input Dialog] How many people will be traveling? 1
 Select one of the destinations to book a flight: 1 - Chicago ($200), 2 - Los Angeles ($360), 3 - Miami ($320), 4 - Orlando ($310), 5 - Seattle ($330)
 [Input Dialog] Enter the destination number: 6
@@ -116,7 +118,7 @@ No reservation has been made. Please come back again!
 <b>Reservation With Errors and Automatic Resets</b>
 </p>
 <p><pre class="code"><code>
-Welcome to the travel agency. We offer travel packages for our vacation destinations.
+Welcome to the travel agency. You offer travel packages for your vacation destinations.
 [Input Dialog] How many people will be traveling? 0
 Error: The number of travelers has been reset to 1. You entered 0
 Select one of the destinations to book a flight: 1 - Chicago ($200), 2 - Los Angeles ($360), 3 - Miami ($320), 4 - Orlando ($310), 5 - Seattle ($330)
@@ -134,11 +136,5 @@ Total flight price to Chicago for 1 traveler(s) is $200.0
 Total hotel price for 1 room(s) at Standard Hotel for 1 night(s) is $98.5
 Total package price for flights and hotel is $298.5
 </code></pre></p>
-<h2>Design Criteria</h2>
-<ul>
-<li>Create a new project and name it <b>Travel</b>.</li>
-<li>All code should be in the main.quorum file.</li>
-<li>Use appropriate variables to store and keep track of values.</li>
-<li>The input dialogs and output should look similar to the sample output.</li>
 
 <?php include("../../include/footer.php"); ?>

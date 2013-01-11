@@ -1,3 +1,5 @@
+<!--Edited by Brandon Spencer-->
+<!--1/4/13-->
 <?php include("../../include/header.php"); ?>
 <script type="text/javascript">
     document.title = 'Chapter 2';
@@ -6,19 +8,19 @@
 <h1>Short Assignment: Math</h1>
 <h2>Objectives</h2>
 <p>
-The goal of this assignment is to understand the following concepts:
+The goal of this assignment is to learn the following:
 </p>
 <ul>
 <li>More math calculations</li>
-<li>Analyzing word problems</li>
+<li>How to analyze word problems</li>
 </ul>
 <h2>Overview</h2>
 <p>
-Write a program to compute the average of the distance a mouse runs during trials in an experiment.  The experiment data is provided to calculate the average distance in terms of yards. In addition, write code to convert yards to different units of measurement.
+  In this assignment, you will write a program to compute the average of the distance a mouse runs during trials in an experiment.  The experiment data is provided to calculate the average distance in terms of yards. In addition, you will write code to convert yards to different units of measurement. Create a new project and name it <strong>Assignment2_2</strong>.
 </p>
-<h2>Description</h2>
+<h2>Task 1</h2>
 <p>
-The experiment was conducted to determine how far a mouse could run before encountering roadblocks or becoming exhausted. Six trails were conducted. The results of the experiment are shown in the table below:
+An experiment was conducted to determine how far a mouse could run before encountering roadblocks or becoming exhausted. Six trials were conducted. The results of the experiment are shown in the table below:
 </p>
 <p>
 <table class="table">
@@ -32,7 +34,7 @@ The experiment was conducted to determine how far a mouse could run before encou
 </td></tr></table>
 </p>
 <p>
-The program adds all of the trial distances together and computes the average distance in yards.  The average is then converted into different measurement units.  The table below shows the conversion of the yard into various units.
+Your program should add all of the trial distances together and compute the average distance in yards.  The average is then converted into different measurement units.  The table below shows the conversion of the yard into various units.
 </p>
 <p>
 <table class="table">
@@ -40,25 +42,27 @@ The program adds all of the trial distances together and computes the average di
 </td></tr><tr><td>Yard (yd)</td><td>91.44</td><td>3</td><td>36</td><td>0.9144</td><td>1/1760
 </td></tr></table>
 </p>
-<p>
-All results are rounded to the nearest two decimal points.  The results should match the following output:
-</p>
-<p><pre class="code"><code>
-The average in yards is 87.1 yd.
-The average in centimeters is 7964.42 cm.
-The average in feet is 261.3 ft.
-The average in inches is 3135.6 in.
-The average in meters is 79.64 m.
-The average in miles is 0.05 mi.
-</code></pre></p>
-<h2>Analysis</h2>
+
+<h2>Task 2: Analysis</h2>
 <ul><li>Calculate the average distance in yards.
 </li><li>Convert the average in yards to each of the provided units (centimeters, feet, inches, meters, and miles).
 </li><li>Round each result to the nearest two decimal points. For this, you will need to use the <tt>Math</tt> library. The <tt>Math</tt> library requires the following <strong><tt>use</tt></strong> statement:
 <pre class="code">use Libraries.Compute.Math
 </pre></li></ul>
-<h2>Design Criteria</h2>
-<ul><li>Create a new project and name it <strong>Assignment2_2</strong>.
-</li></ul>
-
+<h2>Sample Output</h2>
+<p>
+  All results should be rounded to the nearest two decimal points.  Your results should match the following output:
+</p>
+<p>
+  <pre class="code">
+    <code>
+      The average in yards is 87.1 yd.
+      The average in centimeters is 7964.42 cm.
+      The average in feet is 261.3 ft.
+      The average in inches is 3135.6 in.
+      The average in meters is 79.64 m.
+      The average in miles is 0.05 mi.
+    </code>
+  </pre>
+</p>
 <?php include("../../include/footer.php"); ?>

@@ -1,3 +1,5 @@
+<!--Edited by Brandon Spencer-->
+<!--1/7/13-->
 <?php include("../../include/header.php"); ?>
 <script type="text/javascript">
     document.title = 'Assignment 4_3';
@@ -6,13 +8,13 @@
 <h1>Challenge Assignment: Travel Reservation with Actions</h1>
 <h2>Objectives</h2>
 <p>
-The goal of this assignment is to understand the following concepts:
+The goal of this assignment is to learn the following:
 </p>
 <ul>
 <li>More practice breaking applications up into logical sections using actions</li>
-<li>Using the returned values from actions</li>
-<li>Passing arguments into actions</li>
-<li>Modifying an existing program</li>
+<li>How to use the returned values from actions</li>
+<li>How to pass arguments into actions</li>
+<li>How to modify an existing program</li>
 </ul>
 <h2>Overview</h2>
 <p>

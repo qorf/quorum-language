@@ -1,3 +1,5 @@
+<!--Edited by Brandon Spencer-->
+<!--1/5/13-->
 <?php include("../../include/header.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab3_3';
@@ -6,19 +8,19 @@
 <h1>Lab 3.3: More Conditionals, Loops, and Debugging</h1>
 <h2>Objectives</h2>
 <p>
-The goal of this lab is to understand the following concepts:
+The goal of this lab is to learn the following:
 </p>
 <ul>
-<li>Using conditionals and loops</li>
-<li>Using the debugger tool in Sodbeans</li>
+<li>How to use conditionals and loops</li>
+<li>How to use the debugger tool in Sodbeans</li>
 </ul>
 <h2>Overview</h2>
 <p>
-The Sodbeans debugger is a useful tool to step through code, see what is happening, and help us solve any errors.  For this lab, we will practice more with conditionals and loops. We will also use the debugger to test our code.  This will give us an idea of how our code works at runtime.
+The Sodbeans debugger is a useful tool to step through code, see what is happening, and help you solve any errors.  For this lab, you will practice more with conditionals and loops. You will also use the debugger to test your code.  This will give you an idea of how your code works at runtime.
 </p>
 <h2>Task 1: DateTime Library Explained</h2>
 <p>
-Before we start writing code, let's go over the DateTime class.  The DateTime class is used to get the date/time information from the computer.  The sample code and explanations for each code snippet is provided below.
+Before you start writing code, let's go over the DateTime class.  The DateTime class is used to get the date/time information from the computer.  The sample code and explanations for each code snippet is provided below.
 </p>
 <p><pre class="code"><code>
 DateTime dateTime
@@ -54,7 +56,7 @@ Start up the Sodbeans program.  Create a new project and name the project <b>Lab
 12:28 PM Tuesday, January 17, 2012
 </code></pre></p>
 <p>
-To get started, we are going to leverage what we have mastered so far in both Chapters 2 and 3.  First, we’ll need to instantiate the object that gets date and time.  Declare integer variables to get the values for the following date information: day of week, month, day, and year.
+To get started, you are going to leverage what you have mastered so far in both Chapters 2 and 3.  First, you’ll need to instantiate the object that gets date and time.  Declare integer variables to get the values for the following date information: day of week, month, day, and year.
 </p>
 <p>
 Add code that allows the computer to determine the name of the day of week (example: a value of 1 is Sunday, 2 is Monday).  Use the given variables to write the logic.  Declare any additional variables to store the values.  Then, do the same to write a separate logic to determine the name of the month.
@@ -63,7 +65,7 @@ Add code that allows the computer to determine the name of the day of week (exam
 When the logic for both the day of week and the month is completed, run and test the program to ensure that the values are outputted correctly.  If not, go back and fix the logic.
 </p>
 <p>
-Now, we are going to get the time in a standard time format.  Keep in mind that Quorum uses a 24-hour clock, so we want to convert the 24-hour clock to the standard 12-hour clock.  For example, 15:00 should be converted to 3:00 PM.
+Now, you are going to get the time in a standard time format.  Keep in mind that Quorum uses a 24-hour clock, so you want to convert the 24-hour clock to the standard 12-hour clock.  For example, 15:00 should be converted to 3:00 PM.
 </p>
 <p>
 Add code that gets the hour and minute.  Follow the description below to get the correct time format in plain English.  Add any variables when necessary.
@@ -95,13 +97,13 @@ The output should look similar to the sample output.  If the obtained date and t
 Now that you have the current date and time, assume the user has a meeting every seven days from today. Print out the month and day for the next three meetings(don't worry about leap years). There are a few things to remember:
 </p>
 <ul>
-<li>We can't just add 7 to the day; we need to roll over to a new month when we exceed the number of days in that month.</li>
+<li>You can't just add 7 to the day; you need to roll over to a new month when you exceed the number of days in that month.</li>
 <li>Month 2 has 28 days (don't consider leap years)</li>
 <li>Months 4,6,9,and 11 have 30 days</li>
 <li>All other months have 31 days</li>
 </ul>
 <p>
-We will need to use a <tt>repeat times</tt> loop to output the next three meetings. Within that loop we will need to calculate the date of the meeting (hint: use a conditional statement). Given the current date from the sample output, the output of your program should look something like:
+You will need to use a <tt>repeat times</tt> loop to output the next three meetings. Within that loop you will need to calculate the date of the meeting (hint: use a conditional statement). Given the current date from the sample output, the output of your program should look something like:
 </p>
 <p><pre class="code"><code>
 meeting date: 1/24
@@ -109,17 +111,17 @@ meeting date: 1/31
 meeting date: 2/7
 </code></pre></p>
 <p>
-The meetings given by our program should list the next three meetings, every 7 days from the current date. To test your program for more dates increase the number of times the loop executes. Make sure the number isn't to high, it could take a long time to say all those dates!
+The meetings given by your program should list the next three meetings, every 7 days from the current date. To test your program for more dates increase the number of times the loop executes. Make sure the number isn't to high, it could take a long time to say all those dates!
 </p>
-<h2>Task 3: Use the Debugger</h2>
+<h2>Task 4: Use the Debugger</h2>
 <p>
-It’s time to try out the Sodbeans debugger!  The goal of this task is to help us become familiar with the functionality of the debugger in Sodbeans.  The debugger has controls, such as pause, continue, breakpoints, and step over, to navigate through the code in debugger mode.
-</p>
-<p>
-The debugger is a tool in Quorum that helps us solve complicated logic problems in our code.  It executes the program line by line to keep track of what is going on at runtime and observe the behavior of our code.  The debugger issues steps to check the current state of a program and the value of variables.  Steps are commands that execute one line of code or part of the program.
+It’s time to try out the Sodbeans debugger!  The goal of this task is to help you become familiar with the functionality of the debugger in Sodbeans.  The debugger has controls, such as pause, continue, breakpoints, and step over, to navigate through the code in debugger mode.
 </p>
 <p>
-Quorum's debugger offers different types of functionality to help us debug our code.
+The debugger is a tool in Quorum that helps you solve complicated logic problems in your code.  It executes the program line by line to keep track of what is going on at runtime and observe the behavior of your code.  The debugger issues steps to check the current state of a program and the value of variables.  Steps are commands that execute one line of code or part of the program.
+</p>
+<p>
+Quorum's debugger offers different types of functionality to help you debug your code.
 </p>
 <ul>
 <li><b>Breakpoint:</b> Inserts a stop location into the debugger at a specific line number in the editor to tell the debugger where to stop.</li>
@@ -135,13 +137,13 @@ Quorum's debugger offers different types of functionality to help us debug our c
 <li><b>Stop:</b> Turns off the debugger and stops the program from running.</li>
 </ul>
 <p>
-This task is divided in a variety of goals to help us accomplish a specific task with the debugger.  There are questions in each goal, so type answers in a word document.  For our reference, the debugger keyboard shortcuts table is at the end of this task.
+This task is divided in a variety of goals to help you accomplish a specific task with the debugger.  There are questions in each goal, so type answers in a word document.  For your reference, the debugger keyboard shortcuts table is at the end of this task.
 </p>
 <p>
 <b>Goal 1: Start and stop debugger</b>
 </p>
 <p>
-First, we need to start the debugger.  To start the debugger, do one of the three following options:
+First, you need to start the debugger.  To start the debugger, do one of the three following options:
 </p>
 <ul>
 <li>Visually click on the debugger button on the toolbar.</li>
@@ -157,10 +159,10 @@ To finish the debugger session, either click on the Finish Debugger Session butt
 <strong>Goal 2: Setting breakpoints</strong>
 </p>
 <p>
-Now, let’s try setting breakpoints.  Set at least three breakpoints in the editor, preferably at the start of each conditional and loop.  To set a breakpoint, click on the line number on the side of the editor or use the shortcut Ctrl + F8.  For the sighted users, a colored line will appear on the line where a breakpoint has been set.  When we start debugging, the program will run until it hits a breakpoint that we set in the editor by using continue (F5).
+Now, let’s try setting breakpoints.  Set at least three breakpoints in the editor, preferably at the start of each conditional and loop.  To set a breakpoint, click on the line number on the side of the editor or use the shortcut Ctrl + F8.  For the sighted users, a colored line will appear on the line where a breakpoint has been set.  When you start debugging, the program will run until it hits a breakpoint that you set in the editor by using continue (F5).
 </p>
 <p>
-Start the debugger.  Tell the debugger to continue and the program will then halt at the first breakpoint we just set.
+Start the debugger.  Tell the debugger to continue and the program will then halt at the first breakpoint you just set.
 </p>
 <ol start="3"><li>Is there a limit to setting a number of breakpoints?
 </li><li>When setting a breakpoint, what does the debugger say?
@@ -177,15 +179,15 @@ Use the Step Over to move the active line to the next line.  Use the step contro
 <strong>Goal 4: Variables window</strong>
 </p>
 <p>
-We can also use the Variables window to observe the use of variables in the case of lexical scoping.  Open the Variables window and use any of the step controls in the debugger to observe variables and their respective values.  The Variables window can be helpful in some cases; for example, keeping track of each time the program goes through a loop.  Try this in the loop to see what happens in the Variables window.
+You can also use the Variables window to observe the use of variables in the case of lexical scoping.  Open the Variables window and use any of the step controls in the debugger to observe variables and their respective values.  The Variables window can be helpful in some cases; for example, keeping track of each time the program goes through a loop.  Try this in the loop to see what happens in the Variables window.
 </p>
 <p>
-Step through all lines in the editor to finish the debugger, even though we could just simply stop the debugger without taking steps.  The step controls in the debugger should be finished when the active line reaches the end of the program.  The date and time result should be output.
+Step through all lines in the editor to finish the debugger, even though you could just simply stop the debugger without taking steps.  The step controls in the debugger should be finished when the active line reaches the end of the program.  The date and time result should be output.
 </p>
 <ol start="8"><li>What do the variables for the names of the day of week and the month display in the Variables window before storing appropriate values?
 </li><li>At the line where the program outputs the current date and time, how many variables are listed in the Variables window?
 </li></ol><p>
-Show the work to the instructor.  Optionally, if there is enough time and if more practice is needed, we can practice more with the debugger by going through the Debugging Programs tutorial in the Sodbeans Tutorials.
+Show the work to the instructor.  Optionally, if there is enough time and if more practice is needed, you can practice more with the debugger by going through the Debugging Programs tutorial in the Sodbeans Tutorials.
 </p>
 <table class="table">
 <tr><td><strong>Task</strong></td><td><strong>Hotkey</strong></td><td><strong>Action</strong>

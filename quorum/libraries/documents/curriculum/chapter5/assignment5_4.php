@@ -1,3 +1,5 @@
+<!--Edited by Brandon Spencer-->
+<!--1/8/13-->
 <?php include("../../include/header.php"); ?>
 <script type="text/javascript">
     document.title = 'assignment 5_4';
@@ -6,13 +8,13 @@
 <h1>Challenge Assignment:  The Game of Pig</h1>
 <h2>Objectives</h2>
 <p>
-The goal of this assignment is to understand the following concepts:
+The goal of this assignment is to learn the following:
 </p>
-<ul><li>Designing your program using object-oriented programming
-</li><li>Build multiple classes
-</li><li>Design your own actions within each class.
-</li><li>Use class variables
-</li><li>Use objects
+<ul><li>How to design your program using object-oriented programming
+</li><li>How to build multiple classes
+</li><li>How to design your own actions within each class.
+</li><li>How to use class variables
+</li><li>How to use objects
 </li></ul><h2>Overview</h2>
 <p>
 The game of pig is a dice rolling game. In this game a player will play against the computer in an attempt to bank a total of 100 or more points. Sounds easy, but there is a catch, if either a player or the computer rolls a 1 their turn ends and no points are added onto the players total.
@@ -40,11 +42,11 @@ Your score: 0
 Computer score: 0
 It is your turn.
 You rolled a 3
-[input dialog]Your turn total is 3. Enter nothing to roll. Enter anything to bank.
+Your turn total is 3. Enter nothing to roll. Enter anything to bank.
 You rolled a 3
-[input dialog]Your turn total is 6. Enter nothing to roll. Enter anything to bank.
+Your turn total is 6. Enter nothing to roll. Enter anything to bank.
 You rolled a 5
-[input dialog]Your turn total is 11. Enter nothing to roll. Enter anything to bank.
+Your turn total is 11. Enter nothing to roll. Enter anything to bank.
 You rolled a 1
 Busted!
 Your score: 0
@@ -59,15 +61,15 @@ Your score: 0
 Computer score: 21
 It is your turn.
 You rolled a 5
-[input dialog]Your turn total is 5. Enter nothing to roll. Enter anything to bank.
+Your turn total is 5. Enter nothing to roll. Enter anything to bank.
 You rolled a 2
-[input dialog]Your turn total is 7. Enter nothing to roll. Enter anything to bank.
+Your turn total is 7. Enter nothing to roll. Enter anything to bank.
 You rolled a 6
-[input dialog]Your turn total is 13. Enter nothing to roll. Enter anything to bank.
+Your turn total is 13. Enter nothing to roll. Enter anything to bank.
 You rolled a 3
-[input dialog]Your turn total is 16. Enter nothing to roll. Enter anything to bank.
+Your turn total is 16. Enter nothing to roll. Enter anything to bank.
 You rolled a 5
-[input dialog]Your turn total is 21. Enter nothing to roll. Enter anything to bank.
+Your turn total is 21. Enter nothing to roll. Enter anything to bank.
 Your score: 21
 Computer score: 21
 It is the computers turn.
@@ -77,21 +79,21 @@ Your score: 21
 Computer score: 21
 It is your turn.
 You rolled a 6
-[input dialog]Your turn total is 6. Enter nothing to roll. Enter anything to bank.
+Your turn total is 6. Enter nothing to roll. Enter anything to bank.
 You rolled a 5
-[input dialog]Your turn total is 11. Enter nothing to roll. Enter anything to bank.
+Your turn total is 11. Enter nothing to roll. Enter anything to bank.
 You rolled a 6
-[input dialog]Your turn total is 17. Enter nothing to roll. Enter anything to bank.
+Your turn total is 17. Enter nothing to roll. Enter anything to bank.
 You rolled a 6
-[input dialog]Your turn total is 23. Enter nothing to roll. Enter anything to bank.
+Your turn total is 23. Enter nothing to roll. Enter anything to bank.
 You rolled a 5
-[input dialog]Your turn total is 28. Enter nothing to roll. Enter anything to bank.
+Your turn total is 28. Enter nothing to roll. Enter anything to bank.
 You rolled a 5
-[input dialog]Your turn total is 33. Enter nothing to roll. Enter anything to bank.
+Your turn total is 33. Enter nothing to roll. Enter anything to bank.
 You rolled a 6
-[input dialog]Your turn total is 39. Enter nothing to roll. Enter anything to bank.
+Your turn total is 39. Enter nothing to roll. Enter anything to bank.
 You rolled a 5
-[input dialog]Your turn total is 44. Enter nothing to roll. Enter anything to bank.
+Your turn total is 44. Enter nothing to roll. Enter anything to bank.
 Your score: 65
 Computer score: 21
 It is the computers turn.
