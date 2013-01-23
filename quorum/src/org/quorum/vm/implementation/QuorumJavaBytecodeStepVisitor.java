@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.Opcodes;
+import org.quorum.execution.BlockScope;
 import org.quorum.execution.ExecutionStep;
 import org.quorum.execution.ExecutionStepVisitor;
 import org.quorum.execution.NullExecutionStep;
@@ -3634,6 +3635,9 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     }
                 } else if (step.isLastIfScope()) {//jumping out of the if
                     Label first = label.getLabel();
+                    Label start = new Label();
+                    methodVisitor.visitLabel(start);
+                    methodVisitor.visitLineNumber(((BlockDescriptor)step.getCurrentScope()).getLineEnd(), start);
                     methodVisitor.visitLabel(first);
                     stack.peekScope().endLabel = first;
                     stack.popLabel();
