@@ -119,8 +119,9 @@ public class ControlFlowAnalyzer {
     /**
      * Informs the analyzer that an if statement has ended.
      */
-    public void ifEnd() {
+    public boolean ifEnd() {
         currentNode = currentNode.parent;
+        return doesNodeIncludeReturnStatement(currentNode);
     }
 
     /**
@@ -140,8 +141,9 @@ public class ControlFlowAnalyzer {
     /**
      * Informs the analyzer that the current if else has ended.
      */
-    public void ifElseEnd() {
+    public boolean ifElseEnd() {
         currentNode = currentNode.parent;
+        return doesNodeIncludeReturnStatement(currentNode);
     }
 
     /**
@@ -160,8 +162,9 @@ public class ControlFlowAnalyzer {
     /**
      * Informs the analyzer that an else has ended.
      */
-    public void elseEnd() {
+    public boolean elseEnd() {
         currentNode = currentNode.parent;
+        return doesNodeIncludeReturnStatement(currentNode);
     }
 
     /**

@@ -24,6 +24,7 @@ public abstract class Descriptor {
     private int columnEnd = 0;
     private AbstractVirtualMachine machine;
     private Documentation documentation = new Documentation();
+    private boolean hasReturn = false;
 
     /**
      * Returns an object representing the line and column information for this
@@ -186,5 +187,19 @@ public abstract class Descriptor {
         if(documentation != null) {
             this.documentation = documentation;
         }
+    }
+
+    /**
+     * @return the hasReturn
+     */
+    public boolean hasReturn() {
+        return hasReturn;
+    }
+
+    /**
+     * @param hasReturn the hasReturn to set
+     */
+    public void setHasReturn(boolean hasReturn) {
+        this.hasReturn = hasReturn;
     }
 }

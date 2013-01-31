@@ -3635,9 +3635,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     }
                 } else if (step.isLastIfScope()) {//jumping out of the if
                     Label first = label.getLabel();
-                    Label start = new Label();
-                    methodVisitor.visitLabel(start);
-                    methodVisitor.visitLineNumber(((BlockDescriptor)step.getCurrentScope()).getLineEnd(), start);
+
+                    BlockDescriptor block = (BlockDescriptor)step.getCurrentScope();
+                    if(!block.hasReturn()){
+                        Label start = new Label();
+                        methodVisitor.visitLabel(start);
+                        methodVisitor.visitLineNumber(block.getLineEnd(), start);
+                    }
+                    
                     methodVisitor.visitLabel(first);
                     stack.peekScope().endLabel = first;
                     stack.popLabel();

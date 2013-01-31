@@ -1710,7 +1710,7 @@ public class StepFactory {
         if (currentMethod == null || currentMethod instanceof SystemActionDescriptor) {
             return;
         }
-
+        
         returnStep.setLineInformation(location);
         if (value != null) {
             returnStep.setReturnRegister(value.getRegister());
@@ -1970,7 +1970,12 @@ public class StepFactory {
      */
     public void endIf(IfStatementInfo info){
         SymbolTable symbolTable = this.machine.getSymbolTable();
-        symbolTable.getControlFlow().ifEnd();
+        boolean hasReturn = symbolTable.getControlFlow().ifEnd();
+        
+        if(hasReturn){
+            ((BlockDescriptor)machine.getSymbolTable().getCurrentScope()).setHasReturn(hasReturn);
+        }
+        
         symbolTable.popScope();
 
         String al = info.ifFalseLabel;
@@ -2030,7 +2035,10 @@ public class StepFactory {
      */
     public void endElseIf(IfStatementInfo info, int counter){
         SymbolTable symbolTable = this.machine.getSymbolTable();
-        symbolTable.getControlFlow().ifElseEnd();
+        boolean hasReturn = symbolTable.getControlFlow().ifElseEnd();
+        if(hasReturn){
+            ((BlockDescriptor)machine.getSymbolTable().getCurrentScope()).setHasReturn(hasReturn);
+        }
         symbolTable.popScope();
 
         String al = info.elseIfFalseLabels.get(counter);
@@ -2059,7 +2067,10 @@ public class StepFactory {
         addEndScopeStep("else", info.elseLocation);
         
         SymbolTable symbolTable = this.machine.getSymbolTable();
-        symbolTable.getControlFlow().elseEnd();
+        boolean hasReturn = symbolTable.getControlFlow().elseEnd();
+        if(hasReturn){
+            ((BlockDescriptor)symbolTable.getCurrentScope()).setHasReturn(true);
+        }
         symbolTable.popScope();
     }
 
@@ -2661,7 +2672,7 @@ public class StepFactory {
      * @param step
      * The step of the error parameter in the alert statement.
      */
-    public void addAlertStep(LineInformation location, ErrorTypeDescriptor errorType, ExpressionValue value, ExecutionStep step){
+    public void addAlertStep(LineInformation location, ErrorTypeDescriptor errorType, ExpressionValue value, ExecutionStep step){        
         //add a return value to the control flow checker.
         CompilerError returnError = this.machine.getSymbolTable().getControlFlow().addReturnStatement(location);
         if (returnError != null) {
