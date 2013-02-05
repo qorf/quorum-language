@@ -4013,7 +4013,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         // partial - handles only primitive types and text
         TypeDescriptor returnType = step.getMethodDescriptor().getReturnType();
         processExpressions();
-
+        
         if (returnType.isVoid()) {
             methodVisitor.visitInsn(RETURN);
         } else {

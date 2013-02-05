@@ -1235,12 +1235,17 @@ public class ClassDescriptor extends Descriptor implements Scopable {
             if (containerOld.compareTo(containerNew) == 0) {
                 return null; //ignore the request, the user is "using" the same class twice
             } else { //There's an actual name conflict, compiler error!
-                CompilerError error = new CompilerError(use.getLineBegin(),
-                        "There is a naming conflict." + " You have asked to use "
-                        + "the class " + cd.getName() + " from the package " + containerOld
-                        + " and the package " + containerNew + ".", ErrorType.USE_AMBIGUOUS);
+                /*CompilerError error = new CompilerError(use.getLineBegin(),
+                "There is a naming conflict." + " You have asked to use "
+                + "the class " + cd.getName() + " from the package " + containerOld
+                + " and the package " + containerNew + ".", ErrorType.USE_AMBIGUOUS);
                 error.setFile(getFile().getName());
-                return error;
+                return error;*/
+                ClassDescriptor remove = validUses.remove(cd.getName());
+                validUses.put(remove.getStaticKey(), remove);
+                validUses.put(cd.getStaticKey(), cd);
+                validFullyQualifiedUses.put(cd.getStaticKey(), cd);
+                return null;
             }
         }
     }

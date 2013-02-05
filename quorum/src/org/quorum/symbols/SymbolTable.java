@@ -927,7 +927,14 @@ public class SymbolTable {
                 } else { //throw a compiler error
                     //unresolved parent names
                     Iterator<ClassDescriptor> findClassesByName = this.findClassesByName(unPar);
-                    while(findClassesByName != null && findClassesByName.hasNext()){
+                    while (findClassesByName != null && findClassesByName.hasNext()) {
+                        if (cd != null) {
+                            CompilerError error = new CompilerError(next.getLineBegin(),
+                                    "More than one classes has the name " + unPar + ". Please specify the full class name and path.", ErrorType.INHERITANCE_AMBIGUOUS);
+                            CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
+                            errorManager.setErrorKey(next.getFile().getFile().getAbsolutePath());
+                            errorManager.addError(error);
+                        }
                         cd = findClassesByName.next();
                     }
 
