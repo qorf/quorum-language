@@ -1,0 +1,275 @@
+package Libraries.Web
+
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Web.WebGenerator
+use Libraries.Web.GlobalAttributeAccepter
+use Libraries.Web.MetaData
+use Libraries.Web.StyleSheetLink
+use Libraries.Web.Title
+use Libraries.Web.Script
+use Libraries.Web.Base
+
+/*
+The WebPageHeader class represents HTML's (Hypertext Markup Language) head tag 
+which is a container class for any WebTags that belong in the
+web pages header. 
+You can find more information about this tag at:
+<a href="http://www.w3schools.com/tags/tag_head.asp">The head attribute</a>.
+
+Attribute: Example
+use Libraries.Web.All
+class Main
+   action main
+      //make a web page
+      WebPage page
+      //add a TextArea
+      WebPageHeader header
+      page:SetWebPageHeader(header)
+      print page:Generate()
+   end
+end
+*/
+class WebPageHeader is a WebGenerator, GlobalAttributeAccepter
+
+    Title title
+    StyleSheetLink link = undefined
+    List<MetaData> metaList
+    List<Script> scriptList
+    List<Base> baseList
+
+    /*
+        This action adds MetaData to the header.
+
+        Attribute: Parameter value The header meta data. 
+
+        Attribute: Example
+
+        WebPageHeader header
+        MetaData md
+        header:Add(md)
+        
+    */
+    action Add(MetaData value)
+        metaList:Add(value)
+    end
+
+    /*
+        This action removes the first instance of the meta data value found in the
+        meta list.
+
+        Attribute: Parameter value The meta data element. 
+
+        Attribute: Example
+
+        WebPageHeader header
+        MetaData item
+        MetaData md = header:Remove(item)
+        
+    */
+    action Remove(MetaData value)
+        metaList:Remove(value)
+    end
+
+    /*
+        This action adds Base to the header. There can only be one base
+        on a page.
+
+        Attribute: Parameter value The header base data. 
+
+        Attribute: Example
+
+        WebPageHeader header
+        Base base
+        header:Add(base)
+        
+    */
+    action Add(Base value)
+        baseList:Add(value)
+    end
+
+    /*
+        This action removes the base data from the header.
+
+        Attribute: Parameter value The meta data element. 
+
+        Attribute: Example
+
+        WebPageHeader header
+        Base item
+        Base base = header:Remove(item)
+        
+    */
+    action Remove(Base value)
+        baseList:Remove(value)
+    end
+
+    /*
+        This action gets the number of meta data items in the header.
+
+        Attribute: Returns The number of meta data items in the header. 
+
+        Attribute: Example
+
+        WebPageHeader header
+        integer number = header:GetNumberOfMetaDataItems()
+        
+    */
+    action GetNumberOfMetaDataItems returns integer
+        return metaList:GetSize()
+    end
+
+    /*
+        This action adds a script to the header of a webpage.
+
+        Attribute: Parameter value The script to add to the header. 
+
+        Attribute: Example
+
+        WebPageHeader header
+        Script s
+        header:Add(s)
+        
+    */
+    action Add(Script value)
+        scriptList:Add(value)
+    end
+
+    /*
+        This action removes the first instance of the script from the headers 
+        list of scripts.
+
+        Attribute: Parameter value The script to be removed from the header. 
+
+        Attribute: Example
+
+        WebPageHeader header
+        Script s
+        header:Add(s)
+        header:Remove(s)
+        
+    */
+    action Remove(Script value)
+        scriptList:Remove(value)
+    end
+
+    /*
+        This action gets the number of script items in the header.
+
+        Attribute: Returns The number of script items in the header. 
+
+        Attribute: Example
+
+        WebPageHeader header
+        Script s
+        header:Add(s)
+        integer number = header:GetNumberOfScriptItems()
+        
+    */
+    action GetNumberOfScriptItems returns integer
+        return scriptList:GetSize()
+    end
+
+    /*
+        This action gets the headers title.
+
+        Attribute: Returns The headers title. 
+
+        Attribute: Example
+
+        WebPageHeader header
+        Title title
+        header:SetTitleHeader(title)
+        Title t = header:GetTitleHeader()
+        
+    */
+    action GetTitleHeader returns Title
+        return title
+    end
+
+//    action GetStyleSheetLink returns StyleSheetLink
+//        return link
+//    end
+
+    /*
+        This action sets the title for the header. This field is required.
+
+        Attribute: Parameter title The title. 
+
+        Attribute: Example
+
+        WebPageHeader header
+        Title title
+        header:SetTitleHeader(title)
+        
+    */
+    action SetTitleHeader(Title title)
+        me:title = title
+    end
+
+//    action SetStyleSheetLink(StyleSheetLink link)
+//        me:link = link
+//    end
+
+    /*
+        This action sets the text of the title in the header.
+
+        Attribute: Parameter value The title text. 
+
+        Attribute: Example
+
+        WebPageHeader header
+        header:SetTitleheaderValue("My Title")
+        
+    */
+    action SetTitleHeaderValue(text value)
+        title:SetDescription(value)
+    end
+
+    /*
+        This action gets the title text of the header.
+
+        Attribute: Returns The title. 
+
+        Attribute: Example
+
+        WebPageHeader header
+        print header:GetTitleHeaderValue()
+        
+    */
+    action GetTitleHeaderValue() returns text
+        return title:GetDescription()
+    end
+
+    action Generate returns text
+        
+        text result = "<head " + me:GenerateAttributes() + ">" 
+
+        if title not= undefined
+            result = result + title:Generate()
+        end
+        
+        Iterator<MetaData> it = metaList:GetIterator()
+        repeat while it:HasNext()
+            MetaData meta = it:Next()
+            result = result + meta:Generate()
+        end
+
+        Iterator<Script> itScript = scriptList:GetIterator()
+        repeat while itScript:HasNext()
+            Script script = itScript:Next()
+            result = result + script:Generate()
+        end
+
+        if baseList:GetSize() > 1
+        alert("Can not have more than 1 base on a page")
+        end
+        Iterator<Base> itBase = baseList:GetIterator()
+        repeat while itBase:HasNext()
+            Base base = itBase:Next()
+            result = result + base:Generate()
+        end
+        
+        return result + "</head>"
+    end
+end

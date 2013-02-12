@@ -1,0 +1,39 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+/*
+The DefinitionTerm class represents HTML's (Hypertext Markup Language) dfn tag which is
+used to ittalcize a word that will be defined by a following definition.
+This is meant to be used by itself, not with a DefinitionList. 
+For adding a term to a DefinitionList use a DefinitionListTerm.
+
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_phrase_elements.asp">The dfn attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      DefinitionTerm term
+      term:SetDescription("Apple")
+
+      page:AddToBody(term)
+      print page:Generate()
+    end
+end
+*/
+class DefinitionTerm is a WebTag
+    action Generate returns text
+        text result = "<dfn " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</dfn>"
+        return result
+    end
+end

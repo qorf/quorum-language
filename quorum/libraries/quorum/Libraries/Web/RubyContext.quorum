@@ -1,0 +1,41 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+
+/*
+The RubyContext class represents HTML's (Hypertext Markup Language) rt tag which is
+used to give a pronunciation of characters in a ruby annotation. 
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_rt.asp">The rt attribute</a>.
+
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      Ruby ruby
+      ruby:SetDescription("?")
+      RubyContext rt
+      rt:SetDescription(" ??? ")
+      ruby:Add(rt)
+      page:AddToBody(ruby)
+
+      print page:Generate()
+    end
+end
+*/
+class RubyContext is a WebTag
+    action Generate returns text
+        text result = "<rt " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</rt>"
+        return result
+    end
+end

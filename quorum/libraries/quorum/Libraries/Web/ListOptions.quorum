@@ -1,0 +1,46 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+
+/*
+The ListOptions class represents HTML's (Hypertext Markup Language) datalist tag which is
+used to contain pre-defined Options for an Input class. 
+
+This is used on the input by setting the SetList on input to the same as the id 
+of the ListOptions.
+
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_datalist.asp">The datalist attribute</a>.
+
+Attribute: Example
+use Libraries.Web.All
+
+class Main
+   action main
+      //make a web page
+      WebPage page
+      
+      ListOptions list
+
+      Option option
+      option:SetLabel("Alabama")
+
+      list:Add(option)
+
+      page:AddToBody(list)
+      print page:Generate()
+   end
+end
+*/
+class ListOptions is a WebTag
+    action Generate returns text
+        text result = "<datalist " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</datalist>"
+        return result
+    end
+end

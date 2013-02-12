@@ -1,0 +1,42 @@
+package Libraries.Web
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+/*
+The Aside class represents HTML's (Hypertext Markup Language) aside tag which is
+used to define content aside from the content it is placed in.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_aside.asp">The aside attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      Paragraph paragraph
+      paragraph:SetDescription("This is the main paragraph.")
+
+      Aside aside
+      Paragraph paragraph2
+      paragraph2:SetDescription("This is the aside.")
+
+      aside:Add(paragraph2)
+
+      page:AddToBody(paragraph)
+      page:AddToBody(aside)
+      print page:Generate()
+    end
+end
+*/
+class Aside is a WebTag
+    action Generate returns text
+        text result = "<aside " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</aside>"
+        return result
+    end
+end

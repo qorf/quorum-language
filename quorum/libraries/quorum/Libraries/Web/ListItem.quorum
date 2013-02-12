@@ -1,0 +1,73 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attribute
+use Libraries.Web.Attributes
+
+/*
+The ListItem class represents HTML's (Hypertext Markup Language) li tag which is
+used to define a list item that can be used in OrderedList, UnorderedList, and 
+MenuList classes.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_li.asp">The li attribute</a>.
+
+Attribute: Example
+use Libraries.Web.All
+class Main
+   action main
+      WebPage page
+      
+      UnorderedList ul
+      ListItem li
+      li:SetDescription("Apple")
+      ul:Add(li)
+
+      page:AddToBody(ul)
+      print page:Generate()
+   end
+end
+*/
+class ListItem is a WebTag
+    constant text value = "value"
+
+        /*
+        This action sets the number value for the list item.
+        
+        Attribute: Parameter value The number for the list item
+
+        Attribute: Example
+
+        ListItem listItem
+        listItem:SetNumberValue("3")
+        
+    */
+    action SetNumberValue(text value)
+        AddAttribute(value, value)
+    end
+
+    /*
+        This action gets number value for the list item that was set.
+        
+
+        Attribute: Returns The set number value for the list item.
+
+        Attribute: Example
+
+        ListItem listItem
+        listItem:SetNumberValue("3")
+        Attribute numberValue = listItem:GetCitation()
+    */
+    action GetNumberValue returns Attribute
+        return me:GetAttribute(value)
+    end
+
+    action Generate returns text
+        text result = "<li " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</li>"
+        return result
+    end
+end

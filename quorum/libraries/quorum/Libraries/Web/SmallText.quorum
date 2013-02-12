@@ -1,0 +1,37 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+
+/*
+The SmallText class represents HTML's (Hypertext Markup Language) small tag which is
+used to add smaller text for side comments or copyrights.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_small.asp">The small attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      SmallText small
+      small:SetDescription("HTML")
+      page:AddToBody(small)
+
+      print page:Generate()
+    end
+end
+*/
+class SmallText is a WebTag
+    action Generate returns text
+        text result = "<small " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</small>"
+        return result
+    end
+end

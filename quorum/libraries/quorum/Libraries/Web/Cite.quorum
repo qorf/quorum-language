@@ -1,0 +1,39 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+/*
+The Cite class represents HTML's (Hypertext Markup Language) cite tag which is
+used to italicize the title of cited information being displayed.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_cite.asp">The cite attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      Paragraph paragraph
+      Cite cite
+      
+      cite:SetDescription("The Title")
+      paragraph:Add("cite")
+
+      page:AddToBody(paragraph)
+      print page:Generate()
+    end
+end
+*/
+class Cite is a WebTag
+    action Generate returns text
+        text result = "<cite " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</cite>"
+        return result
+    end
+end

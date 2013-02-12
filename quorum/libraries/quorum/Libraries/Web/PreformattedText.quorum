@@ -1,0 +1,39 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+
+/*
+The PreformattedText class represents HTML's (Hypertext Markup Language) pre tag which is
+used to preserve line breaks and spaces that are in the text.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_pre.asp">The pre attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      PreformattedText pre
+      pre:SetDescription("This text
+is pre-
+formatted.")
+
+      page:AddToBody(pre)
+      print page:Generate()
+    end
+end
+*/
+class PreformattedText is a WebTag
+    action Generate returns text
+        text result = "<pre " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</pre>"
+        return result
+    end
+end

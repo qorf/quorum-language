@@ -1,0 +1,37 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+
+/*
+The StrikeThrough class represents HTML's (Hypertext Markup Language) s tag which is
+used to strike through text that is no longer correct.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_s.asp">The s attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      StrikeThrough strike
+      strike:SetDescription("HTML")
+      page:AddToBody(strike)
+
+      print page:Generate()
+    end
+end
+*/
+class StrikeThrough is a WebTag
+    action Generate returns text
+        text result = "<s " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</s>"
+        return result
+    end
+end

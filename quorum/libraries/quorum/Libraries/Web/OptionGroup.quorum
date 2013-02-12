@@ -1,0 +1,157 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attribute
+use Libraries.Web.Attributes
+/*
+The OptionGroup class represents HTML's (Hypertext Markup Language) optiongroup 
+tag which is used to group options in a select or data list. 
+You can find more information about this tag at: 
+<a href="http://www.w3schools.com/tags/tag_optgroup.asp">The optgroup attribute</a>.
+
+Attribute: Example
+use Libraries.Web.All
+class Main
+   action main
+      WebPage page
+      
+      Select select
+      OptionGroup og
+      og:SetLabel("States")
+      select:AddOptionGroup(og)
+
+      page:AddToBody(select)
+      print page:Generate()
+   end
+end
+*/
+class OptionGroup is a WebTag
+    constant text disabled = "disabled"
+    constant text label = "label"
+
+    /*
+        This action gets whether the option group in a datalist or select is disabled (true)
+        or enabled(false).
+
+        Attribute: Returns True if diabled and false if enabled. 
+
+        Attribute: Example
+
+        boolean result = og:GetDisabled()
+        
+    */
+    action GetDisabled returns boolean
+        Attribute disable = GetAttribute(me:disabled)
+        return disable:GetValue() = me:disabled
+    end
+    
+    /*
+        This action sets the option group to be disabled if true and enabled if false.
+
+        Attribute: Parameter value True to disable and false to enable the option. 
+
+        Attribute: Example
+
+        OptionGroup og
+        og:SetDisabled(true)
+        
+    */
+    action SetDisabled (boolean value)
+        if value
+            AddAttribute(disabled, disabled)
+        else
+            RemoveAttribute(disabled)
+        end
+    end
+
+    /*
+        This action gets the option groups labeling text.
+
+        Attribute: Returns Labeling text. 
+
+        Attribute: Example
+
+        Attribute result = og:GetLabel()
+        
+    */
+    action GetLabel returns Attribute
+        return me:GetAttribute(label)
+    end
+    
+    /*
+        This action sets the option group label.
+
+        Attribute: Parameter value The labeling text. 
+
+        Attribute: Example
+
+        OptionGroup og
+        og:SetLabel("states")
+        
+    */
+    action SetLabel(text value)
+        AddAttribute(label, value)
+    end
+
+    /*
+        This action adds an option to the option group.
+
+        Attribute: Parameter value The option to be added to the group. 
+
+        Attribute: Example
+
+        OptionGroup og
+        og:SetLabel("States")
+        Option option
+        option:SetLabel("Alabama")
+        og:AddOption(option)
+        
+    */
+    action AddOption(Option option)
+        Add(option)
+    end
+
+    /*
+        This action removes an option from the option group.
+
+        Attribute: Parameter value The option to be removed from the group. 
+
+        Attribute: Example
+
+        OptionGroup og
+        og:SetLabel("States")
+        Option option
+        option:SetLabel("Alabama")
+        og:AddOption(option)
+        
+        og:RemoveOption(option)
+        
+    */
+    action RemoveOption(Option option)
+        Remove(option)
+    end
+
+    /*
+        This action gets the number of options in an option group.
+
+        Attribute: Returns The number of options in an option group. 
+
+        Attribute: Example
+
+        integer result = og:GetNumberOfOptions()
+        
+    */
+    action GetNumberOfOptions returns integer
+        return GetNumberOfNestedTags()
+    end
+
+    action Generate returns text
+        text result = "<optgroup " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</optgroup>"
+        return result
+    end
+end

@@ -1,0 +1,39 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+
+/*
+The Summary class represents HTML's (Hypertext Markup Language) summary tag which is
+used to add a title to a Details class.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_summary.asp">The summary attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      Details details
+      Summary summary
+      summary:SetDescription("Copyright 2012 - 2014")
+      details:Add(summary)
+     
+      page:AddToBody(details)
+      print page:Generate()
+    end
+end
+*/
+class Summary is a WebTag
+    action Generate returns text
+        text result = "<summary " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</summary>"
+        return result
+    end
+end

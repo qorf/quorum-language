@@ -1,0 +1,76 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attribute
+use Libraries.Web.Attributes
+
+/*
+The BlockQuote class represents HTML's (Hypertext Markup Language) 
+blockquote tag which is used to specify a larger amount of text that is quoted
+from a source. You can set the citation source so that it is properly cited.
+
+You can find more information about this tag at: 
+.<a href="http://www.w3schools.com/tags/tag_blockquote.asp">The blockquote attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      BlockQuote quote
+      quote:SetCitationAddress("http://www.w3schools.com/tags/tag_blockquote.asp")
+      quote:SetDescription("The <blockquote> tag specifies a section that is quoted from another source.")
+
+      page:AddToBody(quote)
+      print page:Generate()
+    end
+end
+*/
+class BlockQuote is a WebTag
+    constant text citationAddress = "cite"
+
+    /*
+        This action sets the citation URL or web address.
+        
+        Attribute: Parameter value The citation URL or web address.
+
+        Attribute: Example
+
+        BlockQuote blockQuote
+        blockQuote:SetCitationAddress("http://www.w3schools.com/tags/tag_blockquote.asp")
+        
+    */
+    action SetCitationAddress(text value)
+        AddAttribute(citationAddress, value)
+    end
+
+    /*
+        This action gets the citation URL or web address.
+        
+
+        Attribute: Returns The citation address.
+
+        Attribute: Example
+
+        BlockQuote blockQuote
+        blockQuote:SetCitationAddress("http://www.w3schools.com/tags/tag_blockquote.asp")
+        Attribute address = blockQuote:GetCitationAddress()
+        
+    */
+    action GetCitationAddress returns Attribute
+        return me:GetAttribute(citationAddress)
+    end
+
+    action Generate returns text
+        text result = "<blockquote " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</blockquote>"
+        return result
+    end
+
+end

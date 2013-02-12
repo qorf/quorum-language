@@ -1,0 +1,38 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+/*
+The Highlight class represents HTML's (Hypertext Markup Language) mark tag which is
+used to highlight text.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_mark.asp">The mark attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      Paragraph p
+      Highlight highlight
+      highlight:SetDescription("Highlight this text")
+      p:Add(highlight)
+
+      page:AddToBody(p)
+      print page:Generate()
+    end
+end
+*/
+class Highlight is a WebTag
+    action Generate returns text
+        text result = "<mark " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</mark>"
+        return result
+    end
+end

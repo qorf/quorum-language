@@ -1,0 +1,35 @@
+package Libraries.Web
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+/*
+The StrongText class represents HTML's (Hypertext Markup Language) strong tag which is
+used to bold text to show emphasis.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_strong.asp">The strong attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      StrongText strong
+      strong:SetDescription("HTML")
+      page:AddToBody(strong)
+
+      print page:Generate()
+    end
+end
+*/
+class StrongText is a WebTag
+    action Generate returns text
+        text result = "<strong " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</strong>"
+        return result
+    end
+end

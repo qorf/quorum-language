@@ -1,0 +1,82 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attribute
+use Libraries.Web.Attributes
+
+/*
+The Time class represents HTML's (Hypertext Markup Language) time tag which is
+used to add a time reference to times on the page. It does not change how the 
+text is shown but is used for search engines.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_time.asp">The time attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      Time time
+      time:SetDescription("9:30")
+
+      page:AddToBody(time)
+      print page:Generate()
+    end
+end
+*/
+class Time is a WebTag
+    constant text dateTime = "datetime"
+
+    /*
+        This action sets the datetime of a time event. This allows the datetime 
+        to be hidden while a time is displayed. The following are valid datetime
+        formats: YYYY-MM-DDThh:mm:ssTZD. That is YYYY(e.g. 2012), MM(e.g. 02), 
+        DD(e.g. 15), T(a seperator required for specifying time), hh(e.g. 23),
+        mm(e.g. 30), ss(e.g. 05), TZD(e.g. Z for zulu).
+        
+
+        Attribute: Parameter value The datetime in any of the given formats.
+
+        Attribute: Example
+
+        Time time
+        time:SetDateTime("2012-02-15T23:00:00Z")
+        
+    */
+    action SetDateTime(text value)
+        AddAttribute(dateTime, value)
+    end
+
+    /*
+        This action gets the datetime of a time event. This allows the datetime 
+        to be hidden while a time is displayed. The following are valid datetime
+        formats: YYYY-MM-DDThh:mm:ssTZD. That is YYYY(e.g. 2012), MM(e.g. 02), 
+        DD(e.g. 15), T(a seperator required for specifying time), hh(e.g. 23),
+        mm(e.g. 30), ss(e.g. 05), TZD(e.g. Z for zulu).
+        
+
+        Attribute: Returns The datetime.
+
+        Attribute: Example
+
+        Time time
+        time:SetDateTime("2012-02-15T23:00:00Z")
+        Attribute dateTime = time:GetDateTime()
+        
+    */
+    action GetDateTime returns Attribute
+        return me:GetAttribute(dateTime)
+    end
+
+    action Generate returns text
+        text result = "<time " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</time>"
+        return result
+    end
+end

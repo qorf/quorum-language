@@ -1,0 +1,365 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attribute
+use Libraries.Web.Attributes
+use Libraries.Web.FormAttributeAccepter
+
+/*
+The Form class represents HTML's (Hypertext Markup Language) form tag which 
+allows a form to be generated that accepts user input. The form can contain 
+one or more FieldSet, Input, TextArea, Button, Select, Option, OptionGroup, or Label
+elements.
+You can find more information about this tag at: 
+    <a href="http://www.w3schools.com/tags/tag_form.asp">The form attribute</a>.
+
+
+Attribute: Example
+
+use Libraries.Web.All
+class Main
+   action main
+      //make a web page
+      WebPage page
+      
+      //create a form
+      Form form
+      //create a fieldset
+      FieldSet field
+      //create a column
+      Input input
+      //setup that input
+      input:SetType("text")
+      //add the input to the fieldset
+      field:Add(input)
+      //add the fieldset to the form
+      form:Add(field)
+      page:AddToBody(form)
+   end
+end
+*/
+class Form is a WebTag, FormAttributeAccepter
+    constant text acceptCharset = "accept-charset"
+    constant text formAction   = "action"
+    constant text autocomplete = "autocomplete"
+    constant text enctype = "enctype"
+    constant text method = "method"
+    constant text name = "name"
+    constant text novalidate = "novalidate"
+    constant text target = "target"
+    constant text get = "get"
+    constant text post = "post"
+    constant text autocompleteOn = "on"
+    constant text autocompleteOff = "off"
+
+    public constant text newTab = "_blank"
+    public constant text sameFrame = "_self"
+    public constant text parentFrame = "_parent"
+    public constant text sameWindow = "_top"
+
+    /*
+        This action gets the character encodings of the form that will be used
+        to submit the form. The default value is "UNKNOWN".
+
+        Attribute: Returns "UNKNOWN" or the type of char encoding of the form.
+
+        Attribute: Example
+
+        Form form
+        text attr = form:GetAcceptCharset() 
+    */
+    action GetAcceptCharset  returns text
+        Attribute attr = GetAttribute(acceptCharset)
+        if attr = undefined
+            return "UNKNOWN"
+        else
+            return attr:GetValue()
+        end
+    end
+
+    /*
+        This action sets the character encoding of the form data that will be
+        submitted.
+
+        Attribute: Parameter value The character encoding.
+
+        Attribute: Example
+
+        Form form
+        form:SetAcceptCharset("ISO-8859-1")
+        
+    */
+    action SetAcceptCharset(text value)
+        AddAttribute(acceptCharset, value)
+    end
+
+    /*
+        This action gets the location the form is to be submitted to.
+
+        Attribute: Returns Submition location.
+
+        Attribute: Example
+
+        Form form
+        Attribute attr = form:GetFormAction()
+    */
+    action GetFormAction returns Attribute
+        return me:GetAttribute(formAction)
+    end
+
+    /*
+        This action sets the submit location of the form.
+
+        Attribute: Parameter value Submit location.
+
+        Attribute: Example
+
+        Form form
+        form:SetFormAction("test.asp")
+        
+    */
+    action SetFormAction(text value)
+        AddAttribute(formAction, value)
+    end
+
+    /*
+        This action gets 
+
+        Attribute: Returns 
+
+        Attribute: Example
+
+        Form form
+        boolean isAutoComplete = form:GetAutoComplete()
+    */
+    action GetAutoComplete returns boolean
+        Attribute isAutoComplete = me:GetAttribute(autocomplete)
+        if isAutoComplete not= undefined
+            return isAutoComplete:GetValue() = autocomplete
+        end
+        return false
+    end
+
+    /*
+        This action sets the autocompletion on or off for a form and its elements.
+
+        Attribute: Parameter value True for autocomplete and false for it to turn off.
+
+        Attribute: Example
+
+        Form form
+        form:SetAutoComplete(true)
+        
+    */
+    action SetAutoComplete(boolean value)
+        if value
+            AddAttribute(autocomplete, autocompleteOn)
+        else
+            AddAttribute(autocomplete, autocompleteOff)
+        end
+    end
+
+    /*
+        This action gets the encoded type of the form data to be submitted to 
+        the server. Either application/x-www-form-urlencoded, 
+        multipart/form-data, or text/plain.
+
+        Attribute: Returns  The encoded type of the form.
+
+        Attribute: Example
+
+        Form form
+        text encodedType = form:GetEncodedType()
+    */
+    action GetEncodedType returns text
+        text textValue = ""
+        Attribute value = me:GetAttribute(enctype)
+        if value not= undefined
+            textValue = value:GetValue()
+        end
+        return textValue
+    end
+
+    /*
+        This action sets the encoded type of the form data to be submitted to 
+        the server. Either application/x-www-form-urlencoded, 
+        multipart/form-data, or text/plain.
+
+        Attribute: Parameter value encoded type.
+
+        Attribute: Example
+
+        Form form
+        form:SetEncodedType()
+        
+    */
+    action SetEncodedType(text value)
+        AddAttribute(enctype, value)
+    end
+
+    /*
+        This action gets the post mehtod that is set for sending form data. if true
+        the HTTP method is "post" if false it is "get".
+
+        Attribute: Returns  true if "post" and false if "get"
+
+        Attribute: Example
+
+        Form form
+        boolean attr = form:IsPost()
+    */
+    action IsPost returns boolean
+        Attribute isPost = GetAttribute(method)
+        if isPost = undefined or isPost:GetValue() = get
+            return false
+        else
+            return true
+        end
+    end
+
+    /*
+        This action sets the HTTP method to post. See <a>http://www.w3schools.com/tags/att_form_method.asp</a>
+
+        Attribute: Parameter value true if using the HTTP method, post.
+
+        Attribute: Example
+
+        Form form
+        form:SetPost(true)
+        
+    */
+    action SetPost(boolean value)
+        if value
+            AddAttribute(method, post)
+        else
+            RemoveAttribute(method)
+        end
+    end
+
+    /*
+        This action sets the HTTP method to get. See <a>http://www.w3schools.com/tags/att_form_method.asp</a>
+
+        Attribute: Parameter value true if using the HTTP method, get.
+
+        Attribute: Example
+
+        Form form
+        form:SetGet(true)
+        
+    */
+    action SetGet(boolean value)
+        if value
+            AddAttribute(method, get)
+        else
+            RemoveAttribute(method)
+        end
+    end
+
+    /*
+        This action gets the name of the form.
+
+        Attribute: Returns The name of the form.
+
+        Attribute: Example
+
+        Form form
+        Attribute name = form:GetName()
+    */
+    action GetName returns Attribute
+        return me:GetAttribute(name)
+    end
+
+    /*
+        This action sets the name of the form.
+
+        Attribute: Parameter value The name of the form.
+
+        Attribute: Example
+
+        Form form
+        form:SetName("myForm")
+        
+    */
+    action SetName(text value)
+        AddAttribute(name, value)
+    end
+
+    /*
+        This action gets whether the input data in the form should be validated.
+
+        Attribute: Returns True if input is validated and false if it is not validated.
+
+        Attribute: Example
+
+        Form form
+        boolean attr = form:GetValidate()
+    */
+    action GetValidate returns boolean
+        Attribute attr = GetAttribute(novalidate)
+        if attr = undefined 
+            return true
+        elseif attr:GetValue() = novalidate
+            return false
+        else
+            return true
+        end
+    end
+
+    /*
+        This action sets the validation for input.
+
+        Attribute: Parameter value True will validate and false will not validate the input.
+
+        Attribute: Example
+
+        Form form
+        form:SetValidate(false)
+        
+    */
+    action SetValidate(boolean value)
+        if value
+            RemoveAttribute(novalidate)
+        else
+            AddAttribute(novalidate, novalidate)
+        end
+    end
+
+    /*
+        This action gets the target of the response from the submitted data. 
+        The response can be sent to _blank, _self, _parent, _top, or a framename.
+
+        Attribute: Returns The target.
+
+        Attribute: Example
+
+        Form form
+        Attribute target = form:GetTarget()
+    */
+    action GetTarget returns Attribute
+        return me:GetAttribute(target)
+    end
+
+    /*
+        This action sets the target of the response from the submitted data. 
+        The response can be sent to _blank, _self, _parent, _top, or a framename.
+
+        Attribute: Parameter value _blank, _self, _parent, _top, or a framename
+
+        Attribute: Example
+
+        Form form
+        form:SetTarget("_self")
+        
+    */
+    action SetTarget(text value)
+        AddAttribute(target, value)
+    end
+   
+    action Generate returns text
+        text result = "<form " 
+        result = result + me:GenerateAttributes() + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + "</form>"
+        return result
+    end
+end

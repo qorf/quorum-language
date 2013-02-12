@@ -1,0 +1,37 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+/*
+The NoScript class represents HTML's (Hypertext Markup Language) noscript tag which is
+used to show different content if a user is not allowing for scripts to be run 
+or the browser does not support the script.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_noscript.asp">The noscript attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      NoScript noScript
+      noScript:SetDescription("Your browser does not support Javascript.")
+
+      page:AddToBody(noScript)
+      print page:Generate()
+    end
+end
+*/
+class NoScript is a WebTag
+    action Generate returns text
+        text result = "<noscript " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</noscript>"
+        return result
+    end
+end

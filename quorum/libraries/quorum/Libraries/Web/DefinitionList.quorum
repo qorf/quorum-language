@@ -1,0 +1,42 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+/*
+The DefinitionList class represents HTML's (Hypertext Markup Language) dl tag 
+which is used to make a list for Definitions and DefinitionTerms.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_dl.asp">The dl attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      DefinitionList defList
+      DefinitionListTerm defTerm
+      Definition definition
+      
+      defTerm:SetDescription("Apple")
+      definition:SetDescription("A fruit from a tree, with a thin skin and crisp inside.")
+      defList:Add(defTerm)
+      defList:Add(definition)
+
+      page:AddToBody(defList)
+      print page:Generate()
+    end
+end
+*/
+class DefinitionList is a WebTag
+    action Generate returns text
+        text result = "<dl " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</dl>"
+        return result
+    end
+end

@@ -1,0 +1,35 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+
+/*
+The WordBreak class represents HTML's (Hypertext Markup Language) wbr tag which is
+used to add words that are ok to brake up when the page gets shrunk down.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_wbr.asp">The wbr attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+      WordBreak wordBreak
+      wordBreak:SetDescription("HTML")
+      page:AddToBody(wordBreak)
+      print page:Generate()
+    end
+end
+*/
+class WordBreak is a WebTag
+    action Generate returns text
+        text result = "<wbr " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</wbr>"
+        return result
+    end
+end
