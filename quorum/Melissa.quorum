@@ -1,6 +1,143 @@
-use Libraries.Web.All
+use Libraries.Web.Abbreviation
+use Libraries.Web.Area
+use Libraries.Web.Article
+use Libraries.Web.Aside
+use Libraries.Web.Attribute
+use Libraries.Web.AttributeAccepter
+use Libraries.Web.Attributes
+use Libraries.Web.Audio
+use Libraries.Web.Base
+use Libraries.Web.BiDirectionalIsolation
+use Libraries.Web.BiDirectionalOverride
+use Libraries.Web.BlockQuote
+use Libraries.Web.Body
+use Libraries.Web.Bold
+use Libraries.Web.Button
+use Libraries.Web.CalculationOutput
+use Libraries.Web.Canvas
+use Libraries.Web.Cite
+use Libraries.Web.CodeBlock
+use Libraries.Web.Column
+use Libraries.Web.ColumnGroup
+use Libraries.Web.Command
+use Libraries.Web.Comment
+use Libraries.Web.Definition
+use Libraries.Web.DefinitionList
+use Libraries.Web.DefinitionListTerm
+use Libraries.Web.DefinitionTerm
+use Libraries.Web.Deleted
+use Libraries.Web.Details
+use Libraries.Web.Division
+use Libraries.Web.DocumentType
+use Libraries.Web.Embed
+use Libraries.Web.EmbedContent
+use Libraries.Web.Emphasize
+use Libraries.Web.EventAttributeAccepter
+use Libraries.Web.FieldSet
+use Libraries.Web.Figure
+use Libraries.Web.FigureCaption
+use Libraries.Web.Footer
+use Libraries.Web.Form
+use Libraries.Web.FormAttributeAccepter
+use Libraries.Web.GlobalAttributeAccepter
+use Libraries.Web.Header
+use Libraries.Web.Heading
+use Libraries.Web.HeadingGroup
+use Libraries.Web.Highlight
+use Libraries.Web.Image
+use Libraries.Web.ImageMap
+use Libraries.Web.InlineFrame
+use Libraries.Web.Input
+use Libraries.Web.Inserted
+use Libraries.Web.Italic
+use Libraries.Web.KeyBoardInput
+use Libraries.Web.KeyGenerator
+use Libraries.Web.KeyboardAttributeAccepter
+use Libraries.Web.Label
+use Libraries.Web.LanguageCode
+use Libraries.Web.Legend
+use Libraries.Web.LineBreak
+use Libraries.Web.Link
+use Libraries.Web.ListItem
+use Libraries.Web.ListOptions
+use Libraries.Web.MediaAttributeAccepter
+use Libraries.Web.Menu
+use Libraries.Web.MetaData
+use Libraries.Web.MouseAttributeAccepter
+use Libraries.Web.NavigationLink
+use Libraries.Web.NoRuby
+use Libraries.Web.NoScript
+use Libraries.Web.Option
+use Libraries.Web.OptionGroup
+use Libraries.Web.OrderedList
+use Libraries.Web.OwnerAddress
+use Libraries.Web.PageBreak
+use Libraries.Web.Paragraph
+use Libraries.Web.Parameter
+use Libraries.Web.PerformanceGauge
+use Libraries.Web.PreformattedText
+use Libraries.Web.ProgressBar
+use Libraries.Web.Quote
+use Libraries.Web.Ruby
+use Libraries.Web.RubyContext
+use Libraries.Web.SampleOutput
+use Libraries.Web.Script
+use Libraries.Web.Section
+use Libraries.Web.Select
+use Libraries.Web.SmallText
+use Libraries.Web.Source
+use Libraries.Web.Span
+use Libraries.Web.StrikeThrough
+use Libraries.Web.StrongText
+use Libraries.Web.Style
+use Libraries.Web.StylesheetLink
+use Libraries.Web.SubscriptText
+use Libraries.Web.Summary
+use Libraries.Web.SuperscriptText
+use Libraries.Web.TableBody
+use Libraries.Web.TableCaption
+use Libraries.Web.TableFooter
+use Libraries.Web.TableHeader
+use Libraries.Web.TableHeaderCell
+use Libraries.Web.TableRow
+use Libraries.Web.TextArea
+use Libraries.Web.Time
+use Libraries.Web.Title
+use Libraries.Web.Ruby
+use Libraries.Web.UnderlineText
+use Libraries.Web.UnorderedList
+use Libraries.Web.Variable
+use Libraries.Web.Video
+use Libraries.Web.WebGenerator
+use Libraries.Web.WebPage
+use Libraries.Web.WebPageHeader
+use Libraries.Web.WebTable
+use Libraries.Web.WebTag
+use Libraries.Web.WindowAttributeAccepter
+use Libraries.Web.WordBreak
 class Main
-    action Main
-        
-    end
+   action main
+      WebPage page
+      
+      Image image
+      image:SetAddress("http://images.free-extras.com/pics/s/smile-1613.jpg")
+      image:SetWidth("150")
+      image:SetHeight("150")
+      image:SetAlternate("Smile")
+      image:SetUseMap("#smilemap")
+
+      ImageMap imageMap
+      imageMap:SetName("smilemap")
+
+      Area area
+      area:SetShape("rect")
+      area:SetCoordinates("0,0,100,100")
+      area:SetAddress("http://www.darpa.mil/uploadedImages/Content/NewsEvents/Releases/2012/Upward_Falling_Image.jpg")
+
+      imageMap:Add(area)
+
+      page:AddToBody(image)
+      page:AddToBody(imageMap)
+      print page:Generate()
+   end
 end
