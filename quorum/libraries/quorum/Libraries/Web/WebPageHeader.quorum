@@ -5,7 +5,7 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.Web.WebGenerator
 use Libraries.Web.GlobalAttributeAccepter
 use Libraries.Web.MetaData
-use Libraries.Web.StyleSheetLink
+use Libraries.Web.StylesheetLink
 use Libraries.Web.Title
 use Libraries.Web.Script
 use Libraries.Web.Base
@@ -33,7 +33,7 @@ end
 class WebPageHeader is a WebGenerator, GlobalAttributeAccepter
 
     Title title
-    StyleSheetLink link = undefined
+    StylesheetLink link = undefined
     List<MetaData> metaList
     List<Script> scriptList
     List<Base> baseList
@@ -187,7 +187,7 @@ class WebPageHeader is a WebGenerator, GlobalAttributeAccepter
         return title
     end
 
-//    action GetStyleSheetLink returns StyleSheetLink
+//    action GetstyleSheetLink returns StylesheetLink
 //        return link
 //    end
 
@@ -207,7 +207,7 @@ class WebPageHeader is a WebGenerator, GlobalAttributeAccepter
         me:title = title
     end
 
-//    action SetStyleSheetLink(StyleSheetLink link)
+//    action SetStylesheetLink(StylesheetLink link)
 //        me:link = link
 //    end
 
