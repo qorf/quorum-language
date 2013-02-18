@@ -4,6 +4,41 @@
 </script>
 <?php echo '<h2>' . $WEB_ROOT. '</h2>';?>
 <h1>Quorum Release Notes</h1>
+<h2>Quorum 1.7 February 25th, 2013</h2>
+<p>Quorum 1.7 adds in a new type inference system, upgrades the internal architecture substantially,
+and fixes a number of known bugs.</p>
+
+<ul>
+    
+    <li>Quorum now has a type inference system that can be used on the inside of actions (but not in declarations). 
+        In effect, this means that users can write phrases like "a = 5" and the compiler will 
+        still statically check, but will allow the type declaration to be excluded under many circumstances. 
+        This new system partially completes
+        changes to the Quorum 2.0 type system, which conforms to user studies with humans done by
+        our team and Stefan Hanenberg.
+        </li>
+    <li>Substantially altered the static analysis tools internally to Quorum. This
+    greatly increases the quality of the types of tools that can be built on top
+    of the compiler. For example, Sodbeans now has much better code completion support
+    due to this upgrade.</li>
+    <li>Added new web libraries for Quorum. This initial version is in beta and will
+    be completed in Quorum 2.0. The current version, located in Libraries.Web supports
+    the HTML 5 specification (or by calling print "my page here"). There are a number of 
+    limitations in this first release, but a basic web server can be created by
+    passing the -web tag to the compiler (or in Sodbeans).</li>
+    <li>Added a hash table to the standard library under Libraries.Containers.HashTable.</li>
+    <li>Added a class for handling bitwise operations to the standard library under
+        Libraries.Compute.BitwiseOperations.</li>
+    <li>Made more changes to the compiler errors output by Quorum as part of our 
+        continuing mission to make Quorum easier to use.</li>
+    <li>Updated and expanded the curriculum and documentation for Quorum.</li>
+    <li>Added a way to pass and use command line arguments.</li>
+    <li>Fixed a bug with the "me" keyword.</li>
+    <li>Fixed a rare, but critical, bug in the inheritance system.</li>
+    <li>Fixed an odd bug in the scoping system.</li>
+    <li>Fixed a number of small edge-case bugs.</li>
+</ul>
+
 <h2>Quorum 1.6 September 9th, 2012</h2>
 <p>Quorum 1.6 contains a number of important bug fixes.</p>
 <ul>
