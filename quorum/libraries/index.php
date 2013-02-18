@@ -11,7 +11,7 @@
     with novices and experts. Quorum is available as part of the 
     <a href="http://sodbeans.sourceforge.net/"> Sodbeans project</a> and 
     additionally as a stand-alone programming 
-    language. The Quorum 1.5 release (see 
+    language. The Quorum 1.7 release (see 
     the <a href="documents/release.php">Quorum release notes</a>), 
     has the following features:
 </p>
@@ -24,7 +24,7 @@
     <li><a href="libraries.php">Standard Library</a> (e.g., data structures, 
         music generation, text-to-speech)</li>
     <li>Plugin system for extending Quorum</li>
-    <li>Integration with the NetBeans IDE</li>
+    <li>Integration with the NetBeans IDE (see the <a href="documents/releaseIDE.php">Sodbeans release notes</a>) </li>
     <li>Talking Omniscient debugger (The debugger literally talks to you and 
         tells you what is going on).</li>
 </ul>
