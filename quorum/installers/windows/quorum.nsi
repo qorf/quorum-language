@@ -11,17 +11,17 @@
  
 ;--------------------------------
 ; The name of the installer
-Name "Quorum 1.6"
+Name "Quorum 1.7"
 
 ; The file to write
-OutFile "Quorum 1.6.exe"
+OutFile "Quorum 1.7.exe"
 
 ; The default installation directory
-InstallDir "$PROGRAMFILES\Quorum 1.6"
+InstallDir "$PROGRAMFILES\Quorum 1.7"
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\Quorum 1.6" "Install_Dir"
+InstallDirRegKey HKLM "Software\Quorum 1.7" "Install_Dir"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
@@ -40,8 +40,8 @@ RequestExecutionLevel admin
 ;------------------------------
 ; Bundling configuration
 !define NETInstaller "dotNetFx40_Client_setup.exe" ; must reflect filename in this directory!
-!define JREInstaller32 "jre-6u30-windows-i586-iftw.exe" ; must reflect filename in this directory!
-!define JREInstaller64 "jre-6u30-windows-x64.exe" ; must reflect filename in this directory!
+!define JREInstaller32 "jdk-7-windows-i586.exe" ; must reflect filename in this directory!
+!define JREInstaller64 "jdk-7-windows-x64.exe" ; must reflect filename in this directory!
 
 ;--------------------------------
 ; Variables
@@ -136,13 +136,13 @@ Section "Quorum (required)" Quorum_Sec
   File /nonfatal /r "Quorum\*.*"
   
   ; Write the installation path into the registry
-  WriteRegStr HKLM "SOFTWARE\Quorum 1.6" "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM "SOFTWARE\Quorum 1.7" "Install_Dir" "$INSTDIR"
   
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum 1.6" "DisplayName" "Quorum 1.6"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum 1.6" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum 1.6" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum 1.6" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum 1.7" "DisplayName" "Quorum 1.7"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum 1.7" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum 1.7" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum 1.7" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
   
   ; Write QUORUM_INSTALLATION_PATH environment variable
@@ -157,7 +157,7 @@ SectionEnd
 ;--------------------------------
 ; Optional section (can be disabled by the user)
 Section "Start Menu Shortcuts" StartMenu_Sec
-  CreateDirectory "$SMPROGRAMS\Quorum 1.6"
+  CreateDirectory "$SMPROGRAMS\Quorum 1.7"
   CreateShortCut "$SMPROGRAMS\Quorum\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
 
 SectionEnd
@@ -180,7 +180,7 @@ Section "Uninstall"
 	
   ; Remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Quorum"
-  DeleteRegKey HKLM "SOFTWARE\Quorum 1.6"
+  DeleteRegKey HKLM "SOFTWARE\Quorum 1.7"
 
   ; Remove files and uninstaller
   Delete $INSTDIR\*.*
@@ -254,5 +254,5 @@ FunctionEnd
 
 ; Launches appropriate documentation
 Function LaunchDocumentation
-	ExecShell "open" "http://quorum.sourceforge.net/download.php"
+	ExecShell "open" "http://quorum.sourceforge.net/"
 FunctionEnd
