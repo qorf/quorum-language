@@ -80,7 +80,7 @@
 <h2>In Class Lab Assignments</h2>
 <ul>
     <li>
-        <a href="/apps/trac/quorum/wiki/curriculum/chapter7/lab7_1">Lab Manual 7.1</a>
+        <a href="lab7_1.php">Lab Manual 7.1</a>
     </li>
     <li>
         Create and use arrays
@@ -94,7 +94,7 @@
 </ul>
 <ul>
     <li>
-        <a href="/apps/trac/quorum/wiki/curriculum/chapter7/lab7_2">Lab Manual 7.2</a>
+        <a href="lab7_2.php">Lab Manual 7.2</a>
     </li>
     <li>
         Create and use arrays
@@ -111,7 +111,7 @@
 </ul>
 <ul>
     <li>
-        <a href="/apps/trac/quorum/wiki/curriculum/chapter7/lab7_3">Lab Manual 7.3</a>
+        <a href="lab7_3.php">Lab Manual 7.3</a>
     </li>
     <li>
         Using arrays and lists together
@@ -126,7 +126,7 @@
 <h2>Short Programming Projects</h2>
 <ul>
     <li>
-        <a href="/apps/trac/quorum/wiki/curriculum/chapter7/assignment7_1">Assignment Manual 7.1</a>
+        <a href="assignment7_1.php">Assignment Manual 7.1</a>
     </li>
     <li>
         Creating Class actions and using derived actions
@@ -137,7 +137,7 @@
 </ul>
 <ul>
     <li>
-        <a href="/apps/trac/quorum/wiki/curriculum/chapter7/assignment7_2">Assignment Manual 7.2</a>
+        <a href="assignment7_2.php">Assignment Manual 7.2</a>
     </li>
     <li>
         Creating Binary Search Trees
@@ -148,7 +148,7 @@
 </ul>
 <ul>
     <li>
-        <a href="/apps/trac/quorum/wiki/curriculum/chapter7/assignment7_3">Assignment Manual 7.3</a>
+        <a href="assignment7_3.php">Assignment Manual 7.3</a>
     </li>
     <li>
         Creating Hash tables
@@ -162,7 +162,7 @@
 </ul>
 <ul>
     <li>
-        <a href="/apps/trac/quorum/wiki/curriculum/chapter7/assignment7_4">Assignment Manual 7.4</a>
+        <a href="assignment7_4.php">Assignment Manual 7.4</a>
     </li>
     <li>
         Error Checking
@@ -177,7 +177,7 @@
 <h2>Challenge Programming Projects</h2>
 <ul>
     <li>
-        <a href="">Assignment Manual 7.4</a>
+        <a href="assignment7_5.php">Assignment Manual 7.5</a>
     </li>
     <li>
         BST Trees extended actions
