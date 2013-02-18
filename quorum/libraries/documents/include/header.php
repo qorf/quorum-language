@@ -18,6 +18,8 @@
             <?php echo '<li class="quorum_header"> <a href="' . 
                     '/curriculum.php" class="quorum_header">Curriculum</a></li>';?>
             <?php echo '<li class="quorum_header"> <a href="' . 
+                    'https://quorum.atlassian.net" class="quorum_header">Bugs</a></li>';?>
+            <?php echo '<li class="quorum_header"> <a href="' . 
                     '/download.php" class="quorum_header">Download</a></li>';?>
         </ul>
     </div>
