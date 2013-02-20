@@ -22,13 +22,13 @@
 </ul>
 <h2>Overview</h2>
 <p>
-    In this lab, you will learn about an important aspect of computer programming: file input and output. Files are used to store data on the hard disk of a computer for retrieval at a later time. So far, your Quorum programs have only used data we have explicitly declared in the form of variable declarations, or input from the user. This lab will guide you through the fundamentals of reading and writing files, and demonstrate how files can be used to store important data for your programs to use.
+    In this lab, you will learn about an important aspect of computer programming: file input and output. Files are used to store data on the hard disk of a computer for retrieval at a later time. So far, your Quorum programs have only used data you have explicitly declared in the form of variable declarations, or input from the user. This lab will guide you through the fundamentals of reading and writing files, and demonstrate how files can be used to store important data for your programs to use.
 </p>
 <p>
-    In your daily usage of computers, you may have used what are called folders to organize things such as photos, music or Microsoft Word documents. Folders, or directories, are structures which exist on the computer's hard drive which contain files. Files store data which we wish to keep long term, such as a song in a .MP3 format. We interact with files and directories daily when we use Windows Explorer on Microsoft Windows.
+    In your daily usage of computers, you may have used what are called folders to organize things such as photos, music or Microsoft Word documents. Folders, or directories, are structures which exist on the computer's hard drive which contain files. Files store data which you wish to keep long term, such as a song in a .MP3 format. You interact with files and directories daily when you use Windows Explorer on Microsoft Windows.
 </p>
 <p>
-    Today, hard drives may contain a significant amount of information. We use directories and files to organize this data, and we use paths to describe where these files live on the hard drive. You may have encountered paths when using computers. On Windows, paths often start with a drive letter, such as C:\, and end with the location of the file. For example, an essay might be stored in your My Documents folder, and would have a path such as C:\Users\Jeff\My Documents.
+    Today, hard drives may contain a significant amount of information. You use directories and files to organize this data, and you use paths to describe where these files live on the hard drive. You may have encountered paths when using computers. On Windows, paths often start with a drive letter, such as C:\, and end with the location of the file. For example, an essay might be stored in your My Documents folder, and would have a path such as C:\Users\Jeff\My Documents.
 </p>
 <p>
     In this lab, you will be using three new classes in Quorum. The first is the File class. A File object tells Quorum where a file lives on the hard disk. There are many actions the File class can perform, such as creating files, creating directories, getting information about when a file was last modified, etc. All classes in Quorum responsible for input and output to files utilize the File class.
@@ -47,7 +47,7 @@
     </li>
 </ul>
 <p>
-    In this mode, when the FileWriter class is used on a file, if the file we wish to write already exists, its contents will be erased.
+    In this mode, when the FileWriter class is used on a file, if the file you wish to write already exists, its contents will be erased.
 </p>
 <ul>
     <li>

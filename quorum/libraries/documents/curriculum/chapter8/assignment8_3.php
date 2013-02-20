@@ -21,14 +21,14 @@
 </ul>
 <h2>Overview</h2>
 <p>
-    Because many things are automated and digitized in today's world, its the constant job of the developer to consider the security and privacy of people's information. In this assignment you will write a program to create, encrypt, and decrypt medical records. Using the substitution cipher you created in Lab 8_3 (slightly modified), users will be given the choice to create a medical record, encrypt a medical record, or decrypt a medical record.
+    Because many things are automated and digitized in today's world, its the constant job of the developer to consider the security and privacy of people's information. In this assignment you will write a program to create, encrypt, and decrypt medical records. Using the substitution cipher you created in <a href="lab8_3.php">lab 8_3</a> (slightly modified), users will be given the choice to create a medical record, encrypt a medical record, or decrypt a medical record.
 </p>
 <p>
     Create a new project and name it <b>Assignment8_3</b>. You will also need to create two more classes called <tt>Record</tt> and <tt>Cipher</tt>.
 </p>
 <h2>Class <tt>Cipher</tt></h2>
 <p>
-    You can use the class <tt>Cipher</tt> that you created in lab 8_3 for this assignment. Take a moment to walk through the class and familiarize yourself with what you implemented. Now think about the kinds of restrictions this cipher was limited to. In this assignment, you may need to encrypt and decrypt upper-case letters, numbers, and different special characters.
+    You can use the class <tt>Cipher</tt> that you created in <a href="lab8_3.php">lab 8_3</a> for this assignment. Take a moment to walk through the class and familiarize yourself with what you implemented. Now think about the kinds of restrictions this cipher was limited to. In this assignment, you may need to encrypt and decrypt upper-case letters, numbers, and different special characters.
 </p>
 <p>
     Edit this class so that it can encrypt and decrypt all letters (upper-case and lower-case), all numbers, spaces, and the following special characters:

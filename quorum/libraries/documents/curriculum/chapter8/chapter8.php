@@ -62,8 +62,6 @@
     <li>
         <a href="lab8_1.php">Lab Manual 8.1</a>
     </li>
-</ul>
-<ul>
     <li>
         How to read and write to files
     </li>
@@ -78,8 +76,6 @@
     <li>
         <a href="lab8_2.php">Lab Manual 8.2</a>
     </li>
-</ul>
-<ul>
     <li>
         How to use the Audio class
     </li>
@@ -97,8 +93,6 @@
     <li>
         <a href="lab8_3.php">Lab Manual 8.3</a>
     </li>
-</ul>
-<ul>
     <li>
         How to use the Text class
     </li>
@@ -117,8 +111,6 @@
     <li>
         <a href="assignment8_1.php">Assignment Manual 8.1</a>
     </li>
-</ul>
-<ul>
     <li>
         How to use the Text class
     </li>
@@ -133,8 +125,6 @@
     <li>
         <a href="assignment8_2.php">Assignment Manual 8.2</a>
     </li>
-</ul>
-<ul>
     <li>
         How to use nested loops and condition statements
     </li>
@@ -146,8 +136,6 @@
     <li>
         <a href="assignment8_3.php">Assignment Manual 8.3</a>
     </li>
-</ul>
-<ul>
     <li>
         How to parse text
     </li>
@@ -163,8 +151,6 @@
     <li>
         <a href="assignment8_4.php">Assignment Manual 8.4</a>
     </li>
-</ul>
-<ul>
     <li>
         How to handle multiple sets of parsed text
     </li>

@@ -118,7 +118,7 @@ Create six additional classes in this project.  Name  the classes <tt>SuperHero<
   Task 3: Inheriting blueprint actions from another class
 </h2>
 <p>
-  In this task you will be implementing the inherited blueprint action <tt>BuildCharacter</tt> for classes <tt>Superman</tt>, <tt>Spiderman</tt>, and <tt>CaptainAmerica</tt>. The <tt>BuildCharacter</tt> action should do the same thing for each class: add equipment and powers to the hero using the setters from classes <tt>Equipment</tt> and <tt>SuperPower</tt>, and add the values to the proper array using the <tt>AddEquipment</tt> action from class <tt>SuperHero</tt>. For each superhero (Superman, Spiderman, and Captain America), add powers and pieces of equipment that describe that particular hero. I.e:
+  In this task you will be implementing the inherited blueprint action <tt>BuildCharacter</tt> for classes <tt>Superman</tt>, <tt>Spiderman</tt>, and <tt>CaptainAmerica</tt>. The <tt>BuildCharacter</tt> action should do the same thing for each class: add equipment and powers to the hero using the setters from classes <tt>Equipment</tt> and <tt>SuperPower</tt>, and add the values to the proper array using the <tt>AddEquipment</tt> action from class <tt>SuperHero</tt>. For each superhero (Superman, Spiderman, and Captain America), add powers and pieces of equipment that describe that particular hero. i.e:
 </p>
 <p>
   <pre class="code">

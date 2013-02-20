@@ -36,7 +36,7 @@
 <ul>
     <li>
         <b>
-            action ReadEnglishFileAndParse returns Array&lt text&gt;
+            action ReadEnglishFileAndParse returns Array &lt text &gt;
         </b>
     </li>
 </ul>
@@ -46,7 +46,7 @@
 <ul>
     <li>
         <b>
-            action ReadPirateFileAndParse returns Array&lt text&gt;
+            action ReadPirateFileAndParse returns Array &lt text &gt;
         </b>
     </li>
 </ul>
@@ -57,7 +57,7 @@
 <ul>
     <li>
         <b>
-            action TranslateAndWrite(Array&lt text&gt; toTranslate, Array&lt text&gt; parsedPirate) returns boolean
+            action TranslateAndWrite(Array &lt text &gt; toTranslate, Array &lt text &gt; parsedPirate) returns boolean
         </b>
     </li>
 </ul>

@@ -28,7 +28,7 @@
   Start Sodbeans. Create a new “Quorum Application” project, and name it <strong>Lab6_3</strong>.  In the <tt>Main.quorum</tt> file, it should contain a <tt>Main</tt> class and <tt>Main</tt> action.
 </p>
 <p>
-  We will create four additional classes in this project.  In the New File dialog, create a new file by selecting “Quorum” and “Quorum Class” in the Categories and File Types windows, respectively.  Then, name  the new file <strong>Pet</strong> in the New Quorum Class dialog.  Repeat the above steps to create Classes named <strong>Cat</strong>, <strong>Dog</strong>, and <strong>Lizard</strong>.
+  You will create four additional classes in this project.  In the New File dialog, create a new file by selecting “Quorum” and “Quorum Class” in the Categories and File Types windows, respectively.  Then, name  the new file <strong>Pet</strong> in the New Quorum Class dialog.  Repeat the above steps to create Classes named <strong>Cat</strong>, <strong>Dog</strong>, and <strong>Lizard</strong>.
 </p>
 <h2>Task 2: Creating Your Parent Class</h2>
 <p>

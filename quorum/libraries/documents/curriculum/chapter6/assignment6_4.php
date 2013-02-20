@@ -64,7 +64,7 @@
     </li>
 </ul>
 <p>
-    As you did in lab 6_2, you will need to create an array of type <tt>Equipment</tt>. Name this array inventory. Class <tt>Stats</tt> will use the following actions:
+    As you did in <a href="lab6_2.php">lab 6_2</a>, you will need to create an array of type <tt>Equipment</tt>. Name this array inventory. Class <tt>Stats</tt> will use the following actions:
 </p>
 <ul>
     <li>
@@ -172,7 +172,7 @@
     </li>
 </ul>
 <p>
-    Similar to lab 6_2, <tt>BuildCharacter</tt> will describe the <tt>Ranger</tt> in terms of his equipment and weapons. Using the inherited actions from class <tt>Stats</tt>, add at least 5 items to describe the Ranger. Example:
+    Similar to <a href="lab6_2.php">lab 6_2</a>, <tt>BuildCharacter</tt> will describe the <tt>Ranger</tt> in terms of his equipment and weapons. Using the inherited actions from class <tt>Stats</tt>, add at least 5 items to describe the Ranger. Example:
 </p>
 <pre class="code">
     action BuildCharacter

@@ -14,7 +14,7 @@
 </p>
 <ul>
     <li>
-        BST Trees extended actions
+        Binary Search Trees with extended actions
     </li>
     <li>
         How to use the Libraries.Sound.Music library
@@ -28,11 +28,11 @@
 </ul>
 <h2>Overview</h2>
 <p>
-    This assignment will build off of Assignment 7_2: you will create a BST and will implement several more advanced actions that perform interesting modifications to your BST. Also, instead of being told the values of a given node in the BST, you will create an action that plays notes based on the values of a given node. This way, your tree will create a kind of melody when you traverse it, and you will get to "hear" the values in the tree.
+    This assignment will build off of <a href="assignment7_2.php">assignment 7_2</a>: you will create a BST and will implement several more advanced actions that perform interesting modifications to your BST. Also, instead of being told the values of a given node in the BST, you will create an action that plays notes based on the values of a given node. This way, your tree will create a kind of melody when you traverse it, and you will get to "hear" the values in the tree.
 </p>
 <h2>Design Requirements</h2>
 <p>
-    In Assignment 7_2, you created actions that built a BST. For this assignment, you can copy/paste the following classes and actions:
+    In <a href="assignment7_2.php">assignment 7_2</a>, you created actions that built a BST. For this assignment, you can copy/paste the following classes and actions:
 </p>
 <pre class="code">
     * All of class Node (You do not need to include action RightMinValue)
@@ -48,7 +48,7 @@
 <ul>
     <li>
         <b>
-            public action Size() returns integer
+            action Size() returns integer
         </b>
     </li>
 </ul>
@@ -73,7 +73,7 @@
     </li>
 </ul>
 <p>
-    This is implemented much the same as the <tt>SayTree</tt> action from Assignment 7_2, except this action will use the <tt>Music</tt> class to play MIDI notes based on the integer value of the nodes "inorder." So the tree...
+    This is implemented much the same as the <tt>SayTree</tt> action from <a href="assignment7_2.php">assignment 7_2</a>, except this action will use the <tt>Music</tt> class to play MIDI notes based on the integer value of the nodes "in order." So the tree...
 </p>
 <img src="https://quorum.svn.sourceforge.net/svnroot/quorum/trunk/quorum/libraries/documents/curriculum/chapter7/tree.PNG" alt="Tree"></img>
 <p>
@@ -101,7 +101,7 @@
 <ul>
     <li>
         <b>
-            public action SayPostOrder()
+             action SayPostOrder()
         </b>
     </li>
 </ul>
@@ -125,7 +125,7 @@
 <ul>
     <li>
         <b>
-            public action HasPathSum(integer sum) returns boolean
+             action HasPathSum(integer sum) returns boolean
         </b>
     </li>
 </ul>
@@ -149,7 +149,7 @@
 <ul>
     <li>
         <b>
-            public action Mirror()
+             action Mirror()
         </b>
     </li>
 </ul>
@@ -174,7 +174,7 @@
 <ul>
     <li>
         <b>
-            public action CountTrees(integer numValues) returns integer
+             action CountTrees(integer numValues) returns integer
         </b>
     </li>
 </ul>

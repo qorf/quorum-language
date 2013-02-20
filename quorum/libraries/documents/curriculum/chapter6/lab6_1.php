@@ -36,7 +36,7 @@ You will create two additional classes in this project. In a New File dialog, cr
   Now create a class variable and experiment with how inheritance works.
 </p>
 <p>
-In the <tt>Circle</tt> class, add the class variable <b>radius</b> of type <tt>number</tt>.  Recall, type <tt>number</tt> will allow us more precision than integer, so we can have a radius of 1.5 instead of 1 or 2.  Set its default value to zero.
+In the <tt>Circle</tt> class, add the class variable <b>radius</b> of type <tt>number</tt>.  Recall, type <tt>number</tt> will allow us more precision than integer, so you can have a radius of 1.5 instead of 1 or 2.  Set its default value to zero.
 </p>
 <p>
   Now add a <tt>GetRadius</tt> and <tt>SetRadius</tt> action to help get a value for radius. Just as you learned in chapter 5, create an access action and access modifier for radius. Creating actions such as these to obtain values can help make your programs easy to modify and resilient to user errors. In task 3, you will be using inheritance to access these actions in class <tt>Sphere</tt>. Thanks to inheritance, you only need to write the actions once, and can then use them in both classes to obtain a value for radius.
@@ -50,7 +50,7 @@ class Sphere is a Circle
 end
 </code></pre></p>
 <p>
-  Great! Now use the <tt>SetRadius</tt> method you declared in class <tt>Circle</tt> to create a radius for Sphere. This time, we will get user input for the radius, and use that input as an argument to <tt>SetRadius</tt>:
+  Great! Now use the <tt>SetRadius</tt> method you declared in class <tt>Circle</tt> to create a radius for Sphere. This time, you will get user input for the radius, and use that input as an argument to <tt>SetRadius</tt>:
 </p>
 <p><pre class="code"><code>
   class Sphere is a Circle    //creates a hierarchy, where sphere is inheriting from Circle

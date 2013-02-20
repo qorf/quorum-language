@@ -56,7 +56,7 @@
 <ul>
   <li>
     <b>
-      action Square(Array &lt Type &gt a, integer size
+      action Square(Array &lt Type &gt a, integer size)
     </b>
   </li>
 </ul>

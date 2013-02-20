@@ -114,7 +114,7 @@
    */
 </pre>
 <p>
-    Notice that one way to add values to an array is by using the Add(type) action. This action adds values to the end of the array. We can access those values by calling the <tt>Get:()</tt> action. The results should look similar to:
+    Notice that one way to add values to an array is by using the Add(type) action. This action adds values to the end of the array. You can access those values by calling the <tt>Get:()</tt> action. The results should look similar to:
 </p>
 <pre class="code">
     Frequency from 1-6:

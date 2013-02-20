@@ -29,7 +29,7 @@
 <p>
     Create a new project and name it <b>Lab8_2</b>. This lab will be built only in <tt>Main</tt>.
 </p>
-<h2>Class<tt>Main</tt></h2>
+<h2>Class <tt>Main</tt></h2>
 <p>
     You will need the following libraries for this lab:
 </p>
