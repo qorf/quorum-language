@@ -22,7 +22,7 @@ public enum DocumentationStyle {
             return null;
         }
         else if(style == HTML) {
-            return new HTMLDocumentationGenerator();
+            return new PHPDocumentationGenerator();
         }
         else { //return a default
             return new TracWikiDocumentationGenerator();

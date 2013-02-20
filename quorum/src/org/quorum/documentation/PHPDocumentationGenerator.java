@@ -31,7 +31,7 @@ import org.quorum.vm.implementation.QuorumJarGenerator;
  *
  * @author astefik
  */
-public class HTMLDocumentationGenerator implements DocumentationGenerator{
+public class PHPDocumentationGenerator implements DocumentationGenerator{
 
     
     /**
@@ -621,7 +621,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
 
     @Override
     public String getFileExtension() {
-        return "html";
+        return "php";
     }
 
     @Override
@@ -661,7 +661,7 @@ public class HTMLDocumentationGenerator implements DocumentationGenerator{
             destination = new File(documentation.getAbsolutePath() + "/documents");
             gen.copyFile(documents, destination);
         } catch (IOException ex) {
-            Logger.getLogger(HTMLDocumentationGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PHPDocumentationGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
