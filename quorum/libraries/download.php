@@ -8,15 +8,15 @@
     for your platform and run it. If you would prefer to use Quorum as part of
     an IDE directly, see the <a href="http://sodbeans.sourceforge.net/"> Sodbeans project</a></p>
 
-<h2>Quorum 1.6 for Windows</h2>
-<a href="http://sourceforge.net/projects/quorum/files/Quorum%201.6/Quorum%201.6.exe/download">
+<h2>Quorum 1.7 for Windows</h2>
+<a href="http://sourceforge.net/projects/quorum/files/Quorum%201.7/Quorum%201.7.exe/download">
     <img src="documents/images/download.png"
-         alt="Click this image to download the Quorum 1.6 Installer for Windows."/></a>
+         alt="Click this image to download the Quorum 1.7 Installer for Windows."/></a>
 
-<h2>Quorum 1.6 for Mac OS X</h2>
-<a href="https://sourceforge.net/projects/quorum/files/Quorum%201.6/Quorum%201.6.pkg/download">
+<h2>Quorum 1.7 for Mac OS X</h2>
+<a href="http://sourceforge.net/projects/quorum/files/Quorum%201.7/Quorum%201.7.pkg/download">
     <img src="documents/images/download.png"
-         alt="Click this image to download the Quorum 1.6 Installer for Apple OS X."/></a>
+         alt="Click this image to download the Quorum 1.7 Installer for Apple OS X."/></a>
 
 <h1>Getting started, after you install Quorum</h1>
 <p>

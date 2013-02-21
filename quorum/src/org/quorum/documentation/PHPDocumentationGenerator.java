@@ -137,7 +137,15 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         }
         indexPage += "</ul>\n";
         indexPage += "\n</div>";
-        indexPage += "\n</body>\n</html>";
+        indexPage += "\n</body>\n";
+        
+        indexPage += "<div id=\"footer\">";
+            indexPage += "<center>";
+                indexPage += "The Quorum Programming Language<br /><small>";
+                indexPage += "Copyright &copy; 2012-2013. Art and Design by Andreas Stefik</small>";
+            indexPage += "</center>";
+        indexPage += "</div>";
+        indexPage += "</html>";
     }
     
     private String generateHeader() {
@@ -156,6 +164,11 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                     "/curriculum.php\" class=\"quorum_header\">Curriculum</a></li>";
         result += "<li class=\"quorum_header\"> <a href=\"" + 
                     "/download.php\" class=\"quorum_header\">Downloads</a></li>";
+        
+        result += "<?php echo '<li class=\"quorum_header\"> <a href=\"http://blog.quorumlanguage.com\" class=\"quorum_header\">Blog</a></li>';?>";
+            
+        result += "<?php echo '<li class=\"quorum_header\"> <a href=\"' . ";
+            result += "'https://quorum.atlassian.net\" class=\"quorum_header\">Bugs</a></li>';?>";
         result += "</ul>";
         result += "</div>";
         return result;
@@ -472,6 +485,15 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
             result += pString;
         }
         
+        
+        
+        result += "<div id=\"footer\">";
+            result += "<center>";
+            result += "The Quorum Programming Language<br /><small>";
+                result += "Copyright &copy; 2012-2013. Art and Design by Andreas Stefik</small>";
+            result += "</center>";
+        result += "</div>";
+
         result += "</body>\n";
         result += "</html>";
         return result;
@@ -919,7 +941,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
 
     @Override
     public DocumentationStyle getDocumentationStyle() {
-        return DocumentationStyle.HTML;
+        return DocumentationStyle.PHP;
     }
     
 }

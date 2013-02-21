@@ -12,7 +12,7 @@ package org.quorum.documentation;
 public enum DocumentationStyle {
     TRAC_WIKI,
     JAVADOC,
-    HTML;
+    PHP;
 
     public static DocumentationGenerator getDocumentationGenerator(DocumentationStyle style) {
         if(style == TRAC_WIKI) {
@@ -21,7 +21,7 @@ public enum DocumentationStyle {
         else if(style == JAVADOC) {
             return null;
         }
-        else if(style == HTML) {
+        else if(style == PHP) {
             return new PHPDocumentationGenerator();
         }
         else { //return a default

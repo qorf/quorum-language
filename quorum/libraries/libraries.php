@@ -13,6 +13,6 @@
     have a significant number of additions planned for the future and plan to 
     expand on this library with each release.
 </p>
-<p>A complete <a href="library-index.html">index of all standard
+<p>A complete <a href="library-index.php">index of all standard
     library classes</a> is available.</p>
 <?php include("documents/include/footer.php"); ?>

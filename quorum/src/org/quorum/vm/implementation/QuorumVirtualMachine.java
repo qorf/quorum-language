@@ -80,7 +80,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     private IntermediateExecutionBuilder builder;
     private HashMap<String, QuorumFile> parseHash;
     private CompilerErrorManager compilerErrors;
-    private DocumentationGenerator documentor = DocumentationStyle.getDocumentationGenerator(DocumentationStyle.HTML);
+    private DocumentationGenerator documentor = DocumentationStyle.getDocumentationGenerator(DocumentationStyle.PHP);
     private static final String USE = "use";
     private static final String PACKAGE = "package";
     private static final Logger logger = Logger.getLogger(QuorumVirtualMachine.class.getName());
@@ -1774,7 +1774,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 description += "<PRE><CODE>" + method.getDocumentation().getExample()
                         + "</PRE></CODE>";
 
-                //convert the signature to an HTML friendly format
+                //convert the signature to an PHP friendly format
                 signature = signature.replaceAll("<", "&lt;");
                 signature = signature.replaceAll(">", "&gt;");
                 item.setDisplayName(signature);
