@@ -717,11 +717,11 @@ public class Main {
         exec.start();
         
         //for testing
-        exec.sendTestMessage(
-                "i = 0 "
-                + "repeat 10 times "
-                    + "print i "
-                    + "i = i + 1  "
-                + "end");
+//        exec.sendTestMessage(
+//                "i = 0 "
+//                + "repeat 10 times "
+//                    + "print i "
+//                    + "i = i + 1  "
+//                + "end");
     }
 }
