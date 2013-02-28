@@ -1,27 +1,21 @@
-use Libraries.Language.Errors.Error
+use Libraries.Sound.all
+use Libraries.System.Blueprints.all
+use Libraries.Language.Types.all
+use Libraries.Language.Support.all
+use Libraries.Language.Errors.all
+
+use Libraries.Containers.Blueprints.all
+use Libraries.Containers.Support.all
+use Libraries.Containers.all
+
+use Libraries.Compute.all
+
+use Libraries.Robots.all
+use Libraries.System.Blueprints.all
+use Libraries.System.all
+use Libraries.Web.all
 
 class Main
     action Main
-        check
-            integer j = 10
-        detect e of type Error
-            print "shouldn't be here..."
-        always
-            check
-                Thrower()
-            detect e
-                print e:GetErrorMessage()
-            end
-        end
-    end
-
-    action Thrower
-        alert("alert")
     end
 end
-/*class Main
-    action Main
-        text a = "hello"
-        print a:GetCharacter(0)
-    end
-end*/
