@@ -3315,14 +3315,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         boolean isParameter = false;
         boolean isCalledOnField = false;
         boolean isCalledOnInterface = false;
-        /**
-         * I haven't tested this, as we aren't quite there yet in the build,
-         * but it might work or be easily modified to work correctly.
-         * Remove this comment and the old dead code once finished.
-         */
+        boolean isStaticCallOnPrimitive = false;
+
         MethodDescriptor callee = step.getMethodCallee();
         String converted = "";
-        if (!step.IsObjectCall()) {
+        if (!step.IsObjectCall() ) {
             converted = processedClazzName;
 
             // It's a call on the 'this' object.
@@ -3356,6 +3353,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 varType = stack.getVariable(stack.getMappedVariableNumber(var.getVariableNumber() - currentClass.getNumberOfVariables(), var.getType(), true));
                 if (varType != null) {
                     isCalledOnInterface = varType.isBytecodeInterface();
+                }
+                
+                if (var.getType().isPrimitiveType()) {
+                    isStaticCallOnPrimitive = true;
                 }
             }
 
@@ -3409,12 +3410,12 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
                         isParameter = true;
                         converted = QuorumConverter.convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(var.getType().getStaticKey()));
-                    } else if (!step.isCalleeLoaded()) {
+                    }else if (!step.isCalleeLoaded()) {
                         //Otherwise, load the variable from the mapped variable on the
                         //stack.
                         int number = var.getVariableNumber() - currentClass.getNumberOfVariables();
                         int mapped = stack.getMappedVariableNumber(number, var.getType(), false);
-                        methodVisitor.visitVarInsn(ALOAD, mapped);
+                        methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(var.getType()), mapped);
                     }
                 }
             }
@@ -3423,7 +3424,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
         }
 
-        if (!isParameter && !isCalledOnField && !isCalledOnInterface) {
+        if (!isParameter && !isCalledOnField && !isCalledOnInterface && isStaticCallOnPrimitive) {
+            methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertPrimitiveToObjectPath(step.getParentObject().getType()), "Primitive" + step.getMethodCallee().getName(),
+                QuorumConverter.convertPrimitiveMethodDescriptorToBytecodeSignature(callee));
+        }else if (!isParameter && !isCalledOnField && !isCalledOnInterface) {
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted,
                     callee.getName(),
                     QuorumConverter.convertMethodDescriptorToBytecodeSignature(callee));

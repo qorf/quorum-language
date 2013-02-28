@@ -1107,6 +1107,12 @@ public class StepFactory {
                 machine.getSymbolTable().getCurrentClass().resolveSubTypes(type.getSubTypes());
                 clazz = machine.getSymbolTable().findFullyQualifiedClass(type.getName());
                 className = type.getName();
+                if(clazz == null){
+                    clazz = machine.getSymbolTable().findAPrimitivesClass(type.getName());
+                    if(clazz != null){
+                        className = clazz.getName();
+                    }
+                }
             }
         } else {
             clazz = machine.getSymbolTable().getCurrentClass();

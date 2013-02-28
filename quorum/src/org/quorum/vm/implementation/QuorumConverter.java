@@ -190,6 +190,43 @@ public class QuorumConverter {
     }
     
     /**
+     * This method takes a method descriptor and converts into a signature,
+     * with appropriate parameters in their String bytecode formats.
+     * 
+     * @param descriptor
+     * @return 
+     */
+    public static String convertPrimitiveMethodDescriptorToBytecodeSignature(MethodDescriptor descriptor) {
+        String result = "";
+        TypeDescriptor ret = descriptor.getReturnType();
+        String parametersString = "(Ljava/lang/String;";
+        Parameters parameters = descriptor.getParameters();
+        for(int i = 0; i < parameters.size(); i++) {
+            ParameterDescriptor param = parameters.get(i);
+            TypeDescriptor type = param.getType();
+            if (param.getType().isPrimitiveType())
+                parametersString += convertTypeToBytecodeString(type);
+            else {
+                parametersString += "L" + convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(type.getStaticKey())) + ";";
+                type.setBytecodeInterface(true);
+            }
+        }
+        
+        parametersString += ")";
+        
+        String returnString = null;
+        if (ret.isPrimitiveType() || ret.isVoid()){
+            returnString = convertTypeToBytecodeString(ret);
+        }else{
+            returnString = "L" + convertClassNameToInterfaceName(QuorumConverter.convertStaticKeyToBytecodePath(ret.getStaticKey())) + ";";
+            ret.setBytecodeInterface(true);
+        }
+        
+        result = parametersString + returnString;
+        return result;
+    }
+    
+    /**
      * This method takes a static key from a parent object of a class
      * and converts it to a valid name to be used by a class.
      * 
@@ -401,6 +438,20 @@ public class QuorumConverter {
         }else{
             String s = type.getName();
             return convertStaticKeyToBytecodePath(s);
+        }
+    }
+    
+    public static String convertPrimitiveToObjectPath(TypeDescriptor type){
+        if(type.isBoolean()){
+            return "plugins/quorum/Libraries/Language/Types/Boolean";
+        }else if (type.isText()){
+            return "plugins/quorum/Libraries/Language/Types/Text";
+        }else if(type.isInteger()){
+            return "plugins/quorum/Libraries/Language/Types/Integer";
+        }else if(type.isNumber()){
+            return "plugins/quorum/Libraries/Language/Types/Number";
+        }else{
+            return null;
         }
     }
     

@@ -561,6 +561,24 @@ public class SymbolTable {
         ClassDescriptor cd = findClass(name, pack);
         return cd;
     }
+    
+    /**
+     * This method returns a class that maps to a primitive type. For example,
+     * text will return the Text class and test will return null.
+     * 
+     * @param primitive
+     * @return 
+     */
+    public ClassDescriptor findAPrimitivesClass(String primitive){
+        ClassDescriptor cd = null;
+        if(primitive.equals("text") || primitive.equals("boolean") || primitive.equals("integer") || primitive.equals("number")){
+            String name =  primitive;
+            name = name.replaceFirst("" + name.charAt(0), ("" + name.charAt(0)).toUpperCase());
+            
+            cd = findClass(name, "Libraries.Language.Types");
+        }
+        return cd;
+    }
 
     /**
      * When a class instantiates an object, it needs to determine what
