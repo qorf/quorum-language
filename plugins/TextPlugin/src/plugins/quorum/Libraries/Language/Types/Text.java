@@ -33,11 +33,7 @@ public class Text {
     public int GetLength() {
         return text.length();
     }
-    
-    public int PrimitiveGetLength(String self) {
-        return self.length();
-    }
-    
+
     /**
      * If the value is valid, return its hashcode. Otherwise, return the 
      * generic hash for the object.
@@ -53,13 +49,33 @@ public class Text {
         }
     }
     
-    public int PrimitiveGetHashCode(String self) {
+    public static int PrimitiveGetLength(String self) {
+        return self.length();
+    }
+    
+    public static int PrimitiveGetHashCode(String self) {
         return self.hashCode();
     }
     
     public static String PrimitiveGetCharacter(String self, int index){
         return "" + self.charAt(index);
     }
+
+    public static String PrimitiveGetSubstring(String self,int startIndex, int endIndex){
+        return "" + self.substring(startIndex, endIndex);
+    }
+    
+    public static String PrimitiveAppend(String self, String addition){
+        StringBuilder s = new StringBuilder();
+        s.append(self);
+        s.append(addition);
+        return s.toString();
+    }
+    
+    /*public static String PrimitiveSplit(String self, String delimiter){
+        String[] split = self.split(delimiter);
+        return ;
+    }*/
 //    
 //    public static void main(String[] args) {
 //        Text text = new Text();
