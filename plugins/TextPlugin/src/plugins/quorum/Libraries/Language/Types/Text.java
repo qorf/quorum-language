@@ -34,6 +34,10 @@ public class Text {
         return text.length();
     }
     
+    public int PrimitiveGetLength(String self) {
+        return self.length();
+    }
+    
     /**
      * If the value is valid, return its hashcode. Otherwise, return the 
      * generic hash for the object.
@@ -47,6 +51,14 @@ public class Text {
         else {
             return $me.hashCode();
         }
+    }
+    
+    public int PrimitiveGetHashCode(String self) {
+        return self.hashCode();
+    }
+    
+    public static String PrimitiveGetCharacter(String self, int index){
+        return "" + self.charAt(index);
     }
 //    
 //    public static void main(String[] args) {
