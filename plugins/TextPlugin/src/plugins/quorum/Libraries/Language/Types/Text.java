@@ -82,7 +82,7 @@ public class Text {
         Text t = new Text();
         for(int i = 0; i < split.length; i++){
             t.SetValueNative(split[i]);
-            a.AddNative((quorum.Libraries.Language.Object$Interface)t);
+            a.AddNative((Object$Interface)t);
         }
         return a;
     }
