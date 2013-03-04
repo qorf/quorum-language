@@ -4,6 +4,10 @@
  */
 package plugins.quorum.Libraries.Language.Types;
 
+import quorum.Libraries.Containers.Array$Interface;
+import quorum.Libraries.Language.Object$Interface;
+import quorum.Libraries.Language.Types.Text$Interface;
+
 /**
  * A plugin for handling text system functions.
  * 
@@ -72,10 +76,16 @@ public class Text {
         return s.toString();
     }
     
-    /*public static String PrimitiveSplit(String self, String delimiter){
+    public static Array$Interface PrimitiveSplit(String self, String delimiter){
         String[] split = self.split(delimiter);
-        return ;
-    }*/
+        quorum.Libraries.Containers.Array a = new quorum.Libraries.Containers.Array();
+        Text t = new Text();
+        for(int i = 0; i < split.length; i++){
+            t.SetValueNative(split[i]);
+            a.AddNative((quorum.Libraries.Language.Object$Interface)t);
+        }
+        return a;
+    }
 //    
 //    public static void main(String[] args) {
 //        Text text = new Text();
