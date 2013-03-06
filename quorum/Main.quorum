@@ -18,7 +18,6 @@ use Libraries.Web.all
 class Main
     action Main
         text t = "hello world"
-        t:SetValue("hello")
-        print t
+        print t:GetSubtext(1, 3)
     end
 end
