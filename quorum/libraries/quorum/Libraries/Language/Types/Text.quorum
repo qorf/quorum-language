@@ -30,6 +30,239 @@ class Text is a Object
     private system action GetSubstringNative(integer startIndex, integer endIndex) returns text
 
     /*
+        This action appends the given text value to the value in this object.
+
+        Attribute: Parameter value The value to append.
+
+        Attribute: Example
+        Text a
+        a:SetValue("hello ")
+        a:Append("world.")
+    */
+    action Append(text val)
+        me:value = me:value + val
+
+        // And update the native side.
+        SetValueNative(me:value)
+    end
+
+    /*
+        This action returns true if the Text value contains the text from the parameter
+        or if the parameter is a substring in the text variable.
+
+        Attribute: Parameter value The value to check for a substring.
+
+        Attribute: Returns True if the text contains a substring passed to the action.
+
+        Attribute: Example
+        Text a
+        a:SetValue("hello ")
+        boolean result = a:Contains("lo")
+    */
+    action Contains(text val) returns boolean
+        return ContainsNative(value, val)
+    end
+
+    private system action ContainsNative(text lhv, text rhv) returns boolean
+
+    /*
+        This action returns true if the Text value ends with the given suffix.
+
+        Attribute: Parameter suffix The value to check for a substring.
+
+        Attribute: Returns True if the text ends with the given suffix.
+
+        Attribute: Example
+        Text a
+        a:SetValue("hello ")
+        boolean result = a:EndsWith("lo")
+    */
+    action EndsWith(text suffix) returns boolean
+        return EndsWithNative(value, suffix)
+    end
+
+    private system action EndsWithNative(text left, text suffix) returns boolean
+
+    /*
+        This action returns true if the Text value starts with the given suffix.
+
+        Attribute: Parameter prefix The value to check for a substring.
+
+        Attribute: Returns True if the text starts with a given prefix.
+
+        Attribute: Example
+        Text a
+        a:SetValue("hello ")
+        boolean result = a:StartsWith("h")
+    */
+    action StartsWith(text prefix) returns boolean
+        return StartsWithNative(value, prefix)
+    end
+
+    private system action StartsWithNative(text left, text prefix) returns boolean
+
+    /*
+        This action returns the index location of the first occurrence of the sub-text.
+
+        Attribute: Parameter subText The value to check for an index.
+
+        Attribute: Returns The index location of the sub-text.
+
+        Attribute: Example
+        Text a
+        a:SetValue("hello ")
+        integer result = a:IndexOf("o")
+    */
+    action IndexOf(text subText) returns integer
+        return IndexOfNative(value, subText)
+    end
+
+    private system action IndexOfNative(text left, text prefix) returns integer
+
+    /*
+        This action returns the index location of the first occurrence of the sub-text,
+        starting from the given index location.
+
+        Attribute: Parameter subText The value to check for an index.
+        Attribute: Parameter index The index to start searching for the sub-text
+
+        Attribute: Returns The index location of the first occurrence of the sub-text.
+
+        Attribute: Example
+        Text a
+        a:SetValue("hello ")
+        integer result = a:IndexOf("l", 3)
+    */
+    action IndexOf(text subText, integer index) returns integer
+        return IndexOfNative(value, subText, index)
+    end
+
+    private system action IndexOfNative(text left, text prefix, integer index) returns integer
+
+    /*
+        This action returns true if the text is empty and false if it contains any
+        value.
+
+        Attribute: Returns True if the text is empty.
+
+        Attribute: Example
+        Text a
+        a:SetValue("hello ")
+        boolean result = a:IsEmpty()
+    */
+    action IsEmpty() returns boolean
+        return IsEmptyNative(value)
+    end
+
+    private system action IsEmptyNative(text left) returns boolean
+
+    /*
+        This action replaces a specific subtext with a new value.
+
+        Attribute: Parameter old The subtext to be replaced.
+        Attribute: Parameter new The replacing subtext.
+
+        Attribute: Returns The modified text after replacing all occurrence of the old subtext.
+
+        Attribute: Example
+        Text a
+        a:SetValue("hello ")
+        text result = a:Replace("l", "z")
+    */
+    action Replace(text old, text new) returns text
+        return ReplaceNative(value, old, new)
+    end
+
+    private system action ReplaceNative(text left, text old, text replacement) returns text
+
+    /*
+        This action gets a subtext value between the given index values. This includes the value at the 
+        start index and excludes the ending index.
+
+        Attribute: Parameter startIndex The start of the subtext.
+        Attribute: Parameter endIndex The end of the subtext.
+
+        Attribute: Returns The subtext from the text.
+
+        Attribute: Example
+        Text a
+        a:SetValue("hello ")
+        text result = a:Subtext(1, 3)
+    */
+    action Subtext(integer startIndex, integer endIndex) returns text
+        return SubtextNative(value, startIndex, endIndex)
+    end
+
+    private system action SubtextNative(text left, integer start, integer ending) returns text
+
+    /*
+        This action gets a subtext value between the given start index and the end. This includes the value at the 
+        start index.
+
+        Attribute: Parameter startIndex The start of the subtext.
+
+        Attribute: Returns The subtext from the text.
+
+        Attribute: Example
+        Text a
+        a:SetValue("hello ")
+        text result = a:Subtext(1)
+    */
+    action Subtext(integer startIndex) returns text
+        return SubtextNative(value, startIndex)
+    end
+
+    private system action SubtextNative(text left, integer start) returns text
+
+    /*
+        This action converts a text value to all lower case.
+
+        Attribute: Returns The text with all lower case characters.
+
+        Attribute: Example
+        Text a
+        a:SetValue("HeLlo ")
+        text result = a:ToLowerCase()
+    */
+    action ToLowerCase() returns text
+        return ToLowerCaseNative(value)
+    end
+
+    private system action ToLowerCaseNative(text left) returns text
+
+    /*
+        This action converts a text value to all upper case.
+
+        Attribute: Returns The text with all upper case characters.
+
+        Attribute: Example
+        Text a
+        a:SetValue("HeLlo ")
+        text result = a:ToUpperCase()
+    */
+    action ToUpperCase() returns text
+        return ToUpperCaseNative(value)
+    end
+
+    private system action ToUpperCaseNative(text left) returns text
+
+    /*
+        This action trims the white space from the beginning and end of the text value.
+
+        Attribute: Returns The text that has been trimmed of white space from the beginning and end of the text value.
+
+        Attribute: Example
+        Text a
+        a:SetValue(" hello  ")
+        text result = a:Trim()
+    */
+    action Trim() returns text
+        return TrimNative(value)
+    end
+
+    private system action TrimNative(text left) returns text
+
+    /*
         This action sets the value of the text object.
 
         Attribute: Parameter i The text value.
@@ -86,6 +319,32 @@ class Text is a Object
     end
 
     /*
+        This action determines if two objects are equal based on their
+        values(the case is ignored).
+
+        Attribute: Parameter object The to be compared.
+
+        Attribute: Returns True if the values are equal and false if they
+        are not equal. 
+
+        Attribute: Example
+
+        Text o
+        Text t
+        boolean result = o:EqualsIgnoringCase(t)
+    */ 
+    action EqualsIgnoringCase(Object object) returns boolean
+        text myValue = GetValue()
+
+        Text t = undefined
+        t = cast(Text, object)
+        text otherValue = t:GetValue()
+
+        return EqualsIgnoringCaseNative(myValue, otherValue)
+    end
+
+    private system action EqualsIgnoringCaseNative(text left, text right) returns boolean
+    /*
         This action compares two object values and returns a CompareResult.
         The compare result is either larger if this hash code is larger than
         the object passed as a parameter, smaller, or equal.
@@ -105,7 +364,7 @@ class Text is a Object
         Text b = cast(Text, object)
         text other = b:GetValue()
 
-        integer nativeResult = CompareInt(thisOne, other)
+        integer nativeResult = CompareInt(thisOne, other, false)
 
         if nativeResult = 0
             result:result = result:EQUAL
@@ -117,7 +376,39 @@ class Text is a Object
         return result
     end
 
-    private system action CompareInt(text left, text right) returns integer
+    /*
+        This action compares two object values (ignoring case) and returns a CompareResult.
+        The compare result is either larger if this hash code is larger than
+        the object passed as a parameter, smaller, or equal.
+
+        Attribute: Parameter object The object to compare to.
+        Attribute: Returns The Comprare result, Smaller, Equal, or Larger. 
+
+        Attribute: Example
+        use Libraries.Language.Support.CompareResult
+        Text o
+        Text t
+        CompareResult result = o:CompareIgnoringCase(t)
+    */ 
+    action CompareIgnoringCase(Object object) returns CompareResult
+        CompareResult result
+        text thisOne = me:value
+        Text b = cast(Text, object)
+        text other = b:GetValue()
+
+        integer nativeResult = CompareInt(thisOne, other, true)
+
+        if nativeResult = 0
+            result:result = result:EQUAL
+        elseif nativeResult < 0
+            result:result = result:SMALLER
+        else
+            result:result = result:LARGER
+        end
+        return result
+    end
+
+    private system action CompareInt(text left, text right, boolean isIgnoringCase) returns integer
 
     /*
         This action returns the length of the text object.
@@ -185,23 +476,6 @@ class Text is a Object
         end
         
         return GetSubstringNative(startIndex, endIndex)
-    end
-
-    /*
-    This action appends the given text value to the value in this object.
-    
-    Attribute: Parameter value The value to append.
-    
-    Attribute: Example
-    Text a
-    a:SetValue("hello ")
-    a:Append("world.")
-    */
-    action Append(text val)
-        me:value = me:value + val
-
-        // And update the native side.
-        SetValueNative(me:value)
     end
 
     /*
