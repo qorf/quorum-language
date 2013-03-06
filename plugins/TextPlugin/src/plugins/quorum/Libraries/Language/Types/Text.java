@@ -79,8 +79,9 @@ public class Text {
     public static Array$Interface PrimitiveSplit(String self, String delimiter){
         String[] split = self.split(delimiter);
         quorum.Libraries.Containers.Array a = new quorum.Libraries.Containers.Array();
-        Text$Interface t = new quorum.Libraries.Language.Types.Text();
+        
         for(int i = 0; i < split.length; i++){
+            Text$Interface t = new quorum.Libraries.Language.Types.Text();
             t.SetValue(split[i]);
             a.AddNative((Object$Interface)t);
         }
