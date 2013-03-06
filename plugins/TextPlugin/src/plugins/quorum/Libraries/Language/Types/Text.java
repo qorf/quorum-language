@@ -74,16 +74,16 @@ public class Text {
         return left.substring(start, end);
     }
     
-    public String SubtextNative(String left, int start){
+    public String GetSubtextNative(String left, int start){
         return left.substring(start);
     }
     
-    public String ToLowerCaseNative(String left){
-        return left.toLowerCase();
+    public String ToLowerCase(){
+        return text.toLowerCase();
     }
     
-    public String ToUpperCaseNative(String left){
-        return left.toUpperCase();
+    public String ToUpperCase(){
+        return text.toUpperCase();
     }
     
     public String TrimNative(String left){
@@ -212,11 +212,11 @@ public class Text {
         return self.replace(old, replacement);
     }
     
-    public static String PrimitiveSubtext(String self, int startIndex, int endIndex){
+    public static String PrimitiveGetSubtext(String self, int startIndex, int endIndex){
         return self.substring(startIndex, endIndex);
     }
     
-    public static String PrimitiveSubtext(String self, int startIndex){
+    public static String PrimitiveGetSubtext(String self, int startIndex){
         return self.substring(startIndex);
     }
     
