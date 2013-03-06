@@ -1158,6 +1158,13 @@ public class StepFactory {
             ce.setVm(machine);
             cExec.addClass(ce);
         }
+        
+        //Primitives can not set or get their values. One must use a standard assignment.
+        if(vd != null && vd.getType().isPrimitiveType() && method != null){
+            if(method.getStaticKey().equals("GetValue") || method.getStaticKey().equals("SetValue:text")){
+                method = null;
+            }
+        }
 
         if (!isMethodErrorChecked && !isSystemActionErrorChecked && method == null && blueprint == null && systemAction == null) {
             CompilerError error = new CompilerError();
