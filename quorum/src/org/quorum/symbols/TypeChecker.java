@@ -1020,7 +1020,7 @@ public class TypeChecker {
                     result.setConversionResult(TypeConversionResults.None);
                     result.setErrorMessage("Cannot assign a value of type \"" +
                         right.generateTypeKey() + "\"" +
-                        " to a variable of type \"" + left.generateTypeKey() + ".\"");
+                        " to a variable of type \"" + left.generateTypeKey() + "\".");
                     result.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
                     return result;
                 }
@@ -1033,7 +1033,7 @@ public class TypeChecker {
                     result.setConversionResult(TypeConversionResults.None);
                     result.setErrorMessage("Cannot assign a value of type \"" +
                         rTemp.generateTypeKey() + "\"" +
-                        " to a variable of type \"" + lTemp.generateTypeKey() + ".\"");
+                        " to a variable of type \"" + lTemp.generateTypeKey() + "\".");
                     result.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
                     return result;
                 }
@@ -1075,6 +1075,12 @@ public class TypeChecker {
                 result.setErrorType(ErrorType.INVALID_OPERATOR);
             }
             else {
+                if(right != null){
+                    rightKey = right.generateTypeKey();
+                }
+                if(left != null){
+                    lstr = left.generateTypeKey();
+                }
                 result.setErrorMessage("Cannot assign a value of type \"" +
                     rightKey + "\"" +
                     " to a variable of type \"" + lstr + ".\"");

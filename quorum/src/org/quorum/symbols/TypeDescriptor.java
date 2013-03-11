@@ -487,6 +487,11 @@ public class TypeDescriptor extends Descriptor {
             }
             name = name + ">";
         }
+        
+        if(name.equals("NULL_TYPE")){
+            name = "undefined";
+        }
+        
         this.setName(name);
         return name;
     }

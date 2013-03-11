@@ -134,7 +134,15 @@ class Text is a Object
         integer result = a:IndexOf("l", 3)
     */
     action IndexOf(text subText, integer index) returns integer
-        return IndexOfNative(value, subText, index)
+        integer size = GetLength()
+        if index < size and index >= 0
+            return IndexOfNative(value, subText, index)
+        else
+            InvalidLocationError error
+            error:SetErrorMessage("Text index out of range, " + index)
+            alert(error)
+        end
+        
     end
 
     private system action IndexOfNative(text left, text prefix, integer index) returns integer
@@ -189,7 +197,14 @@ class Text is a Object
         text result = a:GetSubtext(1)
     */
     action GetSubtext(integer startIndex) returns text
-        return GetSubtextNative(value, startIndex)
+        integer size = GetLength()
+        if startIndex < size and startIndex >= 0
+            return GetSubtextNative(value, startIndex)
+        else
+            InvalidLocationError error
+            error:SetErrorMessage("Text index out of range, " + startIndex)
+            alert(error)
+        end
     end
 
     private system action GetSubtextNative(text left, integer start) returns text
@@ -444,6 +459,7 @@ class Text is a Object
     action GetSubtext(integer startIndex, integer endIndex) returns text
         if startIndex = endIndex or startIndex > endIndex or startIndex < 0 or endIndex < 0 or endIndex >= me:GetLength()
             InvalidLocationError e
+            e:SetErrorMessage("Text index out of range, " + startIndex + " - " + endIndex)
             alert(e)
         end
         

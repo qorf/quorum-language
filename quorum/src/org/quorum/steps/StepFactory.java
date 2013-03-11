@@ -1161,6 +1161,15 @@ public class StepFactory {
         
         //Primitives can not set or get their values. One must use a standard assignment.
         if(vd != null && vd.getType().isPrimitiveType() && method != null){
+            if(!vd.isInitialized()){
+                CompilerError error = new CompilerError();
+                error.setLineNumber(info.location.getStartLine());
+                error.setError("The variable " + info.variable.getName() + " must be initialized before it is used.");
+                error.setColumn(info.location.getStartColumn());
+                error.setErrorType(ErrorType.MISSING_VARIABLE);
+                error.setFile(info.location.getFile());
+                machine.getCompilerErrors().addError(error);
+            }
             if(method.getStaticKey().equals("GetValue") || method.getStaticKey().equals("SetValue:text")){
                 method = null;
             }
