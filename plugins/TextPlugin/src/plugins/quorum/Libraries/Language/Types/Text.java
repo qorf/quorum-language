@@ -5,6 +5,8 @@
 package plugins.quorum.Libraries.Language.Types;
 
 import quorum.Libraries.Containers.Array$Interface;
+import quorum.Libraries.Language.Errors.Error;
+import quorum.Libraries.Language.Errors.InvalidLocationError;
 import quorum.Libraries.Language.Object$Interface;
 import quorum.Libraries.Language.Types.Text$Interface;
 
@@ -117,12 +119,14 @@ public class Text {
         return self.hashCode();
     }
     
-    public static String PrimitiveGetCharacter(String self, int index){
+    public static String PrimitiveGetCharacter(String self, int index) throws Error{
+        int length = self.length();
+        if(index < 0 || index >= length){
+            quorum.Libraries.Language.Errors.Error error = new InvalidLocationError();
+            error.SetErrorMessage("Text index out of range, " + index);
+            throw(error);
+        }
         return "" + self.charAt(index);
-    }
-
-    public static String PrimitiveGetSubstring(String self,int startIndex, int endIndex){
-        return "" + self.substring(startIndex, endIndex);
     }
     
     public static String PrimitiveAppend(String self, String addition){
@@ -200,7 +204,13 @@ public class Text {
         return self.indexOf(right);
     }
     
-    public static int PrimitiveIndexOf(String self, String right, int index){
+    public static int PrimitiveIndexOf(String self, String right, int index) throws Error{
+        int length = self.length();
+        if(index < 0 || index >= length){
+            quorum.Libraries.Language.Errors.Error error = new InvalidLocationError();
+            error.SetErrorMessage("Text index out of range, " + index);
+            throw(error);
+        }
         return self.indexOf(right, index);
     }
     
@@ -212,11 +222,23 @@ public class Text {
         return self.replace(old, replacement);
     }
     
-    public static String PrimitiveGetSubtext(String self, int startIndex, int endIndex){
+    public static String PrimitiveGetSubtext(String self, int startIndex, int endIndex) throws quorum.Libraries.Language.Errors.Error{
+        int length = self.length();
+        if(startIndex < 0 || startIndex >= length || endIndex < startIndex || endIndex >= length){
+            quorum.Libraries.Language.Errors.Error error = new InvalidLocationError();
+            error.SetErrorMessage("Text index out of range, " + startIndex + " - " + endIndex);
+            throw(error);
+        }
         return self.substring(startIndex, endIndex);
     }
     
-    public static String PrimitiveGetSubtext(String self, int startIndex){
+    public static String PrimitiveGetSubtext(String self, int startIndex) throws Error{
+        int length = self.length();
+        if(startIndex < 0 || startIndex >= length){
+            quorum.Libraries.Language.Errors.Error error = new InvalidLocationError();
+            error.SetErrorMessage("Text index out of range, " + startIndex);
+            throw(error);
+        }
         return self.substring(startIndex);
     }
     
