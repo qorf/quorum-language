@@ -137,58 +137,15 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         }
         indexPage += "</ul>\n";
         indexPage += "\n</div>";
-        indexPage += "\n</body>\n";
-        
-        indexPage += "<div id=\"footer\">";
-            indexPage += "<center>";
-                indexPage += "The Quorum Programming Language<br /><small>";
-                indexPage += "Copyright &copy; 2012-2013. Art and Design by Andreas Stefik</small>";
-            indexPage += "</center>";
-        indexPage += "</div>";
-        indexPage += "</html>";
+        indexPage = "<?php include('" + root + "static/templates/pagefooter.template.php'); ?>";;
     }
     
-    private String generateHeader() {
-        String result = "";
-        result += "<div class=\"quorum_header\">";
-        result += "<ul class=\"quorum_header\">";
-        
-        
-        result += "<li class=\"quorum_header_start\"> <a href=\"" + 
-                    "/index.php\" class=\"quorum_header\">Quorum</a></li>";
-        result += "<li class=\"quorum_header\"> <a href=\"" + 
-                    "/syntax.php\" class=\"quorum_header\">Syntax</a></li>";
-        result += "<li class=\"quorum_header\"> <a href=\"" + 
-                    "/libraries.php\" class=\"quorum_header\">Libraries</a></li>";
-        result += "<li class=\"quorum_header\"> <a href=\"" + 
-                    "/curriculum.php\" class=\"quorum_header\">Curriculum</a></li>";
-        result += "<li class=\"quorum_header\"> <a href=\"" + 
-                    "/download.php\" class=\"quorum_header\">Downloads</a></li>";
-        
-        result += "<?php echo '<li class=\"quorum_header\"> <a href=\"http://blog.quorumlanguage.com\" class=\"quorum_header\">Blog</a></li>';?>";
-            
-        result += "<?php echo '<li class=\"quorum_header\"> <a href=\"' . ";
-            result += "'https://quorum.atlassian.net\" class=\"quorum_header\">Bugs</a></li>';?>";
-        result += "</ul>";
-        result += "</div>";
-        return result;
+    private String generateHeader(String key) {
+        return "<?php include('" + root + "static/templates/pageheader.template.php'); ?>";
     }
     
     private void startNewIndex() {
-        indexPage = "";
         classes.clear();
-        String pageTitle = "Index of Quorum Libraries";
-        String result = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n";
-        result += "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n";
-        result += "<head>";
-        result += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";
-        result += "<title>"+pageTitle+"</title>\n";
-        result += generateHeader();
-        result += "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + root + "style.css\"></link>";
-        result += "</head>\n";
-        result += "<body>\n";
-        result += "<h1 class=\"page_title\">"+pageTitle+"</h1>\n";
-        indexPage = result;
         currentClass = null;
     }
     
@@ -254,7 +211,18 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                 root += "../";
             }
         }
-        int a = 5;
+    }
+    
+    /**
+     * This method computes a relative path root. This root is relative to
+     * the package structure in Quorum.
+     * 
+     * @param clazz 
+     */
+    private String computeSuperkey(ClassDescriptor clazz) {
+        ContainerDescriptor con = clazz.getContainer();
+        String container = con.getContainer();
+        return container.replace('.', '|');
     }
     
     /**
@@ -307,20 +275,14 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         currentClass = clazz;
         computeRelativeRoot(clazz);
         addToIndex(clazz);
-        String result = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n";
-        result += "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n";
-        result += "<head>";
-        result += "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />";        
+          
         String key = clazz.getStaticKey();
-        result += "<title>" + key + "</title>\n";
-        result += generateHeader();
-        result += "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + root + "style.css\"></link>";
-        result += "</head>\n";
-        result += "<body>\n";
+        String result = generateHeader(key);
+
+        result += "<?php include('" + root + "static/templates/classheader.template.php'); ?>";
         
         result += headingSurround(key, 1, "page_title") + "\n";
 
-        
         //get the class's name in wiki format
         String className = clazz.getName();
 
@@ -346,7 +308,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
             className += templateString;
         }
 
-        className = "Class " + className;
+        className = controllableComponent("Class " + className, "class-name");
         result += headingSurround(className, 2) + "\n";
         //get the class's description in wiki format
         Documentation documentation = clazz.getDocumentation();
@@ -355,7 +317,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         if(documentation != null) {
             description = Documentation.breakStringIntoParagraphs(documentation.getDescription());
         }
-        description = italics("Description") + ":\n" + description;
+        description = controllableComponent(italics("Description") + ":\n" + description, "class-description");
         result += paragraph(description) + "\n";
 
         //create the parent initialization wiki
@@ -388,7 +350,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         parentsString += parentList;
                 
         if(!documentation.getExample().isEmpty()) {
-            result += "\n" + italics("Example Code") + ":\n";
+            result += "\n" + controllableComponent(italics("Example Code") + ":", "class-example") + "\n";
             result += code(documentation.getExample()) + "\n\n";
         }
         result += parentsString;
@@ -418,7 +380,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                     listClass = "class = \"package_alternate\"";
                 }
                 standardListItem = !standardListItem;
-                result += "<li " + listClass + ">" + getVariableDocumentation(next) + "</li>\n";
+                result += "<li " + listClass + " >" + getVariableDocumentation(next) + "</li>\n";
             }
             result += "</ul>";
         }
@@ -456,7 +418,6 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                 result += "<div class=\"action\">";
                 result += methodDocumentation;
                 result += "</div>";
-                result += "<p></p>";
             }
         }
         //now generate any information relevant from the parents.
@@ -486,16 +447,8 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         }
         
         
-        
-        result += "<div id=\"footer\">";
-            result += "<center>";
-            result += "The Quorum Programming Language<br /><small>";
-                result += "Copyright &copy; 2012-2013. Art and Design by Andreas Stefik</small>";
-            result += "</center>";
-        result += "</div>";
-
-        result += "</body>\n";
-        result += "</html>";
+        result += "<?php include('" + root + "static/templates/classfooter.template.php'); ?>";
+        result += "<?php include('" + root + "static/templates/pagefooter.template.php'); ?>";
         return result;
     }
     
@@ -504,11 +457,11 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
     }
     
     private String italics(String string) {
-        return "<i>" + string + "</i>";
+        return "<em>" + string + "</em>";
     }
     
     private String bold(String string) {
-        return "<b>" + string + "</b>";
+        return "<strong>" + string + "</strong>";
     }
     
     private String code(String string) {
@@ -525,6 +478,10 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
     
     private String listItem(String string) {
         return "<li>" + string + "</li>";
+    }
+    
+    private String controllableComponent(String string, String componentType) {
+        return "<span class=\"controllable\" data-componentType=\"" + componentType + "\">" + string + "</span>";  
     }
     
     private String getVariableDocumentation(VariableDescriptor variable) {
@@ -777,8 +734,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                 params += currentParam;
             }
         }
-        result += "" + modifier + methodType + " action " + name +
-                "(" + params + ")";
+        result += controllableComponent(modifier + methodType + " action " + name + "(" + params + ")", "action-name");
         
         String returnType = getReturnTypeString(method);
         return result;
@@ -844,12 +800,10 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                     }else {
                         currentParam = pascalCasePackageChecker(parameters.get(i).getType().getStaticKey());
                     }
-                    params += currentParam;
-                    paramList += "<li>";
-                    paramList +=  bold(currentParam) + " " + italics(parameters.get(i).getName()) + ": ";
+                    currentParam = controllableComponent(bold(currentParam) + " " + italics(parameters.get(i).getName()) + ": ", "parameter-name");
                     String parameterDocumentation = documentation.getParameter(parameters.get(i).getName());
-                    paramList += parameterDocumentation;
-                    paramList += "</li>\n\n";
+                    currentParam += parameterDocumentation;
+                    paramList += "<li>" + currentParam + "</li>\n\n";
                 }
             }
             paramList += "</ul>";
@@ -870,7 +824,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         }
         if(!(method instanceof BlueprintDescriptor)) {
             if(!documentation.getExample().isEmpty()) {
-                result += "\n\t" + paragraph(italics("Example Code") + ":");
+                result += "\n\t" + controllableComponent(paragraph(italics("Example Code:")), "action-example");
                 result += "\n" + code(documentation.getExample())
                         + "\n\n";
             }
