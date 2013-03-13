@@ -6,16 +6,16 @@ a { color: @blue2; .transition(color, .1s);
 }
 
 .navbar-inner {
-	@navbar-height: 80px;
+	@navbar-height: 60px;
 
 	.navbar-container { width: @fullwidth; height: @navbar-height; margin: 0 auto; position: relative;
-		.brand { font-family: "Helvetica Neue", Helvetica; font-size: 48px; line-height: 60px; 
+		.brand { font-family: "Helvetica Neue", Helvetica; font-size: 45px; line-height: 45px; 
 			&:hover { .transition(all, .2s); }
 		}
 		.nav { margin: (@navbar-height - 40px) 0 0 auto; }
 
 		.user-controls { position: absolute; top: 0; right: 0; height: @navbar-height;
-			.signin-signup-message { display: block; margin-top: 35px;
+			.signin-signup-message { display: block; margin-top: 13px;
 				em { display: inline-block; margin: 0 5px; font-size: 16px; font-style: normal; color: @white1; vertical-align: middle; }
 			}
 		}
@@ -32,7 +32,7 @@ a { color: @blue2; .transition(color, .1s);
 	}
 }
 
-#wrapper { .clearfix(); min-width: @fullwidth; margin: 80px 0 0 0;  }
+#wrapper { .clearfix(); min-width: @fullwidth; margin: 60 0 0 0;  }
 
 .content { width: @fullwidth; margin: 0 auto; padding-top: 20px; }
 

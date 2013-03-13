@@ -42,11 +42,12 @@
 					<a class="brand" href="/">Quorum</a>
 					<ul class="nav">
 						<?php
-							createNavBarLink("Quorum","", 1);
 							createNavBarLink("Syntax","syntax.php", 1);
 							createNavBarLink("Libraries","libraries.php", 1);
+							createNavBarLink("Curriculum","curriculum.php", 1);
 							createNavBarLink("Download","download.php", 1);
-							createNavBarLink("Blog","blog.php", 1);
+							createNavBarLink("Blog","http://blog.quorumlanguage.com/");
+							createNavBarLink("Bugs","https://quorum.atlassian.net/");
 						?>
 					</ul>
 					
