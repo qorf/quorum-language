@@ -91,48 +91,23 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         
         String previousContainer = "!!!!----invalid----!!!!";
         boolean firstPackage = true;
-        boolean standardListItem = true;
+        
         for(int i = 0; i < classes.size(); i++) {
             ClassDescriptor clazz = classes.get(i);
             String newContainer = clazz.getContainer().getContainer();
             if(previousContainer.compareTo(newContainer)!=0) { //if it's a new container
                 previousContainer = newContainer;
-                if(!firstPackage) {
-                    indexPage += "\t</ul>\n</div>\n";
+                if(!firstPackage) { 
+                    indexPage += "\t</ul>\n</div>\n"; 
                 }
                 
-                indexPage += "<div class=\"index_package\">\n";
-                if(newContainer.isEmpty()) {
-                    indexPage += "\t<h2 class=\"index_package_title\">" + "Default Package" + "</h2>\n";
-                }
-                else {
-                    indexPage += "\t<h2 class=\"index_package_title\">" + newContainer + "</h2>\n";
-                }
+                indexPage += "<li class=\"grid-item grid-item-" + clazz.getName().toLowerCase() + "\">\n";
+                indexPage += "\t<h2 class=\"index_package_title\">" + (newContainer.isEmpty() ? "Default Package" : newContainer) + "</h2>\n";
                 indexPage += "\t<ul class=\"packages\">\n";
-                standardListItem = true;
             }
             
-            String listClass = "";
-            if(standardListItem) {
-                listClass = "class = \"package_standard\"";
-            }
-            else {
-                listClass = "class = \"package_alternate\"";
-            }
-            standardListItem = !standardListItem;
-            indexPage += "\t\t<li " + listClass + ">" + linkForClassFromRoot(clazz);
-            String description = clazz.getDocumentation().getDescription();
-            final int MAX_LENGTH = 180;
-            int length = description.length();
-            if(length > MAX_LENGTH) {
-                length = MAX_LENGTH;
-            } 
-            indexPage += ": " + description.substring(0, length);
+            indexPage += "\t\t<li class=\"sublist-item\">" + linkForClassFromRoot(clazz) + "</li>\n";
             
-            if(description.length() > MAX_LENGTH) {
-                indexPage += " ...";
-            }
-            indexPage += "</li>\n";
             firstPackage = false;
         }
         indexPage += "</ul>\n";
@@ -639,6 +614,23 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
             File documents = new File(standardLibrary.getParentFile().getAbsolutePath() + "/documents");
             destination = new File(documentation.getAbsolutePath() + "/documents");
             gen.copyFile(documents, destination);
+            
+            File statics = new File(standardLibrary.getParentFile().getAbsolutePath() + "/static");
+            destination = new File(documentation.getAbsolutePath() + "/static");
+            gen.copyFile(statics, destination);
+            
+            File assets = new File(standardLibrary.getParentFile().getAbsolutePath() + "/assets");
+            destination = new File(documentation.getAbsolutePath() + "/assets");
+            gen.copyFile(assets, destination);
+            
+            File controllers = new File(standardLibrary.getParentFile().getAbsolutePath() + "/controllers");
+            destination = new File(documentation.getAbsolutePath() + "/controllers");
+            gen.copyFile(controllers, destination);
+            
+            File models = new File(standardLibrary.getParentFile().getAbsolutePath() + "/models");
+            destination = new File(documentation.getAbsolutePath() + "/models");
+            gen.copyFile(models, destination);
+            
         } catch (IOException ex) {
             Logger.getLogger(PHPDocumentationGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }
