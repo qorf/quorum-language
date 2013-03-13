@@ -1,4 +1,4 @@
-<?php include("include/header.php"); ?>
+<?php include("../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Release Notes for the Quorum Programming Language';
 </script>
@@ -128,4 +128,4 @@ end
     <li>Integration with the NetBeans IDE</li>
     <li>Talking Omniscient debugger (The debugger literally talks to you and tells you what is going on).</li>
 </ul>
-<?php include("include/footer.php"); ?>
+<?php include("../static/templates/pagefooter.template.php"); ?>

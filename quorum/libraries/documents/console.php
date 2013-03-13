@@ -1,4 +1,4 @@
-<?php include("include/header.php"); ?>
+<?php include("../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'A description of the command line arguments available in Quorum';
 </script>
@@ -114,4 +114,4 @@ java -jar ./Run/Hello.jar
 <p><pre class="code"><code>
 quorum -web default.jar
 </code></pre></p>
-<?php include("include/footer.php"); ?>
+<?php include("../static/templates/pagefooter.template.php"); ?>

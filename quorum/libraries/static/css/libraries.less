@@ -1,0 +1,41 @@
+.search-box-large { width: @fullwidth; margin: 20px auto 0;
+	input.search-query { height: 50px; width: 600px; font-size: 23px; padding: 0 15px; letter-spacing: 2px; .rounded-corners-left(5px); .rounded-corners-right(0px); }
+	button.search-submit.btn  { height: 50px; width: 100px; font-size: 18px; }
+	.input-append { width: 700px; margin: 0 auto; }
+	.typeahead { width: 600px; }
+}
+
+.index-grid { width: @fullwidth; margin: 0 auto; list-style-type: none; .clearfix();
+	@spacing: 15px;
+	.gridItemSpacing() { width: ((@fullwidth/4) - (@spacing)); height: 220px; float: left; margin: 0 (@spacing/2) 30px; }
+	.grid-item-spacer { .gridItemSpacing() }
+
+	.grid-item { position: relative; .gridItemSpacing(); background: @gray1; .opacity(0.65); .transition(background, .2s); .box-shadow(0 1px 4px, #333333); .rounded-corners(10px); cursor: pointer; 
+		&:hover { .gradient-circle(@gray1, @white1); .opacity(1); .transition(all, .2s); }
+		h2 { text-align:center; position: absolute; width: 100%; height: 100%;
+			a { color: #333333; position: absolute; left: 0; width: 100%; height: 100%;
+				&:hover { text-decoration: none; }
+			}
+		}
+
+		.grid-sublist { display: none; width: 100%; margin: 0; position: absolute; bottom: 0; list-style-type: none; .rgba(255,255,255,0.8); .rounded-corners-bottom(10px);
+			.sublist-item { width: 100%; cursor: pointer; width: 96%; padding: 2%;
+				a { color: #0088cc; text-decoration: none; height: 100%; 
+					&:hover {text-decoration: underline; }
+				}
+				&:last-child { .rounded-corners-bottom(10px); }
+				&:hover { .rgba(200,200,200,0.3); color: #000;
+					&:last-child { .rounded-corners-bottom(10px); }
+				}
+			}
+		}
+
+		i { display: block; width: 200px; height: 130px; margin: 90px auto 0; background-position: top center; background-repeat: no-repeat; }
+		&.grid-item-compute i { background-image: url(../img/gridicons/compute.png); }
+		&.grid-item-containers i { background-image: url(../img/gridicons/containers.png); }
+		&.grid-item-language i { background-image: url(../img/gridicons/language.png); }
+		&.grid-item-robots i { background-image: url(../img/gridicons/robots.png); }
+		&.grid-item-sound i { background-image: url(../img/gridicons/sound.png); }
+		&.grid-item-system i { background-image: url(../img/gridicons/system.png); }
+	}
+}

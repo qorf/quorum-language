@@ -1,4 +1,4 @@
-<?php include("../include/header.php"); ?>
+<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Inheritance in Quorum';
 </script>
@@ -175,4 +175,4 @@ end
     This program will print out &quot;Number of wheels: 4&quot; and &quot;Size 
     of gas tank (gallons): 20&quot;.
 </p>
-<?php include("../include/footer.php"); ?>
+ <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>

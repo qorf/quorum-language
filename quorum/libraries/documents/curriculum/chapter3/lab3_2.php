@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/4/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab3_2';
 </script>
@@ -103,4 +101,4 @@ Once you have the <tt>repeat until</tt> loop working, have the work checked. Onc
 Show your work to the instructor.
 </p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

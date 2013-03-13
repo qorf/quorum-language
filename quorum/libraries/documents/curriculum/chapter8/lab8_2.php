@@ -1,6 +1,4 @@
-<!--Developed and written by Brandon Spencer-->
-<!--10/19/2012-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab 8_2';
 </script>
@@ -82,4 +80,4 @@
     When finished, debug and show your instructor your program.
 </p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

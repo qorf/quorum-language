@@ -1,4 +1,4 @@
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Chapter 5';
 </script>
@@ -82,4 +82,4 @@
 <li>Use classes and class variables</li>
 <li>Design your program using object-oriented principles</li>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

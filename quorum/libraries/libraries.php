@@ -1,4 +1,4 @@
-<?php include("documents/include/header.php"); ?>
+<?php include("static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'The Quorum Standard Library';
 </script>
@@ -13,6 +13,5 @@
     have a significant number of additions planned for the future and plan to 
     expand on this library with each release.
 </p>
-<p>A complete <a href="library-index.php">index of all standard
-    library classes</a> is available.</p>
-<?php include("documents/include/footer.php"); ?>
+<p>A complete <a href="library-index.php">index of all standard library classes</a> is available.</p>
+<?php include("static/templates/pagefooter.template.php"); ?>

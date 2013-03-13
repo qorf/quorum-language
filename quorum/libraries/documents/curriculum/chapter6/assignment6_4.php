@@ -1,6 +1,4 @@
-<!--Developed and written by Brandon Spencer-->
-<!--9/27/12-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Assignment 6_4';
 </script>
@@ -292,4 +290,4 @@
     *Play Victory.wav*
 </pre>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

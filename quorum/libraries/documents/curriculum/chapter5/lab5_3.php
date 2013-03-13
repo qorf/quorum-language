@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/8/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab 5_3';
 </script>
@@ -244,4 +242,4 @@ end
 Make changes to the <tt>Main</tt> class so that all actions, not including the <tt>Main</tt> action, are hidden from <tt>Player</tt> and <tt>Coach</tt> classes.  Run the program and it will function the same as before.  Show both Lab5_3A and Lab5_3B programs to the instructor.
 </p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

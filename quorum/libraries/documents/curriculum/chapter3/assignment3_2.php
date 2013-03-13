@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/4/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Assignment3_2';
 </script>
@@ -50,4 +48,4 @@ Game over.
 Can you think of an efficient way to guess the number every time? Describe a guessing strategy for this game.
 </p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

@@ -1,4 +1,4 @@
-<?php include("../include/header.php"); ?>
+<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Variable Types in Quorum';
 </script>
@@ -101,4 +101,4 @@ number someNumber = cast(number, someText)
 <p>
     You can learn more about casting on the <a href="casting.php">type casting page</a>.
 </p>
-<?php include("../include/footer.php"); ?>
+ <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>

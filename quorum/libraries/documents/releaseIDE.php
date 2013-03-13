@@ -1,4 +1,4 @@
-<?php include("include/header.php"); ?>
+<?php include("../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Release Notes for the Sodbeans Development Environment';
 </script>
@@ -262,4 +262,4 @@
     </li><li>Sodbeans is built on Sappy 1.0 and <a class="wiki" href="/apps/trac/sodbeans/wiki/NetBeans">NetBeans</a> 6.9. As such, it has the same accessibility features available in Sappy 1.0.
     </li>
 </ul><p>
-    <?php include("include/footer.php"); ?>
+<?php include("../static/templates/pagefooter.template.php"); ?>

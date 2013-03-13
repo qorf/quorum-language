@@ -1,6 +1,4 @@
-<!--Developed and written by Brandon Spencer-->
-<!--11/29/2012-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Assignment 8_3';
 </script>
@@ -103,4 +101,4 @@
     Ahoy there, mate! Can you point me ter whar I can find a buried treasure?  I be havin' to get some doubloons so I can go eat at a galley and then shop at th' market.
 </pre>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

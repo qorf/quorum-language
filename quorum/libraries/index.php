@@ -1,4 +1,4 @@
-<?php include("documents/include/header.php"); ?>
+<?php include("static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Introduction to the Quorum Programming Language';
 </script>
@@ -68,4 +68,4 @@ repeat 12 times
    i = i + 1
 end
 </code></pre></p>
-<?php include("documents/include/footer.php"); ?>
+<?php include("static/templates/pagefooter.template.php"); ?>

@@ -1,4 +1,4 @@
-<?php include("../include/header.php"); ?>
+<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Automatic conversion of primitives in Quorum';
 </script>
@@ -89,4 +89,4 @@ boolean equalTo = (int1:CompareTo(int2) = 0)
     <li>To determine whether a value is less than another, you can compare the result of the CompareTo function to -1.</li>
     <li>To determine whether a value is equal to another, you can compare the result of the CompareTo function to 0.</li>
 </ul>
-<?php include("../include/footer.php"); ?>
+ <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>

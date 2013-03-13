@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/8/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'assignment 5_4';
 </script>
@@ -126,4 +124,4 @@ You are the winner!
 </li><li>You should define actions in each class (the design is up to you).
 </li></ul>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

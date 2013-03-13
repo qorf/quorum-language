@@ -1,4 +1,4 @@
-<?php include("../include/header.php"); ?>
+<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Creating prototypes of actions in Quorum';
 </script>
@@ -139,4 +139,4 @@ class Main
    end
 end
 </code></pre></p>
-<?php include("../include/footer.php"); ?>
+ <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>

@@ -1,6 +1,4 @@
-<!--Developed and written by Brandon Spencer-->
-<!--9/27/12-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Assignment 6_3';
 </script>
@@ -307,4 +305,4 @@
     Hourly employee Brandon Spencer. Hourly wage is 16.0 and number of hours worked is 40. Total earnings for this hourly employee is 640 dollars.
 </pre>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

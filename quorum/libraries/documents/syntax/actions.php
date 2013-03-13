@@ -1,4 +1,4 @@
-<?php include("../include/header.php"); ?>
+<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Controlling behaviors in Quorum';
 </script>
@@ -106,4 +106,4 @@ end
 action add
 end
 </code></pre></p>
-<?php include("../include/footer.php"); ?>
+ <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>

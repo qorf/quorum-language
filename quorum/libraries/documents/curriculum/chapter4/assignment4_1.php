@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/7/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Assignment 4_1';
 </script>
@@ -196,4 +194,4 @@ Select an operation (1-6):
 The value you entered is not valid. You must choose a value between 1 and 6.
 </code></pre></p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

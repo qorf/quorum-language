@@ -1,4 +1,4 @@
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Chapter 3';
 </script>
@@ -86,4 +86,4 @@ end
 <li>Use repeat statements to improve the reservation program.</li>
 <li>Check user input for errors.</li>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

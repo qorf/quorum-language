@@ -1,6 +1,4 @@
-<!--Developed and written by Brandon Spencer-->
-<!--10/4/2012-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab7_1';
 </script>
@@ -202,4 +200,4 @@
     Show your instructor your code when you're finished.
 </p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

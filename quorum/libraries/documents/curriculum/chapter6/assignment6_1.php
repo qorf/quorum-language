@@ -1,6 +1,4 @@
-<!--Developed and written by Brandon Spencer-->
-<!--9/27/12-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Assignment 6_1';
 </script>
@@ -157,4 +155,4 @@ Class <tt>Pyramid</tt> is derived from <tt>ThreeDShape</tt>.  It will have one a
 </li><li>Volume of a pyramid: <strong>1/3 * (area of the base) * height</strong>
 </li></ul>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

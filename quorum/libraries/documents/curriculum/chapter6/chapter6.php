@@ -1,6 +1,4 @@
-<!--Developed and written by Brandon Spencer-->
-<!--9/28/2012-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Chapter 6';
 </script>
@@ -89,4 +87,4 @@
 <li>Use the Libraries.Sound.Audio library</li>
 <li>Use inheritance and blueprint actions</li>
     
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

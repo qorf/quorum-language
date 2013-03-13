@@ -1,6 +1,4 @@
-<!--Developed and written by Brandon Spencer-->
-<!--10/16/2012-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'assignment7_3';
 </script>
@@ -128,4 +126,4 @@
     It took 11 seconds to search a hash table for 384 values using chaining.
 </pre>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

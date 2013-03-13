@@ -1,4 +1,4 @@
-<?php include("../include/header.php"); ?>
+<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Creating Variables in Quorum';
 </script>
@@ -66,4 +66,4 @@ integer sall&amp;&amp;%%^$*#(y //not all characters are allowed to be used in na
     own custom types. More information can be found on this in the section 
     on <a href="classes.php">Classes</a>.
 </p>
-<?php include("../include/footer.php"); ?>
+ <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>

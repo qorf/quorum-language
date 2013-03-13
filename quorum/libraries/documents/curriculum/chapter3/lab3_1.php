@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/4/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab3_1';
 </script>
@@ -104,4 +102,4 @@ The price for the order of 20 car(s) is $396000
 The program should be functional and ready for the clients to use after solving these problems.  Show your work to the instructor.
 </p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

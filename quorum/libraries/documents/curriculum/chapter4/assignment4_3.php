@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/7/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Assignment 4_3';
 </script>
@@ -39,4 +37,4 @@ Modify the existing travel reservation program to make use of actions. The progr
 </li><li><tt>CalculateFlightCost</tt> - Calculate the flight cost, taking into account the flight destination and number of people needing tickets.
 </li></ul></li></ul>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

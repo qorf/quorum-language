@@ -1,4 +1,4 @@
-<?php include("../include/header.php"); ?>
+<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Doing things conditionally in Quorum';
 </script>
@@ -55,4 +55,4 @@ is not greater than 100, this code will then test to see if b is greater than
 100. If that is the case, c will be set to 2. Finally, if neither a, nor b, are 
 greater than 100, c will be set to 3.
 </p>
-<?php include("../include/footer.php"); ?>
+ <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>

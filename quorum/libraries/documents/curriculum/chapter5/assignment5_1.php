@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/8/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'assignment 5_1';
 </script>
@@ -158,4 +156,4 @@ In this assignment you will be creating a program that mimics a radio. The user 
 </pre>
 
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

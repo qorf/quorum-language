@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/2/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Chapter 2';
 </script>
@@ -134,4 +132,4 @@ The program returns false when 8.9 is less than 15. Quorum is cool.
 You are done! Show your work to the instructor.
 </p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

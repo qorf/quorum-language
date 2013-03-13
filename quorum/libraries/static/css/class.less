@@ -1,0 +1,32 @@
+.search-box-small { width: @sidebarwidth; margin: 0 auto;
+	input.search-query { height: 30px; width: @sidebarwidth - 99px; font-size: 12px; padding: 0 10px; .rounded-corners(0); }
+	button.search-submit.btn { height: 30px; width: 100px; font-size: 14px; .rounded-corners(0); }
+	.input-append { width: 700px; margin: 0 auto; }
+}
+
+.navigation-sidebar { float: left; width: @sidebarwidth; min-height: 100%; margin-left: -100%; background:  #E4EBF7; }
+	h3{margin: 0 0 0 10px;
+	span.index-toggel{font-size: 13px; font-style: italic; font-weight: normal; margin:0 0 0 10px;}
+}
+
+.content-wrapper { width: 100%; }
+
+.class-content { margin-left: @sidebarwidth + 20px; margin-right: 30px; margin-top: 20px; width: auto; }
+
+ul{ font-size:13px; display: block; list-style-type: none; margin: 0 0 0 25px; padding:0; }	
+
+.controllable { min-height: 32px; position: relative; 
+	.ratings-controls { display: inline-block; .opacity(0); .transition(opacity,.05s); margin: 0 0 0 20px; padding: 5px; height: 35px; position: absolute; top: 3px; font-size: 12px; font-weight: 300;
+		.star-ratings { display: inline-block; position: absolute; top: -5px; left: -190px; margin: 0; padding: 0 10px; width: 140px; height: 26px; .rounded-corners(2px); .box-shadow(0  1px 10px, @gray3); border: 1px solid darken(#0075cc, 15%); background: url(../img/stars.png) no-repeat center 0;
+			li { display: block; float: left; width: 28px; height: 27px; cursor: pointer; }
+		}
+		span.ratings-success { margin: 0 0 0 10px; position: relative; top: -5px; }
+	}
+
+	&:hover .ratings-controls { display: inline-block; .opacity(1); .transition(opacity,.05s); }
+}
+
+/* I hate that I have to this but its the best we can do. */
+h2 .controllable .ratings-controls .star-ratings { top: 5px; }
+h3 .controllable .ratings-controls .star-ratings { top: 5px; left: -200px; }
+.parameters .controllable .ratings-controls .star-ratings { left: -215px; }

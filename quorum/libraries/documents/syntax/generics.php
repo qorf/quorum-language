@@ -1,4 +1,4 @@
-<?php include("../include/header.php"); ?>
+<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Using generics in Quorum';
 </script>
@@ -76,4 +76,4 @@ List&lt;string&gt; list1
 List&lt;Dog&gt; list2 //assuming there is a Dog class somewhere
 List&lt;boolean&gt; list3
 </code></pre></p>
-<?php include("../include/footer.php"); ?>
+ <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>

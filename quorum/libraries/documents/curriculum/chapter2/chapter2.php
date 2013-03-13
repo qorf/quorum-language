@@ -1,4 +1,4 @@
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Chapter 2';
 </script>
@@ -79,4 +79,4 @@ use Libraries.Sound.Music
 <li>Write the music program that plays a combination of sounds and spoken text (music and lyrics).</li>
 </ul>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

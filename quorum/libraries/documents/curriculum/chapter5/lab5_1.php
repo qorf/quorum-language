@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/8/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab 5_1';
 </script>
@@ -130,4 +128,4 @@ From this foundation you should be able to code a few more characteristics, and 
 So by the time you're finished you should have 4 variables: arms, legs, name, and color. And these four methods: &quot;Display&quot;, &quot;ChangeArms&quot;, &quot;ChangeLegs&quot;, &quot;ChangeColor&quot;, and &quot;ChangeName&quot;.
 </p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

@@ -1,7 +1,4 @@
-<!--Developed and written by Jeff-->
-<!--Edited by Brandon Spencer-->
-<!--10/19/2012-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab 8_1';
 </script>
@@ -155,4 +152,4 @@
     Done. Contacts listed. Goodbye.
 </pre>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

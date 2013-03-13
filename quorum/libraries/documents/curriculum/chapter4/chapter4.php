@@ -1,4 +1,4 @@
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Chapter 4';
 </script>
@@ -73,4 +73,4 @@
 <li>Modify the existing travel reservation program.</li>
 <li>Use actions to break down the travel reservation program into more logical pieces.</li>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

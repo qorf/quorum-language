@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/5/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab3_3';
 </script>
@@ -46,7 +44,7 @@ The output in hour:minute:second format is shown below:
 12:28:54
 </code></pre></p>
 <p>
-For more information about the DateTime class, check out the documentation for the <a href="../../../Libraries/System/DateTime.html">DateTime class</a>.
+For more information about the DateTime class, check out the documentation for the <a href="../../../../Libraries/System/DateTime.html">DateTime class</a>.
 </p>
 <h2>Task 2: Write a Date/Time Program</h2>
 <p>
@@ -204,4 +202,4 @@ Show the work to the instructor.  Optionally, if there is enough time and if mor
 </td></tr><tr><td>Stop</td><td>SHIFT + F5</td><td>Turns the debugger off.
 </td></tr></table>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

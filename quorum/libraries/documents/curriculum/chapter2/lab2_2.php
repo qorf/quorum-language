@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/2/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Chapter 2';
 </script>
@@ -227,4 +225,4 @@ Enter the cost of each shirt:
 The total cost of 11 Navy Polo Shirt items is $98.89. Each shirt costs $8.99.
 </code></pre></p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

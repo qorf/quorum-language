@@ -1,6 +1,4 @@
-<!--Developed and written by Brandon Spencer-->
-<!--9/22/2012-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab6_2';
 </script>
@@ -167,4 +165,4 @@ Create six additional classes in this project.  Name  the classes <tt>SuperHero<
   When finished, debug and fix any errors, then show your instructor you code.
 </p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

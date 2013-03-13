@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/7/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab 4_3';
 </script>
@@ -111,4 +109,4 @@ The total gas price for the trip is $18.03975
 Show the work to the instructor.
 </p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

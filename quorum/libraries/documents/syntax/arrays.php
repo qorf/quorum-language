@@ -1,4 +1,4 @@
-<?php include("../include/header.php"); ?>
+<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Creating Arrays in Quorum';
 </script>
@@ -126,4 +126,4 @@ thisDog:SetName(&quot;Spot&quot;)
     For further information on arrays, check out the standard library documentation 
     for <a href="../../Libraries/Containers/Array.html">the array class</a>.
 </p>
-<?php include("../include/footer.php"); ?>
+ <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>

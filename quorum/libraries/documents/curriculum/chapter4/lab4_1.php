@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/7/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab 4_1';
 </script>
@@ -313,4 +311,4 @@ number k = Divide(6, 0)
 <p>
 The value of <tt>k</tt> should be 0.0. (division by zero has occurred).
 </p>
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

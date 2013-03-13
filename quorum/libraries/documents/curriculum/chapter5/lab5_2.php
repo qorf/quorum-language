@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/8/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab 5_2';
 </script>
@@ -221,4 +219,4 @@ Notice that you are passing a <tt>Car</tt> object into actions.  This is one of 
 Fill these actions with the appropriate code.  Call both <tt>Change</tt> and <tt>Display</tt> actions with the same values.  The program should still function the same with same results in the output as before.  Show the work to the instructor.
 </p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

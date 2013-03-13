@@ -1,4 +1,4 @@
-<?php include("../include/header.php"); ?>
+<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'The operator is a';
 </script>
@@ -25,4 +25,4 @@ are evaluating and the class name is the type you are comparing the variable to.
 Therefore, the expression &quot;b is a Object&quot; will evaluate to either 
 true or false.
 </p>
-<?php include("../include/footer.php"); ?>
+ <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>

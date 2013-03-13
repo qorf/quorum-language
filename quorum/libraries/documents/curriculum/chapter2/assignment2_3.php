@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/4/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Chapter 2';
 </script>
@@ -49,4 +47,4 @@ Once the chord has been created make sure the chord is played.
 <p>
   Your output should be a song of at least 1 minute in length.  All students' outputs will be different, since you all have different creative inspirations!
 </p>
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

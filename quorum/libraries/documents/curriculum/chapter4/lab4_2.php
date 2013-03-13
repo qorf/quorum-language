@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/7/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab 4_2';
 </script>
@@ -194,4 +192,4 @@ Game over
 <p>
 Debug your program and fix any compiler errors there might be. Now would be a great time to use the debugger to test your program. When an action is called use step into to see what happens when a particular action is called. Did your program run correctly? If not, fix any problems. Show the work to the instructor.
 </p>
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

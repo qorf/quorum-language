@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/2/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Chapter 2';
 </script>
@@ -50,4 +48,4 @@ text value = &quot;Hello there THX&quot; + 1138
 say value
 </code></pre></p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

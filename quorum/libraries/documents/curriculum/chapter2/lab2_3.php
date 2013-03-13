@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/2/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Chapter 2';
 </script>
@@ -75,4 +73,4 @@ It’s time to create a custom song!  Write a series of play statements that pla
 When the song is finished and ready to show off, play the song for the instructor, some friends, or the class.
 </p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

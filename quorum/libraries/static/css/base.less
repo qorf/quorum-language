@@ -1,0 +1,53 @@
+body { background: url(../img/white_tiles.png);}
+* { font-family: "Open Sans", "Helvetica Neue", Helvetica,Arial,sans-serif; }
+
+a { color: @blue2; .transition(color, .1s);
+	&:hover { color: darken(@blue2,30%); .transition(all, .1s); }
+}
+
+.navbar-inner {
+	@navbar-height: 80px;
+
+	.navbar-container { width: @fullwidth; height: @navbar-height; margin: 0 auto; position: relative;
+		.brand { font-family: "Helvetica Neue", Helvetica; font-size: 48px; line-height: 60px; 
+			&:hover { .transition(all, .2s); }
+		}
+		.nav { margin: (@navbar-height - 40px) 0 0 auto; }
+
+		.user-controls { position: absolute; top: 0; right: 0; height: @navbar-height;
+			.signin-signup-message { display: block; margin-top: 35px;
+				em { display: inline-block; margin: 0 5px; font-size: 16px; font-style: normal; color: @white1; vertical-align: middle; }
+			}
+		}
+	}
+}
+
+.hero-unit { padding: 5px; border-bottom: 1px solid darken(@blue, 15%); .gradient-vertical(darken(@blue, 5%), @blue); .rounded-corners(0); .box-shadow(0 3px 10px, @gray3);
+	.hero-unit-container { width: @fullwidth; margin: 0 auto; 
+		h1 { color: @gray1; font-weight: 300; margin-bottom: 15px; text-shadow: 2px 2px 0 darken(@blue, 15%); line-height: 1; }
+		p { color: @bluegray; text-shadow: 1px 1px 10px darken(@blue, 20%); }
+		a { color: lighten(@blue,40%); text-decoration: underline; 
+			&:hover { text-decoration: none; }
+		}
+	}
+}
+
+#wrapper { .clearfix(); min-width: @fullwidth; margin: 80px 0 0 0;  }
+
+.content { width: @fullwidth; margin: 0 auto; padding-top: 20px; }
+
+.content-wrapper { float: left; width: 100%;
+	.content { margin-left: @sidebarwidth + 30px; padding: 10px 0 0 0; }
+}
+
+#footer { width: 100%; text-align: center;
+	small { display: block; }
+}
+
+#modal-registration {
+	input { min-height: 30px; }
+	.text-error { display: none; }
+	.auth-with-google { float: right; margin: 0 20px 20px 0; width: 150px; }
+	h4 { font-weight: 300; text-align: center; margin-bottom: 10px; }
+	h4.half-size { text-align: left; width: 300px; float: left; margin: 10px 0 0 20px;  }
+}

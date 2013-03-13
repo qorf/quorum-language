@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/7/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Assignment 4_2';
 </script>
@@ -66,4 +64,4 @@ After the user has been prompted, the application should then call an action to 
 In the <tt>Main</tt> action, you must call one of these three methods depending on the data the user has given. Note that <strong>all</strong> of these methods should be called somewhere in <tt>Main</tt>.
 </p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

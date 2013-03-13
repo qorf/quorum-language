@@ -1,6 +1,4 @@
-<!--Edited by Brandon Spencer-->
-<!--1/6/13-->
-<?php include("../../include/header.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'assignment3_3';
 </script>
@@ -117,4 +115,4 @@ Total hotel price for 1 room(s) at Luxury Hotel for 5 night(s) is $998.75
 Total package price for flights and hotel is $2298.75
 </code></pre></p>
 
-<?php include("../../include/footer.php"); ?>
+ <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>
