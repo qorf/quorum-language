@@ -173,9 +173,11 @@ public enum TypeCheckerStepFactory {
     TEXT_TEXT_CAST,
     INTEGER_INTEGER_CAST,
     NUMBER_NUMBER_CAST,
-    CUSTOM_CUSTOM_CAST;
-
-    TypeCheckerStepFactory() {}
+    CUSTOM_CUSTOM_CAST, 
+    
+    ASSIGNMENT_TEXT_TYPE_NULL,
+    ASSIGNMENT_TEXT_TYPE_NULL_LOCAL, 
+    TEXT_NULL_EQUALS;
 
 
     public ExecutionStep generateStep() {
@@ -243,6 +245,8 @@ public enum TypeCheckerStepFactory {
                 return new BinaryConcatenateStep();
             case TEXT_TEXT_EQUALS:
                 return new BinaryEqualsStringStep();
+            case TEXT_NULL_EQUALS:
+                return new BinaryEqualsStringNullStep();
             case TEXT_TEXT_NOT_EQUALS:
                 return new BinaryNotEqualsStringStep();
             case TEXT_TEXT_GREATER_EQUALS:
@@ -279,6 +283,10 @@ public enum TypeCheckerStepFactory {
                 return new AssignmentTextStep();
             case ASSIGNMENT_TEXT_TEXT_LOCAL:
                 return new AssignmentTextLocalStep();
+            case ASSIGNMENT_TEXT_TYPE_NULL:
+                return new AssignmentTextNullStep();
+            case ASSIGNMENT_TEXT_TYPE_NULL_LOCAL:
+                return new AssignmentTextNullLocalStep();
 
             //custom types
             case ASSIGNMENT_CREATE_CUSTOM_TYPE:

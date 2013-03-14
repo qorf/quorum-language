@@ -2618,6 +2618,32 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
         performAssignment(pop, step, true, null);
     }
+    
+    
+    @Override
+    public void visit(AssignmentTextNullLocalStep step) {
+        visitLineNumber(step);
+        //Assigns a number to a local variable or field of type text.
+        TypeDescriptor pop = null;
+        if (step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()) {
+            processExpressions();
+            pop = stack.popExpressionType();
+        }
+        performAssignment(pop, step, false, null);
+    }
+
+    @Override
+    public void visit(AssignmentTextNullStep step) {
+        visitLineNumber(step);
+        //remove the constant from the bytecode stack and assign a number to 
+        //a field of type text.
+        TypeDescriptor pop = null;
+        if (step.getSubVariableName().equals("") && !step.getVariable().isFieldVariable()) {
+            processExpressions();
+            pop = stack.popExpressionType();
+        }
+        performAssignment(pop, step, true, null);
+    }
 
     @Override
     public void visit(AutoBoxCreateStep step) {
@@ -2897,6 +2923,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
     @Override
     public void visit(BinaryEqualsCustomNullStep step) {
         //determines if the reference is equal to another reference.
+        performCustomEqualityComparison(true);
+    }
+    
+    @Override
+    public void visit(BinaryEqualsStringNullStep step) {
         performCustomEqualityComparison(true);
     }
 

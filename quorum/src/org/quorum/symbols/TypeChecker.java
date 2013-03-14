@@ -317,6 +317,14 @@ public class TypeChecker {
         setNoConvertResult(result, TypeDescriptor.getBooleanType());
         result.setOpcodeGenerator(TypeCheckerStepFactory.TEXT_TEXT_EQUALS);
         results.put(key, result);
+        
+        //=
+        result = new TypeCheckerResult();
+        key = this.generateTypeCheckKey(TypeDescriptor.TEXT,
+                TypeDescriptor.NULL, OperationEnum.EQUALS, false);
+        setNoConvertResult(result, TypeDescriptor.getBooleanType());
+        result.setOpcodeGenerator(TypeCheckerStepFactory.TEXT_NULL_EQUALS);
+        results.put(key, result);
 
         //!=
         result = new TypeCheckerResult();
@@ -392,6 +400,20 @@ public class TypeChecker {
                 TypeDescriptor.TEXT, null, true, true);
         setNoConvertResult(result, TypeDescriptor.getTextType());
         result.setOpcodeGenerator(TypeCheckerStepFactory.ASSIGNMENT_TEXT_TEXT_LOCAL);
+        results.put(key, result);
+        
+        result = new TypeCheckerResult();
+        key = this.generateTypeCheckKey(TypeDescriptor.TEXT,
+                TypeDescriptor.getNullType().getStaticKey(), null, true);
+        setNoConvertResult(result, TypeDescriptor.getTextType());
+        result.setOpcodeGenerator(TypeCheckerStepFactory.ASSIGNMENT_TEXT_TYPE_NULL);
+        results.put(key, result);
+
+        result = new TypeCheckerResult();
+        key = this.generateTypeCheckKey(TypeDescriptor.TEXT,
+                TypeDescriptor.getNullType().getStaticKey(), null, true, true);
+        setNoConvertResult(result, TypeDescriptor.getTextType());
+        result.setOpcodeGenerator(TypeCheckerStepFactory.ASSIGNMENT_TEXT_TYPE_NULL_LOCAL);
         results.put(key, result);
 
         //Number Number
@@ -1083,7 +1105,7 @@ public class TypeChecker {
                 }
                 result.setErrorMessage("Cannot assign a value of type \"" +
                     rightKey + "\"" +
-                    " to a variable of type \"" + lstr + ".\"");
+                    " to a variable of type \"" + lstr + "\".");
                 result.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
             }
         }

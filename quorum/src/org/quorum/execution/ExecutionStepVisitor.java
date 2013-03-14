@@ -30,6 +30,8 @@ public interface ExecutionStepVisitor {
     public void visit(AssignmentNumberStep step);
     public void visit(AssignmentTextLocalStep step);
     public void visit(AssignmentTextStep step);
+    public void visit(AssignmentTextNullLocalStep step);
+    public void visit(AssignmentTextNullStep step);
     public void visit(AutoBoxCreateStep step);
     public void visit(BeginCheckScopeStep step);
     public void visit(BeginDetectScopeStep step);
@@ -59,6 +61,7 @@ public interface ExecutionStepVisitor {
     public void visit(BinaryEqualsNumberStep step);
     public void visit(BinaryEqualsStep step);
     public void visit(BinaryEqualsStringStep step);
+    public void visit(BinaryEqualsStringNullStep step);
     public void visit(BinaryGreaterEqualsIntegerNumberStep step);
     public void visit(BinaryGreaterEqualsNumberIntegerStep step);
     public void visit(BinaryGreaterEqualsNumberStep step);

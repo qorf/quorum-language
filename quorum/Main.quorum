@@ -17,7 +17,15 @@ use Libraries.Web.all
 
 class Main
     action Main
-        text t = "hello world"
-        print t:GetSubtext(1, 3)
+text m = "l"
+        text t = undefined
+        Array<text> arg 
+        arg:SetSize(4)
+        arg:Set(0, t)
+        arg:Set(2, t)
+        text z = arg:Get(0)
+        //if z = undefined
+        z:GetLength()
+        //end
     end
 end
