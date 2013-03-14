@@ -52,6 +52,95 @@ public class TypeCheckTester {
 
     // Tests for things that should pass start here
 
+    /**
+     * Check the Text class methods for objects and primitives.
+     */
+    @Test
+    public void test_pass_TextSetAndGetValue_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "TextSetAndGetValue.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("5"));
+    }
+    
+    @Test
+    public void test_pass_primitiveTextSetValue_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "PrimitiveTextSetValue.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_primitiveTextGetValue_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "PrimitiveTextGetValue.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_pass_TextContains_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "TextContains.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
+    }
+    
+    @Test
+    public void test_pass_TextEndsWith_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "TextEndsWith.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
+    }
+    
+    @Test
+    public void test_pass_TextStartsWith_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "TextStartsWith.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
+    }
+    
+    /**
+     * Check the Integer class methods for objects and primitives.
+     */
+    
+    /**
+     * Check the Number class methods for objects and primitives.
+     */
+    
+    /**
+     * Check the Boolean class methods for objects and primitives.
+     */
+    
+    /**
+     * General type checker tests
+     */
     @Test
     public void test_pass_CastFieldIntObjDest_execute(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.PASS + "CastFieldIntObjDest.quorum"));
