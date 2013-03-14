@@ -50,7 +50,7 @@ public class Text {
     }
     
     public boolean StartsWithNative(String left, String prefix){
-        return left.endsWith(prefix);
+        return left.startsWith(prefix);
     }
     
     public boolean EqualsIgnoringCaseNative(String left, String right){
@@ -144,19 +144,6 @@ public class Text {
             throw(error);
         }
         return "" + self.charAt(index);
-    }
-    
-    public static String PrimitiveAppend(String self, String addition) throws Error{
-        if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
-        }
-        
-        StringBuilder s = new StringBuilder();
-        s.append(self);
-        s.append(addition);
-        return s.toString();
     }
     
     public static Array$Interface PrimitiveSplit(String self, String delimiter) throws Error{
