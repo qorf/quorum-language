@@ -595,10 +595,10 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
      * @param source
      */
     public void build(String source) {
-        String token = new BigInteger(130, random).toString(32);
+        String token = new BigInteger(130, random).toString(32) + ".quorum";
         File main = new File(token);
         this.setMain(main.getAbsolutePath());
-
+        this.compilerErrors.setErrorKey(main.getAbsolutePath());
         this.parseSingle(main, source);
         updateCache(main);
         

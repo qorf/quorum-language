@@ -18,8 +18,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.Permission;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -27,6 +29,8 @@ import java.util.logging.Logger;
 import org.quorum.vm.implementation.QuorumClassLoader;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
 import org.quorum.vm.interfaces.CodeGenerator;
+import org.quorum.vm.interfaces.CompilerError;
+import org.quorum.vm.interfaces.CompilerErrorManager;
 
 /**
  *
@@ -35,6 +39,7 @@ import org.quorum.vm.interfaces.CodeGenerator;
 public class QuorumWebExecutor {
 
     private HttpServer server;
+    private MyHandler handler = new MyHandler();
     private QuorumVirtualMachine virtualMachine;
     private File pluginFolder;
     private static PrintStream defaultStandardOut = System.out;
@@ -78,7 +83,7 @@ public class QuorumWebExecutor {
     public void start() {
         try {
             server = HttpServer.create(new InetSocketAddress(8000), 1);
-            server.createContext("/", new MyHandler());
+            server.createContext("/", handler);
             server.setExecutor(null); // creates a default executor
             server.start();
         } catch (IOException ex) {
@@ -88,18 +93,21 @@ public class QuorumWebExecutor {
 
     public void sendTestMessage(String code) {
         try {
+            String urlParameters = code;
+            
             URL loginURL = new URL("http://localhost:8000");
             HttpURLConnection connection = (HttpURLConnection) loginURL.openConnection();
-            String urlParameters = code;
-
+            
             connection.setDoOutput(true);
             connection.setDoInput(true);
             connection.setInstanceFollowRedirects(false);
+            
+            connection.setUseCaches(false);
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             connection.setRequestProperty("charset", "utf-8");
             connection.setRequestProperty("Content-Length", "" + Integer.toString(urlParameters.getBytes().length));
-            connection.setUseCaches(false);
+            
             DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
             wr.writeBytes(urlParameters);
             wr.flush();
@@ -156,12 +164,12 @@ public class QuorumWebExecutor {
 
     private class MyHandler implements HttpHandler {
 
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        //ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
         @Override
         public void handle(HttpExchange t) throws IOException {
             OutputStream os = t.getResponseBody();
-            stream = new ByteArrayOutputStream();
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
             String response = "";
             List<String> get = t.getRequestHeaders().get("Content-length");
@@ -190,29 +198,37 @@ public class QuorumWebExecutor {
                 System.out.println("Could not get data from user.");
             }
 
+            boolean built = false;
             if (code != null) {
                 CodeGenerator g = virtualMachine.getCodeGenerator();
                 g.setCompileToDisk(false);
                 virtualMachine.setGenerateCode(true);
                 virtualMachine.build(code);
-                virtualMachine.setMain(virtualMachine.getMain());
-                // Load the main quorum class and invoke the static main(String[] args) method with no arguments.
-                String mainClassName = g.getMainClassName();
-                QuorumClassLoader classLoader = new QuorumClassLoader();
-                classLoader.setCodeGenerator(g);
-                classLoader.setPluginFolder(getPluginFolder());
-                Class<?> quorumClass = null;
-                System.setOut(new PrintStream(stream));
-                try {
-                    quorumClass = classLoader.loadClass(mainClassName.replaceAll("/", "."));
-                    Method declaredMethod = quorumClass.getDeclaredMethod("main", new Class[]{String[].class});
-                    String[] programArguments = {}; // TODO: In the future, this can be used to pass arguments to a program running in interpreted mode.
-                    declaredMethod.invoke(null, (Object) programArguments);
-                } catch (Exception e) {
+                CompilerErrorManager errors = virtualMachine.getCompilerErrors();
+                if (!errors.isCompilationErrorFree()) {
+                    response = errors.toString();
+                } else {
+                    built = true;
+                    virtualMachine.setMain(virtualMachine.getMain());
+                    // Load the main quorum class and invoke the static main(String[] args) method with no arguments.
+                    String mainClassName = g.getMainClassName();
+                    QuorumClassLoader classLoader = new QuorumClassLoader();
+                    classLoader.setCodeGenerator(g);
+                    classLoader.setPluginFolder(getPluginFolder());
+                    Class<?> quorumClass = null;
+                    System.setOut(new PrintStream(stream));
+                    try {
+                        quorumClass = classLoader.loadClass(mainClassName.replaceAll("/", "."));
+                        Method declaredMethod = quorumClass.getDeclaredMethod("main", new Class[]{String[].class});
+                        String[] programArguments = {}; // TODO: In the future, this can be used to pass arguments to a program running in interpreted mode.
+                        declaredMethod.invoke(null, (Object) programArguments);
+                    } catch (Exception e) {
+                    }
                 }
             }
-            
-            response = stream.toString();
+            if (built) {
+                response = stream.toString();
+            }
             t.sendResponseHeaders(200, response.length());
             
             

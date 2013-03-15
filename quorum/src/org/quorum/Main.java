@@ -718,6 +718,9 @@ public class Main {
         
         //for testing
 //        exec.sendTestMessage(
+//                "print \"Hello" + ", world!\"");
+//        
+//        exec.sendTestMessage(
 //                "i = 0 "
 //                + "repeat 10 times "
 //                    + "print i "
