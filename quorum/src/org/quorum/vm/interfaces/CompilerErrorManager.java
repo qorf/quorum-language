@@ -117,6 +117,43 @@ public class CompilerErrorManager {
     }
     
     /**
+     * Returns a formatted list of compiler error messages. This formatted list
+     * does not include file names and is intended only for in cases where
+     * we can guarantee there are errors only in one file.
+     * 
+     * @return Returns a formatted list of compiler error messages
+     */
+    public String getShortErrorList() {
+        String errors = "";
+
+        int num = this.getNumberSyntaxErrors();
+
+        if(num == 1) {
+            errors += num + " compiler error. ";
+        }
+        else {
+            errors += num + " compiler errors:\n";
+        }
+
+        
+        int i = 1;
+        Iterator<CompilerError> it = iterator();
+        if(num == 1) {
+            CompilerError error = it.next();
+            errors += "Line " + error.getLineNumber() +
+                    ", " + error.getError();
+        } else if(num > 1) {
+            while(it.hasNext()) {
+                CompilerError error = it.next();
+                errors += i + ": " + "Line " + error.getLineNumber() +
+                        ", " + error.getError() + "\n";
+                i++;
+            }
+        }
+        return errors;
+    }
+    
+    /**
      * An iterator of all CompilerError messages
      * @return An iterator of CompilerError messages
      */

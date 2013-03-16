@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.quorum.vm.interfaces.CodeGenerator;
@@ -21,8 +22,61 @@ public class QuorumClassLoader extends ClassLoader {
     private CodeGenerator codeGenerator = null;
     private File pluginFolder = null;
     
+    private QuorumSecurityMode securityMode = QuorumSecurityMode.NORMAL;
+    private static HashMap<String, String> classesNotAllowed;
+    
+    static {
+        classesNotAllowed = new HashMap<String, String>();
+        classesNotAllowed.put("quorum.Libraries.System.File", null);
+        classesNotAllowed.put("quorum.Libraries.System.FileRandomAccess", null);
+        classesNotAllowed.put("quorum.Libraries.System.FileReader", null);
+        classesNotAllowed.put("quorum.Libraries.System.FileWriter", null);
+        classesNotAllowed.put("quorum.Libraries.System.Properties", null);
+        
+        classesNotAllowed.put("quorum.Libraries.Sound.Audio", null);
+        classesNotAllowed.put("quorum.Libraries.Sound.Chord", null);
+        classesNotAllowed.put("quorum.Libraries.Sound.Instrument", null);
+        classesNotAllowed.put("quorum.Libraries.Sound.Music", null);
+        classesNotAllowed.put("quorum.Libraries.Sound.MusicEvent", null);
+        classesNotAllowed.put("quorum.Libraries.Sound.Note", null);
+        classesNotAllowed.put("quorum.Libraries.Sound.Playable", null);
+        classesNotAllowed.put("quorum.Libraries.Sound.Speech", null);
+        classesNotAllowed.put("quorum.Libraries.Sound.Track", null);
+        
+        
+        //turn off plugins
+        classesNotAllowed.put("plugins.quorum.Libraries.System.File", null);
+        classesNotAllowed.put("plugins.quorum.Libraries.System.FileRandomAccess", null);
+        classesNotAllowed.put("plugins.quorum.Libraries.System.FileReader", null);
+        classesNotAllowed.put("plugins.quorum.Libraries.System.FileWriter", null);
+        classesNotAllowed.put("plugins.quorum.Libraries.System.Properties", null);
+        classesNotAllowed.put("plugins.quorum.Libraries.System.QuorumFile", null);
+        classesNotAllowed.put("plugins.quorum.Libraries.System.QuorumFileInterface", null);
+        classesNotAllowed.put("plugins.quorum.Libraries.System.QuorumFilePlugin", null);
+        classesNotAllowed.put("plugins.quorum.Libraries.System.QuorumFileRandomAccess", null);
+        classesNotAllowed.put("plugins.quorum.Libraries.System.QuorumFileReader", null);
+        classesNotAllowed.put("plugins.quorum.Libraries.System.QuorumFileWriter", null);
+        
+        classesNotAllowed.put("plugins.quorum.Libraries.Sound.Audio", null);
+        classesNotAllowed.put("plugins.quorum.Libraries.Sound.Music", null);
+        classesNotAllowed.put("plugins.quorum.Libraries.Sound.QuorumMusic", null);
+        classesNotAllowed.put("plugins.quorum.Libraries.Sound.Speech", null);
+    }
+    
+    
+    
+    
+    
     @Override
     public Class loadClass(String name) throws ClassNotFoundException {
+        if(this.securityMode == QuorumSecurityMode.WEB) {
+            if(classesNotAllowed.containsKey(name)) {
+                QuorumSecurityException ex = new QuorumSecurityException("Class " + name + " cannot be used from "
+                        + "the web version of Quorum.");
+                ex.setClassName(name);
+                throw ex;
+            }
+        }
         byte[] bytes = null;
         if (name.startsWith("quorum.")) {
             bytes = codeGenerator.load(name);
@@ -46,6 +100,7 @@ public class QuorumClassLoader extends ClassLoader {
             return super.loadClass(name);
         }
     }
+    
     /**
      * Load the given class given a name and a list of bytecodes.
      * 
@@ -119,5 +174,19 @@ public class QuorumClassLoader extends ClassLoader {
      */
     public void setPluginFolder(File pluginFolder) {
         this.pluginFolder = pluginFolder;
+    }
+
+    /**
+     * @return the securityMode
+     */
+    public QuorumSecurityMode getSecurityMode() {
+        return securityMode;
+    }
+
+    /**
+     * @param securityMode the securityMode to set
+     */
+    public void setSecurityMode(QuorumSecurityMode securityMode) {
+        this.securityMode = securityMode;
     }
 }

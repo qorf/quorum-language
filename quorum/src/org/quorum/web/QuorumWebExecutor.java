@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.quorum.vm.implementation.QuorumClassLoader;
+import org.quorum.vm.implementation.QuorumSecurityException;
+import org.quorum.vm.implementation.QuorumSecurityMode;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
 import org.quorum.vm.interfaces.CodeGenerator;
 import org.quorum.vm.interfaces.CompilerError;
@@ -199,6 +201,7 @@ public class QuorumWebExecutor {
             }
 
             boolean built = false;
+            boolean failure = false;
             if (code != null) {
                 CodeGenerator g = virtualMachine.getCodeGenerator();
                 g.setCompileToDisk(false);
@@ -206,13 +209,15 @@ public class QuorumWebExecutor {
                 virtualMachine.build(code);
                 CompilerErrorManager errors = virtualMachine.getCompilerErrors();
                 if (!errors.isCompilationErrorFree()) {
-                    response = errors.toString();
+                    errors.iterator();
+                    response = errors.getShortErrorList();
                 } else {
                     built = true;
                     virtualMachine.setMain(virtualMachine.getMain());
                     // Load the main quorum class and invoke the static main(String[] args) method with no arguments.
                     String mainClassName = g.getMainClassName();
                     QuorumClassLoader classLoader = new QuorumClassLoader();
+                    classLoader.setSecurityMode(QuorumSecurityMode.WEB);
                     classLoader.setCodeGenerator(g);
                     classLoader.setPluginFolder(getPluginFolder());
                     Class<?> quorumClass = null;
@@ -222,11 +227,25 @@ public class QuorumWebExecutor {
                         Method declaredMethod = quorumClass.getDeclaredMethod("main", new Class[]{String[].class});
                         String[] programArguments = {}; // TODO: In the future, this can be used to pass arguments to a program running in interpreted mode.
                         declaredMethod.invoke(null, (Object) programArguments);
-                    } catch (Exception e) {
+                    } catch (IllegalAccessException ex) {
+                    } catch (IllegalArgumentException ex) {
+                    } catch (NoSuchMethodException ex) {
+                    } catch (ClassNotFoundException ex) {
+                    } catch (InvocationTargetException ex) {
+                        if(ex.getCause() != null && ex.getCause() instanceof ExitException) {
+                            failure = false; // a normal exit code was received.
+                        } else if(ex.getCause() instanceof java.lang.NoClassDefFoundError){
+                            if(ex.getCause().getCause() != null && ex.getCause().getCause() instanceof QuorumSecurityException) {
+                                QuorumSecurityException qex = (QuorumSecurityException) ex.getCause().getCause();
+                                response = "Error: Class " + qex.getClassName() + " cannot be used"
+                                    + " from the web version of Quorum.";
+                                failure = true;
+                            }
+                        }
                     }
                 }
             }
-            if (built) {
+            if (built && !failure) {
                 response = stream.toString();
             }
             t.sendResponseHeaders(200, response.length());

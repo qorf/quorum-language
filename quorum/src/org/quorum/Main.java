@@ -717,8 +717,10 @@ public class Main {
         exec.start();
         
         //for testing
-//        exec.sendTestMessage(
-//                "print \"Hello" + ", world!\"");
+      //  exec.sendTestMessage(
+                //"use Libraries.System.File \n" + 
+                //"File file \n" + 
+      //          "print \"Hello" + ", world!\"");
 //        
 //        exec.sendTestMessage(
 //                "i = 0 "
