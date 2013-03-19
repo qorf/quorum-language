@@ -35,7 +35,10 @@ class Number is a Object
     */ 
     action SetValue(number i)
         value = i
+        SetValueNative(i)
     end
+
+    private system action SetValueNative(number val)
 
     /*
         This action gets the value from the number object and casts it to
@@ -48,7 +51,7 @@ class Number is a Object
         Number age
         integer result = age:GetIntegerValue()
     */ 
-    action GetIntegerValue returns integer
+    action GetInteger returns integer
         return cast(integer, value)
     end
 
@@ -77,23 +80,8 @@ class Number is a Object
         Number age
         text result = age:GetTextValue()
     */ 
-    action GetTextValue returns text
+    action GetText returns text
         return cast(text, value)
-    end
-
-    /*
-        This action gets the value from the number object and casts it to
-        an boolean.
-
-        Attribute: Returns The value of the object converted to an boolean.
-
-        Attribute: Example
-
-        Number age
-        boolean result = age:GetBooleanValue()
-    */ 
-    action GetBooleanValue returns boolean
-        return cast(boolean, value)
     end
 
     /*
@@ -152,4 +140,40 @@ class Number is a Object
 
         return myValue = otherValue
     end
+
+    /*
+        This action returns true if the number is infinite.
+
+        Attribute: Returns True if the number is infinitely large and false if it is not. 
+
+        Attribute: Example
+
+        number i = 333.999999999999999999
+        boolean result = i:IsInfinite()
+    */
+    system action IsInfinite() returns boolean
+
+    /*
+        This action returns true if the number is not a number(NaN).
+
+        Attribute: Returns True if NaN. 
+
+        Attribute: Example
+
+        number i = 3.5
+        boolean result = i:IsNotANumber()
+    */
+    system action IsNotANumber() returns boolean
+
+    /*
+        This action gets the hex representation of the number value.
+
+        Attribute: Returns The hex representation of the number. 
+
+        Attribute: Example
+
+        number i = 3
+        text result = i:GetHex()
+    */
+    system action GetHex() returns text
 end

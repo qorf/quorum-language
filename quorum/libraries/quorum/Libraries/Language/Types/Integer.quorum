@@ -36,7 +36,10 @@ class Integer is a Object
     */ 
     action SetValue(integer i)
         value = i
+        SetValueNative(i)
     end
+    
+    private system action SetValueNative(integer i)
 
     /*
         This action gets the value from the integer object.
@@ -63,7 +66,7 @@ class Integer is a Object
         Integer age
         number result = age:GetNumberValue()
     */ 
-    action GetNumberValue returns number
+    action GetNumber returns number
         return cast(number, value)
     end
 
@@ -78,23 +81,8 @@ class Integer is a Object
         Integer age
         text result = age:GetTextValue()
     */ 
-    action GetTextValue returns text
+    action GetText returns text
         return cast(text, value)
-    end
-
-    /*
-        This action gets the value from the intger object and casts it to
-        an boolean.
-
-        Attribute: Returns The value of the object converted to an boolean.
-
-        Attribute: Example
-
-        Integer age
-        boolean result = age:GetBooleanValue()
-    */ 
-    action GetBooleanValue returns boolean
-        return cast(boolean, value)
     end
 
     /*
@@ -153,4 +141,149 @@ class Integer is a Object
 
         return myValue = otherValue
     end
+
+    /*
+        This action determines the number of one bits in the integer value. This 
+        integer value is represented as two's compliment binary representation.
+
+        Attribute: Returns The number of one bits in the integer value. 
+
+        Attribute: Example
+
+        integer i = 3
+        integer result = i:BitCount()
+    */ 
+    system action BitCount returns integer
+
+    /*
+        This action determines the highest(left most) one bit in the two's compliment binary
+        representation of the integer.
+
+        Attribute: Returns The location of the highest one bit in the integer value. 
+
+        Attribute: Example
+
+        integer i = 3
+        integer result = i:HighestOneBit()
+    */
+    system action HighestOneBit returns integer
+
+    /*
+        This action determines the lowest(right most) one bit in the two's compliment binary
+        representation of the integer.
+
+        Attribute: Returns The location of the lowest one bit in the integer value. 
+
+        Attribute: Example
+
+        integer i = 3
+        integer result = i:LowestOneBit()
+    */
+    system action LowestOneBit returns integer
+
+    /*
+        This action determines the number of leading zeros on the two's compliment
+        binary representation of the integer value.
+
+        Attribute: Returns The number of leading zeros. 
+
+        Attribute: Example
+
+        integer i = 3
+        integer result = i:LeadingZeros()
+    */
+    system action LeadingZeros returns integer
+
+    /*
+        This action determines the number of trailing zeros on the two's compliment
+        binary representation of the integer value.
+
+        Attribute: Returns The number of trailing zeros. 
+
+        Attribute: Example
+
+        integer i = 3
+        integer result = i:TrailingZeros()
+    */
+    system action TrailingZeros returns integer
+
+    /*
+        This action determines the reverse of the two's compliment
+        binary representation of the integer value.
+
+        Attribute: Returns The reverse of the two's compliment of the integer value. 
+
+        Attribute: Example
+
+        integer i = 3
+        integer result = i:Reverse()
+    */
+    system action Reverse returns integer
+
+    /*
+        This action rotates left the two's compliment binary representation of the integer
+        value by a specified number of positions.
+
+        Attribute: Parameter value the number of position to rotate.
+
+        Attribute: Returns The rotated left integer. 
+
+        Attribute: Example
+
+        integer i = 3
+        integer result = i:RotateLeft(2)
+    */
+    system action RotateLeft(integer value) returns integer
+
+    /*
+        This action rotates right the two's compliment binary representation of the integer
+        value by a specified number of positions.
+
+        Attribute: Parameter value the number of position to rotate.
+
+        Attribute: Returns The rotated right integer. 
+
+        Attribute: Example
+
+        integer i = 3
+        integer result = i:RotateRight(2)
+    */
+    system action RotateRight(integer value) returns integer
+
+    /*
+        This action gets the binary representation of the integer value.
+
+        Attribute: Returns The binary representation of the integer. 
+
+        Attribute: Example
+
+        integer i = 3
+        text result = i:GetBinary()
+    */
+    system action GetBinary returns text
+
+    /*
+        This action gets the hex representation of the integer value.
+
+        Attribute: Returns The hex representation of the integer. 
+
+        Attribute: Example
+
+        integer i = 3
+        text result = i:GetHex()
+    */
+    system action GetHex returns text
+
+    /*
+        This action gets the octal representation of the integer value.
+
+        Attribute: Returns The octal representation of the integer. 
+
+        Attribute: Example
+
+        integer i = 3
+        text result = i:GetOctal()
+    */
+    system action GetOctal returns text
+
 end

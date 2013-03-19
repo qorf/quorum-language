@@ -196,10 +196,21 @@ public class QuorumConverter {
      * @param descriptor
      * @return 
      */
-    public static String convertPrimitiveMethodDescriptorToBytecodeSignature(MethodDescriptor descriptor) {
+    public static String convertPrimitiveMethodDescriptorToBytecodeSignature(MethodDescriptor descriptor, TypeDescriptor primitiveType) {
         String result = "";
         TypeDescriptor ret = descriptor.getReturnType();
-        String parametersString = "(Ljava/lang/String;";
+        String parametersString = "(";
+        
+        if(primitiveType.isInteger()){
+            parametersString += "I";
+        }else if(primitiveType.isNumber()){
+            parametersString += "D";
+        }else if(primitiveType.isBoolean()){
+            parametersString += "Z";
+        }else{
+            parametersString += "Ljava/lang/String;";
+        }
+        
         Parameters parameters = descriptor.getParameters();
         for(int i = 0; i < parameters.size(); i++) {
             ParameterDescriptor param = parameters.get(i);

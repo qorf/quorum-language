@@ -35,7 +35,10 @@ class Boolean is a Object
     */ 
     action SetValue(boolean i)
         value = i
+        SetValueNative(i)
     end
+
+    private system action SetValueNative(boolean value)
 
     /*
         This action gets the value from the boolean object.
@@ -53,21 +56,6 @@ class Boolean is a Object
 
     /*
         This action gets the value from the boolean object and casts it to
-        a number.
-
-        Attribute: Returns The value of the object converted to a number.
-
-        Attribute: Example
-
-        Boolean isTrue
-        number result = isTrue:GetNumberValue()
-    */ 
-    action GetNumberValue returns number
-        return cast(number, value)
-    end
-
-    /*
-        This action gets the value from the boolean object and casts it to
         a text value.
 
         Attribute: Returns The value of the object converted to text.
@@ -77,23 +65,8 @@ class Boolean is a Object
         Boolean isTrue
         text result = isTrue:GetTextValue()
     */ 
-    action GetTextValue returns text
+    action GetText returns text
         return cast(text, value)
-    end
-
-    /*
-        This action gets the value from the boolean object and casts it to
-        an integer.
-
-        Attribute: Returns The value of the object converted to an integer.
-
-        Attribute: Example
-
-        Boolean isTrue
-        integer result = isTrue:GetIntegerValue()
-    */ 
-    action GetIntegerValue returns integer
-        return cast(integer, value)
     end
 
     /*

@@ -3327,13 +3327,13 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                     //is a parameter that we are calling on then load that parameter.
                     ParameterDescriptor varDescriptor = (ParameterDescriptor) var;
                     int number = stack.getParameterNumber(varDescriptor.getName());
-                    methodVisitor.visitVarInsn(ALOAD, number);
+                    methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(var.getType()), number);
                 } else {
                     //Otherwise, load the variable from the mapped variable on the
                     //stack.
                     int number = var.getVariableNumber() - currentClass.getNumberOfVariables();
                     int mapped = stack.getMappedVariableNumber(number, var.getType(), false);
-                    methodVisitor.visitVarInsn(ALOAD, mapped);
+                    methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(var.getType()), mapped);
                 }
             }
         }
@@ -3436,7 +3436,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
                         if (!step.isCalleeLoaded()) {
                             int number = stack.getParameterNumber(varDescriptor.getName());
-                            methodVisitor.visitVarInsn(ALOAD, number);
+                            methodVisitor.visitVarInsn(QuorumConverter.getLoadOpcode(var.getType()), number);
                         }
 
                         isParameter = true;
@@ -3457,7 +3457,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
 
         if (!isParameter && !isCalledOnField && !isCalledOnInterface && isStaticCallOnPrimitive) {
             methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertPrimitiveToObjectPath(step.getParentObject().getType()), "Primitive" + step.getMethodCallee().getName(),
-                QuorumConverter.convertPrimitiveMethodDescriptorToBytecodeSignature(callee));
+                QuorumConverter.convertPrimitiveMethodDescriptorToBytecodeSignature(callee,step.getParentObject().getType()));
         }else if (!isParameter && !isCalledOnField && !isCalledOnInterface) {
             methodVisitor.visitMethodInsn(INVOKEVIRTUAL, converted,
                     callee.getName(),
