@@ -50,7 +50,6 @@ import org.quorum.symbols.Documentation;
 import org.quorum.symbols.FileDescriptor;
 import org.quorum.symbols.MethodDescriptor;
 import org.quorum.symbols.ParameterDescriptor;
-import org.quorum.symbols.Scopable;
 import org.quorum.symbols.SymbolTable;
 import org.quorum.symbols.SystemActionDescriptor;
 import org.quorum.symbols.TypeChecker;
@@ -381,22 +380,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     }
 
     /**
-     * This method updates the cache in build all events.
-     */
-//    private void updateCache() {
-//        if (this.compilerErrors.isCompilationErrorFree()) {
-//            if (cache != null) {
-//                File file = cache.getFile();
-//                if (file != null) {
-//                    String key = file.getAbsolutePath();
-//                    FileDescriptor cacheMe = this.getSymbolTable().getFileDescriptor(file.getAbsolutePath());
-//                    cache = cacheMe;
-//                }
-//            }
-//        }
-//    }
-
-    /**
      * This method updates the cache when a specific file is being parsed.
      *
      * @param file
@@ -505,7 +488,6 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     }
 
     private void computeStandardLibraryFiles() {
-
         Iterator<File> files = getSymbolTable().getStandardLibraryFiles();
         while (files.hasNext()) {
             //TODO: Fix this to account for recursive File additions.
@@ -587,6 +569,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         }
     }
 
+    String token = new BigInteger(130, random).toString(32) + ".quorum";
+    
     /**
      * This function builds source code directly from a string that is not
      * necessarily saved to disk. Since quorum requires files be associated with
@@ -595,12 +579,11 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
      * @param source
      */
     public void build(String source) {
-        String token = new BigInteger(130, random).toString(32) + ".quorum";
-        File main = new File(token);
-        this.setMain(main.getAbsolutePath());
-        this.compilerErrors.setErrorKey(main.getAbsolutePath());
-        this.parseSingle(main, source);
-        updateCache(main);
+        File fakeMain = new File(token);
+        this.setMain(fakeMain.getAbsolutePath());
+        this.compilerErrors.setErrorKey(fakeMain.getAbsolutePath());
+        this.parseSingle(fakeMain, source);
+        updateCache(fakeMain);
         
         computeStandardLibraryFiles();
         getSymbolTable().compilePackageUseTables();
@@ -626,15 +609,15 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     private void link() {
         if (this.getCompilerErrors().isCompilationErrorFree()) {
-            Linker linker = new Linker();
-            linker.setMachine(this);
-            linker.link(builder);
-            Vector<ExecutionStep> steps = linker.getLinkedSteps();
-            vTable = linker.getVTable();
-            this.getExecution().addStep(steps);
+//            Linker linker = new Linker();
+//            linker.setMachine(this);
+//            linker.link(builder);
+            //Vector<ExecutionStep> steps = linker.getLinkedSteps();
+            //vTable = linker.getVTable();
+            //this.getExecution().addStep(steps);
             if (this.isGenerateCode()) {
                 QuorumBytecodeGenerator gen = (QuorumBytecodeGenerator) this.generator;
-                gen.setLinker(linker);
+                //gen.setLinker(linker);
                 gen.setBuilder(builder);
                 gen.generate();
                 try {

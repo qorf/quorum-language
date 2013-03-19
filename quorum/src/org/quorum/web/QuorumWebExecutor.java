@@ -246,7 +246,7 @@ public class QuorumWebExecutor {
             }
             
             response = "{\n\t "
-                    + "\"status\": " + "\"success\"\n\t" +
+                    + "\"status\": " + "\"success\",\n\t" +
                     "\"data\": \"" +response+ "\"\n}";
             
             t.sendResponseHeaders(200, response.length());

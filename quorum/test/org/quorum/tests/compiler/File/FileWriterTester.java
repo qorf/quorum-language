@@ -123,99 +123,99 @@ public class FileWriterTester {
         assert(r.getLine(0).equals("true"));
     }
     
-    @Test
-    public void testOpenForWrite_execute() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILEWRITER + CompilerTestSuite.PASS + "OpenForWrite.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-
-        vm.blockRun();
-
-        if (vm.getExceptions().hasExceptions()) {
-            fail();
-        }
-    }
-    
-    @Test
-    public void testOpenForWriteAppend_execute() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILEWRITER + CompilerTestSuite.PASS + "OpenForWriteAppend.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-
-        vm.blockRun();
-
-        if (vm.getExceptions().hasExceptions()) {
-            fail();
-        } else {
-            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
-            assert(success);
-        }
-    }
-    
-    @Test
-    public void testClose_execute() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILEWRITER + CompilerTestSuite.PASS + "Close.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-
-        vm.blockRun();
-
-        if (vm.getExceptions().hasExceptions()) {
-            fail();
-        }
-    }
-    
-    @Test
-    public void testWrite_execute() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILEWRITER + CompilerTestSuite.PASS + "Write.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-
-        vm.blockRun();
-
-        if (vm.getExceptions().hasExceptions()) {
-            fail();
-        } else {
-            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
-            assert(success);
-        }        
-    }
-    
-    @Test
-    public void testWriteLine_execute() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILEWRITER + CompilerTestSuite.PASS + "WriteLine.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-
-        vm.blockRun();
-
-        if (vm.getExceptions().hasExceptions()) {
-            fail();
-        } else {
-            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
-            assert(success);
-        }
-    }
-    
-    @Test
-    public void testPushToDisk_execute() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILEWRITER + CompilerTestSuite.PASS + "PushToDisk.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-
-        vm.blockRun();
-
-        if (vm.getExceptions().hasExceptions()) {
-            fail();
-        } else {
-            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
-            assert(success);
-        }
-    }
+//    @Test
+//    public void testOpenForWrite_execute() {
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILEWRITER + CompilerTestSuite.PASS + "OpenForWrite.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//
+//        vm.blockRun();
+//
+//        if (vm.getExceptions().hasExceptions()) {
+//            fail();
+//        }
+//    }
+//    
+//    @Test
+//    public void testOpenForWriteAppend_execute() {
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILEWRITER + CompilerTestSuite.PASS + "OpenForWriteAppend.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//
+//        vm.blockRun();
+//
+//        if (vm.getExceptions().hasExceptions()) {
+//            fail();
+//        } else {
+//            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
+//            assert(success);
+//        }
+//    }
+//    
+//    @Test
+//    public void testClose_execute() {
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILEWRITER + CompilerTestSuite.PASS + "Close.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//
+//        vm.blockRun();
+//
+//        if (vm.getExceptions().hasExceptions()) {
+//            fail();
+//        }
+//    }
+//    
+//    @Test
+//    public void testWrite_execute() {
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILEWRITER + CompilerTestSuite.PASS + "Write.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//
+//        vm.blockRun();
+//
+//        if (vm.getExceptions().hasExceptions()) {
+//            fail();
+//        } else {
+//            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
+//            assert(success);
+//        }        
+//    }
+//    
+//    @Test
+//    public void testWriteLine_execute() {
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILEWRITER + CompilerTestSuite.PASS + "WriteLine.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//
+//        vm.blockRun();
+//
+//        if (vm.getExceptions().hasExceptions()) {
+//            fail();
+//        } else {
+//            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
+//            assert(success);
+//        }
+//    }
+//    
+//    @Test
+//    public void testPushToDisk_execute() {
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.FILEWRITER + CompilerTestSuite.PASS + "PushToDisk.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//
+//        vm.blockRun();
+//
+//        if (vm.getExceptions().hasExceptions()) {
+//            fail();
+//        } else {
+//            boolean success = vm.getDataEnvironment().getVariableValue("success").getResult().boolean_value;
+//            assert(success);
+//        }
+//    }
 }

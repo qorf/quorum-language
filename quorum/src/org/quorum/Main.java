@@ -320,9 +320,9 @@ public class Main {
         //While it is called plugins here, it has nothing to do with the 
         //-plugins flag and is only used for the interpreted omniscient 
         //debugger.
-        DefaultPluginLoader loader = new DefaultPluginLoader();
-        loader.loadIntoVirtualMachine(vm);
-        loader.checkConsistency(vm);
+        //DefaultPluginLoader loader = new DefaultPluginLoader();
+        //loader.loadIntoVirtualMachine(vm);
+        //loader.checkConsistency(vm);
 
         processFlags(args);
         
@@ -717,10 +717,8 @@ public class Main {
         exec.start();
         
         //for testing
-      //  exec.sendTestMessage(
-                //"use Libraries.System.File \n" + 
-                //"File file \n" + 
-      //          "print \"Hello" + ", world!\"");
+//        exec.sendTestMessage(
+//                "print \"Hello" + ", world!\"");
 //        
 //        exec.sendTestMessage(
 //                "i = 0 "
