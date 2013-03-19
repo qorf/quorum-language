@@ -18,12 +18,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.Permission;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.quorum.vm.implementation.QuorumClassLoader;
@@ -31,7 +28,6 @@ import org.quorum.vm.implementation.QuorumSecurityException;
 import org.quorum.vm.implementation.QuorumSecurityMode;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
 import org.quorum.vm.interfaces.CodeGenerator;
-import org.quorum.vm.interfaces.CompilerError;
 import org.quorum.vm.interfaces.CompilerErrorManager;
 
 /**
@@ -248,6 +244,11 @@ public class QuorumWebExecutor {
             if (built && !failure) {
                 response = stream.toString();
             }
+            
+            response = "{\n\t "
+                    + "\"status\": " + "\"success\"\n\t" +
+                    "\"data\": \"" +response+ "\"\n}";
+            
             t.sendResponseHeaders(200, response.length());
             
             
