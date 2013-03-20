@@ -743,14 +743,14 @@ public class Main {
 //                    + "i = i + 1  "
 //                + "end");
         
-        exec.sendTestMessage(
-            "use Libraries.Sound.Music\n" +
-            "Music muse\n" +
-            "integer i = 0\n" +
-            "repeat 12 times\n" +
-            "   muse:Play(60 + i,0.1)\n" +
-            "   i = i + 1\n" +
-            "end");
+//        exec.sendTestMessage(
+//            "use Libraries.Sound.Music\n" +
+//            "Music muse\n" +
+//            "integer i = 0\n" +
+//            "repeat 12 times\n" +
+//            "   muse:Play(60 + i,0.1)\n" +
+//            "   i = i + 1\n" +
+//            "end");
         
     }
 }
