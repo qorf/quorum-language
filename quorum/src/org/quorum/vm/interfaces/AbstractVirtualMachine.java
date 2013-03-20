@@ -146,6 +146,7 @@ public abstract class AbstractVirtualMachine {
     private boolean fireDebuggerEvents = true;
     private boolean isRunning = false;
     private boolean isAlwaysJumpStep = false;
+    private File currentFile = null;
     
     ArrayList<DebuggerListener> debuggerListeners = new ArrayList<DebuggerListener>();
     
@@ -989,8 +990,13 @@ public abstract class AbstractVirtualMachine {
         return typeChecker;
     }
 
+    
+    public void setCurrentFileBeingExecuted(File file) {
+        currentFile = file;
+    }
+    
     public String getCurrentFileBeingExecuted() {
-        return getExecution().getCurrentFileBeingExecuted();
+        return currentFile.getAbsolutePath();
     }
 
     /**

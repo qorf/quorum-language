@@ -609,15 +609,15 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
     private void link() {
         if (this.getCompilerErrors().isCompilationErrorFree()) {
-            Linker linker = new Linker();
-            linker.setMachine(this);
-            linker.link(builder);
-            Vector<ExecutionStep> steps = linker.getLinkedSteps();
-            vTable = linker.getVTable();
-            this.getExecution().addStep(steps);
+//            Linker linker = new Linker();
+//            linker.setMachine(this);
+//            linker.link(builder);
+//            Vector<ExecutionStep> steps = linker.getLinkedSteps();
+//            vTable = linker.getVTable();
+            //this.getExecution().addStep(steps);
             if (this.isGenerateCode()) {
                 QuorumBytecodeGenerator gen = (QuorumBytecodeGenerator) this.generator;
-                gen.setLinker(linker);
+                //gen.setLinker(linker);
                 gen.setBuilder(builder);
                 gen.generate();
                 try {

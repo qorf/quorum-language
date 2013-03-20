@@ -345,7 +345,7 @@ public class ExceptionsTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (r.getReturnCode() != 2)
             fail();
     }
@@ -561,7 +561,7 @@ public class ExceptionsTester {
         build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedUncaughtCastAlertException.quorum");
 
         CompilerTestSuite.build(build);
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (r.getReturnCode() != 2)
             fail();
     }
@@ -676,7 +676,7 @@ public class ExceptionsTester {
             fail();
         }
 
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (!r.isSuccessful())
             fail();
         assert(r.getLine(0).equals("3"));
@@ -743,7 +743,7 @@ public class ExceptionsTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(build);
         if (r.isSuccessful())
             fail();
     }

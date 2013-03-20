@@ -1215,7 +1215,7 @@ public class OtherTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
         
@@ -1233,7 +1233,7 @@ public class OtherTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
         
@@ -1251,7 +1251,7 @@ public class OtherTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
 
@@ -1275,7 +1275,7 @@ public class OtherTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
 
@@ -1295,7 +1295,7 @@ public class OtherTester {
             fail();
         }
         
-        RunResult r = CompilerTestSuite.runQuorumFile();
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
         if (!r.isSuccessful())
             fail();
 

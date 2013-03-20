@@ -157,6 +157,7 @@ public class CompilerTestSuite {
 
     public static void build(File file) {
         File[] files = new File[1];
+        vm.setCurrentFileBeingExecuted(file);
         files[0] = file;
         build(files);
     }
