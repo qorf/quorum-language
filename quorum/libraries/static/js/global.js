@@ -229,7 +229,7 @@ var createRatingControls = function() {
 		var componentType = $(this).data("componenttype");
 		componentType = (componentType !== undefined) ? componentType.replace(/-/g," ") : "component";
 		var templateData = { id: $(this).data("id"), componentType: componentType }; // TODO: get real value
-		$(this).prepend(template(templateData));
+		$(this).append(template(templateData));
 	});
 
 	var getRatingForId = function(id) {
@@ -240,13 +240,10 @@ var createRatingControls = function() {
 }
 
 var fiveStarRatings = function(starRatingsList) {
-	var getBackgroundOffset = function(starNumber) {
-		var imageRowHeight = 27;
-		return (imageRowHeight * starNumber) * -1;
-	}
-
 	var setStars = function(element, starNumber) {
-		$(element).css("background-position","center " + getBackgroundOffset(starNumber) + "px");
+		$(element)
+			.removeClass("stars-0").removeClass("stars-1").removeClass("stars-2").removeClass("stars-3").removeClass("stars-4").removeClass("stars-5")
+			.addClass("stars-" + starNumber);
 	}
 
 	var setClickedStars = function(clickTarget) {
@@ -259,7 +256,7 @@ var fiveStarRatings = function(starRatingsList) {
 			setClickedStars(this);
 		},
 		mouseleave: function() { 
-			$(this).parent().css("background-position","center 0");
+			setStars($(this).parent(), 0);
 		},
 		click: function() {
 			setClickedStars(this);
@@ -317,3 +314,4 @@ var fiveStarRatings = function(starRatingsList) {
 
 
 
+ 

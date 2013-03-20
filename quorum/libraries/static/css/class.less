@@ -15,18 +15,46 @@
 
 ul{ font-size:13px; display: block; list-style-type: none; margin: 0 0 0 25px; padding:0; }	
 
-.controllable { min-height: 32px; position: relative; 
-	.ratings-controls { display: inline-block; .opacity(0); .transition(opacity,.05s); margin: 0 0 0 20px; padding: 5px; height: 35px; position: absolute; top: 3px; font-size: 12px; font-weight: 300;
-		.star-ratings { display: inline-block; position: absolute; top: -5px; left: -190px; margin: 0; padding: 0 10px; width: 140px; height: 26px; .rounded-corners(2px); .box-shadow(0  1px 10px, @gray3); border: 1px solid darken(#0075cc, 15%); background: url(../img/stars.png) no-repeat center 0;
-			li { display: block; float: left; width: 28px; height: 27px; cursor: pointer; }
+.controllable { min-height: 45px; position: relative; 
+	.ratings-controls { display: inline-block; min-height: 20px;}
+	.star-ratings { display: inline-block; margin: 0; .opacity(.2); .transition(opacity); }
+	&:hover .star-ratings { .opacity(1); .transition(opacity); }
+	li { display: block; float: left; cursor: pointer; }
+
+	&[data-componenttype=class-name],
+	&[data-componenttype=action-name]  {
+		.star-ratings { padding: 0 10px; width: 140px; height: 26px; background: url(../img/stars.png) no-repeat center 0; margin: 6px 0 -4px 5px;
+			li { width: 28px; height: 27px; }
+			&.stars-1 { background-position: center -27px; }
+			&.stars-2 { background-position: center -54px; }
+			&.stars-3 { background-position: center -81px; }
+			&.stars-4 { background-position: center -108px; }
+			&.stars-5 { background-position: center -135px; }
 		}
+
 		span.ratings-success { margin: 0 0 0 10px; position: relative; top: -5px; }
 	}
 
-	&:hover .ratings-controls { display: inline-block; .opacity(1); .transition(opacity,.05s); }
+	&[data-componenttype=class-example],
+	&[data-componenttype=class-description],
+	&[data-componenttype=action-example],
+	&[data-componenttype=parameter-name],
+	&[data-componenttype=parameter-description] {
+		.star-ratings { padding: 0 2px; width: 114px; height: 20px; background: url(../img/stars-small.png) no-repeat center 0; margin: 6px 0 -4px 10px;
+			li { width: 22px; height: 19px; }
+			&.stars-1 { background-position: center -21px; }
+			&.stars-2 { background-position: center -42px; }
+			&.stars-3 { background-position: center -63px; }
+			&.stars-4 { background-position: center -84px; }
+			&.stars-5 { background-position: center -105px; }
+		}
+
+		span.ratings-success { margin: 0 0 0 10px; position: relative; top: -5px; }
+	}
 }
 
-/* I hate that I have to this but its the best we can do. */
-h2 .controllable .ratings-controls .star-ratings { top: 5px; }
-h3 .controllable .ratings-controls .star-ratings { top: 5px; left: -200px; }
-.parameters .controllable .ratings-controls .star-ratings { left: -215px; }
+.index-package { width: @fullwidth !important; margin: 0 auto 20px; background: @white1; border: 1px solid #CCC; 
+    th { background: @blue; padding: 0; 
+        h3 a { color: @white1; font-size: 18px; font-weight: normal; letter-spacing: 1px; }
+    }
+}
