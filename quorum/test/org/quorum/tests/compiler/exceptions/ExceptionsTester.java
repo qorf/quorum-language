@@ -80,23 +80,23 @@ public class ExceptionsTester {
         }
     }
 
-    @Test
-    public void test_cast_text_to_integer_exception_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CastTextToIntegerException.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(!vm.getExceptions().hasErrors()){
-            fail();
-        }else if(!vm.getExceptions().exceptionStackPeek().getStaticKey().equals(ErrorTypeDescriptor.CAST_ERROR)){
-            fail();
-        }else if(vm.getExceptions().hasErrors() && vm.hasCaughtException()){
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_cast_text_to_integer_exception_execute(){
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CastTextToIntegerException.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(!vm.getExceptions().hasErrors()){
+//            fail();
+//        }else if(!vm.getExceptions().exceptionStackPeek().getStaticKey().equals(ErrorTypeDescriptor.CAST_ERROR)){
+//            fail();
+//        }else if(vm.getExceptions().hasErrors() && vm.hasCaughtException()){
+//            fail();
+//        }
+//        vm.stop();
+//    }
 
     @Test
     public void test_cast_text_to_integer_exception_bytecode(){
@@ -110,23 +110,23 @@ public class ExceptionsTester {
         //    fail();
     }
     
-    @Test
-    public void test_cast_text_to_number_exception_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CastTextToNumberException.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(!vm.getExceptions().hasErrors()){
-            fail();
-        }else if(!vm.getExceptions().exceptionStackPeek().getStaticKey().equals(ErrorTypeDescriptor.CAST_ERROR)){
-            fail();
-        }else if(vm.getExceptions().hasErrors() && vm.hasCaughtException()){
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_cast_text_to_number_exception_execute(){
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CastTextToNumberException.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(!vm.getExceptions().hasErrors()){
+//            fail();
+//        }else if(!vm.getExceptions().exceptionStackPeek().getStaticKey().equals(ErrorTypeDescriptor.CAST_ERROR)){
+//            fail();
+//        }else if(vm.getExceptions().hasErrors() && vm.hasCaughtException()){
+//            fail();
+//        }
+//        vm.stop();
+//    }
 
     @Test
     public void test_cast_text_to_number_exception_bytecode(){
@@ -140,25 +140,25 @@ public class ExceptionsTester {
         //    fail();
     }
     
-    @Test
-    public void test_catch_cast_exception_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchCastException.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
-            fail();
-        }
-
-        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
-        int a = variableValue.getResult().integer;
-        if(a != 2) {
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_catch_cast_exception_execute(){
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchCastException.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+//            fail();
+//        }
+//
+//        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
+//        int a = variableValue.getResult().integer;
+//        if(a != 2) {
+//            fail();
+//        }
+//        vm.stop();
+//    }
 
     @Test
     public void test_catch_cast_exception_bytecode(){
@@ -173,25 +173,25 @@ public class ExceptionsTester {
         assert(r.getLine(0).equals("2"));
     }
     
-    @Test
-    public void test_catch_With_Always_cast_exception_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchWithAlwaysCastException.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
-            fail();
-        }
-
-        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
-        int a = variableValue.getResult().integer;
-        if(a != 3) {
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_catch_With_Always_cast_exception_execute(){
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchWithAlwaysCastException.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+//            fail();
+//        }
+//
+//        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
+//        int a = variableValue.getResult().integer;
+//        if(a != 3) {
+//            fail();
+//        }
+//        vm.stop();
+//    }
 
     @Test
     public void test_catch_With_Always_cast_exception_bytecode(){
@@ -206,25 +206,25 @@ public class ExceptionsTester {
         assert(r.getLine(0).equals("3"));
     }
     
-    @Test
-    public void test_generic_catch_cast_exception_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "GenericCatchCastException.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
-            fail();
-        }
-
-        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
-        int a = variableValue.getResult().integer;
-        if(a != 2) {
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_generic_catch_cast_exception_execute(){
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "GenericCatchCastException.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+//            fail();
+//        }
+//
+//        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
+//        int a = variableValue.getResult().integer;
+//        if(a != 2) {
+//            fail();
+//        }
+//        vm.stop();
+//    }
     
     @Test
     public void test_generic_catch_cast_exception_bytecode(){
@@ -239,31 +239,31 @@ public class ExceptionsTester {
         assert(r.getLine(0).equals("2"));
     }
 
-    @Test
-    public void test_nested_catch_cast_exception_execute(){
-        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
-        File[] build = new File[3];
-        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedCatchCastException.quorum");
-        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_1.quorum");
-        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_1.quorum");
-        
-        CompilerTestSuite.build(build);
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
-            fail();
-        }
-
-        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("result");
-        int a = variableValue.getResult().integer;
-        if(a != 3) {
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_nested_catch_cast_exception_execute(){
+//        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
+//        File[] build = new File[3];
+//        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedCatchCastException.quorum");
+//        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_1.quorum");
+//        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_1.quorum");
+//        
+//        CompilerTestSuite.build(build);
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+//            fail();
+//        }
+//
+//        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("result");
+//        int a = variableValue.getResult().integer;
+//        if(a != 3) {
+//            fail();
+//        }
+//        vm.stop();
+//    }
     
     @Test
     public void test_nested_catch_cast_exception_bytecode(){
@@ -284,19 +284,19 @@ public class ExceptionsTester {
         assert(r.getLine(0).equals("3"));
     }
 
-    @Test
-    public void test_uncaught_cast_exception_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtCastException.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(!vm.getExceptions().hasErrors() || vm.hasCaughtException()){
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_uncaught_cast_exception_execute(){
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtCastException.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(!vm.getExceptions().hasErrors() || vm.hasCaughtException()){
+//            fail();
+//        }
+//        vm.stop();
+//    }
 
     @Test
     public void test_uncaught_cast_exception_bytecode(){
@@ -311,25 +311,25 @@ public class ExceptionsTester {
             fail();
     }
     
-    @Test
-    public void test_uncaught_nested_cast_exception_execute(){
-        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
-        File[] build = new File[3];
-        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_1.quorum");
-        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_1.quorum");
-        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedUncaughtCastException.quorum");
-
-        CompilerTestSuite.build(build);
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && vm.hasCaughtException()){
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_uncaught_nested_cast_exception_execute(){
+//        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
+//        File[] build = new File[3];
+//        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_1.quorum");
+//        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_1.quorum");
+//        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedUncaughtCastException.quorum");
+//
+//        CompilerTestSuite.build(build);
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && vm.hasCaughtException()){
+//            fail();
+//        }
+//        vm.stop();
+//    }
 
     @Test
     public void test_uncaught_nested_cast_exception_bytecode(){
@@ -350,25 +350,25 @@ public class ExceptionsTester {
             fail();
     }
     
-    @Test
-    public void test_catch_cast_alert_exception_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchCastAlertException.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
-            fail();
-        }
-
-        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
-        int a = variableValue.getResult().integer;
-        if(a != 2) {
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_catch_cast_alert_exception_execute(){
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchCastAlertException.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+//            fail();
+//        }
+//
+//        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
+//        int a = variableValue.getResult().integer;
+//        if(a != 2) {
+//            fail();
+//        }
+//        vm.stop();
+//    }
 
     @Test
     public void test_catch_cast_alert_exception_bytecode(){
@@ -383,25 +383,25 @@ public class ExceptionsTester {
         assert(r.getLine(0).equals("2"));
     }
     
-    @Test
-    public void test_catch_With_Always_cast_alert_exception_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchWithAlwaysCastAlertException.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
-            fail();
-        }
-
-        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
-        int a = variableValue.getResult().integer;
-        if(a != 3) {
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_catch_With_Always_cast_alert_exception_execute(){
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchWithAlwaysCastAlertException.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+//            fail();
+//        }
+//
+//        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
+//        int a = variableValue.getResult().integer;
+//        if(a != 3) {
+//            fail();
+//        }
+//        vm.stop();
+//    }
     
     @Test
     public void test_catch_With_Always_cast_alert_exception_bytecode(){
@@ -409,11 +409,11 @@ public class ExceptionsTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
-            fail();
-        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+//            fail();
+//        }
 
         RunResult r = CompilerTestSuite.runQuorumFile();
         if (!r.isSuccessful())
@@ -421,25 +421,25 @@ public class ExceptionsTester {
         assert(r.getLine(0).equals("3"));
     }
 
-    @Test
-    public void test_generic_catch_cast_alert_exception_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "GenericCatchCastAlertException.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
-            fail();
-        }
-
-        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
-        int a = variableValue.getResult().integer;
-        if(a != 2) {
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_generic_catch_cast_alert_exception_execute(){
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "GenericCatchCastAlertException.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+//            fail();
+//        }
+//
+//        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
+//        int a = variableValue.getResult().integer;
+//        if(a != 2) {
+//            fail();
+//        }
+//        vm.stop();
+//    }
     
     @Test
     public void test_generic_catch_cast_alert_exception_bytecode(){
@@ -447,11 +447,11 @@ public class ExceptionsTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
-            fail();
-        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+//            fail();
+//        }
 
         RunResult r = CompilerTestSuite.runQuorumFile();
         if (!r.isSuccessful())
@@ -459,31 +459,31 @@ public class ExceptionsTester {
         assert(r.getLine(0).equals("2"));
     }
 
-    @Test
-    public void test_nested_catch_cast_alert_exception_execute(){
-        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
-        File[] build = new File[3];
-        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedCatchCastAlertException.quorum");
-        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_2.quorum");
-        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_2.quorum");
-
-        CompilerTestSuite.build(build);
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
-            fail();
-        }
-
-        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("result");
-        int a = variableValue.getResult().integer;
-        if(a != 3) {
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_nested_catch_cast_alert_exception_execute(){
+//        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
+//        File[] build = new File[3];
+//        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedCatchCastAlertException.quorum");
+//        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_2.quorum");
+//        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_2.quorum");
+//
+//        CompilerTestSuite.build(build);
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+//            fail();
+//        }
+//
+//        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("result");
+//        int a = variableValue.getResult().integer;
+//        if(a != 3) {
+//            fail();
+//        }
+//        vm.stop();
+//    }
 
     @Test
     public void test_nested_catch_cast_alert_exception_bytecode(){
@@ -504,19 +504,19 @@ public class ExceptionsTester {
         assert(r.getLine(0).equals("3"));
     }
     
-    @Test
-    public void test_uncaught_cast_alert_exception_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtCastAlertException.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(!vm.getExceptions().hasAlerts() || vm.hasCaughtException()){
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_uncaught_cast_alert_exception_execute(){
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtCastAlertException.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(!vm.getExceptions().hasAlerts() || vm.hasCaughtException()){
+//            fail();
+//        }
+//        vm.stop();
+//    }
     
     @Test
     public void test_uncaught_cast_alert_exception_bytecode(){
@@ -531,25 +531,25 @@ public class ExceptionsTester {
             fail();
     }
 
-    @Test
-    public void test_uncaught_nested_cast_alert_exception_execute(){
-        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
-        File[] build = new File[3];
-        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_2.quorum");
-        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_2.quorum");
-        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedUncaughtCastAlertException.quorum");
-
-        CompilerTestSuite.build(build);
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && vm.hasCaughtException()){
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_uncaught_nested_cast_alert_exception_execute(){
+//        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
+//        File[] build = new File[3];
+//        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_2.quorum");
+//        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_2.quorum");
+//        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedUncaughtCastAlertException.quorum");
+//
+//        CompilerTestSuite.build(build);
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && vm.hasCaughtException()){
+//            fail();
+//        }
+//        vm.stop();
+//    }
 
     @Test
     public void test_uncaught_nested_cast_alert_exception_bytecode(){
@@ -566,25 +566,25 @@ public class ExceptionsTester {
             fail();
     }
     
-    @Test
-    public void test_catch_simple_alert_exception_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchCastSimpleAlertException.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
-            fail();
-        }
-
-        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
-        int a = variableValue.getResult().integer;
-        if(a != 2) {
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_catch_simple_alert_exception_execute(){
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchCastSimpleAlertException.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+//            fail();
+//        }
+//
+//        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
+//        int a = variableValue.getResult().integer;
+//        if(a != 2) {
+//            fail();
+//        }
+//        vm.stop();
+//    }
     
     @Test
     public void test_catch_simple_alert_exception_bytecode(){
@@ -592,11 +592,11 @@ public class ExceptionsTester {
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
         }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
-            fail();
-        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+//            fail();
+//        }
 
         RunResult r = CompilerTestSuite.runQuorumFile();
         if (!r.isSuccessful())
@@ -604,25 +604,25 @@ public class ExceptionsTester {
         assert(r.getLine(0).equals("2"));
     }
 
-    @Test
-    public void test_catch_With_Always_simple_alert_exception_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchWithAlwaysCastSimpleAlertException.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
-            fail();
-        }
-
-        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
-        int a = variableValue.getResult().integer;
-        if(a != 3) {
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_catch_With_Always_simple_alert_exception_execute(){
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "CatchWithAlwaysCastSimpleAlertException.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+//            fail();
+//        }
+//
+//        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("i");
+//        int a = variableValue.getResult().integer;
+//        if(a != 3) {
+//            fail();
+//        }
+//        vm.stop();
+//    }
     
     @Test
     public void test_catch_With_Always_simple_alert_exception_bytecode(){
@@ -637,31 +637,31 @@ public class ExceptionsTester {
         assert(r.getLine(0).equals("3"));
     }
 
-    @Test
-    public void test_nested_catch_simple_alert_exception_execute(){
-        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
-        File[] build = new File[3];
-        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedCatchSimpleAlertException.quorum");
-        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_3.quorum");
-        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_3.quorum");
-
-        CompilerTestSuite.build(build);
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
-            fail();
-        }
-
-        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("result");
-        int a = variableValue.getResult().integer;
-        if(a != 3) {
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_nested_catch_simple_alert_exception_execute(){
+//        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
+//        File[] build = new File[3];
+//        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedCatchSimpleAlertException.quorum");
+//        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_3.quorum");
+//        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_3.quorum");
+//
+//        CompilerTestSuite.build(build);
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(vm.getExceptions().hasErrors() && !vm.hasCaughtException()){
+//            fail();
+//        }
+//
+//        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("result");
+//        int a = variableValue.getResult().integer;
+//        if(a != 3) {
+//            fail();
+//        }
+//        vm.stop();
+//    }
     
     @Test
     public void test_nested_catch_simple_alert_exception_bytecode(){
@@ -682,19 +682,19 @@ public class ExceptionsTester {
         assert(r.getLine(0).equals("3"));
     }
 
-    @Test
-    public void test_uncaught_simple_alert_exception_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtSimpleAlertException.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(!vm.getExceptions().hasErrors() || vm.hasCaughtException()){
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_uncaught_simple_alert_exception_execute(){
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "UncaughtSimpleAlertException.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(!vm.getExceptions().hasErrors() || vm.hasCaughtException()){
+//            fail();
+//        }
+//        vm.stop();
+//    }
     
     @Test
     public void test_uncaught_simple_alert_exception_bytecode(){
@@ -709,25 +709,25 @@ public class ExceptionsTester {
             fail();
     }
 
-    @Test
-    public void test_uncaught_nested_simple_alert_exception_execute(){
-        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
-        File[] build = new File[3];
-        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_3.quorum");
-        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_3.quorum");
-        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedUncaughtSimpleAlertException.quorum");
-
-        CompilerTestSuite.build(build);
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        if(!vm.getExceptions().hasErrors() || vm.hasCaughtException()){
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_uncaught_nested_simple_alert_exception_execute(){
+//        String directory = CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS;
+//        File[] build = new File[3];
+//        build[2] = CompilerTestSuite.getQuorumFile(directory + "A_3.quorum");
+//        build[1] = CompilerTestSuite.getQuorumFile(directory + "B_3.quorum");
+//        build[0] = CompilerTestSuite.getQuorumFile(directory + "NestedUncaughtSimpleAlertException.quorum");
+//
+//        CompilerTestSuite.build(build);
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if(!vm.getExceptions().hasErrors() || vm.hasCaughtException()){
+//            fail();
+//        }
+//        vm.stop();
+//    }
     
     @Test
     public void test_uncaught_nested_simple_alert_exception_bytecode(){
@@ -748,30 +748,30 @@ public class ExceptionsTester {
             fail();
     }
     
-    @Test
-    public void test_nested_always_with_exception_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "NestedAlwaysWithException.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-
-        ExpressionValue variableXText = vm.getDataEnvironment().getVariableValue("XText");
-        ExpressionValue variableYText = vm.getDataEnvironment().getVariableValue("YText");
-        ExpressionValue variableHiText = vm.getDataEnvironment().getVariableValue("hiText");
-        ExpressionValue variableHiOutText = vm.getDataEnvironment().getVariableValue("hiOutText");
-        
-        String XText = variableXText.getResult().text;
-        String YText = variableYText.getResult().text;
-        String hiText = variableHiText.getResult().text;
-        String hiOutText = variableHiOutText.getResult().text;
-        
-        if (!XText.equals("X") || !YText.equals("Y") || !hiText.equals("hi") || !hiOutText.equals("hi2")) {
-            fail();
-        }
-        
-        vm.stop();
-    }
+//    @Test
+//    public void test_nested_always_with_exception_execute(){
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXCEPTIONS + CompilerTestSuite.PASS + "NestedAlwaysWithException.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        ExpressionValue variableXText = vm.getDataEnvironment().getVariableValue("XText");
+//        ExpressionValue variableYText = vm.getDataEnvironment().getVariableValue("YText");
+//        ExpressionValue variableHiText = vm.getDataEnvironment().getVariableValue("hiText");
+//        ExpressionValue variableHiOutText = vm.getDataEnvironment().getVariableValue("hiOutText");
+//        
+//        String XText = variableXText.getResult().text;
+//        String YText = variableYText.getResult().text;
+//        String hiText = variableHiText.getResult().text;
+//        String hiOutText = variableHiOutText.getResult().text;
+//        
+//        if (!XText.equals("X") || !YText.equals("Y") || !hiText.equals("hi") || !hiOutText.equals("hi2")) {
+//            fail();
+//        }
+//        
+//        vm.stop();
+//    }
     
     @Test
     public void test_nested_always_with_exception_bytecode(){

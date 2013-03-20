@@ -54,36 +54,36 @@ public class QuorumVirtualMachineTest {
 //        test(CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PASS + "Basic.quorum")), false);
 //    }
 
-    @Test
-    public void test_pass_Basic_execute(){
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PASS + "Basic.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        vm.blockRun();
-        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
-        int a = variableValue.getResult().integer;
-        if(a != 4) {
-            fail();
-        }
-    }
-
-    @Test
-    public void test_pass_Array_get_execute(){
-        synchronized (this) {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PASS + "ArrayGet.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-        
-            vm.blockRun();
-            ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("result");
-            int a = variableValue.getResult().integer;
-            if(a != 1) {
-                fail();
-            }
-        }
-    }
+//    @Test
+//    public void test_pass_Basic_execute(){
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PASS + "Basic.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        vm.blockRun();
+//        ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("a");
+//        int a = variableValue.getResult().integer;
+//        if(a != 4) {
+//            fail();
+//        }
+//    }
+//
+//    @Test
+//    public void test_pass_Array_get_execute(){
+//        synchronized (this) {
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.PASS + "ArrayGet.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+//            fail();
+//        }
+//        
+//            vm.blockRun();
+//            ExpressionValue variableValue = vm.getDataEnvironment().getVariableValue("result");
+//            int a = variableValue.getResult().integer;
+//            if(a != 1) {
+//                fail();
+//            }
+//        }
+//    }
     //ImplicitCastAssignmentBooleanNumber.quorum
     
 

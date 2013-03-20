@@ -2239,1064 +2239,1064 @@ public class TypeCheckTester {
  */
 
     
-//    @Test
-//    public void test_fail_ImpAssignBoolObjBoolean_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjBoolean.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBoolObjBooleanWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjBooleanWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBoolObjIntObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjIntObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBoolObjIntObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjIntObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBoolObjInteger_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjInteger.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBoolObjIntegerWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjIntegerWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBoolObjNumObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjNumObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBoolObjNumObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjNumObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBoolObjNumber_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjNumber.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBoolObjNumberWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjNumberWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBoolObjText_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjText.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBoolObjTextObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjTextObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBoolObjTextObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjTextObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBoolObjTextWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjTextWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBooleanIntObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanIntObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBooleanIntObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanIntObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBooleanInteger_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanInteger.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBooleanIntegerWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanIntegerWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBooleanNumObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanNumObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBooleanNumObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanNumObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBooleanNumber_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanNumber.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBooleanNumberWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanNumberWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBooleanText_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanText.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBooleanTextWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanTextWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBooleanTextObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanTextObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignBooleanTextObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanTextObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntObjBoolObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjBoolObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntObjBoolObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjBoolObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntObjBoolean_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjBoolean.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntObjBooleanWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjBooleanWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntObjInteger_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjInteger.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntObjIntegerWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjIntegerWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntObjNumObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjNumObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntObjNumObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjNumObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntObjNumber_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjNumber.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntObjNumberWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjNumberWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntObjText_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjText.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntObjTextObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjTextObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntObjTextObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjTextObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntObjTextWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjTextWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntegerBoolObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerBoolObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntegerBoolObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerBoolObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntegerBoolean_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerBoolean.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntegerBooleanWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerBooleanWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntegerNumber_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerNumber.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntegerNumberWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerNumberWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntegerNumObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerNumObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntegerNumObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerNumObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntegerText_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerText.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntegerTextObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerTextObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntegerTextObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerTextObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignIntegerTextWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerTextWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumObjBoolObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjBoolObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumObjBoolObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjBoolObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumObjBoolean_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjBoolean.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumObjBooleanWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjBooleanWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumObjIntObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjIntObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumObjIntObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjIntObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumObjInteger_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjInteger.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumObjIntegerWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjIntegerWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumObjNumber_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjNumber.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumObjNumberWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjNumberWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumObjText_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjText.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumObjTextObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjTextObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumObjTextObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjTextObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumObjTextWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjTextWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumberBoolObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberBoolObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumberBoolObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberBoolObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumberBoolean_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberBoolean.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumberBooleanWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberBooleanWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumberText_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberText.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumberTextObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberTextObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumberTextObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberTextObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignNumberTextWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberTextWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextBoolObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextBoolObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextBoolObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextBoolObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextBoolean_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextBoolean.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextBooleanWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextBooleanWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextIntObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextIntObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextIntObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextIntObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextInteger_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextInteger.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextIntegerWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextIntegerWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextNumObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextNumObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextNumObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextNumObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextNumber_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextNumber.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextNumberWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextNumber.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextObjBoolObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjBoolObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextObjBoolObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjBoolObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextObjBoolean_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjBoolean.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextObjBooleanWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjBooleanWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextObjIntObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjIntObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextObIntObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjIntObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextObjInteger_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjInteger.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextObjIntegerWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjIntegerWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextObjNumObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjNumObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextObjNumObjWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjNumObjWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextObjNumber_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjNumber.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextObjNumberWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjNumberWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextObjText_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjText.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ImpAssignTextObjTextWrapped_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjTextWrapped.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//
-//    @Test
-//    public void test_fail_ExpAssignBoolObjBoolean_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignBoolObjBoolean.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignBoolObjIntObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignBoolObjIntObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignBoolObjInteger_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignBoolObjInteger.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignBoolObjNumObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignBoolObjNumObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignBoolObjNumber_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignBoolObjNumber.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignBoolObjText_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignBoolObjText.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignBoolObjTextObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignBoolObjTextObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignIntObjBoolObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignIntObjBoolObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignIntObjBoolean_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignIntObjBoolean.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignIntObjInteger_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignIntObjInteger.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignIntObjNumObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignIntObjNumObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignIntObjNumber_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignIntObjNumber.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignIntObjText_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignIntObjText.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignIntObjTextObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignIntObjTextObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignNumObjBoolObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignNumObjBoolObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignNumObjBoolean_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignNumObjBoolean.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignNumObjIntObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignNumObjIntObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignNumObjInteger_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignNumObjInteger.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignNumObjNumber_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignNumObjNumber.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignNumObjText_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignNumObjText.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignNumObjTextObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignNumObjTextObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignTextObjBoolObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignTextObjBoolObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignTextObjBoolean_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignTextObjBoolean.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignTextObjIntObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignTextObjIntObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignTextObjInteger_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignTextObjInteger.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignTextObjNumObj_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignTextObjNumObj.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignTextObjNumber_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignTextObjNumber.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_ExpAssignTextObjText_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignTextObjText.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//
-//    @Test
-//    public void test_fail_InstanceTypeUnrelatedTypes_execute(){
-//        File[] files = new File[3];
-//        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "InstanceTypeUnrelatedTypes.quorum");
-//        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "A.quorum");
-//        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "D.quorum");
-//
-//        CompilerTestSuite.build(files);
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//    
-//    @Test
-//    public void test_fail_TypeInferenceDifferentLiteralTypes_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "TypeInferenceDifferentLiteralTypes.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//    @Test
-//    public void test_fail_TypeInferenceDifferentReturnTypes_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "TypeInferenceDifferentReturnTypes.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
-//    @Test
-//    public void test_fail_TypeInferenceDifferentTypes_execute(){
-//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "TypeInferenceDifferentTypes.quorum"));
-//        if (vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//    }
+    @Test
+    public void test_fail_ImpAssignBoolObjBoolean_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjBoolean.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBoolObjBooleanWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjBooleanWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBoolObjIntObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjIntObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBoolObjIntObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjIntObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBoolObjInteger_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjInteger.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBoolObjIntegerWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjIntegerWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBoolObjNumObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjNumObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBoolObjNumObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjNumObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBoolObjNumber_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjNumber.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBoolObjNumberWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjNumberWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBoolObjText_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjText.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBoolObjTextObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjTextObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBoolObjTextObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjTextObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBoolObjTextWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBoolObjTextWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBooleanIntObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanIntObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBooleanIntObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanIntObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBooleanInteger_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanInteger.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBooleanIntegerWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanIntegerWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBooleanNumObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanNumObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBooleanNumObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanNumObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBooleanNumber_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanNumber.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBooleanNumberWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanNumberWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBooleanText_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanText.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBooleanTextWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanTextWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBooleanTextObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanTextObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignBooleanTextObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignBooleanTextObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntObjBoolObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjBoolObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntObjBoolObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjBoolObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntObjBoolean_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjBoolean.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntObjBooleanWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjBooleanWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntObjInteger_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjInteger.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntObjIntegerWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjIntegerWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntObjNumObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjNumObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntObjNumObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjNumObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntObjNumber_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjNumber.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntObjNumberWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjNumberWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntObjText_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjText.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntObjTextObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjTextObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntObjTextObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjTextObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntObjTextWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntObjTextWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntegerBoolObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerBoolObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntegerBoolObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerBoolObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntegerBoolean_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerBoolean.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntegerBooleanWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerBooleanWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntegerNumber_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerNumber.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntegerNumberWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerNumberWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntegerNumObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerNumObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntegerNumObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerNumObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntegerText_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerText.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntegerTextObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerTextObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntegerTextObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerTextObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignIntegerTextWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignIntegerTextWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumObjBoolObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjBoolObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumObjBoolObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjBoolObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumObjBoolean_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjBoolean.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumObjBooleanWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjBooleanWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumObjIntObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjIntObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumObjIntObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjIntObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumObjInteger_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjInteger.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumObjIntegerWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjIntegerWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumObjNumber_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjNumber.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumObjNumberWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjNumberWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumObjText_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjText.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumObjTextObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjTextObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumObjTextObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjTextObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumObjTextWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumObjTextWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumberBoolObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberBoolObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumberBoolObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberBoolObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumberBoolean_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberBoolean.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumberBooleanWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberBooleanWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumberText_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberText.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumberTextObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberTextObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumberTextObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberTextObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignNumberTextWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignNumberTextWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextBoolObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextBoolObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextBoolObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextBoolObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextBoolean_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextBoolean.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextBooleanWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextBooleanWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextIntObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextIntObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextIntObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextIntObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextInteger_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextInteger.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextIntegerWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextIntegerWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextNumObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextNumObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextNumObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextNumObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextNumber_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextNumber.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextNumberWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextNumber.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextObjBoolObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjBoolObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextObjBoolObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjBoolObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextObjBoolean_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjBoolean.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextObjBooleanWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjBooleanWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextObjIntObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjIntObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextObIntObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjIntObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextObjInteger_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjInteger.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextObjIntegerWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjIntegerWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextObjNumObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjNumObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextObjNumObjWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjNumObjWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextObjNumber_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjNumber.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextObjNumberWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjNumberWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextObjText_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjText.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ImpAssignTextObjTextWrapped_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ImpAssignTextObjTextWrapped.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+
+    @Test
+    public void test_fail_ExpAssignBoolObjBoolean_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignBoolObjBoolean.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignBoolObjIntObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignBoolObjIntObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignBoolObjInteger_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignBoolObjInteger.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignBoolObjNumObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignBoolObjNumObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignBoolObjNumber_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignBoolObjNumber.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignBoolObjText_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignBoolObjText.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignBoolObjTextObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignBoolObjTextObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignIntObjBoolObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignIntObjBoolObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignIntObjBoolean_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignIntObjBoolean.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignIntObjInteger_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignIntObjInteger.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignIntObjNumObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignIntObjNumObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignIntObjNumber_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignIntObjNumber.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignIntObjText_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignIntObjText.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignIntObjTextObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignIntObjTextObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignNumObjBoolObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignNumObjBoolObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignNumObjBoolean_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignNumObjBoolean.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignNumObjIntObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignNumObjIntObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignNumObjInteger_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignNumObjInteger.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignNumObjNumber_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignNumObjNumber.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignNumObjText_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignNumObjText.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignNumObjTextObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignNumObjTextObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignTextObjBoolObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignTextObjBoolObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignTextObjBoolean_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignTextObjBoolean.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignTextObjIntObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignTextObjIntObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignTextObjInteger_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignTextObjInteger.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignTextObjNumObj_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignTextObjNumObj.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignTextObjNumber_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignTextObjNumber.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_ExpAssignTextObjText_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "ExpAssignTextObjText.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+
+    @Test
+    public void test_fail_InstanceTypeUnrelatedTypes_execute(){
+        File[] files = new File[3];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "InstanceTypeUnrelatedTypes.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "A.quorum");
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "D.quorum");
+
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    
+    @Test
+    public void test_fail_TypeInferenceDifferentLiteralTypes_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "TypeInferenceDifferentLiteralTypes.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    @Test
+    public void test_fail_TypeInferenceDifferentReturnTypes_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "TypeInferenceDifferentReturnTypes.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+    @Test
+    public void test_fail_TypeInferenceDifferentTypes_execute(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.TYPE_CHECKER + CompilerTestSuite.FAIL + "TypeInferenceDifferentTypes.quorum"));
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
 
 }

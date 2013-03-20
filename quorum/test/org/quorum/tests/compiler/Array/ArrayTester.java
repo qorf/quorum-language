@@ -1986,17 +1986,17 @@ public class ArrayTester {
         }
     }
 
-    @Test
-    public void test_fail_Array_Over_Max_Size() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.FAIL + "ArrayOverMaxSize.quorum"));
-        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
-            fail();
-        }
-        vm.blockRun();
-
-        if (!vm.getExceptions().hasExceptions()) {
-            fail();
-        }
-        vm.stop();
-    }
+//    @Test
+//    public void test_fail_Array_Over_Max_Size() {
+//        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.FAIL + "ArrayOverMaxSize.quorum"));
+//        if (!vm.getCompilerErrors().isCompilationErrorFree()) {
+//            fail();
+//        }
+//        vm.blockRun();
+//
+//        if (!vm.getExceptions().hasExceptions()) {
+//            fail();
+//        }
+//        vm.stop();
+//    }
 }
