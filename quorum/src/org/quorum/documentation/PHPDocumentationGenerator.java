@@ -61,6 +61,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
     public String getIndex() {
         return indexPage;
     }
+    
 
     @Override
     public void clearIndex() {
@@ -68,7 +69,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
     }
     
     @Override
-    public void finishIndex() {
+        public void finishIndex() {
         Collections.sort(classes, new Comparator() {
             @Override
             public int compare(Object a, Object b) {
@@ -89,34 +90,76 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
             }
         });
         
+        
+        
+        indexPage += generateHeader();
+        indexPage += "\t\t<div class=\"hero-unit\">\n";
+        indexPage += "\t\t\t<div class=\"hero-unit-container\">\n";
+        indexPage += "\t\t\t\t<h1>The Quorum Standard Library</h1>\n";
+        indexPage += "\t\t\t\t<p>While the Quorum programming language is still in its infancy, it already has a basic standard library for helper classes, with features including: 1) cross-platform text-to-speech and audio playback, 2) container classes (e.g., arrays, lists), 3) basic system classes (e.g., consoles, timing), 4) a small library for iCreate robotics, and 5) some basic classes for math and random numbers. We have a significant number of additions planned for the future and plan to expand on this library with each release.</p>\n";
+        indexPage += "\t\t</div>\n";
+        indexPage += "\t<div class=\"search-box-large\">\n";
+        indexPage += "\t\t<form class=\"search\">\n";
+        indexPage += "\t\t\t<div class=\"input-append\">\n";
+        indexPage += "\t\t\t\t<input class=\"search-query\" name=\"search-query\" type=\"text\" autocomplete=\"off\" placeholder=\"Example: Array, Object, Music\">\n";
+        indexPage += "\t\t\t\t<button class=\"btn search-submit\" name=\"submit\" type=\"button\">Search!</button>\n";
+        indexPage += "\t\t\t</div>\n";
+        indexPage += "\t\t</form>\n";
+        indexPage += "\t</div>\n";
+        indexPage += "</div>\n";
+
+        indexPage += "<ul class=\"index-grid\">\n";
         String previousContainer = "!!!!----invalid----!!!!";
         boolean firstPackage = true;
-        
         for(int i = 0; i < classes.size(); i++) {
             ClassDescriptor clazz = classes.get(i);
             String newContainer = clazz.getContainer().getContainer();
+            String nextContainer = (i + 1 < classes.size()) ? classes.get(i+1).getContainer().getContainer() : "";
+            
+            boolean nextContainerIsSubContainer = nextContainer.split(".").length > 2;
+            
             if(previousContainer.compareTo(newContainer)!=0) { //if it's a new container
                 previousContainer = newContainer;
-                if(!firstPackage) { 
-                    indexPage += "\t</ul>\n</div>\n"; 
+                if(!firstPackage) {
+                    indexPage += "\t</li>\n";
                 }
                 
-                indexPage += "<li class=\"grid-item grid-item-" + clazz.getName().toLowerCase() + "\">\n";
-                indexPage += "\t<h2 class=\"index_package_title\">" + (newContainer.isEmpty() ? "Default Package" : newContainer) + "</h2>\n";
-                indexPage += "\t<ul class=\"packages\">\n";
+                indexPage += "<li class=\"grid-item grid-item-" + newContainer.toLowerCase().replace(".","-") + "\">";
+                String listHeader = (newContainer.isEmpty() ? "Default Package" : newContainer).replace(".", ".<br />");
+                indexPage += "<h2 class=\"index_package_title\"><a href=\"#" + newContainer.toLowerCase().replace(".","-") + "\">" + listHeader + "</a></h2>\n<i></i>\n";
+                
+                boolean subContainersStarted = false;
+                
+                while (nextContainerIsSubContainer) {
+                    if (!subContainersStarted) {
+                        indexPage += "<ul class=\"grid-sublist\">";
+                        subContainersStarted = true;
+                        nextContainer = newContainer;
+                    }
+                    
+                    indexPage += "<li class=\"sublist-item\">" + (nextContainer) + "</li>";
+ 
+                    nextContainer = classes.get(i+1).getContainer().getContainer();
+                    nextContainerIsSubContainer = nextContainer.split(".").length > 2;
+                    
+                    i++;
+                }
+                if (subContainersStarted) {
+                    indexPage += "</ul>";
+                }
             }
-            
-            indexPage += "\t\t<li class=\"sublist-item\">" + linkForClassFromRoot(clazz) + "</li>\n";
             
             firstPackage = false;
         }
-        indexPage += "</ul>\n";
-        indexPage += "\n</div>";
-        indexPage = "<?php include('" + root + "static/templates/pagefooter.template.php'); ?>";;
+        
+        indexPage += "</li></ul>\n";
+        
+        createClassTables();
+        indexPage += "<?php include('static/templates/pagefooter.template.php'); ?>";
     }
     
-    private String generateHeader(String key) {
-        return "<?php include('" + root + "static/templates/pageheader.template.php'); ?>";
+    private String generateHeader() {
+        return "<?php include('static/templates/pageheader.template.php'); ?>\n";
     }
     
     private void startNewIndex() {
@@ -127,6 +170,64 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
     
     private void addToIndex(ClassDescriptor clazz) {
         classes.add(clazz);        
+    }
+    
+    private void createClassTables() {
+        Collections.sort(classes, new Comparator() {
+            @Override
+            public int compare(Object a, Object b) {
+                ClassDescriptor left = (ClassDescriptor) a;
+                ClassDescriptor right = (ClassDescriptor) b;
+                //first compare the keys of the containers
+                String leftContainer = left.getContainer().getContainer();
+                String rightContainer = right.getContainer().getContainer();
+                
+                int result = leftContainer.compareTo(rightContainer);
+                if(result == 0) {
+                    return left.getStaticKey().compareTo(right.getStaticKey());
+                }
+                else {
+                    return result;
+                }
+                
+            }
+        });
+        
+        indexPage += "\n<table class=\"table\">";
+        String previousContainer = "!!!!----invalid----!!!!";
+        boolean firstPackage = true;
+        boolean standardListItem = true;
+        for(int i = 0; i < classes.size(); i++) {
+            ClassDescriptor clazz = classes.get(i);
+            String newContainer = clazz.getContainer().getContainer();
+            if(previousContainer.compareTo(newContainer)!=0) { //if it's a new container
+                previousContainer = newContainer;
+                if(!firstPackage) {
+                    indexPage += "\t</table>\n";
+                }
+                
+                indexPage += "<table class=\"table index-package\">\n";
+                indexPage += "<tr><th><h3 class=\"index_package_title\"><a id=\"" + newContainer.toLowerCase().replace(".","-") + "\">" + (newContainer.isEmpty() ? "Default Package" : newContainer) + "</a></h3></th></tr>\n";
+                indexPage += "\t<tr class=\"packages\">\n";
+                standardListItem = true;
+            }
+            
+            indexPage += "\t\t<tr><td class=\"" + (standardListItem ? "primary" : "alternative") + "\">" + linkForClassFromRoot(clazz);
+            String description = clazz.getDocumentation().getDescription();
+            final int MAX_LENGTH = 180;
+            int length = description.length();
+            if(length > MAX_LENGTH) {
+                length = MAX_LENGTH;
+            } 
+            indexPage += ": " + description.substring(0, length);
+            
+            if(description.length() > MAX_LENGTH) {
+                indexPage += " ...";
+            }
+            indexPage += "</td></tr>\n";
+            firstPackage = false;
+        }
+        indexPage += "\n</table>";
     }
     
     private String linkForClassFromRoot(ClassDescriptor clazz) {
@@ -252,8 +353,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         addToIndex(clazz);
           
         String key = clazz.getStaticKey();
-        String result = generateHeader(key);
-
+        String result = "<?php include('" + root + "static/templates/pageheader.template.php'); ?>";
         result += "<?php include('" + root + "static/templates/classheader.template.php'); ?>";
         
         result += headingSurround(key, 1, "page_title") + "\n";
@@ -580,7 +680,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
 
     @Override
     public String getIndexName() {
-        return "library-index";
+        return "libraries";
     }
     
     @Override
@@ -599,9 +699,9 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
             destination = new File(documentation.getAbsolutePath() + "/syntax.php");
             gen.copyFile(syntax, destination);
             
-            File libraries = new File(standardLibrary.getParentFile().getAbsolutePath() + "/libraries.php");
-            destination = new File(documentation.getAbsolutePath() + "/libraries.php");
-            gen.copyFile(libraries, destination);
+            //File libraries = new File(standardLibrary.getParentFile().getAbsolutePath() + "/libraries.php");
+            //destination = new File(documentation.getAbsolutePath() + "/libraries.php");
+            //gen.copyFile(libraries, destination);
             
             File curriculum = new File(standardLibrary.getParentFile().getAbsolutePath() + "/curriculum.php");
             destination = new File(documentation.getAbsolutePath() + "/curriculum.php");
@@ -610,6 +710,10 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
             File downloads = new File(standardLibrary.getParentFile().getAbsolutePath() + "/download.php");
             destination = new File(documentation.getAbsolutePath() + "/download.php");
             gen.copyFile(downloads, destination);
+            
+            File models = new File(standardLibrary.getParentFile().getAbsolutePath() + "/models");
+            destination = new File(documentation.getAbsolutePath() + "/models");
+            gen.copyFile(models, destination);
             
             File documents = new File(standardLibrary.getParentFile().getAbsolutePath() + "/documents");
             destination = new File(documentation.getAbsolutePath() + "/documents");
@@ -626,10 +730,6 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
             File controllers = new File(standardLibrary.getParentFile().getAbsolutePath() + "/controllers");
             destination = new File(documentation.getAbsolutePath() + "/controllers");
             gen.copyFile(controllers, destination);
-            
-            File models = new File(standardLibrary.getParentFile().getAbsolutePath() + "/models");
-            destination = new File(documentation.getAbsolutePath() + "/models");
-            gen.copyFile(models, destination);
             
         } catch (IOException ex) {
             Logger.getLogger(PHPDocumentationGenerator.class.getName()).log(Level.SEVERE, null, ex);
@@ -792,9 +892,8 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                     }else {
                         currentParam = pascalCasePackageChecker(parameters.get(i).getType().getStaticKey());
                     }
-                    currentParam = controllableComponent(bold(currentParam) + " " + italics(parameters.get(i).getName()) + ": ", "parameter-name");
                     String parameterDocumentation = documentation.getParameter(parameters.get(i).getName());
-                    currentParam += parameterDocumentation;
+                    currentParam = controllableComponent(bold(currentParam) + " " + italics(parameters.get(i).getName()) + ": " + parameterDocumentation, "parameter-name");
                     paramList += "<li>" + currentParam + "</li>\n\n";
                 }
             }
@@ -816,7 +915,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         }
         if(!(method instanceof BlueprintDescriptor)) {
             if(!documentation.getExample().isEmpty()) {
-                result += "\n\t" + controllableComponent(paragraph(italics("Example Code:")), "action-example");
+                result += "\n\t" + controllableComponent(italics("Example Code:"), "action-example");
                 result += "\n" + code(documentation.getExample())
                         + "\n\n";
             }
