@@ -41,7 +41,8 @@ public class QuorumWebExecutor {
     private QuorumVirtualMachine virtualMachine;
     private File pluginFolder;
     private static PrintStream defaultStandardOut = System.out;
-
+    private QuorumSecurityMode securityMode = QuorumSecurityMode.WEB;
+    
     public QuorumWebExecutor() {
         System.setSecurityManager(new SecurityManager() {
             @Override
@@ -60,6 +61,20 @@ public class QuorumWebExecutor {
                 throw new ExitException(status);
             }
         });
+    }
+
+    /**
+     * @return the securityMode
+     */
+    public QuorumSecurityMode getSecurityMode() {
+        return securityMode;
+    }
+
+    /**
+     * @param securityMode the securityMode to set
+     */
+    public void setSecurityMode(QuorumSecurityMode securityMode) {
+        this.securityMode = securityMode;
     }
 
     protected static class ExitException extends SecurityException {
@@ -212,7 +227,7 @@ public class QuorumWebExecutor {
                         // Load the main quorum class and invoke the static main(String[] args) method with no arguments.
                         String mainClassName = g.getMainClassName();
                         QuorumClassLoader classLoader = new QuorumClassLoader();
-                        classLoader.setSecurityMode(QuorumSecurityMode.WEB);
+                        classLoader.setSecurityMode(securityMode);
                         classLoader.setCodeGenerator(g);
                         classLoader.setPluginFolder(getPluginFolder());
                         Class<?> quorumClass = null;

@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.quorum.plugins.DefaultPluginLoader;
 import org.quorum.vm.implementation.QuorumClassLoader;
+import org.quorum.vm.implementation.QuorumSecurityMode;
 import org.quorum.vm.implementation.QuorumStandardLibrary;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
 import org.quorum.vm.interfaces.CodeGenerator;
@@ -96,7 +97,8 @@ import org.quorum.web.QuorumWebExecutor;
  * This command causes Quorum to start a basic web 
  * server, accepting source code through POST requests and returning the output
  * in kind. Several security settings are applied in this mode to prevent damage
- * to the local system.
+ * to the local system. If the user would prefer that no security settings are 
+ * applied, -server insecure may be used instead.
  * 
  * quorum -server
  * 
@@ -248,6 +250,12 @@ public class Main {
      */
     private static boolean isServer = false;
     
+    /**
+     * This flag sets the security mode for the -server flag.
+     */
+    private static QuorumSecurityMode security = QuorumSecurityMode.WEB;
+    
+    private static final String INSECURE = "insecure";
     /**
      * This file represents the folder where Quorum is located.
      */
@@ -574,7 +582,8 @@ public class Main {
    "\n\nThis command causes Quorum to start a basic web " +
    "server, accepting source code through POST requests and returning the output " +
    "in kind. Several security settings are applied in this mode to prevent damage " +
-   "to the local system.\n\n" +
+   "to the local system. If the user would prefer that no security settings are"+ 
+   "applied, -server insecure may be used instead.\n\n" +
 
    "quorum -server " 
        );
@@ -604,6 +613,12 @@ public class Main {
                 flagsFinished = true;
             }
             else if(arg.compareTo(SERVER) == 0){
+                if(index + 1 < args.length) {
+                    String next = args[index + 1];
+                    if(next.compareTo(INSECURE) == 0) {
+                        security = QuorumSecurityMode.NORMAL;
+                    }
+                }
                 isServer = true;
                 flagsFinished = true;
             }
@@ -712,6 +727,7 @@ public class Main {
      */
     private static void startCodeHosting() {
         QuorumWebExecutor exec = new QuorumWebExecutor();
+        exec.setSecurityMode(security);
         exec.setVirtualMachine(vm);
         exec.setPluginFolder(pluginFolder);
         exec.start();
@@ -726,5 +742,15 @@ public class Main {
 //                    + "print i "
 //                    + "i = i + 1  "
 //                + "end");
+        
+        exec.sendTestMessage(
+            "use Libraries.Sound.Music\n" +
+            "Music muse\n" +
+            "integer i = 0\n" +
+            "repeat 12 times\n" +
+            "   muse:Play(60 + i,0.1)\n" +
+            "   i = i + 1\n" +
+            "end");
+        
     }
 }
