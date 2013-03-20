@@ -41,8 +41,7 @@ public class QuorumWebExecutor {
     private QuorumVirtualMachine virtualMachine;
     private File pluginFolder;
     private static PrintStream defaultStandardOut = System.out;
-    
-    
+
     public QuorumWebExecutor() {
         System.setSecurityManager(new SecurityManager() {
             @Override
@@ -92,25 +91,25 @@ public class QuorumWebExecutor {
     public void sendTestMessage(String code) {
         try {
             String urlParameters = code;
-            
+
             URL loginURL = new URL("http://localhost:8000");
             HttpURLConnection connection = (HttpURLConnection) loginURL.openConnection();
-            
+
             connection.setDoOutput(true);
             connection.setDoInput(true);
             connection.setInstanceFollowRedirects(false);
-            
+
             connection.setUseCaches(false);
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             connection.setRequestProperty("charset", "utf-8");
             connection.setRequestProperty("Content-Length", "" + Integer.toString(urlParameters.getBytes().length));
-            
+
             DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
             wr.writeBytes(urlParameters);
             wr.flush();
             wr.close();
-            
+
             //check the code and print out the result
             int result = connection.getResponseCode();
             String get = connection.getHeaderField("Content-length");
@@ -121,7 +120,7 @@ public class QuorumWebExecutor {
             String toString = new String(codeByteArray);
             defaultStandardOut.print(toString);
             connection.disconnect();
-            
+
 
 
 
@@ -161,11 +160,9 @@ public class QuorumWebExecutor {
     }
 
     private class MyHandler implements HttpHandler {
-
-        //ByteArrayOutputStream stream = new ByteArrayOutputStream();
-
         @Override
         public void handle(HttpExchange t) throws IOException {
+            //long start = System.currentTimeMillis();
             OutputStream os = t.getResponseBody();
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
@@ -180,9 +177,9 @@ public class QuorumWebExecutor {
             } else {
                 return;
             }
-            
+
             //TODO: if length is too large, send back an error message
-            
+
             //TODO: If they try to access invalid (non-secure) code, send
             //back an error message
 
@@ -199,44 +196,46 @@ public class QuorumWebExecutor {
             boolean built = false;
             boolean failure = false;
             if (code != null) {
-                CodeGenerator g = virtualMachine.getCodeGenerator();
-                g.setCompileToDisk(false);
-                virtualMachine.setGenerateCode(true);
-                virtualMachine.build(code);
-                CompilerErrorManager errors = virtualMachine.getCompilerErrors();
-                if (!errors.isCompilationErrorFree()) {
-                    errors.iterator();
-                    response = errors.getShortErrorList();
-                } else {
-                    built = true;
-                    virtualMachine.setMain(virtualMachine.getMain());
-                    // Load the main quorum class and invoke the static main(String[] args) method with no arguments.
-                    String mainClassName = g.getMainClassName();
-                    QuorumClassLoader classLoader = new QuorumClassLoader();
-                    classLoader.setSecurityMode(QuorumSecurityMode.WEB);
-                    classLoader.setCodeGenerator(g);
-                    classLoader.setPluginFolder(getPluginFolder());
-                    Class<?> quorumClass = null;
-                    System.setOut(new PrintStream(stream));
-                    try {
+                try {
+                    CodeGenerator g = virtualMachine.getCodeGenerator();
+                    g.setCompileToDisk(false);
+                    virtualMachine.setGenerateCode(true);
+                    virtualMachine.clean();
+                    virtualMachine.build(code);
+                    CompilerErrorManager errors = virtualMachine.getCompilerErrors();
+                    if (!errors.isCompilationErrorFree()) {
+                        errors.iterator();
+                        response = errors.getShortErrorList();
+                    } else {
+                        built = true;
+                        virtualMachine.setMain(virtualMachine.getMain());
+                        // Load the main quorum class and invoke the static main(String[] args) method with no arguments.
+                        String mainClassName = g.getMainClassName();
+                        QuorumClassLoader classLoader = new QuorumClassLoader();
+                        classLoader.setSecurityMode(QuorumSecurityMode.WEB);
+                        classLoader.setCodeGenerator(g);
+                        classLoader.setPluginFolder(getPluginFolder());
+                        Class<?> quorumClass = null;
+                        System.setOut(new PrintStream(stream));
+
                         quorumClass = classLoader.loadClass(mainClassName.replaceAll("/", "."));
                         Method declaredMethod = quorumClass.getDeclaredMethod("main", new Class[]{String[].class});
                         String[] programArguments = {}; // TODO: In the future, this can be used to pass arguments to a program running in interpreted mode.
                         declaredMethod.invoke(null, (Object) programArguments);
-                    } catch (IllegalAccessException ex) {
-                    } catch (IllegalArgumentException ex) {
-                    } catch (NoSuchMethodException ex) {
-                    } catch (ClassNotFoundException ex) {
-                    } catch (InvocationTargetException ex) {
-                        if(ex.getCause() != null && ex.getCause() instanceof ExitException) {
-                            failure = false; // a normal exit code was received.
-                        } else if(ex.getCause() instanceof java.lang.NoClassDefFoundError){
-                            if(ex.getCause().getCause() != null && ex.getCause().getCause() instanceof QuorumSecurityException) {
-                                QuorumSecurityException qex = (QuorumSecurityException) ex.getCause().getCause();
-                                response = "Error: Class " + qex.getClassName() + " cannot be used"
+                    }
+                } catch (IllegalAccessException ex) {
+                } catch (IllegalArgumentException ex) {
+                } catch (NoSuchMethodException ex) {
+                } catch (ClassNotFoundException ex) {
+                } catch (InvocationTargetException ex) {
+                    if (ex.getCause() != null && ex.getCause() instanceof ExitException) {
+                        failure = false; // a normal exit code was received.
+                    } else if (ex.getCause() instanceof java.lang.NoClassDefFoundError) {
+                        if (ex.getCause().getCause() != null && ex.getCause().getCause() instanceof QuorumSecurityException) {
+                            QuorumSecurityException qex = (QuorumSecurityException) ex.getCause().getCause();
+                            response = "Error: Class " + qex.getClassName() + " cannot be used"
                                     + " from the web version of Quorum.";
-                                failure = true;
-                            }
+                            failure = true;
                         }
                     }
                 }
@@ -244,13 +243,16 @@ public class QuorumWebExecutor {
             if (built && !failure) {
                 response = stream.toString();
             }
-            
+
             response = "{\n\t "
-                    + "\"status\": " + "\"success\",\n\t" +
-                    "\"data\": \"" +response+ "\"\n}";
+                    + "\"status\": " + "\"success\",\n\t"
+                    + "\"data\": \"" + response + "\"\n}";
+
+//            long end = System.currentTimeMillis();
+//            response += "\nTime: " + (end - start) / 1000.0;
             
             t.sendResponseHeaders(200, response.length());
-            
+
             
             os.write(response.getBytes());
             stream.flush();
