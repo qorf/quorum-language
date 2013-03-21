@@ -7,9 +7,10 @@ package plugins.quorum.Libraries.Language.Types;
 import quorum.Libraries.Containers.Array$Interface;
 import quorum.Libraries.Language.Errors.Error;
 import quorum.Libraries.Language.Errors.InvalidLocationError;
+import quorum.Libraries.Language.Errors.ParseError;
+import quorum.Libraries.Language.Errors.UndefinedObjectError;
 import quorum.Libraries.Language.Object$Interface;
 import quorum.Libraries.Language.Types.Text$Interface;
-import quorum.Libraries.Language.Errors.UndefinedObjectError;
 
 /**
  * A plugin for handling text system functions.
@@ -19,6 +20,39 @@ import quorum.Libraries.Language.Errors.UndefinedObjectError;
 public class Text {
     public java.lang.Object $me = null;
     private String text = "";
+    
+    public int ParseInteger() throws ParseError{
+        try{
+            int parseInt = java.lang.Integer.parseInt(text);
+            return parseInt;
+        }catch(NumberFormatException e){
+            ParseError error = new ParseError();
+            error.SetErrorMessage("Parse Error: The text value could not be converted to an integer.");
+            throw(error);
+        }
+    }
+    
+    public double ParseNumber() throws ParseError{
+        try{
+            double parseInt = java.lang.Double.parseDouble(text);
+            return parseInt;
+        }catch(NumberFormatException e){
+            ParseError error = new ParseError();
+            error.SetErrorMessage("Parse Error: The text value could not be converted to an number.");
+            throw(error);
+        }
+    }
+        
+    public boolean ParseBoolean() throws ParseError{
+        try{
+            boolean parseInt = java.lang.Boolean.parseBoolean(text);
+            return parseInt;
+        }catch(NumberFormatException e){
+            ParseError error = new ParseError();
+            error.SetErrorMessage("Parse Error: The text value could not be converted to an boolean.");
+            throw(error);
+        }
+    }
     
     public void SetValueNative(String value) {
         text = value;
@@ -109,6 +143,39 @@ public class Text {
         }
         else {
             return $me.hashCode();
+        }
+    }
+    
+    public static int PrimitiveParseInteger(String self) throws ParseError{
+        try{
+            int parseInt = java.lang.Integer.parseInt(self);
+            return parseInt;
+        }catch(NumberFormatException e){
+            ParseError error = new ParseError();
+            error.SetErrorMessage("Parse Error: The text value could not be converted to an integer.");
+            throw(error);
+        }
+    }
+    
+    public static double PrimitiveParseNumber(String self) throws ParseError{
+        try{
+            double parseInt = java.lang.Double.parseDouble(self);
+            return parseInt;
+        }catch(NumberFormatException e){
+            ParseError error = new ParseError();
+            error.SetErrorMessage("Parse Error: The text value could not be converted to an number.");
+            throw(error);
+        }
+    }
+        
+    public static boolean PrimitiveParseBoolean(String self) throws ParseError{
+        try{
+            boolean parseInt = java.lang.Boolean.parseBoolean(self);
+            return parseInt;
+        }catch(NumberFormatException e){
+            ParseError error = new ParseError();
+            error.SetErrorMessage("Parse Error: The text value could not be converted to an boolean.");
+            throw(error);
         }
     }
     

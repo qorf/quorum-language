@@ -16,6 +16,54 @@ public class Number {
     public java.lang.Object $me = null;
     private double number = -1;
     
+    public double GetMaximumValue(){
+        return Double.MAX_VALUE;
+    }
+    
+    public static double PrimitiveGetMaximumValue(){
+        return Double.MAX_VALUE;
+    }
+    
+    public double GetMinimumValue(){
+        return Double.MIN_VALUE;
+    }
+    
+    public static double PrimitiveGetMinimumValue(){
+        return Double.MIN_VALUE;
+    }
+    
+    public double GetNotANumberValue(){
+        return Double.NaN;
+    }
+    
+    public static double PrimitiveGetNotANumberValue(){
+        return Double.NaN;
+    }
+    
+    public double GetNegativeInfinityValue(){
+        return Double.NEGATIVE_INFINITY;
+    }
+    
+    public static double PrimitiveGetNegativeInfinityValue(){
+        return Double.NEGATIVE_INFINITY;
+    }
+    
+    public double GetPositiveInfinityValue(){
+        return Double.POSITIVE_INFINITY;
+    }
+    
+    public static double PrimitiveGetPositiveInfinityValue(){
+        return Double.POSITIVE_INFINITY;
+    }
+    
+    public double GetNumberOfBits(){
+        return Double.SIZE;
+    }
+    
+    public static int PrimitiveGetNumberOfBits(){
+        return Double.SIZE;
+    }
+    
     public void SetValueNative(double value){
         number = value;
     }
