@@ -38,6 +38,78 @@ class Number is a Object
         SetValueNative(i)
     end
 
+    /*
+        This action gets the maximum number value, (2-2^-52)*2^1023.
+
+        Attribute: Returns The maximum number value.
+
+        Attribute: Example
+
+        number i = 3.5
+        print i:GetMaximumValue()
+    */ 
+    system action GetMaximumValue returns number
+
+    /*
+        This action gets the minimum number value(2^-1074).
+
+        Attribute: Returns The minimum number value.
+
+        Attribute: Example
+
+        number i = 3.5
+        print i:GetMinimumValue()
+    */ 
+    system action GetMinimumValue returns number
+
+    /*
+        This action gets the positive infinity number value(0x7ff0000000000000L).
+
+        Attribute: Returns The positive infinity of a number.
+
+        Attribute: Example
+
+        number i = 3.5
+        print i:GetPositiveInfinityValue()
+    */ 
+    system action GetPositiveInfinityValue returns number
+
+    /*
+        This action gets the number of bits representing a number value.
+
+        Attribute: Returns The number of bits of a number value.
+
+        Attribute: Example
+
+        number i = 3.5
+        print i:GetNumberOfBits()
+    */ 
+    system action GetNumberOfBits returns integer
+
+    /*
+        This action gets the negative infinity of a number value(0xfff0000000000000L).
+
+        Attribute: Returns Negative infinity of a number value.
+
+        Attribute: Example
+
+        number i = 3.5
+        print i:GetNegativeInfinityValue()
+    */ 
+    system action GetNegativeInfinityValue returns number
+
+    /*
+        This action gets the not-a-number representation of a number value.
+
+        Attribute: Returns The Not-a-Number of a number value.
+
+        Attribute: Example
+
+        number i = 3.5
+        print i:GetNotANumberValue()
+    */ 
+    system action GetNotANumberValue returns number
+
     private system action SetValueNative(number val)
 
     /*

@@ -30,6 +30,10 @@ class Text is a Object
     private system action GetCharacterNative(integer index) returns text
     private system action GetSubstringNative(integer startIndex, integer endIndex) returns text
 
+    system action ParseInteger returns integer
+    system action ParseNumber returns number
+    system action ParseBoolean returns boolean
+
     /*
         This action appends the given text value to the value in this object.
 
