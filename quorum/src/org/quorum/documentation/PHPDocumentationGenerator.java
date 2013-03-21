@@ -7,9 +7,12 @@ package org.quorum.documentation;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.quorum.symbols.AccessModifierEnum;
@@ -69,7 +72,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
     }
     
     @Override
-        public void finishIndex() {
+    public void finishIndex() {
         Collections.sort(classes, new Comparator() {
             @Override
             public int compare(Object a, Object b) {
@@ -90,8 +93,6 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
             }
         });
         
-        
-        
         indexPage += generateHeader();
         indexPage += "\t\t<div class=\"hero-unit\">\n";
         indexPage += "\t\t\t<div class=\"hero-unit-container\">\n";
@@ -108,51 +109,67 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         indexPage += "\t</div>\n";
         indexPage += "</div>\n";
 
-        indexPage += "<ul class=\"index-grid\">\n";
-        String previousContainer = "!!!!----invalid----!!!!";
-        boolean firstPackage = true;
+        HashMap<String, IndexWrapperClass> containers = new HashMap<String, IndexWrapperClass>();
         for(int i = 0; i < classes.size(); i++) {
             ClassDescriptor clazz = classes.get(i);
             String newContainer = clazz.getContainer().getContainer();
-            String nextContainer = (i + 1 < classes.size()) ? classes.get(i+1).getContainer().getContainer() : "";
-            
-            boolean nextContainerIsSubContainer = nextContainer.split(".").length > 2;
-            
-            if(previousContainer.compareTo(newContainer)!=0) { //if it's a new container
-                previousContainer = newContainer;
-                if(!firstPackage) {
-                    indexPage += "\t</li>\n";
-                }
-                
-                indexPage += "<li class=\"grid-item grid-item-" + newContainer.toLowerCase().replace(".","-") + "\">";
-                String listHeader = (newContainer.isEmpty() ? "Default Package" : newContainer).replace(".", ".<br />");
-                indexPage += "<h2 class=\"index_package_title\"><a href=\"#" + newContainer.toLowerCase().replace(".","-") + "\">" + listHeader + "</a></h2>\n<i></i>\n";
-                
-                boolean subContainersStarted = false;
-                
-                while (nextContainerIsSubContainer) {
-                    if (!subContainersStarted) {
-                        indexPage += "<ul class=\"grid-sublist\">";
-                        subContainersStarted = true;
-                        nextContainer = newContainer;
-                    }
-                    
-                    indexPage += "<li class=\"sublist-item\">" + (nextContainer) + "</li>";
- 
-                    nextContainer = classes.get(i+1).getContainer().getContainer();
-                    nextContainerIsSubContainer = nextContainer.split(".").length > 2;
-                    
-                    i++;
-                }
-                if (subContainersStarted) {
-                    indexPage += "</ul>";
+
+            //is this a new container?
+            boolean isTopLevelContainer = newContainer.split("\\.").length == 2;
+            if(isTopLevelContainer) {
+                if(!containers.containsKey(newContainer)) {
+                    HashMap<String, String> subContainers = new HashMap<String, String>();
+                    IndexWrapperClass wrapped = new IndexWrapperClass();
+                    wrapped.containerName = newContainer;
+                    containers.put(newContainer, wrapped);
                 }
             }
             
-            firstPackage = false;
+            boolean isSubContainer = newContainer.split("\\.").length >= 3;
+            if(isSubContainer) {
+                String[] split = newContainer.split("\\.");
+                String name = split[0] + "." + split[1];
+                
+                IndexWrapperClass wrapped = containers.get(name);
+                if(!wrapped.subcontainers.containsKey(newContainer)) {
+                    wrapped.subcontainers.put(newContainer, newContainer);
+                }
+            }
         }
         
-        indexPage += "</li></ul>\n";
+        indexPage += "<ul class=\"index-grid\">\n";
+        
+        List<IndexWrapperClass> containersCollection = new ArrayList<IndexWrapperClass>(containers.values());
+        Comparator comparator = new Comparator() {
+                                        @Override
+                                        public int compare(Object a, Object b) {
+                                            IndexWrapperClass left = (IndexWrapperClass) a;
+                                            IndexWrapperClass right = (IndexWrapperClass) b;
+                                            return (left.containerName.compareTo(right.containerName));
+                                        };
+                               };
+        
+        Collections.sort(containersCollection, comparator);
+        
+        Iterator<IndexWrapperClass> iterator = containersCollection.iterator();
+        while(iterator.hasNext()) {
+            IndexWrapperClass next = iterator.next();
+            
+            indexPage += "<li class=\"grid-item grid-item-" + next.containerName.toLowerCase().replace(".","-") + "\">";
+            String listHeader = (next.containerName.isEmpty() ? "Default Package" : next.containerName).replace(".", ".<br />");
+            indexPage += "<h2 class=\"index_package_title\"><a href=\"#" + next.containerName.toLowerCase().replace(".","-") + "\">" + listHeader + "</a></h2>\n<i></i>\n";
+            
+            Iterator<String> subs = next.subcontainers.values().iterator();
+            String subList = "";
+            while(subs.hasNext()) {
+                subList += "<li class=\"sublist-item\">" + (subs.next()) + "</li>";
+            }
+            if (!subList.equals("")) {
+                indexPage += "<ul class=\"grid-sublist\">" + subList + "</ul>";
+            }
+        }
+            
+        indexPage += "</ul>\n";
         
         createClassTables();
         indexPage += "<?php include('static/templates/pagefooter.template.php'); ?>";
@@ -200,14 +217,14 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         for(int i = 0; i < classes.size(); i++) {
             ClassDescriptor clazz = classes.get(i);
             String newContainer = clazz.getContainer().getContainer();
-            if(previousContainer.compareTo(newContainer)!=0) { //if it's a new container
+            if(previousContainer.compareTo(newContainer)!=0) { // if it's a new container
                 previousContainer = newContainer;
                 if(!firstPackage) {
                     indexPage += "\t</table>\n";
                 }
                 
-                indexPage += "<table class=\"table index-package\">\n";
-                indexPage += "<tr><th><h3 class=\"index_package_title\"><a id=\"" + newContainer.toLowerCase().replace(".","-") + "\">" + (newContainer.isEmpty() ? "Default Package" : newContainer) + "</a></h3></th></tr>\n";
+                indexPage += "<a id=\"" + newContainer.toLowerCase().replace(".","-") + "\"></a><table class=\"table index-package\">\n";
+                indexPage += "<tr><th><h3 class=\"index_package_title\">" + (newContainer.isEmpty() ? "Default Package" : newContainer) + "</h3></th></tr>\n";
                 indexPage += "\t<tr class=\"packages\">\n";
                 standardListItem = true;
             }
