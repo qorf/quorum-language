@@ -86,6 +86,34 @@ class Integer is a Object
     end
 
     /*
+        This action gets the maximum value allowed for an integer variable(2147483647).
+
+        Attribute: Returns The maximum value that can be stored in an integer.
+
+        Attribute: Example
+
+        integer size
+        integer max = size:GetMaximumValue()
+    */ 
+    action GetMaximumValue() returns integer
+        return maximumValue
+    end
+
+    /*
+        This action gets the minimum value allowed for an integer variable(-2147483648).
+
+        Attribute: Returns The minimum value that can be stored in an integer.
+
+        Attribute: Example
+
+        integer size
+        integer min = size:GetMinimumValue()
+    */ 
+    action GetMinimumValue() returns integer
+        return minimumValue
+    end
+
+    /*
         This action compares two object values and returns a CompareResult.
         The compare result is either larger if this hash code is larger than
         the object passed as a parameter, smaller, or equal.

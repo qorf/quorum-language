@@ -1224,6 +1224,12 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                     if (variable != null) {
                         String staticKey = variable.getType().getStaticKey();
 
+                        if(variable.getType().isPrimitiveType()){
+                            TypeDescriptor type = new TypeDescriptor(variable.getType());
+                            type.convertToClass();
+                            staticKey = type.getStaticKey();
+                        }
+                        
                         ClassDescriptor validKey = table.getClassDescriptor(staticKey);
                         if (validKey == null) { //check if the class is in the same package
                             ClassDescriptor checker = table.getClassDescriptorFromPackage(
@@ -1706,7 +1712,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             CodeCompletionResult result, ClassDescriptor clazz, 
             boolean isCurrentClass, MethodDescriptor insideMethod) {
         if (clazz != null) {
-            addVariablesToResults(result, clazz, isCurrentClass);
+            if(variable == null || (variable != null && !variable.getType().isPrimitiveType())){
+                addVariablesToResults(result, clazz, isCurrentClass);
+            }
 
             //add all of its methods
             Collection<MethodDescriptor> allMethods = clazz.getAllMethods(AccessModifierEnum.PUBLIC);
@@ -1719,51 +1727,52 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             while (iterator.hasNext()) {
                 MethodDescriptor method = iterator.next();
                 CodeCompletionItem item = new CodeCompletionItem();
-                
-                if(method.getAccessModifier() == AccessModifierEnum.PUBLIC && method instanceof MethodDescriptor) {
-                    item.setCodeCompletionType(CodeCompletionType.PUBLIC_ACTION);
-                } else if(method.getAccessModifier() == AccessModifierEnum.PRIVATE && method instanceof MethodDescriptor) {
-                    item.setCodeCompletionType(CodeCompletionType.PRIVATE_ACTION);
-                } else if(method.getAccessModifier() == AccessModifierEnum.PUBLIC && method instanceof BlueprintDescriptor) {
-                    item.setCodeCompletionType(CodeCompletionType.PUBLIC_BLUEPRINT_ACTION);
-                } else if(method.getAccessModifier() == AccessModifierEnum.PRIVATE && method instanceof BlueprintDescriptor) {
-                    item.setCodeCompletionType(CodeCompletionType.PRIVATE_BLUEPRINT_ACTION);
-                } else if(method.getAccessModifier() == AccessModifierEnum.PUBLIC && method instanceof SystemActionDescriptor) {
-                    item.setCodeCompletionType(CodeCompletionType.PUBLIC_SYSTEM_ACTION);
-                } else if(method.getAccessModifier() == AccessModifierEnum.PRIVATE && method instanceof SystemActionDescriptor) {
-                    item.setCodeCompletionType(CodeCompletionType.PRIVATE_SYSTEM_ACTION);
-                }
-                
-                //if the method exists in the base class, mark it as such
-                if(clazz.getMethod(method.getStaticKey()) != null) { //it's in the base
-                    item.setIsBaseClassMethod(true);
-                }
-                
-                
-                String signature = "";
-                if (variable == null) {
-                    signature = method.getMethodSignature(true);
-                } else {
-                    signature = method.getMethodSignature(true, variable, clazz);
-                }
+                if(variable == null || !variable.getType().isPrimitiveType() || (variable.getType().isPrimitiveType() && (!method.getName().equals("GetValue") && !method.getName().equals("SetValue")))){
+                    if(method.getAccessModifier() == AccessModifierEnum.PUBLIC && method instanceof MethodDescriptor) {
+                        item.setCodeCompletionType(CodeCompletionType.PUBLIC_ACTION);
+                    } else if(method.getAccessModifier() == AccessModifierEnum.PRIVATE && method instanceof MethodDescriptor) {
+                        item.setCodeCompletionType(CodeCompletionType.PRIVATE_ACTION);
+                    } else if(method.getAccessModifier() == AccessModifierEnum.PUBLIC && method instanceof BlueprintDescriptor) {
+                        item.setCodeCompletionType(CodeCompletionType.PUBLIC_BLUEPRINT_ACTION);
+                    } else if(method.getAccessModifier() == AccessModifierEnum.PRIVATE && method instanceof BlueprintDescriptor) {
+                        item.setCodeCompletionType(CodeCompletionType.PRIVATE_BLUEPRINT_ACTION);
+                    } else if(method.getAccessModifier() == AccessModifierEnum.PUBLIC && method instanceof SystemActionDescriptor) {
+                        item.setCodeCompletionType(CodeCompletionType.PUBLIC_SYSTEM_ACTION);
+                    } else if(method.getAccessModifier() == AccessModifierEnum.PRIVATE && method instanceof SystemActionDescriptor) {
+                        item.setCodeCompletionType(CodeCompletionType.PRIVATE_SYSTEM_ACTION);
+                    }
 
-                String description = "";
-                String[] paragraphs = Documentation.breakStringIntoParagraphArray(method.getDocumentation().getDescription());
-                for (int i = 0; i < paragraphs.length; i++) {
-                    description += "<p>" + paragraphs[i] + "</p>";
+                    //if the method exists in the base class, mark it as such
+                    if(clazz.getMethod(method.getStaticKey()) != null) { //it's in the base
+                        item.setIsBaseClassMethod(true);
+                    }
+
+
+                    String signature = "";
+                    if (variable == null) {
+                        signature = method.getMethodSignature(true);
+                    } else {
+                        signature = method.getMethodSignature(true, variable, clazz);
+                    }
+
+                    String description = "";
+                    String[] paragraphs = Documentation.breakStringIntoParagraphArray(method.getDocumentation().getDescription());
+                    for (int i = 0; i < paragraphs.length; i++) {
+                        description += "<p>" + paragraphs[i] + "</p>";
+                    }
+
+                    description += "<h2>" + "Code Example:" + "</h2>";
+                    description += "<PRE><CODE>" + method.getDocumentation().getExample()
+                            + "</PRE></CODE>";
+
+                    //convert the signature to an PHP friendly format
+                    signature = signature.replaceAll("<", "&lt;");
+                    signature = signature.replaceAll(">", "&gt;");
+                    item.setDisplayName(signature);
+                    item.setDocumentation(description);
+                    item.setCompletion(method.getName());
+                    result.add(item);
                 }
-
-                description += "<h2>" + "Code Example:" + "</h2>";
-                description += "<PRE><CODE>" + method.getDocumentation().getExample()
-                        + "</PRE></CODE>";
-
-                //convert the signature to an PHP friendly format
-                signature = signature.replaceAll("<", "&lt;");
-                signature = signature.replaceAll(">", "&gt;");
-                item.setDisplayName(signature);
-                item.setDocumentation(description);
-                item.setCompletion(method.getName());
-                result.add(item);
             }
         }
         
