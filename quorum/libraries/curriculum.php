@@ -2,12 +2,18 @@
 <script type="text/javascript">
     document.title = 'Curriculum for the Quorum Programming Language';
 </script>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Quorum Curriculum</h1>
+		<p>These pages provide extra curricular material that can be 
+        freely used in the classroom.</p>
+	</div>
+</div>
 
 <div class="content curriculum-content">
     <h1>Quorum Curriculum</h1>
     <p>
-        This page contains extra curriculum material on Quorum that can be 
-        used in the classroom. The focus in this material is to provide 
+        The focus in this material is to provide 
         extra resources for each chapter, including the following:
     </p>
     <ol>
@@ -26,5 +32,6 @@
     <h2><a href="/documents/curriculum/chapter6/chapter6.php">Chapter 6: Inheritance</a></h2>
     <h2><a href="/documents/curriculum/chapter7/chapter7.php">Chapter 7: Errors and Data</a></h2>
     <h2><a href="/documents/curriculum/chapter8/chapter8.php">Chapter 8: Input and Output</a></h2>
+</div>
 </div>
 <?php include("static/templates/pagefooter.template.php"); ?>

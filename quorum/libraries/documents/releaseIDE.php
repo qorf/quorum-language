@@ -1,9 +1,13 @@
 <?php include("../static/templates/pageheader.template.php"); ?>
-<script type="text/javascript">
-    document.title = 'Release Notes for the Sodbeans Development Environment';
-</script>
 
-<h1>Sodbeans Release Notes</h1>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Sodbeans Release Notes</h1>
+		<p>We post changes to Sodbeans, the standard development environment
+                    for Quorum, here. Sodbeans is blind accessible.</p>
+	</div>
+</div>
+<div class="content index-content">
 <h2>Sodbeans 3.5.0 - February 25th, 2013</h2>
 <p>In this release, we focused our attention primarily on fixes and enhancements
     for our partners at schools for the blind. This includes a host of enhancements
@@ -262,4 +266,5 @@
     </li><li>Sodbeans is built on Sappy 1.0 and <a class="wiki" href="/apps/trac/sodbeans/wiki/NetBeans">NetBeans</a> 6.9. As such, it has the same accessibility features available in Sappy 1.0.
     </li>
 </ul><p>
+</div>
 <?php include("../static/templates/pagefooter.template.php"); ?>

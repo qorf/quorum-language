@@ -1,9 +1,12 @@
 <?php include("../static/templates/pageheader.template.php"); ?>
-<script type="text/javascript">
-    document.title = 'Release Notes for the Quorum Programming Language';
-</script>
-<?php echo '<h2>' . $WEB_ROOT. '</h2>';?>
-<h1>Quorum Release Notes</h1>
+
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Quorum Release Notes</h1>
+		<p>We post changes to Quorum here.</p>
+	</div>
+</div>
+<div class="content index-content">
 <h2>Quorum 1.7 February 25th, 2013</h2>
 <p>Quorum 1.7 adds in a new type inference system, upgrades the internal architecture substantially,
 and fixes a number of known bugs.</p>
@@ -128,4 +131,5 @@ end
     <li>Integration with the NetBeans IDE</li>
     <li>Talking Omniscient debugger (The debugger literally talks to you and tells you what is going on).</li>
 </ul>
+</div>
 <?php include("../static/templates/pagefooter.template.php"); ?>
