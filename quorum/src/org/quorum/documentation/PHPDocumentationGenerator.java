@@ -97,7 +97,12 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         indexPage += "\t\t<div class=\"hero-unit\">\n";
         indexPage += "\t\t\t<div class=\"hero-unit-container\">\n";
         indexPage += "\t\t\t\t<h1>The Quorum Standard Library</h1>\n";
-        indexPage += "\t\t\t\t<p>While the Quorum programming language is still in its infancy, it already has a basic standard library for helper classes, with features including: 1) cross-platform text-to-speech and audio playback, 2) container classes (e.g., arrays, lists), 3) basic system classes (e.g., consoles, timing), 4) a small library for iCreate robotics, and 5) some basic classes for math and random numbers. We have a significant number of additions planned for the future and plan to expand on this library with each release.</p>\n";
+        indexPage += "\t\t\t\t<p>Quorum includes library classes like: 1) "
+                + "text-to-speech and audio playback, 2) container classes "
+                + "(e.g., arrays, lists, hash tables), 3) system classes, "
+                + "4) classes for iCreate robotics,"
+                + " and 5) mathematics and random numbers. "
+                + "The standard library is expanded in each release.</p>\n";
         indexPage += "\t\t</div>\n";
         indexPage += "\t<div class=\"search-box-large\">\n";
         indexPage += "\t\t<form class=\"search\">\n";
