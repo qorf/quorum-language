@@ -1,4 +1,13 @@
 package Libraries.Web
+
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Web.WebGenerator
+use Libraries.Web.GlobalAttributeAccepter
+use Libraries.Web.WebPageHeader
+use Libraries.Web.DocumentType
+use Libraries.Web.Body
+
 /*
 The WebPage class represents HTML's (Hypertext Markup Language) option tag which 
 defines the document as an html document. 
@@ -19,14 +28,6 @@ class Main
    end
 end
 */
-use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
-use Libraries.Web.WebGenerator
-use Libraries.Web.GlobalAttributeAccepter
-use Libraries.Web.WebPageHeader
-use Libraries.Web.DocumentType
-use Libraries.Web.Body
-
 class WebPage is a WebGenerator, GlobalAttributeAccepter
     DocumentType documentType
     WebPageHeader header

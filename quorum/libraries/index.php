@@ -12,25 +12,21 @@
 <div class="content index-content">
 <h1>Introducing Quorum</h1>
 <p>
-    Quorum is available as part of the 
-    <a href="http://sodbeans.sourceforge.net/">Sodbeans project</a> and 
-    additionally as a stand-alone programming 
-    language. The Quorum 1.7 release (see 
+    Quorum 2.0 (see 
     the <a href="documents/release.php">Quorum release notes</a>), 
-    has the following features:
+    has the following features and more:
 </p>
 <ul>
     <li>Source code is compiled to Java bytecode</li>
-    <li>Static type checking</li>
-    <li>Unique control structures, heavily tested to be easy to understand by 
+    <li>Static type checking with some type inference</li>
+    <li>Unique control structures, heavily tested to be easily understood by 
         novices and professionals</li>
     <li>Object-orientation</li>
-    <li><a href="libraries.php">Standard Library</a> (e.g., data structures, 
+    <li>A growing <a href="libraries.php">Standard Library</a> (e.g., data structures, 
         music generation, text-to-speech)</li>
-    <li>Plugin system for extending Quorum</li>
+    <li>A Plugin system for extending Quorum with Java or C++</li>
     
-    <li>Talking Omniscient debugger (The debugger literally talks to you and 
-        tells you what is going on).</li>
+    <li>A talking Omniscient debugger (e.g., debug backwards, analyze variable histories)</li>
     <li>NetBeans Integration (see the <a href="documents/releaseIDE.php">Sodbeans release notes</a>) </li>
 </ul>
 <h2>Getting Started</h2>

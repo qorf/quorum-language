@@ -95,7 +95,7 @@
 </ul>
 <h2>Sodbeans 3.0.1 - July 2nd, 2012</h2>
 <p>
-    In Sodbeans 3.0.1, we have fixed the Windows installer and some minor problems with Quorum pluggins. If you installed Sodbeans 3.0 on windows and had a previous version of Sodbeans installed, please make sure you uninstall and clear your AppData -&gt; .sodbeans folder before attempting to re-install Sodbeans.
+    In Sodbeans 3.0.1, we have fixed the Windows installer and some minor problems with Quorum plugins. If you installed Sodbeans 3.0 on windows and had a previous version of Sodbeans installed, please make sure you uninstall and clear your AppData -&gt; .sodbeans folder before attempting to re-install Sodbeans.
 </p>
 <h2>Sodbeans 3.0 - June 25th, 2012</h2>
 <p>
