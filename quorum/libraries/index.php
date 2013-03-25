@@ -24,7 +24,7 @@
     <li>Object-orientation</li>
     <li>A growing <a href="libraries.php">Standard Library</a> (e.g., data structures, 
         music generation, text-to-speech)</li>
-    <li>A Plugin system for extending Quorum with Java or C++</li>
+    <li>A <a href="documents/syntax/plugins.php">Plugin system</a> for extending Quorum with Java or C++</li>
     
     <li>A talking Omniscient debugger (e.g., debug backwards, analyze variable histories)</li>
     <li>NetBeans Integration (see the <a href="documents/releaseIDE.php">Sodbeans release notes</a>) </li>

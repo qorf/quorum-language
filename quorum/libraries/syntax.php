@@ -78,9 +78,10 @@
 	        coding standards for Quorum classes.</li>
 	    <li><a href="libraries.php">The Quorum Standard Library</a>: The Quorum standard library 
 	        provides additional functionality for the programming language.</li>
-	    <li><a href="library-index.html">The Quorum Standard Library Application 
-	            Programming Interface (API) Index</a>: This page gives a raw 
-	        index of the classes available in the standard library.</li>
+	    <li><a href="documents/syntax/plugins.php">Writing Plugins to connect to 
+                Java or C++ from Quorum</a>: This page describes how we can use
+                system actions to call down to Java, and from there, other languages
+                like C++.</li>
 	</ul>
 </div>
 
