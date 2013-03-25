@@ -9,13 +9,9 @@ The keyword &quot;is a&quot; can be used to specify an
 determine if an object is of a certain type. Consider the following example code:
 </p>
 <p><pre class="code"><code>
-class Main
-    action Main
-        B b
-        if b is a Object then
-            print &quot;An object has been found&quot;
-        end
-    end
+B b
+if b is a Object then
+    print &quot;An object has been found&quot;
 end
 </code></pre></p>
 <p>
