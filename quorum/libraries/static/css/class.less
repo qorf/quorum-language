@@ -19,7 +19,9 @@ ul{ font-size:13px; display: block; list-style-type: none; margin: 0 0 0 25px; p
 	.ratings-controls { display: inline-block; min-height: 20px;}
 	.star-ratings { display: inline-block; margin: 0; .opacity(.2); .transition(opacity); }
 	&:hover .star-ratings { .opacity(1); .transition(opacity); }
-	li { display: block; float: left; cursor: pointer; }
+	li { display: block; float: left; cursor: pointer;  
+		a { display: block; width: 100%; height: 100%;}
+	}
 
 	&[data-componenttype=class-name],
 	&[data-componenttype=action-name]  {

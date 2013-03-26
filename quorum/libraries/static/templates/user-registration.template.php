@@ -1,8 +1,8 @@
 <?php
   $messages = array(
-      "googleValid" => "<h4>You have been authenticated with Google. Please enter a username for your account.</h4>",
-      "googleErrors" => "<h4>There were errors with your Google authentication. Please use the registration form.</h4>",
-      "registration" => '<h4 class="half-size">Please create an account below, or ...</h4>'
+      "googleValid" => "You have been authenticated with Google. Please enter a username for your account.",
+      "googleErrors" => "There were errors with your Google authentication. Please use the registration form.",
+      "registration" => 'Please create an account below, or ...'
     );
 
   $state = "";
@@ -26,14 +26,15 @@
   </div>
   <div class="modal-body">
     <?php 
-      print $messages[$state];
+      print "<h4>" . $messages[$state];
       if ($state == "registration") {
-        print '<form action="' . getFullUrl("assets/apis/lightopenid/google.php?login"). '" method="post">';
+          print '<form action="' . getFullUrl("assets/apis/lightopenid/google.php?login"). '" method="post">';
           print '<input type="hidden" name="referer" value="' . getRoot() . getPage() . '" />'; ?>
           <input type="submit" class="btn btn-success auth-with-google" value="Signup with Google" />
         </form>
     <?php
       }
+      print "</h4>";
     ?>
     
     <form class="form-horizontal" id="registration-form">
