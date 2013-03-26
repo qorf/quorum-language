@@ -4,14 +4,11 @@
  */
 package org.quorum.vm.implementation;
 
-import org.quorum.vm.interfaces.Dependency;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,6 +21,7 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.quorum.vm.interfaces.Dependency;
 
 /**
  * A program to convert the build directory into an executable jar file.
@@ -36,7 +34,7 @@ public class QuorumJarGenerator {
     private File writeLocation;
     private JarOutputStream jar;
     private String main;
-    private final String CREATED_BY = "Quorum 1.0";
+    private final String CREATED_BY = "Quorum 2.0";
     public ArrayList<File> files;
     public File buildDirectory;
     private Collection<Dependency> dependencies;
