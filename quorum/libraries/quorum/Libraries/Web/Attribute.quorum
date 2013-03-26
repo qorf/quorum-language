@@ -16,7 +16,7 @@ use Libraries.Web.Attribute
 
 Attribute attribute
 text result = attribute:Generate()
-print result
+output result
 */
 class Attribute is a WebGenerator
     text name = ""
@@ -37,7 +37,7 @@ class Attribute is a WebGenerator
     //by default, this would output an empty text value
     Attribute attribute
     text result = attribute:GetName()
-    print result
+    output result
     */
     action GetName returns text
         return name
@@ -59,7 +59,7 @@ class Attribute is a WebGenerator
     //by default, this would output an empty text value
     Attribute attribute
     text result = attribute:GetValue()
-    print result
+    output result
     */
     action GetValue returns text
         return value
@@ -81,7 +81,7 @@ class Attribute is a WebGenerator
     Attribute attribute
     attribute:SetName("src")
     text result = attribute:GetName()
-    print result
+    output result
     */
     action SetName(text newName) 
         name = newName
@@ -104,7 +104,7 @@ class Attribute is a WebGenerator
     Attribute attribute
     attribute:SetValue("http://www.google.com")
     text result = attribute:GetValue()
-    print result
+    output result
     */
     action SetValue(text newValue) 
         value = newValue

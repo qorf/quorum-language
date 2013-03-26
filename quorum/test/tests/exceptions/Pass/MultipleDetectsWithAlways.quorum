@@ -13,13 +13,13 @@ class Main
         check
             alert("error")
         detect e of type OutOfBoundsError
-            print "OutOfBoundsError"
+            output "OutOfBoundsError"
         detect j of type CastError
-            print "CastError"
+            output "CastError"
         detect k
-            print k:GetErrorMessage()
+            output k:GetErrorMessage()
         always
-            print "always"
+            output "always"
         end
     end
 end

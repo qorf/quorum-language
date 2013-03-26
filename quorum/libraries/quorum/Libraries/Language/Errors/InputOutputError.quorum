@@ -21,7 +21,7 @@ class Main
       check
         file:WriteLine("This is an illegal operation!")
       detect e of type InputOutputError
-        print "Error detected: " + e:GetErrorMessage()
+        output "Error detected: " + e:GetErrorMessage()
       end
    end
 end

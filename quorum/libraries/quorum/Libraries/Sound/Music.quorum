@@ -341,7 +341,7 @@ class Music
         Attribute: Example
         use Libraries.Sound.Music
         Music muse
-        print "The tempo is " + muse:GetTempo() + " beats per minute."
+        output "The tempo is " + muse:GetTempo() + " beats per minute."
     */
     public action GetTempo() returns integer
         return beatsPerMinute
@@ -395,7 +395,7 @@ class Music
         use Libraries.Sound.Instrument
         Music muse
         Instrument i = muse:GetInstrument(0) // get the default piano specified by the General MIDI standard.
-        print i:GetName()
+        output i:GetName()
     */
     public action GetInstrument(integer index) returns Instrument
         return instruments:Get(index)
@@ -412,10 +412,10 @@ class Music
         use Libraries.Containers.Blueprints.Iterator
         Music muse
         Iterator<Instrument> instruments = muse:GetInstruments()
-        print "Here are all the available instruments:"
+        output "Here are all the available instruments:"
         repeat while instruments:HasNext()
             Instrument i = instruments:Next()
-            print i:GetName()
+            output i:GetName()
         end
     */
     public action GetInstruments() returns Iterator<Instrument>

@@ -22,7 +22,7 @@ class Main
         file:SetRelativePath("C:\hello.txt") // see "Path" documentation for more information on absolute vs. relative paths.
       detect e of type InvalidPathError
         // We will detect an error here, as "C:\hello.txt" is not a relative path!
-        print "Bad path: " + e:GetErrorMessage()
+        output "Bad path: " + e:GetErrorMessage()
       end
    end
 end

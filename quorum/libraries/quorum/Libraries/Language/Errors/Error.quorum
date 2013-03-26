@@ -16,7 +16,7 @@ class Main
       check
         integer i = cast(integer, "1.4")
       detect e of type Error
-        print "Error detected: " + e:GetErrorMessage()
+        output "Error detected: " + e:GetErrorMessage()
       end
    end
 end
@@ -153,7 +153,7 @@ class Error
             str = str + " [" + item:GetLineNumber() + "] "
             i = i + 1
         end
-        print str
+        output str
     end
 
     /*

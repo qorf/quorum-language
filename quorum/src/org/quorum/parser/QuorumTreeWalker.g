@@ -993,7 +993,7 @@ scope{
 	;
 		
 print_statement 
-	:	PRINT root_expression
+	:	OUTPUT root_expression
 	{
 		ExecutionStep step = $root_expression.step;
 		ExpressionValue value = $root_expression.eval;

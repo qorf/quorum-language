@@ -8,10 +8,10 @@ class Main
         FileRandomAccess r
         r:OpenForRandomAccess(f)
         r:Read()
-        // Set position to 2, should print 0
+        // Set position to 2, should output 0
         r:GoToBeginning()
         number position = r:GetPosition()
 
-        print position
+        output position
     end
 end

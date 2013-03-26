@@ -11,11 +11,11 @@ class Main
             integer k = cast(integer, "3.7")
             integer n = 0
             repeat until n = 20
-                print "shouldn't be here"
+                output "shouldn't be here"
                 n = n + 1
             end
         detect e of type CastError
-            print "detect"
+            output "detect"
         end
     end
 end

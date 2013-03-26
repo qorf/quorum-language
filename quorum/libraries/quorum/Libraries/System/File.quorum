@@ -37,11 +37,11 @@ use Libraries.System.File
 
 class Main
     action main
-        // Read the contents of a file and print them to the screen.
+        // Read the contents of a file and output them to the screen.
         // This file is in our program's directory.
         File inputFile
         inputFile:SetPath("hello.txt")
-        print inputFile:Read() // read and print all contents to screen.
+        output inputFile:Read() // read and output  all contents to screen.
         
         // Write text to a file, erasing all old contents.
         // This file is located in the C:\Windows folder.
@@ -54,22 +54,22 @@ class Main
         // the folder in which our program is stored, i.e.
         // C:\Users\jeff\My Documents\NetBeansProjects\TestProject
         File newFile
-        print newFile:GetWorkingDirectory() // this action always returns the working directory.
+        output newFile:GetWorkingDirectory() // this action always returns the working directory.
 
         // To get the paths a particular File instance refers to, we use the
         // GetPath() and GetAbsolutePath() actions.
         File someFile
         someFile:SetWorkingDirectory("C:\Users\jeff")
         someFile:SetPath("settings.txt")
-        print someFile:GetPath() // prints settings.txt.
-        print someFile:GetAbsolutePath() // prints C:\Users\jeff\settings.txt
-        print someFile:GetWorkingDirectory() // prints C:\Users\jeff
+        output someFile:GetPath() // prints settings.txt.
+        output someFile:GetAbsolutePath() // prints C:\Users\jeff\settings.txt
+        output someFile:GetWorkingDirectory() // prints C:\Users\jeff
 
         // Find out if this file is a directory or not.
         File mysteryFile
         mysteryFile:SetPath("images") // assuming a file or directory exists in our working directory called 'images'.
-        print "The mystery file object is a file: " + mysteryFile:IsFile()
-        print "The mystery file object is a directory: " + mysteryFile:IsDirectory()
+        output "The mystery file object is a file: " + mysteryFile:IsFile()
+        output "The mystery file object is a directory: " + mysteryFile:IsDirectory()
     end
 */
 class File
@@ -156,7 +156,7 @@ class File
         use Libraries.System.File
 
         File myFileObject
-        print "The working directory of this program is " + myFileObject:GetPath()
+        output "The working directory of this program is " + myFileObject:GetPath()
      */
     action GetWorkingDirectory() returns text
         return GetWorkingDirectoryNative()
@@ -188,7 +188,7 @@ class File
         File someFile
         someFile:SetWorkingDirectory("/Users/jeff/")
         someFile:SetPath("Music")
-        print someFile:GetPath() // prints "Music"
+        output someFile:GetPath() // prints "Music"
      */
     action GetPath returns text
         return GetPathNative()
@@ -208,8 +208,8 @@ class File
         File sys
         sys:SetWorkingDirectory("C:\Windows")
         sys:SetPath("System32")
-        print sys:GetPath() // prints "System32"
-        print sys:GetAbsolutePath() // prints "C:\Windows\System32"
+        output sys:GetPath() // prints "System32"
+        output sys:GetAbsolutePath() // prints "C:\Windows\System32"
     */
     action GetAbsolutePath returns text
         return GetAbsolutePathNative()
@@ -234,7 +234,7 @@ class File
         File programFilesDir
         programFilesDir:SetWorkingDirectory("C:\")
         programFilesDir:SetPath("Program Files")
-        print "Is it a directory? " + programFilesDir:IsDirectory() // on Windows systems, prints "Is it a directory? true"
+        output "Is it a directory? " + programFilesDir:IsDirectory() // on Windows systems, prints "Is it a directory? true"
      */
     action SetPath(text path)
         SetPathNative(path)
@@ -254,7 +254,7 @@ class File
         File winDir
         winDir:SetWorkingDirectory("C:\")
         winDir:SetPath("Windows")
-        print "Does 'C:\Windows' exist?  " + winDir:Exists() // on Windows systems, will print "Does 'C:\Windows' exist? true"
+        output "Does 'C:\Windows' exist?  " + winDir:Exists() // on Windows systems, will output  "Does 'C:\Windows' exist? true"
      */
     system action Exists returns boolean
 
@@ -270,13 +270,13 @@ class File
         // Is C:\Windows a file?
         File winDir
         winDir:SetWorkingDirectory("C:\Windows")
-        print "Is C:\Windows a file? " + winDir:IsFile() // Will print 'Is C:\Windows a file? false'
+        output "Is C:\Windows a file? " + winDir:IsFile() // Will output  'Is C:\Windows a file? false'
 
         // Is C:\Windows\System32\kernel32.dll a file?
         File kernel32
         kernel32:SetWorkingDirectory("C:\Windows\system32\")
         kernel32:SetPath("ernel32.dll")
-        print "Is C:\Windows\System32\kernel32.dll a file? " + kernel32:IsFile() // On Windows systems, will print "Is C:\Windows\System32\kernel32.dll a file? true"
+        output "Is C:\Windows\System32\kernel32.dll a file? " + kernel32:IsFile() // On Windows systems, will output  "Is C:\Windows\System32\kernel32.dll a file? true"
      */
     system action IsFile returns boolean
 
@@ -294,12 +294,12 @@ class File
         // Is the current directory a directory?
         File currentDir
         currentDir:SetPath("./")
-        print "Are we in a directory? " + currentDir:IsDirectory() // On most systems, will print "Are we in a directory? true"
+        output "Are we in a directory? " + currentDir:IsDirectory() // On most systems, will output  "Are we in a directory? true"
 
         // On Windows systems, is "C:\" a directory?
         File cDrive
         cDrive:SetWorkingDirectory("C:\")
-        print "Is C:\ a directory? " + cDrive:IsDirectory() // On Windows systems, will print "Is C:\ a directory? true"
+        output "Is C:\ a directory? " + cDrive:IsDirectory() // On Windows systems, will output  "Is C:\ a directory? true"
      */
     system action IsDirectory returns boolean
 
@@ -319,7 +319,7 @@ class File
         File user32
         user32:SetWorkingDirectory("C:\Windows\System32")
         user32:SetPath("user32.dll")
-        print "Is user32.dll hidden? " + user32:IsHidden() // On Windows systems, will print "Is user32.dll hidden? true"
+        output "Is user32.dll hidden? " + user32:IsHidden() // On Windows systems, will output  "Is user32.dll hidden? true"
      */
     system action IsHidden returns boolean
 
@@ -350,7 +350,7 @@ class File
         File file
         file:SetWorkingDirectory("C:\Program Files\Sodbeans\bin\")
         file:SetPath("sodbeans.exe")
-        print file:GetFileName() // will print "sodbeans.exe". (on any system)
+        output file:GetFileName() // will output  "sodbeans.exe". (on any system)
      */
     system action GetFileName returns text
 
@@ -378,13 +378,13 @@ class File
         File musicFile
         musicFile:SetWorkingDirectory("C:\Users\jeff\Music")
         musicFile:SetPath("Untitled.mp3")
-        print musicFile:GetFileExtension() // prints "mp3" on all systems.
+        output musicFile:GetFileExtension() // prints "mp3" on all systems.
 
         // Get the extension of a directory.
         File appDir
         appDir:SetWorkingDirectory("/Applications/")
         appDir:SetPath("TextEdit.app")
-        print appDir:GetFileExtension() // prints "app" on all systems.
+        output appDir:GetFileExtension() // prints "app" on all systems.
      */
     system action GetFileExtension returns text
 
@@ -416,9 +416,9 @@ class File
 
         // Is there a parent directory?
         if parentDir not= undefined
-            print parentDir:GetPath()
+            output parentDir:GetPath()
         else
-            print "There is no parent to our working directory."
+            output "There is no parent to our working directory."
         end
      */
     action GetParentDirectory returns File
@@ -450,13 +450,13 @@ class File
         File cDir
         cDir:SetWorkingDirectory("C:\")
         number amount = cDir:GetFreeDiskSpace() / 1024 / 1024 / 1024 // conversion from bytes to kilobytes, kilobytes to megabytes, megabytes to gigabytes
-        print "Drive C has " + amount + " GB free."
+        output "Drive C has " + amount + " GB free."
 
         // How much disk space is available on the root drive? (Mac and Unix/Linux only).
         File root
         root:SetWorkingDirectory"/")
         amount = root:GetFreeDiskSpace() / 1024 / 1024 / 1024 // conversion from bytes to kilobytes, kilobytes to megabytes, megabytes to gigabytes
-        print "The root drive has " + amount + " GB free."
+        output "The root drive has " + amount + " GB free."
      */
     system action GetFreeDiskSpace returns number
 
@@ -477,13 +477,13 @@ class File
         File cDir
         cDir:SetWorkingDirectory("C:\")
         number amount = cDir:GetTotalDiskSpace() / 1024 / 1024 / 1024 // conversion from bytes to kilobytes, kilobytes to megabytes, megabytes to gigabytes
-        print "Drive C has a total capacity of " + amount + " GB."
+        output "Drive C has a total capacity of " + amount + " GB."
 
         // How much disk space is available on the root drive? (Mac and Unix/Linux only).
         File root
         root:SetWorkingDirectory("/")
         amount = root:GetTotalDiskSpace() / 1024 / 1024 / 1024 // conversion from bytes to kilobytes, kilobytes to megabytes, megabytes to gigabytes
-        print "The root drive has a total capacity of  " + amount + " GB."
+        output "The root drive has a total capacity of  " + amount + " GB."
      */
     system action GetTotalDiskSpace returns number
 
@@ -502,7 +502,7 @@ class File
         File notepad
         notepad:SetWorkingDirectory("C:\Windows")
         notepad:SetPath("notepad.exe")
-        print "Notepad is " + notepad:GetFileSize() + " bytes."
+        output "Notepad is " + notepad:GetFileSize() + " bytes."
      */
     system action GetFileSize returns number
 
@@ -521,7 +521,7 @@ class File
         cDrive:SetWorkingDirectory("C:\")
         Array<File> items = cDrive:GetDirectoryListing()
         File f0 = items:Get(0)
-        print f0:GetPath()
+        output f0:GetPath()
      */
     action GetDirectoryListing returns Array<File>
         //// BROKEN - FIX ME ////
@@ -570,9 +570,9 @@ class File
         programFiles:SetWorkingDirectory("C:\Program Files")
         DateTime date
         if date not= undefined
-            print "Program files was last modified on" + date:GetMonth() + "/" + date:GetDayOfMonth() + "/" + date:GetYear()
+            output "Program files was last modified on" + date:GetMonth() + "/" + date:GetDayOfMonth() + "/" + date:GetYear()
         else
-            print "Program files does not have any data. This is likely not a Windows system."
+            output "Program files does not have any data. This is likely not a Windows system."
         end
      */
     action GetLastModifiedDate returns DateTime
@@ -604,9 +604,9 @@ class File
         boolean ok = myDir:Delete() // delete it
 
         if ok
-            print "deletion succeeded."
+            output "deletion succeeded."
         else
-            print "deletion failed."
+            output "deletion failed."
         end
      */
     system action Delete returns boolean
@@ -651,9 +651,9 @@ class File
         f:SetPath("Untitled.mp3")
         boolean moveSucceeded = f:Move("/Users/jeff/oldMusic/Untitled.mp3")
         if moveSucceeded
-            print "Move succeeded."
+            output "Move succeeded."
         else
-            print "Move failed."
+            output "Move failed."
         end
 
         // Move can also be used to rename a file.
@@ -662,9 +662,9 @@ class File
         renameMe:SetPath("Untitled.mp3")
         moveSucceeded = renameMe:Move("/Users/jeff/Music/Toccata and Fugue.mp3")
         if moveSucceeded
-            print "Move succeeded."
+            output "Move succeeded."
         else
-            print "Move failed."
+            output "Move failed."
         end
      */
     system action Move(text newPath) returns boolean
@@ -680,12 +680,12 @@ class File
         use Libraries.System.File
         use Libraries.System.Blueprints.FileReaderBlueprint
 
-        // Open a file for sequential reading and print all of its contents.
+        // Open a file for sequential reading and output all of its contents.
         File f
         f:SetWorkingDirectory("/Users/jeff/")
         f:SetPath("dictionary.txt")
         FileReaderBlueprint reader = f:OpenForRead()
-        print reader:Read()
+        output reader:Read()
         f:Close() // we're done with the file, see Close() documentation.
      */
     action OpenForRead returns FileReaderBlueprint
@@ -860,7 +860,7 @@ class File
         File dict
         dict:SetWorkingDirectory("/Users/jeff/")
         dict:SetPath("dictionary.txt")
-        print dict:Read() // print all the contents to screen.
+        output dict:Read() //output  all the contents to screen.
      */
     action Read returns text
         FileReader r

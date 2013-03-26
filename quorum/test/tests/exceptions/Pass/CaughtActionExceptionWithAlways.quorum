@@ -13,10 +13,10 @@ class Main
         check
             callMe(50)
         detect e of type Error
-            print "Error: " + e:GetErrorMessage()
+            output "Error: " + e:GetErrorMessage()
             gotError = true
         always
-            print gotError
+            output gotError
         end
     end
 

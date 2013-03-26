@@ -13,12 +13,12 @@ class Main
         detect e of type CastError
             integer z = 11
             if z = 10
-                print "shouldn't be here"
+                output "shouldn't be here"
             elseif z = 11
-                print "detect"
+                output "detect"
             end
         always
-            print "always"
+            output "always"
         end
     end
 end

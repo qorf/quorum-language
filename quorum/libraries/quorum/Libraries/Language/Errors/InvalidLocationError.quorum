@@ -22,7 +22,7 @@ class Main
             i = i + 1
         end
       detect e of type InvalidLocationError
-        print "Error detected: " + e:GetErrorMessage()
+        output "Error detected: " + e:GetErrorMessage()
       end
    end
 end

@@ -14,7 +14,7 @@ class Main
         text t = "1.4"
         integer i = t:ParseInteger()
       detect e of type ParseError
-        print "Error detected: " + e:GetErrorMessage()
+        output "Error detected: " + e:GetErrorMessage()
       end
    end
 end

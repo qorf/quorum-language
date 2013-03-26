@@ -12,11 +12,11 @@ class Main
         check
             integer k = cast(integer, "3.7")
         detect e of type CastError
-            print "detect"
+            output "detect"
         always
             integer k = 0
             repeat until k = 2
-                print "always"
+                output "always"
                 k = k + 1
             end
         end

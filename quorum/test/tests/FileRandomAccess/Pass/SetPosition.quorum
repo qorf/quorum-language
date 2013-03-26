@@ -10,10 +10,10 @@ class Main
         FileRandomAccess r
         r:OpenForRandomAccess(f)
         
-        // Set position to 2, should print 2
+        // Set position to 2, should output 2
         r:SetPosition(2)
         number position = r:GetPosition()
 
-        print position
+        output position
     end
 end

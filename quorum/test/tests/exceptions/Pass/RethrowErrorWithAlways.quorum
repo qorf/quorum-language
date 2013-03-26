@@ -14,10 +14,10 @@ class Main
             detect j of type Error
                 alert(j) // rethrow
             always
-                print "always"
+                output "always"
             end
         detect e
-            print e:GetErrorMessage()
+            output e:GetErrorMessage()
         end
     end
 

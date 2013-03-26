@@ -825,7 +825,7 @@ detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionT
 	-> ^(ID (OF_TYPE qualified_name(OR qualified_name)*)?)
 	;
 print_statement 
-	:	PRINT root_expression
+	:	OUTPUT root_expression
 	;
 
 speak_statement 
@@ -1265,6 +1265,7 @@ function_expression_list
 	(expression (COMMA expression)*)?	
 	-> ^(FUNCTION_EXPRESSION_LIST expression*)
 	;
+OUTPUT	:	'output';
 ON	:	'on';
 DESTROY	:	'destroy';
 CREATE	:	'create';
@@ -1285,7 +1286,6 @@ BLUEPRINT :	'blueprint';
 NATIVE :	'system';
 INHERITS :	'is a';
 CAST	:	'cast';
-PRINT	:	'print';
 INPUT	:	'input';
 SAY	:	'say';
 NOW	:	'now';

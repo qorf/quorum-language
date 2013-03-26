@@ -131,7 +131,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
         ra:OpenForRandomAccess(f)
 
         // Read the first byte.
-        print ra:Read(1)
+        output ra:Read(1)
 
         // Always be sure to Close() files, so that other programs may use it.
         ra:Close()
@@ -166,7 +166,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
         // Get our current position.
         number position = ra:GetPosition()
 
-        print "We are now at position " + position // As we started at the beginning of the file (position 0) and wrote an 11 character string, our new position will be 11.
+        output "We are now at position " + position // As we started at the beginning of the file (position 0) and wrote an 11 character string, our new position will be 11.
 
         // Always be sure to close files.
         ra:Close()
@@ -247,7 +247,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
         text bytes = ra:Read(3)
 
         // Are we at the end of the file?
-        print "We are at the end of the file: " + ra:IsAtEndOfFile()
+        output "We are at the end of the file: " + ra:IsAtEndOfFile()
      */
     system action IsAtEndOfFile() returns boolean
 
@@ -358,7 +358,7 @@ class FileRandomAccess is a FileRandomAccessBlueprint
         f:SetPath("dataset.txt")
         FileRandomAccess ra
         ra:OpenForRandomAccess(f)
-        print ra:ReadLine() // grab the first line
+        output ra:ReadLine() // grab the first line
         
         // Close the file.
         ra:Close()
@@ -388,8 +388,8 @@ class FileRandomAccess is a FileRandomAccessBlueprint
         // Get all lines.
         Indexed<text> lines = ra:ReadLines()
 
-        print lines:Get(0) // first line
-        print lines:Get(2) // third line
+        output lines:Get(0) // first line
+        output lines:Get(2) // third line
 
         // Close the file.
         ra:Close()

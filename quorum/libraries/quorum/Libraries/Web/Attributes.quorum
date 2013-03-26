@@ -48,11 +48,11 @@ class Attributes is a WebGenerator
         attribute:SetValue("http://www.google.com")
         attributes:Add(attribute)
 
-        //print out all of the attributes
+        //output out all of the attributes
         Iterator<Attribute> it =  attributes:GetIterator()
         repeat while it:HasNext()
             Attribute at = it:Next()
-            print at:Generate()
+            output at:Generate()
         end
     */
     action GetIterator returns Iterator<Attribute>

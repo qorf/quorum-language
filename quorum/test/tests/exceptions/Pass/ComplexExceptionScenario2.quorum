@@ -32,7 +32,7 @@ class Main
                             end
                         end
                     detect f
-                        print "bad"
+                        output "bad"
                         check
                             integer t = 0
                             repeat 9 times
@@ -42,12 +42,12 @@ class Main
                                 t = t + 1
                             end
                         detect g
-                            print "bad"
+                            output "bad"
                         always
-                            print "bad"
+                            output "bad"
                         end
                     always
-                        print "bad"
+                        output "bad"
                     end
                 elseif a = 4
                     // none of this code will be executed
@@ -63,7 +63,7 @@ class Main
                             end
                         end
                     detect f
-                        print "bad"
+                        output "bad"
                         check
                             integer t = 0
                             repeat 9 times
@@ -73,12 +73,12 @@ class Main
                                 t = t + 1
                             end
                         detect g
-                            print "bad"
+                            output "bad"
                         always
-                            print "bad"
+                            output "bad"
                         end
                     always
-                        print "bad"
+                        output "bad"
                     end
                 else
                     check
@@ -93,7 +93,7 @@ class Main
                             end
                         end
                     detect f
-                        print "ok 1"
+                        output "ok 1"
                         check
                             integer t = 0
                             repeat 9 times
@@ -103,10 +103,10 @@ class Main
                                 t = t + 1
                             end
                         detect g
-                            print "ok 2"
+                            output "ok 2"
                         end
                     always
-                        print "ok 3"
+                        output "ok 3"
                     end
                 end
             end

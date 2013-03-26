@@ -19,7 +19,7 @@ class Main
         text line1 = file:ReadLine()
         text line2 = file:ReadLine() // will raise EndOfFileError
       detect e of type EndOfFileError
-        print "Reached end of file: " + e:GetErrorMessage()
+        output "Reached end of file: " + e:GetErrorMessage()
       end
    end
 end

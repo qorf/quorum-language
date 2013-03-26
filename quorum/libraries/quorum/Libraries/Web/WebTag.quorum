@@ -26,7 +26,7 @@ bold:SetDescription("Quorum")
 //if you want to share bodies between web pages, you can instantiate a body
 //class and pass it to various WebPage objects.
 page:AddToBody(bold)
-print page:Generate()
+output page:Generate()
 */
 class WebTag is a GlobalAttributeAccepter
     List<WebTag> tags
@@ -102,7 +102,7 @@ class WebTag is a GlobalAttributeAccepter
         TableData cell
         cell:SetDescription("name")
         row:Add(cell)
-        print row:GenerateNestedTags()
+        output row:GenerateNestedTags()
         
     */
     action GenerateNestedTags returns text
@@ -129,7 +129,7 @@ class WebTag is a GlobalAttributeAccepter
         TableData cell
         cell:SetDescription("name")
         row:Add(cell)
-        print row:GetDescription()
+        output row:GetDescription()
     */
     action GetDescription returns text
         return description
@@ -166,8 +166,8 @@ class WebTag is a GlobalAttributeAccepter
 
         WebPage page
         text result = page:Generate()
-        //print out the web page
-        print result
+        //output out the web page
+        output result
     */
     blueprint action Generate returns text
 end

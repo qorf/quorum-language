@@ -15,7 +15,7 @@ class Main
     action main
         DateTime datetime
         // Print the current date and time.
-        print datetime:GetMonth() + " " + datetime:GetDayOfMonth() + ", " + datetime:GetYear() + " " datetime:GetHour() + ":" + datetime:GetMinutes()
+        output datetime:GetMonth() + " " + datetime:GetDayOfMonth() + ", " + datetime:GetYear() + " " datetime:GetHour() + ":" + datetime:GetMinutes()
     end
 */
 class DateTime    
@@ -26,7 +26,7 @@ class DateTime
     
     Attribute: Example
     DateTime datetime
-    print datetime:GetYear()
+    output datetime:GetYear()
     */
     system action GetYear() returns integer
 
@@ -38,7 +38,7 @@ class DateTime
 
     Attribute: Example
     DateTime datetime
-    print datetime:GetMonth()
+    output datetime:GetMonth()
     */
     system action GetMonth() returns integer
 
@@ -50,7 +50,7 @@ class DateTime
 
     Attribute: Example
     DateTime datetime
-    print datetime:GetDayOfMonth()
+    output datetime:GetDayOfMonth()
     */
     system action GetDayOfMonth() returns integer
 
@@ -62,7 +62,7 @@ class DateTime
 
     Attribute: Example
     DateTime datetime
-    print datetime:GetDayOfWeek()
+    output datetime:GetDayOfWeek()
     */
     system action GetDayOfWeek() returns integer
 
@@ -75,7 +75,7 @@ class DateTime
 
     Attribute: Example
     DateTime datetime
-    print datetime:GetHour()
+    output datetime:GetHour()
     */
     system action GetHour() returns integer
 
@@ -87,7 +87,7 @@ class DateTime
 
     Attribute: Example
     DateTime datetime
-    print datetime:GetMinute()
+    output datetime:GetMinute()
     */
     system action GetMinute() returns integer
 
@@ -99,7 +99,7 @@ class DateTime
 
     Attribute: Example
     DateTime datetime
-    print datetime:GetSecond()
+    output datetime:GetSecond()
     */
     system action GetSecond() returns integer
 
@@ -111,7 +111,7 @@ class DateTime
 
     Attribute: Example
     DateTime datetime
-    print datetime:GetTimeZone()
+    output datetime:GetTimeZone()
     */
     system action GetTimeZone() returns integer
     
@@ -125,9 +125,9 @@ class DateTime
     boolean dst = datetime:IsDaylightSavings()
 
     if dst
-        print "Spring forward"
+        output "Spring forward"
     else
-        print "Fall back"
+        output "Fall back"
     end
     */
     system action IsDaylightSavings() returns boolean
@@ -143,7 +143,7 @@ class DateTime
 
     Attribute: Example
     DateTime datetime
-    print datetime:GetEpochTime()
+    output datetime:GetEpochTime()
     */
     system action GetEpochTime() returns number
 
@@ -159,7 +159,7 @@ class DateTime
     DateTime datetime
     // Set this instance to the exact time of the epoch.
     datetime:SetEpochTime(0)
-    print datetime:GetMonth() // will return 1 for January
+    output datetime:GetMonth() // will return 1 for January
     */
     system action SetEpochTime(number epochTime)
 
@@ -170,7 +170,7 @@ class DateTime
     Attribute: Example
     DateTime datetime
     datetime:SetTimeZone(0) // set time zone to UTC.
-    print "The current UTC hour is " + datetime:GetHour()
+    output "The current UTC hour is " + datetime:GetHour()
     */
     system action SetTimeZone(integer timeZoneOffset)
 end

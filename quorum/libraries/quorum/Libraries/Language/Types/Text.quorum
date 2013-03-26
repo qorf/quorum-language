@@ -5,6 +5,7 @@ use Libraries.Language.Support.CompareResult
 use Libraries.Containers.Array
 use Libraries.Language.Errors.InvalidLocationError
 use Libraries.Language.Errors.UndefinedObjectError
+use Libraries.Language.Errors.ParseError
 
 /*
 The Text class is the object representation of the primitive type text. 
@@ -410,7 +411,7 @@ class Text is a Object
         Attribute: Example
         Text a
         a:SetValue("X")
-        print a:GetLength()
+        output a:GetLength()
     */
     system action GetLength() returns integer
 
@@ -423,7 +424,7 @@ class Text is a Object
         Attribute: Example
         Text a
         a:SetValue("abcd")
-        print a:GetCharacter(0)
+        output a:GetCharacter(0)
     */
     action GetCharacter(integer index) returns text
         // Index must be in the range 0 <= x < me:GetLength()
@@ -459,7 +460,7 @@ class Text is a Object
         Attribute: Example
         Text a
         a:SetValue("hello world")
-        print a:GetSubstring(0, 5)
+        output a:GetSubstring(0, 5)
     */
     action GetSubtext(integer startIndex, integer endIndex) returns text
         if startIndex = endIndex or startIndex > endIndex or startIndex < 0 or endIndex < 0 or endIndex >= me:GetLength()

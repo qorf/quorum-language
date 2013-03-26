@@ -19,9 +19,9 @@ AnalogSensor analog
 analog:SetPort(4)
 integer analog = analog:GetValue()
 if analog > 512
-    print "Sensor detects a light color"
+    output "Sensor detects a light color"
 else
-    print "Sensor detects a dark color"
+    output "Sensor detects a dark color"
 end
   
 */
@@ -115,7 +115,7 @@ class AnalogSensor is a Connectable
         analog:SetPort()
         //SONAR distance of the object is returned
         integer distance = analog:GetDistance()
-        print "Sonar Distance is " + distance
+        output "Sonar Distance is " + distance
         
     */
     system action GetDistance()returns integer

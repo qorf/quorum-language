@@ -15,23 +15,23 @@ class Main
         check
             alert("some error")
         detect e
-            print "detect 1"
+            output "detect 1"
             check
                 alert("detect 2")
             detect j
-                print j:GetErrorMessage()
+                output j:GetErrorMessage()
                 check
-                    print "check 3"
+                    output "check 3"
                 detect f
-                    print "shouldn't be here"
+                    output "shouldn't be here"
                 always
-                    print "always 3"
+                    output "always 3"
                 end
             always
-                print "always 2"
+                output "always 2"
             end
         always
-            print "always 1"
+            output "always 1"
         end
     end
 end

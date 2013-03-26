@@ -26,7 +26,7 @@ class Main
       //add a TextArea
       WebPageHeader header
       page:SetWebPageHeader(header)
-      print page:Generate()
+      output page:Generate()
    end
 end
 */
@@ -234,7 +234,7 @@ class WebPageHeader is a WebGenerator, GlobalAttributeAccepter
         Attribute: Example
 
         WebPageHeader header
-        print header:GetTitleHeaderValue()
+        output header:GetTitleHeaderValue()
         
     */
     action GetTitleHeaderValue() returns text

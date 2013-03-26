@@ -27,7 +27,7 @@ f:SetPath("/hello.txt")
 FileReader reader
 reader:OpenForRead(f)
 text fileContents = reader:Read()
-print "The contents are: " + fileContents
+output "The contents are: " + fileContents
 reader:Close()
 
 // Open a file, read the first two lines and close it.
@@ -98,7 +98,7 @@ class FileReader is a FileReaderBlueprint
         // We are now at the end of the file.
         boolean eof = reader:IsAtEndOfFile()
         if eof
-            print "End of File has been reached."
+            output "End of File has been reached."
         end
 
         // Always close the file.
@@ -127,8 +127,8 @@ class FileReader is a FileReaderBlueprint
         // Read the first two lines and then be done.
         FileReader reader
         reader:OpenForRead(f)
-        print reader:ReadLine()
-        print reader:ReadLine()
+        output reader:ReadLine()
+        output reader:ReadLine()
 
         // Always close the file.
         reader:Close()
@@ -159,8 +159,8 @@ class FileReader is a FileReaderBlueprint
         FileReader reader
         reader:OpenForRead(f)
 
-        print "Tim, your to do list says:"
-        print reader:Read()
+        output "Tim, your to do list says:"
+        output reader:Read()
         
         // Close the file, as we no longer need it.
         reader:Close()
@@ -181,15 +181,15 @@ class FileReader is a FileReaderBlueprint
         use Libraries.System.File
         use Libraries.System.FileReader
 
-        // Open a file, read all of its contents to a text value and then print the text value.
+        // Open a file, read all of its contents to a text value and then  output the text value.
         File f
         f:SetPath("Settings.dat")
         FileReader reader
         reader:OpenForRead(f)
         text settings = reader:Read()
 
-        print "The settings are:"
-        print settings
+        output "The settings are:"
+        output settings
         reader:Close()
      */
     action Read() returns text
@@ -212,12 +212,12 @@ class FileReader is a FileReaderBlueprint
         use Libraries.System.File
         use Libraries.System.FileReader
 
-        // Open a file, print the first four bytes.
+        // Open a file, output the first four bytes.
         File f
         f:SetPath("Settings.dat")
         FileReader reader
         reader:OpenForRead(f)
-        print "The first four bytes are " + reader:Read(4)
+        output "The first four bytes are " + reader:Read(4)
         reader:Close()
 
      */
@@ -249,14 +249,14 @@ class FileReader is a FileReaderBlueprint
         use Libraries.System.File
         use Libraries.System.FileReader
 
-        // Open a file, read all of its contents to a text value and then print the text value.
+        // Open a file, read all of its contents to a text value and then output the text value.
         File f
         f:SetPath("words.txt")
         FileReader reader
         reader:OpenForRead(f)
 
         // We will assume 'words.txt' separates words by lines. Read the first two words.
-        print reader:ReadLine()
+        output reader:ReadLine()
      */
     action ReadLine() returns text
         return ReadLineNative()
@@ -272,14 +272,14 @@ class FileReader is a FileReaderBlueprint
         use Libraries.System.File
         use Libraries.System.FileReader
         
-        // Read all lines into a collection and print the third line. If there is no third line, the appropriate error will be raised.
+        // Read all lines into a collection and output the third line. If there is no third line, the appropriate error will be raised.
         File f
         f:SetPath("/Users/jeff/helloWorld.txt")
         FileReader reader
         reader:OpenForRead(f)
         Indexed<text> lines = reader:ReadLines()
 
-        print "The third line is " + lines:Get(2) // indices are zero-based.
+        output "The third line is " + lines:Get(2) // indices are zero-based.
         reader:Close()
      */
     action ReadLines() returns Indexed<text>

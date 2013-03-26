@@ -11,16 +11,16 @@ class Main
         check
             integer k = cast(integer, "3")
             if k = 4
-                print "shouldn't be here"
+                output "shouldn't be here"
             elseif k = 3
                 integer z = cast(integer, "91.2")
             else
-                print "shouldn't be here either"
+                output "shouldn't be here either"
             end
         detect e of type CastError
-            print "detect"
+            output "detect"
         always
-            print "always"
+            output "always"
         end
     end
 end

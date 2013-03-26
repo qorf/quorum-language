@@ -11,13 +11,13 @@ class Main
         check
             integer k = cast(integer, "3.7")
         detect e of type CastError
-            print "detect"
+            output "detect"
         always
             integer z = 906
             if z = 907
-                print "shouldn't be here"
+                output "shouldn't be here"
             else
-                print "always"
+                output "always"
             end
         end
     end

@@ -5,11 +5,11 @@ class Main
     action Main
         File f
         text relativePath = f:GetPath()
-        print relativePath
+        output relativePath
 
         f:SetWorkingDirectory("/Users/")
         f:SetPath("jeff")
         text absolutePath = f:GetPath()
-        print absolutePath
+        output absolutePath
     end
 end

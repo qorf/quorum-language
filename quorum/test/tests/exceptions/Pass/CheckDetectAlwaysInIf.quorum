@@ -13,12 +13,12 @@ class Main
             check
                 alert("detect")
             detect e
-                print e:GetErrorMessage()
+                output e:GetErrorMessage()
             always
-                print "always"
+                output "always"
             end
         else
-            print "shouldn't be here"
+            output "shouldn't be here"
         end
     end
 end

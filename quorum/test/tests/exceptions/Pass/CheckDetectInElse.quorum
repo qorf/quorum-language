@@ -9,12 +9,12 @@ class Main
     action Main
         integer z = 2 * 2
         if z = 5
-            print "shouldn't be here"
+            output "shouldn't be here"
         else
             check
                 alert("detect")
             detect e
-                print e:GetErrorMessage()
+                output e:GetErrorMessage()
             end
         end
     end

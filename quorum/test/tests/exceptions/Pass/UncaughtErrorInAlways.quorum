@@ -11,11 +11,11 @@ class Main
         check
             alert("bleh")
         detect e of type OutOfBoundsError
-            print "OutOfBoundsError"
+            output "OutOfBoundsError"
         detect j of type CastError
-            print "CastError"
+            output "CastError"
         detect k
-            print k:GetErrorMessage()
+            output k:GetErrorMessage()
         always
             alert("j")
         end

@@ -17,7 +17,7 @@ class Main
         Array<integer> a = undefined
         a:Get(0)
       detect e of type UndefinedObjectError
-        print "Error detected: " + e:GetErrorMessage()
+        output "Error detected: " + e:GetErrorMessage()
       end
    end
 end

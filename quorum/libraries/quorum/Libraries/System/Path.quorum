@@ -64,7 +64,7 @@ class Path
 
         Path p
         p:SetRelativePath("./hello.txt")
-        print p:IsPathRelative() // will print "true", as we called SetRelativePath
+        output p:IsPathRelative() // willoutput  "true", as we called SetRelativePath
      */
     action IsPathRelative() returns boolean
         if path = ""
@@ -110,10 +110,10 @@ class Path
 
         Path p
         p:SetAbsolutePath("C:\Windows")
-        print p:IsPathAbsolute() // will print "true", as we called SetAbsolutePath
+        output p:IsPathAbsolute() // willoutput  "true", as we called SetAbsolutePath
 
         p:SetAbsolutePath("/Users/jeff") // on Mac and Unix/Linux systems, '/' means root of file system.
-        print p:IsPathAbsolute() // will print "true", as we called SetAsolutePath
+        output p:IsPathAbsolute() // willoutput  "true", as we called SetAsolutePath
      */
     action IsPathAbsolute() returns boolean
         if path = ""
@@ -184,13 +184,13 @@ class Path
 
         Path p
         p:SetRelativePath("./hello.txt")
-        print p:GetPath() // will print "./hello.txt"
+        output p:GetPath() // willoutput  "./hello.txt"
 
         p:SetAbsolutePath("/Users/jeff")
-        print p:GetPath() // will print "/Users/jeff"
+        output p:GetPath() // willoutput  "/Users/jeff"
 
         p:SetAbsolutePath("C:\Windows\")
-        print p:GetPath() // will print "C:\Windows\"
+        output p:GetPath() // willoutput  "C:\Windows\"
      */
     action GetPath() returns text
         if path = ""

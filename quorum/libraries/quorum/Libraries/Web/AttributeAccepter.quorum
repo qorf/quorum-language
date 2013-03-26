@@ -238,11 +238,11 @@ class AttributeAccepter
         AttributeAccepter accept
         accept:AddAttribute("src", "http://www.google.com")
 
-        //print out all of the attributes
+        //output out all of the attributes
         Iterator<Attribute> it =  accept:GetIterator()
         repeat while it:HasNext()
             Attribute at = it:Next()
-            print at:Generate()
+            output at:Generate()
         end
     */
     action GetIterator returns Iterator<Attribute>

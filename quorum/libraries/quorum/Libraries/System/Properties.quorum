@@ -13,7 +13,7 @@ use Libraries.System.Properties
 
 Properties properties
 text address = properties:GetRequestedWebPage()
-print address
+output address
 */
 class Properties 
     
@@ -38,7 +38,7 @@ class Properties
 
         Properties properties
         text value = properties:GetProperty("os.name")
-        print value
+        output value
     */
     action GetProperty(text key) returns text
         if not HasPropertyNative(key)
@@ -58,7 +58,7 @@ class Properties
 
         Properties properties
         text value = properties:GetEnvironmentVariable("quorum.url")
-        print value
+        output value
     */
     action GetEnvironmentVariable(text key) returns text
         if not HasEnvironmentVariableNative(key)
@@ -77,7 +77,7 @@ class Properties
 
     Properties properties
     text value = properties:GetOperatingSystemName()
-    print value
+    output value
     */
     action GetOperatingSystemName returns text
         return GetProperty(operatingSystem)
@@ -92,7 +92,7 @@ class Properties
 
     Properties properties
     text address = properties:GetRequestedWebPage()
-    print address
+    output address
     */
     action GetRequestedWebPage returns text
         return GetEnvironmentVariable(requestedWebPage)

@@ -1,31 +1,7 @@
-use Libraries.Sound.all
-use Libraries.System.Blueprints.all
-use Libraries.Language.Types.all
-use Libraries.Language.Support.all
-use Libraries.Language.Errors.all
-
-use Libraries.Containers.Blueprints.all
-use Libraries.Containers.Support.all
-use Libraries.Containers.all
-
-use Libraries.Compute.all
-
-use Libraries.Robots.all
-use Libraries.System.Blueprints.all
-use Libraries.System.all
-use Libraries.Web.all
-
 class Main
     action Main
-text m = "l"
-        text t = undefined
-        Array<text> arg 
-        arg:SetSize(4)
-        arg:Set(0, t)
-        arg:Set(2, t)
-        text z = arg:Get(0)
-        //if z = undefined
-        z:GetLength()
-        //end
+        Text t
+        t:SetValue("5")
+        output t
     end
 end

@@ -282,7 +282,7 @@ class Robot
         // if center wheel of the robot is dropped, the robot is stopped
         if robot:IsCenterWheelDropped(0.1)
             robot:StopWheels()
-            print "Center wheel is dropped."
+            output "Center wheel is dropped."
         end
         robot:StopWheels()
         robot:Disconnect()
@@ -304,7 +304,7 @@ class Robot
         Robot robot
         if robot:IsLeftWheelDropped(0.1)
             robot:StopWheels()
-            print "Left wheel is dropped."
+            output "Left wheel is dropped."
         end
         robot:StopWheels()
         robot:Disconnect()
@@ -327,7 +327,7 @@ class Robot
         Robot robot
         if robot:IsRightWheelDropped(0.1)
             robot:StopWheels()
-            print "Right wheel is dropped."
+            output "Right wheel is dropped."
         end
         robot:StopWheels()
         robot:Disconnect()
@@ -615,7 +615,7 @@ class Robot
         integer amount
         if robot:IsRightSensorTriggered() = true
             amount = robot:GetRightSensorValue()
-            print "RightSensorTriggered" + amount
+            output "RightSensorTriggered" + amount
         end
     */
     system action GetRightSensorValue() returns integer
@@ -632,7 +632,7 @@ class Robot
         integer amount
         if robot:IsRightFrontSensorTriggered() = true
             amount = robot:GetRightFrontSensorValue()
-            print "RightFrontSensorTriggered" + amount
+            output "RightFrontSensorTriggered" + amount
         end
     */
     system action GetRightFrontSensorValue() returns integer
@@ -649,7 +649,7 @@ class Robot
         integer amount
         if robot:IsLeftSensorTriggered() = true
             amount = robot:GetLeftSensorValue()
-            print "LeftSensorTriggered" + amount
+            output "LeftSensorTriggered" + amount
         end
     */
     system action GetLeftSensorValue() returns integer
@@ -666,7 +666,7 @@ class Robot
         integer amount
         if robot:IsLeftFrontSensorTriggered() = true
             amount = robot:GetLeftFrontSensorValue()
-            print "LeftFrontSensorTriggered" + amount
+            output "LeftFrontSensorTriggered" + amount
         end
     */
     system action GetLeftFrontSensorValue() returns integer
