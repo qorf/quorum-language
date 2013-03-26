@@ -54,7 +54,8 @@ public class QuorumJarGenerator {
             createNewManifest();
             stream = new FileOutputStream(writeLocation);
             target = new JarOutputStream(stream, manifest);
-            add(directory, target);
+            add(new File(directory.getAbsolutePath() + "/quorum"), target);
+            add(new File(directory.getAbsolutePath() + "/plugins"), target);
         } catch (Exception ex) {
             Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }
