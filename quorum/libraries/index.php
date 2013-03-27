@@ -48,7 +48,7 @@
     are complete standalone programs. Here's hello, world:
 </p>
 <p><pre class="code"><code>
-print &quot;Hello, world!&quot;
+output &quot;Hello, world!&quot;
 </code></pre></p>
 <p>
     Here's how you make Quorum talk:

@@ -7,6 +7,58 @@
 	</div>
 </div>
 <div class="content index-content">
+<h2>Quorum 2.0 June 9th, 2013</h2>
+<p>Quorum 2.0 includes a host of improvements to the type system, adds the 
+    ability to call actions on primitives, includes minor syntactic improvements, 
+    and enhances the code completion helper libraries.</p>
+<ul>
+    <li><strong>Type System Changes:</strong></li>
+    <ul>
+        
+        A number of changes have been made to the type system, finishing off
+        a set of long planned alterations. We hope now that Quorum conforms to 
+        the best available empirical evidence. 
+        
+        <li>Actions that return a primitive text value can now return undefined.</li>
+        <li>Text primitives can now be assigned as undefined.</li>
+        <li>Added the ability to call actions on primitive values. For example, we can
+        now add a colon after an integer and call any action provided by the Object
+        version of the primitive. Generally, this makes it far less necessary to 
+        instantiate an object for a primitive type. The solution for this is relatively
+        efficient, as behind the scenes, Quorum calls a static action, with only very 
+        slightly more overhead than calling the action on the object.</li>
+        <li>Added all of the new type system features into the code completion
+        APIs, meaning that integrated development environments using Quorum,
+        like Sodbeans, should get them for automatically and without alteration.</li>
+    </ul>
+    <li><strong>Language Additions/Changes:</strong></li>
+    <ul>
+        <li>The "print" keyword has been changed to "output." This change
+        conforms to data from our surveys with novices, in addition to conforming
+        to common sense. For example, getting input from Quorum required using
+        the word input, but getting output previously required using the word print. 
+        This made little sense, as print could have meant printing to a printer, not
+        necessarily printing to a console. This way, input implies input and output
+        implies output, making the language more consistent. All
+        standard library materials, book materials, and curricular materials have
+        been altered for the change.</li>
+        <li>Finished a very basic initial version of accessibility APIs for Quorum. 
+            This version is largely a proof of concept, but provides some infrastructure
+            calls down to various operating systems and unifies accessibility calls
+            (NSAccessible, IAccessible).</li>
+        <li>Fixed a bug in the compiler causing extra items to sometimes be 
+        wrapped into an output .jar file.</li>
+        <li>Added the -server command line flag. This flag turns Quorum into
+        an HTTP server, where code can be sent to it and the output is returned.
+        Additionally, the -server insecure can be called turn off security settings
+        while in this mode. This last mode is not recommended unless the user is
+        running the server locally.</li>
+        <li>Finished a significant optimization pass of the compiler. There is always
+        more work that can be done in this area, but a number of the bottlenecks
+        in the Quorum 1.7 branch and earlier have been hammered out.</li>
+        
+    </ul>
+</ul>
 <h2>Quorum 1.7 February 25th, 2013</h2>
 <p>Quorum 1.7 adds in a new type inference system, upgrades the internal architecture substantially,
 and fixes a number of known bugs.</p>
