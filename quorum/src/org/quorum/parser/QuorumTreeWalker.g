@@ -723,10 +723,6 @@ scope {
 		$check_statement::info.checkStartLabel = builder.getCurrentClass().getStaticKey() + "_" + $check.text + $check_statement::tempLabelCounter + $check_statement::info.START;
 		stepFactory.startCheck($check_statement::info);
 		$check_statement::startSymbol = "check";
-		
-		indexer.append("<check line = \"");
-		indexer.append($check.getLine());
-		indexer.append("\" ");
 	} block[true] 
 	{
 		$check_statement::info.checkJump.setBeginColumn($check.getCharPositionInLine());
