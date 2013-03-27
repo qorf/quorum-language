@@ -55,7 +55,7 @@
 	    <li><a href="documents/syntax/use.php">Use statements</a>: Use statements make it 
 	        easier to use classes from the standard library.</li>
 	    <li><a href="documents/syntax/inheritance.php">Inheritance</a>: Create relationships between classes.</li>
-	    <li><a href="documents/syntax/isa.php">is a</a>: A special operator that determines 
+	    <li><a href="documents/syntax/is.php">is</a>: A special operator that determines 
 	        whether an object is a subclass of a parent.</li>
 	    <li><a href="documents/syntax/blueprints.php">Blueprints</a>: Blueprint actions
 	        allow you to specify that child classes must implement an action.</li>
