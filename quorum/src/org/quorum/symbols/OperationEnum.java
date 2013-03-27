@@ -30,7 +30,7 @@ public enum OperationEnum {
     CAST("cast"), 
     IMPLICIT_CAST("implicitCast"),
     AUTOBOX_CAST("autoboxCast"),
-    IS_A("is a");
+    IS_A("is");
 
     String operation;
     OperationEnum(String st) {

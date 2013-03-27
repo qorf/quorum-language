@@ -22,7 +22,7 @@ class PrintStepAction extends Action{
     @Override
     protected String speakForward() {
         String param = step.getParameter();
-        return param + " printed to the console.";
+        return param + " output to the console.";
     }
 
     @Override
