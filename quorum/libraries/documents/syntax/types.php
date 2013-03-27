@@ -67,14 +67,6 @@ boolean answer = a &gt; b
 <p><pre class="code"><code>
 text a = &quot;Hello, World!&quot;
 </code></pre></p>
-<h2>Custom types</h2>
-<p>
-    If none of these types seem to work for you, you can also create your own 
-    custom types in Quorum using <a href="classes.php">classes</a>. Creating 
-    classes is more difficult than using the previous types, but it is 
-    especially useful when you want to represent something complicated, like a 
-    dog, a picture, or a chair.
-</p>
 <h2>Type conversion</h2>
 <p>
     Sometimes you need to convert one type to another. This is called converting 
@@ -100,5 +92,30 @@ number someNumber = cast(number, someText)
 </p>
 <p>
     You can learn more about casting on the <a href="casting.php">type casting page</a>.
+</p>
+<h2>Variable names</h2>
+<p>
+    While you can create variables of many types, the names are constrained. 
+    First, any variable you name must start with a letter, and it can be 
+    followed by any number of characters, numbers, or underscore characters. 
+    For example, any of the following names would be allowed:
+</p>
+<p><pre class="code"><code>
+integer sally = 5
+integer billy_likes_sally = 10
+integer billy_likes_sally2 = 15
+</code></pre></p>
+<p>
+    However, all of the following names are not allowed:
+</p>
+<p><pre class="code"><code>
+integer 5sally = 5 //a number cannot be the first character
+integer _sally = 10 //an underscore cannot be the first character
+integer sall&amp;&amp;%%^$*#(y //not all characters are allowed to be used in names
+</code></pre></p>
+<p>
+    Besides the variable names and types mentioned here, we can also create our 
+    own custom types. More information can be found on this in the section 
+    on <a href="classes.php">Classes</a>.
 </p>
  <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>

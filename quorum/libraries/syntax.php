@@ -17,9 +17,8 @@
 	    various ways of storing data in the Quorum programming language.
 	</p>
 	<ul>
-	    <li><a href="documents/syntax/variables.php">Variables</a>: Storing information in memory.</li>
+	    <li><a href="documents/syntax/types.php">Types and Variables</a>: Understanding Quorum's type system.</li>
 	    <li><a href="documents/syntax/operators.php">Operators</a>: Adding, subtracting, and multiplying, oh my!</li>
-	    <li><a href="documents/syntax/types.php">Types</a>: Understanding Quorum's type system.</li>
 	    <li><a href="documents/syntax/casting.php">Type Casting</a>: Convert one type of thing to another.</li>
 	    <li><a href="documents/syntax/comments.php">Comments</a>: Writing notes to yourself 
 	        (or others) to help understand the code.</li>
