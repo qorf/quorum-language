@@ -15,13 +15,13 @@ Attribute: Example
 
 use Libraries.Containers.Blueprints.ArrayBlueprint
 
-class MyArray<Type> is a ArrayBlueprint<Type>
+class MyArray<Type> is ArrayBlueprint<Type>
     action SetSize(integer size)
         //implementation goes here
     end
 end
 */
-class ArrayBlueprint<Type> is a ListBlueprint<Type>
+class ArrayBlueprint<Type> is ListBlueprint<Type>
     /*
         This action returns true if the array is dynamic(resizable) or false
         if the array does not automatically resize.

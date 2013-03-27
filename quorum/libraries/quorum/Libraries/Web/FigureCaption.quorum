@@ -28,7 +28,7 @@ class Main
     end
 end
 */
-class FigureCaption is a WebTag
+class FigureCaption is WebTag
     action Generate returns text
         text result = "<figcaption " 
         Attributes attributes = parent:WebTag:GetAttributes()

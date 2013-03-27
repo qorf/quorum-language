@@ -23,7 +23,7 @@ class Main
     end
 end
 */
-class Emphasize is a WebTag
+class Emphasize is WebTag
     action Generate returns text
         text result = "<em " 
         Attributes attributes = parent:WebTag:GetAttributes()

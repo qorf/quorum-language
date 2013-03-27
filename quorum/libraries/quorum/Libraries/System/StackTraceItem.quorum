@@ -111,7 +111,7 @@ class StackTraceItem
     item:Equals(item2)
     */
     action Equals(Object o) returns boolean
-        if o is a StackTraceItem
+        if o is StackTraceItem
             StackTraceItem item = cast(StackTraceItem, o)
 
             text clazz = item:GetClassName()

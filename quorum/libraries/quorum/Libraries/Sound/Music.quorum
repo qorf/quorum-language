@@ -294,7 +294,7 @@ class Music
                 MusicEvent event = events:Next()
 
                 // Handle playable events first.
-                if event is a Playable
+                if event is Playable
                     Playable p = cast(Playable, event)
                     
                     // We must keep track of the current time to convert
@@ -302,12 +302,12 @@ class Music
                     // the Java MIDI library requires.
                     currentTime = currentTime + p:GetStartTime()
 
-                    if event is a Note
+                    if event is Note
                         // Single notes can just be dumped directly into the track.
                         Note n = cast(Note, event)
 
                         AddNoteToTrack(n:GetPitch(), n:GetVolume(), n:GetConstantPitchBend(), n:GetPrePitchBend(), n:GetPrePitchBendLength(), currentTime, currentTime + n:GetLength())
-                    elseif event is a Chord
+                    elseif event is Chord
                         // Chords must be dumped one note at a time. All notes
                         // start at the same time, so advancing the time is
                         // not required.

@@ -17,13 +17,13 @@ Attribute: Example
 
 use Libraries.Containers.Blueprints.HashTableBlueprint
 
-class MyHashTable<Key, Value> is a HashTableBlueprint<Key, Value>
+class MyHashTable<Key, Value> is HashTableBlueprint<Key, Value>
     action GetValue(Key key) returns Value
         //implement here
     end
 end
 */
-class HashTableBlueprint<Key, Value> is a KeyedAddable<Key, Value>, Copyable, Container, KeyedIterative<Key, Value>
+class HashTableBlueprint<Key, Value> is KeyedAddable<Key, Value>, Copyable, Container, KeyedIterative<Key, Value>
 
     /*
         This action gets the value from the hash table given a matching key. 

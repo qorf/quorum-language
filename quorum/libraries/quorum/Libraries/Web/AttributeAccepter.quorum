@@ -15,7 +15,7 @@ Attribute: Example
 
 use Libraries.Web.AttributeAccepter
 
-class MyNewTag is a AttributeAccepter, WebGenerator
+class MyNewTag is AttributeAccepter, WebGenerator
     action Generate returns text
         text result = "<myTagName " 
         Attributes attributes = GetAttributes()

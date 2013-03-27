@@ -16,7 +16,7 @@ Attribute: Example
 
 use Libraries.Web.MediaAttributeAccepter
 
-class audio is a MediaAttributeAccepter, WebGenerator
+class audio is MediaAttributeAccepter, WebGenerator
     action Generate returns text
         text result = "<audio " 
         Attributes attributes = parent:WebTag:GetAttributes()
@@ -28,7 +28,7 @@ class audio is a MediaAttributeAccepter, WebGenerator
     end
 end
 */
-class MediaAttributeAccepter is a AttributeAccepter 
+class MediaAttributeAccepter is AttributeAccepter 
     constant text abort = "onabort"
     constant text canPlay = "oncanplay"
     constant text canPlayThrough = "oncanplaythrough"

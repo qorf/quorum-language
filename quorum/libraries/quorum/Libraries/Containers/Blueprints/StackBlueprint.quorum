@@ -11,13 +11,13 @@ Attribute: Example
 
 use Libraries.Containers.Blueprints.StackBlueprint
 
-class MyStack<Type> is a StackBlueprint<Type>
+class MyStack<Type> is StackBlueprint<Type>
     action Push(Type value)
         //implement here
     end
 end
 */
-class StackBlueprint <Type> is a Addable<Type>, Container<Type>, Copyable<Type>, Iterative<Type>
+class StackBlueprint <Type> is Addable<Type>, Container<Type>, Copyable<Type>, Iterative<Type>
 
     /*
         This action gets the item at the top of the stack(the item will remain in the stack). 

@@ -1,7 +1,7 @@
 use LandVehicle
 use GasPoweredVehicle
 
-class Truck is a LandVehicle, GasPoweredVehicle
+class Truck is LandVehicle, GasPoweredVehicle
 
     action build
         parent:LandVehicle:setNumberOfWheels(4)

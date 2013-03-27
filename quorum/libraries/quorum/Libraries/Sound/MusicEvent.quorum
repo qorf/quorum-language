@@ -13,14 +13,14 @@ use Libraries.Containers.Blueprints.Copyable
     Attribute: Author Jeff Wilson
 */
 
-class MusicEvent is a Copyable
+class MusicEvent is Copyable
     // Public constants. These represent the various event types.
     public integer noteOn = 0
     
     private integer eventType
     
     on create
-        // Assume this is a note on event by default.
+        // Assume this is anote on event by default.
         eventType = noteOn
     end
     

@@ -17,13 +17,13 @@ Attribute: Example
 
 use Libraries.Containers.Blueprints.ListBlueprint
 
-class MyList<Type> is a ListBlueprint<Type>
+class MyList<Type> is ListBlueprint<Type>
     action AddToFront(Type value)
         //implementation goes here
     end
 end
 */
-class ListBlueprint <Type> is a Addable<Type>, Container<Type>, Copyable<Type>, Indexed<Type>, Iterative<Type>
+class ListBlueprint <Type> is Addable<Type>, Container<Type>, Copyable<Type>, Indexed<Type>, Iterative<Type>
     /*
         This action adds an item to the end of the list.
 

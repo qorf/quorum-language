@@ -1,4 +1,4 @@
-// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g 2013-03-26 10:39:30
+// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g 2013-03-27 12:19:48
 
 
 
@@ -921,7 +921,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: generic_declaration, inherit_stmnts, class_stmnts, ID, END, CLASS
+                    // elements: inherit_stmnts, class_stmnts, ID, generic_declaration, END, CLASS
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -1454,7 +1454,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
             // AST REWRITE
-            // elements: generic_statement, INHERITS, qualified_name
+            // elements: qualified_name, INHERITS, generic_statement
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -2138,7 +2138,7 @@ public TreeAdaptor getTreeAdaptor() {
                     	
 
                     // AST REWRITE
-                    // elements: ID, formal_parameter, block, ACTION, END, assignment_declaration, RETURNS
+                    // elements: formal_parameter, assignment_declaration, ACTION, block, ID, RETURNS, END
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2363,7 +2363,7 @@ public TreeAdaptor getTreeAdaptor() {
                     	
 
                     // AST REWRITE
-                    // elements: formal_parameter, BLUEPRINT, ID, RETURNS, assignment_declaration, ACTION
+                    // elements: RETURNS, formal_parameter, ID, ACTION, BLUEPRINT, assignment_declaration
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2586,7 +2586,7 @@ public TreeAdaptor getTreeAdaptor() {
                     	
 
                     // AST REWRITE
-                    // elements: formal_parameter, ID, RETURNS, ACTION, NATIVE, assignment_declaration
+                    // elements: RETURNS, NATIVE, assignment_declaration, ACTION, ID, formal_parameter
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2696,7 +2696,7 @@ public TreeAdaptor getTreeAdaptor() {
                     	
 
                     // AST REWRITE
-                    // elements: ON, END, CREATE, block
+                    // elements: ON, block, END, CREATE
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2837,7 +2837,7 @@ public TreeAdaptor getTreeAdaptor() {
             	
 
             // AST REWRITE
-            // elements: assignment_declaration, ID
+            // elements: ID, assignment_declaration
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -2989,7 +2989,7 @@ public TreeAdaptor getTreeAdaptor() {
             		
 
             // AST REWRITE
-            // elements: ID, PERIOD, ID
+            // elements: PERIOD, ID, ID
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -3582,7 +3582,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: expression, RIGHT_PAREN, COMMA, COLON, LEFT_PAREN, ID, qualified_name, expression
+                    // elements: COLON, ID, expression, COMMA, LEFT_PAREN, RIGHT_PAREN, expression, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -3622,11 +3622,11 @@ public TreeAdaptor getTreeAdaptor() {
                         );
 
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:722:63: ( expression ( COMMA expression )* )?
-                        if ( stream_expression.hasNext()||stream_COMMA.hasNext()||stream_expression.hasNext() ) {
+                        if ( stream_COMMA.hasNext()||stream_expression.hasNext()||stream_expression.hasNext() ) {
                             adaptor.addChild(root_1, stream_expression.nextTree());
 
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:722:75: ( COMMA expression )*
-                            while ( stream_COMMA.hasNext()||stream_expression.hasNext() ) {
+                            while ( stream_expression.hasNext()||stream_COMMA.hasNext() ) {
                                 adaptor.addChild(root_1, 
                                 stream_COMMA.nextNode()
                                 );
@@ -3634,12 +3634,12 @@ public TreeAdaptor getTreeAdaptor() {
                                 adaptor.addChild(root_1, stream_expression.nextTree());
 
                             }
-                            stream_COMMA.reset();
                             stream_expression.reset();
+                            stream_COMMA.reset();
 
                         }
-                        stream_expression.reset();
                         stream_COMMA.reset();
+                        stream_expression.reset();
                         stream_expression.reset();
 
                         adaptor.addChild(root_1, 
@@ -3750,7 +3750,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: qualified_name, COLON, expression, PARENT, expression, RIGHT_PAREN, ID, COLON, LEFT_PAREN, COMMA
+                    // elements: RIGHT_PAREN, COLON, COLON, expression, ID, qualified_name, PARENT, expression, COMMA, LEFT_PAREN
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -3937,7 +3937,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: COLON, expression, COMMA, ID, expression, ME, RIGHT_PAREN, LEFT_PAREN, COLON, qualified_name
+                    // elements: ME, ID, RIGHT_PAREN, expression, COMMA, expression, COLON, LEFT_PAREN, COLON, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -3967,7 +3967,7 @@ public TreeAdaptor getTreeAdaptor() {
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:726:54: ( COLON ID )?
-                        if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
+                        if ( stream_ID.hasNext()||stream_COLON.hasNext() ) {
                             adaptor.addChild(root_1, 
                             stream_COLON.nextNode()
                             );
@@ -3977,8 +3977,8 @@ public TreeAdaptor getTreeAdaptor() {
                             );
 
                         }
-                        stream_COLON.reset();
                         stream_ID.reset();
+                        stream_COLON.reset();
 
                         adaptor.addChild(root_1, 
                         stream_LEFT_PAREN.nextNode()
@@ -4095,7 +4095,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
             // AST REWRITE
-            // elements: ALERT, root_expression, LEFT_PAREN, RIGHT_PAREN
+            // elements: ALERT, LEFT_PAREN, RIGHT_PAREN, root_expression
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -4562,7 +4562,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
             // AST REWRITE
-            // elements: ID, qualified_name, OR, qualified_name, OF_TYPE
+            // elements: qualified_name, qualified_name, OF_TYPE, OR, ID
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -4582,7 +4582,7 @@ public TreeAdaptor getTreeAdaptor() {
                 , root_1);
 
                 // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:825:10: ( OF_TYPE qualified_name ( OR qualified_name )* )?
-                if ( stream_qualified_name.hasNext()||stream_OR.hasNext()||stream_qualified_name.hasNext()||stream_OF_TYPE.hasNext() ) {
+                if ( stream_qualified_name.hasNext()||stream_qualified_name.hasNext()||stream_OF_TYPE.hasNext()||stream_OR.hasNext() ) {
                     adaptor.addChild(root_1, 
                     stream_OF_TYPE.nextNode()
                     );
@@ -4590,7 +4590,7 @@ public TreeAdaptor getTreeAdaptor() {
                     adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:825:33: ( OR qualified_name )*
-                    while ( stream_OR.hasNext()||stream_qualified_name.hasNext() ) {
+                    while ( stream_qualified_name.hasNext()||stream_OR.hasNext() ) {
                         adaptor.addChild(root_1, 
                         stream_OR.nextNode()
                         );
@@ -4598,14 +4598,14 @@ public TreeAdaptor getTreeAdaptor() {
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
                     }
-                    stream_OR.reset();
                     stream_qualified_name.reset();
+                    stream_OR.reset();
 
                 }
                 stream_qualified_name.reset();
-                stream_OR.reset();
                 stream_qualified_name.reset();
                 stream_OF_TYPE.reset();
+                stream_OR.reset();
 
                 adaptor.addChild(root_0, root_1);
                 }
@@ -4987,7 +4987,7 @@ public TreeAdaptor getTreeAdaptor() {
             	
 
             // AST REWRITE
-            // elements: LESS, ID, COMMA, GREATER, ID
+            // elements: GREATER, ID, ID, LESS, COMMA
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -5193,7 +5193,7 @@ public TreeAdaptor getTreeAdaptor() {
             	
 
             // AST REWRITE
-            // elements: GREATER, assignment_declaration, LESS, assignment_declaration, COMMA
+            // elements: assignment_declaration, GREATER, LESS, assignment_declaration, COMMA
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -6541,7 +6541,7 @@ public TreeAdaptor getTreeAdaptor() {
                     	
 
                     // AST REWRITE
-                    // elements: qualified_name, PARENT
+                    // elements: PARENT, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7763,7 +7763,7 @@ public TreeAdaptor getTreeAdaptor() {
                     stream_atom.add(atom186.getTree());
 
                     // AST REWRITE
-                    // elements: atom, NOT
+                    // elements: NOT, atom
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8056,7 +8056,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: ID, COLON, qualified_name
+                    // elements: COLON, ID, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8078,7 +8078,7 @@ public TreeAdaptor getTreeAdaptor() {
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1240:75: ( COLON ID )?
-                        if ( stream_ID.hasNext()||stream_COLON.hasNext() ) {
+                        if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
                             adaptor.addChild(root_1, 
                             stream_COLON.nextNode()
                             );
@@ -8088,8 +8088,8 @@ public TreeAdaptor getTreeAdaptor() {
                             );
 
                         }
-                        stream_ID.reset();
                         stream_COLON.reset();
+                        stream_ID.reset();
 
                         adaptor.addChild(root_0, root_1);
                         }
@@ -8139,7 +8139,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: qualified_name, COLON, COLON, qualified_name, ID, COLON, PARENT
+                    // elements: COLON, qualified_name, COLON, PARENT, qualified_name, ID, COLON
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8243,7 +8243,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: ID, function_expression_list, qualified_name, LEFT_PAREN, RIGHT_PAREN, COLON
+                    // elements: LEFT_PAREN, qualified_name, ID, RIGHT_PAREN, COLON, function_expression_list
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8320,7 +8320,7 @@ public TreeAdaptor getTreeAdaptor() {
                     stream_qualified_name.add(qualified_name212.getTree());
 
                     // AST REWRITE
-                    // elements: qualified_name, COLON, selector
+                    // elements: COLON, selector, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8399,7 +8399,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: RIGHT_PAREN, COLON, ID, COLON, function_expression_list, LEFT_PAREN, qualified_name, PARENT
+                    // elements: function_expression_list, COLON, COLON, PARENT, qualified_name, RIGHT_PAREN, LEFT_PAREN, ID
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8515,7 +8515,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: RIGHT_PAREN, COLON, ID, LEFT_PAREN, function_expression_list, COLON, qualified_name, ME
+                    // elements: COLON, COLON, ID, LEFT_PAREN, RIGHT_PAREN, function_expression_list, ME, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8545,7 +8545,7 @@ public TreeAdaptor getTreeAdaptor() {
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1251:49: ( COLON ID )?
-                        if ( stream_ID.hasNext()||stream_COLON.hasNext() ) {
+                        if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
                             adaptor.addChild(root_1, 
                             stream_COLON.nextNode()
                             );
@@ -8555,8 +8555,8 @@ public TreeAdaptor getTreeAdaptor() {
                             );
 
                         }
-                        stream_ID.reset();
                         stream_COLON.reset();
+                        stream_ID.reset();
 
                         adaptor.addChild(root_1, 
                         stream_LEFT_PAREN.nextNode()

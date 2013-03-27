@@ -26,7 +26,7 @@ class Main
     end
 end
 */
-class Summary is a WebTag
+class Summary is WebTag
     action Generate returns text
         text result = "<summary " 
         Attributes attributes = parent:WebTag:GetAttributes()

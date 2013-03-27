@@ -14,7 +14,7 @@ Attribute: Example
 
 use Libraries.Web.KeyboardAttributeAccepter
 
-class Input is a KeyboardAttributeAccepter, WebGenerator
+class Input is KeyboardAttributeAccepter, WebGenerator
     action Generate returns text
         text result = "<input " 
         Attributes attributes = parent:WebTag:GetAttributes()
@@ -26,7 +26,7 @@ class Input is a KeyboardAttributeAccepter, WebGenerator
     end
 end
 */
-class KeyboardAttributeAccepter is a AttributeAccepter
+class KeyboardAttributeAccepter is AttributeAccepter
     constant text keyDown = "onkeydown"
     constant text keyPress = "onkeypress"
     constant text keyUp = "onkeyup"

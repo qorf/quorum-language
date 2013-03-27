@@ -15,7 +15,7 @@ Attribute: Example
 
 use Libraries.Web.MouseAttributeAccepter
 
-class audio is a MouseAttributeAccepter, WebGenerator
+class audio is MouseAttributeAccepter, WebGenerator
     action Generate returns text
         text result = "<button " 
         Attributes attributes = parent:WebTag:GetAttributes()
@@ -27,7 +27,7 @@ class audio is a MouseAttributeAccepter, WebGenerator
     end
 end
 */
-class MouseAttributeAccepter is a AttributeAccepter 
+class MouseAttributeAccepter is AttributeAccepter 
     constant text click = "onclick"
     constant text doubleClick = "ondbclick"
     constant text drag = "ondrag"

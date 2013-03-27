@@ -33,7 +33,7 @@ class Main
     end
 end
 */
-class DefinitionListTerm is a WebTag
+class DefinitionListTerm is WebTag
     action Generate returns text
         text result = "<dt " 
         Attributes attributes = parent:WebTag:GetAttributes()

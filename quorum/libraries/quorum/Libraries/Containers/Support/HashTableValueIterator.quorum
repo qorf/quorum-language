@@ -6,7 +6,7 @@ use Libraries.Containers.Support.HashNode
 use Libraries.Containers.Support.HashTableIterator
 use Libraries.Containers.Array
 
-class HashTableValueIterator<Key, Value> is a Iterator<Value>
+class HashTableValueIterator<Key, Value> is Iterator<Value>
     public HashTableIterator<Key, Value> iterator = undefined
 
     action GetCurrent returns Key

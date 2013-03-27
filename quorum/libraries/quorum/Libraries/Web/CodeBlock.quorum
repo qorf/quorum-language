@@ -25,7 +25,7 @@ class Main
     end
 end
 */
-class CodeBlock is a WebTag
+class CodeBlock is WebTag
     action Generate returns text
         text result = "<code " 
         Attributes attributes = parent:WebTag:GetAttributes()

@@ -27,7 +27,7 @@ class Main
    end
 end
 */
-class InvalidLocationError is a Error
+class InvalidLocationError is Error
     on create
         SetErrorMessage("Location Invalid: Attempted to reference a location in a data structure that does not exist.")
     end

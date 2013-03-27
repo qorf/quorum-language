@@ -1284,7 +1284,7 @@ CHECK	:	'check';
 PARENT	:	'parent';
 BLUEPRINT :	'blueprint';
 NATIVE :	'system';
-INHERITS :	'is a';
+INHERITS :	'is';
 CAST	:	'cast';
 INPUT	:	'input';
 SAY	:	'say';

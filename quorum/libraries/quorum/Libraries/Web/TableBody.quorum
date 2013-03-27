@@ -34,7 +34,7 @@ class Main
    end
 end
 */
-class TableBody is a WebTag
+class TableBody is WebTag
     action Generate returns text
         text result = "<tbody " 
         Attributes attributes = parent:WebTag:GetAttributes()

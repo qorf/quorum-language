@@ -5,7 +5,7 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.Containers.Support.HashNode
 use Libraries.Containers.Array
 
-class HashTableIterator<Key, Value> is a Iterator<HashNode<Key, Value>>
+class HashTableIterator<Key, Value> is Iterator<HashNode<Key, Value>>
     Array<HashNode<Key, Value>> array = undefined
     integer position = 0
     HashNode<Key, Value> node = undefined

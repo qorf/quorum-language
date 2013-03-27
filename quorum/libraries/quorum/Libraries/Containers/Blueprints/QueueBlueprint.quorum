@@ -11,13 +11,13 @@ Attribute: Example
 
 use Libraries.Containers.Blueprints.QueueBlueprint
 
-class MyQueue<Type> is a QueueBlueprint<Type>
+class MyQueue<Type> is QueueBlueprint<Type>
     action AddToEnd(Type value)
         //implement here
     end
 end
 */
-class QueueBlueprint<Type>  is a Addable<Type>, Container<Type>, Copyable<Type>, Iterative<Type>
+class QueueBlueprint<Type>  is Addable<Type>, Container<Type>, Copyable<Type>, Iterative<Type>
     /*
         This action adds an item to the end of the queue.
 

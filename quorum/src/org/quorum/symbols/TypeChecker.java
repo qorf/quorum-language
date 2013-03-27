@@ -1451,7 +1451,7 @@ public class TypeChecker {
         result.setOpcodeGenerator(TypeCheckerStepFactory.CUSTOM_CUSTOM_NOT_EQUALS);
         results.put(key, result);
 
-        // is a (instanceof)
+        // is (instanceof)
         result = new TypeCheckerResult();
         key = this.generateTypeCheckKey(type.getName(),
                 type.getName(), OperationEnum.IS_A, false);
@@ -1555,7 +1555,7 @@ public class TypeChecker {
             result.setConversionScore(TypeConversionEnum.PARENT);
             results.put(key, result);
 
-            // is a (instanceof)
+            // is (instanceof)
             result = new TypeCheckerResult();
             key = this.generateTypeCheckKey(type.getName(),
                     tempType.getName(), OperationEnum.IS_A, false);
@@ -1563,7 +1563,7 @@ public class TypeChecker {
             result.setOpcodeGenerator(TypeCheckerStepFactory.CUSTOM_CUSTOM_IS_A);
             results.put(key, result);
 
-            // is a (instanceof)
+            // is (instanceof)
             result = new TypeCheckerResult();
             key = this.generateTypeCheckKey(tempType.getName(),
                     type.getName(), OperationEnum.IS_A, false);

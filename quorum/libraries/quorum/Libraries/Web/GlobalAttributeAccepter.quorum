@@ -13,7 +13,7 @@ Attribute: Example
 
 use Libraries.Web.GlobalAttributeAccepter
 
-class WebTag is a GlobalAttributeAccepter, WebGenerator
+class WebTag is GlobalAttributeAccepter, WebGenerator
     action Generate returns text
         text result = "<button " 
         Attributes attributes = parent:WebTag:GetAttributes()
@@ -25,7 +25,7 @@ class WebTag is a GlobalAttributeAccepter, WebGenerator
     end
 end
 */
-class GlobalAttributeAccepter is a AttributeAccepter
+class GlobalAttributeAccepter is AttributeAccepter
     constant text accessKey = "accessKey"
     constant text classAttribute = "class"
     constant text contentEditable = "contenteditable"

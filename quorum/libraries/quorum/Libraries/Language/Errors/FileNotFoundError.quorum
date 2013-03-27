@@ -22,7 +22,7 @@ class Main
    end
 end
 */
-class FileNotFoundError is a Error
+class FileNotFoundError is Error
     on create
         SetErrorMessage("FileNotFoundError: The requested file was not found on disk.")
     end

@@ -27,7 +27,7 @@ class Main
     end
 end
 */
-class Body is a WebTag, WindowAttributeAccepter
+class Body is WebTag, WindowAttributeAccepter
     action Generate returns text
         text result = "<body "
         result = result + GenerateAttributes()

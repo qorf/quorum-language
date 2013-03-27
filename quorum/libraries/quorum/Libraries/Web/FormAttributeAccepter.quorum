@@ -14,7 +14,7 @@ Attribute: Example
 
 use Libraries.Web.FormAttributeAccepter
 
-class Button is a FormAttributeAccepter, WebGenerator
+class Button is FormAttributeAccepter, WebGenerator
     action Generate returns text
         text result = "<button " 
         Attributes attributes = parent:WebTag:GetAttributes()
@@ -26,7 +26,7 @@ class Button is a FormAttributeAccepter, WebGenerator
     end
 end
 */
-class FormAttributeAccepter is a AttributeAccepter
+class FormAttributeAccepter is AttributeAccepter
     constant text blur = "onblur"
     constant text change = "onchange"
     constant text contextMenu = "oncontextmenu"

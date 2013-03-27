@@ -29,7 +29,7 @@ class Main
     end
 end
 */
-class DefinitionList is a WebTag
+class DefinitionList is WebTag
     action Generate returns text
         text result = "<dl " 
         Attributes attributes = parent:WebTag:GetAttributes()

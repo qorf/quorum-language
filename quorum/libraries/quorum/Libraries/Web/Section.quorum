@@ -31,7 +31,7 @@ class Main
     end
 end
 */
-class Section is a WebTag
+class Section is WebTag
     action Generate returns text
         text result = "<section " 
         Attributes attributes = parent:WebTag:GetAttributes()

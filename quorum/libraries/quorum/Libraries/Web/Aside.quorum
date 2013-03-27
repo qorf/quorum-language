@@ -29,7 +29,7 @@ class Main
     end
 end
 */
-class Aside is a WebTag
+class Aside is WebTag
     action Generate returns text
         text result = "<aside " 
         Attributes attributes = parent:WebTag:GetAttributes()

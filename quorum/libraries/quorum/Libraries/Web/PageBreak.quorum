@@ -23,7 +23,7 @@ class Main
     end
 end
 */
-class PageBreak is a WebTag
+class PageBreak is WebTag
     action Generate returns text
         text result = "<hr " 
         Attributes attributes = parent:WebTag:GetAttributes()

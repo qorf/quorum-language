@@ -13,13 +13,13 @@ Attribute: Example
 
 use Libraries.Containers.Blueprints.TableBlueprint
 
-class MyTable<Type> is a TableBlueprint<Type>
+class MyTable<Type> is TableBlueprint<Type>
     action SetSize(integer rows, integer columns)
         //implementation goes here
     end
 end
 */
-class TableBlueprint<Type> is a Copyable
+class TableBlueprint<Type> is Copyable
     /*
         This action returns true if the table is dynamic(resizable) or false
         if the table does not automatically resize.

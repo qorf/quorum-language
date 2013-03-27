@@ -15,7 +15,7 @@ Attribute: Example
 
 use Libraries.Web.WindowAttributeAccepter
 
-class body is a WindowAttributeAccepter, WebGenerator
+class body is WindowAttributeAccepter, WebGenerator
     action Generate returns text
         text result = "<body "
         result = result + GenerateAttributes()
@@ -27,7 +27,7 @@ class body is a WindowAttributeAccepter, WebGenerator
     end
 end
 */
-class WindowAttributeAccepter is a AttributeAccepter
+class WindowAttributeAccepter is AttributeAccepter
     constant text aferPrint = "onafterprint"
     constant text beforePrint = "onbeforeprint"
     constant text beforeUnload = "onbeforeunload"

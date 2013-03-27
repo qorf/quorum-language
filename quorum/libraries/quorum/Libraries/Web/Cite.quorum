@@ -26,7 +26,7 @@ class Main
     end
 end
 */
-class Cite is a WebTag
+class Cite is WebTag
     action Generate returns text
         text result = "<cite " 
         Attributes attributes = parent:WebTag:GetAttributes()

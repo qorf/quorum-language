@@ -26,7 +26,7 @@ formatted.")
     end
 end
 */
-class PreformattedText is a WebTag
+class PreformattedText is WebTag
     action Generate returns text
         text result = "<pre " 
         Attributes attributes = parent:WebTag:GetAttributes()

@@ -1,4 +1,4 @@
-// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g 2013-03-26 10:39:30
+// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g 2013-03-27 12:19:48
 package org.quorum.parser;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
 import org.quorum.vm.interfaces.CompilerErrorManager;
@@ -604,10 +604,10 @@ public class QuorumLexer extends Lexer {
         try {
             int _type = INHERITS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1287:10: ( 'is a' )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1287:12: 'is a'
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1287:10: ( 'is' )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1287:12: 'is'
             {
-            match("is a"); 
+            match("is"); 
 
 
 
@@ -2878,19 +2878,19 @@ public class QuorumLexer extends Lexer {
     static final String DFA16_eotS =
         "\1\uffff\20\43\1\uffff\1\43\3\uffff\1\117\1\121\3\uffff\1\123\4"+
         "\uffff\1\124\1\43\1\127\1\uffff\1\46\1\131\1\uffff\1\43\1\133\2"+
-        "\43\1\136\11\43\1\151\17\43\1\175\10\43\10\uffff\1\43\3\uffff\1"+
-        "\43\2\uffff\1\43\1\uffff\11\43\1\u0094\1\uffff\1\u0095\2\43\1\u0098"+
-        "\6\43\1\u009f\4\43\1\u00a4\1\uffff\2\43\1\uffff\1\u00a7\1\u00a9"+
-        "\7\43\1\u00a9\2\43\1\u00b3\5\43\1\u00b9\2\43\1\u00bd\2\uffff\2\43"+
-        "\1\uffff\6\43\1\uffff\4\43\1\uffff\2\43\3\uffff\3\43\1\u00cf\1\u00d0"+
-        "\4\43\1\uffff\4\43\1\u00d9\1\uffff\1\u00da\1\u00db\1\43\1\uffff"+
-        "\1\u00dd\5\43\1\u00e3\5\43\1\u00e9\2\43\1\u00ec\1\u00ed\2\uffff"+
-        "\2\43\1\u00d0\1\u00f0\1\43\1\u00f2\1\u00f3\1\43\3\uffff\1\u00f5"+
-        "\1\uffff\1\43\1\u00f7\1\43\1\u00f9\1\43\1\uffff\1\u00fb\1\u00fc"+
-        "\2\43\1\u00ff\1\uffff\1\43\1\u0101\2\uffff\1\u0102\1\u0104\1\uffff"+
-        "\1\u0105\2\uffff\1\43\1\uffff\1\43\1\uffff\1\u0108\1\uffff\1\u0109"+
-        "\2\uffff\1\43\1\u010b\1\uffff\1\u010c\2\uffff\1\u010d\2\uffff\1"+
-        "\u010e\1\43\2\uffff\1\43\4\uffff\1\u0111\1\u0112\2\uffff";
+        "\43\1\136\11\43\1\151\15\43\1\172\1\43\1\175\10\43\10\uffff\1\43"+
+        "\3\uffff\1\43\2\uffff\1\43\1\uffff\11\43\1\u0094\1\uffff\1\u0095"+
+        "\2\43\1\u0098\6\43\1\u009f\4\43\1\u00a4\1\uffff\2\43\1\uffff\1\u00a7"+
+        "\1\u00a9\7\43\1\u00a9\2\43\1\u00b3\5\43\1\u00b9\2\43\1\u00bd\2\uffff"+
+        "\2\43\1\uffff\6\43\1\uffff\4\43\1\uffff\2\43\3\uffff\3\43\1\u00cf"+
+        "\1\u00d0\4\43\1\uffff\4\43\1\u00d9\1\uffff\1\u00da\1\u00db\1\43"+
+        "\1\uffff\1\u00dd\5\43\1\u00e3\5\43\1\u00e9\2\43\1\u00ec\1\u00ed"+
+        "\2\uffff\2\43\1\u00d0\1\u00f0\1\43\1\u00f2\1\u00f3\1\43\3\uffff"+
+        "\1\u00f5\1\uffff\1\43\1\u00f7\1\43\1\u00f9\1\43\1\uffff\1\u00fb"+
+        "\1\u00fc\2\43\1\u00ff\1\uffff\1\43\1\u0101\2\uffff\1\u0102\1\u0104"+
+        "\1\uffff\1\u0105\2\uffff\1\43\1\uffff\1\43\1\uffff\1\u0108\1\uffff"+
+        "\1\u0109\2\uffff\1\43\1\u010b\1\uffff\1\u010c\2\uffff\1\u010d\2"+
+        "\uffff\1\u010e\1\43\2\uffff\1\43\4\uffff\1\u0111\1\u0112\2\uffff";
     static final String DFA16_eofS =
         "\u0113\uffff";
     static final String DFA16_minS =
@@ -2899,7 +2899,7 @@ public class QuorumLexer extends Lexer {
         "\1\52\4\uffff\1\0\1\141\1\56\1\uffff\1\12\1\11\1\uffff\1\164\1\60"+
         "\1\40\1\145\1\60\1\163\1\145\1\156\1\145\1\163\1\141\1\157\1\163"+
         "\1\144\1\60\2\144\1\145\1\142\1\151\1\143\1\145\1\144\1\164\1\165"+
-        "\1\157\1\163\1\171\1\40\1\160\1\60\1\164\1\155\1\151\1\155\1\170"+
+        "\1\157\1\163\1\171\1\60\1\160\1\60\1\164\1\155\1\151\1\155\1\170"+
         "\1\165\1\160\1\164\10\uffff\1\154\3\uffff\1\160\2\uffff\1\162\1"+
         "\uffff\1\164\1\145\1\141\1\163\1\143\1\164\1\163\1\164\1\145\1\60"+
         "\1\uffff\1\60\1\151\1\145\1\60\1\154\1\166\1\145\1\153\1\162\1\141"+
@@ -2922,7 +2922,7 @@ public class QuorumLexer extends Lexer {
         "\3\uffff\1\57\4\uffff\1\uffff\1\141\1\71\1\uffff\1\12\1\40\1\uffff"+
         "\1\164\1\172\1\40\1\145\1\172\1\164\1\145\1\156\1\145\1\163\1\141"+
         "\1\157\1\163\1\144\1\172\1\144\1\164\1\145\1\142\1\151\1\162\1\167"+
-        "\1\144\1\164\1\165\1\157\1\163\1\171\1\40\1\164\1\172\1\167\1\155"+
+        "\1\144\1\164\1\165\1\157\1\163\1\171\1\172\1\164\1\172\1\167\1\155"+
         "\1\151\1\155\1\170\1\165\2\164\10\uffff\1\154\3\uffff\1\160\2\uffff"+
         "\1\162\1\uffff\1\164\1\145\1\141\1\163\1\143\1\164\1\163\1\164\1"+
         "\145\1\172\1\uffff\1\172\1\151\1\145\1\172\1\154\1\166\1\145\1\153"+
@@ -3025,7 +3025,7 @@ public class QuorumLexer extends Lexer {
             "\1\167",
             "\1\170",
             "\1\171",
-            "\1\172",
+            "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
             "\1\173\3\uffff\1\174",
             "\12\43\7\uffff\32\43\4\uffff\1\43\1\uffff\32\43",
             "\1\177\2\uffff\1\176",
