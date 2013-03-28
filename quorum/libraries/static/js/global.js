@@ -1,6 +1,8 @@
 $(function() {
 	slideInSublibraries();
 
+	//showClassesTableForLibraries();
+
 	autoComplete();
 
 	registerWithGoogle();
@@ -40,6 +42,18 @@ var slideInSublibraries = function() {
 
 	$(".grid-item").on("click", function(e) { toggleList(e,$(this)); });
 
+}
+
+var showClassesTableForLibraries = function() {
+	$(".grid-item").on("click", function(e) {
+		e.preventDefault();
+	});
+
+	$(".grid-item").on("click", function() {
+		var libraryId = $(this).attr("class"); //.replace("grid-item");
+		console.log("div", $(this).attr("class"));
+		console.log(libraryId);
+	});
 }
 
 var extendLeftSidebar = function() {
@@ -240,15 +254,45 @@ var createRatingControls = function() {
 }
 
 var fiveStarRatings = function(starRatingsList) {
+	var numberOfStars = function (clickTarget) {
+		return ($(clickTarget).attr('class').split(/-/))[1]; // gets the class, splits at the hyphen, and grabs the number
+	}
+
 	var setStars = function(element, starNumber) {
 		$(element)
 			.removeClass("stars-0").removeClass("stars-1").removeClass("stars-2").removeClass("stars-3").removeClass("stars-4").removeClass("stars-5")
 			.addClass("stars-" + starNumber);
 	}
 
-	var setClickedStars = function(clickTarget) {
-		var starNumber = ($(clickTarget).attr('class').split(/-/))[1]; // gets the class, splits at the hyphen, and grabs the number
-		setStars($(clickTarget).parent(), starNumber);
+	var postRating = function(controllable, starNumber) {
+		var username = $("input#username").val();
+		var classStaticKey = $("input#class-statickey").val();
+		var componentType = controllable.data("componenttype")
+		var postData = { username: username, classstatickey: classStaticKey, rating: starNumber, componenttype: componentType };
+		switch (componentType) {
+			case "class-name": case "class-description": case "class-example": break;
+			case "action-name": case "action-description": case "action-example": 
+				postData['actionkey'] = controllable.data("actionkey");
+				break;
+			case "parameter-name": case "parameter-description":
+				postData['actionkey'] = controllable.closest(".action").find(".controllable[data-componenttype=action-name]");
+				postData['parameterkey'] = controllable.data("parameterkey");
+				break;
+		}
+
+
+		$.ajax({
+		  type: "POST",
+		  url: "", // TODO: fix this URL
+		  dataType: "json",
+		  data: postData,
+		  success: function(result) {
+		  	// show a success message
+		  },
+		  error: function(error) {
+		  	// show an error message
+		  }
+		});
 	}
 
 	$(".star-ratings li").on({
@@ -259,7 +303,9 @@ var fiveStarRatings = function(starRatingsList) {
 			setStars($(this).parent(), 0);
 		},
 		click: function() {
-			setClickedStars(this);
+			var starNumber = numberOfStars(this);
+			setStars($(this).parent(), starNumber);
+
 			$(this).parent().find('li').unbind('mouseenter').unbind('mouseleave');
 
 			var template = doT.template($('#template-ratings-success').text());
@@ -268,7 +314,7 @@ var fiveStarRatings = function(starRatingsList) {
 			container.find(".ratings-success").remove();
 			container.append(templateHtml);
 
-			// TODO: hook up ajax call to PHP
+			postRating($(this).closest(".controllable"), starNumber);
 		}
 	});
 }
