@@ -10,7 +10,7 @@ determine if an object is of a certain type. Consider the following example code
 </p>
 <p><pre class="code"><code>
 B b
-if b is Object then
+if b is Object
     output &quot;An object has been found&quot;
 end
 </code></pre></p>
