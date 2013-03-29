@@ -2,7 +2,7 @@
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Learn Quorum</h1>
+		<h1>Learn About Quorum</h1>
 		<p>On this page, we describe how to write executing
                     Quorum programs. We focus 
                     our attention on the core language features, namely 
