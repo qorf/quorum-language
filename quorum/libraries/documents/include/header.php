@@ -12,7 +12,7 @@
             <?php echo '<li class="quorum_header_start"> <a href="'. 
                     '/index.php" class="quorum_header">Quorum</a></li>';?>
             <?php echo '<li class="quorum_header"> <a href="' .  
-                    '/syntax.php" class="quorum_header">Syntax</a></li>';?>
+                    '/syntax.php" class="quorum_header">Language</a></li>';?>
             <?php echo '<li class="quorum_header"> <a href="' . 
                     '/libraries.php" class="quorum_header">Libraries</a></li>';?>
             <?php echo '<li class="quorum_header"> <a href="' . 

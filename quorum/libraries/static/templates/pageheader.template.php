@@ -42,7 +42,7 @@
 					<a class="brand" href="/">Quorum</a>
 					<ul class="nav">
 						<?php
-							createNavBarLink("Syntax","syntax.php", 1);
+							createNavBarLink("Language","syntax.php", 1);
 							createNavBarLink("Libraries","libraries.php", 1);
 							createNavBarLink("Curriculum","curriculum.php", 1);
 							createNavBarLink("Download","download.php", 1);

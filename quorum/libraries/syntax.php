@@ -2,8 +2,12 @@
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>The Syntax of Quorum</h1>
-		<p>On this page, we describe the syntax, what a programmer actually types, to make Quorum programs execute. We focus our attention on the core language features, namely 1) creating and using variables, 2) control structures, 3) classes and actions, and 4) libraries and extensions.</p>
+		<h1>Learn Quorum</h1>
+		<p>On this page, we describe how to write executing
+                    Quorum programs. We focus 
+                    our attention on the core language features, namely 
+                    1) creating and using variables, 2) control structures, 
+                    3) classes and actions, and 4) libraries and extensions.</p>
 	</div>
 </div>
 
