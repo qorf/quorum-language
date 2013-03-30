@@ -1,7 +1,14 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Creating custom types with Quorum';
 </script>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Classes</h1>
+		<p>How to create our own custom types.</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <h1>Classes in Quorum</h1>
 <p>
 A class in the Quorum programming language represents a collection of data and 
@@ -94,4 +101,4 @@ class Main
      end
 end
 </code></pre></p>
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

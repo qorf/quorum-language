@@ -1,8 +1,15 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Automatic conversion of primitives in Quorum';
 </script>
-<h1>Automatic conversion of primitives (auto-boxing)</h1>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Autoboxing</h1>
+		<p>How to automatically deal with primitive types in a container.</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<h1>Automatic conversion of primitives (autoboxing)</h1>
 <p>
     In Quorum, when using a generic class with a primitive, any primitive value 
     is converted to an object to be used in the class.  Each primitive has a 
@@ -89,4 +96,4 @@ boolean equalTo = (int1:CompareTo(int2) = 0)
     <li>To determine whether a value is less than another, you can compare the result of the CompareTo function to -1.</li>
     <li>To determine whether a value is equal to another, you can compare the result of the CompareTo function to 0.</li>
 </ul>
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

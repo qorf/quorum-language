@@ -1,8 +1,15 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Using generics in Quorum';
 </script>
-<h1>Generics</h1>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Using Generics</h1>
+		<p>Generics allow us to specify what type is in a container.</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<h1>What are Generics?</h1>
 <p>
 In computer programming, we often want to create a class that generically 
 specifies an algorithm. For example, we may want to create a list of objects, 
@@ -76,4 +83,4 @@ List&lt;string&gt; list1
 List&lt;Dog&gt; list2 //assuming there is a Dog class somewhere
 List&lt;boolean&gt; list3
 </code></pre></p>
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

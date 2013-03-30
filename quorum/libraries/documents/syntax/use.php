@@ -1,8 +1,15 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
     document.title = 'Finding and using libraries with Quorum';
 </script>
-<h1>Use Statements</h1>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Use Statements</h1>
+		<p>How to load and interact with library classes.</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<h2>Format and Finding Libraries</h2>
 <p>
 Whenever you need to include an API or class you have already written, into a 
 project you are currently working on, you will need to add a use statement. A 
@@ -12,7 +19,6 @@ prints it out to the user. We don't need to write the code to generate a random
 number because the Quorum standard library already includes a class that 
 generates a random number for us.
 </p>
-<h2>Format and Finding Libraries</h2>
 <p>
 The use statement consists of the &quot;use&quot; keyword followed by the full 
 name of the class or library to include. So, to use the random class we would 
@@ -39,7 +45,7 @@ use Libraries.Compute.Random
 class Main
    action Main
       Random random
-      print random:RandomIntegerBetween(1, 100)
+      output random:RandomIntegerBetween(1, 100)
    end
 end
 </code></pre></p>
@@ -56,9 +62,9 @@ class Main
    action Main
       Random random
       Math math
-      print random:RandomIntegerBetween(1, 100)
-      print math:SquareRoot(6)
+      output random:RandomIntegerBetween(1, 100)
+      output math:SquareRoot(6)
    end
 end
 </code></pre></p>
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

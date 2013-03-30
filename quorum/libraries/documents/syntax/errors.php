@@ -1,12 +1,21 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Dealing with errors in Quorum';
 </script>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Handling Errors</h1>
+		<p>How to deal with the inevitable.</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <h1>Error Handling</h1>
 <p>
-    In Quorum, you may occasionally encounter an error. These errors are 
-    typically caused by invalid user input. For example, if the user attempts 
-    to divide a number by zero a DivideByZeroError will by generated.
+    In Quorum, we may occasionally encounter an error. Errors in computer programs
+    we write can be caused by a wide variety of problems, from incorrect user input
+    to bugs in our programs. For example, if a user attempts 
+    to divide a number by zero, Quorum will alert us to a DivideByZeroError. We can
+    reproduce this error in Quorum with the following code:
 </p>
 <p><pre class="code"><code>
 number result = 12/0
@@ -148,4 +157,4 @@ end
     you can either detect all types of errors with Error or a list of specific 
     errors you wish to detect.
 </p>
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

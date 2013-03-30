@@ -1,7 +1,14 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Creating Arrays in Quorum';
 </script>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Arrays</h1>
+		<p>Arrays provide one way to store several values.</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <h1>Arrays</h1>
 <p>
     In a computer, an Array is a block of memory that stores several versions of an 
@@ -126,4 +133,4 @@ thisDog:SetName(&quot;Spot&quot;)
     For further information on arrays, check out the standard library documentation 
     for <a href="../../Libraries/Containers/Array.html">the array class</a>.
 </p>
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

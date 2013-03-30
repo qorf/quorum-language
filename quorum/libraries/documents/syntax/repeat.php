@@ -1,17 +1,20 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Doing things over and over again in Quorum';
 </script>
-<h1>Repeat</h1>
+
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Repeating statements multiple times</h1>
+		<p>How to do things over and over and over and ...</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<h2>repeat &lt;expression&gt; times</h2>
 <p>
 The Quorum programming language uses the word repeat to describe the idea of 
 doing something 0 or more times. On this short page, we describe how to do 
-things several times in quorum.
-</p>
-<h2>repeat &lt;expression&gt; times</h2>
-<p>
-The repeat times expression allows you to repeat a predetermined number of times. 
-For example, if you want something to repeat 10 times you can say:
+things several times in quorum. Here is a first example:
 </p>
 <p><pre class="code"><code>
 repeat 10 times
@@ -66,4 +69,4 @@ end
 <p>
 Since a is less than 15 this loop will execute 0 times.
 </p>
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

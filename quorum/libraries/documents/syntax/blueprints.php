@@ -1,7 +1,16 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Creating prototypes of actions in Quorum';
 </script>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Blueprints</h1>
+		<p>Blueprints provide us an interface for what a 
+                    <a href="classes.php">class</a> does
+                without an implementation.</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <h1>Blueprints</h1>
 <p>
 When designing classes, we sometimes want to provide blueprints, which are 
@@ -139,4 +148,4 @@ class Main
    end
 end
 </code></pre></p>
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

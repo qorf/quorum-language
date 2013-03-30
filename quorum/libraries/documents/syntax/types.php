@@ -1,19 +1,22 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Types and Variables in Quorum';
 </script>
-<h1>Types</h1>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Types and Variables</h1>
+		<p>How to store various kinds of items in memory.</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<h2>Primitive Types in Quorum</h2>
 <p>
     When programming a computer, we often say that a variable has a type. For 
     example, suppose that I have a variable with the name &quot;a.&quot; It could be the 
     case that this variable is a number, like 4.2, or it could be some text that 
     we have written for a book, like, &quot;It was the best of times.&quot; In 
     Quorum, there are several types, and if those types are not enough, we 
-    can define our own.
-</p>
-<h2>Primitive Types in Quorum</h2>
-<p>
-    In this section, we go over the various types allowed in the Quorum programming language.
+    can define our own. In this section, we go over the various types allowed in the Quorum programming language.
 </p>
 <h3>integer</h3>
 <p>

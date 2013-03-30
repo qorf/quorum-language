@@ -41,7 +41,7 @@
 	<h2>Creating Hello World</h2>
 	<p>Let's build a program that prints out &quot;Hello World&quot;
             to the console. Here's the code for our program:</p>
-	<pre class="code"><code>print &quot;Hello world&quot;</code></pre>
+	<pre class="code"><code>output &quot;Hello world&quot;</code></pre>
         
         <p>We can compile and run this program using the following command:</p>
 	<pre class="code"><code>quorum helloWorld.quorum</code></pre>

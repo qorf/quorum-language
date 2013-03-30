@@ -1,11 +1,18 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Converting between types in Quorum';
 </script>
-<h2>Type Casting</h2>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Type Casting</h1>
+		<p>How to try and convert one type to another.</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<h2>Converting one type to another</h2>
 <p>
-    Sometimes you need to convert one type to another. This is called converting 
-    types, or more commonly, type casting. Suppose, for example, that you had 
+    Sometimes you need to convert one type to another, a common task to do while
+    programming often termed type casting. Suppose, for example, that we had 
     text like so:
 </p>
 <p><pre class="code"><code>
@@ -13,14 +20,14 @@ text someText = &quot;4.2&quot;
 </code></pre></p>
 <p>
     This text has the value of 4.2, which could also be a number, but how would 
-    you convert it? In Quorum, you do this using the cast action:
+    you convert it? In Quorum, we do this using the cast action:
 </p>
 <p><pre class="code"><code>
 &lt;type&gt; &lt;variable&gt; = cast(&lt;type to convert to&gt;, &lt;value to be converted&gt;)
 </code></pre></p>
 <p>
-    Cast needs to be passed two parameters, first the type you wish to convert 
-    your value to and second the value value to be converted. Cast will then 
+    Cast needs to be passed two parameters, first the type we wish to convert 
+    our value to and second the value value to be converted. Cast will then 
     convert the value and assign the value to a variable. Given the example 
     above we would convert 'someText' to a number with the following code:
 </p>
@@ -84,7 +91,7 @@ check
    integer result = cast(integer, myText)
 end
 detect e of type CastError
-   print myText + &quot; was not cast to an integer.&quot;
+   output myText + &quot; was not cast to an integer.&quot;
 end
 </code></pre></p>
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

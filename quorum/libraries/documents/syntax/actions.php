@@ -1,7 +1,14 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Controlling behaviors in Quorum';
 </script>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Actions</h1>
+		<p>How to tell a program to take a behavior.</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <h1>Actions in Quorum</h1>
 <p>
 In the Quorum programming language, actions are things that the language does. 
@@ -61,7 +68,7 @@ method add and save the return value in a variable.
 class Main
    action Main
       integer a = add()
-      print a
+      output a
    end
    action add returns integer
       integer value = 15 + 10
@@ -70,7 +77,7 @@ class Main
 end
 </code></pre></p>
 <p>
-The value printed to the output console should be 25.
+The value output to the console should be 25.
 </p>
 <h2>Action Parameters</h2>
 <p>
@@ -106,4 +113,4 @@ end
 action add
 end
 </code></pre></p>
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

@@ -1,16 +1,20 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Creating notes and comments in Quorum';
 </script>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Commenting Code</h1>
+		<p>How to write notes to remind ourselves of what code does.</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <h1>Comments</h1>
 <p>
-    Since code isn't always the most straightforward, sometimes programmers need 
-    to write something in their code to tell someone else (or even themselves) 
-    what's going on in a block of code.  This is done by using comments.
-</p>
-<p>
-    In Quorum, two types of comments are allowed: end-of-line and multiline.  
-    Commenting in Quorum is done the same as in C++ and Java.
+    Since computer code can sometimes be esoteric, it sometimes helps to write
+    notes to help sort out what a piece of code does in the future. We do this 
+    using comments. In Quorum, two types of comments are allowed: 1) end-of-line 
+    and 2) multiline. Comments in Quorum are the same as those in C++ and Java.
 </p>
 <h2>End-of-line comments</h2>
 <p>
@@ -85,4 +89,4 @@ end
 <p>
     This way, the compiler won't see the code but it will still be in your file.
 </p>
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

@@ -1,18 +1,28 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Operators in Quorum';
-</script>
-<h1>Operators</h1>
+</script>  
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Operators</h1>
+		<p>How to use +, -, *, /, and other operators with various types.</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+
+<h1>What are operators?</h1>
 <p>
     In computer science, we often want to ask the computer to do certain mathematical 
     operations. For example, we may want the computer to compare a set of numbers 
     to see if they are equal or we may want to add, subtract, multiply, or divide 
-    numbers. In this section, we discuss which operators are legal in the Quorum 
-    programming language and what those operators do.
+    numbers. In this section, we discuss this concept, operators, including which
+    how they work in the Quorum programming language.
 </p>
 <h2>integer and number types</h2>
 <p>
-    Integers are those numbers, positive or negative, without decimal points, while numbers are any numbers, including those with decimal points. Both integers and numbers have the same operators defined.
+    Integers are those numbers, positive or negative, without decimal points, 
+    while numbers are any numbers, including those with decimal points. Both 
+    integers and numbers have the same operators defined.
 </p>
 <ul>
     <li>+: the plus operator adds together numbers and concatenates, or puts together text</li>
@@ -141,4 +151,4 @@ end
 <p><pre class="code"><code>
     text a = &quot;My favorite number is &quot; + 5
 </code></pre></p>
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

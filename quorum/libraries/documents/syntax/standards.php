@@ -1,13 +1,17 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?> 
+    
 <script type="text/javascript">
     document.title = 'Coding Standards in Quorum';
 </script>
-<h1>Code formatting conventions</h1>
-<p>
-    On this page, we discuss code conventions for writing code in Quorum. 
-    This includes conventions for code writing, choosing names, writing comments, 
-    and other common issues.
-</p>
+
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Quorum Coding Conventions</h1>
+		<p>While not required, this page provides standard conventions
+                for writing Quorum code.</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <h2>Conventions for naming classes, actions, and parameters</h2>
 <p>
     We recommend the following conventions for naming classes, actions, and parameters in 
@@ -73,7 +77,7 @@
 <p><pre class="code"><code>
 class Main
 	action Main
-		print &quot;hello world.&quot;
+		output &quot;hello world.&quot;
 	end
 end
 </code></pre></p>
@@ -83,7 +87,7 @@ end
 <p><pre class="code"><code>
 class Main
 	action Main
-	print &quot;hello world.&quot;
+	output &quot;hello world.&quot;
 end
 end
 </code></pre></p>
@@ -98,7 +102,7 @@ end
 </p>
 <p><pre class="code"><code>
 // Print a message to the user.
-print &quot;hello world.&quot;
+output &quot;hello world.&quot;
 </code></pre></p>
 <p>
     Multi-line comments should be formatted such that the beginning forward star 
@@ -155,4 +159,4 @@ class Main
 end
 */
 </code></pre></p>
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

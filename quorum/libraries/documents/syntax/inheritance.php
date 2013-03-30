@@ -1,11 +1,21 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Inheritance in Quorum';
 </script>
-<h1>Inheritance</h1>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Inheritance in Quorum</h1>
+		<p>Quorum uses a form of multiple inheritance for establishing
+                relationships between classes.</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<h1>What is Inheritance?</h1>
 <p>
-    Inheritance in the Quorum programming language allows a class to gain access 
-    to another class or classes.
+    Inheritance is a way to establish relationships between classes on the system,
+    most commonly referred to as an "is a" relationship. In Quorum, this is done
+    with the "is" keyword, and allows for a specialized way to reuse existing
+    code.
 </p>
 <h2>Inheriting A Single Class</h2>
 <p>
@@ -55,7 +65,7 @@ class Main
           Truck truck
           truck:setNumberOfWheels(4)
           integer a = truck:getNumberOfWheels()
-          print &quot;A truck has &quot; + a + &quot; wheels&quot;
+          output &quot;A truck has &quot; + a + &quot; wheels&quot;
     end
 end
 </code></pre></p>
@@ -165,9 +175,9 @@ class Main
         truck:build()
         //how many wheels and gallons does the truck have?
         integer a = truck:getNumberOfWheels()
-        print &quot;Number of wheels: &quot; + a
+        output &quot;Number of wheels: &quot; + a
         integer b = truck:getGallons()
-        print &quot;Size of gas tank (gallons): &quot; + b
+        output &quot;Size of gas tank (gallons): &quot; + b
     end
 end
 </code></pre></p>
@@ -175,4 +185,4 @@ end
     This program will print out &quot;Number of wheels: 4&quot; and &quot;Size 
     of gas tank (gallons): 20&quot;.
 </p>
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

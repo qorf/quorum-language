@@ -1,8 +1,16 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> 
-<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Writing Plugins for Quorum';
 </script>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Writing Quorum Plugins</h1>
+		<p>How to connect to Java (or other languages) from Quorum</p>
+	</div>
+</div>
+
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+
 <h1>Calling Java or C++ from Quorum</h1>
 <p>
 It is sometimes necessary, in any programming language, to want to use a feature
@@ -104,6 +112,4 @@ appropriate subfolder. For our example, if the full package name we specified in
 our system action class was Libraries.Mine.MyPlugin, then we would put the .class
 file for our plugin in the folder libraries/plugins/quorum/Libraries/Mine/MyPlugin.class.
 </p>
-
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  
- <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

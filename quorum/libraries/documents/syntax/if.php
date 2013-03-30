@@ -1,7 +1,14 @@
-<?php include("../../static/templates/pageheader.template.php"); ?> <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Doing things conditionally in Quorum';
 </script>
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Conditional Statements with "if"</h1>
+		<p>How to use the "if" keyword to control the flow of a program.</p>
+	</div>
+</div>
+<?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 <h1>The if Conditional</h1>
 <p>
 When programming a computer, you often want the machine to make decisions about 
@@ -55,4 +62,4 @@ is not greater than 100, this code will then test to see if b is greater than
 100. If that is the case, c will be set to 2. Finally, if neither a, nor b, are 
 greater than 100, c will be set to 3.
 </p>
- <?php include("../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>
