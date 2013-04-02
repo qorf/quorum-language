@@ -733,6 +733,10 @@ public class Main {
         exec.start();
         
         //for testing
+//        for(int i = 0; i < 10; i++) {
+//            exec.sendTestMessage(
+//                "output \"Hello" + ", world!"+ i +"\"");
+//        }
 //        exec.sendTestMessage(
 //                "output \"Hello" + ", world!\"");
 //        
