@@ -138,7 +138,7 @@ public class CompilerErrorManager {
         
         int i = 1;
         Iterator<CompilerError> it = iterator();
-        if(num == 1) {
+        if(num == 1 && it.hasNext()) {
             CompilerError error = it.next();
             errors += "Line " + error.getLineNumber() +
                     ", " + error.getError();
