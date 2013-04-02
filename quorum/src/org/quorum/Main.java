@@ -734,15 +734,15 @@ public class Main {
         
         //for testing
 //        exec.sendTestMessage(
-//                "print \"Hello" + ", world!\"");
+//                "output \"Hello" + ", world!\"");
 //        
 //        exec.sendTestMessage(
 //                "i = 0 "
 //                + "repeat 10 times "
-//                    + "print i "
+//                    + "output i "
 //                    + "i = i + 1  "
 //                + "end");
-        
+//        
 //        exec.sendTestMessage(
 //            "use Libraries.Sound.Music\n" +
 //            "Music muse\n" +
