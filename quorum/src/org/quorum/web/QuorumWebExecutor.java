@@ -219,7 +219,8 @@ public class QuorumWebExecutor {
                     virtualMachine.build(code);
                     CompilerErrorManager errors = virtualMachine.getCompilerErrors();
                     if (!errors.isCompilationErrorFree()) {
-                        errors.iterator();
+                        built = false;
+                        //errors.iterator();
                         response = errors.getShortErrorList();
                     } else {
                         built = true;
@@ -255,12 +256,16 @@ public class QuorumWebExecutor {
                     }
                 }
             }
+            
+            String status = "success";
             if (built && !failure) {
                 response = stream.toString();
+            } else {
+                status = "fail";
             }
 
             response = "{\n\t "
-                    + "\"status\": " + "\"success\",\n\t"
+                    + "\"status\": \"" + status + "\",\n\t"
                     + "\"data\": \"" + response + "\"\n}";
 
 //            long end = System.currentTimeMillis();
