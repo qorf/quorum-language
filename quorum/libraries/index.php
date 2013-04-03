@@ -69,5 +69,27 @@ repeat 12 times
    i = i + 1
 end
 </code></pre></p>
+<div class="runCode">
+		<div class="controller">
+			<div class="btn-group">
+  				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">Hello, World! <span class="caret"></span></a>
+				<ul class="dropdown-menu">
+    				<li class="code-example" data-toggle="dropdown" href="#"> HELLO! </li>
+    				<li class="code-example" data-toggle="dropdown" href="#"> World! </li>
+    				<li class="code-example" data-toggle="dropdown" href="#"> HELLO! </li>
+    				<li class="code-example" data-toggle="dropdown" href="#"> World! </li>
+  				</ul>
+			</div>
+			<div id="run" class="btn-group">
+  				<a class="btn btn-success" href="#">Run</a>
+  			</div>
+		</div>
+		<div class="input">
+			<textarea class="inputArea">print "Hello, World!"</textarea>
+		</div>
+		<div class="output">
+			<pre class="outputArea"></pre>
+		</div>
+	</div>
 </div>
 <?php require_once("static/templates/pagefooter.template.php"); ?>

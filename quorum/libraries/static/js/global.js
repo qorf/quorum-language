@@ -18,6 +18,8 @@ $(function() {
 	fiveStarRatings();
 
 	extendLeftSidebar(); // keep this at the end
+        
+        submitCodeSample();
 });
 
 function getUrlVars() {
@@ -321,9 +323,27 @@ var fiveStarRatings = function(starRatingsList) {
 		}
 	});
 }
-
-
-
+var submitCodeSample = function(){
+	$("#run").on("click", function(e) {
+		e.preventDefault();
+		$(".outputArea").text("");
+		
+		$.ajax({
+			type:"POST",
+			url: "controllers/IDE.controller.php",
+			data:{code: $(".inputArea").val()},
+			dataType: "json",
+			success: function(returnData){
+				$(".outputArea").text(returnData);
+				console.log("suc" + returnData);
+			},
+			completed: function(returnData){
+				$(".outputArea").text(returnData);
+				console.log("comp" + returnData);
+			}
+		})
+	})
+}
 
 
 
