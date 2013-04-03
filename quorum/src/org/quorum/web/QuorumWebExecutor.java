@@ -21,6 +21,11 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.security.Permission;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.quorum.vm.implementation.QuorumClassLoader;
@@ -173,14 +178,23 @@ public class QuorumWebExecutor {
     public void setPluginFolder(File pluginFolder) {
         this.pluginFolder = pluginFolder;
     }
-
-    private class MyHandler implements HttpHandler {
+    
+    private class ServerResponder implements Runnable {
+        HttpExchange httpExchange = null;
+        
         @Override
-        public void handle(HttpExchange t) throws IOException {
-            //long start = System.currentTimeMillis();
+        public void run() {
+            try {
+                respond(httpExchange);
+            } catch (IOException ex) {
+                Logger.getLogger(QuorumWebExecutor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        private synchronized void respond(HttpExchange t) throws IOException {
             OutputStream os = t.getResponseBody();
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
-
+            
             String response = "";
             List<String> get = t.getRequestHeaders().get("Content-length");
 
@@ -192,11 +206,6 @@ public class QuorumWebExecutor {
             } else {
                 return;
             }
-
-            //TODO: if length is too large, send back an error message
-
-            //TODO: If they try to access invalid (non-secure) code, send
-            //back an error message
 
             byte[] codeByteArray = new byte[length];
             String code = null;
@@ -215,7 +224,7 @@ public class QuorumWebExecutor {
                     CodeGenerator g = virtualMachine.getCodeGenerator();
                     g.setCompileToDisk(false);
                     virtualMachine.setGenerateCode(true);
-                    virtualMachine.clean();
+                    virtualMachine.clean(true);
                     virtualMachine.build(code);
                     CompilerErrorManager errors = virtualMachine.getCompilerErrors();
                     if (!errors.isCompilationErrorFree()) {
@@ -240,9 +249,13 @@ public class QuorumWebExecutor {
                         declaredMethod.invoke(null, (Object) programArguments);
                     }
                 } catch (IllegalAccessException ex) {
+//                    ex.printStackTrace();
                 } catch (IllegalArgumentException ex) {
+//                    ex.printStackTrace();
                 } catch (NoSuchMethodException ex) {
+//                    ex.printStackTrace();
                 } catch (ClassNotFoundException ex) {
+//                    ex.printStackTrace();
                 } catch (InvocationTargetException ex) {
                     if (ex.getCause() != null && ex.getCause() instanceof ExitException) {
                         failure = false; // a normal exit code was received.
@@ -267,17 +280,24 @@ public class QuorumWebExecutor {
             response = "{\n\t "
                     + "\"status\": \"" + status + "\",\n\t"
                     + "\"data\": \"" + response + "\"\n}";
-
-//            long end = System.currentTimeMillis();
-//            response += "\nTime: " + (end - start) / 1000.0;
-            
             t.sendResponseHeaders(200, response.length());
-
             
             os.write(response.getBytes());
             stream.flush();
             stream.close();
             os.close();
+        }
+        
+    }
+
+    private class MyHandler implements HttpHandler {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        
+        @Override
+        public void handle(final HttpExchange t) throws IOException {
+            ServerResponder responder = new ServerResponder();
+            responder.httpExchange = t;
+            responder.run();
         }
     }
 }

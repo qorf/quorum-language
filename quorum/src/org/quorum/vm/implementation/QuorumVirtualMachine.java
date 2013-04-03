@@ -101,7 +101,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
     /**
      * Used in the build(String) method to guarantee unique tokens.
      */
-    private SecureRandom random = new SecureRandom();
+    private static SecureRandom random = new SecureRandom();
     
     public QuorumVirtualMachine() {
         compilerErrors = new CompilerErrorManager();
@@ -442,7 +442,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             } else {
                 parsed = true;
             }
-        } catch (RecognitionException exception) {
+        } catch (Exception exception) {
             logger.log(Level.INFO, "Exception thrown while trying to parse file "
                     + file.getAbsolutePath() + " with source <quorum>"
                     + text + "</quorum>", exception);
@@ -569,7 +569,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         }
     }
 
-    String token = new BigInteger(130, random).toString(32) + ".quorum";
+    static String token = "bob" + new BigInteger(130, random).toString(32) + ".quorum";
     
     /**
      * This function builds source code directly from a string that is not
@@ -583,6 +583,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         this.setMain(fakeMain.getAbsolutePath());
         this.compilerErrors.setErrorKey(fakeMain.getAbsolutePath());
         this.parseSingle(fakeMain, source);
+        
         updateCache(fakeMain);
         
         computeStandardLibraryFiles();
