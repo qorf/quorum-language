@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.quorum.vm.implementation.QuorumClassLoader;
@@ -47,7 +48,7 @@ public class QuorumWebExecutor {
     private File pluginFolder;
     private static PrintStream defaultStandardOut = System.out;
     private QuorumSecurityMode securityMode = QuorumSecurityMode.WEB;
-    
+
     public QuorumWebExecutor() {
         System.setSecurityManager(new SecurityManager() {
             @Override
@@ -178,10 +179,11 @@ public class QuorumWebExecutor {
     public void setPluginFolder(File pluginFolder) {
         this.pluginFolder = pluginFolder;
     }
-    
+
     private class ServerResponder implements Runnable {
+
         HttpExchange httpExchange = null;
-        
+
         @Override
         public void run() {
             try {
@@ -190,114 +192,145 @@ public class QuorumWebExecutor {
                 Logger.getLogger(QuorumWebExecutor.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
+
         private synchronized void respond(HttpExchange t) throws IOException {
             OutputStream os = t.getResponseBody();
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            
             String response = "";
-            List<String> get = t.getRequestHeaders().get("Content-length");
-
-            int length = 0;
-            if (!get.isEmpty()) {
-                String value = get.get(0);
-                int parseInt = Integer.parseInt(value);
-                length = parseInt;
-            } else {
-                return;
-            }
-
-            byte[] codeByteArray = new byte[length];
-            String code = null;
             try {
-                t.getRequestBody().read(codeByteArray);
-                String toString = new String(codeByteArray);
-                code = toString;
-            } catch (IOException e) {
-                System.out.println("Could not get data from user.");
-            }
+                List<String> get = t.getRequestHeaders().get("Content-length");
+                int length = 0;
+                if (!get.isEmpty()) {
+                    String value = get.get(0);
+                    int parseInt = Integer.parseInt(value);
+                    length = parseInt;
+                } else {
+                    return;
+                }
 
-            boolean built = false;
-            boolean failure = false;
-            if (code != null) {
+                byte[] codeByteArray = new byte[length];
+                String code = null;
                 try {
-                    CodeGenerator g = virtualMachine.getCodeGenerator();
-                    g.setCompileToDisk(false);
-                    virtualMachine.setGenerateCode(true);
-                    virtualMachine.clean(true);
-                    virtualMachine.build(code);
-                    CompilerErrorManager errors = virtualMachine.getCompilerErrors();
-                    if (!errors.isCompilationErrorFree()) {
-                        built = false;
-                        //errors.iterator();
-                        response = errors.getShortErrorList();
-                    } else {
-                        built = true;
-                        virtualMachine.setMain(virtualMachine.getMain());
-                        // Load the main quorum class and invoke the static main(String[] args) method with no arguments.
-                        String mainClassName = g.getMainClassName();
-                        QuorumClassLoader classLoader = new QuorumClassLoader();
-                        classLoader.setSecurityMode(securityMode);
-                        classLoader.setCodeGenerator(g);
-                        classLoader.setPluginFolder(getPluginFolder());
-                        Class<?> quorumClass = null;
-                        System.setOut(new PrintStream(stream));
+                    t.getRequestBody().read(codeByteArray);
+                    String toString = new String(codeByteArray);
+                    code = toString;
+                } catch (IOException e) {
+                    System.out.println("Could not get data from user.");
+                }
 
-                        quorumClass = classLoader.loadClass(mainClassName.replaceAll("/", "."));
-                        Method declaredMethod = quorumClass.getDeclaredMethod("main", new Class[]{String[].class});
-                        String[] programArguments = {}; // TODO: In the future, this can be used to pass arguments to a program running in interpreted mode.
-                        declaredMethod.invoke(null, (Object) programArguments);
-                    }
-                } catch (IllegalAccessException ex) {
+                boolean built = false;
+                boolean failure = false;
+                if (code != null) {
+                    try {
+                        CodeGenerator g = virtualMachine.getCodeGenerator();
+                        g.setCompileToDisk(false);
+                        virtualMachine.setGenerateCode(true);
+                        virtualMachine.clean(true);
+                        virtualMachine.build(code);
+                        CompilerErrorManager errors = virtualMachine.getCompilerErrors();
+                        if (!errors.isCompilationErrorFree()) {
+                            built = false;
+                            response = errors.getShortErrorList();
+                        } else {
+                            built = true;
+                            virtualMachine.setMain(virtualMachine.getMain());
+                            // Load the main quorum class and invoke the static main(String[] args) method with no arguments.
+                            String mainClassName = g.getMainClassName();
+                            QuorumClassLoader classLoader = new QuorumClassLoader();
+                            classLoader.setSecurityMode(securityMode);
+                            classLoader.setCodeGenerator(g);
+                            classLoader.setPluginFolder(getPluginFolder());
+                            Class<?> quorumClass = null;
+                            System.setOut(new PrintStream(stream));
+
+                            quorumClass = classLoader.loadClass(mainClassName.replaceAll("/", "."));
+                            Method declaredMethod = quorumClass.getDeclaredMethod("main", new Class[]{String[].class});
+                            String[] programArguments = {}; // TODO: In the future, this can be used to pass arguments to a program running in interpreted mode.
+                            declaredMethod.invoke(null, (Object) programArguments);
+                        }
+                    } catch (IllegalAccessException ex) {
 //                    ex.printStackTrace();
-                } catch (IllegalArgumentException ex) {
+                    } catch (IllegalArgumentException ex) {
 //                    ex.printStackTrace();
-                } catch (NoSuchMethodException ex) {
+                    } catch (NoSuchMethodException ex) {
 //                    ex.printStackTrace();
-                } catch (ClassNotFoundException ex) {
+                    } catch (ClassNotFoundException ex) {
 //                    ex.printStackTrace();
-                } catch (InvocationTargetException ex) {
-                    if (ex.getCause() != null && ex.getCause() instanceof ExitException) {
-                        failure = false; // a normal exit code was received.
-                    } else if (ex.getCause() instanceof java.lang.NoClassDefFoundError) {
-                        if (ex.getCause().getCause() != null && ex.getCause().getCause() instanceof QuorumSecurityException) {
-                            QuorumSecurityException qex = (QuorumSecurityException) ex.getCause().getCause();
-                            response = "Error: Class " + qex.getClassName() + " cannot be used"
-                                    + " from the web version of Quorum.";
-                            failure = true;
+                    } catch (InvocationTargetException ex) {
+                        if (ex.getCause() != null && ex.getCause() instanceof ExitException) {
+                            failure = false; // a normal exit code was received.
+                        } else if (ex.getCause() instanceof java.lang.NoClassDefFoundError) {
+                            if (ex.getCause().getCause() != null && ex.getCause().getCause() instanceof QuorumSecurityException) {
+                                QuorumSecurityException qex = (QuorumSecurityException) ex.getCause().getCause();
+                                response = "Error: Class " + qex.getClassName() + " cannot be used"
+                                        + " from the web version of Quorum.";
+                                failure = true;
+                            }
                         }
                     }
                 }
-            }
-            
-            String status = "success";
-            if (built && !failure) {
-                response = stream.toString();
-            } else {
-                status = "fail";
-            }
 
-            response = "{\n\t "
-                    + "\"status\": \"" + status + "\",\n\t"
-                    + "\"data\": \"" + response + "\"\n}";
-            t.sendResponseHeaders(200, response.length());
-            
-            os.write(response.getBytes());
-            stream.flush();
-            stream.close();
-            os.close();
+                String status = "success";
+                if (built && !failure) {
+                    response = stream.toString();
+                } else {
+                    status = "fail";
+                }
+                response = "{\n\t "
+                        + "\"status\": \"" + status + "\",\n\t"
+                        + "\"data\": \"" + response + "\"\n}";
+
+                t.sendResponseHeaders(200, response.length());
+                os.write(response.getBytes());
+                stream.flush();
+                stream.close();
+                os.close();
+                System.gc();
+            } catch (java.lang.OutOfMemoryError ex) {
+                System.gc();
+                return;
+            } catch (Exception ex) {
+                System.gc();
+                return;
+            }
         }
-        
     }
 
     private class MyHandler implements HttpHandler {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        
+
+        private static final int timeout = 2000;
+
         @Override
-        public void handle(final HttpExchange t) throws IOException {
-            ServerResponder responder = new ServerResponder();
-            responder.httpExchange = t;
-            responder.run();
+        public synchronized void handle(final HttpExchange t) throws IOException {
+            try {
+                ServerResponder responder = new ServerResponder();
+                responder.httpExchange = t;
+                Thread thread = new Thread(responder, "Quorum Code Runner");
+                //thread.setDaemon(true);
+                execute(thread, timeout);
+            } catch (TimeoutException ex) {
+                System.gc();
+                OutputStream os = t.getResponseBody();
+                String response = "{\n\t "
+                        + "\"status\": \"" + "fail" + "\",\n\t"
+                        + "\"data\": \"" + "Request timed out" + "\"\n}";
+                t.sendResponseHeaders(200, response.length());
+                os.write(response.getBytes());
+                os.close();
+            }
+            System.gc();
+        }
+
+        public synchronized void execute(Thread task, long timeout) throws TimeoutException {
+            task.start();
+            try {
+                task.join(timeout);
+            } catch (InterruptedException e) {
+            }
+            if (task.isAlive()) {
+                task.interrupt();
+                throw new TimeoutException();
+            }
         }
     }
 }

@@ -737,6 +737,14 @@ public class Main {
 //            exec.sendTestMessage(
 //                "output \"Hello" + ", world!"+ i +"\"");
 //        }
+//        
+//        exec.sendTestMessage(
+//                "repeat while true output \"Testing loop\" end");
+//        
+//        for(int i = 0; i < 10; i++) {
+//            exec.sendTestMessage(
+//                "output \"Hello" + ", world!"+ i +"\"");
+//        }
 //        exec.sendTestMessage(
 //                "output \"Hello" + ", world!\"");
 //        
