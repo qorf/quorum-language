@@ -266,7 +266,7 @@ var fiveStarRatings = function(starRatingsList) {
 
 	var postRating = function(controllable, starNumber) {
 		var username = $("input#username").val();
-		var classStaticKey = $("input#class-statickey").val();
+		var classStaticKey = $("input#classkey").val();
 		var componentType = controllable.data("componenttype")
 		var postData = { username: username, classstatickey: classStaticKey, rating: starNumber, componenttype: componentType };
 		switch (componentType) {
@@ -275,34 +275,37 @@ var fiveStarRatings = function(starRatingsList) {
 				postData['actionkey'] = controllable.data("actionkey");
 				break;
 			case "parameter-name": case "parameter-description":
-				postData['actionkey'] = controllable.closest(".action").find(".controllable[data-componenttype=action-name]");
+				postData['actionkey'] = controllable.closest(".action").find(".controllable[data-componenttype=action-name]").data("actionkey");
 				postData['parameterkey'] = controllable.data("parameterkey");
 				break;
 		}
 
-
 		$.ajax({
-		  type: "POST",
-		  url: "", // TODO: fix this URL
-		  dataType: "json",
-		  data: postData,
-		  success: function(result) {
-		  	// show a success message
-		  },
-		  error: function(error) {
-		  	// show an error message
-		  }
+			type: "POST",
+			url: "/controllers/ratings.controller.php?action=submitRating", // TODO: fix this URL
+			dataType: "json",
+			data: postData,
+			success: function(result) {
+				// show a success message
+				console.info(result);
+			},
+			error: function (xhr, ajaxOptions, thrownError) {
+				// show an error message
+				console.error(xhr.status);
+				console.error(thrownError);
+			}
 		});
 	}
 
 	$(".star-ratings li").on({
 		mouseenter: function() {
-			setClickedStars(this);
+			setStars($(this).parent(), numberOfStars(this));
 		},
 		mouseleave: function() { 
 			setStars($(this).parent(), 0);
 		},
-		click: function() {
+		click: function(e) {
+			e.preventDefault();
 			var starNumber = numberOfStars(this);
 			setStars($(this).parent(), starNumber);
 

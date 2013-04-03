@@ -53,6 +53,7 @@
 					
 					<div class="user-controls">
 						<?php displayUserControls(); ?>
+						<input type="hidden" id="username" value="kerryritter" /> <!-- this needs to get updated but this is to test -->
 					</div>
 				</div>
 			</div>

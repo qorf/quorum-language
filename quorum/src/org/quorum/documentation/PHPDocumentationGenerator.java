@@ -72,27 +72,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
     }
     
     @Override
-    public void finishIndex() {
-        Collections.sort(classes, new Comparator() {
-            @Override
-            public int compare(Object a, Object b) {
-                ClassDescriptor left = (ClassDescriptor) a;
-                ClassDescriptor right = (ClassDescriptor) b;
-                //first compare the keys of the containers
-                String leftContainer = left.getContainer().getContainer();
-                String rightContainer = right.getContainer().getContainer();
-                
-                int result = leftContainer.compareTo(rightContainer);
-                if(result == 0) {
-                    return left.getStaticKey().compareTo(right.getStaticKey());
-                }
-                else {
-                    return result;
-                }
-                
-            }
-        });
-        
+    public void finishIndex() {        
         indexPage += generateHeader();
         indexPage += "\t\t<div class=\"hero-unit\">\n";
         indexPage += "\t\t\t<div class=\"hero-unit-container\">\n";
@@ -112,51 +92,10 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         indexPage += "\t\t\t</div>\n";
         indexPage += "\t\t</form>\n";
         indexPage += "\t</div>\n";
-        indexPage += "</div>\n";
-
-        HashMap<String, IndexWrapperClass> containers = new HashMap<String, IndexWrapperClass>();
-        for(int i = 0; i < classes.size(); i++) {
-            ClassDescriptor clazz = classes.get(i);
-            String newContainer = clazz.getContainer().getContainer();
-
-            //is this a new container?
-            boolean isTopLevelContainer = newContainer.split("\\.").length == 2;
-            if(isTopLevelContainer) {
-                if(!containers.containsKey(newContainer)) {
-                    HashMap<String, String> subContainers = new HashMap<String, String>();
-                    IndexWrapperClass wrapped = new IndexWrapperClass();
-                    wrapped.containerName = newContainer;
-                    containers.put(newContainer, wrapped);
-                }
-            }
-            
-            boolean isSubContainer = newContainer.split("\\.").length >= 3;
-            if(isSubContainer) {
-                String[] split = newContainer.split("\\.");
-                String name = split[0] + "." + split[1];
-                
-                IndexWrapperClass wrapped = containers.get(name);
-                if(!wrapped.subcontainers.containsKey(newContainer)) {
-                    wrapped.subcontainers.put(newContainer, newContainer);
-                }
-            }
-        }
-        
+        indexPage += "</div>\n";        
         indexPage += "<ul class=\"index-grid\">\n";
         
-        List<IndexWrapperClass> containersCollection = new ArrayList<IndexWrapperClass>(containers.values());
-        Comparator comparator = new Comparator() {
-                                        @Override
-                                        public int compare(Object a, Object b) {
-                                            IndexWrapperClass left = (IndexWrapperClass) a;
-                                            IndexWrapperClass right = (IndexWrapperClass) b;
-                                            return (left.containerName.compareTo(right.containerName));
-                                        };
-                               };
-        
-        Collections.sort(containersCollection, comparator);
-        
-        Iterator<IndexWrapperClass> iterator = containersCollection.iterator();
+        Iterator<IndexWrapperClass> iterator = getContainersCollection().iterator();
         while(iterator.hasNext()) {
             IndexWrapperClass next = iterator.next();
             
@@ -194,27 +133,67 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         classes.add(clazz);        
     }
     
-    private void createClassTables() {
-        Collections.sort(classes, new Comparator() {
-            @Override
-            public int compare(Object a, Object b) {
-                ClassDescriptor left = (ClassDescriptor) a;
-                ClassDescriptor right = (ClassDescriptor) b;
-                //first compare the keys of the containers
-                String leftContainer = left.getContainer().getContainer();
-                String rightContainer = right.getContainer().getContainer();
-                
-                int result = leftContainer.compareTo(rightContainer);
-                if(result == 0) {
-                    return left.getStaticKey().compareTo(right.getStaticKey());
-                }
-                else {
-                    return result;
-                }
-                
-            }
-        });
+    
+    /**
+    * Get all the containers is the compiler in a sorted and subcontainer-nested collection.
+    * 
+    * @param
+    * @return
+    */
+    private Collection getContainersCollection() {
+        sortClasses();
         
+        HashMap<String, IndexWrapperClass> containers = new HashMap<String, IndexWrapperClass>();
+        for(int i = 0; i < classes.size(); i++) {
+            ClassDescriptor clazz = classes.get(i);
+            String newContainer = clazz.getContainer().getContainer();
+            
+            //is this a new container?
+            boolean isTopLevelContainer = newContainer.split("\\.").length == 2;
+            if(isTopLevelContainer) {
+                if(!containers.containsKey(newContainer)) {
+                    HashMap<String, String> subContainers = new HashMap<String, String>();
+                    IndexWrapperClass wrapped = new IndexWrapperClass();
+                    wrapped.containerName = newContainer;
+                    containers.put(newContainer, wrapped);
+                }
+            }
+            
+            boolean isSubContainer = newContainer.split("\\.").length >= 3;
+            if(isSubContainer) {
+                String[] split = newContainer.split("\\.");
+                String name = split[0] + "." + split[1];
+                
+                IndexWrapperClass wrapped = containers.get(name);
+                if(!wrapped.subcontainers.containsKey(newContainer)) {
+                    wrapped.subcontainers.put(newContainer, newContainer);
+                }
+            }
+        }
+        
+        List<IndexWrapperClass> containersCollection = new ArrayList<IndexWrapperClass>(containers.values());
+        Comparator comparator = new Comparator() {
+                                        @Override
+                                        public int compare(Object a, Object b) {
+                                            IndexWrapperClass left = (IndexWrapperClass) a;
+                                            IndexWrapperClass right = (IndexWrapperClass) b;
+                                            return (left.containerName.compareTo(right.containerName));
+                                        };
+                               };
+        
+        Collections.sort(containersCollection, comparator);
+        
+        return containersCollection;
+    }
+    
+    
+    /**
+    * Generate the tables appear underneath the Libraries grid.
+    * 
+    * @param
+    * @return
+    */
+    private void createClassTables() {
         indexPage += "\n<table class=\"table\">";
         String previousContainer = "!!!!----invalid----!!!!";
         boolean firstPackage = true;
@@ -228,7 +207,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                     indexPage += "\t</table>\n";
                 }
                 
-                indexPage += "<a id=\"" + newContainer.toLowerCase().replace(".","-") + "\"></a><table class=\"table index-package\">\n";
+                indexPage += "<a id=\"" + newContainer.toLowerCase().replace(".","-") + "\"></a><table id=\"table-" + newContainer.toLowerCase().replace(".","-") + "\" class=\"table index-package\">\n";
                 indexPage += "<tr><th><h3 class=\"index_package_title\">" + (newContainer.isEmpty() ? "Default Package" : newContainer) + "</h3></th></tr>\n";
                 indexPage += "\t<tr class=\"packages\">\n";
                 standardListItem = true;
@@ -252,6 +231,88 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         indexPage += "\n</table>";
     }
     
+    
+    /**
+    * Generate the left-side navigation on the documentation pages.
+    * 
+    * @param
+    * @return
+    */
+    private void generateSidebar() {
+        String html = "\n<ul class=\"index\">";
+        String previousContainer = "!!!!----invalid----!!!!";
+        boolean firstPackage = true;
+        boolean standardListItem = true;
+        boolean firstSublistItem = true;
+        boolean beginSublist = false;
+        
+        for(int i = 0; i < classes.size(); i++) {
+            ClassDescriptor clazz = classes.get(i);
+            String newContainer = clazz.getContainer().getContainer();
+            if(previousContainer.compareTo(newContainer)!=0) { // if it's a new container
+                previousContainer = newContainer;
+                if(!firstPackage) { html += "\t</li></ul>\n"; }
+                
+                html += "<li>";
+                html += "\t<span class=\"collapsable\"><a href=\"#\">" + (newContainer.isEmpty() ? "Default Package" : newContainer) + "</a></span>\n";
+                standardListItem = true;
+                beginSublist = true;
+            }
+            
+            if (firstSublistItem) {
+                html += "</ul>";
+                firstSublistItem = false;
+            }
+            if (beginSublist) {
+                html += "<ul class=\"child\">";
+            }
+            
+            html += "<li><span class=\"collapsable\">" + linkForClassFromRoot(clazz) + "</span></li>";
+            
+            firstPackage = false;
+            beginSublist = false;
+        }
+        
+        html += "\n</li></ul>";
+        
+    }
+    
+    
+    /**
+    * Sort all of the classes in the compiler - first by container name, then by
+    * class name.
+    * 
+    * @param
+    * @return
+    */
+    private void sortClasses() {
+        Collections.sort(classes, new Comparator() {
+            @Override
+            public int compare(Object a, Object b) {
+                ClassDescriptor left = (ClassDescriptor) a;
+                ClassDescriptor right = (ClassDescriptor) b;
+                //first compare the keys of the containers
+                String leftContainer = left.getContainer().getContainer();
+                String rightContainer = right.getContainer().getContainer();
+                
+                int result = leftContainer.compareTo(rightContainer);
+                if(result == 0) {
+                    return left.getStaticKey().compareTo(right.getStaticKey());
+                }
+                else {
+                    return result;
+                }
+                
+            }
+        });
+    }
+    
+    /**
+    * Given a class, get the link to its page.
+    * 
+    * @param clazz
+    * @return String
+    */
     private String linkForClassFromRoot(ClassDescriptor clazz) {
         return link(generatePathToClassFromRoot(clazz), clazz.getName());
     }
@@ -379,6 +440,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         result += "<?php include('" + root + "static/templates/classheader.template.php'); ?>";
         
         result += headingSurround(key, 1, "page_title") + "\n";
+        result += "<input type=\"hidden\" id=\"classkey\" value=\"" + clazz.getStaticKey() + "\" />";
 
         //get the class's name in wiki format
         String className = clazz.getName();
@@ -517,6 +579,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                 result += "</div>";
             }
         }
+        
         //now generate any information relevant from the parents.
         parents = sortedParents.iterator();
         String pString = headingSurround("Inherited Actions",2) + "\n\n";
@@ -579,6 +642,19 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
     
     private String controllableComponent(String string, String componentType) {
         return "<span class=\"controllable\" data-componentType=\"" + componentType + "\">" + string + "</span>";  
+    }
+    
+    private String controllableComponent(String string, String componentType, String staticKey) {
+        String dataName = "";
+        
+        if (componentType.equals("action-name") || componentType.equals("action-example") || componentType.equals("action-description")) {
+            dataName = "data-actionkey"; 
+        }
+        else if (componentType.equals("parameter-name") || componentType == "parameter-description") {
+            dataName = "data-parameterkey";
+        }
+        
+        return "<span class=\"controllable\" data-componentType=\"" + componentType + "\" " + dataName + "=\"" + staticKey + "\">" + string + "</span>";  
     }
     
     private String getVariableDocumentation(VariableDescriptor variable) {
@@ -811,7 +887,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         return string;
     }
     
-    private String getMethodSignature(MethodDescriptor method) {
+    private String getMethodSignature(MethodDescriptor method, boolean ratingsOn) {
         String result = "";
         String name = method.getName();
         String modifier = method.getAccessModifier().toString();
@@ -848,10 +924,19 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                 params += currentParam;
             }
         }
-        result += controllableComponent(modifier + methodType + " action " + name + "(" + params + ")", "action-name");
+        if(ratingsOn) {
+            result += controllableComponent(modifier + methodType + " action " + name + "(" + params + ")", "action-name", method.getStaticKey());
+        } else {
+            result += modifier + methodType + " action " + name + "(" + params + ")";
+        }
         
         String returnType = getReturnTypeString(method);
         return result;
+    }
+    
+    
+    private String getMethodSignature(MethodDescriptor method) {
+        return getMethodSignature(method, false);
     }
 
     public String getMethodDocumentation(MethodDescriptor method) {
@@ -921,7 +1006,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
             }
             paramList += "</ul>";
         }
-        String methodSignature = getMethodSignature(method);
+        String methodSignature = getMethodSignature(method, true);
         result += "\n\t" + headingSurround(methodSignature, 3, "action_title") + "\n";
 
         

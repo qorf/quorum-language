@@ -1,5 +1,5 @@
 <?php
-	require_once("../data.model.php");
+	require_once("data.model.php");
 
 	class User extends QuorumDataModel {
 		private $table_name;
@@ -18,14 +18,12 @@
 
 		public function insert() {
 			// this needs tested, i've always done existence checks in PHP prior to this
-			$sqlQuery = "IF EXISTS (SELECT * FROM " . $table_name . " WHERE email=? OR username=? OR google_id=?)"
-					  . " INSERT INTO " . $table_name
-					  . " (email, username, password, reset_password_key, reset_password_expire, google_id)"
-					  . " VALUES (?, ?, SHA1(?), ?, ?)";
+			$sqlQuery = "IF EXISTS (SELECT * FROM " . $table_name . " WHERE email=? OR username=? OR google_id=?) INSERT INTO " . $table_name
+					  . " (email, username, password, reset_password_key, reset_password_expire, google_id) VALUES (?, ?, SHA1(?), ?, ?)";
 
-			$valuesToPrepare = array($this->email, $this->username, $this->password, NULL, NULL, $this->google_id);
-			$preparedStatement = $this->connection->prepare($sqlQuery, $valuesToPrepare);
-			$preparedStatement->execute();
+			$valuesToPrepare = array($this->email, $this->username, $this->password, NULL, NULL, $this->google_id); var_dump($valuesToPrepare);
+			$preparedStatement = $this->connection->prepare($sqlQuery);
+			$preparedStatement->execute($valuesToPrepare);
 
 			return $preparedStatement;
 		}
@@ -40,8 +38,8 @@
 				$valuesToPrepare = array($this->email, $this->google_id);
 			}
 
-			$preparedStatement = $this->connection->prepare($sqlQuery, $valuesToPrepare);
-			$preparedStatement->execute();
+			$preparedStatement = $this->connection->prepare($sqlQuery);
+			$preparedStatement->execute($valuesToPrepare);
 
 			return ($preparedStatement->rowCount() == 1) ? true : false; // if we have one row, we are logged in.
 		}

@@ -1,18 +1,18 @@
 <?php
-	require_once("../data.model.php");
+	require_once("data.model.php");
 
 	class Rating extends QuorumDataModel {
 		function __construct() {
 			parent::__construct();
 		}
 
-		public function addRatingToDatabase($rating) {
-			$updateResult = update($rating);
+		public function addRatingToDatabase($ratingToUpdate) {
+			$updateResult = $this->update($ratingToUpdate);
 
 			if (is_int($updateResult)) {
 				// if no rows are updated, try to insert and return the result of the insertion.
 				// otherwise the update was successful so return true.
-				return ($updateResult == 0) ? insert() : 1;
+				return ($updateResult == 0) ? $this->insert() : 1;
 			}
 
 			return $updateResult; // if we got here, we know the update threw an exception
@@ -38,43 +38,44 @@
 
 		public function insert() {
 			try {
-				$sqlQuery = "INSERT INTO " . $table_name	 										
+				$sqlQuery = "INSERT INTO " . $this->table_name	 										
 						  . " (static_key, user, rating_name, rating_example, rating_description)"
 						  . " VALUES (?, ?, ?, ?, ?)";
 
 				$valuesToPrepare = array($this->static_key, $this->user, $this->rating_name, $this->rating_example, $this->rating_description);
-				$preparedStatement = $this->connection->prepare($sqlQuery, $valuesToPrepare);
-				$preparedStatement->execute();
+				print "<br /><br />"; var_dump($this);	print "<br /><br />"; var_dump($valuesToPrepare);
+				$preparedStatement = $this->connection->prepare($sqlQuery);
+				$preparedStatement->execute($valuesToPrepare);
 
 				return $preparedStatement->rowCount();
 			}
 			catch (Exception $e) {
-				return null;
+				return $e;
 			}
 		}
 
-		public function update($rating) {
+		public function update($ratingToUpdate) {
 			try {
 				$sqlQuery = null;
 				$valuesToPrepare = null;
 
-				switch ($rating) {
+				switch ($ratingToUpdate) {
 					case "name": 
-						$sqlQuery = "UPDATE " . $table_name . " SET rating_name=? WHERE static_key = ? AND user = ?";
+						$sqlQuery = "UPDATE " . $this->table_name . " SET rating_name=? WHERE static_key = ? AND user = ?";
 						$valuesToPrepare = array($this->rating_name, $this->static_key, $this->user);
 						break;
 					case "example":
-						$sqlQuery = "UPDATE " . $table_name . " SET rating_example=? WHERE static_key = ? AND user = ?";
+						$sqlQuery = "UPDATE " . $this->table_name . " SET rating_example=? WHERE static_key = ? AND user = ?";
 						$valuesToPrepare = array($this->rating_example, $this->static_key, $this->user);
 						break;
 					case "description":
-						$sqlQuery = "UPDATE " . $table_name . " SET rating_description=? WHERE static_key = ? AND user = ?";
+						$sqlQuery = "UPDATE " . $this->table_name . " SET rating_description=? WHERE static_key = ? AND user = ?";
 						$valuesToPrepare = array($this->rating_description, $this->static_key, $this->user);
 						break;
 				}
-				
-				$preparedStatement = $this->connection->prepare($sqlQuery, $valuesToPrepare);
-				$preparedStatement->execute();
+
+				$preparedStatement = $this->connection->prepare($sqlQuery);
+				$preparedStatement->execute($valuesToPrepare);
 
 				return $preparedStatement->rowCount();
 			}
@@ -105,43 +106,44 @@
 
 		public function insert() {
 			try {
-				$sqlQuery = "INSERT INTO " . $table_name		 										
+				$sqlQuery = "INSERT INTO " . $this->table_name		 										
 						  . " (class_static_key, static_key, user, rating_name, rating_example, rating_description)"
 						  . " VALUES (?, ?, ?, ?, ?)";
 
 				$valuesToPrepare = array($this->class_static_key, $this->static_key, $this->user, $this->rating_name, $this->rating_example, $this->rating_description);
-				$preparedStatement = $this->connection->prepare($sqlQuery, $valuesToPrepare);
-				$preparedStatement->execute();
+				$preparedStatement = $this->connection->prepare($sqlQuery);
+
+				$preparedStatement->execute($valuesToPrepare);
 
 				return $preparedStatement->rowCount();
 			}
 			catch (Exception $e) {
-				return null;
+				return $e;
 			}
 		}
 
-		public function update($rating) {
+		public function update($ratingToUpdate) {
 			try {
 				$sqlQuery = null;
 				$valuesToPrepare = null;
 
-				switch ($rating) {
+				switch ($ratingToUpdate) {
 					case "name": 
-						$sqlQuery = "UPDATE " . $table_name . " SET rating_name=? WHERE static_key = ? AND user = ? AND class_static_key = ?";
+						$sqlQuery = "UPDATE " . $this->table_name . " SET rating_name=? WHERE static_key = ? AND user = ? AND class_static_key = ?";
 						$valuesToPrepare = array($this->rating_name, $this->static_key, $this->user, $this->class_static_key);
 						break;
 					case "example":
-						$sqlQuery = "UPDATE " . $table_name . " SET rating_example=? WHERE static_key = ? AND user = ? AND class_static_key = ?";
+						$sqlQuery = "UPDATE " . $this->table_name . " SET rating_example=? WHERE static_key = ? AND user = ? AND class_static_key = ?";
 						$valuesToPrepare = array($this->rating_example, $this->static_key, $this->user, $this->class_static_key);
 						break;
 					case "description":
-						$sqlQuery = "UPDATE " . $table_name . " SET rating_description=? WHERE static_key = ? AND user = ? AND class_static_key = ?";
+						$sqlQuery = "UPDATE " . $this->table_name . " SET rating_description=? WHERE static_key = ? AND user = ? AND class_static_key = ?";
 						$valuesToPrepare = array($this->rating_description, $this->static_key, $this->user, $this->class_static_key);
 						break;
 				}
 				
-				$preparedStatement = $this->connection->prepare($sqlQuery, $valuesToPrepare);
-				$preparedStatement->execute();
+				$preparedStatement = $this->connection->prepare($sqlQuery);
+				$preparedStatement->execute($valuesToPrepare);
 
 				return $preparedStatement->rowCount();
 			}
@@ -172,39 +174,39 @@
 
 		public function insert() {
 			try {
-				$sqlQuery = "INSERT INTO " . $table_name			 										
+				$sqlQuery = "INSERT INTO " . $this->table_name			 										
 						  . " (class_static_key, action_static_key, static_key, user, rating_name, rating_description)"
 						  . " VALUES (?, ?, ?, ?, ?)";
 
 				$valuesToPrepare = array($this->class_static_key, $this->action_static_key, $this->static_key, $this->user, $this->rating_name, $this->rating_example, $this->rating_description);
-				$preparedStatement = $this->connection->prepare($sqlQuery, $valuesToPrepare);
-				$preparedStatement->execute();
+				$preparedStatement = $this->connection->prepare($sqlQuery);
+				$preparedStatement->execute($valuesToPrepare);
 
 				return $preparedStatement->rowCount();
 			}
 			catch (Exception $e) {
-				return null;
+				return $e;
 			}
 		}
 
-		public function update($rating) {
+		public function update($ratingToUpdate) {
 			try {
 				$sqlQuery = null;
 				$valuesToPrepare = null;
 
-				switch ($rating) {
+				switch ($ratingToUpdate) {
 					case "name": 
-						$sqlQuery = "UPDATE " . $table_name . " SET rating_name=? WHERE static_key = ? AND user = ? AND class_static_key = ? AND action_static_key = ?";
+						$sqlQuery = "UPDATE " . $this->table_name . " SET rating_name=? WHERE static_key = ? AND user = ? AND class_static_key = ? AND action_static_key = ?";
 						$valuesToPrepare = array($this->rating_name, $this->static_key, $this->user, $this->class_static_key, $this->action_static_key);
 						break;
 					case "description":
-						$sqlQuery = "UPDATE " . $table_name . " SET rating_description=? WHERE static_key = ? AND user = ? AND class_static_key = ? AND action_static_key = ?";
+						$sqlQuery = "UPDATE " . $this->table_name . " SET rating_description=? WHERE static_key = ? AND user = ? AND class_static_key = ? AND action_static_key = ?";
 						$valuesToPrepare = array($this->rating_description, $this->static_key, $this->user, $this->class_static_key, $this->action_static_key);
 					 	break;
 				}
 				
-				$preparedStatement = $this->connection->prepare($sqlQuery, $valuesToPrepare);
-				$preparedStatement->execute();
+				$preparedStatement = $this->connection->prepare($sqlQuery);
+				$preparedStatement->execute($valuesToPrepare);
 
 				return $preparedStatement->rowCount();
 			}
