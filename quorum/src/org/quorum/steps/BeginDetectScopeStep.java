@@ -5,6 +5,7 @@
 
 package org.quorum.steps;
 
+import java.util.ArrayList;
 import org.quorum.execution.BlockScope;
 import org.quorum.execution.DataEnvironment;
 import org.quorum.execution.ExecutionStepVisitor;
@@ -19,7 +20,7 @@ public class BeginDetectScopeStep extends BeginScopeStep {
     private CheckLandingPads landingPads;
     private ExpressionValue variable;
     private boolean isFirstDetect = true;
-    private DetectInfo detectInfo;
+    private ArrayList<DetectInfo> detectInfo = new ArrayList<DetectInfo>();
     @Override
     public void execute() {
         DataEnvironment de = vm.getDataEnvironment();
@@ -74,10 +75,10 @@ public class BeginDetectScopeStep extends BeginScopeStep {
         this.landingPads = landingPads;
     }
 
-    public void setDetectInfo(DetectInfo detect) {
-        detectInfo = detect;
+    public void addDetectInfo(DetectInfo detect) {
+        detectInfo.add(detect);
     }
-    public DetectParameter getDetectParameter(){
-        return detectInfo.getDetectParameter();
+    public ArrayList<DetectInfo> getDetectParameters(){
+        return detectInfo;
     }
 }

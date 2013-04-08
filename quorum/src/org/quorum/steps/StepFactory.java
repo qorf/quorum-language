@@ -2174,7 +2174,7 @@ public class StepFactory {
         step.setBlockName(name);
         step.setFirstDetect(isFirstDetect);
         step.setLandingPads(machine.getCheckLandingPads(name));
-        step.setDetectInfo(detect);
+        step.addDetectInfo(detect);
 
         machine.getBuilder().add(step);
     }

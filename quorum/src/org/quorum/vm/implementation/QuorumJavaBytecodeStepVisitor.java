@@ -2714,8 +2714,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
 
         //if this is a detect parameter build the visit try catch block calls
-        if (step.getDetectParameter().errorType != null && !desc.hasEmptyCheck()) {
-            tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.peekDetectStartLabel(), QuorumConverter.convertStaticKeyToBytecodePath(step.getDetectParameter().errorType.getStaticKey())));
+        if (step.getDetectParameters().get(0).getDetectParameter().errorType != null && !desc.hasEmptyCheck()) {
+            tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.peekDetectStartLabel(), QuorumConverter.convertStaticKeyToBytecodePath(step.getDetectParameters().get(0).getDetectParameter().errorType.getStaticKey())));
         }
 
         while (!tempStack.isEmpty()) {
@@ -2728,11 +2728,11 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         methodVisitor.visitLabel(desc.peekDetectStartLabel());
         
         // Store the error. This is essentially a "hidden" variable.
-        int variableNumber = step.getDetectParameter().getVariableNumber();
-        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameter().getType(), false);
+        int variableNumber = step.getDetectParameters().get(0).getDetectParameter().getVariableNumber();
+        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameters().get(0).getDetectParameter().getType(), false);
         if (mappedVariableNumber == -1) {
-            stack.setVariable(variableNumber, step.getDetectParameter().getType());
-            mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameter().getType(), true);
+            stack.setVariable(variableNumber, step.getDetectParameters().get(0).getDetectParameter().getType());
+            mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameters().get(0).getDetectParameter().getType(), true);
         }
 
         desc.setLastDetectVariableNumber(mappedVariableNumber);
