@@ -1256,7 +1256,7 @@ atom 	:
 	| QUOTE
 	| NULL
 	| ME
-		| INPUT LEFT_PAREN expression RIGHT_PAREN
+	| INPUT LEFT_PAREN expression RIGHT_PAREN
 	| LEFT_PAREN expression RIGHT_PAREN -> ^(expression)
 	;
 

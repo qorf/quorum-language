@@ -13,12 +13,7 @@ use Libraries.System.all
 use Libraries.Web.all
 class Main
 action Main
-check
-alert("hello")
-detect e is UndefinedObjectError or Error or ParseError
-output "null pointer"
-detect err is UndefinedObjectError
-    output "other"
-end
+    integer i = 0 - (5+3)
+    output i
 end
 end
