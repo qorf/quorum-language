@@ -1,0 +1,56 @@
+.runCode
+{
+	width:550px;
+	height:400px;
+	float:right;
+	margin-top: -80px;	
+	.input
+	{
+		.inputArea
+		{
+			min-width:550px;
+			min-height:180px;
+			resize:none;
+			font-family: Menlo, monospace;
+			text-align: left;
+			overflow: scroll;
+			overflow-y: scroll; 
+			overflow-x: hidden;	
+			overflow:-moz-scrollbars-vertical;
+		}
+	}
+	.output
+	{
+
+		.outputArea
+		{
+			margin-top:-10px;
+			height:70px;
+			text-align: left;
+			overflow: scroll;
+			overflow-x: scroll; 
+			overflow-y: hidden;	
+			overflow:-moz-scrollbars-horizontal;
+		}
+	}
+	.controller
+	{
+		position: relative;
+		top:-5px;
+		.dropdown-menu
+		{
+			position: relative;
+				
+			text-align: center;
+			.code-example:hover
+			{
+				background-color:#049cdb;
+				color:#fff;
+			}	
+		}
+		#run 
+		{
+			float:right;
+		}
+	}
+}
