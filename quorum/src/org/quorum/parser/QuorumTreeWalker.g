@@ -785,7 +785,16 @@ scope {
 		    		t.setName(er.errorType.getName());
 		    		er.setType(t);
 		    		er.setName($det_param.name);
-		    		$check_statement::info.addDetectParameter(er);
+		    		boolean result = $check_statement::info.addDetectParameter(er);
+		    		if(!result){
+		    			CompilerError error = new CompilerError();
+		            			error.setLineNumber($detect_start.getLine());
+		            			error.setError("The " + er.errorType.getStaticKey() + " has already been detected." );
+		            			error.setErrorType(ErrorType.UNREACHABLE);
+		            			error.setColumn($detect_start.getCharPositionInLine());
+		            			error.setFile(getGrammarFileNameNoExtension());
+		            			vm.getCompilerErrors().addError(error);
+		    		}
 		    		types.append(t.getName());
 	    		}
 	    		stepFactory.startDetect($check_statement::info, $check_statement::detect_counter);

@@ -15,8 +15,10 @@ class Main
 action Main
 check
 alert("hello")
-detect e of type UndefinedObjectError or Error or ParseError
+detect e is UndefinedObjectError or Error or ParseError
 output "null pointer"
+detect err is UndefinedObjectError
+    output "other"
 end
 end
 end

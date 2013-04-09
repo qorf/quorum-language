@@ -2281,8 +2281,8 @@ public class StepFactory {
                 if(landingPads.getAllDetects().isEmpty())
                     firstDetect = true;
                     
-                landingPads.addLandingPad(paramName, detect);
-            }
+                    landingPads.addLandingPad(paramName, detect);
+                }
             
             detectInfo.add(detect);
         }

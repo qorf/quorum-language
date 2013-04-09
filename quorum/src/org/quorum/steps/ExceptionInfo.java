@@ -7,6 +7,8 @@ package org.quorum.steps;
 
 import java.util.ArrayList;
 import org.quorum.symbols.VariableParameterCommonDescriptor;
+import org.quorum.vm.interfaces.CompilerError;
+import org.quorum.vm.interfaces.ErrorType;
 import org.quorum.vm.interfaces.LineInformation;
 
 /**
@@ -61,7 +63,13 @@ public class ExceptionInfo {
      * @param param
      * The parameter of a detect statement, type of error or exception.
      */
-    public void addDetectParameter(DetectParameter param) {
+    public boolean addDetectParameter(DetectParameter param) {
+        for(int i = 0; i < detectParameters.size(); i++){
+            if(detectParameters.get(i).errorType.getStaticKey().equals(param.errorType.getStaticKey())){
+                return false;
+            }
+        }
         detectParameters.add(param);
+        return true;
     }
 }
