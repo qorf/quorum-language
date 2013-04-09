@@ -18,7 +18,7 @@ class Main
         file:OpenForRead("empty.txt")
         text line1 = file:ReadLine()
         text line2 = file:ReadLine() // will raise EndOfFileError
-      detect e of type EndOfFileError
+      detect e is EndOfFileError
         output "Reached end of file: " + e:GetErrorMessage()
       end
    end

@@ -16,7 +16,7 @@ class Main
       File file
       check
         file:OpenForRead("myfile.txt")
-      detect e of type FileNotFound
+      detect e is FileNotFound
         output "File not found: " + e:GetErrorMessage()
       end
    end

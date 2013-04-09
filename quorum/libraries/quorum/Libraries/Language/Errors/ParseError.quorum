@@ -13,7 +13,7 @@ class Main
       check
         text t = "1.4"
         integer i = t:ParseInteger()
-      detect e of type ParseError
+      detect e is ParseError
         output "Error detected: " + e:GetErrorMessage()
       end
    end

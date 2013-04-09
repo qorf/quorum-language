@@ -254,7 +254,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
             }
         } else {
             CompilerError error = new CompilerError(getLineBegin(),
-                    "Class " + this.getName() + " cannot have a parent of type null.", ErrorType.INHERITANCE_NULL);
+                    "Class " + this.getName() + " cannot have a parent of type undefined.", ErrorType.INHERITANCE_NULL);
             CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
             errorManager.setErrorKey(this.getFile().getFile().getAbsolutePath());
             errorManager.addError(error);
