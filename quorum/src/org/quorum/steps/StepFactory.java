@@ -2169,12 +2169,15 @@ public class StepFactory {
         machine.getBuilder().add(step);
     }
 
-    public void addBeginDetectScopeStep(String name, boolean isFirstDetect, DetectInfo detect){
+    public void addBeginDetectScopeStep(String name, boolean isFirstDetect, ArrayList<DetectInfo> detect){
         BeginDetectScopeStep step = new BeginDetectScopeStep();
         step.setBlockName(name);
         step.setFirstDetect(isFirstDetect);
         step.setLandingPads(machine.getCheckLandingPads(name));
-        step.addDetectInfo(detect);
+        
+        for(int i = 0; i < detect.size(); i++){
+            step.addDetectInfo(detect.get(i));
+        }
 
         machine.getBuilder().add(step);
     }
@@ -2246,9 +2249,10 @@ public class StepFactory {
     public void startDetect(ExceptionInfo info, int detectNum) {
         boolean firstDetect = false;
         //figure out which exception types are caught here
-        DetectInfo detectInfo = new DetectInfo();
+        ArrayList<DetectInfo> detectInfo = new ArrayList<DetectInfo>();
         Iterator<DetectParameter> iterator = info.detectParameters.iterator();
         while(iterator.hasNext()){
+            DetectInfo detect = new DetectInfo();
             DetectParameter next = iterator.next();
             ErrorTypeDescriptor nextParam = next.errorType;
 
@@ -2262,11 +2266,11 @@ public class StepFactory {
             String paramName = nextParam.getStaticKey();
 
             //build landing pad
-            detectInfo.setDetectParameter(next);
+            detect.setDetectParameter(next);
 
             IntermediateExecutionBuilder builder = this.machine.getBuilder();
             if(builder.getCurrentMethod() != null){
-                detectInfo.setLocalLocation(builder.getCurrentMethod().getStepCount());
+                detect.setLocalLocation(builder.getCurrentMethod().getStepCount());
                 builder.getCurrentMethod().getMethodDescriptor().addDetectType(info.checkStartLabel, paramName);
             }
 
@@ -2277,8 +2281,10 @@ public class StepFactory {
                 if(landingPads.getAllDetects().isEmpty())
                     firstDetect = true;
                     
-                landingPads.addLandingPad(paramName, detectInfo);
+                landingPads.addLandingPad(paramName, detect);
             }
+            
+            detectInfo.add(detect);
         }
 
         this.addBeginDetectScopeStep(info.detectStartLabels.get(0), firstDetect, detectInfo);

@@ -2714,8 +2714,10 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
 
         //if this is a detect parameter build the visit try catch block calls
-        if (step.getDetectParameters().get(0).getDetectParameter().errorType != null && !desc.hasEmptyCheck()) {
-            tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.peekDetectStartLabel(), QuorumConverter.convertStaticKeyToBytecodePath(step.getDetectParameters().get(0).getDetectParameter().errorType.getStaticKey())));
+        for (int i = 0; i < step.getDetectParameters().size(); i++) {
+            if(step.getDetectParameters().get(i).getDetectParameter().errorType != null && !desc.hasEmptyCheck()){
+                tryCatchTable.add(new CheckDetectEntry(desc.getCheckStart(), desc.getCheckEnd(), desc.peekDetectStartLabel(), QuorumConverter.convertStaticKeyToBytecodePath(step.getDetectParameters().get(i).getDetectParameter().errorType.getStaticKey())));
+            }
         }
 
         while (!tempStack.isEmpty()) {
@@ -2729,10 +2731,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         
         // Store the error. This is essentially a "hidden" variable.
         int variableNumber = step.getDetectParameters().get(0).getDetectParameter().getVariableNumber();
-        int mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameters().get(0).getDetectParameter().getType(), false);
+        int mappedVariableNumber = -1;
+        if(step.getDetectParameters().size() == 1){
+             mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameters().get(0).getDetectParameter().getType(), false);
+        }else{
+            mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, TypeDescriptor.getErrorObjectType(), false);
+        }
         if (mappedVariableNumber == -1) {
-            stack.setVariable(variableNumber, step.getDetectParameters().get(0).getDetectParameter().getType());
-            mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameters().get(0).getDetectParameter().getType(), true);
+            if(step.getDetectParameters().size() == 1){
+                stack.setVariable(variableNumber, step.getDetectParameters().get(0).getDetectParameter().getType());
+                mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, step.getDetectParameters().get(0).getDetectParameter().getType(), true);
+            }else{
+                stack.setVariable(variableNumber, TypeDescriptor.getErrorObjectType());
+                mappedVariableNumber = stack.getMappedVariableNumber(variableNumber, TypeDescriptor.getErrorObjectType(), true);
+            }
         }
 
         desc.setLastDetectVariableNumber(mappedVariableNumber);
