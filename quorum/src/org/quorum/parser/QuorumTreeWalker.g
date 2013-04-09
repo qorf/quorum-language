@@ -895,7 +895,7 @@ scope{
 	ArrayList<ErrorTypeDescriptor> exceptionList;
 }
 	:	^(id=ID 
-	(OF_TYPE 
+	(INHERITS 
 	{
 		$detect_parameter::exceptionList = new ArrayList<ErrorTypeDescriptor>();
 	}

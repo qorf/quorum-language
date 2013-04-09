@@ -821,8 +821,8 @@ detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionT
 	}	
 	}
 	
-	(OF_TYPE qualified_name(OR qualified_name)*)?
-	-> ^(ID (OF_TYPE qualified_name(OR qualified_name)*)?)
+	(INHERITS  qualified_name(OR qualified_name)*)?
+	-> ^(ID (INHERITS  qualified_name(OR qualified_name)*)?)
 	;
 print_statement 
 	:	OUTPUT root_expression
@@ -1274,7 +1274,6 @@ CONSTANT	:	'constant';
 ELSE_IF :	'elseif';
 ME	:	'me';
 UNTIL	:	'until';
-OF_TYPE :	'of type';
 PUBLIC	:	'public';
 PRIVATE	:	'private';	
 ALERT	:	'alert';

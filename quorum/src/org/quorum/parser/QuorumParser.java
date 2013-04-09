@@ -1,4 +1,4 @@
-// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g 2013-03-27 12:19:48
+// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g 2013-04-09 11:15:45
 
 
 
@@ -26,7 +26,7 @@ import org.antlr.runtime.tree.*;
 @SuppressWarnings({"all", "warnings", "unchecked"})
 public class QuorumParser extends Parser {
     public static final String[] tokenNames = new String[] {
-        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "ACTION", "ALERT", "ALWAYS", "AND", "BLUEPRINT", "BOOLEAN", "BOOLEAN_KEYWORD", "CAST", "CHECK", "CLASS", "COLON", "COMMA", "COMMENTS", "CONSTANT", "CONSTRUCTOR", "CREATE", "DECIMAL", "DESTROY", "DETECT", "DIVIDE", "DOUBLE_QUOTE", "ELSE", "ELSE_IF", "ELSE_IF_STATEMENT", "END", "EQUALITY", "EXPRESSION_STATEMENT", "FINAL_ELSE", "FPARAM", "FUNCTION_CALL", "FUNCTION_CALL_PARENT", "FUNCTION_CALL_THIS", "FUNCTION_EXPRESSION_LIST", "GENERIC", "GREATER", "GREATER_EQUAL", "ID", "IF", "INHERITS", "INPUT", "INT", "INTEGER_KEYWORD", "LEFT_PAREN", "LEFT_SQR_BRACE", "LESS", "LESS_EQUAL", "ME", "MINUS", "MODULO", "MULTIPLY", "NATIVE", "NEWLINE", "NOT", "NOTEQUALS", "NOW", "NULL", "NUMBER_KEYWORD", "OF_TYPE", "ON", "OR", "OUTPUT", "OVER", "PACKAGE_NAME", "PARENT", "PAREN_WRAPPED_EXPRESSION", "PERIOD", "PLUS", "PRIVATE", "PUBLIC", "QUALIFIED_NAME", "QUALIFIED_SOLO_EXPRESSION", "QUALIFIED_SOLO_EXPRESSION_SELECTOR", "QUALIFIED_SOLO_PARENT_EXPRESSON", "QUOTE", "REPEAT", "RETURN", "RETURNS", "RIGHT_PAREN", "RIGHT_SQR_BRACE", "ROOT_EXPRESSION", "SAY", "SOLO_FUNCTION_CALL", "SOLO_FUNCTION_CALL_PARENT", "SOLO_FUNCTION_CALL_THIS", "STATEMENT_LIST", "STRING", "TEXT", "TIMES", "UNARY_NOT", "UNTIL", "USE", "WHILE", "WS"
+        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "ACTION", "ALERT", "ALWAYS", "AND", "BLUEPRINT", "BOOLEAN", "BOOLEAN_KEYWORD", "CAST", "CHECK", "CLASS", "COLON", "COMMA", "COMMENTS", "CONSTANT", "CONSTRUCTOR", "CREATE", "DECIMAL", "DESTROY", "DETECT", "DIVIDE", "DOUBLE_QUOTE", "ELSE", "ELSE_IF", "ELSE_IF_STATEMENT", "END", "EQUALITY", "EXPRESSION_STATEMENT", "FINAL_ELSE", "FPARAM", "FUNCTION_CALL", "FUNCTION_CALL_PARENT", "FUNCTION_CALL_THIS", "FUNCTION_EXPRESSION_LIST", "GENERIC", "GREATER", "GREATER_EQUAL", "ID", "IF", "INHERITS", "INPUT", "INT", "INTEGER_KEYWORD", "LEFT_PAREN", "LEFT_SQR_BRACE", "LESS", "LESS_EQUAL", "ME", "MINUS", "MODULO", "MULTIPLY", "NATIVE", "NEWLINE", "NOT", "NOTEQUALS", "NOW", "NULL", "NUMBER_KEYWORD", "ON", "OR", "OUTPUT", "OVER", "PACKAGE_NAME", "PARENT", "PAREN_WRAPPED_EXPRESSION", "PERIOD", "PLUS", "PRIVATE", "PUBLIC", "QUALIFIED_NAME", "QUALIFIED_SOLO_EXPRESSION", "QUALIFIED_SOLO_EXPRESSION_SELECTOR", "QUALIFIED_SOLO_PARENT_EXPRESSON", "QUOTE", "REPEAT", "RETURN", "RETURNS", "RIGHT_PAREN", "RIGHT_SQR_BRACE", "ROOT_EXPRESSION", "SAY", "SOLO_FUNCTION_CALL", "SOLO_FUNCTION_CALL_PARENT", "SOLO_FUNCTION_CALL_THIS", "STATEMENT_LIST", "STRING", "TEXT", "TIMES", "UNARY_NOT", "UNTIL", "USE", "WHILE", "WS"
     };
 
     public static final int EOF=-1;
@@ -87,42 +87,41 @@ public class QuorumParser extends Parser {
     public static final int NOW=58;
     public static final int NULL=59;
     public static final int NUMBER_KEYWORD=60;
-    public static final int OF_TYPE=61;
-    public static final int ON=62;
-    public static final int OR=63;
-    public static final int OUTPUT=64;
-    public static final int OVER=65;
-    public static final int PACKAGE_NAME=66;
-    public static final int PARENT=67;
-    public static final int PAREN_WRAPPED_EXPRESSION=68;
-    public static final int PERIOD=69;
-    public static final int PLUS=70;
-    public static final int PRIVATE=71;
-    public static final int PUBLIC=72;
-    public static final int QUALIFIED_NAME=73;
-    public static final int QUALIFIED_SOLO_EXPRESSION=74;
-    public static final int QUALIFIED_SOLO_EXPRESSION_SELECTOR=75;
-    public static final int QUALIFIED_SOLO_PARENT_EXPRESSON=76;
-    public static final int QUOTE=77;
-    public static final int REPEAT=78;
-    public static final int RETURN=79;
-    public static final int RETURNS=80;
-    public static final int RIGHT_PAREN=81;
-    public static final int RIGHT_SQR_BRACE=82;
-    public static final int ROOT_EXPRESSION=83;
-    public static final int SAY=84;
-    public static final int SOLO_FUNCTION_CALL=85;
-    public static final int SOLO_FUNCTION_CALL_PARENT=86;
-    public static final int SOLO_FUNCTION_CALL_THIS=87;
-    public static final int STATEMENT_LIST=88;
-    public static final int STRING=89;
-    public static final int TEXT=90;
-    public static final int TIMES=91;
-    public static final int UNARY_NOT=92;
-    public static final int UNTIL=93;
-    public static final int USE=94;
-    public static final int WHILE=95;
-    public static final int WS=96;
+    public static final int ON=61;
+    public static final int OR=62;
+    public static final int OUTPUT=63;
+    public static final int OVER=64;
+    public static final int PACKAGE_NAME=65;
+    public static final int PARENT=66;
+    public static final int PAREN_WRAPPED_EXPRESSION=67;
+    public static final int PERIOD=68;
+    public static final int PLUS=69;
+    public static final int PRIVATE=70;
+    public static final int PUBLIC=71;
+    public static final int QUALIFIED_NAME=72;
+    public static final int QUALIFIED_SOLO_EXPRESSION=73;
+    public static final int QUALIFIED_SOLO_EXPRESSION_SELECTOR=74;
+    public static final int QUALIFIED_SOLO_PARENT_EXPRESSON=75;
+    public static final int QUOTE=76;
+    public static final int REPEAT=77;
+    public static final int RETURN=78;
+    public static final int RETURNS=79;
+    public static final int RIGHT_PAREN=80;
+    public static final int RIGHT_SQR_BRACE=81;
+    public static final int ROOT_EXPRESSION=82;
+    public static final int SAY=83;
+    public static final int SOLO_FUNCTION_CALL=84;
+    public static final int SOLO_FUNCTION_CALL_PARENT=85;
+    public static final int SOLO_FUNCTION_CALL_THIS=86;
+    public static final int STATEMENT_LIST=87;
+    public static final int STRING=88;
+    public static final int TEXT=89;
+    public static final int TIMES=90;
+    public static final int UNARY_NOT=91;
+    public static final int UNTIL=92;
+    public static final int USE=93;
+    public static final int WHILE=94;
+    public static final int WS=95;
 
     // delegates
     public Parser[] getDelegates() {
@@ -767,7 +766,7 @@ public TreeAdaptor getTreeAdaptor() {
             if ( (LA8_0==CLASS) ) {
                 alt8=1;
             }
-            else if ( ((LA8_0 >= ACTION && LA8_0 <= ALERT)||LA8_0==BLUEPRINT||LA8_0==BOOLEAN_KEYWORD||LA8_0==CHECK||LA8_0==CONSTANT||(LA8_0 >= ID && LA8_0 <= IF)||LA8_0==INTEGER_KEYWORD||LA8_0==ME||LA8_0==NATIVE||LA8_0==NUMBER_KEYWORD||LA8_0==ON||LA8_0==OUTPUT||LA8_0==PARENT||(LA8_0 >= PRIVATE && LA8_0 <= PUBLIC)||(LA8_0 >= REPEAT && LA8_0 <= RETURN)||LA8_0==SAY||LA8_0==TEXT) ) {
+            else if ( ((LA8_0 >= ACTION && LA8_0 <= ALERT)||LA8_0==BLUEPRINT||LA8_0==BOOLEAN_KEYWORD||LA8_0==CHECK||LA8_0==CONSTANT||(LA8_0 >= ID && LA8_0 <= IF)||LA8_0==INTEGER_KEYWORD||LA8_0==ME||LA8_0==NATIVE||(LA8_0 >= NUMBER_KEYWORD && LA8_0 <= ON)||LA8_0==OUTPUT||LA8_0==PARENT||(LA8_0 >= PRIVATE && LA8_0 <= PUBLIC)||(LA8_0 >= REPEAT && LA8_0 <= RETURN)||LA8_0==SAY||LA8_0==TEXT) ) {
                 alt8=2;
             }
             else {
@@ -881,7 +880,7 @@ public TreeAdaptor getTreeAdaptor() {
                         int alt7=2;
                         int LA7_0 = input.LA(1);
 
-                        if ( (LA7_0==ACTION||LA7_0==BLUEPRINT||LA7_0==BOOLEAN_KEYWORD||LA7_0==CONSTANT||LA7_0==ID||LA7_0==INTEGER_KEYWORD||LA7_0==ME||LA7_0==NATIVE||LA7_0==NUMBER_KEYWORD||LA7_0==ON||LA7_0==PARENT||(LA7_0 >= PRIVATE && LA7_0 <= PUBLIC)||LA7_0==TEXT) ) {
+                        if ( (LA7_0==ACTION||LA7_0==BLUEPRINT||LA7_0==BOOLEAN_KEYWORD||LA7_0==CONSTANT||LA7_0==ID||LA7_0==INTEGER_KEYWORD||LA7_0==ME||LA7_0==NATIVE||(LA7_0 >= NUMBER_KEYWORD && LA7_0 <= ON)||LA7_0==PARENT||(LA7_0 >= PRIVATE && LA7_0 <= PUBLIC)||LA7_0==TEXT) ) {
                             alt7=1;
                         }
 
@@ -921,7 +920,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: inherit_stmnts, class_stmnts, ID, generic_declaration, END, CLASS
+                    // elements: CLASS, END, generic_declaration, inherit_stmnts, class_stmnts, ID
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -1454,7 +1453,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
             // AST REWRITE
-            // elements: qualified_name, INHERITS, generic_statement
+            // elements: INHERITS, qualified_name, generic_statement
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -2138,7 +2137,7 @@ public TreeAdaptor getTreeAdaptor() {
                     	
 
                     // AST REWRITE
-                    // elements: formal_parameter, assignment_declaration, ACTION, block, ID, RETURNS, END
+                    // elements: block, assignment_declaration, ID, END, RETURNS, formal_parameter, ACTION
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2363,7 +2362,7 @@ public TreeAdaptor getTreeAdaptor() {
                     	
 
                     // AST REWRITE
-                    // elements: RETURNS, formal_parameter, ID, ACTION, BLUEPRINT, assignment_declaration
+                    // elements: RETURNS, assignment_declaration, ACTION, formal_parameter, ID, BLUEPRINT
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2586,7 +2585,7 @@ public TreeAdaptor getTreeAdaptor() {
                     	
 
                     // AST REWRITE
-                    // elements: RETURNS, NATIVE, assignment_declaration, ACTION, ID, formal_parameter
+                    // elements: ID, formal_parameter, RETURNS, NATIVE, assignment_declaration, ACTION
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2696,7 +2695,7 @@ public TreeAdaptor getTreeAdaptor() {
                     	
 
                     // AST REWRITE
-                    // elements: ON, block, END, CREATE
+                    // elements: END, block, CREATE, ON
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2837,7 +2836,7 @@ public TreeAdaptor getTreeAdaptor() {
             	
 
             // AST REWRITE
-            // elements: ID, assignment_declaration
+            // elements: assignment_declaration, ID
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -2989,7 +2988,7 @@ public TreeAdaptor getTreeAdaptor() {
             		
 
             // AST REWRITE
-            // elements: PERIOD, ID, ID
+            // elements: ID, ID, PERIOD
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -3013,7 +3012,7 @@ public TreeAdaptor getTreeAdaptor() {
                 );
 
                 // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:701:26: ( PERIOD ID )*
-                while ( stream_PERIOD.hasNext()||stream_ID.hasNext() ) {
+                while ( stream_ID.hasNext()||stream_PERIOD.hasNext() ) {
                     adaptor.addChild(root_1, 
                     stream_PERIOD.nextNode()
                     );
@@ -3023,8 +3022,8 @@ public TreeAdaptor getTreeAdaptor() {
                     );
 
                 }
-                stream_PERIOD.reset();
                 stream_ID.reset();
+                stream_PERIOD.reset();
 
                 adaptor.addChild(root_0, root_1);
                 }
@@ -3582,7 +3581,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: COLON, ID, expression, COMMA, LEFT_PAREN, RIGHT_PAREN, expression, qualified_name
+                    // elements: COMMA, ID, LEFT_PAREN, expression, COLON, expression, qualified_name, RIGHT_PAREN
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -3604,7 +3603,7 @@ public TreeAdaptor getTreeAdaptor() {
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:722:40: ( COLON ID )?
-                        if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
+                        if ( stream_ID.hasNext()||stream_COLON.hasNext() ) {
                             adaptor.addChild(root_1, 
                             stream_COLON.nextNode()
                             );
@@ -3614,8 +3613,8 @@ public TreeAdaptor getTreeAdaptor() {
                             );
 
                         }
-                        stream_COLON.reset();
                         stream_ID.reset();
+                        stream_COLON.reset();
 
                         adaptor.addChild(root_1, 
                         stream_LEFT_PAREN.nextNode()
@@ -3626,7 +3625,7 @@ public TreeAdaptor getTreeAdaptor() {
                             adaptor.addChild(root_1, stream_expression.nextTree());
 
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:722:75: ( COMMA expression )*
-                            while ( stream_expression.hasNext()||stream_COMMA.hasNext() ) {
+                            while ( stream_COMMA.hasNext()||stream_expression.hasNext() ) {
                                 adaptor.addChild(root_1, 
                                 stream_COMMA.nextNode()
                                 );
@@ -3634,8 +3633,8 @@ public TreeAdaptor getTreeAdaptor() {
                                 adaptor.addChild(root_1, stream_expression.nextTree());
 
                             }
-                            stream_expression.reset();
                             stream_COMMA.reset();
+                            stream_expression.reset();
 
                         }
                         stream_COMMA.reset();
@@ -3750,7 +3749,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: RIGHT_PAREN, COLON, COLON, expression, ID, qualified_name, PARENT, expression, COMMA, LEFT_PAREN
+                    // elements: ID, COLON, PARENT, expression, qualified_name, COLON, COMMA, LEFT_PAREN, expression, RIGHT_PAREN
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -3792,11 +3791,11 @@ public TreeAdaptor getTreeAdaptor() {
                         );
 
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:724:80: ( expression ( COMMA expression )* )?
-                        if ( stream_expression.hasNext()||stream_expression.hasNext()||stream_COMMA.hasNext() ) {
+                        if ( stream_expression.hasNext()||stream_COMMA.hasNext()||stream_expression.hasNext() ) {
                             adaptor.addChild(root_1, stream_expression.nextTree());
 
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:724:92: ( COMMA expression )*
-                            while ( stream_expression.hasNext()||stream_COMMA.hasNext() ) {
+                            while ( stream_COMMA.hasNext()||stream_expression.hasNext() ) {
                                 adaptor.addChild(root_1, 
                                 stream_COMMA.nextNode()
                                 );
@@ -3804,13 +3803,13 @@ public TreeAdaptor getTreeAdaptor() {
                                 adaptor.addChild(root_1, stream_expression.nextTree());
 
                             }
-                            stream_expression.reset();
                             stream_COMMA.reset();
+                            stream_expression.reset();
 
                         }
                         stream_expression.reset();
-                        stream_expression.reset();
                         stream_COMMA.reset();
+                        stream_expression.reset();
 
                         adaptor.addChild(root_1, 
                         stream_RIGHT_PAREN.nextNode()
@@ -3937,7 +3936,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: ME, ID, RIGHT_PAREN, expression, COMMA, expression, COLON, LEFT_PAREN, COLON, qualified_name
+                    // elements: qualified_name, expression, ME, LEFT_PAREN, COLON, ID, RIGHT_PAREN, COMMA, COLON, expression
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -3967,7 +3966,7 @@ public TreeAdaptor getTreeAdaptor() {
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:726:54: ( COLON ID )?
-                        if ( stream_ID.hasNext()||stream_COLON.hasNext() ) {
+                        if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
                             adaptor.addChild(root_1, 
                             stream_COLON.nextNode()
                             );
@@ -3977,8 +3976,8 @@ public TreeAdaptor getTreeAdaptor() {
                             );
 
                         }
-                        stream_ID.reset();
                         stream_COLON.reset();
+                        stream_ID.reset();
 
                         adaptor.addChild(root_1, 
                         stream_LEFT_PAREN.nextNode()
@@ -3989,7 +3988,7 @@ public TreeAdaptor getTreeAdaptor() {
                             adaptor.addChild(root_1, stream_expression.nextTree());
 
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:726:89: ( COMMA expression )*
-                            while ( stream_expression.hasNext()||stream_COMMA.hasNext() ) {
+                            while ( stream_COMMA.hasNext()||stream_expression.hasNext() ) {
                                 adaptor.addChild(root_1, 
                                 stream_COMMA.nextNode()
                                 );
@@ -3997,8 +3996,8 @@ public TreeAdaptor getTreeAdaptor() {
                                 adaptor.addChild(root_1, stream_expression.nextTree());
 
                             }
-                            stream_expression.reset();
                             stream_COMMA.reset();
+                            stream_expression.reset();
 
                         }
                         stream_expression.reset();
@@ -4095,7 +4094,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
             // AST REWRITE
-            // elements: ALERT, LEFT_PAREN, RIGHT_PAREN, root_expression
+            // elements: RIGHT_PAREN, ALERT, LEFT_PAREN, root_expression
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -4444,7 +4443,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "detect_parameter"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:798:1: detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionTypeList] : ID ( OF_TYPE qualified_name ( OR qualified_name )* )? -> ^( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:798:1: detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionTypeList] : ID ( INHERITS qualified_name ( OR qualified_name )* )? -> ^( ID ( INHERITS qualified_name ( OR qualified_name )* )? ) ;
     public final QuorumParser.detect_parameter_return detect_parameter() throws RecognitionException {
         QuorumParser.detect_parameter_return retval = new QuorumParser.detect_parameter_return();
         retval.start = input.LT(1);
@@ -4453,7 +4452,7 @@ public TreeAdaptor getTreeAdaptor() {
         CommonTree root_0 = null;
 
         Token ID108=null;
-        Token OF_TYPE109=null;
+        Token INHERITS109=null;
         Token OR111=null;
         QuorumParser.qualified_name_return qualified_name110 =null;
 
@@ -4461,15 +4460,15 @@ public TreeAdaptor getTreeAdaptor() {
 
 
         CommonTree ID108_tree=null;
-        CommonTree OF_TYPE109_tree=null;
+        CommonTree INHERITS109_tree=null;
         CommonTree OR111_tree=null;
         RewriteRuleTokenStream stream_ID=new RewriteRuleTokenStream(adaptor,"token ID");
-        RewriteRuleTokenStream stream_OF_TYPE=new RewriteRuleTokenStream(adaptor,"token OF_TYPE");
+        RewriteRuleTokenStream stream_INHERITS=new RewriteRuleTokenStream(adaptor,"token INHERITS");
         RewriteRuleTokenStream stream_OR=new RewriteRuleTokenStream(adaptor,"token OR");
         RewriteRuleSubtreeStream stream_qualified_name=new RewriteRuleSubtreeStream(adaptor,"rule qualified_name");
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:799:2: ( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? -> ^( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:799:5: ID ( OF_TYPE qualified_name ( OR qualified_name )* )?
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:799:2: ( ID ( INHERITS qualified_name ( OR qualified_name )* )? -> ^( ID ( INHERITS qualified_name ( OR qualified_name )* )? ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:799:5: ID ( INHERITS qualified_name ( OR qualified_name )* )?
             {
             ID108=(Token)match(input,ID,FOLLOW_ID_in_detect_parameter1301);  
             stream_ID.add(ID108);
@@ -4498,29 +4497,29 @@ public TreeAdaptor getTreeAdaptor() {
             	}	
             	
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:824:2: ( OF_TYPE qualified_name ( OR qualified_name )* )?
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:824:2: ( INHERITS qualified_name ( OR qualified_name )* )?
             int alt48=2;
             int LA48_0 = input.LA(1);
 
-            if ( (LA48_0==OF_TYPE) ) {
+            if ( (LA48_0==INHERITS) ) {
                 alt48=1;
             }
             switch (alt48) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:824:3: OF_TYPE qualified_name ( OR qualified_name )*
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:824:3: INHERITS qualified_name ( OR qualified_name )*
                     {
-                    OF_TYPE109=(Token)match(input,OF_TYPE,FOLLOW_OF_TYPE_in_detect_parameter1313);  
-                    stream_OF_TYPE.add(OF_TYPE109);
+                    INHERITS109=(Token)match(input,INHERITS,FOLLOW_INHERITS_in_detect_parameter1313);  
+                    stream_INHERITS.add(INHERITS109);
 
 
-                    pushFollow(FOLLOW_qualified_name_in_detect_parameter1315);
+                    pushFollow(FOLLOW_qualified_name_in_detect_parameter1316);
                     qualified_name110=qualified_name();
 
                     state._fsp--;
 
                     stream_qualified_name.add(qualified_name110.getTree());
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:824:25: ( OR qualified_name )*
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:824:27: ( OR qualified_name )*
                     loop47:
                     do {
                         int alt47=2;
@@ -4533,13 +4532,13 @@ public TreeAdaptor getTreeAdaptor() {
 
                         switch (alt47) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:824:26: OR qualified_name
+                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:824:28: OR qualified_name
                     	    {
-                    	    OR111=(Token)match(input,OR,FOLLOW_OR_in_detect_parameter1317);  
+                    	    OR111=(Token)match(input,OR,FOLLOW_OR_in_detect_parameter1318);  
                     	    stream_OR.add(OR111);
 
 
-                    	    pushFollow(FOLLOW_qualified_name_in_detect_parameter1319);
+                    	    pushFollow(FOLLOW_qualified_name_in_detect_parameter1320);
                     	    qualified_name112=qualified_name();
 
                     	    state._fsp--;
@@ -4562,7 +4561,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
             // AST REWRITE
-            // elements: qualified_name, qualified_name, OF_TYPE, OR, ID
+            // elements: qualified_name, qualified_name, ID, OR, INHERITS
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -4572,24 +4571,24 @@ public TreeAdaptor getTreeAdaptor() {
             RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.tree:null);
 
             root_0 = (CommonTree)adaptor.nil();
-            // 825:2: -> ^( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? )
+            // 825:2: -> ^( ID ( INHERITS qualified_name ( OR qualified_name )* )? )
             {
-                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:825:5: ^( ID ( OF_TYPE qualified_name ( OR qualified_name )* )? )
+                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:825:5: ^( ID ( INHERITS qualified_name ( OR qualified_name )* )? )
                 {
                 CommonTree root_1 = (CommonTree)adaptor.nil();
                 root_1 = (CommonTree)adaptor.becomeRoot(
                 stream_ID.nextNode()
                 , root_1);
 
-                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:825:10: ( OF_TYPE qualified_name ( OR qualified_name )* )?
-                if ( stream_qualified_name.hasNext()||stream_qualified_name.hasNext()||stream_OF_TYPE.hasNext()||stream_OR.hasNext() ) {
+                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:825:10: ( INHERITS qualified_name ( OR qualified_name )* )?
+                if ( stream_qualified_name.hasNext()||stream_qualified_name.hasNext()||stream_OR.hasNext()||stream_INHERITS.hasNext() ) {
                     adaptor.addChild(root_1, 
-                    stream_OF_TYPE.nextNode()
+                    stream_INHERITS.nextNode()
                     );
 
                     adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:825:33: ( OR qualified_name )*
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:825:35: ( OR qualified_name )*
                     while ( stream_qualified_name.hasNext()||stream_OR.hasNext() ) {
                         adaptor.addChild(root_1, 
                         stream_OR.nextNode()
@@ -4604,8 +4603,8 @@ public TreeAdaptor getTreeAdaptor() {
                 }
                 stream_qualified_name.reset();
                 stream_qualified_name.reset();
-                stream_OF_TYPE.reset();
                 stream_OR.reset();
+                stream_INHERITS.reset();
 
                 adaptor.addChild(root_0, root_1);
                 }
@@ -4667,14 +4666,14 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            OUTPUT113=(Token)match(input,OUTPUT,FOLLOW_OUTPUT_in_print_statement1354); 
+            OUTPUT113=(Token)match(input,OUTPUT,FOLLOW_OUTPUT_in_print_statement1356); 
             OUTPUT113_tree = 
             (CommonTree)adaptor.create(OUTPUT113)
             ;
             adaptor.addChild(root_0, OUTPUT113_tree);
 
 
-            pushFollow(FOLLOW_root_expression_in_print_statement1356);
+            pushFollow(FOLLOW_root_expression_in_print_statement1358);
             root_expression114=root_expression();
 
             state._fsp--;
@@ -4733,14 +4732,14 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            SAY115=(Token)match(input,SAY,FOLLOW_SAY_in_speak_statement1368); 
+            SAY115=(Token)match(input,SAY,FOLLOW_SAY_in_speak_statement1370); 
             SAY115_tree = 
             (CommonTree)adaptor.create(SAY115)
             ;
             adaptor.addChild(root_0, SAY115_tree);
 
 
-            pushFollow(FOLLOW_root_expression_in_speak_statement1370);
+            pushFollow(FOLLOW_root_expression_in_speak_statement1372);
             root_expression116=root_expression();
 
             state._fsp--;
@@ -4801,7 +4800,7 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            RETURN117=(Token)match(input,RETURN,FOLLOW_RETURN_in_return_statement1381); 
+            RETURN117=(Token)match(input,RETURN,FOLLOW_RETURN_in_return_statement1383); 
             RETURN117_tree = 
             (CommonTree)adaptor.create(RETURN117)
             ;
@@ -4829,7 +4828,7 @@ public TreeAdaptor getTreeAdaptor() {
                 case 1 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:836:13: root_expression
                     {
-                    pushFollow(FOLLOW_root_expression_in_return_statement1385);
+                    pushFollow(FOLLOW_root_expression_in_return_statement1387);
                     root_expression118=root_expression();
 
                     state._fsp--;
@@ -4841,7 +4840,7 @@ public TreeAdaptor getTreeAdaptor() {
                 case 2 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:836:31: NOW
                     {
-                    NOW119=(Token)match(input,NOW,FOLLOW_NOW_in_return_statement1389); 
+                    NOW119=(Token)match(input,NOW,FOLLOW_NOW_in_return_statement1391); 
                     NOW119_tree = 
                     (CommonTree)adaptor.create(NOW119)
                     ;
@@ -4913,11 +4912,11 @@ public TreeAdaptor getTreeAdaptor() {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:840:2: ( LESS ids+= ID ( COMMA ids+= ID )* GREATER -> ^( GENERIC LESS ID ( COMMA ID )* GREATER ) )
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:840:4: LESS ids+= ID ( COMMA ids+= ID )* GREATER
             {
-            LESS120=(Token)match(input,LESS,FOLLOW_LESS_in_generic_declaration1406);  
+            LESS120=(Token)match(input,LESS,FOLLOW_LESS_in_generic_declaration1408);  
             stream_LESS.add(LESS120);
 
 
-            ids=(Token)match(input,ID,FOLLOW_ID_in_generic_declaration1410);  
+            ids=(Token)match(input,ID,FOLLOW_ID_in_generic_declaration1412);  
             stream_ID.add(ids);
 
             if (list_ids==null) list_ids=new ArrayList();
@@ -4939,11 +4938,11 @@ public TreeAdaptor getTreeAdaptor() {
             	case 1 :
             	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:840:18: COMMA ids+= ID
             	    {
-            	    COMMA121=(Token)match(input,COMMA,FOLLOW_COMMA_in_generic_declaration1413);  
+            	    COMMA121=(Token)match(input,COMMA,FOLLOW_COMMA_in_generic_declaration1415);  
             	    stream_COMMA.add(COMMA121);
 
 
-            	    ids=(Token)match(input,ID,FOLLOW_ID_in_generic_declaration1417);  
+            	    ids=(Token)match(input,ID,FOLLOW_ID_in_generic_declaration1419);  
             	    stream_ID.add(ids);
 
             	    if (list_ids==null) list_ids=new ArrayList();
@@ -4959,7 +4958,7 @@ public TreeAdaptor getTreeAdaptor() {
             } while (true);
 
 
-            GREATER122=(Token)match(input,GREATER,FOLLOW_GREATER_in_generic_declaration1421);  
+            GREATER122=(Token)match(input,GREATER,FOLLOW_GREATER_in_generic_declaration1423);  
             stream_GREATER.add(GREATER122);
 
 
@@ -4987,7 +4986,7 @@ public TreeAdaptor getTreeAdaptor() {
             	
 
             // AST REWRITE
-            // elements: GREATER, ID, ID, LESS, COMMA
+            // elements: GREATER, LESS, ID, ID, COMMA
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -5104,7 +5103,7 @@ public TreeAdaptor getTreeAdaptor() {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:869:2: ( LESS type= assignment_declaration ( COMMA type= assignment_declaration )* GREATER -> ^( GENERIC LESS assignment_declaration ( COMMA assignment_declaration )* GREATER ) )
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:869:4: LESS type= assignment_declaration ( COMMA type= assignment_declaration )* GREATER
             {
-            LESS123=(Token)match(input,LESS,FOLLOW_LESS_in_generic_statement1462);  
+            LESS123=(Token)match(input,LESS,FOLLOW_LESS_in_generic_statement1464);  
             stream_LESS.add(LESS123);
 
 
@@ -5112,7 +5111,7 @@ public TreeAdaptor getTreeAdaptor() {
             		((generic_statement_scope)generic_statement_stack.peek()).typeList = new ArrayList<TypeDescriptor>();
             	
 
-            pushFollow(FOLLOW_assignment_declaration_in_generic_statement1472);
+            pushFollow(FOLLOW_assignment_declaration_in_generic_statement1474);
             type=assignment_declaration();
 
             state._fsp--;
@@ -5138,11 +5137,11 @@ public TreeAdaptor getTreeAdaptor() {
             	case 1 :
             	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:877:3: COMMA type= assignment_declaration
             	    {
-            	    COMMA124=(Token)match(input,COMMA,FOLLOW_COMMA_in_generic_statement1479);  
+            	    COMMA124=(Token)match(input,COMMA,FOLLOW_COMMA_in_generic_statement1481);  
             	    stream_COMMA.add(COMMA124);
 
 
-            	    pushFollow(FOLLOW_assignment_declaration_in_generic_statement1483);
+            	    pushFollow(FOLLOW_assignment_declaration_in_generic_statement1485);
             	    type=assignment_declaration();
 
             	    state._fsp--;
@@ -5162,7 +5161,7 @@ public TreeAdaptor getTreeAdaptor() {
             } while (true);
 
 
-            GREATER125=(Token)match(input,GREATER,FOLLOW_GREATER_in_generic_statement1493);  
+            GREATER125=(Token)match(input,GREATER,FOLLOW_GREATER_in_generic_statement1495);  
             stream_GREATER.add(GREATER125);
 
 
@@ -5193,7 +5192,7 @@ public TreeAdaptor getTreeAdaptor() {
             	
 
             // AST REWRITE
-            // elements: assignment_declaration, GREATER, LESS, assignment_declaration, COMMA
+            // elements: GREATER, LESS, assignment_declaration, assignment_declaration, COMMA
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -5294,7 +5293,7 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_qualified_name_in_class_type1533);
+            pushFollow(FOLLOW_qualified_name_in_class_type1535);
             qn=qualified_name();
 
             state._fsp--;
@@ -5415,7 +5414,7 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    pushFollow(FOLLOW_qualified_name_in_assignment_declaration1554);
+                    pushFollow(FOLLOW_qualified_name_in_assignment_declaration1556);
                     qn=qualified_name();
 
                     state._fsp--;
@@ -5433,7 +5432,7 @@ public TreeAdaptor getTreeAdaptor() {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:928:26: gs= generic_statement
                             {
-                            pushFollow(FOLLOW_generic_statement_in_assignment_declaration1558);
+                            pushFollow(FOLLOW_generic_statement_in_assignment_declaration1560);
                             gs=generic_statement();
 
                             state._fsp--;
@@ -5477,7 +5476,7 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    INTEGER_KEYWORD126=(Token)match(input,INTEGER_KEYWORD,FOLLOW_INTEGER_KEYWORD_in_assignment_declaration1567); 
+                    INTEGER_KEYWORD126=(Token)match(input,INTEGER_KEYWORD,FOLLOW_INTEGER_KEYWORD_in_assignment_declaration1569); 
                     INTEGER_KEYWORD126_tree = 
                     (CommonTree)adaptor.create(INTEGER_KEYWORD126)
                     ;
@@ -5500,7 +5499,7 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    NUMBER_KEYWORD127=(Token)match(input,NUMBER_KEYWORD,FOLLOW_NUMBER_KEYWORD_in_assignment_declaration1575); 
+                    NUMBER_KEYWORD127=(Token)match(input,NUMBER_KEYWORD,FOLLOW_NUMBER_KEYWORD_in_assignment_declaration1577); 
                     NUMBER_KEYWORD127_tree = 
                     (CommonTree)adaptor.create(NUMBER_KEYWORD127)
                     ;
@@ -5523,7 +5522,7 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    TEXT128=(Token)match(input,TEXT,FOLLOW_TEXT_in_assignment_declaration1583); 
+                    TEXT128=(Token)match(input,TEXT,FOLLOW_TEXT_in_assignment_declaration1585); 
                     TEXT128_tree = 
                     (CommonTree)adaptor.create(TEXT128)
                     ;
@@ -5546,7 +5545,7 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    BOOLEAN_KEYWORD129=(Token)match(input,BOOLEAN_KEYWORD,FOLLOW_BOOLEAN_KEYWORD_in_assignment_declaration1591); 
+                    BOOLEAN_KEYWORD129=(Token)match(input,BOOLEAN_KEYWORD,FOLLOW_BOOLEAN_KEYWORD_in_assignment_declaration1593); 
                     BOOLEAN_KEYWORD129_tree = 
                     (CommonTree)adaptor.create(BOOLEAN_KEYWORD129)
                     ;
@@ -5662,14 +5661,14 @@ public TreeAdaptor getTreeAdaptor() {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:991:4: sel= selector COLON
                             {
-                            pushFollow(FOLLOW_selector_in_assignment_statement1614);
+                            pushFollow(FOLLOW_selector_in_assignment_statement1616);
                             sel=selector();
 
                             state._fsp--;
 
                             adaptor.addChild(root_0, sel.getTree());
 
-                            COLON130=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1616); 
+                            COLON130=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1618); 
                             COLON130_tree = 
                             (CommonTree)adaptor.create(COLON130)
                             ;
@@ -5682,14 +5681,14 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    ID131=(Token)match(input,ID,FOLLOW_ID_in_assignment_statement1620); 
+                    ID131=(Token)match(input,ID,FOLLOW_ID_in_assignment_statement1622); 
                     ID131_tree = 
                     (CommonTree)adaptor.create(ID131)
                     ;
                     adaptor.addChild(root_0, ID131_tree);
 
 
-                    pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1626);
+                    pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1628);
                     rhs=assign_right_hand_side();
 
                     state._fsp--;
@@ -5756,7 +5755,7 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    pushFollow(FOLLOW_qualified_name_in_assignment_statement1637);
+                    pushFollow(FOLLOW_qualified_name_in_assignment_statement1639);
                     obj=qualified_name();
 
                     state._fsp--;
@@ -5778,28 +5777,28 @@ public TreeAdaptor getTreeAdaptor() {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1043:24: COLON PARENT COLON parent= qualified_name
                             {
-                            COLON132=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1640); 
+                            COLON132=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1642); 
                             COLON132_tree = 
                             (CommonTree)adaptor.create(COLON132)
                             ;
                             adaptor.addChild(root_0, COLON132_tree);
 
 
-                            PARENT133=(Token)match(input,PARENT,FOLLOW_PARENT_in_assignment_statement1642); 
+                            PARENT133=(Token)match(input,PARENT,FOLLOW_PARENT_in_assignment_statement1644); 
                             PARENT133_tree = 
                             (CommonTree)adaptor.create(PARENT133)
                             ;
                             adaptor.addChild(root_0, PARENT133_tree);
 
 
-                            COLON134=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1644); 
+                            COLON134=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1646); 
                             COLON134_tree = 
                             (CommonTree)adaptor.create(COLON134)
                             ;
                             adaptor.addChild(root_0, COLON134_tree);
 
 
-                            pushFollow(FOLLOW_qualified_name_in_assignment_statement1648);
+                            pushFollow(FOLLOW_qualified_name_in_assignment_statement1650);
                             parent=qualified_name();
 
                             state._fsp--;
@@ -5812,21 +5811,21 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    COLON135=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1652); 
+                    COLON135=(Token)match(input,COLON,FOLLOW_COLON_in_assignment_statement1654); 
                     COLON135_tree = 
                     (CommonTree)adaptor.create(COLON135)
                     ;
                     adaptor.addChild(root_0, COLON135_tree);
 
 
-                    ID136=(Token)match(input,ID,FOLLOW_ID_in_assignment_statement1654); 
+                    ID136=(Token)match(input,ID,FOLLOW_ID_in_assignment_statement1656); 
                     ID136_tree = 
                     (CommonTree)adaptor.create(ID136)
                     ;
                     adaptor.addChild(root_0, ID136_tree);
 
 
-                    pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1658);
+                    pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1660);
                     rhs=assign_right_hand_side();
 
                     state._fsp--;
@@ -5852,7 +5851,7 @@ public TreeAdaptor getTreeAdaptor() {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1044:13: modifier= access_modifier
                             {
-                            pushFollow(FOLLOW_access_modifier_in_assignment_statement1667);
+                            pushFollow(FOLLOW_access_modifier_in_assignment_statement1669);
                             modifier=access_modifier();
 
                             state._fsp--;
@@ -5884,7 +5883,7 @@ public TreeAdaptor getTreeAdaptor() {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1052:2: CONSTANT
                             {
-                            CONSTANT137=(Token)match(input,CONSTANT,FOLLOW_CONSTANT_in_assignment_statement1675); 
+                            CONSTANT137=(Token)match(input,CONSTANT,FOLLOW_CONSTANT_in_assignment_statement1677); 
                             CONSTANT137_tree = 
                             (CommonTree)adaptor.create(CONSTANT137)
                             ;
@@ -5897,14 +5896,14 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    pushFollow(FOLLOW_assignment_declaration_in_assignment_statement1682);
+                    pushFollow(FOLLOW_assignment_declaration_in_assignment_statement1684);
                     type=assignment_declaration();
 
                     state._fsp--;
 
                     adaptor.addChild(root_0, type.getTree());
 
-                    name=(Token)match(input,ID,FOLLOW_ID_in_assignment_statement1688); 
+                    name=(Token)match(input,ID,FOLLOW_ID_in_assignment_statement1690); 
                     name_tree = 
                     (CommonTree)adaptor.create(name)
                     ;
@@ -5922,7 +5921,7 @@ public TreeAdaptor getTreeAdaptor() {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1052:56: rhs= assign_right_hand_side
                             {
-                            pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1694);
+                            pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1696);
                             rhs=assign_right_hand_side();
 
                             state._fsp--;
@@ -6030,14 +6029,14 @@ public TreeAdaptor getTreeAdaptor() {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1094:3: ( EQUALITY root_expression )
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1094:4: EQUALITY root_expression
             {
-            EQUALITY138=(Token)match(input,EQUALITY,FOLLOW_EQUALITY_in_assign_right_hand_side1720); 
+            EQUALITY138=(Token)match(input,EQUALITY,FOLLOW_EQUALITY_in_assign_right_hand_side1722); 
             EQUALITY138_tree = 
             (CommonTree)adaptor.create(EQUALITY138)
             ;
             adaptor.addChild(root_0, EQUALITY138_tree);
 
 
-            pushFollow(FOLLOW_root_expression_in_assign_right_hand_side1722);
+            pushFollow(FOLLOW_root_expression_in_assign_right_hand_side1724);
             root_expression139=root_expression();
 
             state._fsp--;
@@ -6116,14 +6115,14 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            firstif=(Token)match(input,IF,FOLLOW_IF_in_if_statement1747); 
+            firstif=(Token)match(input,IF,FOLLOW_IF_in_if_statement1749); 
             firstif_tree = 
             (CommonTree)adaptor.create(firstif)
             ;
             adaptor.addChild(root_0, firstif_tree);
 
 
-            pushFollow(FOLLOW_root_expression_in_if_statement1749);
+            pushFollow(FOLLOW_root_expression_in_if_statement1751);
             root_expression140=root_expression();
 
             state._fsp--;
@@ -6132,7 +6131,7 @@ public TreeAdaptor getTreeAdaptor() {
 
              block = new BlockDescriptor(); symbol.add(block); 
 
-            pushFollow(FOLLOW_block_in_if_statement1755);
+            pushFollow(FOLLOW_block_in_if_statement1757);
             block141=block();
 
             state._fsp--;
@@ -6161,7 +6160,7 @@ public TreeAdaptor getTreeAdaptor() {
             	case 1 :
             	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1111:3: firstelse= ELSE_IF root_expression block
             	    {
-            	    firstelse=(Token)match(input,ELSE_IF,FOLLOW_ELSE_IF_in_if_statement1767); 
+            	    firstelse=(Token)match(input,ELSE_IF,FOLLOW_ELSE_IF_in_if_statement1769); 
             	    firstelse_tree = 
             	    (CommonTree)adaptor.create(firstelse)
             	    ;
@@ -6173,7 +6172,7 @@ public TreeAdaptor getTreeAdaptor() {
             	    		block.setColumnEnd((firstelse!=null?firstelse.getText():null).length() + firstelse.getCharPositionInLine());
             	    	
 
-            	    pushFollow(FOLLOW_root_expression_in_if_statement1775);
+            	    pushFollow(FOLLOW_root_expression_in_if_statement1777);
             	    root_expression142=root_expression();
 
             	    state._fsp--;
@@ -6182,7 +6181,7 @@ public TreeAdaptor getTreeAdaptor() {
 
             	     block = new BlockDescriptor(); symbol.add(block); 
 
-            	    pushFollow(FOLLOW_block_in_if_statement1781);
+            	    pushFollow(FOLLOW_block_in_if_statement1783);
             	    block143=block();
 
             	    state._fsp--;
@@ -6216,7 +6215,7 @@ public TreeAdaptor getTreeAdaptor() {
                 case 1 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1125:3: secondelse= ELSE block
                     {
-                    secondelse=(Token)match(input,ELSE,FOLLOW_ELSE_in_if_statement1799); 
+                    secondelse=(Token)match(input,ELSE,FOLLOW_ELSE_in_if_statement1801); 
                     secondelse_tree = 
                     (CommonTree)adaptor.create(secondelse)
                     ;
@@ -6230,7 +6229,7 @@ public TreeAdaptor getTreeAdaptor() {
                     		symbol.add(block); 
                     	
 
-                    pushFollow(FOLLOW_block_in_if_statement1807);
+                    pushFollow(FOLLOW_block_in_if_statement1809);
                     block144=block();
 
                     state._fsp--;
@@ -6250,7 +6249,7 @@ public TreeAdaptor getTreeAdaptor() {
             }
 
 
-            end=(Token)match(input,END,FOLLOW_END_in_if_statement1823); 
+            end=(Token)match(input,END,FOLLOW_END_in_if_statement1825); 
             end_tree = 
             (CommonTree)adaptor.create(end)
             ;
@@ -6332,7 +6331,7 @@ public TreeAdaptor getTreeAdaptor() {
             		symbol.add(block);
             	
 
-            REPEAT145=(Token)match(input,REPEAT,FOLLOW_REPEAT_in_loop_statement1848); 
+            REPEAT145=(Token)match(input,REPEAT,FOLLOW_REPEAT_in_loop_statement1850); 
             REPEAT145_tree = 
             (CommonTree)adaptor.create(REPEAT145)
             ;
@@ -6363,14 +6362,14 @@ public TreeAdaptor getTreeAdaptor() {
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:4: ( root_expression TIMES )
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1172:5: root_expression TIMES
                     {
-                    pushFollow(FOLLOW_root_expression_in_loop_statement1916);
+                    pushFollow(FOLLOW_root_expression_in_loop_statement1918);
                     root_expression146=root_expression();
 
                     state._fsp--;
 
                     adaptor.addChild(root_0, root_expression146.getTree());
 
-                    TIMES147=(Token)match(input,TIMES,FOLLOW_TIMES_in_loop_statement1918); 
+                    TIMES147=(Token)match(input,TIMES,FOLLOW_TIMES_in_loop_statement1920); 
                     TIMES147_tree = 
                     (CommonTree)adaptor.create(TIMES147)
                     ;
@@ -6403,7 +6402,7 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    pushFollow(FOLLOW_root_expression_in_loop_statement1934);
+                    pushFollow(FOLLOW_root_expression_in_loop_statement1936);
                     root_expression149=root_expression();
 
                     state._fsp--;
@@ -6419,14 +6418,14 @@ public TreeAdaptor getTreeAdaptor() {
             }
 
 
-            pushFollow(FOLLOW_block_in_loop_statement1943);
+            pushFollow(FOLLOW_block_in_loop_statement1945);
             block150=block();
 
             state._fsp--;
 
             adaptor.addChild(root_0, block150.getTree());
 
-            END151=(Token)match(input,END,FOLLOW_END_in_loop_statement1945); 
+            END151=(Token)match(input,END,FOLLOW_END_in_loop_statement1947); 
             END151_tree = 
             (CommonTree)adaptor.create(END151)
             ;
@@ -6519,15 +6518,15 @@ public TreeAdaptor getTreeAdaptor() {
                 case 1 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1190:4: PARENT COLON qn= qualified_name
                     {
-                    PARENT152=(Token)match(input,PARENT,FOLLOW_PARENT_in_selector1969);  
+                    PARENT152=(Token)match(input,PARENT,FOLLOW_PARENT_in_selector1971);  
                     stream_PARENT.add(PARENT152);
 
 
-                    COLON153=(Token)match(input,COLON,FOLLOW_COLON_in_selector1971);  
+                    COLON153=(Token)match(input,COLON,FOLLOW_COLON_in_selector1973);  
                     stream_COLON.add(COLON153);
 
 
-                    pushFollow(FOLLOW_qualified_name_in_selector1975);
+                    pushFollow(FOLLOW_qualified_name_in_selector1977);
                     qn=qualified_name();
 
                     state._fsp--;
@@ -6541,7 +6540,7 @@ public TreeAdaptor getTreeAdaptor() {
                     	
 
                     // AST REWRITE
-                    // elements: PARENT, qualified_name
+                    // elements: qualified_name, PARENT
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -6578,7 +6577,7 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    ME154=(Token)match(input,ME,FOLLOW_ME_in_selector1993); 
+                    ME154=(Token)match(input,ME,FOLLOW_ME_in_selector1995); 
                     ME154_tree = 
                     (CommonTree)adaptor.create(ME154)
                     ;
@@ -6640,7 +6639,7 @@ public TreeAdaptor getTreeAdaptor() {
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1206:2: ( expression -> ^( ROOT_EXPRESSION expression ) )
             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1206:4: expression
             {
-            pushFollow(FOLLOW_expression_in_root_expression2007);
+            pushFollow(FOLLOW_expression_in_root_expression2009);
             expression155=expression();
 
             state._fsp--;
@@ -6727,7 +6726,7 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_or_in_expression2027);
+            pushFollow(FOLLOW_or_in_expression2029);
             or156=or();
 
             state._fsp--;
@@ -6788,7 +6787,7 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_and_in_or2039);
+            pushFollow(FOLLOW_and_in_or2041);
             and157=and();
 
             state._fsp--;
@@ -6810,14 +6809,14 @@ public TreeAdaptor getTreeAdaptor() {
             	case 1 :
             	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1213:12: OR ^ and
             	    {
-            	    OR158=(Token)match(input,OR,FOLLOW_OR_in_or2042); 
+            	    OR158=(Token)match(input,OR,FOLLOW_OR_in_or2044); 
             	    OR158_tree = 
             	    (CommonTree)adaptor.create(OR158)
             	    ;
             	    root_0 = (CommonTree)adaptor.becomeRoot(OR158_tree, root_0);
 
 
-            	    pushFollow(FOLLOW_and_in_or2046);
+            	    pushFollow(FOLLOW_and_in_or2048);
             	    and159=and();
 
             	    state._fsp--;
@@ -6887,7 +6886,7 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_equality_in_and2059);
+            pushFollow(FOLLOW_equality_in_and2061);
             equality160=equality();
 
             state._fsp--;
@@ -6909,14 +6908,14 @@ public TreeAdaptor getTreeAdaptor() {
             	case 1 :
             	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1216:18: AND ^ equality
             	    {
-            	    AND161=(Token)match(input,AND,FOLLOW_AND_in_and2062); 
+            	    AND161=(Token)match(input,AND,FOLLOW_AND_in_and2064); 
             	    AND161_tree = 
             	    (CommonTree)adaptor.create(AND161)
             	    ;
             	    root_0 = (CommonTree)adaptor.becomeRoot(AND161_tree, root_0);
 
 
-            	    pushFollow(FOLLOW_equality_in_and2066);
+            	    pushFollow(FOLLOW_equality_in_and2068);
             	    equality162=equality();
 
             	    state._fsp--;
@@ -6988,7 +6987,7 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_isa_operation_in_equality2077);
+            pushFollow(FOLLOW_isa_operation_in_equality2079);
             isa_operation163=isa_operation();
 
             state._fsp--;
@@ -7031,7 +7030,7 @@ public TreeAdaptor getTreeAdaptor() {
             	        case 1 :
             	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1218:27: EQUALITY ^
             	            {
-            	            EQUALITY164=(Token)match(input,EQUALITY,FOLLOW_EQUALITY_in_equality2081); 
+            	            EQUALITY164=(Token)match(input,EQUALITY,FOLLOW_EQUALITY_in_equality2083); 
             	            EQUALITY164_tree = 
             	            (CommonTree)adaptor.create(EQUALITY164)
             	            ;
@@ -7043,7 +7042,7 @@ public TreeAdaptor getTreeAdaptor() {
             	        case 2 :
             	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1218:40: NOTEQUALS ^
             	            {
-            	            NOTEQUALS165=(Token)match(input,NOTEQUALS,FOLLOW_NOTEQUALS_in_equality2087); 
+            	            NOTEQUALS165=(Token)match(input,NOTEQUALS,FOLLOW_NOTEQUALS_in_equality2089); 
             	            NOTEQUALS165_tree = 
             	            (CommonTree)adaptor.create(NOTEQUALS165)
             	            ;
@@ -7056,7 +7055,7 @@ public TreeAdaptor getTreeAdaptor() {
             	    }
 
 
-            	    pushFollow(FOLLOW_isa_operation_in_equality2092);
+            	    pushFollow(FOLLOW_isa_operation_in_equality2094);
             	    isa_operation166=isa_operation();
 
             	    state._fsp--;
@@ -7126,7 +7125,7 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_comparison_in_isa_operation2104);
+            pushFollow(FOLLOW_comparison_in_isa_operation2106);
             comparison167=comparison();
 
             state._fsp--;
@@ -7144,14 +7143,14 @@ public TreeAdaptor getTreeAdaptor() {
                 case 1 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1221:16: INHERITS ^ class_type
                     {
-                    INHERITS168=(Token)match(input,INHERITS,FOLLOW_INHERITS_in_isa_operation2107); 
+                    INHERITS168=(Token)match(input,INHERITS,FOLLOW_INHERITS_in_isa_operation2109); 
                     INHERITS168_tree = 
                     (CommonTree)adaptor.create(INHERITS168)
                     ;
                     root_0 = (CommonTree)adaptor.becomeRoot(INHERITS168_tree, root_0);
 
 
-                    pushFollow(FOLLOW_class_type_in_isa_operation2111);
+                    pushFollow(FOLLOW_class_type_in_isa_operation2113);
                     class_type169=class_type();
 
                     state._fsp--;
@@ -7224,7 +7223,7 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_add_in_comparison2121);
+            pushFollow(FOLLOW_add_in_comparison2123);
             add170=add();
 
             state._fsp--;
@@ -7281,7 +7280,7 @@ public TreeAdaptor getTreeAdaptor() {
             	        case 1 :
             	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1223:19: GREATER ^
             	            {
-            	            GREATER171=(Token)match(input,GREATER,FOLLOW_GREATER_in_comparison2125); 
+            	            GREATER171=(Token)match(input,GREATER,FOLLOW_GREATER_in_comparison2127); 
             	            GREATER171_tree = 
             	            (CommonTree)adaptor.create(GREATER171)
             	            ;
@@ -7293,7 +7292,7 @@ public TreeAdaptor getTreeAdaptor() {
             	        case 2 :
             	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1223:30: GREATER_EQUAL ^
             	            {
-            	            GREATER_EQUAL172=(Token)match(input,GREATER_EQUAL,FOLLOW_GREATER_EQUAL_in_comparison2130); 
+            	            GREATER_EQUAL172=(Token)match(input,GREATER_EQUAL,FOLLOW_GREATER_EQUAL_in_comparison2132); 
             	            GREATER_EQUAL172_tree = 
             	            (CommonTree)adaptor.create(GREATER_EQUAL172)
             	            ;
@@ -7305,7 +7304,7 @@ public TreeAdaptor getTreeAdaptor() {
             	        case 3 :
             	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1223:47: LESS ^
             	            {
-            	            LESS173=(Token)match(input,LESS,FOLLOW_LESS_in_comparison2135); 
+            	            LESS173=(Token)match(input,LESS,FOLLOW_LESS_in_comparison2137); 
             	            LESS173_tree = 
             	            (CommonTree)adaptor.create(LESS173)
             	            ;
@@ -7317,7 +7316,7 @@ public TreeAdaptor getTreeAdaptor() {
             	        case 4 :
             	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1223:55: LESS_EQUAL ^
             	            {
-            	            LESS_EQUAL174=(Token)match(input,LESS_EQUAL,FOLLOW_LESS_EQUAL_in_comparison2140); 
+            	            LESS_EQUAL174=(Token)match(input,LESS_EQUAL,FOLLOW_LESS_EQUAL_in_comparison2142); 
             	            LESS_EQUAL174_tree = 
             	            (CommonTree)adaptor.create(LESS_EQUAL174)
             	            ;
@@ -7330,7 +7329,7 @@ public TreeAdaptor getTreeAdaptor() {
             	    }
 
 
-            	    pushFollow(FOLLOW_add_in_comparison2144);
+            	    pushFollow(FOLLOW_add_in_comparison2146);
             	    add175=add();
 
             	    state._fsp--;
@@ -7402,7 +7401,7 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_multiply_in_add2158);
+            pushFollow(FOLLOW_multiply_in_add2160);
             multiply176=multiply();
 
             state._fsp--;
@@ -7445,7 +7444,7 @@ public TreeAdaptor getTreeAdaptor() {
             	        case 1 :
             	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1227:18: PLUS ^
             	            {
-            	            PLUS177=(Token)match(input,PLUS,FOLLOW_PLUS_in_add2162); 
+            	            PLUS177=(Token)match(input,PLUS,FOLLOW_PLUS_in_add2164); 
             	            PLUS177_tree = 
             	            (CommonTree)adaptor.create(PLUS177)
             	            ;
@@ -7457,7 +7456,7 @@ public TreeAdaptor getTreeAdaptor() {
             	        case 2 :
             	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1227:26: MINUS ^
             	            {
-            	            MINUS178=(Token)match(input,MINUS,FOLLOW_MINUS_in_add2167); 
+            	            MINUS178=(Token)match(input,MINUS,FOLLOW_MINUS_in_add2169); 
             	            MINUS178_tree = 
             	            (CommonTree)adaptor.create(MINUS178)
             	            ;
@@ -7470,7 +7469,7 @@ public TreeAdaptor getTreeAdaptor() {
             	    }
 
 
-            	    pushFollow(FOLLOW_multiply_in_add2171);
+            	    pushFollow(FOLLOW_multiply_in_add2173);
             	    multiply179=multiply();
 
             	    state._fsp--;
@@ -7544,7 +7543,7 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (CommonTree)adaptor.nil();
 
 
-            pushFollow(FOLLOW_combo_expression_in_multiply2184);
+            pushFollow(FOLLOW_combo_expression_in_multiply2186);
             combo_expression180=combo_expression();
 
             state._fsp--;
@@ -7596,7 +7595,7 @@ public TreeAdaptor getTreeAdaptor() {
             	        case 1 :
             	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1230:30: MULTIPLY ^
             	            {
-            	            MULTIPLY181=(Token)match(input,MULTIPLY,FOLLOW_MULTIPLY_in_multiply2188); 
+            	            MULTIPLY181=(Token)match(input,MULTIPLY,FOLLOW_MULTIPLY_in_multiply2190); 
             	            MULTIPLY181_tree = 
             	            (CommonTree)adaptor.create(MULTIPLY181)
             	            ;
@@ -7608,7 +7607,7 @@ public TreeAdaptor getTreeAdaptor() {
             	        case 2 :
             	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1230:42: DIVIDE ^
             	            {
-            	            DIVIDE182=(Token)match(input,DIVIDE,FOLLOW_DIVIDE_in_multiply2193); 
+            	            DIVIDE182=(Token)match(input,DIVIDE,FOLLOW_DIVIDE_in_multiply2195); 
             	            DIVIDE182_tree = 
             	            (CommonTree)adaptor.create(DIVIDE182)
             	            ;
@@ -7620,7 +7619,7 @@ public TreeAdaptor getTreeAdaptor() {
             	        case 3 :
             	            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1230:51: MODULO ^
             	            {
-            	            MODULO183=(Token)match(input,MODULO,FOLLOW_MODULO_in_multiply2197); 
+            	            MODULO183=(Token)match(input,MODULO,FOLLOW_MODULO_in_multiply2199); 
             	            MODULO183_tree = 
             	            (CommonTree)adaptor.create(MODULO183)
             	            ;
@@ -7633,7 +7632,7 @@ public TreeAdaptor getTreeAdaptor() {
             	    }
 
 
-            	    pushFollow(FOLLOW_combo_expression_in_multiply2201);
+            	    pushFollow(FOLLOW_combo_expression_in_multiply2203);
             	    combo_expression184=combo_expression();
 
             	    state._fsp--;
@@ -7751,11 +7750,11 @@ public TreeAdaptor getTreeAdaptor() {
                 case 1 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1234:4: NOT atom
                     {
-                    NOT185=(Token)match(input,NOT,FOLLOW_NOT_in_combo_expression2216);  
+                    NOT185=(Token)match(input,NOT,FOLLOW_NOT_in_combo_expression2218);  
                     stream_NOT.add(NOT185);
 
 
-                    pushFollow(FOLLOW_atom_in_combo_expression2218);
+                    pushFollow(FOLLOW_atom_in_combo_expression2220);
                     atom186=atom();
 
                     state._fsp--;
@@ -7763,7 +7762,7 @@ public TreeAdaptor getTreeAdaptor() {
                     stream_atom.add(atom186.getTree());
 
                     // AST REWRITE
-                    // elements: NOT, atom
+                    // elements: atom, NOT
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7804,42 +7803,42 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    CAST187=(Token)match(input,CAST,FOLLOW_CAST_in_combo_expression2233); 
+                    CAST187=(Token)match(input,CAST,FOLLOW_CAST_in_combo_expression2235); 
                     CAST187_tree = 
                     (CommonTree)adaptor.create(CAST187)
                     ;
                     adaptor.addChild(root_0, CAST187_tree);
 
 
-                    LEFT_PAREN188=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_combo_expression2235); 
+                    LEFT_PAREN188=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_combo_expression2237); 
                     LEFT_PAREN188_tree = 
                     (CommonTree)adaptor.create(LEFT_PAREN188)
                     ;
                     adaptor.addChild(root_0, LEFT_PAREN188_tree);
 
 
-                    pushFollow(FOLLOW_assignment_declaration_in_combo_expression2237);
+                    pushFollow(FOLLOW_assignment_declaration_in_combo_expression2239);
                     assignment_declaration189=assignment_declaration();
 
                     state._fsp--;
 
                     adaptor.addChild(root_0, assignment_declaration189.getTree());
 
-                    COMMA190=(Token)match(input,COMMA,FOLLOW_COMMA_in_combo_expression2239); 
+                    COMMA190=(Token)match(input,COMMA,FOLLOW_COMMA_in_combo_expression2241); 
                     COMMA190_tree = 
                     (CommonTree)adaptor.create(COMMA190)
                     ;
                     adaptor.addChild(root_0, COMMA190_tree);
 
 
-                    pushFollow(FOLLOW_expression_in_combo_expression2241);
+                    pushFollow(FOLLOW_expression_in_combo_expression2243);
                     expression191=expression();
 
                     state._fsp--;
 
                     adaptor.addChild(root_0, expression191.getTree());
 
-                    RIGHT_PAREN192=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_combo_expression2243); 
+                    RIGHT_PAREN192=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_combo_expression2245); 
                     RIGHT_PAREN192_tree = 
                     (CommonTree)adaptor.create(RIGHT_PAREN192)
                     ;
@@ -7854,7 +7853,7 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    pushFollow(FOLLOW_atom_in_combo_expression2248);
+                    pushFollow(FOLLOW_atom_in_combo_expression2250);
                     atom193=atom();
 
                     state._fsp--;
@@ -8023,7 +8022,7 @@ public TreeAdaptor getTreeAdaptor() {
                 case 1 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1240:2: qualified_name ( COLON ID )?
                     {
-                    pushFollow(FOLLOW_qualified_name_in_atom2263);
+                    pushFollow(FOLLOW_qualified_name_in_atom2265);
                     qualified_name194=qualified_name();
 
                     state._fsp--;
@@ -8041,11 +8040,11 @@ public TreeAdaptor getTreeAdaptor() {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1240:18: COLON ID
                             {
-                            COLON195=(Token)match(input,COLON,FOLLOW_COLON_in_atom2266);  
+                            COLON195=(Token)match(input,COLON,FOLLOW_COLON_in_atom2268);  
                             stream_COLON.add(COLON195);
 
 
-                            ID196=(Token)match(input,ID,FOLLOW_ID_in_atom2268);  
+                            ID196=(Token)match(input,ID,FOLLOW_ID_in_atom2270);  
                             stream_ID.add(ID196);
 
 
@@ -8056,7 +8055,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
                     // AST REWRITE
-                    // elements: COLON, ID, qualified_name
+                    // elements: ID, COLON, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8078,7 +8077,7 @@ public TreeAdaptor getTreeAdaptor() {
                         adaptor.addChild(root_1, stream_qualified_name.nextTree());
 
                         // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1240:75: ( COLON ID )?
-                        if ( stream_COLON.hasNext()||stream_ID.hasNext() ) {
+                        if ( stream_ID.hasNext()||stream_COLON.hasNext() ) {
                             adaptor.addChild(root_1, 
                             stream_COLON.nextNode()
                             );
@@ -8088,8 +8087,8 @@ public TreeAdaptor getTreeAdaptor() {
                             );
 
                         }
-                        stream_COLON.reset();
                         stream_ID.reset();
+                        stream_COLON.reset();
 
                         adaptor.addChild(root_0, root_1);
                         }
@@ -8104,42 +8103,42 @@ public TreeAdaptor getTreeAdaptor() {
                 case 2 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1241:4: qualified_name COLON PARENT COLON qualified_name COLON ID
                     {
-                    pushFollow(FOLLOW_qualified_name_in_atom2290);
+                    pushFollow(FOLLOW_qualified_name_in_atom2292);
                     qualified_name197=qualified_name();
 
                     state._fsp--;
 
                     stream_qualified_name.add(qualified_name197.getTree());
 
-                    COLON198=(Token)match(input,COLON,FOLLOW_COLON_in_atom2292);  
+                    COLON198=(Token)match(input,COLON,FOLLOW_COLON_in_atom2294);  
                     stream_COLON.add(COLON198);
 
 
-                    PARENT199=(Token)match(input,PARENT,FOLLOW_PARENT_in_atom2294);  
+                    PARENT199=(Token)match(input,PARENT,FOLLOW_PARENT_in_atom2296);  
                     stream_PARENT.add(PARENT199);
 
 
-                    COLON200=(Token)match(input,COLON,FOLLOW_COLON_in_atom2296);  
+                    COLON200=(Token)match(input,COLON,FOLLOW_COLON_in_atom2298);  
                     stream_COLON.add(COLON200);
 
 
-                    pushFollow(FOLLOW_qualified_name_in_atom2298);
+                    pushFollow(FOLLOW_qualified_name_in_atom2300);
                     qualified_name201=qualified_name();
 
                     state._fsp--;
 
                     stream_qualified_name.add(qualified_name201.getTree());
 
-                    COLON202=(Token)match(input,COLON,FOLLOW_COLON_in_atom2300);  
+                    COLON202=(Token)match(input,COLON,FOLLOW_COLON_in_atom2302);  
                     stream_COLON.add(COLON202);
 
 
-                    ID203=(Token)match(input,ID,FOLLOW_ID_in_atom2302);  
+                    ID203=(Token)match(input,ID,FOLLOW_ID_in_atom2304);  
                     stream_ID.add(ID203);
 
 
                     // AST REWRITE
-                    // elements: COLON, qualified_name, COLON, PARENT, qualified_name, ID, COLON
+                    // elements: COLON, ID, COLON, COLON, qualified_name, qualified_name, PARENT
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8195,7 +8194,7 @@ public TreeAdaptor getTreeAdaptor() {
                 case 3 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1242:4: qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN
                     {
-                    pushFollow(FOLLOW_qualified_name_in_atom2327);
+                    pushFollow(FOLLOW_qualified_name_in_atom2329);
                     qualified_name204=qualified_name();
 
                     state._fsp--;
@@ -8213,11 +8212,11 @@ public TreeAdaptor getTreeAdaptor() {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1242:20: COLON ID
                             {
-                            COLON205=(Token)match(input,COLON,FOLLOW_COLON_in_atom2330);  
+                            COLON205=(Token)match(input,COLON,FOLLOW_COLON_in_atom2332);  
                             stream_COLON.add(COLON205);
 
 
-                            ID206=(Token)match(input,ID,FOLLOW_ID_in_atom2332);  
+                            ID206=(Token)match(input,ID,FOLLOW_ID_in_atom2334);  
                             stream_ID.add(ID206);
 
 
@@ -8227,23 +8226,23 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    LEFT_PAREN207=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2336);  
+                    LEFT_PAREN207=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2338);  
                     stream_LEFT_PAREN.add(LEFT_PAREN207);
 
 
-                    pushFollow(FOLLOW_function_expression_list_in_atom2338);
+                    pushFollow(FOLLOW_function_expression_list_in_atom2340);
                     function_expression_list208=function_expression_list();
 
                     state._fsp--;
 
                     stream_function_expression_list.add(function_expression_list208.getTree());
 
-                    RIGHT_PAREN209=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2340);  
+                    RIGHT_PAREN209=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2342);  
                     stream_RIGHT_PAREN.add(RIGHT_PAREN209);
 
 
                     // AST REWRITE
-                    // elements: LEFT_PAREN, qualified_name, ID, RIGHT_PAREN, COLON, function_expression_list
+                    // elements: RIGHT_PAREN, ID, qualified_name, function_expression_list, COLON, LEFT_PAREN
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8301,18 +8300,18 @@ public TreeAdaptor getTreeAdaptor() {
                 case 4 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1244:4: selector COLON qualified_name
                     {
-                    pushFollow(FOLLOW_selector_in_atom2369);
+                    pushFollow(FOLLOW_selector_in_atom2371);
                     selector210=selector();
 
                     state._fsp--;
 
                     stream_selector.add(selector210.getTree());
 
-                    COLON211=(Token)match(input,COLON,FOLLOW_COLON_in_atom2371);  
+                    COLON211=(Token)match(input,COLON,FOLLOW_COLON_in_atom2373);  
                     stream_COLON.add(COLON211);
 
 
-                    pushFollow(FOLLOW_qualified_name_in_atom2373);
+                    pushFollow(FOLLOW_qualified_name_in_atom2375);
                     qualified_name212=qualified_name();
 
                     state._fsp--;
@@ -8320,7 +8319,7 @@ public TreeAdaptor getTreeAdaptor() {
                     stream_qualified_name.add(qualified_name212.getTree());
 
                     // AST REWRITE
-                    // elements: COLON, selector, qualified_name
+                    // elements: selector, qualified_name, COLON
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8360,46 +8359,46 @@ public TreeAdaptor getTreeAdaptor() {
                 case 5 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1248:4: PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN
                     {
-                    PARENT213=(Token)match(input,PARENT,FOLLOW_PARENT_in_atom2398);  
+                    PARENT213=(Token)match(input,PARENT,FOLLOW_PARENT_in_atom2400);  
                     stream_PARENT.add(PARENT213);
 
 
-                    COLON214=(Token)match(input,COLON,FOLLOW_COLON_in_atom2400);  
+                    COLON214=(Token)match(input,COLON,FOLLOW_COLON_in_atom2402);  
                     stream_COLON.add(COLON214);
 
 
-                    pushFollow(FOLLOW_qualified_name_in_atom2402);
+                    pushFollow(FOLLOW_qualified_name_in_atom2404);
                     qualified_name215=qualified_name();
 
                     state._fsp--;
 
                     stream_qualified_name.add(qualified_name215.getTree());
 
-                    COLON216=(Token)match(input,COLON,FOLLOW_COLON_in_atom2404);  
+                    COLON216=(Token)match(input,COLON,FOLLOW_COLON_in_atom2406);  
                     stream_COLON.add(COLON216);
 
 
-                    ID217=(Token)match(input,ID,FOLLOW_ID_in_atom2406);  
+                    ID217=(Token)match(input,ID,FOLLOW_ID_in_atom2408);  
                     stream_ID.add(ID217);
 
 
-                    LEFT_PAREN218=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2408);  
+                    LEFT_PAREN218=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2410);  
                     stream_LEFT_PAREN.add(LEFT_PAREN218);
 
 
-                    pushFollow(FOLLOW_function_expression_list_in_atom2410);
+                    pushFollow(FOLLOW_function_expression_list_in_atom2412);
                     function_expression_list219=function_expression_list();
 
                     state._fsp--;
 
                     stream_function_expression_list.add(function_expression_list219.getTree());
 
-                    RIGHT_PAREN220=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2412);  
+                    RIGHT_PAREN220=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2414);  
                     stream_RIGHT_PAREN.add(RIGHT_PAREN220);
 
 
                     // AST REWRITE
-                    // elements: function_expression_list, COLON, COLON, PARENT, qualified_name, RIGHT_PAREN, LEFT_PAREN, ID
+                    // elements: LEFT_PAREN, COLON, RIGHT_PAREN, qualified_name, COLON, ID, PARENT, function_expression_list
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8459,15 +8458,15 @@ public TreeAdaptor getTreeAdaptor() {
                 case 6 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1250:4: ME COLON qualified_name ( COLON ID )? LEFT_PAREN function_expression_list RIGHT_PAREN
                     {
-                    ME221=(Token)match(input,ME,FOLLOW_ME_in_atom2442);  
+                    ME221=(Token)match(input,ME,FOLLOW_ME_in_atom2444);  
                     stream_ME.add(ME221);
 
 
-                    COLON222=(Token)match(input,COLON,FOLLOW_COLON_in_atom2444);  
+                    COLON222=(Token)match(input,COLON,FOLLOW_COLON_in_atom2446);  
                     stream_COLON.add(COLON222);
 
 
-                    pushFollow(FOLLOW_qualified_name_in_atom2446);
+                    pushFollow(FOLLOW_qualified_name_in_atom2448);
                     qualified_name223=qualified_name();
 
                     state._fsp--;
@@ -8485,11 +8484,11 @@ public TreeAdaptor getTreeAdaptor() {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1250:29: COLON ID
                             {
-                            COLON224=(Token)match(input,COLON,FOLLOW_COLON_in_atom2449);  
+                            COLON224=(Token)match(input,COLON,FOLLOW_COLON_in_atom2451);  
                             stream_COLON.add(COLON224);
 
 
-                            ID225=(Token)match(input,ID,FOLLOW_ID_in_atom2451);  
+                            ID225=(Token)match(input,ID,FOLLOW_ID_in_atom2453);  
                             stream_ID.add(ID225);
 
 
@@ -8499,23 +8498,23 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    LEFT_PAREN226=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2455);  
+                    LEFT_PAREN226=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2457);  
                     stream_LEFT_PAREN.add(LEFT_PAREN226);
 
 
-                    pushFollow(FOLLOW_function_expression_list_in_atom2457);
+                    pushFollow(FOLLOW_function_expression_list_in_atom2459);
                     function_expression_list227=function_expression_list();
 
                     state._fsp--;
 
                     stream_function_expression_list.add(function_expression_list227.getTree());
 
-                    RIGHT_PAREN228=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2459);  
+                    RIGHT_PAREN228=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2461);  
                     stream_RIGHT_PAREN.add(RIGHT_PAREN228);
 
 
                     // AST REWRITE
-                    // elements: COLON, COLON, ID, LEFT_PAREN, RIGHT_PAREN, function_expression_list, ME, qualified_name
+                    // elements: COLON, ID, ME, COLON, function_expression_list, LEFT_PAREN, RIGHT_PAREN, qualified_name
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -8595,7 +8594,7 @@ public TreeAdaptor getTreeAdaptor() {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1252:5: MINUS
                             {
-                            MINUS229=(Token)match(input,MINUS,FOLLOW_MINUS_in_atom2493); 
+                            MINUS229=(Token)match(input,MINUS,FOLLOW_MINUS_in_atom2495); 
                             MINUS229_tree = 
                             (CommonTree)adaptor.create(MINUS229)
                             ;
@@ -8608,7 +8607,7 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    INT230=(Token)match(input,INT,FOLLOW_INT_in_atom2497); 
+                    INT230=(Token)match(input,INT,FOLLOW_INT_in_atom2499); 
                     INT230_tree = 
                     (CommonTree)adaptor.create(INT230)
                     ;
@@ -8623,7 +8622,7 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    BOOLEAN231=(Token)match(input,BOOLEAN,FOLLOW_BOOLEAN_in_atom2502); 
+                    BOOLEAN231=(Token)match(input,BOOLEAN,FOLLOW_BOOLEAN_in_atom2504); 
                     BOOLEAN231_tree = 
                     (CommonTree)adaptor.create(BOOLEAN231)
                     ;
@@ -8649,7 +8648,7 @@ public TreeAdaptor getTreeAdaptor() {
                         case 1 :
                             // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1254:5: MINUS
                             {
-                            MINUS232=(Token)match(input,MINUS,FOLLOW_MINUS_in_atom2508); 
+                            MINUS232=(Token)match(input,MINUS,FOLLOW_MINUS_in_atom2510); 
                             MINUS232_tree = 
                             (CommonTree)adaptor.create(MINUS232)
                             ;
@@ -8662,7 +8661,7 @@ public TreeAdaptor getTreeAdaptor() {
                     }
 
 
-                    DECIMAL233=(Token)match(input,DECIMAL,FOLLOW_DECIMAL_in_atom2512); 
+                    DECIMAL233=(Token)match(input,DECIMAL,FOLLOW_DECIMAL_in_atom2514); 
                     DECIMAL233_tree = 
                     (CommonTree)adaptor.create(DECIMAL233)
                     ;
@@ -8677,7 +8676,7 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    STRING234=(Token)match(input,STRING,FOLLOW_STRING_in_atom2518); 
+                    STRING234=(Token)match(input,STRING,FOLLOW_STRING_in_atom2520); 
                     STRING234_tree = 
                     (CommonTree)adaptor.create(STRING234)
                     ;
@@ -8692,7 +8691,7 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    QUOTE235=(Token)match(input,QUOTE,FOLLOW_QUOTE_in_atom2523); 
+                    QUOTE235=(Token)match(input,QUOTE,FOLLOW_QUOTE_in_atom2525); 
                     QUOTE235_tree = 
                     (CommonTree)adaptor.create(QUOTE235)
                     ;
@@ -8707,7 +8706,7 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    NULL236=(Token)match(input,NULL,FOLLOW_NULL_in_atom2528); 
+                    NULL236=(Token)match(input,NULL,FOLLOW_NULL_in_atom2530); 
                     NULL236_tree = 
                     (CommonTree)adaptor.create(NULL236)
                     ;
@@ -8722,7 +8721,7 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    ME237=(Token)match(input,ME,FOLLOW_ME_in_atom2533); 
+                    ME237=(Token)match(input,ME,FOLLOW_ME_in_atom2535); 
                     ME237_tree = 
                     (CommonTree)adaptor.create(ME237)
                     ;
@@ -8737,28 +8736,28 @@ public TreeAdaptor getTreeAdaptor() {
                     root_0 = (CommonTree)adaptor.nil();
 
 
-                    INPUT238=(Token)match(input,INPUT,FOLLOW_INPUT_in_atom2539); 
+                    INPUT238=(Token)match(input,INPUT,FOLLOW_INPUT_in_atom2541); 
                     INPUT238_tree = 
                     (CommonTree)adaptor.create(INPUT238)
                     ;
                     adaptor.addChild(root_0, INPUT238_tree);
 
 
-                    LEFT_PAREN239=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2541); 
+                    LEFT_PAREN239=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2543); 
                     LEFT_PAREN239_tree = 
                     (CommonTree)adaptor.create(LEFT_PAREN239)
                     ;
                     adaptor.addChild(root_0, LEFT_PAREN239_tree);
 
 
-                    pushFollow(FOLLOW_expression_in_atom2543);
+                    pushFollow(FOLLOW_expression_in_atom2545);
                     expression240=expression();
 
                     state._fsp--;
 
                     adaptor.addChild(root_0, expression240.getTree());
 
-                    RIGHT_PAREN241=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2545); 
+                    RIGHT_PAREN241=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2547); 
                     RIGHT_PAREN241_tree = 
                     (CommonTree)adaptor.create(RIGHT_PAREN241)
                     ;
@@ -8770,18 +8769,18 @@ public TreeAdaptor getTreeAdaptor() {
                 case 15 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1260:4: LEFT_PAREN expression RIGHT_PAREN
                     {
-                    LEFT_PAREN242=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2550);  
+                    LEFT_PAREN242=(Token)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_atom2552);  
                     stream_LEFT_PAREN.add(LEFT_PAREN242);
 
 
-                    pushFollow(FOLLOW_expression_in_atom2552);
+                    pushFollow(FOLLOW_expression_in_atom2554);
                     expression243=expression();
 
                     state._fsp--;
 
                     stream_expression.add(expression243.getTree());
 
-                    RIGHT_PAREN244=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2554);  
+                    RIGHT_PAREN244=(Token)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_atom2556);  
                     stream_RIGHT_PAREN.add(RIGHT_PAREN244);
 
 
@@ -8876,7 +8875,7 @@ public TreeAdaptor getTreeAdaptor() {
                 case 1 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1265:3: expression ( COMMA expression )*
                     {
-                    pushFollow(FOLLOW_expression_in_function_expression_list2574);
+                    pushFollow(FOLLOW_expression_in_function_expression_list2576);
                     expression245=expression();
 
                     state._fsp--;
@@ -8898,11 +8897,11 @@ public TreeAdaptor getTreeAdaptor() {
                     	case 1 :
                     	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/Quorum.g:1265:15: COMMA expression
                     	    {
-                    	    COMMA246=(Token)match(input,COMMA,FOLLOW_COMMA_in_function_expression_list2577);  
+                    	    COMMA246=(Token)match(input,COMMA,FOLLOW_COMMA_in_function_expression_list2579);  
                     	    stream_COMMA.add(COMMA246);
 
 
-                    	    pushFollow(FOLLOW_expression_in_function_expression_list2579);
+                    	    pushFollow(FOLLOW_expression_in_function_expression_list2581);
                     	    expression247=expression();
 
                     	    state._fsp--;
@@ -8996,28 +8995,27 @@ public TreeAdaptor getTreeAdaptor() {
     static final String DFA4_minS =
         "\1\4\2\50\1\uffff\2\4\1\50\2\uffff\1\50\2\uffff\2\4";
     static final String DFA4_maxS =
-        "\1\136\2\50\1\uffff\2\136\1\50\2\uffff\1\50\2\uffff\2\136";
+        "\1\135\2\50\1\uffff\2\135\1\50\2\uffff\1\50\2\uffff\2\135";
     static final String DFA4_acceptS =
         "\3\uffff\1\5\3\uffff\1\1\1\3\1\uffff\1\2\1\4\2\uffff";
     static final String DFA4_specialS =
         "\16\uffff}>";
     static final String[] DFA4_transitionS = {
             "\2\3\2\uffff\1\3\1\uffff\1\3\1\uffff\2\3\3\uffff\1\3\26\uffff"+
-            "\2\3\3\uffff\1\3\4\uffff\1\3\3\uffff\1\3\5\uffff\1\3\1\uffff"+
-            "\1\3\1\uffff\1\3\1\uffff\1\1\1\3\3\uffff\2\3\5\uffff\2\3\4\uffff"+
-            "\1\3\5\uffff\1\3\3\uffff\1\2",
+            "\2\3\3\uffff\1\3\4\uffff\1\3\3\uffff\1\3\5\uffff\2\3\1\uffff"+
+            "\1\3\1\uffff\1\1\1\3\3\uffff\2\3\5\uffff\2\3\4\uffff\1\3\5\uffff"+
+            "\1\3\3\uffff\1\2",
             "\1\4",
             "\1\5",
             "",
             "\2\10\2\uffff\1\10\1\uffff\1\10\1\uffff\2\10\3\uffff\1\10\26"+
-            "\uffff\2\10\3\uffff\1\10\4\uffff\1\10\3\uffff\1\10\5\uffff\1"+
-            "\10\1\uffff\1\10\1\uffff\1\10\2\uffff\1\10\1\uffff\1\6\1\uffff"+
-            "\2\10\5\uffff\2\10\4\uffff\1\10\5\uffff\1\10\3\uffff\1\7",
+            "\uffff\2\10\3\uffff\1\10\4\uffff\1\10\3\uffff\1\10\5\uffff\2"+
+            "\10\1\uffff\1\10\2\uffff\1\10\1\uffff\1\6\1\uffff\2\10\5\uffff"+
+            "\2\10\4\uffff\1\10\5\uffff\1\10\3\uffff\1\7",
             "\2\13\2\uffff\1\13\1\uffff\1\13\1\uffff\2\13\3\uffff\1\13\26"+
-            "\uffff\2\13\3\uffff\1\13\4\uffff\1\13\3\uffff\1\13\5\uffff\1"+
-            "\13\1\uffff\1\13\1\uffff\1\13\1\uffff\1\12\1\13\1\uffff\1\11"+
-            "\1\uffff\2\13\5\uffff\2\13\4\uffff\1\13\5\uffff\1\13\3\uffff"+
-            "\1\2",
+            "\uffff\2\13\3\uffff\1\13\4\uffff\1\13\3\uffff\1\13\5\uffff\2"+
+            "\13\1\uffff\1\13\1\uffff\1\12\1\13\1\uffff\1\11\1\uffff\2\13"+
+            "\5\uffff\2\13\4\uffff\1\13\5\uffff\1\13\3\uffff\1\2",
             "\1\14",
             "",
             "",
@@ -9025,14 +9023,13 @@ public TreeAdaptor getTreeAdaptor() {
             "",
             "",
             "\2\10\2\uffff\1\10\1\uffff\1\10\1\uffff\2\10\3\uffff\1\10\26"+
-            "\uffff\2\10\3\uffff\1\10\4\uffff\1\10\3\uffff\1\10\5\uffff\1"+
-            "\10\1\uffff\1\10\1\uffff\1\10\2\uffff\1\10\1\uffff\1\6\1\uffff"+
-            "\2\10\5\uffff\2\10\4\uffff\1\10\5\uffff\1\10\3\uffff\1\7",
+            "\uffff\2\10\3\uffff\1\10\4\uffff\1\10\3\uffff\1\10\5\uffff\2"+
+            "\10\1\uffff\1\10\2\uffff\1\10\1\uffff\1\6\1\uffff\2\10\5\uffff"+
+            "\2\10\4\uffff\1\10\5\uffff\1\10\3\uffff\1\7",
             "\2\13\2\uffff\1\13\1\uffff\1\13\1\uffff\2\13\3\uffff\1\13\26"+
-            "\uffff\2\13\3\uffff\1\13\4\uffff\1\13\3\uffff\1\13\5\uffff\1"+
-            "\13\1\uffff\1\13\1\uffff\1\13\1\uffff\1\12\1\13\1\uffff\1\11"+
-            "\1\uffff\2\13\5\uffff\2\13\4\uffff\1\13\5\uffff\1\13\3\uffff"+
-            "\1\2"
+            "\uffff\2\13\3\uffff\1\13\4\uffff\1\13\3\uffff\1\13\5\uffff\2"+
+            "\13\1\uffff\1\13\1\uffff\1\12\1\13\1\uffff\1\11\1\uffff\2\13"+
+            "\5\uffff\2\13\4\uffff\1\13\5\uffff\1\13\3\uffff\1\2"
     };
 
     static final short[] DFA4_eot = DFA.unpackEncodedString(DFA4_eotS);
@@ -9076,17 +9073,17 @@ public TreeAdaptor getTreeAdaptor() {
         "\1\5\3\16\10\uffff\2\50\1\uffff\2\50\1\16\1\35\2\16\2\50\1\16\1"+
         "\35";
     static final String DFA34_maxS =
-        "\1\132\1\105\2\16\10\uffff\1\50\1\103\1\uffff\2\50\1\105\1\56\2"+
-        "\105\2\50\1\105\1\56";
+        "\1\131\1\104\2\16\10\uffff\1\50\1\102\1\uffff\2\50\1\104\1\56\2"+
+        "\104\2\50\1\104\1\56";
     static final String DFA34_acceptS =
         "\4\uffff\1\2\1\3\1\4\1\5\1\6\1\7\1\10\1\11\2\uffff\1\1\12\uffff";
     static final String DFA34_specialS =
         "\31\uffff}>";
     static final String[] DFA34_transitionS = {
             "\1\13\4\uffff\1\5\1\uffff\1\12\4\uffff\1\5\26\uffff\1\1\1\4"+
-            "\3\uffff\1\5\4\uffff\1\3\11\uffff\1\5\3\uffff\1\10\2\uffff\1"+
+            "\3\uffff\1\5\4\uffff\1\3\11\uffff\1\5\2\uffff\1\10\2\uffff\1"+
             "\2\3\uffff\2\5\5\uffff\1\6\1\7\4\uffff\1\11\5\uffff\1\5",
-            "\1\15\16\uffff\1\5\12\uffff\1\5\5\uffff\1\16\1\uffff\1\5\24"+
+            "\1\15\16\uffff\1\5\12\uffff\1\5\5\uffff\1\16\1\uffff\1\5\23"+
             "\uffff\1\14",
             "\1\17",
             "\1\20",
@@ -9099,17 +9096,17 @@ public TreeAdaptor getTreeAdaptor() {
             "",
             "",
             "\1\21",
-            "\1\22\32\uffff\1\5",
+            "\1\22\31\uffff\1\5",
             "",
             "\1\23",
             "\1\24",
-            "\1\15\31\uffff\1\5\5\uffff\1\16\1\uffff\1\5\24\uffff\1\14",
+            "\1\15\31\uffff\1\5\5\uffff\1\16\1\uffff\1\5\23\uffff\1\14",
             "\1\5\20\uffff\1\16",
-            "\1\26\66\uffff\1\25",
-            "\1\16\16\uffff\1\5\20\uffff\1\16\26\uffff\1\16",
+            "\1\26\65\uffff\1\25",
+            "\1\16\16\uffff\1\5\20\uffff\1\16\25\uffff\1\16",
             "\1\27",
             "\1\30",
-            "\1\26\66\uffff\1\25",
+            "\1\26\65\uffff\1\25",
             "\1\5\20\uffff\1\16"
     };
 
@@ -9153,20 +9150,20 @@ public TreeAdaptor getTreeAdaptor() {
     static final String DFA59_minS =
         "\1\12\1\uffff\1\16\1\uffff\1\50\1\uffff\1\16";
     static final String DFA59_maxS =
-        "\1\132\1\uffff\1\105\1\uffff\1\50\1\uffff\1\105";
+        "\1\131\1\uffff\1\104\1\uffff\1\50\1\uffff\1\104";
     static final String DFA59_acceptS =
         "\1\uffff\1\1\1\uffff\1\3\1\uffff\1\2\1\uffff";
     static final String DFA59_specialS =
         "\7\uffff}>";
     static final String[] DFA59_transitionS = {
             "\1\3\6\uffff\1\3\26\uffff\1\2\4\uffff\1\3\4\uffff\1\1\11\uffff"+
-            "\1\3\6\uffff\1\1\3\uffff\2\3\21\uffff\1\3",
+            "\1\3\5\uffff\1\1\3\uffff\2\3\21\uffff\1\3",
             "",
-            "\1\5\16\uffff\1\1\12\uffff\1\3\7\uffff\1\3\24\uffff\1\4",
+            "\1\5\16\uffff\1\1\12\uffff\1\3\7\uffff\1\3\23\uffff\1\4",
             "",
             "\1\6",
             "",
-            "\1\5\31\uffff\1\3\7\uffff\1\3\24\uffff\1\4"
+            "\1\5\31\uffff\1\3\7\uffff\1\3\23\uffff\1\4"
     };
 
     static final short[] DFA59_eot = DFA.unpackEncodedString(DFA59_eotS);
@@ -9211,8 +9208,8 @@ public TreeAdaptor getTreeAdaptor() {
         "\1\11\1\4\1\16\1\4\1\24\10\uffff\2\50\2\uffff\2\50\1\uffff\2\4\1"+
         "\uffff\1\16\1\4\3\50\2\uffff\1\16\2\4\1\uffff";
     static final String DFA81_maxS =
-        "\1\131\1\133\1\16\1\133\1\54\10\uffff\1\50\1\103\2\uffff\2\50\1"+
-        "\uffff\2\133\1\uffff\1\105\1\133\3\50\2\uffff\1\105\2\133\1\uffff";
+        "\1\130\1\132\1\16\1\132\1\54\10\uffff\1\50\1\102\2\uffff\2\50\1"+
+        "\uffff\2\132\1\uffff\1\104\1\132\3\50\2\uffff\1\104\2\132\1\uffff";
     static final String DFA81_acceptS =
         "\5\uffff\1\7\1\10\1\11\1\12\1\13\1\14\1\16\1\17\2\uffff\1\1\1\3"+
         "\2\uffff\1\15\2\uffff\1\2\5\uffff\1\6\1\4\3\uffff\1\5";
@@ -9220,19 +9217,19 @@ public TreeAdaptor getTreeAdaptor() {
         "\42\uffff}>";
     static final String[] DFA81_transitionS = {
             "\1\6\12\uffff\1\7\23\uffff\1\1\2\uffff\1\13\1\5\1\uffff\1\14"+
-            "\3\uffff\1\3\1\4\7\uffff\1\12\7\uffff\1\2\11\uffff\1\11\13\uffff"+
+            "\3\uffff\1\3\1\4\7\uffff\1\12\6\uffff\1\2\11\uffff\1\11\13\uffff"+
             "\1\10",
             "\5\17\1\uffff\1\17\1\uffff\1\17\1\uffff\1\16\1\17\1\uffff\1"+
             "\17\4\uffff\2\17\1\uffff\2\17\1\uffff\2\17\10\uffff\5\17\2\uffff"+
-            "\1\17\1\20\1\uffff\7\17\2\uffff\1\17\2\uffff\1\17\1\uffff\3"+
-            "\17\2\uffff\1\17\1\uffff\1\15\3\17\5\uffff\2\17\1\uffff\1\17"+
-            "\2\uffff\1\17\5\uffff\2\17",
+            "\1\17\1\20\1\uffff\7\17\2\uffff\1\17\2\uffff\4\17\2\uffff\1"+
+            "\17\1\uffff\1\15\3\17\5\uffff\2\17\1\uffff\1\17\2\uffff\1\17"+
+            "\5\uffff\2\17",
             "\1\21",
             "\5\23\1\uffff\1\23\1\uffff\1\23\1\uffff\1\22\1\23\1\uffff\1"+
             "\23\4\uffff\2\23\1\uffff\2\23\1\uffff\2\23\10\uffff\5\23\2\uffff"+
-            "\1\23\2\uffff\7\23\2\uffff\1\23\2\uffff\1\23\1\uffff\3\23\2"+
-            "\uffff\1\23\2\uffff\3\23\5\uffff\2\23\1\uffff\1\23\2\uffff\1"+
-            "\23\5\uffff\2\23",
+            "\1\23\2\uffff\7\23\2\uffff\1\23\2\uffff\4\23\2\uffff\1\23\2"+
+            "\uffff\3\23\5\uffff\2\23\1\uffff\1\23\2\uffff\1\23\5\uffff\2"+
+            "\23",
             "\1\7\27\uffff\1\5",
             "",
             "",
@@ -9243,7 +9240,7 @@ public TreeAdaptor getTreeAdaptor() {
             "",
             "",
             "\1\24",
-            "\1\25\32\uffff\1\26",
+            "\1\25\31\uffff\1\26",
             "",
             "",
             "\1\27",
@@ -9251,37 +9248,37 @@ public TreeAdaptor getTreeAdaptor() {
             "",
             "\5\17\1\uffff\1\17\1\uffff\1\17\1\uffff\1\16\1\17\1\uffff\1"+
             "\17\4\uffff\2\17\1\uffff\2\17\1\uffff\2\17\10\uffff\5\17\2\uffff"+
-            "\1\17\1\20\1\uffff\7\17\2\uffff\1\17\2\uffff\1\17\1\uffff\3"+
-            "\17\2\uffff\1\17\1\uffff\1\15\3\17\5\uffff\2\17\1\uffff\1\17"+
-            "\2\uffff\1\17\5\uffff\2\17",
+            "\1\17\1\20\1\uffff\7\17\2\uffff\1\17\2\uffff\4\17\2\uffff\1"+
+            "\17\1\uffff\1\15\3\17\5\uffff\2\17\1\uffff\1\17\2\uffff\1\17"+
+            "\5\uffff\2\17",
             "\5\17\1\uffff\1\17\1\uffff\1\17\2\uffff\1\17\1\uffff\1\17\4"+
             "\uffff\2\17\1\uffff\2\17\1\uffff\2\17\10\uffff\5\17\2\uffff"+
-            "\1\17\1\20\1\uffff\7\17\2\uffff\1\17\2\uffff\1\17\1\uffff\3"+
-            "\17\2\uffff\1\17\2\uffff\3\17\5\uffff\2\17\1\uffff\1\17\2\uffff"+
-            "\1\17\5\uffff\2\17",
+            "\1\17\1\20\1\uffff\7\17\2\uffff\1\17\2\uffff\4\17\2\uffff\1"+
+            "\17\2\uffff\3\17\5\uffff\2\17\1\uffff\1\17\2\uffff\1\17\5\uffff"+
+            "\2\17",
             "",
-            "\1\32\66\uffff\1\31",
+            "\1\32\65\uffff\1\31",
             "\5\35\1\uffff\1\35\1\uffff\1\35\1\uffff\1\34\1\35\1\uffff\1"+
             "\35\4\uffff\2\35\1\uffff\2\35\1\uffff\2\35\10\uffff\5\35\2\uffff"+
-            "\1\35\1\34\1\uffff\7\35\2\uffff\1\35\2\uffff\1\35\1\uffff\3"+
-            "\35\2\uffff\1\35\1\uffff\1\33\3\35\5\uffff\2\35\1\uffff\1\35"+
-            "\2\uffff\1\35\5\uffff\2\35",
+            "\1\35\1\34\1\uffff\7\35\2\uffff\1\35\2\uffff\4\35\2\uffff\1"+
+            "\35\1\uffff\1\33\3\35\5\uffff\2\35\1\uffff\1\35\2\uffff\1\35"+
+            "\5\uffff\2\35",
             "\1\36",
             "\1\37",
             "\1\40",
             "",
             "",
-            "\1\32\66\uffff\1\31",
+            "\1\32\65\uffff\1\31",
             "\5\35\1\uffff\1\35\1\uffff\1\35\2\uffff\1\35\1\uffff\1\35\4"+
             "\uffff\2\35\1\uffff\2\35\1\uffff\2\35\10\uffff\5\35\2\uffff"+
-            "\1\35\1\41\1\uffff\7\35\2\uffff\1\35\2\uffff\1\35\1\uffff\3"+
-            "\35\2\uffff\1\35\1\uffff\4\35\5\uffff\2\35\1\uffff\1\35\2\uffff"+
-            "\1\35\5\uffff\2\35",
+            "\1\35\1\41\1\uffff\7\35\2\uffff\1\35\2\uffff\4\35\2\uffff\1"+
+            "\35\1\uffff\4\35\5\uffff\2\35\1\uffff\1\35\2\uffff\1\35\5\uffff"+
+            "\2\35",
             "\5\35\1\uffff\1\35\1\uffff\1\35\1\uffff\1\34\1\35\1\uffff\1"+
             "\35\4\uffff\2\35\1\uffff\2\35\1\uffff\2\35\10\uffff\5\35\2\uffff"+
-            "\1\35\1\34\1\uffff\7\35\2\uffff\1\35\2\uffff\1\35\1\uffff\3"+
-            "\35\2\uffff\1\35\1\uffff\1\33\3\35\5\uffff\2\35\1\uffff\1\35"+
-            "\2\uffff\1\35\5\uffff\2\35",
+            "\1\35\1\34\1\uffff\7\35\2\uffff\1\35\2\uffff\4\35\2\uffff\1"+
+            "\35\1\uffff\1\33\3\35\5\uffff\2\35\1\uffff\1\35\2\uffff\1\35"+
+            "\5\uffff\2\35",
             ""
     };
 
@@ -9320,12 +9317,12 @@ public TreeAdaptor getTreeAdaptor() {
     }
  
 
-    public static final BitSet FOLLOW_package_rule_in_start150 = new BitSet(new long[]{0x0000000000000000L,0x0000000040000000L});
-    public static final BitSet FOLLOW_reference_in_start152 = new BitSet(new long[]{0x5044230000023530L,0x000000004410C189L});
-    public static final BitSet FOLLOW_reference_in_start159 = new BitSet(new long[]{0x0000000000000000L,0x0000000040000004L});
-    public static final BitSet FOLLOW_package_rule_in_start162 = new BitSet(new long[]{0x5044230000023530L,0x000000000410C189L});
-    public static final BitSet FOLLOW_package_rule_in_start167 = new BitSet(new long[]{0x5044230000023530L,0x000000000410C189L});
-    public static final BitSet FOLLOW_reference_in_start172 = new BitSet(new long[]{0x5044230000023530L,0x000000004410C189L});
+    public static final BitSet FOLLOW_package_rule_in_start150 = new BitSet(new long[]{0x0000000000000000L,0x0000000020000000L});
+    public static final BitSet FOLLOW_reference_in_start152 = new BitSet(new long[]{0xB044230000023530L,0x00000000220860C4L});
+    public static final BitSet FOLLOW_reference_in_start159 = new BitSet(new long[]{0x0000000000000000L,0x0000000020000002L});
+    public static final BitSet FOLLOW_package_rule_in_start162 = new BitSet(new long[]{0xB044230000023530L,0x00000000020860C4L});
+    public static final BitSet FOLLOW_package_rule_in_start167 = new BitSet(new long[]{0xB044230000023530L,0x00000000020860C4L});
+    public static final BitSet FOLLOW_reference_in_start172 = new BitSet(new long[]{0xB044230000023530L,0x00000000220860C4L});
     public static final BitSet FOLLOW_class_declaration_in_start181 = new BitSet(new long[]{0x0000000000000000L});
     public static final BitSet FOLLOW_EOF_in_start184 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_PACKAGE_NAME_in_package_rule195 = new BitSet(new long[]{0x0000010000000000L});
@@ -9333,15 +9330,15 @@ public TreeAdaptor getTreeAdaptor() {
     public static final BitSet FOLLOW_USE_in_reference217 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_qualified_name_in_reference223 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_CLASS_in_class_declaration255 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_class_declaration257 = new BitSet(new long[]{0x5045250010020510L,0x0000000004000188L});
-    public static final BitSet FOLLOW_generic_declaration_in_class_declaration268 = new BitSet(new long[]{0x5044250010020510L,0x0000000004000188L});
-    public static final BitSet FOLLOW_inherit_stmnts_in_class_declaration275 = new BitSet(new long[]{0x5044210010020510L,0x0000000004000188L});
-    public static final BitSet FOLLOW_class_stmnts_in_class_declaration286 = new BitSet(new long[]{0x5044210010020510L,0x0000000004000188L});
+    public static final BitSet FOLLOW_ID_in_class_declaration257 = new BitSet(new long[]{0x3045250010020510L,0x00000000020000C4L});
+    public static final BitSet FOLLOW_generic_declaration_in_class_declaration268 = new BitSet(new long[]{0x3044250010020510L,0x00000000020000C4L});
+    public static final BitSet FOLLOW_inherit_stmnts_in_class_declaration275 = new BitSet(new long[]{0x3044210010020510L,0x00000000020000C4L});
+    public static final BitSet FOLLOW_class_stmnts_in_class_declaration286 = new BitSet(new long[]{0x3044210010020510L,0x00000000020000C4L});
     public static final BitSet FOLLOW_END_in_class_declaration290 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_no_class_stmnts_in_class_declaration324 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_statement_in_no_class_stmnts343 = new BitSet(new long[]{0x1004230000021422L,0x000000000410C189L});
-    public static final BitSet FOLLOW_access_modifier_in_no_class_stmnts352 = new BitSet(new long[]{0x4040000000000110L});
-    public static final BitSet FOLLOW_method_declaration_in_no_class_stmnts355 = new BitSet(new long[]{0x4040000000000112L,0x0000000000000180L});
+    public static final BitSet FOLLOW_statement_in_no_class_stmnts343 = new BitSet(new long[]{0x9004230000021422L,0x00000000020860C4L});
+    public static final BitSet FOLLOW_access_modifier_in_no_class_stmnts352 = new BitSet(new long[]{0x2040000000000110L});
+    public static final BitSet FOLLOW_method_declaration_in_no_class_stmnts355 = new BitSet(new long[]{0x2040000000000112L,0x00000000000000C0L});
     public static final BitSet FOLLOW_INHERITS_in_inherit_stmnts368 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_qualified_name_in_inherit_stmnts372 = new BitSet(new long[]{0x0001000000008002L});
     public static final BitSet FOLLOW_generic_statement_in_inherit_stmnts376 = new BitSet(new long[]{0x0000000000008002L});
@@ -9351,49 +9348,49 @@ public TreeAdaptor getTreeAdaptor() {
     public static final BitSet FOLLOW_PUBLIC_in_access_modifier429 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_PRIVATE_in_access_modifier437 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_assignment_statement_in_class_stmnts455 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_access_modifier_in_class_stmnts466 = new BitSet(new long[]{0x4040000000000110L});
+    public static final BitSet FOLLOW_access_modifier_in_class_stmnts466 = new BitSet(new long[]{0x2040000000000110L});
     public static final BitSet FOLLOW_method_declaration_in_class_stmnts474 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ACTION_in_method_declaration492 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_method_declaration494 = new BitSet(new long[]{0x1004630010021420L,0x000000000411C189L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_method_declaration504 = new BitSet(new long[]{0x1000210000000400L,0x0000000004020000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration507 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_COMMA_in_method_declaration511 = new BitSet(new long[]{0x1000210000000400L,0x0000000004000000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration513 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_method_declaration520 = new BitSet(new long[]{0x1004230010021420L,0x000000000411C189L});
-    public static final BitSet FOLLOW_RETURNS_in_method_declaration526 = new BitSet(new long[]{0x1000210000000400L,0x0000000004000000L});
-    public static final BitSet FOLLOW_assignment_declaration_in_method_declaration532 = new BitSet(new long[]{0x1004230010021420L,0x000000000410C189L});
+    public static final BitSet FOLLOW_ID_in_method_declaration494 = new BitSet(new long[]{0x9004630010021420L,0x000000000208E0C4L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_method_declaration504 = new BitSet(new long[]{0x1000210000000400L,0x0000000002010000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration507 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_COMMA_in_method_declaration511 = new BitSet(new long[]{0x1000210000000400L,0x0000000002000000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration513 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_method_declaration520 = new BitSet(new long[]{0x9004230010021420L,0x000000000208E0C4L});
+    public static final BitSet FOLLOW_RETURNS_in_method_declaration526 = new BitSet(new long[]{0x1000210000000400L,0x0000000002000000L});
+    public static final BitSet FOLLOW_assignment_declaration_in_method_declaration532 = new BitSet(new long[]{0x9004230010021420L,0x00000000020860C4L});
     public static final BitSet FOLLOW_block_in_method_declaration542 = new BitSet(new long[]{0x0000000010000000L});
     public static final BitSet FOLLOW_END_in_method_declaration545 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_BLUEPRINT_in_method_declaration577 = new BitSet(new long[]{0x0000000000000010L});
     public static final BitSet FOLLOW_ACTION_in_method_declaration579 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_method_declaration581 = new BitSet(new long[]{0x0000400000000002L,0x0000000000010000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_method_declaration591 = new BitSet(new long[]{0x1000210000000400L,0x0000000004020000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration594 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_COMMA_in_method_declaration598 = new BitSet(new long[]{0x1000210000000400L,0x0000000004000000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration600 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_method_declaration607 = new BitSet(new long[]{0x0000000000000002L,0x0000000000010000L});
-    public static final BitSet FOLLOW_RETURNS_in_method_declaration613 = new BitSet(new long[]{0x1000210000000400L,0x0000000004000000L});
+    public static final BitSet FOLLOW_ID_in_method_declaration581 = new BitSet(new long[]{0x0000400000000002L,0x0000000000008000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_method_declaration591 = new BitSet(new long[]{0x1000210000000400L,0x0000000002010000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration594 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_COMMA_in_method_declaration598 = new BitSet(new long[]{0x1000210000000400L,0x0000000002000000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration600 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_method_declaration607 = new BitSet(new long[]{0x0000000000000002L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RETURNS_in_method_declaration613 = new BitSet(new long[]{0x1000210000000400L,0x0000000002000000L});
     public static final BitSet FOLLOW_assignment_declaration_in_method_declaration619 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_NATIVE_in_method_declaration651 = new BitSet(new long[]{0x0000000000000010L});
     public static final BitSet FOLLOW_ACTION_in_method_declaration653 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_method_declaration655 = new BitSet(new long[]{0x0000400000000002L,0x0000000000010000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_method_declaration665 = new BitSet(new long[]{0x1000210000000400L,0x0000000004020000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration668 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_COMMA_in_method_declaration672 = new BitSet(new long[]{0x1000210000000400L,0x0000000004000000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration674 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_method_declaration681 = new BitSet(new long[]{0x0000000000000002L,0x0000000000010000L});
-    public static final BitSet FOLLOW_RETURNS_in_method_declaration687 = new BitSet(new long[]{0x1000210000000400L,0x0000000004000000L});
+    public static final BitSet FOLLOW_ID_in_method_declaration655 = new BitSet(new long[]{0x0000400000000002L,0x0000000000008000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_method_declaration665 = new BitSet(new long[]{0x1000210000000400L,0x0000000002010000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration668 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_COMMA_in_method_declaration672 = new BitSet(new long[]{0x1000210000000400L,0x0000000002000000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration674 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_method_declaration681 = new BitSet(new long[]{0x0000000000000002L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RETURNS_in_method_declaration687 = new BitSet(new long[]{0x1000210000000400L,0x0000000002000000L});
     public static final BitSet FOLLOW_assignment_declaration_in_method_declaration693 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ON_in_method_declaration725 = new BitSet(new long[]{0x0000000000080000L});
-    public static final BitSet FOLLOW_CREATE_in_method_declaration727 = new BitSet(new long[]{0x1004230010021420L,0x000000000410C189L});
+    public static final BitSet FOLLOW_CREATE_in_method_declaration727 = new BitSet(new long[]{0x9004230010021420L,0x00000000020860C4L});
     public static final BitSet FOLLOW_block_in_method_declaration734 = new BitSet(new long[]{0x0000000010000000L});
     public static final BitSet FOLLOW_END_in_method_declaration736 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_assignment_declaration_in_formal_parameter763 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_ID_in_formal_parameter765 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ID_in_qualified_name796 = new BitSet(new long[]{0x0000000000000002L,0x0000000000000020L});
+    public static final BitSet FOLLOW_ID_in_qualified_name796 = new BitSet(new long[]{0x0000000000000002L,0x0000000000000010L});
     public static final BitSet FOLLOW_PERIOD_in_qualified_name799 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_qualified_name803 = new BitSet(new long[]{0x0000000000000002L,0x0000000000000020L});
-    public static final BitSet FOLLOW_statement_in_block837 = new BitSet(new long[]{0x1004230000021422L,0x000000000410C189L});
+    public static final BitSet FOLLOW_ID_in_qualified_name803 = new BitSet(new long[]{0x0000000000000002L,0x0000000000000010L});
+    public static final BitSet FOLLOW_statement_in_block837 = new BitSet(new long[]{0x9004230000021422L,0x00000000020860C4L});
     public static final BitSet FOLLOW_solo_method_call_in_statement860 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_if_statement_in_statement865 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_assignment_statement_in_statement870 = new BitSet(new long[]{0x0000000000000002L});
@@ -9406,205 +9403,205 @@ public TreeAdaptor getTreeAdaptor() {
     public static final BitSet FOLLOW_qualified_name_in_solo_method_call913 = new BitSet(new long[]{0x0000400000004000L});
     public static final BitSet FOLLOW_COLON_in_solo_method_call916 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_ID_in_solo_method_call918 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call922 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002022008L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call925 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_COMMA_in_solo_method_call928 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call930 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call922 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001011004L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call925 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_COMMA_in_solo_method_call928 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call930 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call936 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_PARENT_in_solo_method_call975 = new BitSet(new long[]{0x0000000000004000L});
     public static final BitSet FOLLOW_COLON_in_solo_method_call977 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_qualified_name_in_solo_method_call979 = new BitSet(new long[]{0x0000000000004000L});
     public static final BitSet FOLLOW_COLON_in_solo_method_call981 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_ID_in_solo_method_call983 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call985 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002022008L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call988 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_COMMA_in_solo_method_call991 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call993 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call985 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001011004L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call988 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_COMMA_in_solo_method_call991 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call993 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call999 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ME_in_solo_method_call1039 = new BitSet(new long[]{0x0000000000004000L});
     public static final BitSet FOLLOW_COLON_in_solo_method_call1041 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_qualified_name_in_solo_method_call1043 = new BitSet(new long[]{0x0000400000004000L});
     public static final BitSet FOLLOW_COLON_in_solo_method_call1046 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_ID_in_solo_method_call1048 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call1052 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002022008L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call1055 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_COMMA_in_solo_method_call1058 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call1060 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call1052 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001011004L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call1055 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_COMMA_in_solo_method_call1058 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call1060 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call1066 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ALERT_in_alert_statement1117 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_alert_statement1119 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_root_expression_in_alert_statement1121 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_alert_statement1119 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_root_expression_in_alert_statement1121 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_alert_statement1124 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_CHECK_in_check_statement1158 = new BitSet(new long[]{0x1004230000421460L,0x000000000410C189L});
+    public static final BitSet FOLLOW_CHECK_in_check_statement1158 = new BitSet(new long[]{0x9004230000421460L,0x00000000020860C4L});
     public static final BitSet FOLLOW_block_in_check_statement1161 = new BitSet(new long[]{0x0000000000400040L});
     public static final BitSet FOLLOW_DETECT_in_check_statement1176 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_detect_parameter_in_check_statement1188 = new BitSet(new long[]{0x1004230010421460L,0x000000000410C189L});
+    public static final BitSet FOLLOW_detect_parameter_in_check_statement1188 = new BitSet(new long[]{0x9004230010421460L,0x00000000020860C4L});
     public static final BitSet FOLLOW_block_in_check_statement1190 = new BitSet(new long[]{0x0000000010400040L});
-    public static final BitSet FOLLOW_ALWAYS_in_check_statement1214 = new BitSet(new long[]{0x1004230010021420L,0x000000000410C189L});
+    public static final BitSet FOLLOW_ALWAYS_in_check_statement1214 = new BitSet(new long[]{0x9004230010021420L,0x00000000020860C4L});
     public static final BitSet FOLLOW_block_in_check_statement1225 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ALWAYS_in_check_statement1247 = new BitSet(new long[]{0x1004230010021420L,0x000000000410C189L});
+    public static final BitSet FOLLOW_ALWAYS_in_check_statement1247 = new BitSet(new long[]{0x9004230010021420L,0x00000000020860C4L});
     public static final BitSet FOLLOW_block_in_check_statement1258 = new BitSet(new long[]{0x0000000010000000L});
     public static final BitSet FOLLOW_END_in_check_statement1273 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ID_in_detect_parameter1301 = new BitSet(new long[]{0x2000000000000002L});
-    public static final BitSet FOLLOW_OF_TYPE_in_detect_parameter1313 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1315 = new BitSet(new long[]{0x8000000000000002L});
-    public static final BitSet FOLLOW_OR_in_detect_parameter1317 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1319 = new BitSet(new long[]{0x8000000000000002L});
-    public static final BitSet FOLLOW_OUTPUT_in_print_statement1354 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_root_expression_in_print_statement1356 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_SAY_in_speak_statement1368 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_root_expression_in_speak_statement1370 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RETURN_in_return_statement1381 = new BitSet(new long[]{0x0D0C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_root_expression_in_return_statement1385 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NOW_in_return_statement1389 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LESS_in_generic_declaration1406 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_generic_declaration1410 = new BitSet(new long[]{0x0000004000008000L});
-    public static final BitSet FOLLOW_COMMA_in_generic_declaration1413 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_generic_declaration1417 = new BitSet(new long[]{0x0000004000008000L});
-    public static final BitSet FOLLOW_GREATER_in_generic_declaration1421 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LESS_in_generic_statement1462 = new BitSet(new long[]{0x1000210000000400L,0x0000000004000000L});
-    public static final BitSet FOLLOW_assignment_declaration_in_generic_statement1472 = new BitSet(new long[]{0x0000004000008000L});
-    public static final BitSet FOLLOW_COMMA_in_generic_statement1479 = new BitSet(new long[]{0x1000210000000400L,0x0000000004000000L});
-    public static final BitSet FOLLOW_assignment_declaration_in_generic_statement1483 = new BitSet(new long[]{0x0000004000008000L});
-    public static final BitSet FOLLOW_GREATER_in_generic_statement1493 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_qualified_name_in_class_type1533 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_qualified_name_in_assignment_declaration1554 = new BitSet(new long[]{0x0001000000000002L});
-    public static final BitSet FOLLOW_generic_statement_in_assignment_declaration1558 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_INTEGER_KEYWORD_in_assignment_declaration1567 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NUMBER_KEYWORD_in_assignment_declaration1575 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_TEXT_in_assignment_declaration1583 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_BOOLEAN_KEYWORD_in_assignment_declaration1591 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_selector_in_assignment_statement1614 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_assignment_statement1616 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_assignment_statement1620 = new BitSet(new long[]{0x0000000020000000L});
-    public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1626 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_qualified_name_in_assignment_statement1637 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_assignment_statement1640 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000008L});
-    public static final BitSet FOLLOW_PARENT_in_assignment_statement1642 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_assignment_statement1644 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_assignment_statement1648 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_assignment_statement1652 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_assignment_statement1654 = new BitSet(new long[]{0x0000000020000000L});
-    public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1658 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_access_modifier_in_assignment_statement1667 = new BitSet(new long[]{0x1000210000020400L,0x0000000004000000L});
-    public static final BitSet FOLLOW_CONSTANT_in_assignment_statement1675 = new BitSet(new long[]{0x1000210000000400L,0x0000000004000000L});
-    public static final BitSet FOLLOW_assignment_declaration_in_assignment_statement1682 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_assignment_statement1688 = new BitSet(new long[]{0x0000000020000002L});
-    public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1694 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_EQUALITY_in_assign_right_hand_side1720 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_root_expression_in_assign_right_hand_side1722 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_IF_in_if_statement1747 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_root_expression_in_if_statement1749 = new BitSet(new long[]{0x1004230016021420L,0x000000000410C189L});
-    public static final BitSet FOLLOW_block_in_if_statement1755 = new BitSet(new long[]{0x0000000016000000L});
-    public static final BitSet FOLLOW_ELSE_IF_in_if_statement1767 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_root_expression_in_if_statement1775 = new BitSet(new long[]{0x1004230016021420L,0x000000000410C189L});
-    public static final BitSet FOLLOW_block_in_if_statement1781 = new BitSet(new long[]{0x0000000016000000L});
-    public static final BitSet FOLLOW_ELSE_in_if_statement1799 = new BitSet(new long[]{0x1004230010021420L,0x000000000410C189L});
-    public static final BitSet FOLLOW_block_in_if_statement1807 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_END_in_if_statement1823 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_REPEAT_in_loop_statement1848 = new BitSet(new long[]{0x090C590000100A00L,0x00000000A2002008L});
-    public static final BitSet FOLLOW_root_expression_in_loop_statement1916 = new BitSet(new long[]{0x0000000000000000L,0x0000000008000000L});
-    public static final BitSet FOLLOW_TIMES_in_loop_statement1918 = new BitSet(new long[]{0x1004230010021420L,0x000000000410C189L});
-    public static final BitSet FOLLOW_set_in_loop_statement1926 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_root_expression_in_loop_statement1934 = new BitSet(new long[]{0x1004230010021420L,0x000000000410C189L});
-    public static final BitSet FOLLOW_block_in_loop_statement1943 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_END_in_loop_statement1945 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_PARENT_in_selector1969 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_selector1971 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_selector1975 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ME_in_selector1993 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_expression_in_root_expression2007 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_or_in_expression2027 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_and_in_or2039 = new BitSet(new long[]{0x8000000000000002L});
-    public static final BitSet FOLLOW_OR_in_or2042 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_and_in_or2046 = new BitSet(new long[]{0x8000000000000002L});
-    public static final BitSet FOLLOW_equality_in_and2059 = new BitSet(new long[]{0x0000000000000082L});
-    public static final BitSet FOLLOW_AND_in_and2062 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_equality_in_and2066 = new BitSet(new long[]{0x0000000000000082L});
-    public static final BitSet FOLLOW_isa_operation_in_equality2077 = new BitSet(new long[]{0x0200000020000002L});
-    public static final BitSet FOLLOW_EQUALITY_in_equality2081 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_NOTEQUALS_in_equality2087 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_isa_operation_in_equality2092 = new BitSet(new long[]{0x0200000020000002L});
-    public static final BitSet FOLLOW_comparison_in_isa_operation2104 = new BitSet(new long[]{0x0000040000000002L});
-    public static final BitSet FOLLOW_INHERITS_in_isa_operation2107 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_class_type_in_isa_operation2111 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_add_in_comparison2121 = new BitSet(new long[]{0x000300C000000002L});
-    public static final BitSet FOLLOW_GREATER_in_comparison2125 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_GREATER_EQUAL_in_comparison2130 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_LESS_in_comparison2135 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_LESS_EQUAL_in_comparison2140 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_add_in_comparison2144 = new BitSet(new long[]{0x000300C000000002L});
-    public static final BitSet FOLLOW_multiply_in_add2158 = new BitSet(new long[]{0x0008000000000002L,0x0000000000000040L});
-    public static final BitSet FOLLOW_PLUS_in_add2162 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_MINUS_in_add2167 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_multiply_in_add2171 = new BitSet(new long[]{0x0008000000000002L,0x0000000000000040L});
-    public static final BitSet FOLLOW_combo_expression_in_multiply2184 = new BitSet(new long[]{0x0030000000800002L});
-    public static final BitSet FOLLOW_MULTIPLY_in_multiply2188 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_DIVIDE_in_multiply2193 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_MODULO_in_multiply2197 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_combo_expression_in_multiply2201 = new BitSet(new long[]{0x0030000000800002L});
-    public static final BitSet FOLLOW_NOT_in_combo_expression2216 = new BitSet(new long[]{0x080C590000100200L,0x0000000002002008L});
-    public static final BitSet FOLLOW_atom_in_combo_expression2218 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_CAST_in_combo_expression2233 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_combo_expression2235 = new BitSet(new long[]{0x1000210000000400L,0x0000000004000000L});
-    public static final BitSet FOLLOW_assignment_declaration_in_combo_expression2237 = new BitSet(new long[]{0x0000000000008000L});
-    public static final BitSet FOLLOW_COMMA_in_combo_expression2239 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_expression_in_combo_expression2241 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_combo_expression2243 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_atom_in_combo_expression2248 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_qualified_name_in_atom2263 = new BitSet(new long[]{0x0000000000004002L});
-    public static final BitSet FOLLOW_COLON_in_atom2266 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_atom2268 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_qualified_name_in_atom2290 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2292 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000008L});
-    public static final BitSet FOLLOW_PARENT_in_atom2294 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2296 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_atom2298 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2300 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_atom2302 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_qualified_name_in_atom2327 = new BitSet(new long[]{0x0000400000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2330 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_atom2332 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2336 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002022008L});
-    public static final BitSet FOLLOW_function_expression_list_in_atom2338 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2340 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_selector_in_atom2369 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2371 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_atom2373 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_PARENT_in_atom2398 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2400 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_atom2402 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2404 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_atom2406 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2408 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002022008L});
-    public static final BitSet FOLLOW_function_expression_list_in_atom2410 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2412 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ME_in_atom2442 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2444 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_qualified_name_in_atom2446 = new BitSet(new long[]{0x0000400000004000L});
-    public static final BitSet FOLLOW_COLON_in_atom2449 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_atom2451 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2455 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002022008L});
-    public static final BitSet FOLLOW_function_expression_list_in_atom2457 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2459 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MINUS_in_atom2493 = new BitSet(new long[]{0x0000100000000000L});
-    public static final BitSet FOLLOW_INT_in_atom2497 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_BOOLEAN_in_atom2502 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MINUS_in_atom2508 = new BitSet(new long[]{0x0000000000100000L});
-    public static final BitSet FOLLOW_DECIMAL_in_atom2512 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_STRING_in_atom2518 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_QUOTE_in_atom2523 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NULL_in_atom2528 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ME_in_atom2533 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_INPUT_in_atom2539 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2541 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_expression_in_atom2543 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2545 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2550 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_expression_in_atom2552 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2554 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_expression_in_function_expression_list2574 = new BitSet(new long[]{0x0000000000008002L});
-    public static final BitSet FOLLOW_COMMA_in_function_expression_list2577 = new BitSet(new long[]{0x090C590000100A00L,0x0000000002002008L});
-    public static final BitSet FOLLOW_expression_in_function_expression_list2579 = new BitSet(new long[]{0x0000000000008002L});
+    public static final BitSet FOLLOW_ID_in_detect_parameter1301 = new BitSet(new long[]{0x0000040000000002L});
+    public static final BitSet FOLLOW_INHERITS_in_detect_parameter1313 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1316 = new BitSet(new long[]{0x4000000000000002L});
+    public static final BitSet FOLLOW_OR_in_detect_parameter1318 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1320 = new BitSet(new long[]{0x4000000000000002L});
+    public static final BitSet FOLLOW_OUTPUT_in_print_statement1356 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_root_expression_in_print_statement1358 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_SAY_in_speak_statement1370 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_root_expression_in_speak_statement1372 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RETURN_in_return_statement1383 = new BitSet(new long[]{0x0D0C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_root_expression_in_return_statement1387 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NOW_in_return_statement1391 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_LESS_in_generic_declaration1408 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_ID_in_generic_declaration1412 = new BitSet(new long[]{0x0000004000008000L});
+    public static final BitSet FOLLOW_COMMA_in_generic_declaration1415 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_ID_in_generic_declaration1419 = new BitSet(new long[]{0x0000004000008000L});
+    public static final BitSet FOLLOW_GREATER_in_generic_declaration1423 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_LESS_in_generic_statement1464 = new BitSet(new long[]{0x1000210000000400L,0x0000000002000000L});
+    public static final BitSet FOLLOW_assignment_declaration_in_generic_statement1474 = new BitSet(new long[]{0x0000004000008000L});
+    public static final BitSet FOLLOW_COMMA_in_generic_statement1481 = new BitSet(new long[]{0x1000210000000400L,0x0000000002000000L});
+    public static final BitSet FOLLOW_assignment_declaration_in_generic_statement1485 = new BitSet(new long[]{0x0000004000008000L});
+    public static final BitSet FOLLOW_GREATER_in_generic_statement1495 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_qualified_name_in_class_type1535 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_qualified_name_in_assignment_declaration1556 = new BitSet(new long[]{0x0001000000000002L});
+    public static final BitSet FOLLOW_generic_statement_in_assignment_declaration1560 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_INTEGER_KEYWORD_in_assignment_declaration1569 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NUMBER_KEYWORD_in_assignment_declaration1577 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_TEXT_in_assignment_declaration1585 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_BOOLEAN_KEYWORD_in_assignment_declaration1593 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_selector_in_assignment_statement1616 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_assignment_statement1618 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_ID_in_assignment_statement1622 = new BitSet(new long[]{0x0000000020000000L});
+    public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1628 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_qualified_name_in_assignment_statement1639 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_assignment_statement1642 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000004L});
+    public static final BitSet FOLLOW_PARENT_in_assignment_statement1644 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_assignment_statement1646 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_assignment_statement1650 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_assignment_statement1654 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_ID_in_assignment_statement1656 = new BitSet(new long[]{0x0000000020000000L});
+    public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1660 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_access_modifier_in_assignment_statement1669 = new BitSet(new long[]{0x1000210000020400L,0x0000000002000000L});
+    public static final BitSet FOLLOW_CONSTANT_in_assignment_statement1677 = new BitSet(new long[]{0x1000210000000400L,0x0000000002000000L});
+    public static final BitSet FOLLOW_assignment_declaration_in_assignment_statement1684 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_ID_in_assignment_statement1690 = new BitSet(new long[]{0x0000000020000002L});
+    public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1696 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_EQUALITY_in_assign_right_hand_side1722 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_root_expression_in_assign_right_hand_side1724 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_IF_in_if_statement1749 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_root_expression_in_if_statement1751 = new BitSet(new long[]{0x9004230016021420L,0x00000000020860C4L});
+    public static final BitSet FOLLOW_block_in_if_statement1757 = new BitSet(new long[]{0x0000000016000000L});
+    public static final BitSet FOLLOW_ELSE_IF_in_if_statement1769 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_root_expression_in_if_statement1777 = new BitSet(new long[]{0x9004230016021420L,0x00000000020860C4L});
+    public static final BitSet FOLLOW_block_in_if_statement1783 = new BitSet(new long[]{0x0000000016000000L});
+    public static final BitSet FOLLOW_ELSE_in_if_statement1801 = new BitSet(new long[]{0x9004230010021420L,0x00000000020860C4L});
+    public static final BitSet FOLLOW_block_in_if_statement1809 = new BitSet(new long[]{0x0000000010000000L});
+    public static final BitSet FOLLOW_END_in_if_statement1825 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_REPEAT_in_loop_statement1850 = new BitSet(new long[]{0x090C590000100A00L,0x0000000051001004L});
+    public static final BitSet FOLLOW_root_expression_in_loop_statement1918 = new BitSet(new long[]{0x0000000000000000L,0x0000000004000000L});
+    public static final BitSet FOLLOW_TIMES_in_loop_statement1920 = new BitSet(new long[]{0x9004230010021420L,0x00000000020860C4L});
+    public static final BitSet FOLLOW_set_in_loop_statement1928 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_root_expression_in_loop_statement1936 = new BitSet(new long[]{0x9004230010021420L,0x00000000020860C4L});
+    public static final BitSet FOLLOW_block_in_loop_statement1945 = new BitSet(new long[]{0x0000000010000000L});
+    public static final BitSet FOLLOW_END_in_loop_statement1947 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_PARENT_in_selector1971 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_selector1973 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_selector1977 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ME_in_selector1995 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_expression_in_root_expression2009 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_or_in_expression2029 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_and_in_or2041 = new BitSet(new long[]{0x4000000000000002L});
+    public static final BitSet FOLLOW_OR_in_or2044 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_and_in_or2048 = new BitSet(new long[]{0x4000000000000002L});
+    public static final BitSet FOLLOW_equality_in_and2061 = new BitSet(new long[]{0x0000000000000082L});
+    public static final BitSet FOLLOW_AND_in_and2064 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_equality_in_and2068 = new BitSet(new long[]{0x0000000000000082L});
+    public static final BitSet FOLLOW_isa_operation_in_equality2079 = new BitSet(new long[]{0x0200000020000002L});
+    public static final BitSet FOLLOW_EQUALITY_in_equality2083 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_NOTEQUALS_in_equality2089 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_isa_operation_in_equality2094 = new BitSet(new long[]{0x0200000020000002L});
+    public static final BitSet FOLLOW_comparison_in_isa_operation2106 = new BitSet(new long[]{0x0000040000000002L});
+    public static final BitSet FOLLOW_INHERITS_in_isa_operation2109 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_class_type_in_isa_operation2113 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_add_in_comparison2123 = new BitSet(new long[]{0x000300C000000002L});
+    public static final BitSet FOLLOW_GREATER_in_comparison2127 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_GREATER_EQUAL_in_comparison2132 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_LESS_in_comparison2137 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_LESS_EQUAL_in_comparison2142 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_add_in_comparison2146 = new BitSet(new long[]{0x000300C000000002L});
+    public static final BitSet FOLLOW_multiply_in_add2160 = new BitSet(new long[]{0x0008000000000002L,0x0000000000000020L});
+    public static final BitSet FOLLOW_PLUS_in_add2164 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_MINUS_in_add2169 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_multiply_in_add2173 = new BitSet(new long[]{0x0008000000000002L,0x0000000000000020L});
+    public static final BitSet FOLLOW_combo_expression_in_multiply2186 = new BitSet(new long[]{0x0030000000800002L});
+    public static final BitSet FOLLOW_MULTIPLY_in_multiply2190 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_DIVIDE_in_multiply2195 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_MODULO_in_multiply2199 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_combo_expression_in_multiply2203 = new BitSet(new long[]{0x0030000000800002L});
+    public static final BitSet FOLLOW_NOT_in_combo_expression2218 = new BitSet(new long[]{0x080C590000100200L,0x0000000001001004L});
+    public static final BitSet FOLLOW_atom_in_combo_expression2220 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_CAST_in_combo_expression2235 = new BitSet(new long[]{0x0000400000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_combo_expression2237 = new BitSet(new long[]{0x1000210000000400L,0x0000000002000000L});
+    public static final BitSet FOLLOW_assignment_declaration_in_combo_expression2239 = new BitSet(new long[]{0x0000000000008000L});
+    public static final BitSet FOLLOW_COMMA_in_combo_expression2241 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_expression_in_combo_expression2243 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_combo_expression2245 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_atom_in_combo_expression2250 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_qualified_name_in_atom2265 = new BitSet(new long[]{0x0000000000004002L});
+    public static final BitSet FOLLOW_COLON_in_atom2268 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_ID_in_atom2270 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_qualified_name_in_atom2292 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2294 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000004L});
+    public static final BitSet FOLLOW_PARENT_in_atom2296 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2298 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_atom2300 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2302 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_ID_in_atom2304 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_qualified_name_in_atom2329 = new BitSet(new long[]{0x0000400000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2332 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_ID_in_atom2334 = new BitSet(new long[]{0x0000400000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2338 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001011004L});
+    public static final BitSet FOLLOW_function_expression_list_in_atom2340 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2342 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_selector_in_atom2371 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2373 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_atom2375 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_PARENT_in_atom2400 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2402 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_atom2404 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2406 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_ID_in_atom2408 = new BitSet(new long[]{0x0000400000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2410 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001011004L});
+    public static final BitSet FOLLOW_function_expression_list_in_atom2412 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2414 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ME_in_atom2444 = new BitSet(new long[]{0x0000000000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2446 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_qualified_name_in_atom2448 = new BitSet(new long[]{0x0000400000004000L});
+    public static final BitSet FOLLOW_COLON_in_atom2451 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_ID_in_atom2453 = new BitSet(new long[]{0x0000400000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2457 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001011004L});
+    public static final BitSet FOLLOW_function_expression_list_in_atom2459 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2461 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_MINUS_in_atom2495 = new BitSet(new long[]{0x0000100000000000L});
+    public static final BitSet FOLLOW_INT_in_atom2499 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_BOOLEAN_in_atom2504 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_MINUS_in_atom2510 = new BitSet(new long[]{0x0000000000100000L});
+    public static final BitSet FOLLOW_DECIMAL_in_atom2514 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_STRING_in_atom2520 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_QUOTE_in_atom2525 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NULL_in_atom2530 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ME_in_atom2535 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_INPUT_in_atom2541 = new BitSet(new long[]{0x0000400000000000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2543 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_expression_in_atom2545 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2547 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_atom2552 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_expression_in_atom2554 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_RIGHT_PAREN_in_atom2556 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_expression_in_function_expression_list2576 = new BitSet(new long[]{0x0000000000008002L});
+    public static final BitSet FOLLOW_COMMA_in_function_expression_list2579 = new BitSet(new long[]{0x090C590000100A00L,0x0000000001001004L});
+    public static final BitSet FOLLOW_expression_in_function_expression_list2581 = new BitSet(new long[]{0x0000000000008002L});
 
 }

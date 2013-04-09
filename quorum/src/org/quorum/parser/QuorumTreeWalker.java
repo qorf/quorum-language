@@ -1,4 +1,4 @@
-// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2013-03-27 12:21:03
+// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2013-04-09 11:15:56
 
 
 package org.quorum.parser;
@@ -26,7 +26,7 @@ import java.util.HashMap;
 @SuppressWarnings({"all", "warnings", "unchecked"})
 public class QuorumTreeWalker extends TreeParser {
     public static final String[] tokenNames = new String[] {
-        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "ACTION", "ALERT", "ALWAYS", "AND", "BLUEPRINT", "BOOLEAN", "BOOLEAN_KEYWORD", "CAST", "CHECK", "CLASS", "COLON", "COMMA", "COMMENTS", "CONSTANT", "CONSTRUCTOR", "CREATE", "DECIMAL", "DESTROY", "DETECT", "DIVIDE", "DOUBLE_QUOTE", "ELSE", "ELSE_IF", "ELSE_IF_STATEMENT", "END", "EQUALITY", "EXPRESSION_STATEMENT", "FINAL_ELSE", "FPARAM", "FUNCTION_CALL", "FUNCTION_CALL_PARENT", "FUNCTION_CALL_THIS", "FUNCTION_EXPRESSION_LIST", "GENERIC", "GREATER", "GREATER_EQUAL", "ID", "IF", "INHERITS", "INPUT", "INT", "INTEGER_KEYWORD", "LEFT_PAREN", "LEFT_SQR_BRACE", "LESS", "LESS_EQUAL", "ME", "MINUS", "MODULO", "MULTIPLY", "NATIVE", "NEWLINE", "NOT", "NOTEQUALS", "NOW", "NULL", "NUMBER_KEYWORD", "OF_TYPE", "ON", "OR", "OUTPUT", "OVER", "PACKAGE_NAME", "PARENT", "PAREN_WRAPPED_EXPRESSION", "PERIOD", "PLUS", "PRIVATE", "PUBLIC", "QUALIFIED_NAME", "QUALIFIED_SOLO_EXPRESSION", "QUALIFIED_SOLO_EXPRESSION_SELECTOR", "QUALIFIED_SOLO_PARENT_EXPRESSON", "QUOTE", "REPEAT", "RETURN", "RETURNS", "RIGHT_PAREN", "RIGHT_SQR_BRACE", "ROOT_EXPRESSION", "SAY", "SOLO_FUNCTION_CALL", "SOLO_FUNCTION_CALL_PARENT", "SOLO_FUNCTION_CALL_THIS", "STATEMENT_LIST", "STRING", "TEXT", "TIMES", "UNARY_NOT", "UNTIL", "USE", "WHILE", "WS"
+        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "ACTION", "ALERT", "ALWAYS", "AND", "BLUEPRINT", "BOOLEAN", "BOOLEAN_KEYWORD", "CAST", "CHECK", "CLASS", "COLON", "COMMA", "COMMENTS", "CONSTANT", "CONSTRUCTOR", "CREATE", "DECIMAL", "DESTROY", "DETECT", "DIVIDE", "DOUBLE_QUOTE", "ELSE", "ELSE_IF", "ELSE_IF_STATEMENT", "END", "EQUALITY", "EXPRESSION_STATEMENT", "FINAL_ELSE", "FPARAM", "FUNCTION_CALL", "FUNCTION_CALL_PARENT", "FUNCTION_CALL_THIS", "FUNCTION_EXPRESSION_LIST", "GENERIC", "GREATER", "GREATER_EQUAL", "ID", "IF", "INHERITS", "INPUT", "INT", "INTEGER_KEYWORD", "LEFT_PAREN", "LEFT_SQR_BRACE", "LESS", "LESS_EQUAL", "ME", "MINUS", "MODULO", "MULTIPLY", "NATIVE", "NEWLINE", "NOT", "NOTEQUALS", "NOW", "NULL", "NUMBER_KEYWORD", "ON", "OR", "OUTPUT", "OVER", "PACKAGE_NAME", "PARENT", "PAREN_WRAPPED_EXPRESSION", "PERIOD", "PLUS", "PRIVATE", "PUBLIC", "QUALIFIED_NAME", "QUALIFIED_SOLO_EXPRESSION", "QUALIFIED_SOLO_EXPRESSION_SELECTOR", "QUALIFIED_SOLO_PARENT_EXPRESSON", "QUOTE", "REPEAT", "RETURN", "RETURNS", "RIGHT_PAREN", "RIGHT_SQR_BRACE", "ROOT_EXPRESSION", "SAY", "SOLO_FUNCTION_CALL", "SOLO_FUNCTION_CALL_PARENT", "SOLO_FUNCTION_CALL_THIS", "STATEMENT_LIST", "STRING", "TEXT", "TIMES", "UNARY_NOT", "UNTIL", "USE", "WHILE", "WS"
     };
 
     public static final int EOF=-1;
@@ -87,42 +87,41 @@ public class QuorumTreeWalker extends TreeParser {
     public static final int NOW=58;
     public static final int NULL=59;
     public static final int NUMBER_KEYWORD=60;
-    public static final int OF_TYPE=61;
-    public static final int ON=62;
-    public static final int OR=63;
-    public static final int OUTPUT=64;
-    public static final int OVER=65;
-    public static final int PACKAGE_NAME=66;
-    public static final int PARENT=67;
-    public static final int PAREN_WRAPPED_EXPRESSION=68;
-    public static final int PERIOD=69;
-    public static final int PLUS=70;
-    public static final int PRIVATE=71;
-    public static final int PUBLIC=72;
-    public static final int QUALIFIED_NAME=73;
-    public static final int QUALIFIED_SOLO_EXPRESSION=74;
-    public static final int QUALIFIED_SOLO_EXPRESSION_SELECTOR=75;
-    public static final int QUALIFIED_SOLO_PARENT_EXPRESSON=76;
-    public static final int QUOTE=77;
-    public static final int REPEAT=78;
-    public static final int RETURN=79;
-    public static final int RETURNS=80;
-    public static final int RIGHT_PAREN=81;
-    public static final int RIGHT_SQR_BRACE=82;
-    public static final int ROOT_EXPRESSION=83;
-    public static final int SAY=84;
-    public static final int SOLO_FUNCTION_CALL=85;
-    public static final int SOLO_FUNCTION_CALL_PARENT=86;
-    public static final int SOLO_FUNCTION_CALL_THIS=87;
-    public static final int STATEMENT_LIST=88;
-    public static final int STRING=89;
-    public static final int TEXT=90;
-    public static final int TIMES=91;
-    public static final int UNARY_NOT=92;
-    public static final int UNTIL=93;
-    public static final int USE=94;
-    public static final int WHILE=95;
-    public static final int WS=96;
+    public static final int ON=61;
+    public static final int OR=62;
+    public static final int OUTPUT=63;
+    public static final int OVER=64;
+    public static final int PACKAGE_NAME=65;
+    public static final int PARENT=66;
+    public static final int PAREN_WRAPPED_EXPRESSION=67;
+    public static final int PERIOD=68;
+    public static final int PLUS=69;
+    public static final int PRIVATE=70;
+    public static final int PUBLIC=71;
+    public static final int QUALIFIED_NAME=72;
+    public static final int QUALIFIED_SOLO_EXPRESSION=73;
+    public static final int QUALIFIED_SOLO_EXPRESSION_SELECTOR=74;
+    public static final int QUALIFIED_SOLO_PARENT_EXPRESSON=75;
+    public static final int QUOTE=76;
+    public static final int REPEAT=77;
+    public static final int RETURN=78;
+    public static final int RETURNS=79;
+    public static final int RIGHT_PAREN=80;
+    public static final int RIGHT_SQR_BRACE=81;
+    public static final int ROOT_EXPRESSION=82;
+    public static final int SAY=83;
+    public static final int SOLO_FUNCTION_CALL=84;
+    public static final int SOLO_FUNCTION_CALL_PARENT=85;
+    public static final int SOLO_FUNCTION_CALL_THIS=86;
+    public static final int STATEMENT_LIST=87;
+    public static final int STRING=88;
+    public static final int TEXT=89;
+    public static final int TIMES=90;
+    public static final int UNARY_NOT=91;
+    public static final int UNTIL=92;
+    public static final int USE=93;
+    public static final int WHILE=94;
+    public static final int WS=95;
 
     // delegates
     public TreeParser[] getDelegates() {
@@ -521,7 +520,7 @@ public static class STAttrMap extends HashMap {
             if ( (LA8_0==CLASS) ) {
                 alt8=1;
             }
-            else if ( ((LA8_0 >= ACTION && LA8_0 <= ALERT)||LA8_0==BLUEPRINT||LA8_0==BOOLEAN_KEYWORD||LA8_0==CHECK||LA8_0==CONSTANT||(LA8_0 >= ID && LA8_0 <= IF)||LA8_0==INTEGER_KEYWORD||LA8_0==ME||LA8_0==NATIVE||LA8_0==NUMBER_KEYWORD||LA8_0==ON||LA8_0==OUTPUT||LA8_0==PARENT||(LA8_0 >= PRIVATE && LA8_0 <= QUALIFIED_NAME)||(LA8_0 >= REPEAT && LA8_0 <= RETURN)||(LA8_0 >= SAY && LA8_0 <= SOLO_FUNCTION_CALL_THIS)||LA8_0==TEXT) ) {
+            else if ( ((LA8_0 >= ACTION && LA8_0 <= ALERT)||LA8_0==BLUEPRINT||LA8_0==BOOLEAN_KEYWORD||LA8_0==CHECK||LA8_0==CONSTANT||(LA8_0 >= ID && LA8_0 <= IF)||LA8_0==INTEGER_KEYWORD||LA8_0==ME||LA8_0==NATIVE||(LA8_0 >= NUMBER_KEYWORD && LA8_0 <= ON)||LA8_0==OUTPUT||LA8_0==PARENT||(LA8_0 >= PRIVATE && LA8_0 <= QUALIFIED_NAME)||(LA8_0 >= REPEAT && LA8_0 <= RETURN)||(LA8_0 >= SAY && LA8_0 <= SOLO_FUNCTION_CALL_THIS)||LA8_0==TEXT) ) {
                 alt8=2;
             }
             else {
@@ -618,7 +617,7 @@ public static class STAttrMap extends HashMap {
                         int alt7=2;
                         int LA7_0 = input.LA(1);
 
-                        if ( (LA7_0==ACTION||LA7_0==BLUEPRINT||LA7_0==BOOLEAN_KEYWORD||LA7_0==CONSTANT||LA7_0==ID||LA7_0==INTEGER_KEYWORD||LA7_0==ME||LA7_0==NATIVE||LA7_0==NUMBER_KEYWORD||LA7_0==ON||LA7_0==PARENT||(LA7_0 >= PRIVATE && LA7_0 <= QUALIFIED_NAME)||LA7_0==TEXT) ) {
+                        if ( (LA7_0==ACTION||LA7_0==BLUEPRINT||LA7_0==BOOLEAN_KEYWORD||LA7_0==CONSTANT||LA7_0==ID||LA7_0==INTEGER_KEYWORD||LA7_0==ME||LA7_0==NATIVE||(LA7_0 >= NUMBER_KEYWORD && LA7_0 <= ON)||LA7_0==PARENT||(LA7_0 >= PRIVATE && LA7_0 <= QUALIFIED_NAME)||LA7_0==TEXT) ) {
                             alt7=1;
                         }
 
@@ -3196,7 +3195,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "detect_parameter"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:893:1: detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionTypeList] : ^(id= ID ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )? ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:893:1: detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionTypeList] : ^(id= ID ( INHERITS qn= qualified_name ( OR qn= qualified_name )* )? ) ;
     public final QuorumTreeWalker.detect_parameter_return detect_parameter() throws RecognitionException {
         detect_parameter_stack.push(new detect_parameter_scope());
         QuorumTreeWalker.detect_parameter_return retval = new QuorumTreeWalker.detect_parameter_return();
@@ -3208,25 +3207,25 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:897:2: ( ^(id= ID ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )? ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:897:4: ^(id= ID ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )? )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:897:2: ( ^(id= ID ( INHERITS qn= qualified_name ( OR qn= qualified_name )* )? ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:897:4: ^(id= ID ( INHERITS qn= qualified_name ( OR qn= qualified_name )* )? )
             {
             id=(CommonTree)match(input,ID,FOLLOW_ID_in_detect_parameter1097); 
 
             if ( input.LA(1)==Token.DOWN ) {
                 match(input, Token.DOWN, null); 
-                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:898:2: ( OF_TYPE qn= qualified_name ( OR qn= qualified_name )* )?
+                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:898:2: ( INHERITS qn= qualified_name ( OR qn= qualified_name )* )?
                 int alt41=2;
                 int LA41_0 = input.LA(1);
 
-                if ( (LA41_0==OF_TYPE) ) {
+                if ( (LA41_0==INHERITS) ) {
                     alt41=1;
                 }
                 switch (alt41) {
                     case 1 :
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:898:3: OF_TYPE qn= qualified_name ( OR qn= qualified_name )*
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:898:3: INHERITS qn= qualified_name ( OR qn= qualified_name )*
                         {
-                        match(input,OF_TYPE,FOLLOW_OF_TYPE_in_detect_parameter1102); 
+                        match(input,INHERITS,FOLLOW_INHERITS_in_detect_parameter1102); 
 
 
                         		((detect_parameter_scope)detect_parameter_stack.peek()).exceptionList = new ArrayList<ErrorTypeDescriptor>();
@@ -7079,20 +7078,20 @@ public static class STAttrMap extends HashMap {
     static final String DFA4_eofS =
         "\24\uffff";
     static final String DFA4_minS =
-        "\1\4\2\111\1\uffff\2\2\2\50\2\3\1\50\1\4\1\50\1\4\1\3\2\uffff\1"+
+        "\1\4\2\110\1\uffff\2\2\2\50\2\3\1\50\1\4\1\50\1\4\1\3\2\uffff\1"+
         "\3\2\uffff";
     static final String DFA4_maxS =
-        "\1\136\2\111\1\uffff\2\2\2\50\2\105\1\50\1\136\1\50\1\136\1\105"+
-        "\2\uffff\1\105\2\uffff";
+        "\1\135\2\110\1\uffff\2\2\2\50\2\104\1\50\1\135\1\50\1\135\1\104"+
+        "\2\uffff\1\104\2\uffff";
     static final String DFA4_acceptS =
         "\3\uffff\1\5\13\uffff\1\1\1\3\1\uffff\1\2\1\4";
     static final String DFA4_specialS =
         "\24\uffff}>";
     static final String[] DFA4_transitionS = {
             "\2\3\2\uffff\1\3\1\uffff\1\3\1\uffff\2\3\3\uffff\1\3\26\uffff"+
-            "\2\3\3\uffff\1\3\4\uffff\1\3\3\uffff\1\3\5\uffff\1\3\1\uffff"+
-            "\1\3\1\uffff\1\3\1\uffff\1\1\1\3\3\uffff\3\3\4\uffff\2\3\4\uffff"+
-            "\4\3\2\uffff\1\3\3\uffff\1\2",
+            "\2\3\3\uffff\1\3\4\uffff\1\3\3\uffff\1\3\5\uffff\2\3\1\uffff"+
+            "\1\3\1\uffff\1\1\1\3\3\uffff\3\3\4\uffff\2\3\4\uffff\4\3\2\uffff"+
+            "\1\3\3\uffff\1\2",
             "\1\4",
             "\1\5",
             "",
@@ -7100,22 +7099,22 @@ public static class STAttrMap extends HashMap {
             "\1\7",
             "\1\10",
             "\1\11",
-            "\1\13\101\uffff\1\12",
-            "\1\15\101\uffff\1\14",
+            "\1\13\100\uffff\1\12",
+            "\1\15\100\uffff\1\14",
             "\1\16",
             "\2\20\2\uffff\1\20\1\uffff\1\20\1\uffff\2\20\3\uffff\1\20\26"+
-            "\uffff\2\20\3\uffff\1\20\4\uffff\1\20\3\uffff\1\20\5\uffff\1"+
-            "\20\1\uffff\1\20\1\uffff\1\20\2\uffff\1\20\3\uffff\3\20\4\uffff"+
-            "\2\20\4\uffff\4\20\2\uffff\1\20\3\uffff\1\17",
+            "\uffff\2\20\3\uffff\1\20\4\uffff\1\20\3\uffff\1\20\5\uffff\2"+
+            "\20\1\uffff\1\20\2\uffff\1\20\3\uffff\3\20\4\uffff\2\20\4\uffff"+
+            "\4\20\2\uffff\1\20\3\uffff\1\17",
             "\1\21",
             "\2\23\2\uffff\1\23\1\uffff\1\23\1\uffff\2\23\3\uffff\1\23\26"+
-            "\uffff\2\23\3\uffff\1\23\4\uffff\1\23\3\uffff\1\23\5\uffff\1"+
-            "\23\1\uffff\1\23\1\uffff\1\23\1\uffff\1\22\1\23\3\uffff\3\23"+
-            "\4\uffff\2\23\4\uffff\4\23\2\uffff\1\23\3\uffff\1\2",
-            "\1\13\101\uffff\1\12",
+            "\uffff\2\23\3\uffff\1\23\4\uffff\1\23\3\uffff\1\23\5\uffff\2"+
+            "\23\1\uffff\1\23\1\uffff\1\22\1\23\3\uffff\3\23\4\uffff\2\23"+
+            "\4\uffff\4\23\2\uffff\1\23\3\uffff\1\2",
+            "\1\13\100\uffff\1\12",
             "",
             "",
-            "\1\15\101\uffff\1\14",
+            "\1\15\100\uffff\1\14",
             "",
             ""
     };
@@ -7160,22 +7159,22 @@ public static class STAttrMap extends HashMap {
     static final String DFA52_minS =
         "\1\12\1\uffff\1\2\1\uffff\1\50\1\3\1\50\1\16\1\3\1\uffff";
     static final String DFA52_maxS =
-        "\1\132\1\uffff\1\2\1\uffff\1\50\1\105\2\50\1\105\1\uffff";
+        "\1\131\1\uffff\1\2\1\uffff\1\50\1\104\2\50\1\104\1\uffff";
     static final String DFA52_acceptS =
         "\1\uffff\1\1\1\uffff\1\3\5\uffff\1\2";
     static final String DFA52_specialS =
         "\12\uffff}>";
     static final String[] DFA52_transitionS = {
             "\1\3\6\uffff\1\3\26\uffff\1\1\4\uffff\1\3\4\uffff\1\1\11\uffff"+
-            "\1\3\6\uffff\1\1\3\uffff\2\3\1\2\20\uffff\1\3",
+            "\1\3\5\uffff\1\1\3\uffff\2\3\1\2\20\uffff\1\3",
             "",
             "\1\4",
             "",
             "\1\5",
-            "\1\7\101\uffff\1\6",
+            "\1\7\100\uffff\1\6",
             "\1\10",
             "\1\11\26\uffff\1\3\2\uffff\1\3",
-            "\1\7\101\uffff\1\6",
+            "\1\7\100\uffff\1\6",
             ""
     };
 
@@ -7214,65 +7213,65 @@ public static class STAttrMap extends HashMap {
     }
  
 
-    public static final BitSet FOLLOW_package_rule_in_start51 = new BitSet(new long[]{0x0000000000000000L,0x0000000040000000L});
-    public static final BitSet FOLLOW_reference_in_start53 = new BitSet(new long[]{0x5044230000023530L,0x0000000044F0C389L});
-    public static final BitSet FOLLOW_reference_in_start59 = new BitSet(new long[]{0x0000000000000000L,0x0000000040000004L});
-    public static final BitSet FOLLOW_package_rule_in_start62 = new BitSet(new long[]{0x5044230000023530L,0x0000000004F0C389L});
-    public static final BitSet FOLLOW_package_rule_in_start67 = new BitSet(new long[]{0x5044230000023530L,0x0000000004F0C389L});
-    public static final BitSet FOLLOW_reference_in_start72 = new BitSet(new long[]{0x5044230000023530L,0x0000000044F0C389L});
+    public static final BitSet FOLLOW_package_rule_in_start51 = new BitSet(new long[]{0x0000000000000000L,0x0000000020000000L});
+    public static final BitSet FOLLOW_reference_in_start53 = new BitSet(new long[]{0xB044230000023530L,0x00000000227861C4L});
+    public static final BitSet FOLLOW_reference_in_start59 = new BitSet(new long[]{0x0000000000000000L,0x0000000020000002L});
+    public static final BitSet FOLLOW_package_rule_in_start62 = new BitSet(new long[]{0xB044230000023530L,0x00000000027861C4L});
+    public static final BitSet FOLLOW_package_rule_in_start67 = new BitSet(new long[]{0xB044230000023530L,0x00000000027861C4L});
+    public static final BitSet FOLLOW_reference_in_start72 = new BitSet(new long[]{0xB044230000023530L,0x00000000227861C4L});
     public static final BitSet FOLLOW_class_declaration_in_start81 = new BitSet(new long[]{0x0000000000000000L});
     public static final BitSet FOLLOW_EOF_in_start84 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_PACKAGE_NAME_in_package_rule96 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000200L});
+    public static final BitSet FOLLOW_PACKAGE_NAME_in_package_rule96 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
     public static final BitSet FOLLOW_qualified_name_in_package_rule100 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_USE_in_reference113 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000200L});
+    public static final BitSet FOLLOW_USE_in_reference113 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
     public static final BitSet FOLLOW_qualified_name_in_reference115 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_CLASS_in_class_declaration131 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_ID_in_class_declaration133 = new BitSet(new long[]{0x5044252010020510L,0x0000000004000388L});
-    public static final BitSet FOLLOW_generic_declaration_in_class_declaration139 = new BitSet(new long[]{0x5044250010020510L,0x0000000004000388L});
-    public static final BitSet FOLLOW_inherit_stmnts_in_class_declaration146 = new BitSet(new long[]{0x5044210010020510L,0x0000000004000388L});
-    public static final BitSet FOLLOW_class_stmnts_in_class_declaration153 = new BitSet(new long[]{0x5044210010020510L,0x0000000004000388L});
+    public static final BitSet FOLLOW_ID_in_class_declaration133 = new BitSet(new long[]{0x3044252010020510L,0x00000000020001C4L});
+    public static final BitSet FOLLOW_generic_declaration_in_class_declaration139 = new BitSet(new long[]{0x3044250010020510L,0x00000000020001C4L});
+    public static final BitSet FOLLOW_inherit_stmnts_in_class_declaration146 = new BitSet(new long[]{0x3044210010020510L,0x00000000020001C4L});
+    public static final BitSet FOLLOW_class_stmnts_in_class_declaration153 = new BitSet(new long[]{0x3044210010020510L,0x00000000020001C4L});
     public static final BitSet FOLLOW_END_in_class_declaration156 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_no_class_stmnts_in_class_declaration169 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_statement_in_no_class_stmnts189 = new BitSet(new long[]{0x1004230000021422L,0x0000000004F0C389L});
-    public static final BitSet FOLLOW_access_modifier_in_no_class_stmnts203 = new BitSet(new long[]{0x4040000000000110L});
-    public static final BitSet FOLLOW_method_declaration_in_no_class_stmnts211 = new BitSet(new long[]{0x4040000000000112L,0x0000000000000180L});
+    public static final BitSet FOLLOW_statement_in_no_class_stmnts189 = new BitSet(new long[]{0x9004230000021422L,0x00000000027861C4L});
+    public static final BitSet FOLLOW_access_modifier_in_no_class_stmnts203 = new BitSet(new long[]{0x2040000000000110L});
+    public static final BitSet FOLLOW_method_declaration_in_no_class_stmnts211 = new BitSet(new long[]{0x2040000000000112L,0x00000000000000C0L});
     public static final BitSet FOLLOW_INHERITS_in_inherit_stmnts225 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_qualified_name_in_inherit_stmnts233 = new BitSet(new long[]{0x0000002000000008L,0x0000000000000200L});
-    public static final BitSet FOLLOW_generic_statement_in_inherit_stmnts239 = new BitSet(new long[]{0x0000000000000008L,0x0000000000000200L});
+    public static final BitSet FOLLOW_qualified_name_in_inherit_stmnts233 = new BitSet(new long[]{0x0000002000000008L,0x0000000000000100L});
+    public static final BitSet FOLLOW_generic_statement_in_inherit_stmnts239 = new BitSet(new long[]{0x0000000000000008L,0x0000000000000100L});
     public static final BitSet FOLLOW_PUBLIC_in_access_modifier257 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_PRIVATE_in_access_modifier265 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_assignment_statement_in_class_stmnts279 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_access_modifier_in_class_stmnts288 = new BitSet(new long[]{0x4040000000000110L});
+    public static final BitSet FOLLOW_access_modifier_in_class_stmnts288 = new BitSet(new long[]{0x2040000000000110L});
     public static final BitSet FOLLOW_method_declaration_in_class_stmnts296 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ACTION_in_method_declaration314 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_ID_in_method_declaration320 = new BitSet(new long[]{0x0000000100000000L,0x0000000001010000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration325 = new BitSet(new long[]{0x0000000100000000L,0x0000000001010000L});
-    public static final BitSet FOLLOW_RETURNS_in_method_declaration338 = new BitSet(new long[]{0x1000200000000400L,0x0000000004000200L});
-    public static final BitSet FOLLOW_assignment_declaration_in_method_declaration342 = new BitSet(new long[]{0x0000000000000000L,0x0000000001000000L});
+    public static final BitSet FOLLOW_ID_in_method_declaration320 = new BitSet(new long[]{0x0000000100000000L,0x0000000000808000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration325 = new BitSet(new long[]{0x0000000100000000L,0x0000000000808000L});
+    public static final BitSet FOLLOW_RETURNS_in_method_declaration338 = new BitSet(new long[]{0x1000200000000400L,0x0000000002000100L});
+    public static final BitSet FOLLOW_assignment_declaration_in_method_declaration342 = new BitSet(new long[]{0x0000000000000000L,0x0000000000800000L});
     public static final BitSet FOLLOW_block_in_method_declaration348 = new BitSet(new long[]{0x0000000010000000L});
     public static final BitSet FOLLOW_END_in_method_declaration351 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_BLUEPRINT_in_method_declaration366 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_ACTION_in_method_declaration368 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_method_declaration375 = new BitSet(new long[]{0x0000000100000008L,0x0000000000010000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration380 = new BitSet(new long[]{0x0000000100000008L,0x0000000000010000L});
-    public static final BitSet FOLLOW_RETURNS_in_method_declaration389 = new BitSet(new long[]{0x1000200000000400L,0x0000000004000200L});
+    public static final BitSet FOLLOW_ID_in_method_declaration375 = new BitSet(new long[]{0x0000000100000008L,0x0000000000008000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration380 = new BitSet(new long[]{0x0000000100000008L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RETURNS_in_method_declaration389 = new BitSet(new long[]{0x1000200000000400L,0x0000000002000100L});
     public static final BitSet FOLLOW_assignment_declaration_in_method_declaration391 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_NATIVE_in_method_declaration400 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_ACTION_in_method_declaration402 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_method_declaration409 = new BitSet(new long[]{0x0000000100000008L,0x0000000000010000L});
-    public static final BitSet FOLLOW_formal_parameter_in_method_declaration414 = new BitSet(new long[]{0x0000000100000008L,0x0000000000010000L});
-    public static final BitSet FOLLOW_RETURNS_in_method_declaration423 = new BitSet(new long[]{0x1000200000000400L,0x0000000004000200L});
+    public static final BitSet FOLLOW_ID_in_method_declaration409 = new BitSet(new long[]{0x0000000100000008L,0x0000000000008000L});
+    public static final BitSet FOLLOW_formal_parameter_in_method_declaration414 = new BitSet(new long[]{0x0000000100000008L,0x0000000000008000L});
+    public static final BitSet FOLLOW_RETURNS_in_method_declaration423 = new BitSet(new long[]{0x1000200000000400L,0x0000000002000100L});
     public static final BitSet FOLLOW_assignment_declaration_in_method_declaration425 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_ON_in_method_declaration434 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_CREATE_in_method_declaration436 = new BitSet(new long[]{0x0000000000000000L,0x0000000001000000L});
+    public static final BitSet FOLLOW_CREATE_in_method_declaration436 = new BitSet(new long[]{0x0000000000000000L,0x0000000000800000L});
     public static final BitSet FOLLOW_block_in_method_declaration443 = new BitSet(new long[]{0x0000000010000000L});
     public static final BitSet FOLLOW_END_in_method_declaration446 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_QUALIFIED_NAME_in_qualified_name469 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_ID_in_qualified_name474 = new BitSet(new long[]{0x0000000000000008L,0x0000000000000020L});
+    public static final BitSet FOLLOW_ID_in_qualified_name474 = new BitSet(new long[]{0x0000000000000008L,0x0000000000000010L});
     public static final BitSet FOLLOW_PERIOD_in_qualified_name477 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_ID_in_qualified_name481 = new BitSet(new long[]{0x0000000000000008L,0x0000000000000020L});
+    public static final BitSet FOLLOW_ID_in_qualified_name481 = new BitSet(new long[]{0x0000000000000008L,0x0000000000000010L});
     public static final BitSet FOLLOW_STATEMENT_LIST_in_block500 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_statement_in_block507 = new BitSet(new long[]{0x1004230000021428L,0x0000000004F0C389L});
+    public static final BitSet FOLLOW_statement_in_block507 = new BitSet(new long[]{0x9004230000021428L,0x00000000027861C4L});
     public static final BitSet FOLLOW_solo_method_call_in_statement524 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_if_statement_in_statement529 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_assignment_statement_in_statement534 = new BitSet(new long[]{0x0000000000000002L});
@@ -7286,57 +7285,57 @@ public static class STAttrMap extends HashMap {
     public static final BitSet FOLLOW_qualified_name_in_solo_method_call593 = new BitSet(new long[]{0x0000400000004000L});
     public static final BitSet FOLLOW_COLON_in_solo_method_call596 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_ID_in_solo_method_call598 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call602 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012023C40L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call616 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_COMMA_in_solo_method_call626 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call640 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call602 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009011E20L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call616 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_COMMA_in_solo_method_call626 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call640 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call654 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_SOLO_FUNCTION_CALL_PARENT_in_solo_method_call666 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_PARENT_in_solo_method_call673 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_solo_method_call675 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000200L});
+    public static final BitSet FOLLOW_COLON_in_solo_method_call675 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
     public static final BitSet FOLLOW_qualified_name_in_solo_method_call677 = new BitSet(new long[]{0x0000000000004000L});
     public static final BitSet FOLLOW_COLON_in_solo_method_call679 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_ID_in_solo_method_call681 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call683 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012023C40L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call694 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_COMMA_in_solo_method_call704 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call717 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call683 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009011E20L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call694 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_COMMA_in_solo_method_call704 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call717 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call727 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_SOLO_FUNCTION_CALL_THIS_in_solo_method_call738 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_ME_in_solo_method_call745 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_solo_method_call747 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000200L});
+    public static final BitSet FOLLOW_COLON_in_solo_method_call747 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
     public static final BitSet FOLLOW_qualified_name_in_solo_method_call749 = new BitSet(new long[]{0x0000400000004000L});
     public static final BitSet FOLLOW_COLON_in_solo_method_call752 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_ID_in_solo_method_call754 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call758 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012023C40L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call771 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
-    public static final BitSet FOLLOW_COMMA_in_solo_method_call778 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
-    public static final BitSet FOLLOW_expression_in_solo_method_call791 = new BitSet(new long[]{0x0000000000008000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_solo_method_call758 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009011E20L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call771 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
+    public static final BitSet FOLLOW_COMMA_in_solo_method_call778 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
+    public static final BitSet FOLLOW_expression_in_solo_method_call791 = new BitSet(new long[]{0x0000000000008000L,0x0000000000010000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_solo_method_call804 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_ALERT_in_alert_statement824 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_alert_statement832 = new BitSet(new long[]{0x0000000000000000L,0x0000000000080000L});
-    public static final BitSet FOLLOW_root_expression_in_alert_statement836 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_alert_statement832 = new BitSet(new long[]{0x0000000000000000L,0x0000000000040000L});
+    public static final BitSet FOLLOW_root_expression_in_alert_statement836 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_alert_statement844 = new BitSet(new long[]{0x0000000000000008L});
-    public static final BitSet FOLLOW_CHECK_in_check_statement876 = new BitSet(new long[]{0x0000000000000000L,0x0000000001000000L});
+    public static final BitSet FOLLOW_CHECK_in_check_statement876 = new BitSet(new long[]{0x0000000000000000L,0x0000000000800000L});
     public static final BitSet FOLLOW_block_in_check_statement882 = new BitSet(new long[]{0x0000000000400040L});
     public static final BitSet FOLLOW_DETECT_in_check_statement904 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_detect_parameter_in_check_statement931 = new BitSet(new long[]{0x0000000000000000L,0x0000000001000000L});
+    public static final BitSet FOLLOW_detect_parameter_in_check_statement931 = new BitSet(new long[]{0x0000000000000000L,0x0000000000800000L});
     public static final BitSet FOLLOW_block_in_check_statement955 = new BitSet(new long[]{0x0000000010400040L});
-    public static final BitSet FOLLOW_ALWAYS_in_check_statement988 = new BitSet(new long[]{0x0000000000000000L,0x0000000001000000L});
+    public static final BitSet FOLLOW_ALWAYS_in_check_statement988 = new BitSet(new long[]{0x0000000000000000L,0x0000000000800000L});
     public static final BitSet FOLLOW_block_in_check_statement1004 = new BitSet(new long[]{0x0000000010000000L});
-    public static final BitSet FOLLOW_ALWAYS_in_check_statement1036 = new BitSet(new long[]{0x0000000000000000L,0x0000000001000000L});
+    public static final BitSet FOLLOW_ALWAYS_in_check_statement1036 = new BitSet(new long[]{0x0000000000000000L,0x0000000000800000L});
     public static final BitSet FOLLOW_block_in_check_statement1059 = new BitSet(new long[]{0x0000000010000000L});
     public static final BitSet FOLLOW_END_in_check_statement1068 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ID_in_detect_parameter1097 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_OF_TYPE_in_detect_parameter1102 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000200L});
-    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1111 = new BitSet(new long[]{0x8000000000000008L});
-    public static final BitSet FOLLOW_OR_in_detect_parameter1118 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000200L});
-    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1122 = new BitSet(new long[]{0x8000000000000008L});
-    public static final BitSet FOLLOW_OUTPUT_in_print_statement1149 = new BitSet(new long[]{0x0000000000000000L,0x0000000000080000L});
+    public static final BitSet FOLLOW_INHERITS_in_detect_parameter1102 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
+    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1111 = new BitSet(new long[]{0x4000000000000008L});
+    public static final BitSet FOLLOW_OR_in_detect_parameter1118 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
+    public static final BitSet FOLLOW_qualified_name_in_detect_parameter1122 = new BitSet(new long[]{0x4000000000000008L});
+    public static final BitSet FOLLOW_OUTPUT_in_print_statement1149 = new BitSet(new long[]{0x0000000000000000L,0x0000000000040000L});
     public static final BitSet FOLLOW_root_expression_in_print_statement1151 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_SAY_in_speak_statement1167 = new BitSet(new long[]{0x0000000000000000L,0x0000000000080000L});
+    public static final BitSet FOLLOW_SAY_in_speak_statement1167 = new BitSet(new long[]{0x0000000000000000L,0x0000000000040000L});
     public static final BitSet FOLLOW_root_expression_in_speak_statement1169 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RETURN_in_return_statement1183 = new BitSet(new long[]{0x0400000000000000L,0x0000000000080000L});
+    public static final BitSet FOLLOW_RETURN_in_return_statement1183 = new BitSet(new long[]{0x0400000000000000L,0x0000000000040000L});
     public static final BitSet FOLLOW_root_expression_in_return_statement1186 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_NOW_in_return_statement1194 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_GENERIC_in_generic_declaration1212 = new BitSet(new long[]{0x0000000000000004L});
@@ -7346,9 +7345,9 @@ public static class STAttrMap extends HashMap {
     public static final BitSet FOLLOW_ID_in_generic_declaration1225 = new BitSet(new long[]{0x0000004000008000L});
     public static final BitSet FOLLOW_GREATER_in_generic_declaration1229 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_GENERIC_in_generic_statement1247 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_LESS_in_generic_statement1249 = new BitSet(new long[]{0x1000200000000400L,0x0000000004000200L});
+    public static final BitSet FOLLOW_LESS_in_generic_statement1249 = new BitSet(new long[]{0x1000200000000400L,0x0000000002000100L});
     public static final BitSet FOLLOW_assignment_declaration_in_generic_statement1258 = new BitSet(new long[]{0x0000004000008000L});
-    public static final BitSet FOLLOW_COMMA_in_generic_statement1266 = new BitSet(new long[]{0x1000200000000400L,0x0000000004000200L});
+    public static final BitSet FOLLOW_COMMA_in_generic_statement1266 = new BitSet(new long[]{0x1000200000000400L,0x0000000002000100L});
     public static final BitSet FOLLOW_assignment_declaration_in_generic_statement1270 = new BitSet(new long[]{0x0000004000008000L});
     public static final BitSet FOLLOW_GREATER_in_generic_statement1286 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_qualified_name_in_class_type1311 = new BitSet(new long[]{0x0000000000000002L});
@@ -7363,35 +7362,35 @@ public static class STAttrMap extends HashMap {
     public static final BitSet FOLLOW_ID_in_assignment_statement1392 = new BitSet(new long[]{0x0000000020000000L});
     public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1396 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_qualified_name_in_assignment_statement1406 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_assignment_statement1409 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000008L});
+    public static final BitSet FOLLOW_COLON_in_assignment_statement1409 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000004L});
     public static final BitSet FOLLOW_PARENT_in_assignment_statement1411 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_assignment_statement1413 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000200L});
+    public static final BitSet FOLLOW_COLON_in_assignment_statement1413 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
     public static final BitSet FOLLOW_qualified_name_in_assignment_statement1417 = new BitSet(new long[]{0x0000000000004000L});
     public static final BitSet FOLLOW_COLON_in_assignment_statement1421 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_ID_in_assignment_statement1423 = new BitSet(new long[]{0x0000000020000000L});
     public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1427 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_access_modifier_in_assignment_statement1439 = new BitSet(new long[]{0x1000200000020400L,0x0000000004000200L});
-    public static final BitSet FOLLOW_CONSTANT_in_assignment_statement1442 = new BitSet(new long[]{0x1000200000000400L,0x0000000004000200L});
+    public static final BitSet FOLLOW_access_modifier_in_assignment_statement1439 = new BitSet(new long[]{0x1000200000020400L,0x0000000002000100L});
+    public static final BitSet FOLLOW_CONSTANT_in_assignment_statement1442 = new BitSet(new long[]{0x1000200000000400L,0x0000000002000100L});
     public static final BitSet FOLLOW_assignment_declaration_in_assignment_statement1449 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_ID_in_assignment_statement1455 = new BitSet(new long[]{0x0000000020000002L});
     public static final BitSet FOLLOW_assign_right_hand_side_in_assignment_statement1459 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_EQUALITY_in_assign_right_hand_side1480 = new BitSet(new long[]{0x0000000000000000L,0x0000000000080000L});
+    public static final BitSet FOLLOW_EQUALITY_in_assign_right_hand_side1480 = new BitSet(new long[]{0x0000000000000000L,0x0000000000040000L});
     public static final BitSet FOLLOW_root_expression_in_assign_right_hand_side1482 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_IF_in_if_statement1508 = new BitSet(new long[]{0x0000000000000000L,0x0000000000080000L});
-    public static final BitSet FOLLOW_root_expression_in_if_statement1521 = new BitSet(new long[]{0x0000000000000000L,0x0000000001000000L});
+    public static final BitSet FOLLOW_IF_in_if_statement1508 = new BitSet(new long[]{0x0000000000000000L,0x0000000000040000L});
+    public static final BitSet FOLLOW_root_expression_in_if_statement1521 = new BitSet(new long[]{0x0000000000000000L,0x0000000000800000L});
     public static final BitSet FOLLOW_block_in_if_statement1533 = new BitSet(new long[]{0x0000000016000000L});
-    public static final BitSet FOLLOW_ELSE_IF_in_if_statement1550 = new BitSet(new long[]{0x0000000000000000L,0x0000000000080000L});
-    public static final BitSet FOLLOW_root_expression_in_if_statement1563 = new BitSet(new long[]{0x0000000000000000L,0x0000000001000000L});
+    public static final BitSet FOLLOW_ELSE_IF_in_if_statement1550 = new BitSet(new long[]{0x0000000000000000L,0x0000000000040000L});
+    public static final BitSet FOLLOW_root_expression_in_if_statement1563 = new BitSet(new long[]{0x0000000000000000L,0x0000000000800000L});
     public static final BitSet FOLLOW_block_in_if_statement1573 = new BitSet(new long[]{0x0000000016000000L});
-    public static final BitSet FOLLOW_ELSE_in_if_statement1607 = new BitSet(new long[]{0x0000000000000000L,0x0000000001000000L});
+    public static final BitSet FOLLOW_ELSE_in_if_statement1607 = new BitSet(new long[]{0x0000000000000000L,0x0000000000800000L});
     public static final BitSet FOLLOW_block_in_if_statement1617 = new BitSet(new long[]{0x0000000010000000L});
     public static final BitSet FOLLOW_END_in_if_statement1626 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_REPEAT_in_loop_statement1649 = new BitSet(new long[]{0x0000000000000000L,0x00000000A0080000L});
-    public static final BitSet FOLLOW_root_expression_in_loop_statement1722 = new BitSet(new long[]{0x0000000000000000L,0x0000000008000000L});
-    public static final BitSet FOLLOW_TIMES_in_loop_statement1724 = new BitSet(new long[]{0x0000000000000000L,0x0000000001000000L});
-    public static final BitSet FOLLOW_WHILE_in_loop_statement1735 = new BitSet(new long[]{0x0000000000000000L,0x0000000000080000L});
-    public static final BitSet FOLLOW_UNTIL_in_loop_statement1741 = new BitSet(new long[]{0x0000000000000000L,0x0000000000080000L});
-    public static final BitSet FOLLOW_root_expression_in_loop_statement1756 = new BitSet(new long[]{0x0000000000000000L,0x0000000001000000L});
+    public static final BitSet FOLLOW_REPEAT_in_loop_statement1649 = new BitSet(new long[]{0x0000000000000000L,0x0000000050040000L});
+    public static final BitSet FOLLOW_root_expression_in_loop_statement1722 = new BitSet(new long[]{0x0000000000000000L,0x0000000004000000L});
+    public static final BitSet FOLLOW_TIMES_in_loop_statement1724 = new BitSet(new long[]{0x0000000000000000L,0x0000000000800000L});
+    public static final BitSet FOLLOW_WHILE_in_loop_statement1735 = new BitSet(new long[]{0x0000000000000000L,0x0000000000040000L});
+    public static final BitSet FOLLOW_UNTIL_in_loop_statement1741 = new BitSet(new long[]{0x0000000000000000L,0x0000000000040000L});
+    public static final BitSet FOLLOW_root_expression_in_loop_statement1756 = new BitSet(new long[]{0x0000000000000000L,0x0000000000800000L});
     public static final BitSet FOLLOW_block_in_loop_statement1767 = new BitSet(new long[]{0x0000000010000000L});
     public static final BitSet FOLLOW_END_in_loop_statement1775 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_PARENT_in_selector1814 = new BitSet(new long[]{0x0000000000000004L});
@@ -7400,56 +7399,56 @@ public static class STAttrMap extends HashMap {
     public static final BitSet FOLLOW_ROOT_EXPRESSION_in_root_expression1851 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_expression_in_root_expression1853 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_UNARY_NOT_in_expression1875 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_NOT_in_expression1877 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
+    public static final BitSet FOLLOW_NOT_in_expression1877 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
     public static final BitSet FOLLOW_expression_in_expression1883 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_EQUALITY_in_expression1895 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression1901 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
+    public static final BitSet FOLLOW_expression_in_expression1901 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
     public static final BitSet FOLLOW_expression_in_expression1907 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_NOTEQUALS_in_expression1917 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression1923 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
+    public static final BitSet FOLLOW_expression_in_expression1923 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
     public static final BitSet FOLLOW_expression_in_expression1929 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_GREATER_in_expression1939 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression1945 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
+    public static final BitSet FOLLOW_expression_in_expression1945 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
     public static final BitSet FOLLOW_expression_in_expression1951 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_GREATER_EQUAL_in_expression1961 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression1967 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
+    public static final BitSet FOLLOW_expression_in_expression1967 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
     public static final BitSet FOLLOW_expression_in_expression1973 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_INHERITS_in_expression1983 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression1987 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000200L});
+    public static final BitSet FOLLOW_expression_in_expression1987 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
     public static final BitSet FOLLOW_class_type_in_expression1991 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_LESS_in_expression2001 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2007 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
+    public static final BitSet FOLLOW_expression_in_expression2007 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
     public static final BitSet FOLLOW_expression_in_expression2013 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_LESS_EQUAL_in_expression2023 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2029 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
+    public static final BitSet FOLLOW_expression_in_expression2029 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
     public static final BitSet FOLLOW_expression_in_expression2035 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_OR_in_expression2045 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2051 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
+    public static final BitSet FOLLOW_expression_in_expression2051 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
     public static final BitSet FOLLOW_expression_in_expression2057 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_AND_in_expression2067 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2073 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
+    public static final BitSet FOLLOW_expression_in_expression2073 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
     public static final BitSet FOLLOW_expression_in_expression2079 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_PLUS_in_expression2089 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2095 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
+    public static final BitSet FOLLOW_expression_in_expression2095 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
     public static final BitSet FOLLOW_expression_in_expression2101 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_MINUS_in_expression2111 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2117 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
+    public static final BitSet FOLLOW_expression_in_expression2117 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
     public static final BitSet FOLLOW_expression_in_expression2123 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_MULTIPLY_in_expression2133 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2139 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
+    public static final BitSet FOLLOW_expression_in_expression2139 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
     public static final BitSet FOLLOW_expression_in_expression2145 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_DIVIDE_in_expression2155 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2161 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
+    public static final BitSet FOLLOW_expression_in_expression2161 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
     public static final BitSet FOLLOW_expression_in_expression2167 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_MODULO_in_expression2177 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_expression2183 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
+    public static final BitSet FOLLOW_expression_in_expression2183 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
     public static final BitSet FOLLOW_expression_in_expression2189 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_FUNCTION_CALL_in_expression2199 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_qualified_name_in_expression2201 = new BitSet(new long[]{0x0000400000004000L});
     public static final BitSet FOLLOW_COLON_in_expression2203 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_ID_in_expression2205 = new BitSet(new long[]{0x0000400000000000L});
     public static final BitSet FOLLOW_LEFT_PAREN_in_expression2209 = new BitSet(new long[]{0x0000001000000000L});
-    public static final BitSet FOLLOW_function_expression_list_in_expression2221 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_function_expression_list_in_expression2221 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2223 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_QUALIFIED_SOLO_EXPRESSION_in_expression2234 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_qualified_name_in_expression2238 = new BitSet(new long[]{0x0000000000004008L});
@@ -7457,33 +7456,33 @@ public static class STAttrMap extends HashMap {
     public static final BitSet FOLLOW_ID_in_expression2243 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_QUALIFIED_SOLO_PARENT_EXPRESSON_in_expression2255 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_qualified_name_in_expression2259 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_expression2261 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000008L});
+    public static final BitSet FOLLOW_COLON_in_expression2261 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000004L});
     public static final BitSet FOLLOW_PARENT_in_expression2263 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_expression2265 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000200L});
+    public static final BitSet FOLLOW_COLON_in_expression2265 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
     public static final BitSet FOLLOW_qualified_name_in_expression2269 = new BitSet(new long[]{0x0000000000004000L});
     public static final BitSet FOLLOW_COLON_in_expression2271 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_ID_in_expression2273 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_QUALIFIED_SOLO_EXPRESSION_SELECTOR_in_expression2283 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_selector_in_expression2285 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_expression2287 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000200L});
+    public static final BitSet FOLLOW_COLON_in_expression2287 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
     public static final BitSet FOLLOW_qualified_name_in_expression2289 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_FUNCTION_CALL_PARENT_in_expression2301 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_PARENT_in_expression2303 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_expression2305 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000200L});
+    public static final BitSet FOLLOW_COLON_in_expression2305 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
     public static final BitSet FOLLOW_qualified_name_in_expression2309 = new BitSet(new long[]{0x0000000000004000L});
     public static final BitSet FOLLOW_COLON_in_expression2311 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_ID_in_expression2313 = new BitSet(new long[]{0x0000400000000000L});
     public static final BitSet FOLLOW_LEFT_PAREN_in_expression2315 = new BitSet(new long[]{0x0000001000000000L});
-    public static final BitSet FOLLOW_function_expression_list_in_expression2326 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_function_expression_list_in_expression2326 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2328 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_FUNCTION_CALL_THIS_in_expression2338 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_ME_in_expression2340 = new BitSet(new long[]{0x0000000000004000L});
-    public static final BitSet FOLLOW_COLON_in_expression2342 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000200L});
+    public static final BitSet FOLLOW_COLON_in_expression2342 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
     public static final BitSet FOLLOW_qualified_name_in_expression2344 = new BitSet(new long[]{0x0000400000004000L});
     public static final BitSet FOLLOW_COLON_in_expression2347 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_ID_in_expression2349 = new BitSet(new long[]{0x0000400000000000L});
     public static final BitSet FOLLOW_LEFT_PAREN_in_expression2353 = new BitSet(new long[]{0x0000001000000000L});
-    public static final BitSet FOLLOW_function_expression_list_in_expression2364 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_function_expression_list_in_expression2364 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2366 = new BitSet(new long[]{0x0000000000000008L});
     public static final BitSet FOLLOW_BOOLEAN_in_expression2375 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_MINUS_in_expression2384 = new BitSet(new long[]{0x0000000000100000L});
@@ -7495,17 +7494,17 @@ public static class STAttrMap extends HashMap {
     public static final BitSet FOLLOW_NULL_in_expression2425 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ME_in_expression2433 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_INPUT_in_expression2441 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2444 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
-    public static final BitSet FOLLOW_expression_in_expression2450 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2444 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
+    public static final BitSet FOLLOW_expression_in_expression2450 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2452 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_CAST_in_expression2460 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2462 = new BitSet(new long[]{0x1000200000000400L,0x0000000004000200L});
+    public static final BitSet FOLLOW_LEFT_PAREN_in_expression2462 = new BitSet(new long[]{0x1000200000000400L,0x0000000002000100L});
     public static final BitSet FOLLOW_assignment_declaration_in_expression2466 = new BitSet(new long[]{0x0000000000008000L});
-    public static final BitSet FOLLOW_COMMA_in_expression2468 = new BitSet(new long[]{0x8A3F1CCE20900A80L,0x0000000012003C40L});
-    public static final BitSet FOLLOW_expression_in_expression2473 = new BitSet(new long[]{0x0000000000000000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_COMMA_in_expression2468 = new BitSet(new long[]{0x4A3F1CCE20900A80L,0x0000000009001E20L});
+    public static final BitSet FOLLOW_expression_in_expression2473 = new BitSet(new long[]{0x0000000000000000L,0x0000000000010000L});
     public static final BitSet FOLLOW_RIGHT_PAREN_in_expression2477 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_FUNCTION_EXPRESSION_LIST_in_function_expression_list2501 = new BitSet(new long[]{0x0000000000000004L});
-    public static final BitSet FOLLOW_expression_in_function_expression_list2513 = new BitSet(new long[]{0x8A3F1CCE20900A88L,0x0000000012003C40L});
+    public static final BitSet FOLLOW_expression_in_function_expression_list2513 = new BitSet(new long[]{0x4A3F1CCE20900A88L,0x0000000009001E20L});
     public static final BitSet FOLLOW_FPARAM_in_formal_parameter2542 = new BitSet(new long[]{0x0000000000000004L});
     public static final BitSet FOLLOW_assignment_declaration_in_formal_parameter2546 = new BitSet(new long[]{0x0000010000000000L});
     public static final BitSet FOLLOW_ID_in_formal_parameter2548 = new BitSet(new long[]{0x0000000000000008L});

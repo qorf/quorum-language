@@ -17,7 +17,7 @@ class Main
             else
                 output "shouldn't be here either"
             end
-        detect e of type CastError
+        detect e is CastError
             output "detect"
         always
             output "always"

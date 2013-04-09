@@ -13,11 +13,11 @@ class Main
     action Main
         check
             alert("A")
-        detect e of type Error
+        detect e is Error
             output e:GetErrorMessage()
             check
                 alert("C")
-            detect f of type Error
+            detect f is Error
                  output f:GetErrorMessage()
             always
                 output "inner always 2"

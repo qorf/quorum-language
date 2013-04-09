@@ -12,7 +12,7 @@ class Main
             repeat 20 times
                 output "shouldn't be here"
             end
-        detect e of type CastError
+        detect e is CastError
             output "detect"
         end
     end

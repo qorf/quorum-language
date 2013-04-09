@@ -15,7 +15,7 @@ class Main
                 output "shouldn't be here"
                 n = n + 1
             end
-        detect e of type CastError
+        detect e is CastError
             output "detect"
         always
             output "always"

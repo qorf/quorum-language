@@ -12,7 +12,7 @@ class Main
         boolean gotError = false
         check
             callMe(50)
-        detect e of type Error
+        detect e is Error
             output "Error: " + e:GetErrorMessage()
             gotError = true
         always

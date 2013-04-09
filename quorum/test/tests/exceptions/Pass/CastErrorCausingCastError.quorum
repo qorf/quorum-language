@@ -11,7 +11,7 @@ class Main
     action Main
         check
             integer p = cast(integer, "3.7")
-        detect j of type CastError
+        detect j is CastError
             check
                 integer z = cast(integer, "2.6")
              detect er

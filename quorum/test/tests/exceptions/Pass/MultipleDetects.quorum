@@ -11,9 +11,9 @@ class Main
     action Main
         check
             alert("error")
-        detect e of type OutOfBoundsError
+        detect e is OutOfBoundsError
             output "OutOfBoundsError"
-        detect j of type CastError
+        detect j is CastError
             output "CastError"
         detect k
             output k:GetErrorMessage()

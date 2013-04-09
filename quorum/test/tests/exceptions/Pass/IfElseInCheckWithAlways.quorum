@@ -15,7 +15,7 @@ class Main
             else
                 integer z = cast(integer, "90.3")
             end
-        detect e of type CastError
+        detect e is CastError
             output "detect"
         always
             output "always"
