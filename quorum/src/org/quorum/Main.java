@@ -10,6 +10,8 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -226,6 +228,39 @@ public class Main {
      */
     private static final String SERVER = "-server";
     
+    /**
+     * This flag is for passing a new plugin to the compiler.
+     */
+    private static final String PLUGIN = "-plugin";
+    
+    /**
+     * This flag indicates that a jar file should be added as a dependency.
+     */
+    private static final String JAR_DEPENDENCY = "-java";
+    
+    
+    /**
+     * If this flag is true, this compile had additional plugins.
+     */
+    private static boolean hasPlugins = false;
+    
+    /**
+     * If this flag is true, this compile has additional jar files that
+     * need to be woven into the final JAR file.
+     */
+    private static boolean hasJars = false;
+    
+    /**
+     * This array list contains a list of all submitted plugins, in additional
+     * the ones included by default by the compiler.
+     */
+    private static HashMap<String, String> plugins = new HashMap<String, String>();
+    
+    /**
+     * This list includes all jar files requested by the user to be included
+     * in the final dependency list.
+     */
+    private static HashMap<String, String> jars = new HashMap<String, String>();
     
     /**
      * This flag tells the Quorum compiler to update itself and then shuts down.
@@ -369,6 +404,15 @@ public class Main {
             vm.setDistributionFolder(distribution);
             vm.addDependency(phonemic);
             vm.addDependency(phonemicJNI);
+            
+            if(hasJars) { //add additional jars the user specified
+                Iterator<String> myJars = jars.values().iterator();
+                while(myJars.hasNext()) {
+                    File dep = new File(myJars.next());
+                    vm.addDependency(dep);
+                }
+            }
+            
             vm.setDistributionName(name);
             vm.setPluginFolder(pluginFolder);
             vm.setMain(files[0].getAbsolutePath());
@@ -607,8 +651,40 @@ public class Main {
             }
             else if(arg.compareTo(HELP) == 0){
                 outputHelp();
-            }
-            else if(arg.compareTo(WEB) == 0){
+            } else if(arg.compareTo(PLUGIN) == 0) {
+                
+                //scan ahead looking for any files ending in .class
+                //if we reach a -, we must end. If we similarly find
+                //a name that doesn't end in .class, we must stop
+                
+                
+                
+            } else if(arg.compareTo(JAR_DEPENDENCY) == 0) {
+                //scan ahead looking for any files ending in .class
+                //if we reach a -, we must end. If we similarly find
+                //a name that doesn't end in .class, we must stop
+                int tempIndex = index + 1;
+                hasJars = true;
+                while(tempIndex < args.length) {
+                    String library = args[tempIndex];
+                    if(library.endsWith(".jar")) { //add it to the dependency list
+                        File path = new File(library);
+                        argumentIndex = tempIndex + 1;
+                        index = tempIndex + 1;
+                        if(path.exists() && !path.isDirectory()) {
+                            jars.put(library, library);
+                        } else {
+                            System.err.println("The path " + path.getAbsolutePath() + " passed to -java is either "
+                                + "an invalid java \".jar\" file or it does not exist. "
+                                + " You can find more information about .jar files "
+                                + "at http://docs.oracle.com/javase/tutorial/deployment/jar/");
+                        }
+                    } else { //terminate searching
+                        tempIndex = args.length;
+                    }
+                    tempIndex++;
+                }
+            }else if(arg.compareTo(WEB) == 0){
                 isWeb = true;
                 flagsFinished = true;
             }

@@ -192,12 +192,22 @@ public class QuorumJarGenerator {
         String libs = "";
         if(dependencies != null) {
             Iterator<Dependency> iterator = dependencies.iterator();
+            
+            //check to see if we have more than one dependency
+            //if so, add them appropriately
+            boolean first = true;
             while(iterator.hasNext()) {
                 Dependency next = iterator.next();
                 File file = next.getFile();
                 if(file.isFile() && next.isExecutionDependency()) {
-                    libs += Attributes.Name.CLASS_PATH + ": " + DEPENDENCIES_FOLDER + 
+                    if(first) {
+                        libs += Attributes.Name.CLASS_PATH + ": " + DEPENDENCIES_FOLDER + 
                             "/" + file.getName();
+                    } else {
+                        libs += " " + DEPENDENCIES_FOLDER + 
+                            "/" + file.getName();
+                    }
+                    first = false;
                 }
             }
         }
