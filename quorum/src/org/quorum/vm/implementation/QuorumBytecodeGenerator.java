@@ -42,6 +42,12 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     private String manifestMain = "";
     private List<Dependency> dependencies = new LinkedList<Dependency>();
     private File pluginFolder = null;
+    
+    /**
+     * Stores all plugins passed into the compiler by the user, outside
+     * the compiler plugin folder.
+     */
+    private HashMap<String, File> plugins = new HashMap<String, File>();
     private static final Logger logger = Logger.getLogger(QuorumBytecodeGenerator.class.getName());
     private String mainClassName = "";
     private boolean compileToDisk = true;
@@ -314,7 +320,17 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         dep.setFile(file);
         dependencies.add(dep);
     }
+    
+    @Override
+    public void addPlugin(File file) {
+        plugins.put(file.getAbsolutePath(), file);
+    }
 
+    @Override
+    public void clearPlugins() {
+        plugins.clear();
+    }
+    
     @Override
     public Iterator<Dependency> getDependencies() {
         return dependencies.iterator();
@@ -323,6 +339,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     @Override
     public void clearDependencies() {
         dependencies.clear();
+        plugins.clear();
     }
     
     @Override

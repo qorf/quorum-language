@@ -413,6 +413,14 @@ public class Main {
                 }
             }
             
+            if(hasPlugins) {
+                Iterator<String> myPlugins = plugins.values().iterator();
+                while(myPlugins.hasNext()) {
+                    File dep = new File(myPlugins.next());
+                    vm.addPlugin(dep);
+                }
+            }
+            
             vm.setDistributionName(name);
             vm.setPluginFolder(pluginFolder);
             vm.setMain(files[0].getAbsolutePath());
@@ -656,9 +664,25 @@ public class Main {
                 //scan ahead looking for any files ending in .class
                 //if we reach a -, we must end. If we similarly find
                 //a name that doesn't end in .class, we must stop
-                
-                
-                
+                int tempIndex = index + 1;
+                hasPlugins = true;
+                while(tempIndex < args.length) {
+                    String library = args[tempIndex];
+                    if(library.endsWith(".class")) { //add it to the dependency list
+                        File path = new File(library);
+                        argumentIndex = tempIndex + 1;
+                        index = tempIndex + 1;
+                        if(path.exists() && !path.isDirectory()) {
+                            plugins.put(library, library);
+                        } else {
+                            System.err.println("The path " + path.getAbsolutePath() + " passed to -plugin is either "
+                                + "an invalid java class file or it does not exist. ");
+                        }
+                    } else { //terminate searching
+                        tempIndex = args.length;
+                    }
+                    tempIndex++;
+                }
             } else if(arg.compareTo(JAR_DEPENDENCY) == 0) {
                 //scan ahead looking for any files ending in .class
                 //if we reach a -, we must end. If we similarly find

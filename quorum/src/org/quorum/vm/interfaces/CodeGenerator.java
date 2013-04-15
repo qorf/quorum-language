@@ -78,6 +78,14 @@ public interface CodeGenerator {
     public void addDependency(File file);
     
     /**
+     * Adds a plugin from a separate file into the code generator. Internally,
+     * this plugin is checked to see if it is a valid class file.
+     * 
+     * @param file 
+     */
+    public void addPlugin(File file);
+    
+    /**
      * This method allows the user to add a dependency into a folder of the 
      * user's choice. No attempt will be made to inject these dependencies
      * into the target's execution (e.g., a jar file's manifest). This is useful
@@ -113,6 +121,12 @@ public interface CodeGenerator {
      * 
      */
     public void clearDependencies();
+    
+    /**
+     * Clears out all plugins passed in by the user. This does not impact
+     * any plugins in the compiler's default plugin folder.
+     */
+    public void clearPlugins();
     
     /**
      * Returns the number of dependencies currently loaded on the target

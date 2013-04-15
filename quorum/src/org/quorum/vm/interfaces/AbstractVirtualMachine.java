@@ -30,6 +30,7 @@ import org.quorum.symbols.ErrorTypeDescriptor;
 import org.quorum.steps.CheckLandingPads;
 import org.quorum.steps.DetectInfo;
 import org.quorum.symbols.TypeDescriptor;
+import org.quorum.vm.implementation.QuorumVirtualMachine;
 
 /**
  *  This source represents a virtual machine, implemented in some language.
@@ -1097,10 +1098,24 @@ public abstract class AbstractVirtualMachine {
     public abstract void addDependency(File file, String relativePath);
     
     /**
+     * Adds a user defined plugin into the build. This does not impact
+     * the default plugins folder setup by the compiler.
+     * 
+     * @param file 
+     */
+    public abstract void addPlugin(File file);
+    
+    
+    /**
      * Clears out all dependencies on the target system.
      * 
      */
     public abstract void clearDependencies();
+    
+    /**
+     * Cleans out any plugins passed by the user.
+     */
+    public abstract void clearUserPlugins();
     
     /**
      * Returns the number of dependencies currently loaded on the target

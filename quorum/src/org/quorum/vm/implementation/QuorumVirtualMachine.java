@@ -1920,6 +1920,28 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             getCodeGenerator().setDistributionName(name);
         }
     }
+    
+    /**
+     * Adds an individual plugin to the virtual machine for later processing.
+     * 
+     * @param file 
+     */
+    public void addPlugin(File file) {
+        AddPlugin add = new AddPlugin();
+        add.file = file;
+        executionManager.add(add);
+    }
+    
+    private class AddPlugin implements Runnable {
+        private File file;
+
+        @Override
+        public void run() {
+            if(file != null) {
+                getCodeGenerator().addPlugin(file);
+            }
+        }
+    }
 
     @Override
     public void addDependency(File file) {
@@ -1962,6 +1984,20 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         @Override
         public void run() {
             getCodeGenerator().clearDependencies();
+        }
+    }
+    
+    @Override
+    public void clearUserPlugins() {
+        ClearDependencies dep = new ClearDependencies();
+        executionManager.add(dep);
+    }
+
+    private class ClearUserPlugins implements Runnable {
+
+        @Override
+        public void run() {
+            getCodeGenerator().clearPlugins();
         }
     }
 
