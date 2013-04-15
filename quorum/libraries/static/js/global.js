@@ -327,20 +327,17 @@ var submitCodeSample = function(){
 	$("#run").on("click", function(e) {
 		e.preventDefault();
 		$(".outputArea").text("");
-		
 		$.ajax({
 			type:"POST",
 			url: "controllers/IDE.controller.php",
 			data:{code: $(".inputArea").val()},
-			dataType: "json",
 			success: function(returnData){
 				$(".outputArea").text(returnData);
-				console.log("suc" + returnData);
 			},
-			completed: function(returnData){
-				$(".outputArea").text(returnData);
-				console.log("comp" + returnData);
-			}
+			error: function(xhr, status, error) {
+      			$(".outputArea").text(error);
+
+   			}
 		})
 	})
 }
