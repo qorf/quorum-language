@@ -2,9 +2,15 @@
 session_start();
 
 require 'openid.php';
-if (!isset($_SESSION['referer'])) {
+print "1";
+if (!isset($_SESSION['referer'])) {print "2";
     $_SESSION['referer'] = $_POST['referer'];
-    $_SESSION['redirectTo'] = $_POST['referer'] . "/?loginWith=google";
+    if ($_POST['action'] == "register") {print "3";
+        $_SESSION['redirectTo'] = $_POST['referer'] . "?registerWith=google";
+    }
+    else {print "4";
+        $_SESSION['redirectTo'] = $_POST['referer'] . "?loginWith=google";
+    }
 }
 
 try {
@@ -13,7 +19,6 @@ try {
     // The user has clicked "Signin With Google" or "Signup with Google".
     if(!$openid->mode) { 
         if(isset($_GET['login'])) {
-
             $openid->required = array(
                 'namePerson',
                 'namePerson/first',

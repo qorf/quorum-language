@@ -2,15 +2,16 @@
 	require_once("../config.php");
 
 	class QuorumDataModel {
-		public $database = new database();
+		public $database = null;
 		public $connection = null;
 
 		function __construct() {
-			$this->connection = connectToDatabase();
+			$this->database = new database();
+			$this->connection = $this->connectToDatabase();
 		}
 
-		public function connectToDatabase() {
-			$conn = new PDO('mysql:dbname=' . $database->name . ';host=' . $database->host . ';charset=utf8', $database->username, $database->password);
+		function connectToDatabase() {
+			$conn = new PDO('mysql:dbname=' . $this->database->name . ';host=' . $this->database->host . ';charset=utf8', $this->database->username, $this->database->password);
 			$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 			$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 			return $conn;

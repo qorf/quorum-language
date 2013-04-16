@@ -175,19 +175,16 @@
 <script id="template-ratings-controls" type="text/x-dot-template">
 	<div class="ratings-controls">
 		<ul class="star-ratings" data-componenttype="{{=it.componentType}}" data-id="{{=it.id}}">
-			<li class="star-1"><a href="#"></a></li>
-			<li class="star-2"><a href="#"></a></li>
-			<li class="star-3"><a href="#"></a></li>
-			<li class="star-4"><a href="#"></a></li>
-			<li class="star-5"><a href="#"></a></li>
+			<li class="star-1"><a href="#" rel="tooltip" title="This choice makes no sense"></a></li>
+			<li class="star-2"><a href="#" rel="tooltip" title="This choice is hard to understand"></a></li>
+			<li class="star-3"><a href="#" rel="tooltip" title="This choice is somewhat meaningful"></a></li>
+			<li class="star-4"><a href="#" rel="tooltip" title="This choice is easy to understand"></a></li>
+			<li class="star-5"><a href="#" rel="tooltip" title="This choice is very intuitive"></a></li>
 		</ul>
 	</div>
 </script>
 
 <script id="template-ratings-success" type="text/x-dot-template">
-	<span class="ratings-success">
-		Thank you for voting!
-	</span>
 </script>
 
 

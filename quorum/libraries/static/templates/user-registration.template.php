@@ -1,4 +1,4 @@
-<?php
+<?php  
   $messages = array(
       "googleValid" => "You have been authenticated with Google. Please enter a username for your account.",
       "googleErrors" => "There were errors with your Google authentication. Please use the registration form.",
@@ -28,8 +28,9 @@
     <?php 
       print "<h4>" . $messages[$state];
       if ($state == "registration") {
-          print '<form action="' . getFullUrl("assets/apis/lightopenid/google.php?login"). '" method="post">';
-          print '<input type="hidden" name="referer" value="' . getRoot() . getPage() . '" />'; ?>
+          print '<form action="' . getFullUrl("assets/apis/lightopenid/google.php"). '" method="post">';
+          print '<input type="hidden" name="referer" value="' . getRoot() . getPage() . '" />';
+          print '<input type="hidden" name="action" value="register" />'; ?>
           <input type="submit" class="btn btn-success auth-with-google" value="Signup with Google" />
         </form>
     <?php
@@ -77,7 +78,8 @@
 
   </div>
   <div class="modal-footer">
+    <div class="loading-spinner"></div>
     <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-    <button class="btn btn-primary">Register</button>
+    <button class="btn btn-primary registration-submit">Register</button>
   </div>
 </div>

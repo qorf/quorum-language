@@ -1,13 +1,11 @@
 $(function() {
 	slideInSublibraries();
 
-	//showClassesTableForLibraries();
-
 	autoComplete();
 
 	registerWithGoogle();
 
-	registrationValidation();
+	registrationValidateAndSubmit();
 
 	userSignIn();
 
@@ -17,9 +15,11 @@ $(function() {
 
 	fiveStarRatings();
 
+    submitCodeSample();
+
+    fadeInLibraryTable();
+
 	extendLeftSidebar(); // keep this at the end
-        
-        submitCodeSample();
 });
 
 function getUrlVars() {
@@ -28,6 +28,27 @@ function getUrlVars() {
         vars[key] = value;
     });
     return vars;
+}
+
+function refresh() {
+	location.reload();
+}
+
+var bodyMessage = function(text, state) {
+	var element = '<div class="alert alert-' + state + ' alert-body-bottom-right" style="display:none">' + text + '</div>'
+	$("body").append(element);
+	
+	$(".alert-body-bottom-right").fadeIn('slow', function(){
+		$(this).delay(5000).fadeOut();
+	});
+}
+
+var successMessage = function(text) {
+	bodyMessage(text, "success");
+}
+
+var errorMessage = function(text) {
+	bodyMessage(text, "error");
 }
 
 var slideInSublibraries = function() {
@@ -44,18 +65,6 @@ var slideInSublibraries = function() {
 
 	$(".grid-item").on("click", function(e) { toggleList(e,$(this)); });
 
-}
-
-var showClassesTableForLibraries = function() {
-	$(".grid-item").on("click", function(e) {
-		e.preventDefault();
-	});
-
-	$(".grid-item").on("click", function() {
-		var libraryId = $(this).attr("class"); //.replace("grid-item");
-		console.log("div", $(this).attr("class"));
-		console.log(libraryId);
-	});
 }
 
 var extendLeftSidebar = function() {
@@ -75,11 +84,90 @@ var autoComplete = function() {
 var registerWithGoogle = function() {
 	if (getUrlVars()["loginWith"] == "google") {
 		$('#modal-registration').modal();
-		console.log($('#modal-registration'));
 	}
 }
 
-var registrationValidation = function() {
+var validateEmail = function(email) {
+	var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	
+	if ((re.test(email) == false) || (email.length <= 0)) {
+		return false;
+	}
+
+	return true;
+}
+
+var validateUsername = function(username) {
+	var re = /[-!$%^&*()_+|~=`{}\[\]:";'<>?,.\/]/;
+
+	if (re.test(username) || (username.indexOf(' ') >= 0) || (username.length <= 0)) {
+		return false;
+	}
+
+	return true;
+}
+
+var validatePassword = function(password) {
+	if (password !== undefined && password.length <= 0) {
+		return false;
+	}
+
+	return true;
+}
+
+var registerUser = function() {
+	var buttons = $("#modal-registration .modal-footer button");
+	var spinner = $("#modal-registration .modal-footer .loading-spinner");
+
+	buttons.hide();
+	spinner.show();
+
+	$.ajax({
+		type: "POST",
+		url: "/controllers/user.controller.php?action=register",
+		data: $("#registration-form").serialize(),
+		success: function(result) {
+			if ($.trim(result) == "1") {
+				successMessage("<strong>You have successfully registered.</strong> Welcome to the Quorum website!");
+				showUserHeaderControls();
+				$('#modal-registration').modal('hide');
+				spinner.hide();
+			}
+			else {
+				$("#registration-form #integrity-error").remove();
+				$("#registration-form").before('<duv class="text-error" id="integrity-error">Sorry, but the email or username entered has been registered already.</div>');
+				$("#integrity-error").show();
+				buttons.show();
+				spinner.hide();
+			}
+		},
+		error: function (xhr, ajaxOptions, thrownError) {
+			errorMessage("<strong>Sorry!</strong> There was a server error and your registration could not be completed.");
+			$('#modal-registration').modal('hide');
+			spinner.hide();
+		}
+	});
+}
+
+var showUserHeaderControls = function() {
+	$.ajax({
+		url: "/static/templates/user-headercontrols.template.php",
+		context: document.body
+	}).done(function(data) {
+		$(".user-controls-loggedout").remove();
+		$(".user-controls").html(data);
+	});
+}
+
+
+var loginDisplayValidateAndSubmit = function() {
+	$('#modal-login').modal();
+	$("#modal-registration button.btn-primary").on("click", function() {
+		$('#modal-login').modal("show");
+	});
+}
+
+var registrationValidateAndSubmit = function() {
 	$("#modal-registration button.btn-primary").on("click", function() {
 		var emailField = $("#registration-email");
 		var usernameField = $("#registration-username");
@@ -103,19 +191,7 @@ var registrationValidation = function() {
 		passwordError.hide();
 
 		if (emailIsValid && usernameIsValid && passwordIsValid) {
-			// do some shit
-			$("#modal-registration .modal-footer button").hide();
-			$("#modal-registration .modal-footer .spinner").show();
-
-			// TODO: ajax call to determine if the user can be added. if so, add it. Remove this timeout crap.
-			setTimeout(function(){
-				$("#modal-registration .modal-footer .spinner").delay(3000).hide();
-				$('#modal-registration').modal('hide');
-
-				$('#modal-registration-success').modal({backdrop: false}).modal('show');
-
-				showUserHeaderControls();
-			},3000);
+			registerUser();
 		}
 		else {
 			if (!emailIsValid) {
@@ -135,7 +211,7 @@ var registrationValidation = function() {
 	$("#registration-email").on("blur", function() {
 		var emailError = $("#modal-registration .email .text-error");
 
-		if (validateEmail($(this).val())) {
+		if ($(this).val() == "" || validateEmail($(this).val())) {
 			emailError.hide();
 		}
 		else {
@@ -146,7 +222,7 @@ var registrationValidation = function() {
 	$("#registration-username").on("blur", function() {
 		var usernameError = $("#modal-registration .username .text-error");
 
-		if (validateUsername($(this).val())) {
+		if ($(this).val() == "" || validateUsername($(this).val())) {
 			usernameError.hide();
 		}
 		else {
@@ -157,68 +233,47 @@ var registrationValidation = function() {
 	$("#registration-password").on("blur", function() {
 		var passwordError = $("#modal-registration .password .text-error");
 
-		if (validatePassword($(this).val())) {
+		if ($(this).val() == "" || validatePassword($(this).val())) {
 			passwordError.hide();
 		}
 		else {
 			passwordError.show();
 		}
 	});
-
-	var validateEmail = function(email) {
-		var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-		
-		if ((re.test(email) == false) || (email.length <= 0)) {
-			return false;
-		}
-
-		return true;
-	}
-
-	var validateUsername = function(username) {
-		var re = /[-!$%^&*()_+|~=`{}\[\]:";'<>?,.\/]/;
-
-		if (re.test(username) || (username.indexOf(' ') >= 0) || (username.length <= 0)) {
-			return false;
-		}
-
-		return true;
-	}
-
-	var validatePassword = function(password) {
-		if (password.length <= 0) {
-			return false;
-		}
-
-		return true;
-	}
 }
 
 var userSignIn = function() {
-	$(".header-signin-list button.btn-primary").on("click", function(e) {
-		console.log("t");
-		e.preventDefault();
+	var checkCredentials = function(username, password) {
+		var buttons = $("#modal-login .modal-footer button");
+		var spinner = $("#modal-login .modal-footer .loading-spinner");
 
-		// TODO: ajax call to see if values are correct
-		$(this).hide();
-		$(".header-signin-list .spinner").show();
-		$(".header-signin-list input").attr("disabled", "disabled");
+		$.ajax({
+			type: "POST",
+			url: "/controllers/user.controller.php?action=login",
+			data: $("#login-form").serialize(),
+			success: function(result) {
+				console.log(result);
+				if ($.trim(result) == "1") {
+					refresh();
+				}
+				else {
+					$("#modal-login #integrity-error").remove();
+					$("#login-form").before('<div class="text-error" id="integrity-error">Sorry, but that login is not correct.</div>');
+					$("#integrity-error").show();
+					buttons.show();
+					spinner.hide();
+				}
+			},
+			error: function (xhr, ajaxOptions, thrownError) {
+				errorMessage("<strong>Sorry!</strong> There was a server error and your login could not be completed.");
+				$('#modal-registration').modal('hide');
+				spinner.hide();
+			}
+		});
+	}
 
-		// TODO: ajax call to determine if the user can be added. if so, add it. Remove this timeout crap.
-		setTimeout(function(){
-			showUserHeaderControls();
-		}, 3000);
-	});
-}
-
-var showUserHeaderControls = function() {
-	// TODO: make sure the system sets a cookie and use PHP to re-generate the user controls
-	$.ajax({
-		url: "/static/templates/user-headercontrols.php",
-		context: document.body
-	}).done(function(data) {
-		$(".user-controls-loggedout").remove();
-		$(".user-controls").html(data);
+	$("#modal-login .btn-primary").on("click", function() {
+		checkCredentials($("#login-username"), $("#login-password"));
 	});
 }
 
@@ -247,6 +302,8 @@ var createRatingControls = function() {
 		var templateData = { id: $(this).data("id"), componentType: componentType }; // TODO: get real value
 		$(this).append(template(templateData));
 	});
+
+	$('.star-ratings a').tooltip({'selector': '', 'placement': 'bottom'});
 
 	var getRatingForId = function(id) {
 		// TODO: make an ajax call to the database to get the real rating
@@ -323,24 +380,46 @@ var fiveStarRatings = function(starRatingsList) {
 		}
 	});
 }
+
 var submitCodeSample = function(){
 	$("#run").on("click", function(e) {
 		e.preventDefault();
 		$(".outputArea").text("");
+		
 		$.ajax({
 			type:"POST",
 			url: "controllers/IDE.controller.php",
 			data:{code: $(".inputArea").val()},
+			dataType: "json",
 			success: function(returnData){
 				$(".outputArea").text(returnData);
+				console.log("suc" + returnData);
 			},
-			error: function(xhr, status, error) {
-      			$(".outputArea").text(error);
-
-   			}
+			completed: function(returnData){
+				$(".outputArea").text(returnData);
+				console.log("comp" + returnData);
+			}
 		})
 	})
 }
+
+
+var fadeInLibraryTable = function() {
+	if ($(".index-grid").length > 0) {
+		$(".index-package").hide();
+		$(".index_package_title a").on("click", function() {
+			$(".index-package").hide();	
+			var anchorHash = $(this).attr("href");
+			var tableId = $.trim("#table-" + (anchorHash.substring(1, anchorHash.length)));
+			console.log(tableId);
+			$(tableId).show();
+		});
+	}
+}
+
+
+
+
 
 
 

@@ -18,6 +18,15 @@ a { color: @blue2; .transition(color, .1s);
 			.signin-signup-message { display: block; margin-top: 13px;
 				em { display: inline-block; margin: 0 5px; font-size: 16px; font-style: normal; color: @white1; vertical-align: middle; }
 			}
+
+			.user-controls-loggedin { 
+				h3 { color: #CCC; font-weight: 300; font-size: 20px; display: inline-block; margin-top: 13px; }
+				h4 { display: inline-block; 
+					a { font-weight: 300; font-size: 15px; margin: 13px 0 0 25px; 
+						&:hover { color: lighten(@blue2,20%); }
+					}
+				}
+			}
 		}
 	}
 }
@@ -44,12 +53,18 @@ a { color: @blue2; .transition(color, .1s);
 	small { display: block; }
 }
 
-#modal-registration {
+#modal-registration, #modal-login {
 	input { min-height: 30px; }
 	.text-error { display: none; }
 	.auth-with-google { margin: -32px 0 0 300px; width: 150px; }
 	h4 { font-weight: 300; text-align: left; margin-bottom: 10px; }
+	&#modal-login #integrity-error { display: inline-block; margin: -10px 150px 10px; }
+	&#modal-registration #integrity-error { display: inline-block; margin: -10px 25px 1	0px; }
 }
+#modal-login .auth-withgoogle { margin-left: 275px; }
 
 body ul {margin-left:20px; list-style-type:circle;}
 
+.loading-spinner { display: none; width: 16px; height: 16px; background: url(../img/ajax-loader.gif) top left no-repeat; }
+
+.alert-body-bottom-right { position: fixed; bottom: 20px; right: 20px; min-width: 400px; }

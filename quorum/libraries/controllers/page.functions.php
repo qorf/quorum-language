@@ -54,10 +54,19 @@
 	} 
 
 	function displayUserControls() {
-		require_once(getDocRoot() . "static/templates/user-signin.template.php");
+		if (isset($_COOKIE['username'])) {
+			require_once(getDocRoot() . "static/templates/user-headercontrols.template.php");
+		}
+		else {
+			require_once(getDocRoot() . "static/templates/user-signinheader.template.php");
+		}
 	}
 
 	function registrationModal() {
 		require_once(getDocRoot() . "static/templates/user-registration.template.php");
+	}
+
+	function loginModal() {
+		require_once(getDocRoot() . "static/templates/user-signin.template.php");
 	}
 ?>

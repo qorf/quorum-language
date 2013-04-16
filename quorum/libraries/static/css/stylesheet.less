@@ -31,3 +31,69 @@
 @import "download";
 @import "documents";
 @import "index";
+
+.runCode
+{
+	width:550px;
+	height:400px;
+	float:right;
+	padding: 15px;
+	border: 1px solid @gray3;
+	background: @gray1;
+	margin: -20px 0 100px 35px;
+	.box-shadow(2px 2px 2px, @gray3);
+
+	h2 { margin: 0 0 25px; background: @blue2; padding: 5px 10px; color: @gray1; text-shadow: 1px 1px 1px darken(@blue2, 30%);
+		span.subtitle { font-size: 14px; font-weight: 300;  color: @white1; width: 298px; display: inline-block; line-height: 20px; margin: 0px 0 0 10px; position: relative; top: 2px; text-shadow: 0 0 0; }
+	}
+
+	.input
+	{
+		.inputArea
+		{
+			min-width:550px;
+			min-height:180px;
+			resize:none;
+			font-family: Menlo, monospace;
+			text-align: left;
+			overflow: scroll;
+			overflow-y: scroll; 
+			overflow-x: hidden;	
+			overflow:-moz-scrollbars-vertical;
+		}
+	}
+	.output
+	{
+
+		.outputArea
+		{
+			margin-top:-10px;
+			height:70px;
+			text-align: left;
+			overflow: scroll;
+			overflow-x: scroll; 
+			overflow-y: hidden;	
+			overflow:-moz-scrollbars-horizontal;
+		}
+	}
+	.controller
+	{
+		position: relative;
+		top:-5px;
+		.dropdown-menu
+		{
+			position: relative;
+				
+			text-align: center;
+			.code-example:hover
+			{
+				background-color:#049cdb;
+				color:#fff;
+			}	
+		}
+		#run 
+		{
+			float:right;
+		}
+	}
+}
