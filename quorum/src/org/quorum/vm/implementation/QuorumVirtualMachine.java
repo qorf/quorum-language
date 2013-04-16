@@ -31,6 +31,7 @@ import org.quorum.execution.Execution;
 import org.quorum.execution.ExecutionStep;
 import org.quorum.execution.ExpressionValue;
 import org.quorum.execution.Linker;
+import org.quorum.execution.MainMethod;
 import org.quorum.execution.RuntimeObject;
 import org.quorum.execution.TimeStamp;
 import org.quorum.parser.QuorumLexer;
@@ -102,6 +103,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
      * Used in the build(String) method to guarantee unique tokens.
      */
     private static SecureRandom random = new SecureRandom();
+    private Object entryPoints;
     
     public QuorumVirtualMachine() {
         compilerErrors = new CompilerErrorManager();
@@ -616,6 +618,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 //            Vector<ExecutionStep> steps = linker.getLinkedSteps();
 //            vTable = linker.getVTable();
             //this.getExecution().addStep(steps);
+            
+             //For now just set the first main method as the entry point
             if (this.isGenerateCode()) {
                 QuorumBytecodeGenerator gen = (QuorumBytecodeGenerator) this.generator;
                 //gen.setLinker(linker);

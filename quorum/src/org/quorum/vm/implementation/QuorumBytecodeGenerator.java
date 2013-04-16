@@ -23,6 +23,8 @@ import org.quorum.steps.ContainerExecution;
 import org.quorum.steps.IntermediateExecutionBuilder;
 import org.quorum.symbols.ClassDescriptor;
 import org.quorum.vm.interfaces.CodeGenerator;
+import org.quorum.vm.interfaces.CompilerError;
+import org.quorum.vm.interfaces.ErrorType;
 
 /**
  * This Code Generator creates java bytecode and appropriate executable jar
@@ -52,6 +54,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     private String mainClassName = "";
     private boolean compileToDisk = true;
     private boolean hasInput = false;
+    private boolean foundMain = false;
     
     /**
      * This method generates java bytecode for all classes on the system.
@@ -65,6 +68,17 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         while (containers.hasNext()) {
             ContainerExecution exe = containers.next();
             generate(exe);
+        }
+        
+        if (!foundMain) {
+            CompilerError error = new CompilerError();
+            error.setColumn(1);
+            error.setLineNumber(1);
+            error.setError("Cannot start the program, as no main action is defined.");
+            error.setErrorType(ErrorType.MISSING_MAIN);
+            builder.getVirtualMachine().getCompilerErrors().setErrorKey(mainFile.getAbsolutePath());
+            error.setFile(builder.getVirtualMachine().getMain());
+            builder.getVirtualMachine().getCompilerErrors().addError(error);
         }
     }
     
@@ -94,8 +108,11 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
 
                     staticKey = QuorumConverter.convertStaticKeyToManifestPath(staticKey);
                     manifestMain = staticKey;
+                    
+                    if(currentClass.getMethod("Main") != null || currentClass.getMethod("main") != null){
+                        foundMain = true;
+                    }
                 }
-
             }
             catch(Exception e) {
                 logger.log(Level.SEVERE, "The Quorum bytecode generator threw an error.", e);
