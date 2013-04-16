@@ -29,6 +29,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import org.quorum.vm.implementation.QuorumClassLoader;
 import org.quorum.vm.implementation.QuorumSecurityException;
 import org.quorum.vm.implementation.QuorumSecurityMode;
@@ -272,7 +273,7 @@ public class QuorumWebExecutor {
 
                 String status = "success";
                 if (built && !failure) {
-                    response = stream.toString();
+                    response = stream.toString().replaceAll("\"", Matcher.quoteReplacement("\\\""));
                 } else {
                     status = "fail";
                 }
