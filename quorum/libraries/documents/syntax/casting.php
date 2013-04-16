@@ -90,7 +90,7 @@ check
    text myText = &quot;1.3&quot;
    integer result = cast(integer, myText)
 end
-detect e of type CastError
+detect e is CastError
    output myText + &quot; was not cast to an integer.&quot;
 end
 </code></pre></p>

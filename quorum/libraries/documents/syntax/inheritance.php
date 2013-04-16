@@ -22,7 +22,7 @@
     Inheritance of a class can be defined like so:
 </p>
 <p><pre class="code"><code>
-class Truck is a LandVehicle
+class Truck is LandVehicle
 end
 </code></pre></p>
 <p>
@@ -85,7 +85,7 @@ end
     following is an example of this:
 </p>
 <p><pre class="code"><code>
-class Truck is a LandVehicle
+class Truck is LandVehicle
     integer doors = 0
     action build
         me:doors = 2
@@ -104,7 +104,7 @@ end
     <i>parent</i> keyword.
 </p>
 <p><pre class="code"><code>
-class Truck is a LandVehicle
+class Truck is LandVehicle
     action build
         parent:LandVehicle:setNumberOfWheels(4)
     end
@@ -126,7 +126,7 @@ end
     GasPoweredVehicle.
 </p>
 <p><pre class="code"><code>
-class Truck is a LandVehicle, GasPoweredVehicle
+class Truck is LandVehicle, GasPoweredVehicle
     action build
         parent:LandVehicle:setNumberOfWheels(4)
     end
@@ -156,7 +156,7 @@ end
     gas tank that holds 20 gallons.
 </p>
 <p><pre class="code"><code>
-class Truck is a LandVehicle, GasPoweredVehicle
+class Truck is LandVehicle, GasPoweredVehicle
     action build
         parent:LandVehicle:setNumberOfWheels(4)
         parent:GasPoweredVehicle:setGallons(20)

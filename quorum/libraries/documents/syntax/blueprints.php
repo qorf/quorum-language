@@ -50,7 +50,7 @@ class can now inherit from Animal and it will be required to have the blueprint
 actions in Animal.
 </p>
 <p><pre class="code"><code>
-class Dog is a Animal
+class Dog is Animal
    action Pet()
       say &quot;Pet the dog.&quot;
    end
@@ -67,17 +67,17 @@ from Animal.
 
 </p>
 <p><pre class="code"><code>
-class Cat is a Animal
+class Cat is Animal
    action Pet()
       say &quot;Pet the cat.&quot;
    end
 end
-class Pig is a Animal
+class Pig is Animal
    action Pet()
       say &quot;Pet the pig.&quot;
    end
 end
-class Horse is a Animal
+class Horse is Animal
    action Pet()
       say &quot;Pet the horse.&quot;
    end
@@ -117,7 +117,7 @@ but we do not implement the Pet method from the parent Look at the following
 invalid code:
 </p>
 <p><pre class="code"><code>
-class Mouse is a Animal
+class Mouse is Animal
 //we would need to implement Pet here
 end
 </code></pre></p>
@@ -133,7 +133,7 @@ We cannot create the Mouse object because Pet has not been implemented. This
 is what that might be like:
 </p>
 <p><pre class="code"><code>
-class Mouse is a Animal
+class Mouse is Animal
    action Pet()
       say &quot;Pet the mouse.&quot;
    end

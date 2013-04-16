@@ -77,7 +77,7 @@ end
     error you will detect. In this case we want the DivideByZeroError.
 </p>
 <p><pre class="code"><code>
-detect e of type DivideByZeroError
+detect e is DivideByZeroError
     //give the user the error and set the divisor to 1
     say e:GetErrorMessage()
     result = 12/1
@@ -113,7 +113,7 @@ class Main
             text userInput = input(&quot;divide by?&quot;)
             integer divisor = cast(integer, userInput)
             result = 12/divisor
-        detect e of type Error or DivideByZeroError
+        detect e is Error or DivideByZeroError
             say e:GetErrorMessage()
             result = 12/1
         always
@@ -148,7 +148,7 @@ alert(error)
 </p>
 <p><pre class="code"><code>
 use Libraries.Language.Errors.Error
-class MyError is a Error
+class MyError is Error
 end
 </code></pre></p>
 <p>
