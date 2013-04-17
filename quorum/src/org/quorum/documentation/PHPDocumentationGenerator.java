@@ -85,10 +85,10 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                 + "The standard library is expanded in each release.</p>\n";
         indexPage += "\t\t</div>\n";
         indexPage += "\t<div class=\"search-box-large\">\n";
-        indexPage += "\t\t<form class=\"search\">\n";
+        indexPage += "\t\t<form class=\"search\" name=\"search\" action=\"/search.php\" method=\"post\">\n";
         indexPage += "\t\t\t<div class=\"input-append\">\n";
         indexPage += "\t\t\t\t<input class=\"search-query\" name=\"search-query\" type=\"text\" autocomplete=\"off\" placeholder=\"Example: Array, Object, Music\">\n";
-        indexPage += "\t\t\t\t<button class=\"btn search-submit\" name=\"submit\" type=\"button\">Search!</button>\n";
+        indexPage += "\t\t\t\t<input class=\"btn search-submit\" name=\"submit\" type=\"submit\" value=\"Search!\">\n";
         indexPage += "\t\t\t</div>\n";
         indexPage += "\t\t</form>\n";
         indexPage += "\t</div>\n";
