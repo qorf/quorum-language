@@ -5,22 +5,62 @@ $(function() {
 });
 
 var createRatingControls = function() {
-	var template = doT.template($('#template-ratings-controls').text());
-
-	$.each($(".controllable"), function() {
-		var componentType = $(this).data("componenttype");
-		componentType = (componentType !== undefined) ? componentType.replace(/-/g," ") : "component";
-		var templateData = { id: $(this).data("id"), componentType: componentType }; // TODO: get real value
-		$(this).append(template(templateData));
-	});
-
-	$('.star-ratings a').tooltip({'selector': '', 'placement': 'bottom'});
-
 	var getRatingForId = function(id) {
-		// TODO: make an ajax call to the database to get the real rating
+		console.log(id);
+
+		return;	
+		$.ajax({
+			type: "POST",
+			url: "/controllers/ratings.controller.php?action=submitRating", // TODO: fix this URL
+			dataType: "json",
+			data: postData,
+			success: function(result) {
+				// show a success message
+				console.info(result);
+			},
+			error: function (xhr, ajaxOptions, thrownError) {
+				// show an error message
+				console.error(xhr.status);
+				console.error(thrownError);
+			}
+		});
+		
 		
 		return 3;
 	}
+
+	var template = doT.template($('#template-ratings-controls').text());
+
+	$.each($(".controllable"), function() {
+		var controllable = $(this);
+
+		var componentType = controllable.data("componenttype");
+		componentType = (componentType !== undefined) ? componentType : "component";
+
+		var templateData = { componentType: componentType };
+		switch (componentType) {
+			case "class-name": case "class-description": case "class-example": 
+				templateData['classkey'] = $("input#classkey").val();
+				break;
+			case "action-name": case "action-description": case "action-example": 
+				templateData['classkey'] = $("input#classkey").val();
+				templateData['actionkey'] = controllable.data("actionkey");
+				break;
+			case "parameter-name": case "parameter-description":
+				templateData['classkey'] = $("input#classkey").val();
+				templateData['actionkey'] = controllable.closest(".action").find(".controllable[data-componenttype=action-name]").data("actionkey");
+				templateData['parameterkey'] = controllable.data("parameterkey");
+				break;
+		}
+
+		templateData['choice'] = componentType.replace(/-/g, ' ');
+
+		$(this).append(template(templateData));
+
+		getRatingForId(templateData);
+	});
+
+	$('.star-ratings a').tooltip({'selector': '', 'placement': 'bottom'});
 }
 
 var fiveStarRatings = function(starRatingsList) {
@@ -35,7 +75,7 @@ var fiveStarRatings = function(starRatingsList) {
 	}
 
 	var postRating = function(controllable, starNumber) {
-		var username = $("input#hidden-username").val();
+		var username = $("input[name=hidden-username]").val();
 		var classStaticKey = $("input#classkey").val();
 		var componentType = controllable.data("componenttype")
 		var postData = { username: username, classstatickey: classStaticKey, rating: starNumber, componenttype: componentType };
@@ -49,6 +89,8 @@ var fiveStarRatings = function(starRatingsList) {
 				postData['parameterkey'] = controllable.data("parameterkey");
 				break;
 		}
+
+		console.log(postData);
 
 		$.ajax({
 			type: "POST",

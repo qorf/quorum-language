@@ -647,6 +647,9 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
     private String controllableComponent(String string, String componentType, String staticKey) {
         String dataName = "";
         
+        if (componentType.equals("class-name") || componentType.equals("class-example") || componentType.equals("class-description")) {
+            dataName = "data-classkey"; 
+        }
         if (componentType.equals("action-name") || componentType.equals("action-example") || componentType.equals("action-description")) {
             dataName = "data-actionkey"; 
         }
@@ -1004,7 +1007,8 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                         currentParam = pascalCasePackageChecker(parameters.get(i).getType().getStaticKey());
                     }
                     String parameterDocumentation = documentation.getParameter(parameters.get(i).getName());
-                    currentParam = controllableComponent(bold(currentParam) + " " + italics(parameters.get(i).getName()) + ": " + parameterDocumentation, "parameter-name");
+                    currentParam = "<h5>" + controllableComponent(bold(currentParam) + " " + italics(parameters.get(i).getName()) + ":", "parameter-name", descriptor.getStaticKey()) + "</h5>";
+                    currentParam += controllableComponent(parameterDocumentation, "parameter-description", descriptor.getStaticKey());
                     paramList += "<li>" + currentParam + "</li>\n\n";
                 }
             }
@@ -1026,7 +1030,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         }
         if(!(method instanceof BlueprintDescriptor)) {
             if(!documentation.getExample().isEmpty()) {
-                result += "\n\t" + controllableComponent(italics("Example Code:"), "action-example");
+                result += "\n\t" + controllableComponent(italics("Example Code:"), "action-example", method.getStaticKey());
                 result += "\n" + code(documentation.getExample())
                         + "\n\n";
             }
