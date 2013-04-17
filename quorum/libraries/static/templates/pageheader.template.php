@@ -1,5 +1,4 @@
 <?php 
-	session_start();
 	require_once($_SERVER['DOCUMENT_ROOT'] . "/controllers/page.functions.php"); 
 ?>
 
@@ -7,7 +6,7 @@
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    		<meta name="viewport" content="width=1190; initial-scale=0.268; maximum-scale=1.0;"/>
+    		<meta name="viewport" content="width=1190, initial-scale=0.268, maximum-scale=1.0"/>
 		<?php
 			createPageTitle();
 
@@ -31,11 +30,19 @@
 				createScriptLink("assets/js/less.min.js", 1);
 				createScriptLink("assets/js/bootstrap.min.js", 1);
 				createScriptLink("static/js/global.js", 1);
+
+				if (isset($_COOKIE['username'])) {
+					createScriptLink("static/js/useronly.js", 1);
+				}
 			}
 		?>
 	</head>
 	<body>
-		<?php registrationModal(); ?>
+		<?php
+			registrationModal();
+			loginModal();
+		?>
+            
 		<div class="navbar navbar-inverse navbar-fixed-top">
 			<div class="navbar-inner">
 				<div class="navbar-container">
@@ -52,8 +59,13 @@
 					</ul>
 					
 					<div class="user-controls">
-						<?php displayUserControls(); ?>
-						<input type="hidden" id="username" value="kerryritter" /> <!-- this needs to get updated but this is to test -->
+						<?php 
+                                                    displayUserControls();
+                                                    
+                                                    if (isset($_COOKIE['username'])) {
+                                                            print '<input type="hidden" name="hidden-username" value="'.$_COOKIE['username'].'">';
+                                                    }
+                                                ?>
 					</div>
 				</div>
 			</div>
