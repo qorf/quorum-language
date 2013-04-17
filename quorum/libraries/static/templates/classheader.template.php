@@ -1,1 +1,1 @@
-<div class="content-wrapper class-content">
+<div class="content"> <!-- class="content-wrapper class-content"> -->

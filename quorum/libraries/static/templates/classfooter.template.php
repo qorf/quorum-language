@@ -1,4 +1,6 @@
 </div>
+
+<!--
 <div class="navigation-sidebar">
 	<div class="search-box-small">
 		<form class="search">
@@ -169,8 +171,7 @@
 			</ul>
 		</li>
 	</ul>
-	<!--Sidebar content-->
-</div>
+</div>-->
 
 <script id="template-ratings-controls" type="text/x-dot-template">
 	<div class="ratings-controls">
