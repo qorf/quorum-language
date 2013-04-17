@@ -21,10 +21,12 @@
 			case "syntax": $pageTitle = "The Syntax of the Quorum Programming Language"; break;
 			case "libraries": $pageTitle = "The Quorum Standard Library"; break;
 			case "download": $pageTitle = "Download the Quorum Programming Language"; break;
-                        case "documents/console": $pageTitle = "Console Arguments in Quorum"; break;
+            case "documents/console": $pageTitle = "Console Arguments in Quorum"; break;
 		}
 
-		print "<title>" . $pageTitle . " | Quorum</title>\n";
+		$pageTitle = $pageTitle == "" ? $pageTitle : $pageTitle . " | ";
+
+		print "<title>" . $pageTitle . "Quorum Programming Language</title>\n";
 
 	}
 
