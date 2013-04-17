@@ -1811,4 +1811,32 @@ public abstract class AbstractVirtualMachine {
             updateDebuggerListeners();
         }
     }
+    
+    /**
+     * After using the -verify command, this method says how many examples
+     * the compiler attempted to compile.
+     * @return 
+     */
+    public abstract int getNumVerifiedExamples();
+
+    /**
+     * After using the -verify command, this method says how many examples
+     * were did not compile.
+     * @return 
+     */
+    public abstract int getNumNonCompilingExamples();
+
+    /**
+     * After using the -verify command, this method says how many examples
+     * crashed the Quorum compiler when it tried to compile them.
+     * @return 
+     */
+    public abstract int getNumCrashingExamples();
+    
+    /**
+     * After using the -verify command, this method says how many examples
+     * were missing from the compiled code.
+     * @return 
+     */
+    public abstract int getNumMissingExamples();
 }

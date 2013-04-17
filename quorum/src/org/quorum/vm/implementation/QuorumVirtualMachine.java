@@ -73,7 +73,6 @@ import org.quorum.vm.interfaces.VirtualMachineEvent;
  * @author Andreas Stefik
  */
 public class QuorumVirtualMachine extends AbstractVirtualMachine {
-
     private boolean parsed = false;
     private boolean buildAllEvent = false;
     private File currentFile;
@@ -103,7 +102,10 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
      * Used in the build(String) method to guarantee unique tokens.
      */
     private static SecureRandom random = new SecureRandom();
-    private Object entryPoints;
+    private static int numVerifiedExamples = 0;
+    private static int numNonCompilingExamples = 0;
+    private static int numCrashingExamples = 0;
+    private int numMissingExamples = 0;
     
     public QuorumVirtualMachine() {
         compilerErrors = new CompilerErrorManager();
@@ -175,6 +177,11 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
         if (verify) {
             // Spawn a new VM for documentation verification.
+            
+            //reset the count of compiling examples
+            numVerifiedExamples = 0;
+            numNonCompilingExamples = 0;
+            numCrashingExamples = 0;
             verifierVM = new QuorumVirtualMachine();
         }
         while (containers.hasNext()) {
@@ -522,6 +529,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         return this.auditoryDebugging;
     }
 
+    
     private void verifyDocumentaitonCompilation(ClassDescriptor clazz) {
         Iterator<MethodDescriptor> methods = clazz.getMethods();
 
@@ -531,13 +539,33 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             MethodDescriptor method = methods.next();
             String example = method.getDocumentation().getExample();
 
-            if (!example.isEmpty()) {
-                verifierVM.build(example);
+            if (example != null && !example.isEmpty()) {
+                try {
+                    verifierVM.build(example);
 
-                if (!verifierVM.getCompilerErrors().isCompilationErrorFree()) {
-                    System.err.println("Warning: Method " + method.getStaticKey() + " of class " + clazz.getStaticKey() + " has example documentation that will not compile.");
+                    if (!verifierVM.getCompilerErrors().isCompilationErrorFree()) {
+                        System.err.println("Warning: Method " + clazz.getStaticKey() + ":" 
+                                + method.getStaticKey() +  
+                                " has example documentation that will not compile.");
+                        numNonCompilingExamples++;
+                    } else {
+                        System.err.println("OK: " + clazz.getStaticKey() + ":" 
+                                + method.getStaticKey());
+                    }
+                } catch(Exception e) {
+                    System.err.println("Crash: " + clazz.getStaticKey() + ":" 
+                                + method.getStaticKey());
+                    numCrashingExamples++;
                 }
+                
+            } else {
+                System.err.println("Warning: " + clazz.getStaticKey() + ":" 
+                                + method.getStaticKey() +
+                        " has a missing example.");
+                numMissingExamples++;
             }
+            
+            numVerifiedExamples++;
         }
     }
 
@@ -2039,5 +2067,25 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         public void run() {
             getCodeGenerator().setDistributionFolder(distribution);
         }
+    }
+    
+    @Override
+    public int getNumVerifiedExamples() {
+        return numVerifiedExamples;
+    }
+
+    @Override
+    public int getNumNonCompilingExamples() {
+        return numNonCompilingExamples;
+    }
+
+    @Override
+    public int getNumCrashingExamples() {
+        return numCrashingExamples;
+    }
+    
+    @Override
+    public int getNumMissingExamples() {
+        return numMissingExamples;
     }
 }

@@ -461,9 +461,19 @@ public class Main {
                     vm.generateAllDocumentation(files, isVerifyDocumentation);
 
                     if (!isVerifyDocumentation) {
-                        System.out.println(" done.");
+                        System.out.println("done.");
                     } else {
-                        System.out.println("Done. Any non-compiling examples are shown above.");
+                        System.out.println("done. A list of the results is above.");
+                        
+                        int passed = vm.getNumVerifiedExamples() - vm.getNumCrashingExamples()
+                                - vm.getNumNonCompilingExamples() - vm.getNumMissingExamples();
+                        
+                        System.out.println("There were " + vm.getNumVerifiedExamples() + 
+                                " total examples. Of these, " + passed + " compiled, " +
+                                vm.getNumNonCompilingExamples() + " did not, " + 
+                                vm.getNumCrashingExamples() + " crashed the Quorum compiler, and " +
+                                vm.getNumMissingExamples() + " had examples missing."
+                                );
                     }
 
                     System.out.println("Documentation placed in the folder: " + documentation.getAbsolutePath());
