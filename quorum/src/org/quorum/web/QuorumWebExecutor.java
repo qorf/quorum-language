@@ -273,14 +273,16 @@ public class QuorumWebExecutor {
 
                 String status = "success";
                 if (built && !failure) {
-                    response = stream.toString().replaceAll("\"", Matcher.quoteReplacement("\\\""));
+                    response = stream.toString(); //.replaceAll("\"", Matcher.quoteReplacement("\\\""));
                 } else {
                     status = "fail";
                 }
-                response = "{\n\t "
-                        + "\"status\": \"" + status + "\",\n\t"
-                        + "\"data\": \"" + response + "\"\n}";
+               // response = "{\n\t "
+               //         + "\"status\": \"" + status + "\",\n\t"
+               //         + "\"data\": \"" + response + "\"\n}";
 
+                response  = status + "|" + response;
+                
                 t.sendResponseHeaders(200, response.length());
                 os.write(response.getBytes());
                 stream.flush();
