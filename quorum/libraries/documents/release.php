@@ -42,6 +42,8 @@
         implies output, making the language more consistent. All
         standard library materials, book materials, and curricular materials have
         been altered for the change.</li>
+        <li>Changed the phrase "of type" in the Error architecture to "is."</li>
+        <li>Changed the phrase "is a" in the inheritance system to "is."</li>
         <li>Finished a very basic initial version of accessibility APIs for Quorum. 
             This version is largely a proof of concept, but provides some infrastructure
             calls down to various operating systems and unifies accessibility calls
