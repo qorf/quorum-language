@@ -47,6 +47,8 @@ class Link is WebTag
         Attribute: Returns The address of the link. 
 
         Attribute: Example
+        use Libraries.Web.Link
+        use Libraries.Web.Attribute
 
         Link link
         Attribute address = link:GetAddress()
@@ -64,6 +66,8 @@ class Link is WebTag
         Attribute: Parameter value The address of a webpage or document. 
 
         Attribute: Example
+        use Libraries.Web.Link
+        use Libraries.Web.Attribute
 
         Link link
         link:SetAddress("http://www.google.com")
@@ -81,6 +85,8 @@ class Link is WebTag
         Attribute: Returns The two letter language code. 
 
         Attribute: Example
+        use Libraries.Web.Link
+        use Libraries.Web.Attribute
 
         Link link
         Attribute code = link:GetLanguageCode()
@@ -97,6 +103,8 @@ class Link is WebTag
         Attribute: Parameter value The two letter language code. 
 
         Attribute: Example
+        use Libraries.Web.Link
+        use Libraries.Web.LanguageCode
 
         Link link
         LanguageCode language
@@ -114,6 +122,8 @@ class Link is WebTag
         Attribute: Returns The type of media the page will be displayed on (braille, handheld, aural, print, screen, etc.) 
 
         Attribute: Example
+        use Libraries.Web.Link
+        use Libraries.Web.Attribute
 
         Link link
         Attribute media = link:GetMedia()
@@ -129,6 +139,8 @@ class Link is WebTag
         Attribute: Parameter value The type of media the page will be displayed on (braille, handheld, aural, print, screen, etc.)
 
         Attribute: Example
+        use Libraries.Web.Link
+        use Libraries.Web.Attribute
 
         Link link
         link:SetMedia("handheld")
@@ -145,6 +157,8 @@ class Link is WebTag
         Attribute: Returns The type of relationship between the current page and link. 
 
         Attribute: Example
+        use Libraries.Web.Link
+        use Libraries.Web.Attribute
 
         Link link
         Attribute relationship = link:GetRelationship()
@@ -162,6 +176,8 @@ class Link is WebTag
         Attribute: Parameter value The type of relationship between the current page and the linked page.
 
         Attribute: Example
+        use Libraries.Web.Link
+        use Libraries.Web.Attribute
 
         Link link
         link:SetRelationship("next")
@@ -178,6 +194,8 @@ class Link is WebTag
         Attribute: Returns The place the link will be opened. 
 
         Attribute: Example
+        use Libraries.Web.Link
+        use Libraries.Web.Attribute
 
         Link link
         Attribute target = link:GetTarget()
@@ -194,6 +212,8 @@ class Link is WebTag
         Attribute: Parameter value The target of the link.
 
         Attribute: Example
+        use Libraries.Web.Link
+        use Libraries.Web.Attribute
 
         Link link
         link:SetTarget("_top")
@@ -210,6 +230,8 @@ class Link is WebTag
         Attribute: Returns The MIME type attribute of the link. 
 
         Attribute: Example
+        use Libraries.Web.Link
+        use Libraries.Web.Attribute
 
         Link link
         Attribute type = link:GetType()
@@ -225,6 +247,8 @@ class Link is WebTag
         Attribute: Parameter value The MIME type of the link.
 
         Attribute: Example
+        use Libraries.Web.Link
+        use Libraries.Web.Attribute
 
         Link link
         link:SetType("text/html")

@@ -84,6 +84,8 @@ class KeyGenerator is WebTag
         Attribute: Returns The string used for challenge 
 
         Attribute: Example
+        use Libraries.Web.KeyGenerator
+        use Libraries.Web.Attribute
 
         KeyGenerator keyGen
         Attribute challengeValue = keyGen:GetChallenge()
@@ -99,6 +101,8 @@ class KeyGenerator is WebTag
         This action sets text used if the KeyGenerator is challenged.
 
         Attribute: Example
+        use Libraries.Web.KeyGenerator
+        use Libraries.Web.Attribute
 
         KeyGenerator keyGen
         keyGen:SetChallenge("challenge")
@@ -150,6 +154,8 @@ class KeyGenerator is WebTag
         Attribute: Returns The form id for form the KeyGenerator is connected to. 
 
         Attribute: Example
+        use Libraries.Web.KeyGenerator
+        use Libraries.Web.Attribute
 
         KeyGenerator keyGen
         Attribute formIdValue = keyGen:GetFormId()
@@ -165,6 +171,8 @@ class KeyGenerator is WebTag
         This action sets the form id that the KeyGenerator will be connected to.
 
         Attribute: Example
+        use Libraries.Web.KeyGenerator
+        use Libraries.Web.Attribute
 
         KeyGenerator keyGen
         keyGen:SetFormId("aForm")
@@ -179,6 +187,8 @@ class KeyGenerator is WebTag
         Attribute: Returns The key type algorithm that will be used.
 
         Attribute: Example
+        use Libraries.Web.KeyGenerator
+        use Libraries.Web.Attribute
 
         KeyGenerator keyGen
         Attribute keyTypeValue = keyGen:GetKeyType()
@@ -194,6 +204,8 @@ class KeyGenerator is WebTag
         This action sets key type algorithm that will be used to generate the key.
 
         Attribute: Example
+        use Libraries.Web.KeyGenerator
+        use Libraries.Web.Attribute
 
         KeyGenerator keyGen
         keyGen:SetFormId(keyGen:rsaKeyType)
@@ -209,6 +221,8 @@ class KeyGenerator is WebTag
         Attribute: Returns The name attribute.
 
         Attribute: Example
+        use Libraries.Web.KeyGenerator
+        use Libraries.Web.Attribute
 
         KeyGenerator keyGen
         Attribute keyGenNameValue = keyGen:GetName()
@@ -226,6 +240,8 @@ class KeyGenerator is WebTag
         Attribute: Parameter value The name attribute. 
 
         Attribute: Example
+        use Libraries.Web.KeyGenerator
+        use Libraries.Web.Attribute
 
         KeyGenerator keyGen
         keyGen:SetName("name")

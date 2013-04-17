@@ -3,6 +3,8 @@ package Libraries.Web
 use Libraries.Web.WebTag
 use Libraries.Web.Attribute
 use Libraries.Web.Attributes
+use Libraries.Web.Option
+use Libraries.Containers.Array
 /*
 The OptionGroup class represents HTML's (Hypertext Markup Language) optiongroup 
 tag which is used to group options in a select or data list. 
@@ -28,6 +30,7 @@ end
 class OptionGroup is WebTag
     constant text disabled = "disabled"
     constant text label = "label"
+    Array<Option> options
 
     /*
         This action gets whether the option group in a datalist or select is disabled (true)
@@ -36,13 +39,16 @@ class OptionGroup is WebTag
         Attribute: Returns True if diabled and false if enabled. 
 
         Attribute: Example
+        use Libraries.Web.OptionGroup
+        use Libraries.Web.Attribute
 
+        OptionGroup og
         boolean result = og:GetDisabled()
         
     */
     action GetDisabled returns boolean
-        Attribute disable = GetAttribute(me:disabled)
-        return disable:GetValue() = me:disabled
+        Attribute d = GetAttribute(disabled)
+        return  disabled = d:GetValue()
     end
     
     /*
@@ -51,6 +57,8 @@ class OptionGroup is WebTag
         Attribute: Parameter value True to disable and false to enable the option. 
 
         Attribute: Example
+        use Libraries.Web.OptionGroup
+        use Libraries.Web.Attribute
 
         OptionGroup og
         og:SetDisabled(true)
@@ -70,7 +78,10 @@ class OptionGroup is WebTag
         Attribute: Returns Labeling text. 
 
         Attribute: Example
+        use Libraries.Web.OptionGroup
+        use Libraries.Web.Attribute
 
+        OptionGroup og
         Attribute result = og:GetLabel()
         
     */
@@ -84,6 +95,8 @@ class OptionGroup is WebTag
         Attribute: Parameter value The labeling text. 
 
         Attribute: Example
+        use Libraries.Web.OptionGroup
+        use Libraries.Web.Attribute
 
         OptionGroup og
         og:SetLabel("states")
@@ -99,6 +112,8 @@ class OptionGroup is WebTag
         Attribute: Parameter value The option to be added to the group. 
 
         Attribute: Example
+        use Libraries.Web.OptionGroup
+        use Libraries.Web.Option
 
         OptionGroup og
         og:SetLabel("States")
@@ -108,7 +123,7 @@ class OptionGroup is WebTag
         
     */
     action AddOption(Option option)
-        Add(option)
+        options:Add(option)
     end
 
     /*
@@ -117,6 +132,8 @@ class OptionGroup is WebTag
         Attribute: Parameter value The option to be removed from the group. 
 
         Attribute: Example
+        use Libraries.Web.OptionGroup
+        use Libraries.Web.Option
 
         OptionGroup og
         og:SetLabel("States")
@@ -128,7 +145,7 @@ class OptionGroup is WebTag
         
     */
     action RemoveOption(Option option)
-        Remove(option)
+        options:Remove(option)
     end
 
     /*
@@ -137,12 +154,15 @@ class OptionGroup is WebTag
         Attribute: Returns The number of options in an option group. 
 
         Attribute: Example
+        use Libraries.Web.OptionGroup
+        use Libraries.Web.Attribute
 
+        OptionGroup og
         integer result = og:GetNumberOfOptions()
         
     */
     action GetNumberOfOptions returns integer
-        return GetNumberOfNestedTags()
+        return options:GetSize()
     end
 
     action Generate returns text

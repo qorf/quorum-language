@@ -42,8 +42,10 @@ class MetaData is WebTag
         Attribute: Returns The HTML encoding in the meta data. 
 
         Attribute: Example
+        use Libraries.Web.MetaData
+        use Libraries.Web.Attribute
 
-        MetaData md = header:GetMetaData()
+        MetaData md
         Attribute charSet = md:GetCharacterSet()
         
     */
@@ -57,8 +59,10 @@ class MetaData is WebTag
         Attribute: Returns The name stored in the meta data. 
 
         Attribute: Example
+        use Libraries.Web.MetaData
+        use Libraries.Web.Attribute
 
-        MetaData md = header:GetMetaData()
+        MetaData md
         Attribute charSet = md:GetContent()
         
     */
@@ -72,8 +76,10 @@ class MetaData is WebTag
         Attribute: Returns The HTML http-equiv in the meta data. 
 
         Attribute: Example
+        use Libraries.Web.MetaData
+        use Libraries.Web.Attribute
 
-        MetaData md = header:GetMetaData()
+        MetaData md
         Attribute charSet = md:GetHeaderInformation()
         
     */
@@ -87,8 +93,10 @@ class MetaData is WebTag
         Attribute: Returns The name in the meta data. 
 
         Attribute: Example
+        use Libraries.Web.MetaData
+        use Libraries.Web.Attribute
 
-        MetaData md = header:GetMetaData()
+        MetaData md
         Attribute charSet = md:GetName()
         
     */
@@ -103,6 +111,7 @@ class MetaData is WebTag
         Attribute: Parameter value The HTML encoding. 
 
         Attribute: Example
+        use Libraries.Web.MetaData
 
         MetaData md
         md:SetCharacterSet("UTF-8")
@@ -119,6 +128,7 @@ class MetaData is WebTag
         Attribute: Parameter value The content in the meta data tag. 
 
         Attribute: Example
+        use Libraries.Web.MetaData
 
         MetaData md
         md:SetContent("Andreas Stefik")
@@ -135,6 +145,7 @@ class MetaData is WebTag
         Attribute: Parameter value The content information type. 
 
         Attribute: Example
+        use Libraries.Web.MetaData
 
         MetaData md
         md:SetHeaderInformation("refresh")
@@ -151,6 +162,7 @@ class MetaData is WebTag
         Attribute: Parameter value The name. 
 
         Attribute: Example
+        use Libraries.Web.MetaData
 
         MetaData md
         md:SetName("author")

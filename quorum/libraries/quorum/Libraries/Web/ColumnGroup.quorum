@@ -1,4 +1,5 @@
 package Libraries.Web
+use Libraries.Web.WebTag
 /*
 The ColumnGroup class represents HTML's (Hypertext Markup Language) colgroup tag 
 which allows one or more columns to be selected for formatting.
@@ -40,7 +41,8 @@ class ColumnGroup is WebTag
         Attribute: Returns The span of the column group. 
 
         Attribute: Example
-
+        use Libraries.Web.Attribute
+        use Libraries.Web.ColumnGroup
         ColumnGroup cg
         Attribute span = cg:GetSpan()
         if span not= undefined
@@ -58,7 +60,8 @@ class ColumnGroup is WebTag
         Attribute: Parameter value The span.
 
         Attribute: Example
-
+        use Libraries.Web.Attribute
+        use Libraries.Web.ColumnGroup
         ColumnGroup cg
         cg:SetSpan(2)
         

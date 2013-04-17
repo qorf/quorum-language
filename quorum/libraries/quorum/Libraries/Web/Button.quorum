@@ -48,6 +48,7 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Returns True if autofocus is enabled or false if it is disabled. 
 
         Attribute: Example
+        use Libraries.Web.Button
 
         Button myButton
         boolean isAutofocusOn = myButton:GetAutofocus()
@@ -69,6 +70,7 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Parameter value The autofocus is enable with a value of true or is not enabled with a value of false. 
 
         Attribute: Example
+        use Libraries.Web.Button
 
         Button myButton
         myButton:SetAutofocus(true)
@@ -89,6 +91,7 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Returns True if the button is disabled and false if it not. 
 
         Attribute: Example
+        use Libraries.Web.Button
 
         Button myButton
         boolean disabled = myButton:GetDisabled()
@@ -109,6 +112,7 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Parameter value True if the button is disabled and false if it not. 
 
         Attribute: Example
+        use Libraries.Web.Button
 
         Button myButton
         myButton:SetDisabled(true)
@@ -129,6 +133,8 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Returns The formName attribute. 
 
         Attribute: Example
+        use Libraries.Web.Button
+        use Libraries.Web.Attribute
 
         Button myButton
         Attribute formName = myButton:GetFormName()
@@ -149,6 +155,7 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Parameter value Name of the form. 
 
         Attribute: Example
+        use Libraries.Web.Button
 
         Button myButton
         myButton:SetFormName("myForm")
@@ -165,6 +172,8 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Returns The formAction attribute. 
 
         Attribute: Example
+        use Libraries.Web.Button
+        use Libraries.Web.Attribute
 
         Button myButton
         Attribute formAction = myButton:GetFormAction()
@@ -184,6 +193,7 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Parameter value Pre-defined form action address. 
 
         Attribute: Example
+        use Libraries.Web.Button
 
         Button myButton
         myButton:SetFormAction("myFormAction.quorum")
@@ -200,6 +210,8 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Parameter Returns The formEncodedType attribute.
 
         Attribute: Example
+        use Libraries.Web.Button
+        use Libraries.Web.Attribute
 
         Button myButton
         Attribute formEncodedType = myButton:GetFormEncodedType()
@@ -222,6 +234,7 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Parameter value Pre-defined form action address. 
 
         Attribute: Example
+        use Libraries.Web.Button
 
         Button myButton
         myButton:SetFormEncodedType("multipart/form-data")
@@ -239,9 +252,11 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Returns The formMethod attribute.
 
         Attribute: Example
+        use Libraries.Web.Button
+        use Libraries.Web.Attribute
 
         Button myButton
-        attribute formMethod = myButton:GetFormMethod()
+        Attribute formMethod = myButton:GetFormMethod()
         text getOrPost = ""
         if formMethod not= undefined
            getOrPost = formMethod:GetValue()
@@ -257,6 +272,7 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Parameter value The containing form's method.
 
         Attribute: Example
+        use Libraries.Web.Button
 
         Button myButton
         myButton:SetFormMethod("post")
@@ -266,21 +282,19 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
     end
 
     /*
-        This action gets the formNovalidate attribute of the button. If true the form will 
+        This action gets the formNotValidated attribute of the button. If true the form will 
         not be validated on submission. If false the form will be validated on submission.
 
-        Attribute: Returns The boolean value of the formNovalidate attribute.
+        Attribute: Returns The boolean value of the formNotValidated attribute.
 
         Attribute: Example
+        use Libraries.Web.Button
 
         Button myButton
-        attribute noValidate = myButton:Get()
-        text formNoValidate = ""
-        if noValidate not= undefined
-           formNoValidate = noValidate:GetValue()
-        end
+        boolean noValidate = myButton:GetFormNotValidated()
+
     */
-    action GetFormNovalidate returns boolean
+    action GetFormNotValidated returns boolean
         Attribute noValidate = GetAttribute(formNovalidate)
         if noValidate not= undefined
             return noValidate:GetValue() = formNovalidate
@@ -289,17 +303,18 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
     end
 
     /*
-        This action sets the formNovalidate attribute of the button. If true the form will 
+        This action sets the formNotValidated attribute of the button. If true the form will 
         not be validated on submission. If false the form will be validated on submission.
 
-        Attribute: Parameter value The formNovalidate attribute.
+        Attribute: Parameter value The formNotValidated attribute.
 
         Attribute: Example
+        use Libraries.Web.Button
 
         Button myButton
-        myButton:Set(true)
+        myButton:SetFormNotValidated(true)
     */
-    action SetFormNovalidate(boolean value)
+    action SetFormNotValidated(boolean value)
         if value
             AddAttribute(formNovalidate, formNovalidate)
         else
@@ -319,9 +334,11 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Returns The formTarget attribute.
 
         Attribute: Example
+        use Libraries.Web.Button
+        use Libraries.Web.Attribute
 
         Button myButton
-        attribute formTarget = myButton:GetFormTarget()
+        Attribute formTarget = myButton:GetFormTarget()
         text target= ""
         if formTarget not= undefined
            target = formTarget:GetValue()
@@ -344,6 +361,7 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Parameter value The formTarget attribute.
 
         Attribute: Example
+        use Libraries.Web.Button
 
         Button myButton
         myButton:SetFormTarget("_blank")
@@ -359,9 +377,11 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Returns The name attribute.
 
         Attribute: Example
+        use Libraries.Web.Button
+        use Libraries.Web.Attribute
 
         Button myButton
-        attribute buttonName = myButton:GetName()
+        Attribute buttonName = myButton:GetName()
         text name = ""
         if buttonName not= undefined
            name = buttonName:GetValue()
@@ -377,6 +397,7 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Parameter value The name attribute. 
 
         Attribute: Example
+        use Libraries.Web.Button
 
         Button myButton
         myButton:SetName("SubmitButton")
@@ -395,9 +416,11 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Returns The type attribute.
 
         Attribute: Example
+        use Libraries.Web.Button
+        use Libraries.Web.Attribute
 
         Button myButton
-        attribute buttonType = myButton:GetType()
+        Attribute buttonType = myButton:GetType()
         text type = ""
         if buttonType not= undefined
            type = buttonType:GetValue()
@@ -416,9 +439,10 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Parameter value The type attribute.
 
         Attribute: Example
+        use Libraries.Web.Button
 
         Button myButton
-        myButton:Set("reset")
+        myButton:SetType("reset")
     */
     action SetType(text value)
         AddAttribute(type, value)
@@ -431,9 +455,11 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Returns The submitValue attribute.
 
         Attribute: Example
+        use Libraries.Web.Button
+        use Libraries.Web.Attribute
 
         Button myButton
-        attribute value = myButton:GetSubmitValue()
+        Attribute value = myButton:GetSubmitValue()
         text sValue = ""
         if value not= undefined
            sValue = value:GetValue()
@@ -449,9 +475,10 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Parameter value  The submitValue attribute.
 
         Attribute: Example
+        use Libraries.Web.Button
 
         Button myButton
-        myButton:Set("default_submit_value")
+        myButton:SetSubmitValue("default_submit_value")
     */
     action SetSubmitValue(text value)
         AddAttribute(submitValue, value)

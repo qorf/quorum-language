@@ -45,6 +45,8 @@ class TextArea is WebTag
         Attribute: Returns True if autofocus is enabled or false if it is disabled. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         boolean isAutofocusOn = myTextArea:GetAutofocus()
@@ -63,6 +65,8 @@ class TextArea is WebTag
         Attribute: Parameter value The autofocus is enable with a value of true or is not enabled with a value of false. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         myTextArea:SetAutofocus(true)
@@ -85,6 +89,8 @@ class TextArea is WebTag
         Attribute: Returns The width of the text area. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         integer width = myTextArea:GetWidth()
@@ -106,6 +112,8 @@ class TextArea is WebTag
         Attribute: Parameter value The width of the textarea. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         myTextArea:SetWidth(25)
@@ -122,6 +130,8 @@ class TextArea is WebTag
         Attribute: Returns True if the textarea is disabled and false if it not. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         boolean disabled = myTextArea:GetDisabled()
@@ -143,6 +153,8 @@ class TextArea is WebTag
         Attribute: Parameter value True if the textarea is disabled and false if it not. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         myTextArea:SetDisabled(true)
@@ -163,6 +175,8 @@ class TextArea is WebTag
         Attribute: Returns The formName attribute. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         Attribute formName = myTextArea:GetFormName()            
@@ -178,9 +192,11 @@ class TextArea is WebTag
         Attribute: Parameter value Name of the form. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
-        myTextArea:SetForm("myForm")
+        myTextArea:SetFormName("myForm")
         
     */
     action SetFormName(text value)
@@ -194,6 +210,8 @@ class TextArea is WebTag
         Attribute: Returns The max length of the characters in the text area. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         Attribute max = myTextArea:GetMaxLength()
@@ -210,6 +228,8 @@ class TextArea is WebTag
         Attribute: Parameter value The max length of characters in the text area. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         myTextArea:SetMaxLength(150)
@@ -226,6 +246,8 @@ class TextArea is WebTag
         Attribute: Returns The name attribute. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         Attribute textAreaName = myTextArea:GetName()            
@@ -241,9 +263,11 @@ class TextArea is WebTag
         Attribute: Parameter value The name of the text area. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
-        myTextArea:SetArea("myTextArea")
+        myTextArea:SetName("myTextArea")
         
     */
     action SetName(text value)
@@ -258,6 +282,8 @@ class TextArea is WebTag
         Attribute: Returns The placeholder attribute. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         Attribute placeHolder = myTextArea:GetPlaceHolder()
@@ -274,9 +300,11 @@ class TextArea is WebTag
         Attribute: Parameter value The placeholder text in the text area. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
-        myTextArea:SetMaxLength("Enter your full name...")
+        myTextArea:SetPlaceHolder("Enter your full name...")
         
     */
     action SetPlaceHolder(text value)
@@ -291,6 +319,8 @@ class TextArea is WebTag
         Attribute: Returns True if the textarea is read-only and false if it is not. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         boolean readOnly = myTextArea:GetReadOnly()
@@ -313,6 +343,8 @@ class TextArea is WebTag
         Attribute: Parameter value True if the textarea is read-only and false if it is not. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         myTextArea:SetReadOnly(true)
@@ -334,6 +366,8 @@ class TextArea is WebTag
         Attribute: Returns True if the textarea is required and false if it is not. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         boolean required = myTextArea:GetRequired()
@@ -355,6 +389,8 @@ class TextArea is WebTag
         Attribute: Parameter value True if the textarea is required and false if it is not. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         myTextArea:SetRequired(true)
@@ -376,6 +412,8 @@ class TextArea is WebTag
         Attribute: Returns The height of the textarea. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         Attribute height = myTextArea:GetHeight()
@@ -392,6 +430,8 @@ class TextArea is WebTag
         Attribute: Parameter value The height in lines of the text area. 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         myTextArea:SetHeight(5)
@@ -411,6 +451,8 @@ class TextArea is WebTag
         Attribute: Parameter value Hard or soft wrap (default:soft). 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         Attribute wrap = myTextArea:GetTextWrap()
@@ -430,6 +472,8 @@ class TextArea is WebTag
         Attribute: Parameter value Hard or soft wrap (default:soft). 
 
         Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
 
         TextArea myTextArea
         myTextArea:SetTextWrap(true)

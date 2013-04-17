@@ -45,7 +45,7 @@ class Command is WebTag
         use Libraries.Web.All
 
         Command command
-        command:SetDisabled(true)
+        command:SetDisabledCommand(true)
     */
     action SetDisabledCommand(boolean value)
         if value
@@ -64,7 +64,7 @@ class Command is WebTag
         use Libraries.Web.All
 
         Command command
-        command:SetDisabled(true)
+        boolean result = command:GetDisabledCommand()
     */
     action GetDisabledCommand returns boolean
         Attribute isDisabled = GetAttribute(disabled)
@@ -81,6 +81,7 @@ class Command is WebTag
         Attribute: Parameter value The MIME type for the command.
 
         Attribute: Example
+        use Libraries.Web.Command
 
         Command command
         command:SetType("text/html")
@@ -97,11 +98,13 @@ class Command is WebTag
         Attribute: Returns The MIME type attribute of the command. 
 
         Attribute: Example
+        use Libraries.Web.Command
+        use Libraries.Web.Attribute
 
-        Command commmand
+        Command command
         Attribute type = command:GetType()
         if type not= undefined
-            text mimeType = command:GetValue()
+            text mimeType = type:GetValue()
         end
     */
     action GetType returns Attribute

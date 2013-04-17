@@ -41,7 +41,7 @@ class InlineFrame is WebTag
         Attribute: Parameter value The height in pixel to set to the inline frame. 
 
         Attribute: Example
-
+        use Libraries.Web.InlineFrame
         InlineFrame inlineFrame
         inlineFrame:SetHeight("150")
         
@@ -56,7 +56,8 @@ class InlineFrame is WebTag
         Attribute: Returns The height in pixels of the inline frame. 
 
         Attribute: Example
-
+        use Libraries.Web.InlineFrame
+        use Libraries.Web.Attribute
         InlineFrame inlineFrame
         Attribute heightInPixels = inlineFrame:GetHeight()
         if heightInPixels not= undefined
@@ -73,7 +74,7 @@ class InlineFrame is WebTag
         Attribute: Parameter value The width in pixel to set to the inline frame. 
 
         Attribute: Example
-
+        use Libraries.Web.InlineFrame
         InlineFrame inlineFrame
         inlineFrame:SetWidth("150")
         
@@ -88,7 +89,8 @@ class InlineFrame is WebTag
         Attribute: Returns The width in pixels of the inline frame. 
 
         Attribute: Example
-
+        use Libraries.Web.InlineFrame
+        use Libraries.Web.Attribute
         InlineFrame inlineFrame
         Attribute widthInPixels = inlineFrame:GetWidth()
         if widthInPixels not= undefined
@@ -105,7 +107,7 @@ class InlineFrame is WebTag
         Attribute: Parameter value The name to set to the inline frame. 
 
         Attribute: Example
-
+        use Libraries.Web.InlineFrame
         InlineFrame inlineFrame
         inlineFrame:SetName("someFrame")
         
@@ -120,7 +122,8 @@ class InlineFrame is WebTag
         Attribute: Returns The name of the inline frame. 
 
         Attribute: Example
-
+        use Libraries.Web.InlineFrame
+        use Libraries.Web.Attribute
         InlineFrame inlineFrame
         Attribute nameOfFrame = inlineFrame:GetName()
         if nameOfFrame not= undefined
@@ -142,9 +145,9 @@ class InlineFrame is WebTag
                                 - allow-forms (Allows form submission)
                                 - allow-scipts (Allows script execution)
         Attribute: Example
-
+        use Libraries.Web.InlineFrame
         InlineFrame inlineFrame
-        inlineFrame:SetSandBox("allow-scripts")
+        inlineFrame:SetSandbox("allow-scripts")
         
     */
     action SetSandbox(text value)
@@ -157,9 +160,10 @@ class InlineFrame is WebTag
         Attribute: Returns The sandbox restriction on the inline frame. 
 
         Attribute: Example
-
+        use Libraries.Web.InlineFrame
+        use Libraries.Web.Attribute
         InlineFrame inlineFrame
-        Attribute sandboxFrame = inlineFrame:GetSandBox()
+        Attribute sandboxFrame = inlineFrame:GetSandbox()
         if sandboxFrame not= undefined
             text sandbox = sandboxFrame:GetValue()
         end
@@ -175,7 +179,7 @@ class InlineFrame is WebTag
         Attribute: Parameter value The seamless to set to the inline frame. 
 
         Attribute: Example
-
+        use Libraries.Web.InlineFrame
         InlineFrame inlineFrame
         inlineFrame:SetSeamless(true)
         
@@ -215,7 +219,7 @@ class InlineFrame is WebTag
         Attribute: Parameter value The address of a webpage or document. 
 
         Attribute: Example
-
+        use Libraries.Web.InlineFrame
         InlineFrame inlineFrame
         inlineFrame:SetAddress("http://www.google.com")
         
@@ -231,7 +235,8 @@ class InlineFrame is WebTag
         Attribute: Returns The address of the inline frame. 
 
         Attribute: Example
-
+        use Libraries.Web.InlineFrame
+        use Libraries.Web.Attribute
         InlineFrame inlineFrame
         Attribute address = inlineFrame:GetAddress()
         if address not= undefined

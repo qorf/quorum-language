@@ -36,10 +36,11 @@ class Abbreviation is WebTag
         Attribute: Returns The full title of the abbreviation
 
         Attribute: Example
-
+        use Libraries.Web.Abbreviation
+        use Libraries.Web.Attribute
         Abbreviation abbr
         Attribute abbrTitle = abbr:GetTitle()
-        if title not= undefined
+        if abbrTitle not= undefined
             text title = abbrTitle:GetValue()
         end
     */
@@ -54,7 +55,7 @@ class Abbreviation is WebTag
         Attribute: Parameter value The unabbreviated form of the abbreviation.
 
         Attribute: Example
-
+        use Libraries.Web.Abbreviation
         Abbreviation abbr
         abbr:SetTitle("National Football League")
     */

@@ -39,9 +39,11 @@ class Style is WebTag
         Attribute: Parameter value Sets the media type for the style.
 
         Attribute: Example
+        use Libraries.Web.Style
+        use Libraries.Web.Attribute
 
         Style style
-        style:SetMedia(braille)
+        style:SetMedia("braille")
         
     */
     action SetMedia(text value)
@@ -56,9 +58,11 @@ class Style is WebTag
         Attribute: Returns The media type for the style.
 
         Attribute: Example
+        use Libraries.Web.Style
+        use Libraries.Web.Attribute
 
         Style style
-        style:SetMedia(braille)
+        style:SetMedia("braille")
         Attribute media = style:GetMedia()
         
     */
@@ -73,6 +77,8 @@ class Style is WebTag
         Attribute: Parameter isScoped If true the style will aply to the parent and child of the element.
 
         Attribute: Example
+        use Libraries.Web.Style
+        use Libraries.Web.Attribute
 
         Style style
         style:SetScoped(true)
@@ -93,6 +99,8 @@ class Style is WebTag
         Attribute: Returns If true the style will aply to the parent and child of the element.
 
         Attribute: Example
+        use Libraries.Web.Style
+        use Libraries.Web.Attribute
 
         Style style
         style:SetScoped(true)
@@ -110,6 +118,8 @@ class Style is WebTag
         Attribute: Parameter value Currently the only applicable type is "text/css".
 
         Attribute: Example
+        use Libraries.Web.Style
+        use Libraries.Web.Attribute
 
         Style style
         style:SetType("text/css")
@@ -126,6 +136,8 @@ class Style is WebTag
         Attribute: Returns The type of information in the stlye object.
 
         Attribute: Example
+        use Libraries.Web.Style
+        use Libraries.Web.Attribute
 
         Style style
         style:SetType("text/css")

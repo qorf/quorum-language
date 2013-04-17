@@ -41,8 +41,10 @@ class Attributes is WebGenerator
 
         Attribute: Example
         use Libraries.Web.Attributes
+        use Libraries.Web.Attribute
+        use Libraries.Containers.Blueprints.Iterator
 
-        Attribute attributes
+        Attributes attributes
         Attribute attribute
         attribute:SetName("src")
         attribute:SetValue("http://www.google.com")
@@ -67,8 +69,9 @@ class Attributes is WebGenerator
 
         Attribute: Example
         use Libraries.Web.Attributes
+        use Libraries.Web.Attribute
 
-        Attribute attributes
+        Attributes attributes
         Attribute attribute
         attribute:SetName("src")
         attribute:SetValue("http://www.google.com")
@@ -88,13 +91,14 @@ class Attributes is WebGenerator
 
         Attribute: Example
         use Libraries.Web.Attributes
+        use Libraries.Web.Attribute
 
-        Attribute attributes
+        Attributes attributes
         Attribute attribute
         attribute:SetName("src")
         attribute:SetValue("http://www.google.com")
         attributes:Add(attribute)
-        Attribute value = accept:Remove("src")
+        Attribute value = attributes:Remove("src")
     */
     action Remove(text name) returns Attribute
         if(attributes:HasKey(name)) 

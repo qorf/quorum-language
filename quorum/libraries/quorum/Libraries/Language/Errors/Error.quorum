@@ -156,19 +156,6 @@ class Error
         output str
     end
 
-    /*
-        This action gets an item off the stack trace. 
-
-        Attribute: Parameter index The location to grab the item from.
-
-        Attribute: Returns An item off the stack trace.
-
-        Attribute: Example
-        use Libraries.Language.Errors.Error
-        use Libraries.System.StackTraceItem
-        Error error
-        StackTraceItem callStackItem = error:GetStackTraceItem(0)
-    */
     private action GetStackTraceItem(integer index) returns StackTraceItem
         StackTraceItem item
         item:Init(GetClassName(index), GetMethodName(index), GetFileName(index), GetLineNumber(index))

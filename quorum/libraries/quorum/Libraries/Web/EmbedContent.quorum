@@ -39,6 +39,8 @@ class EmbedContent is WebTag
         Attribute: Parameter value The height in pixel to set to the embeded content. 
 
         Attribute: Example
+        use Libraries.Web.EmbedContent
+        use Libraries.Web.Attribute
 
         EmbedContent embed
         embed:SetHeight("150")
@@ -54,11 +56,13 @@ class EmbedContent is WebTag
         Attribute: Returns The height in pixels of the embeded content. 
 
         Attribute: Example
+        use Libraries.Web.EmbedContent
+        use Libraries.Web.Attribute
 
         EmbedContent embed
-        Attribute heightInPixels = embed:GetAddress()
+        Attribute heightInPixels = embed:GetHeight()
         if heightInPixels not= undefined
-            text height = embed:GetValue()
+            text height = heightInPixels:GetValue()
         end
     */
     action GetHeight returns Attribute
@@ -71,6 +75,8 @@ class EmbedContent is WebTag
         Attribute: Parameter value The width in pixel to set to the embeded content. 
 
         Attribute: Example
+        use Libraries.Web.EmbedContent
+        use Libraries.Web.Attribute
 
         EmbedContent embed
         embed:SetWidth("150")
@@ -86,11 +92,13 @@ class EmbedContent is WebTag
         Attribute: Returns The width in pixels of the embeded content. 
 
         Attribute: Example
+        use Libraries.Web.EmbedContent
+        use Libraries.Web.Attribute
 
         EmbedContent embed
-        Attribute widthInPixels = embed:GetAddress()
+        Attribute widthInPixels = embed:GetWidth()
         if widthInPixels not= undefined
-            text width = embed:GetValue()
+            text width = widthInPixels:GetValue()
         end
     */
     action GetWidth returns Attribute
@@ -104,6 +112,8 @@ class EmbedContent is WebTag
         Attribute: Parameter value The address of a webpage or document. 
 
         Attribute: Example
+        use Libraries.Web.EmbedContent
+        use Libraries.Web.Attribute
 
         EmbedContent embed
         embed:SetAddress("http://www.google.com")
@@ -120,11 +130,13 @@ class EmbedContent is WebTag
         Attribute: Returns The address of the link. 
 
         Attribute: Example
+        use Libraries.Web.EmbedContent
+        use Libraries.Web.Attribute
 
         EmbedContent embed
         Attribute address = embed:GetAddress()
         if address not= undefined
-            text href = embed:GetValue()
+            text href = address:GetValue()
         end
     */
     action GetAddress returns Attribute
@@ -138,6 +150,8 @@ class EmbedContent is WebTag
         Attribute: Parameter value The MIME type for the content.
 
         Attribute: Example
+        use Libraries.Web.EmbedContent
+        use Libraries.Web.Attribute
 
         EmbedContent embed
         embed:SetType("text/html")
@@ -154,11 +168,13 @@ class EmbedContent is WebTag
         Attribute: Returns The MIME type attribute of the embeded content. 
 
         Attribute: Example
+        use Libraries.Web.EmbedContent
+        use Libraries.Web.Attribute
 
         EmbedContent embed
         Attribute type = embed:GetType()
         if type not= undefined
-            text mimeType = embed:GetValue()
+            text mimeType = type:GetValue()
         end
     */
     action GetType returns Attribute
@@ -171,9 +187,11 @@ class EmbedContent is WebTag
         Attribute: Parameter value The name attribute. 
 
         Attribute: Example
+        use Libraries.Web.EmbedContent
+        use Libraries.Web.Attribute
 
         EmbedContent embed
-        emebed:SetName("someContent")
+        embed:SetName("someContent")
     */
     action SetName(text value)
         AddAttribute(name, value)
@@ -185,9 +203,11 @@ class EmbedContent is WebTag
         Attribute: Returns The name attribute.
 
         Attribute: Example
+        use Libraries.Web.EmbedContent
+        use Libraries.Web.Attribute
 
         EmbedContent embed
-        attribute embedName = embed:GetName()
+        Attribute embedName = embed:GetName()
         text name = ""
         if embedName not= undefined
            name = embedName:GetValue()
@@ -203,11 +223,10 @@ class EmbedContent is WebTag
         Attribute: Parameter value The ImageMap name attribute. 
 
         Attribute: Example
+        use Libraries.Web.EmbedContent
 
-        ImageMap imageMap
-        imageMap:SetMapName("someImageMap")
         EmbedContent embed
-        emebed:SetImageMapName("someImageMap")
+        embed:SetImageMapName("someImageMap")
     */
     action SetImageMapName(text value)
         AddAttribute("#"+mapName, value)
@@ -220,9 +239,11 @@ class EmbedContent is WebTag
         Attribute: Returns The ImageMap name attribute.
 
         Attribute: Example
+        use Libraries.Web.EmbedContent
+        use Libraries.Web.Attribute
 
         EmbedContent embed
-        attribute embedImageMapName = embed:GetImageMapName()
+        Attribute embedImageMapName = embed:GetImageMapName()
         text name = ""
         if embedImageMapName not= undefined
            mapName = embedImageMapName:GetValue()

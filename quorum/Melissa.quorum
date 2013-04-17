@@ -10,10 +10,16 @@ use Libraries.Compute.all
 use Libraries.Robots.all
 use Libraries.System.Blueprints.all
 use Libraries.System.all
-use Libraries.Web.all
+
+        use Libraries.Web.Attribute
+        use Libraries.Web.ColumnGroup
 class Main
 action Main
-    integer i = 0 - (5+3)
-    output i
+
+        ColumnGroup cg
+        Attribute span = cg:GetSpan()
+        if span not= undefined
+            text s = span:GetValue()
+        end
 end
 end

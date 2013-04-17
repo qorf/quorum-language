@@ -1,8 +1,9 @@
 package Libraries.Web
 
-use Libraries.Web.WebTag
-use Libraries.Web.Attribute
-use Libraries.Web.Attributes
+use Libraries.Web.All
+//use Libraries.Web.Attribute
+//use Libraries.Web.Attributes
+//use Libraries.Web.ColumnGroup
 
 /*
 The WebTable class represents HTML's (Hypertext Markup Language) table tag which 
@@ -41,10 +42,10 @@ class WebTable is WebTag
         boolean hasBorder = table:GetBorder()
     */
     action GetBorder returns boolean
-            Attribute border = GetAttribute(me:border)
-            if border = undefined
+            Attribute b = GetAttribute(border)
+            if b = undefined
                 return false
-            elseif border:GetValue() = ""
+            elseif b:GetValue() = ""
                 return false
             else
                 return true
@@ -101,11 +102,12 @@ class WebTable is WebTag
         Attribute: Example
         use Libraries.Web.WebTable
         use Libraries.Web.ColumnGroup
+
         WebTable table
         ColumnGroup cg
         table:SetColumnGroup(cg)
     */
-    action setColumnGroup(ColumnGroup value)
+    action SetColumnGroup(ColumnGroup value)
         me:columnGroup = value
     end
 
@@ -124,7 +126,7 @@ class WebTable is WebTag
         ColumnGroup cg = table:GetColumnGroup()
     */
     action GetColumnGroup returns ColumnGroup
-        return me:columnGroup
+        return columnGroup
     end
 
     action Generate returns text

@@ -41,6 +41,7 @@ class TableData is WebTag
         Attribute: Returns The number of columns a cell spans. 
 
         Attribute: Example
+        use Libraries.Web.TableData
 
         TableData td
         integer span = td:GetColumnSpan()
@@ -62,6 +63,7 @@ class TableData is WebTag
         Attribute: Parameter value The number of columns a cell should span. 
 
         Attribute: Example
+        use Libraries.Web.TableData
 
         TableData td
         td:SetColumnSpan(2)
@@ -78,6 +80,7 @@ class TableData is WebTag
         Attribute: Returns The number of rows a cell spans. 
 
         Attribute: Example
+        use Libraries.Web.TableData
 
         TableData td
         integer rowSpan = td:GetRowSpan()
@@ -99,6 +102,7 @@ class TableData is WebTag
         Attribute: Parameter value The number of rows a cell should span. 
 
         Attribute: Example
+        use Libraries.Web.TableData
 
         TableData td
         td:SetRowSpan(2)
@@ -114,6 +118,8 @@ class TableData is WebTag
         Attribute: Returns The header id. 
 
         Attribute: Example
+        use Libraries.Web.TableData
+        use Libraries.Web.Attribute
 
         TableData td
         Attribute headerID = td:GetHeaders()
@@ -129,10 +135,7 @@ class TableData is WebTag
         Attribute: Parameter value The header id that links the cell to a header. 
 
         Attribute: Example
-
-        //generate a header with an id of name
-        TableHeader th
-        th:SetHeaders("name")
+        use Libraries.Web.TableData
 
         //link the cell to the header by its id
         TableData td

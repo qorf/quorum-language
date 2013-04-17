@@ -43,7 +43,7 @@ class Menu is WebTag
         This action sets label on the menu.
 
         Attribute: Example
-
+        use Libraries.Web.Menu
         Menu menu
         menu:SetLabel("aLabel")
     */
@@ -57,7 +57,8 @@ class Menu is WebTag
         Attribute: Returns The label of specified menu 
 
         Attribute: Example
-
+        use Libraries.Web.Menu
+        use Libraries.Web.Attribute
         Menu menu
         Attribute menuLabel = menu:GetLabel()
     */
@@ -69,7 +70,7 @@ class Menu is WebTag
         This action sets type of the menu.
 
         Attribute: Example
-
+        use Libraries.Web.Menu
         Menu menu
         menu:SetType(menu:toolbarMenuType)
     */
@@ -83,7 +84,8 @@ class Menu is WebTag
         Attribute: Returns The type of specified menu 
 
         Attribute: Example
-
+        use Libraries.Web.Menu
+        use Libraries.Web.Attribute
         Menu menu
         Attribute menuType = menu:GetType()
     */

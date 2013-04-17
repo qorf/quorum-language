@@ -74,7 +74,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The accept attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute accept = myInput:GetAccept()
         text acceptValue = ""
@@ -98,7 +99,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The accept of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetAccept("audio/*,text/txt")
     */
@@ -113,7 +114,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The alternate attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute alternate = myInput:GetAlternate()
         text alternateValue = ""
@@ -131,7 +133,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The alternate of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetAlternate("Submit Button")
     */
@@ -146,7 +148,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The autocomplete attribute value.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         boolean inputAutocomplete = myInput:GetAutocomplete()
     */
@@ -164,7 +167,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value Boolean value that represents the autocomplete of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetAutocomplete(true)
     */
@@ -183,7 +186,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The autofocus attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         boolean inputAutofocus = myInput:GetAutofocus()
     */
@@ -201,7 +204,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The autofocus of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetAutofocus(true)
     */
@@ -221,7 +224,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The checked attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         boolean inputChecked = myInput:GetChecked()
     */
@@ -241,7 +244,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The checked of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetChecked(true)
     */
@@ -260,7 +263,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The disabled attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         boolean inputDisabled = myInput:GetDisabled()
     */
@@ -279,7 +282,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The disabled of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetDisabled(true)
     */
@@ -298,7 +301,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The formName attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute formName = myInput:GetFormName()
         text formNameValue = ""
@@ -316,7 +320,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The formName of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetFormName("Input Form")
     */
@@ -332,7 +336,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The formAction attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute formAction = myInput:GetFormAction()
         text formActionValue = ""
@@ -351,7 +356,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The formAction of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetFormAction("inputFormAction.quorum")
     */
@@ -369,7 +374,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The formEncodedType attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute formEncodedType = myInput:GetFormEncodedType()
         text formEncodedTypeValue = ""
@@ -390,7 +396,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The formEncodedType of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetFormEncodedType("application/x-www-form-urlencoded")
     */
@@ -406,7 +412,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The formMethod attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute formMethod = myInput:GetFormMethod()
         text formMethodValue = ""
@@ -425,7 +432,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The formMethod of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetFormMethod("get")
     */
@@ -440,7 +447,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The formNovalidate attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         boolean inputFormNovalidate = myInput:GetFormNovalidate()
     */
@@ -459,7 +466,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The formNovalidate of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetFormNovalidate(true)
     */
@@ -484,12 +491,13 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The formTarget attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute formTarget = myInput:GetFormTarget()
-        text formTarGetValue() = ""
+        text formTarGetValue = ""
         if formTarget not= undefined
-            formTarGetValue() = formTarget:GetValue()
+            formTarGetValue = formTarget:GetValue()
         end
     */
     action GetFormTarget returns Attribute
@@ -507,7 +515,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The formTarget of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetFormTarget("_blank")
     */
@@ -523,7 +531,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The height attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute height = myInput:GetHeight()
         text heightValue = ""
@@ -541,7 +550,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The height of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetHeight("50")
     */
@@ -557,7 +566,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The list attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute list = myInput:GetList()
         text listValue = ""
@@ -575,7 +585,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The list of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetList("input_list")
     */
@@ -591,7 +601,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The max attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute max = myInput:GetMax()
         text maxValue = ""
@@ -610,7 +621,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The max of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetMax("100")
     */
@@ -626,7 +637,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The maxLength attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute maxLength = myInput:GetMaxLength()
         text maxLengthValue = ""
@@ -644,7 +656,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The maxLength of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetMaxLength("55")
     */
@@ -660,7 +672,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The min attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute min = myInput:GetMin()
         text minValue = ""
@@ -679,7 +692,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The min of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetMin("9")
     */
@@ -693,7 +706,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The multiple attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         boolean inputMultiple = myInput:GetMultiple()
     */
@@ -711,9 +724,9 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The multiple of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
-        myInput:Setmultiple(true)
+        myInput:SetMultiple(true)
     */
     action SetMultiple(boolean value)
         if value
@@ -730,7 +743,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The name attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute name = myInput:GetName()
         text nameValue = ""
@@ -748,7 +762,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The name of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetName("Male_Gender_Input")
     */
@@ -764,7 +778,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The pattern attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute pattern = myInput:GetPattern()
         text patternValue = ""
@@ -783,7 +798,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The pattern of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetPattern("1?{{0..9}^3(-?)}^2{0..9}^4")
     */
@@ -801,7 +816,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The placeHolder attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute placeHolder = myInput:GetPlaceHolder()
         text placeHolderValue = ""
@@ -822,7 +838,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The placeHolder of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetPlaceHolder("First Name")
     */
@@ -836,7 +852,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The readOnly attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         boolean inputReadOnly = myInput:GetReadOnly()
     */
@@ -854,7 +870,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The readOnly of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetReadOnly(true)
     */
@@ -872,7 +888,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The required attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         boolean inputRequired = myInput:GetRequired()
     */
@@ -890,7 +906,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The required of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetRequired(true)
     */
@@ -910,7 +926,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The size attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute size = myInput:GetSize()
         text sizeValue = ""
@@ -929,7 +946,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The size of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetSize("50")
     */
@@ -944,7 +961,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The imageAddress attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute imageAddress = myInput:GetImageAddress()
         text imageAddressValue = ""
@@ -962,7 +980,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The imageAddress of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetImageAddress("go_button.jpg")
     */
@@ -978,7 +996,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The step attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute step = myInput:GetStep()
         text stepValue = ""
@@ -997,7 +1016,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The step of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetStep("5")
     */
@@ -1035,7 +1054,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The type attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute type = myInput:GetType()
         text typeValue = ""
@@ -1076,7 +1096,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The type of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetType("button")
     */
@@ -1091,7 +1111,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The defaultValue attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute defaultValue = myInput:GetDefaultValue()
         text defaultValueValue = ""
@@ -1109,7 +1130,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The defaultValue of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetDefaultValue("gender_female")
     */
@@ -1124,7 +1145,8 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Returns The width attribute.
 
         Attribute: Example
-
+        use Libraries.Web.Input
+        use Libraries.Web.Attribute
         Input myInput
         Attribute width = myInput:GetWidth()
         text widthValue = ""
@@ -1142,7 +1164,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         Attribute: Parameter value The width of the input.
         
         Attribute: Example
-
+        use Libraries.Web.Input
         Input myInput
         myInput:SetWidth("15")
     */

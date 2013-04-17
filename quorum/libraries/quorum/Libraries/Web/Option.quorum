@@ -39,7 +39,8 @@ class Option is WebTag
         Attribute: Returns True if diabled and false if enabled. 
 
         Attribute: Example
-
+        use Libraries.Web.Option
+        Option opt
         boolean result = opt:GetDisabled()
         
     */
@@ -54,7 +55,7 @@ class Option is WebTag
         Attribute: Parameter value True to disable and false to enable the option. 
 
         Attribute: Example
-
+        use Libraries.Web.Option
         Option opt
         opt:SetDisabled(true)
         
@@ -73,7 +74,9 @@ class Option is WebTag
         Attribute: Returns The label. 
 
         Attribute: Example
-
+        use Libraries.Web.Option
+        use Libraries.Web.Attribute
+        Option opt
         Attribute result = opt:GetLabel()
         
     */
@@ -87,7 +90,7 @@ class Option is WebTag
         Attribute: Parameter value The labeling text. 
 
         Attribute: Example
-
+        use Libraries.Web.Option
         Option opt
         opt:SetLabel("Alabama")
         
@@ -103,7 +106,8 @@ class Option is WebTag
         Attribute: Returns The attribute containing the select information. 
 
         Attribute: Example
-
+        use Libraries.Web.Option
+        Option opt
         boolean result = opt:GetSelected()
         
     */
@@ -118,7 +122,7 @@ class Option is WebTag
         Attribute: Parameter value True to select and false to unselect the option. 
 
         Attribute: Example
-
+        use Libraries.Web.Option
         Option opt
         opt:SetSelected(true)
         
@@ -137,7 +141,9 @@ class Option is WebTag
         Attribute: Returns The default value. 
 
         Attribute: Example
-
+        use Libraries.Web.Option
+        use Libraries.Web.Attribute
+        Option opt
         Attribute result = opt:GetDefaultValue()
         
     */
@@ -151,7 +157,7 @@ class Option is WebTag
         Attribute: Parameter value The value to be sent to the server. 
 
         Attribute: Example
-
+        use Libraries.Web.Option
         Option opt
         opt:SetDefaultValue("my text")
         

@@ -3,6 +3,8 @@ package Libraries.Web
 use Libraries.Web.WebTag
 use Libraries.Web.Attribute
 use Libraries.Web.Attributes
+use Libraries.Web.OptionGroup
+use Libraries.Web.Option
 
 /*
 The Select class represents HTML's (Hypertext Markup Language) select tag which 
@@ -41,7 +43,9 @@ class Select is WebTag
         Attribute: Returns True if auto focused and false if not auto focused. 
 
         Attribute: Example
+        use Libraries.Web.Select
 
+        Select select
         boolean result = select:GetAutofocus()
         
     */
@@ -56,9 +60,10 @@ class Select is WebTag
         Attribute: Parameter value True to auto focused and false to not auto focus the select. 
 
         Attribute: Example
+        use Libraries.Web.Select
 
-        Select s
-        s:SetAutofocus(true)
+        Select select
+        select:SetAutofocus(true)
         
     */
     action SetAutofocus(boolean value)
@@ -76,7 +81,9 @@ class Select is WebTag
         Attribute: Returns True if diabled and false if enabled. 
 
         Attribute: Example
+        use Libraries.Web.Select
 
+        Select select
         boolean result = select:GetDisabled()
         
     */
@@ -91,9 +98,10 @@ class Select is WebTag
         Attribute: Parameter value True to disable and false to enable the select. 
 
         Attribute: Example
+        use Libraries.Web.Select
 
-        Select s
-        s:SetDisabled(true)
+        Select select
+        select:SetDisabled(true)
         
     */
     action SetDisabled (boolean value)
@@ -110,7 +118,10 @@ class Select is WebTag
         Attribute: Returns The form a select list belongs to. 
 
         Attribute: Example
+        use Libraries.Web.Select
+        use Libraries.Web.Attribute
 
+        Select select
         Attribute result = select:GetFormId()
         
     */
@@ -124,9 +135,10 @@ class Select is WebTag
         Attribute: Parameter value The name of the associated form. 
 
         Attribute: Example
+        use Libraries.Web.Select
 
-        Select s
-        s:SetFormId("myForm")
+        Select select
+        select:SetFormId("myForm")
         
     */
     action SetFormId(text value)
@@ -140,7 +152,9 @@ class Select is WebTag
         Attribute: Returns True if more than one can be selected and false if not. 
 
         Attribute: Example
+        use Libraries.Web.Select
 
+        Select select
         boolean result = select:GetMultiple()
         
     */
@@ -157,9 +171,10 @@ class Select is WebTag
         multiple option to be selected. 
 
         Attribute: Example
+        use Libraries.Web.Select
 
-        Select s
-        s:SetMultiple(true)
+        Select select
+        select:SetMultiple(true)
         
     */
     action SetMultiple(boolean value)
@@ -176,7 +191,10 @@ class Select is WebTag
         Attribute: Returns Name of the select list. 
 
         Attribute: Example
+        use Libraries.Web.Select
+        use Libraries.Web.Attribute
 
+        Select select
         Attribute result = select:GetName()
         
     */
@@ -190,9 +208,10 @@ class Select is WebTag
         Attribute: Parameter value The name of the select list. 
 
         Attribute: Example
+        use Libraries.Web.Select
 
-        Select s
-        s:SetName("mySelect")
+        Select select
+        select:SetName("mySelect")
         
     */
     action SetName(text value)
@@ -205,7 +224,10 @@ class Select is WebTag
         Attribute: Returns The number of options. 
 
         Attribute: Example
+        use Libraries.Web.Select
+        use Libraries.Web.Attribute
 
+        Select select
         Attribute result = select:GetSize()
         
     */
@@ -219,9 +241,10 @@ class Select is WebTag
         Attribute: Parameter value The size. 
 
         Attribute: Example
+        use Libraries.Web.Select
 
-        Select s
-        s:SetName("5")
+        Select select
+        select:SetName("5")
         
     */
     action SetSize(text value)
@@ -234,6 +257,8 @@ class Select is WebTag
         Attribute: Parameter value The option to be added to the list. 
 
         Attribute: Example
+        use Libraries.Web.Select
+        use Libraries.Web.Option
 
         Select s
         s:SetName("States")
@@ -252,6 +277,8 @@ class Select is WebTag
         Attribute: Parameter value The option to be removed from the list. 
 
         Attribute: Example
+        use Libraries.Web.Select
+        use Libraries.Web.Option
 
         Select s
         s:SetName("States")
@@ -272,6 +299,8 @@ class Select is WebTag
         Attribute: Parameter value The option groupt to be added to the list. 
 
         Attribute: Example
+        use Libraries.Web.Select
+        use Libraries.Web.OptionGroup
 
         Select s
         s:SetName("States")
@@ -290,6 +319,8 @@ class Select is WebTag
         Attribute: Parameter value The option group to be removed from the list. 
 
         Attribute: Example
+        use Libraries.Web.Select
+        use Libraries.Web.OptionGroup
 
         Select s
         s:SetName("States")

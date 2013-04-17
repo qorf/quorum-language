@@ -44,7 +44,8 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
         Attribute: Parameter value The header meta data. 
 
         Attribute: Example
-
+        use Libraries.Web.WebPageHeader
+        use Libraries.Web.MetaData
         WebPageHeader header
         MetaData md
         header:Add(md)
@@ -61,10 +62,11 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
         Attribute: Parameter value The meta data element. 
 
         Attribute: Example
-
+        use Libraries.Web.WebPageHeader
+        use Libraries.Web.MetaData
         WebPageHeader header
         MetaData item
-        MetaData md = header:Remove(item)
+        header:Remove(item)
         
     */
     action Remove(MetaData value)
@@ -78,7 +80,8 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
         Attribute: Parameter value The header base data. 
 
         Attribute: Example
-
+        use Libraries.Web.WebPageHeader
+        use Libraries.Web.Base
         WebPageHeader header
         Base base
         header:Add(base)
@@ -94,10 +97,11 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
         Attribute: Parameter value The meta data element. 
 
         Attribute: Example
-
+        use Libraries.Web.WebPageHeader
+        use Libraries.Web.Base
         WebPageHeader header
         Base item
-        Base base = header:Remove(item)
+        header:Remove(item)
         
     */
     action Remove(Base value)
@@ -110,12 +114,15 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
         Attribute: Returns The number of meta data items in the header. 
 
         Attribute: Example
-
+        use Libraries.Web.WebPageHeader
         WebPageHeader header
-        integer number = header:GetNumberOfMetaDataItems()
+        integer val = header:GetNumberOfMetaDataItems()
         
     */
     action GetNumberOfMetaDataItems returns integer
+        if(metaList = undefined)
+            return 0
+        end
         return metaList:GetSize()
     end
 
@@ -125,7 +132,8 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
         Attribute: Parameter value The script to add to the header. 
 
         Attribute: Example
-
+        use Libraries.Web.WebPageHeader
+        use Libraries.Web.Script
         WebPageHeader header
         Script s
         header:Add(s)
@@ -142,7 +150,8 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
         Attribute: Parameter value The script to be removed from the header. 
 
         Attribute: Example
-
+        use Libraries.Web.WebPageHeader
+        use Libraries.Web.Script
         WebPageHeader header
         Script s
         header:Add(s)
@@ -159,14 +168,18 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
         Attribute: Returns The number of script items in the header. 
 
         Attribute: Example
-
+        use Libraries.Web.WebPageHeader
+        use Libraries.Web.Script
         WebPageHeader header
         Script s
         header:Add(s)
-        integer number = header:GetNumberOfScriptItems()
+        integer val = header:GetNumberOfScriptItems()
         
     */
     action GetNumberOfScriptItems returns integer
+        if scriptList = undefined
+            return 0
+        end
         return scriptList:GetSize()
     end
 
@@ -176,7 +189,8 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
         Attribute: Returns The headers title. 
 
         Attribute: Example
-
+        use Libraries.Web.WebPageHeader
+        use Libraries.Web.Title
         WebPageHeader header
         Title title
         header:SetTitleHeader(title)
@@ -197,7 +211,8 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
         Attribute: Parameter title The title. 
 
         Attribute: Example
-
+        use Libraries.Web.WebPageHeader
+        use Libraries.Web.Title
         WebPageHeader header
         Title title
         header:SetTitleHeader(title)
@@ -217,9 +232,10 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
         Attribute: Parameter value The title text. 
 
         Attribute: Example
+        use Libraries.Web.WebPageHeader
 
         WebPageHeader header
-        header:SetTitleheaderValue("My Title")
+        header:SetTitleHeaderValue("My Title")
         
     */
     action SetTitleHeaderValue(text value)
@@ -232,7 +248,7 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
         Attribute: Returns The title. 
 
         Attribute: Example
-
+        use Libraries.Web.WebPageHeader
         WebPageHeader header
         output header:GetTitleHeaderValue()
         

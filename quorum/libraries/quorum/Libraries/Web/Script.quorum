@@ -42,6 +42,7 @@ class Script is WebTag
         Attribute: Returns The script code. 
 
         Attribute: Example
+        use Libraries.Web.Script
 
         Script script
         text code = script:GetCode()
@@ -57,9 +58,10 @@ class Script is WebTag
         Attribute: Parameter code The script code.
 
         Attribute: Example
+        use Libraries.Web.Script
 
         Script script
-        script:SetCode("write.document("My webpage!")")
+        script:SetCode("write.document(" + quote + "My webpage!" + quote +")")
         
     */
     action SetCode(text code)
@@ -74,7 +76,8 @@ class Script is WebTag
 
 
         Attribute: Example
-        
+        use Libraries.Web.Script        
+
         Script script
         script:SetAsync(true)
     */
@@ -93,6 +96,7 @@ class Script is WebTag
         Attribute: Returns This returns true if asych has been set.
 
         Attribute: Example
+        use Libraries.Web.Script
 
         Script script
         boolean asych = script:GetAsync()
@@ -111,6 +115,7 @@ class Script is WebTag
         file differs from the encoding in the HTML document.
 
         Attribute: Example
+        use Libraries.Web.Script
 
         Script script
         script:SetCharSet(script:charSetUnicode)
@@ -126,6 +131,8 @@ class Script is WebTag
         Attribute: Returns The current charset to use.
 
         Attribute: Example
+        use Libraries.Web.Script
+        use Libraries.Web.Attribute
 
         Script script
         Attribute charSetValue = script:GetCharSet()
@@ -142,7 +149,8 @@ class Script is WebTag
 
 
         Attribute: Example
-        
+        use Libraries.Web.Script
+
         Script script
         script:SetDefer(true)
     */
@@ -161,6 +169,7 @@ class Script is WebTag
         Attribute: Returns This returns true if defer has been set.
 
         Attribute: Example
+        use Libraries.Web.Script
 
         Script script
         boolean defer = script:GetDefer()
@@ -180,6 +189,7 @@ class Script is WebTag
         Attribute: Parameter value The address of a external javascript file.
 
         Attribute: Example
+        use Libraries.Web.Script
 
         Script script
         script:SetAddress("someJavaScriptFile.js")
@@ -195,6 +205,8 @@ class Script is WebTag
         Attribute: Returns The address of the external javascript file.
 
         Attribute: Example
+        use Libraries.Web.Script
+        use Libraries.Web.Attribute
 
         Script script
         Attribute addressValue = script:GetAddress()        
@@ -210,6 +222,7 @@ class Script is WebTag
         Attribute: Parameter value The MIME type for the script.
 
         Attribute: Example
+        use Libraries.Web.Script
 
         Script script
         script:SetType("text/html")
@@ -226,6 +239,8 @@ class Script is WebTag
         Attribute: Returns The MIME type attribute of the script. 
 
         Attribute: Example
+        use Libraries.Web.Script
+        use Libraries.Web.Attribute
 
         Script script
         Attribute type = script:GetType()

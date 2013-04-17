@@ -57,7 +57,7 @@ class CalculationOutput is WebTag
         Attribute: Parameter value The name value of the CalculationOutput.
 
         Attribute: Example
-
+        use Libraries.Web.CalculationOutput
         CalculationOutput calcOutput
         calcOutput:SetName("x")
         
@@ -70,7 +70,8 @@ class CalculationOutput is WebTag
         This action gets the name of the CalculationOutput.
 
         Attribute: Example
-
+        use Libraries.Web.CalculationOutput
+        use Libraries.Web.Attribute
         CalculationOutput calcOutput
         Attribute nameValue = calcOutput:GetName()
         if nameValue not= undefined
@@ -91,7 +92,7 @@ class CalculationOutput is WebTag
         CalculationOutput to use.
 
         Attribute: Example
-
+        use Libraries.Web.CalculationOutput
         CalculationOutput calcOutput
         calcOutput:SetElementIds("a b")
         
@@ -104,7 +105,8 @@ class CalculationOutput is WebTag
         This action gets the element ids of the CalculationOutput.
 
         Attribute: Example
-
+        use Libraries.Web.CalculationOutput
+        use Libraries.Web.Attribute
         CalculationOutput calcOutput
         Attribute elementIdsValue = calcOutput:GetElementIds()
         if elementIdsValue not= undefined

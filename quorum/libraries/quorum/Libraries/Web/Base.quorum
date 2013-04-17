@@ -52,7 +52,7 @@ class Base is WebTag
         Attribute: Parameter value The address of a webpage or document. 
 
         Attribute: Example
-
+        use Libraries.Web.Base
         Base base
         base:SetAddress("http://www.google.com")
         
@@ -67,11 +67,12 @@ class Base is WebTag
         Attribute: Returns The address of the link. 
 
         Attribute: Example
-
+        use Libraries.Web.Base
+        use Libraries.Web.Attribute
         Base base
         Attribute address = base:GetAddress()
         if address not= undefined
-            text href = base:GetValue()
+            text href = address:GetValue()
         end
     */
     action GetAddress returns Attribute
@@ -86,7 +87,7 @@ class Base is WebTag
         Attribute: Parameter value The target of the area.
 
         Attribute: Example
-
+        use Libraries.Web.Base
         Base base
         base:SetTarget("_top")
         
@@ -102,11 +103,12 @@ class Base is WebTag
         Attribute: Returns The place the area will be opened. 
 
         Attribute: Example
-
+        use Libraries.Web.Base
+        use Libraries.Web.Attribute
         Base base
         Attribute target = base:GetTarget()
         if target not= undefined
-            text tar = base:GetValue()
+            text tar = target:GetValue()
         end
     */
     action GetTarget returns Attribute

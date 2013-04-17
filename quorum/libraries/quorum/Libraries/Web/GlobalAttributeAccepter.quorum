@@ -460,6 +460,7 @@ class GlobalAttributeAccepter is AttributeAccepter
 
         use Libraries.Web.GlobalAttributeAccepter
         use Libraries.Web.LanguageCode
+        use Libraries.Web.Link
 
         LanguageCode code
         //use any WebItem, in this case a link
@@ -481,7 +482,7 @@ class GlobalAttributeAccepter is AttributeAccepter
         use Libraries.Web.Attribute
 
         GlobalAttributeAccepter accept
-        accept:SetSpellcheck("true")
+        accept:SetSpellcheck(true)
     */
     action SetSpellcheck(boolean value)
         AddAttribute(spellcheck, value)

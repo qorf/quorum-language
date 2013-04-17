@@ -1,4 +1,4 @@
-package Libraries.Web
+ package Libraries.Web
 
 use Libraries.Web.WebTag
 use Libraries.Web.Attribute
@@ -48,7 +48,7 @@ class FieldSet is WebTag
         Attribute: Returns True when disabled and false when enabled. 
 
         Attribute: Example
-
+        use Libraries.Web.FieldSet
         FieldSet field
         boolean isDisabled = field:GetDisabled()
     */
@@ -64,7 +64,7 @@ class FieldSet is WebTag
         Attribute: Parameter value True to disable and false to enable.
 
         Attribute: Example
-
+        use Libraries.Web.FieldSet
         FieldSet field
         field:SetDisabled(true)
         
@@ -84,7 +84,8 @@ class FieldSet is WebTag
         Attribute: Returns The form id attribute. 
 
         Attribute: Example
-
+        use Libraries.Web.FieldSet
+        use Libraries.Web.Attribute
         FieldSet field
         Attribute fID = field:GetFormId()
         if fID not= undefined
@@ -102,7 +103,7 @@ class FieldSet is WebTag
         Attribute: Parameter value The form id.
 
         Attribute: Example
-
+        use Libraries.Web.FieldSet
         FieldSet field
         field:SetFormId("personalInfo")
         
@@ -117,7 +118,8 @@ class FieldSet is WebTag
         Attribute: Returns The fieldsets name. 
 
         Attribute: Example
-
+        use Libraries.Web.FieldSet
+        use Libraries.Web.Attribute
         FieldSet field
         Attribute fName = field:GetName()
         if fName not= undefined
@@ -134,7 +136,7 @@ class FieldSet is WebTag
         Attribute: Parameter value The name of the fieldset.
 
         Attribute: Example
-
+        use Libraries.Web.FieldSet
         FieldSet field
         field:SetName("personal")
         

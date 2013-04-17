@@ -38,7 +38,7 @@ class ImageMap is WebTag
         Attribute: Parameter value The imageMap name.
 
         Attribute: Example
-
+        use Libraries.Web.ImageMap
         ImageMap imageMap
         imageMap:SetName("testMap")
         
@@ -54,9 +54,10 @@ class ImageMap is WebTag
         Attribute: Returns The Attribute containing the name of the image map.
 
         Attribute: Example
-
+        use Libraries.Web.ImageMap
+        use Libraries.Web.Attribute
         ImageMap imageMap
-        imageMap:SetName("testMap:)
+        imageMap:SetName("testMap")
         Attribute name = imageMap:GetName()
         
     */

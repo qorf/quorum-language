@@ -91,7 +91,7 @@ class AttributeAccepter
         use Libraries.Web.Attribute
 
         AttributeAccepter accept
-        accept:Add("src", "http://www.google.com")
+        accept:AddAttribute("src", "http://www.google.com")
         
     */
     action AddAttribute(text name, text value)
@@ -181,7 +181,7 @@ class AttributeAccepter
         AttributeAccepter accept
         accept:AddAttribute("src", "http://www.google.com")
         //This helper action would throw an error if "src" were not set.
-        accept:Remove("src")
+        accept:RemoveAttribute("src")
     */
     action RemoveAttribute(text name) returns Attribute
         return attributes:Remove(name)
@@ -234,6 +234,7 @@ class AttributeAccepter
         Attribute: Example
         use Libraries.Web.AttributeAccepter
         use Libraries.Web.Attribute
+        use Libraries.Containers.Blueprints.Iterator
 
         AttributeAccepter accept
         accept:AddAttribute("src", "http://www.google.com")

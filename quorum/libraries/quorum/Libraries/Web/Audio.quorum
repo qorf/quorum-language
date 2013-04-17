@@ -134,9 +134,10 @@ class Audio is WebTag, MediaAttributeAccepter
 
         Attribute: Example
         use Libraries.Web.Audio
+        use Libraries.Web.Attribute
 
         Audio audio
-        text play = audio:GetPreload()
+        Attribute play = audio:GetPreload()
     */
     action GetPreload returns Attribute
         return GetAttribute(preload)
@@ -151,9 +152,10 @@ class Audio is WebTag, MediaAttributeAccepter
 
         Attribute: Example
         use Libraries.Web.Audio
+        use Libraries.Web.Attribute
 
         Audio audio
-        text play = audio:GetAddress()
+        Attribute play = audio:GetAddress()
     */
     action GetAddress returns Attribute
         return GetAttribute(address)
@@ -170,7 +172,7 @@ class Audio is WebTag, MediaAttributeAccepter
         use Libraries.Web.Audio
 
         Audio audio
-        boolean play = audio:SetAutoPlay(true)
+        audio:SetAutoPlay(true)
     */
     action SetAutoPlay(boolean value)
         if value
@@ -190,7 +192,7 @@ class Audio is WebTag, MediaAttributeAccepter
         use Libraries.Web.Audio
 
         Audio audio
-        boolean play = audio:SetControls(true)
+        audio:SetControls(true)
     */
     action SetControls(boolean value)
         if value
@@ -209,7 +211,7 @@ class Audio is WebTag, MediaAttributeAccepter
         use Libraries.Web.Audio
 
         Audio audio
-        boolean play = audio:SetLoop(true)
+        audio:SetLoop(true)
     */
     action SetLoop(boolean value)
         if value
@@ -237,7 +239,7 @@ class Audio is WebTag, MediaAttributeAccepter
         use Libraries.Web.Audio
 
         Audio audio
-        text play = audio:GetPreload(audio:preloadAuto)
+        audio:SetPreload(audio:preloadAuto)
     */
     action SetPreload(text value)
         AddAttribute(preload, value)
@@ -252,7 +254,7 @@ class Audio is WebTag, MediaAttributeAccepter
         use Libraries.Web.Audio
 
         Audio audio
-        text play = audio:SetAddress("resources/test.ogg")
+        audio:SetAddress("resources/test.ogg")
     */
     action SetAddress(text value)
         AddAttribute(address, value)

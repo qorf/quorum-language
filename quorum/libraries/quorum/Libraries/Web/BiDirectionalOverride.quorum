@@ -46,7 +46,7 @@ class BiDirectionalOverride is WebTag
         Use the constants leftToRight and rightToLeft when setting.
 
         Attribute: Example
-
+        use Libraries.Web.BiDirectionalOverride
         BiDirectionalOverride bdo
       bdo:SetDirection(bdo:leftToRight)
     */
@@ -60,9 +60,10 @@ class BiDirectionalOverride is WebTag
         Attribute: Returns The coordinates of specified area 
 
         Attribute: Example
-
+        use Libraries.Web.BiDirectionalOverride
+        use Libraries.Web.Attribute
         BiDirectionalOverride bdo
-        Attribute dir = area:GetDirection()
+        Attribute dir = bdo:GetDirection()
         if dir not= undefined
             text direction = dir:GetValue()
         end

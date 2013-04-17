@@ -68,10 +68,9 @@ class Label is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Example
         use Libraries.Web.Label
         use Libraries.Web.Input
+
         Label label
         label:SetElementId("male")
-        Input input
-        input:SetIdentifier("male")
         
     */
     action SetElementId(text value)
@@ -88,7 +87,7 @@ class Label is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         use Libraries.Web.Label
         use Libraries.Web.Attribute
         Label label
-        Atribute id = label:GetFormId()
+        Attribute id = label:GetFormId()
     */
     action GetFormId returns Attribute
         return  me:GetAttribute(formId)

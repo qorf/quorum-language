@@ -39,6 +39,8 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
         Attribute: Returns The document cache address. 
 
         Attribute: Example
+        use Libraries.Web.WebPage
+        use Libraries.Web.Attribute
 
         WebPage page
         text result = page:GetManifest()
@@ -59,6 +61,8 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
         Attribute: Parameter value The document cache address. 
 
         Attribute: Example
+        use Libraries.Web.WebPage
+        use Libraries.Web.Attribute
 
         WebPage page
         page:SetManifest("test.appcache")
@@ -77,6 +81,8 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
         Attribute: Returns The body of the webpage. 
 
         Attribute: Example
+        use Libraries.Web.WebPage
+        use Libraries.Web.Body
 
         WebPage page
         Body result = page:GetBody()
@@ -92,6 +98,8 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
         Attribute: Returns The type of document. 
 
         Attribute: Example
+        use Libraries.Web.WebPage
+        use Libraries.Web.DocumentType
 
         WebPage page
         DocumentType result = page:GetDocumentType()
@@ -107,6 +115,8 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
         Attribute: Parameter doc The document type. 
 
         Attribute: Example
+        use Libraries.Web.WebPage
+        use Libraries.Web.DocumentType
 
         WebPage page
         DocumentType document
@@ -123,6 +133,8 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
         Attribute: Returns The title. 
 
         Attribute: Example
+        use Libraries.Web.WebPage
+        use Libraries.Web.Attribute
 
         WebPage page
         text result = page:GetWebPageTitle()
@@ -138,6 +150,8 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
         Attribute: Parameter value The title. 
 
         Attribute: Example
+        use Libraries.Web.WebPage
+        use Libraries.Web.Attribute
 
         WebPage page
         page:SetWebPageTitle("My First Webpage")
@@ -153,6 +167,8 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
         Attribute: Returns The header. 
 
         Attribute: Example
+        use Libraries.Web.WebPage
+        use Libraries.Web.WebPageHeader
 
         WebPage page
         WebPageHeader result = page:GetWebPageHeader()
@@ -168,6 +184,8 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
         Attribute: Parameter header The header. 
 
         Attribute: Example
+        use Libraries.Web.WebPage
+        use Libraries.Web.WebPageHeader
 
         WebPage page
         WebPageHeader header
@@ -184,10 +202,12 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
         Attribute: Parameter body The body. 
 
         Attribute: Example
+        use Libraries.Web.WebPage
+        use Libraries.Web.Body
 
         WebPage page
         Body body
-        page:SetManifest(body)
+        page:SetBody(body)
         
     */
     action SetBody(Body body)
@@ -220,6 +240,8 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
         Attribute: Parameter tag The web tag object that should be added to the body of this webpage. 
 
         Attribute: Example
+        use Libraries.Web.WebPage
+        use Libraries.Web.Link
 
         WebPage page
         Link link

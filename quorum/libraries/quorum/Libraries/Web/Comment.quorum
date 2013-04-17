@@ -32,7 +32,7 @@ class Comment is WebGenerator
         Attribute: Returns The comment text. 
 
         Attribute: Example
-
+        use Libraries.Web.Comment
         Comment comment
         comment:SetDescription("This is a comment.")
         output comment:GetDescription()
@@ -49,7 +49,7 @@ class Comment is WebGenerator
         Attribute: Returns true if // is needed and false if not. 
 
         Attribute: Example
-
+        use Libraries.Web.Comment
         Comment comment
         boolean close = comment:GetCommentClose()
     */
@@ -63,7 +63,7 @@ class Comment is WebGenerator
         Attribute: Parameter description The comments text.
 
         Attribute: Example
-
+        use Libraries.Web.Comment
         Comment comment
         comment:SetDescription("This is my comment")
         
@@ -80,9 +80,9 @@ class Comment is WebGenerator
         Attribute: Parameter commentClose True if // is needed and false if not.
 
         Attribute: Example
-
+        use Libraries.Web.Comment
         Comment comment
-        comment:SetCommentclose(false)
+        comment:SetCommentClose(false)
         
     */
     action SetCommentClose(boolean commentClose)

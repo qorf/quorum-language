@@ -17,11 +17,11 @@ class Main
     action main
       WebPage page
 
-      Quote quote
+      Quote q
       quote:SetCitationAddress("The URL(web address) you are citing")
       quote:SetDescription("Insert your quotation here")
 
-      page:AddToBody(quote)
+      page:AddToBody(q)
       output page:Generate()
     end
 end
@@ -35,9 +35,10 @@ class Quote is WebTag
         Attribute: Parameter value The citation URL or web address.
 
         Attribute: Example
+        use Libraries.Web.Quote
 
-        Quote quote
-        quote:SetCitation("http://www.w3schools.com/tags/tag_blockquote.asp")
+        Quote q
+        q:SetCitation("www.w3schools.com/tags/tag_blockquote.asp")
         
     */
     action SetCitation(text value)
@@ -51,10 +52,12 @@ class Quote is WebTag
         Attribute: Returns The citation address.
 
         Attribute: Example
+        use Libraries.Web.Quote
+        use Libraries.Web.Attribute
 
-        Quote quote
-        quote:SetCitation("http://www.w3schools.com/tags/tag_blockquote.asp")
-        Attribute address = quote:GetCitation()
+        Quote q
+        q:SetCitation("www.w3schools.com/tags/tag_blockquote.asp")
+        Attribute address = q:GetCitation()
         
     */
     action GetCitation returns Attribute

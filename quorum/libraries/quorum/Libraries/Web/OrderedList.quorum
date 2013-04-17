@@ -47,7 +47,8 @@ class OrderedList is WebTag
         Attribute: Parameter value The start value of the list.
 
         Attribute: Example
-
+        use Libraries.Web.Attribute
+        use Libraries.Web.OrderedList
         OrderedList ol
         ol:SetStartValue("3")
         
@@ -63,7 +64,8 @@ class OrderedList is WebTag
         Attribute: Returns The start value of the list.
 
         Attribute: Example
-
+        use Libraries.Web.Attribute
+        use Libraries.Web.OrderedList
         OrderedList ol
         ol:SetStartValue("3")
         Attribute startVal = ol:GetStartValue()
@@ -80,7 +82,8 @@ class OrderedList is WebTag
         Attribute: Parameter value The marker of the list.
 
         Attribute: Example
-
+        use Libraries.Web.Attribute
+        use Libraries.Web.OrderedList
         OrderedList ol
         ol:SetType("A")
         
@@ -96,7 +99,8 @@ class OrderedList is WebTag
         Attribute: Returns The marker of the list.
 
         Attribute: Example
-
+        use Libraries.Web.Attribute
+        use Libraries.Web.OrderedList
         OrderedList ol
         ol:SetType("A")
         Attribute type = ol:GetType()
@@ -113,7 +117,8 @@ class OrderedList is WebTag
         Attribute: Parameter value True for descending order false for assending order.
 
         Attribute: Example
-
+        use Libraries.Web.Attribute
+        use Libraries.Web.OrderedList
         OrderedList ol
         ol:SetReversed(true)
         
@@ -133,7 +138,8 @@ class OrderedList is WebTag
         Attribute: Returns True for descending order false for assending order.
 
         Attribute: Example
-
+        use Libraries.Web.Attribute
+        use Libraries.Web.OrderedList
         OrderedList ol
         ol:SetReversed(true)
         boolean isDescending = ol:GetReversed()

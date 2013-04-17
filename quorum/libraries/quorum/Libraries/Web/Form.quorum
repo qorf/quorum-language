@@ -64,7 +64,7 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Returns "UNKNOWN" or the type of char encoding of the form.
 
         Attribute: Example
-
+        use Libraries.Web.Form
         Form form
         text attr = form:GetAcceptCharset() 
     */
@@ -84,7 +84,7 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Parameter value The character encoding.
 
         Attribute: Example
-
+        use Libraries.Web.Form
         Form form
         form:SetAcceptCharset("ISO-8859-1")
         
@@ -99,7 +99,8 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Returns Submition location.
 
         Attribute: Example
-
+        use Libraries.Web.Form
+        use Libraries.Web.Attribute
         Form form
         Attribute attr = form:GetFormAction()
     */
@@ -113,7 +114,7 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Parameter value Submit location.
 
         Attribute: Example
-
+        use Libraries.Web.Form
         Form form
         form:SetFormAction("test.asp")
         
@@ -128,7 +129,7 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Returns 
 
         Attribute: Example
-
+        use Libraries.Web.Form
         Form form
         boolean isAutoComplete = form:GetAutoComplete()
     */
@@ -146,7 +147,7 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Parameter value True for autocomplete and false for it to turn off.
 
         Attribute: Example
-
+        use Libraries.Web.Form
         Form form
         form:SetAutoComplete(true)
         
@@ -167,7 +168,7 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Returns  The encoded type of the form.
 
         Attribute: Example
-
+        use Libraries.Web.Form
         Form form
         text encodedType = form:GetEncodedType()
     */
@@ -188,9 +189,9 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Parameter value encoded type.
 
         Attribute: Example
-
+        use Libraries.Web.Form
         Form form
-        form:SetEncodedType()
+        form:SetEncodedType("text/plain")
         
     */
     action SetEncodedType(text value)
@@ -204,7 +205,7 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Returns  true if "post" and false if "get"
 
         Attribute: Example
-
+        use Libraries.Web.Form
         Form form
         boolean attr = form:IsPost()
     */
@@ -223,7 +224,7 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Parameter value true if using the HTTP method, post.
 
         Attribute: Example
-
+        use Libraries.Web.Form
         Form form
         form:SetPost(true)
         
@@ -242,7 +243,7 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Parameter value true if using the HTTP method, get.
 
         Attribute: Example
-
+        use Libraries.Web.Form
         Form form
         form:SetGet(true)
         
@@ -261,7 +262,8 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Returns The name of the form.
 
         Attribute: Example
-
+        use Libraries.Web.Form
+        use Libraries.Web.Attribute
         Form form
         Attribute name = form:GetName()
     */
@@ -275,7 +277,7 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Parameter value The name of the form.
 
         Attribute: Example
-
+        use Libraries.Web.Form
         Form form
         form:SetName("myForm")
         
@@ -290,7 +292,7 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Returns True if input is validated and false if it is not validated.
 
         Attribute: Example
-
+        use Libraries.Web.Form
         Form form
         boolean attr = form:GetValidate()
     */
@@ -311,7 +313,7 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Parameter value True will validate and false will not validate the input.
 
         Attribute: Example
-
+        use Libraries.Web.Form
         Form form
         form:SetValidate(false)
         
@@ -331,7 +333,8 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Returns The target.
 
         Attribute: Example
-
+        use Libraries.Web.Form
+        use Libraries.Web.Attribute
         Form form
         Attribute target = form:GetTarget()
     */
@@ -346,7 +349,7 @@ class Form is WebTag, FormAttributeAccepter
         Attribute: Parameter value _blank, _self, _parent, _top, or a framename
 
         Attribute: Example
-
+        use Libraries.Web.Form
         Form form
         form:SetTarget("_self")
         

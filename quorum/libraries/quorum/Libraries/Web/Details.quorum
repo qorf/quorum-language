@@ -40,6 +40,8 @@ class Details is WebTag
         Attribute: Parameter value True for visible and false for invisible to the user.
 
         Attribute: Example
+        use Libraries.Web.Details
+        use Libraries.Web.Attribute
 
         Details detail
         detail:SetOpen(true)
@@ -60,10 +62,12 @@ class Details is WebTag
         Attribute: Returns True if visible and false if not visible.
 
         Attribute: Example
+        use Libraries.Web.Details
+        use Libraries.Web.Attribute
 
-        Detail detail
-        detail:SetOpen(true)
-        boolean isOpen = detail:GetOpen()
+        Details details
+        details:SetOpen(true)
+        boolean isOpen = details:GetOpen()
         
     */
     action GetOpen returns boolean

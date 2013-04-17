@@ -56,7 +56,7 @@ class ListItem is WebTag
         use Libraries.Web.Attribute
         ListItem listItem
         listItem:SetNumberValue("3")
-        Attribute numberValue = listItem:GetCitation()
+        Attribute numberValue = listItem:GetNumberValue()
     */
     action GetNumberValue returns Attribute
         return me:GetAttribute(value)

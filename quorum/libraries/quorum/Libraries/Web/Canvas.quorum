@@ -45,6 +45,7 @@ class Canvas is WebTag
         Attribute: Parameter value The height in pixel to set to the canvas. 
 
         Attribute: Example
+        use Libraries.Web.Canvas
 
         Canvas canvas
         canvas:SetHeight("150")
@@ -60,9 +61,11 @@ class Canvas is WebTag
         Attribute: Returns The height in pixels of the canvas. 
 
         Attribute: Example
+        use Libraries.Web.Canvas
+        use Libraries.Web.Attribute
 
         Canvas canvas
-        Attribute heightInPixels = canvas:GetAddress()
+        Attribute heightInPixels = canvas:GetHeight()
         if heightInPixels not= undefined
             text height = heightInPixels:GetValue()
         end
@@ -77,6 +80,7 @@ class Canvas is WebTag
         Attribute: Parameter value The width in pixel to set to the canvas. 
 
         Attribute: Example
+        use Libraries.Web.Canvas
 
         Canvas canvas
         canvas:SetWidth("150")
@@ -92,9 +96,11 @@ class Canvas is WebTag
         Attribute: Returns The width in pixels of the canvas. 
 
         Attribute: Example
+        use Libraries.Web.Canvas
+        use Libraries.Web.Attribute
 
         Canvas canvas
-        Attribute widthInPixels = canvas:GetAddress()
+        Attribute widthInPixels = canvas:GetWidth()
         if widthInPixels not= undefined
             text width = widthInPixels:GetValue()
         end

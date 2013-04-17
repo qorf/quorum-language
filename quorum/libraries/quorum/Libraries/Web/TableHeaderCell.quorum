@@ -42,8 +42,9 @@ class TableHeaderCell is WebTag
         Attribute: Returns The number of columns a cell spans. 
 
         Attribute: Example
+        use Libraries.Web.TableHeaderCell
 
-        TableHeader th
+        TableHeaderCell th
         integer span = th:GetColumnSpan()
     */
     action GetColumnSpan returns integer
@@ -63,8 +64,9 @@ class TableHeaderCell is WebTag
         Attribute: Parameter value The number of columns a cell should span. 
 
         Attribute: Example
+        use Libraries.Web.TableHeaderCell
 
-        TableHeader th
+        TableHeaderCell th
         th:SetColumnSpan(2)
         
     */
@@ -79,8 +81,9 @@ class TableHeaderCell is WebTag
         Attribute: Returns The number of rows a cell spans. 
 
         Attribute: Example
+        use Libraries.Web.TableHeaderCell
 
-        TableHeader th
+        TableHeaderCell th
         integer rowSpan = th:GetRowSpan()
     */
     action GetRowSpan returns integer
@@ -100,8 +103,9 @@ class TableHeaderCell is WebTag
         Attribute: Parameter value The number of rows a cell should span. 
 
         Attribute: Example
+        use Libraries.Web.TableHeaderCell
 
-        TableHeader th
+        TableHeaderCell th
         th:SetRowSpan(2)
         
     */
@@ -115,8 +119,10 @@ class TableHeaderCell is WebTag
         Attribute: Returns The header id. 
 
         Attribute: Example
+        use Libraries.Web.TableHeaderCell
+        use Libraries.Web.Attribute
 
-        TableHeader th
+        TableHeaderCell th
         Attribute headerID = th:GetHeaders()
     */
     action GetHeaders returns Attribute
@@ -129,13 +135,14 @@ class TableHeaderCell is WebTag
         Attribute: Parameter value The header id. 
 
         Attribute: Example
+        use Libraries.Web.TableHeaderCell
 
         //generate a header with an id of name
-        TableHeader th
+        TableHeaderCell th
         th:SetHeaders("name")
 
         //link the cell to the header by its id
-        TableHeader td
+        TableHeaderCell td
         td:SetHeaders("name")
         
     */
@@ -150,8 +157,10 @@ class TableHeaderCell is WebTag
         Attribute: Returns The scope attribute. 
 
         Attribute: Example
+        use Libraries.Web.TableHeaderCell
+        use Libraries.Web.Attribute
 
-        TableHeader th
+        TableHeaderCell th
         Attribute scope = th:GetHeaders()
     */
     action GetScope returns Attribute
@@ -165,8 +174,9 @@ class TableHeaderCell is WebTag
         Attribute: Parameter value The scope of this header. 
 
         Attribute: Example
+        use Libraries.Web.TableHeaderCell
 
-        TableHeader th
+        TableHeaderCell th
         th:SetScope("colgroup")
     */
     action SetScope(text value)
