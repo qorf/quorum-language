@@ -801,6 +801,10 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
             //destination = new File(documentation.getAbsolutePath() + "/libraries.php");
             //gen.copyFile(libraries, destination);
             
+            File search = new File(standardLibrary.getParentFile().getAbsolutePath() + "/search.php");
+            destination = new File(documentation.getAbsolutePath() + "/search.php");
+            gen.copyFile(search, destination);
+            
             File curriculum = new File(standardLibrary.getParentFile().getAbsolutePath() + "/curriculum.php");
             destination = new File(documentation.getAbsolutePath() + "/curriculum.php");
             gen.copyFile(curriculum, destination);
