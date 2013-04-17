@@ -6,6 +6,8 @@ use Libraries.Containers.Array
 /*
 
 The ArrayIterator class for Arrays, enables iteration for the array data structure.
+Generally, there is no need to use this class directly, as most users will only
+need an instance of the parent, the Iterator class.
 
 Attribute: Author Melissa Stefik
 
@@ -28,6 +30,14 @@ class ArrayIterator<Type> is Iterator<Type>
         This action sets the array parameters up for the iterator. 
 
         Attribute: Parameter array The array to iterator over.
+        Attribute: Example
+        use Libraries.Containers.Array
+        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Support.ArrayIterator
+        
+        Array<integer> myArray
+        ArrayIterator<integer> iterator
+        iterator:Set(myArray)
     */
     action Set(Array<Type> newArray)
         me:array = newArray
@@ -38,7 +48,14 @@ class ArrayIterator<Type> is Iterator<Type>
         This action gets the array that the iterator has.
 
         Attribute: Returns The array.
+        Attribute: Example
+        use Libraries.Containers.Array
+        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Support.ArrayIterator
 
+        Array<integer> myArray
+        ArrayIterator<integer> arrayIterator = cast(ArrayIterator, myArray:GetIterator())
+        Array<integer> array = arrayIterator:GetArray()
     */
     action GetArray() returns Array<Type>
         return array

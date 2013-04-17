@@ -558,14 +558,18 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                     numCrashingExamples++;
                 }
                 
+                numVerifiedExamples++;
             } else {
-                System.err.println("Warning: " + clazz.getStaticKey() + ":" 
-                                + method.getStaticKey() +
+                //if the method is private, it's fine for the example to be 
+                //missing, as you couldn't call it anyway from an example.
+                if(method.getAccessModifier() == AccessModifierEnum.PUBLIC) {
+                    System.err.println("Warning: " + clazz.getStaticKey() + ":" 
+                        + method.getStaticKey() +
                         " has a missing example.");
-                numMissingExamples++;
+                    numMissingExamples++;
+                    numVerifiedExamples++;
+                }
             }
-            
-            numVerifiedExamples++;
         }
     }
 

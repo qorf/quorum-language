@@ -10,12 +10,10 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.quorum.plugins.DefaultPluginLoader;
 import org.quorum.vm.implementation.QuorumClassLoader;
 import org.quorum.vm.implementation.QuorumSecurityMode;
 import org.quorum.vm.implementation.QuorumStandardLibrary;
@@ -472,7 +470,7 @@ public class Main {
                                 " total examples. Of these, " + passed + " compiled, " +
                                 vm.getNumNonCompilingExamples() + " did not, " + 
                                 vm.getNumCrashingExamples() + " crashed the Quorum compiler, and " +
-                                vm.getNumMissingExamples() + " had examples missing."
+                                vm.getNumMissingExamples() + " were missing."
                                 );
                     }
 
