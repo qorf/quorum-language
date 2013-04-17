@@ -44,6 +44,8 @@ class Column is WebTag
 
         Attribute: Example
 
+        use Libraries.Web.Column
+        use Libraries.Web.Attribute
         Column col
         Attribute span = col:GetSpan()
     */
@@ -58,7 +60,7 @@ class Column is WebTag
         Attribute: Parameter value The span.
 
         Attribute: Example
-
+        use Libraries.Web.Column
         Column col
         col:SetSpan(2)
         

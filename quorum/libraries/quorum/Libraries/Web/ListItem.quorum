@@ -36,7 +36,7 @@ class ListItem is WebTag
         Attribute: Parameter value The number for the list item
 
         Attribute: Example
-
+        use Libraries.Web.ListItem
         ListItem listItem
         listItem:SetNumberValue("3")
         
@@ -52,7 +52,8 @@ class ListItem is WebTag
         Attribute: Returns The set number value for the list item.
 
         Attribute: Example
-
+        use Libraries.Web.ListItem
+        use Libraries.Web.Attribute
         ListItem listItem
         listItem:SetNumberValue("3")
         Attribute numberValue = listItem:GetCitation()

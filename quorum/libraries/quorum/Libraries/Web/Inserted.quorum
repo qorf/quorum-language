@@ -40,7 +40,7 @@ class Inserted is WebTag
         Attribute: Parameter value The citation URL or web address.
 
         Attribute: Example
-
+        use Libraries.Web.Inserted
         Inserted inserted
         inserted:SetCitation("http://www.w3schools.com/tags/tag_ins.asp")
         
@@ -56,7 +56,8 @@ class Inserted is WebTag
         Attribute: Returns The citation address.
 
         Attribute: Example
-
+        use Libraries.Web.Inserted
+        use Libraries.Web.Attribute
         Inserted inserted
         inserted:SetCitation("http://www.w3schools.com/tags/tag_ins.asp")
         Attribute address = inserted:GetCitation()
@@ -72,7 +73,7 @@ class Inserted is WebTag
         Attribute: Parameter value The date and time.
 
         Attribute: Example
-
+        use Libraries.Web.Inserted
         Inserted inserted
         inserted:SetInsertedTime("2011-11-15T22:55:03Z")
         
@@ -88,7 +89,8 @@ class Inserted is WebTag
         Attribute: Returns The date time of the inserted text.
 
         Attribute: Example
-
+        use Libraries.Web.Inserted
+        use Libraries.Web.Attribute
         Inserted inserted
         inserted:SetInsertedTime("2011-11-15T22:55:03Z")
         Attribute dateTime = inserted:GetInsertedTime()

@@ -35,7 +35,7 @@ class Embed is WebTag
         Attribute: Parameter value The height in pixel to set to the embeded content. 
 
         Attribute: Example
-
+        use Libraries.Web.Embed
         Embed embed
         embed:SetHeight("150")
         
@@ -50,7 +50,8 @@ class Embed is WebTag
         Attribute: Returns The height in pixels of the embeded content. 
 
         Attribute: Example
-
+        use Libraries.Web.Embed
+        use Libraries.Web.Attribute
         Embed embed
         Attribute heightInPixels = embed:GetAddress()
         if heightInPixels not= undefined
@@ -67,7 +68,7 @@ class Embed is WebTag
         Attribute: Parameter value The width in pixel to set to the embeded content. 
 
         Attribute: Example
-
+        use Libraries.Web.Embed
         Embed embed
         embed:SetWidth("150")
         
@@ -82,7 +83,8 @@ class Embed is WebTag
         Attribute: Returns The width in pixels of the embeded content. 
 
         Attribute: Example
-
+        use Libraries.Web.Embed
+        use Libraries.Web.Attribute
         Embed embed
         Attribute widthInPixels = embed:GetAddress()
         if widthInPixels not= undefined
@@ -100,7 +102,7 @@ class Embed is WebTag
         Attribute: Parameter value The address of a webpage or document. 
 
         Attribute: Example
-
+        use Libraries.Web.Embed
         Embed embed
         embed:SetAddress("http://www.google.com")
         
@@ -116,7 +118,8 @@ class Embed is WebTag
         Attribute: Returns The address of the link. 
 
         Attribute: Example
-
+        use Libraries.Web.Embed
+        use Libraries.Web.Attribute
         Embed embed
         Attribute address = embed:GetAddress()
         if address not= undefined
@@ -134,7 +137,7 @@ class Embed is WebTag
         Attribute: Parameter value The MIME type for the content.
 
         Attribute: Example
-
+        use Libraries.Web.Embed
         Embed embed
         embed:SetType("text/html")
         
@@ -150,7 +153,8 @@ class Embed is WebTag
         Attribute: Returns The MIME type attribute of the embeded content. 
 
         Attribute: Example
-
+        use Libraries.Web.Embed
+        use Libraries.Web.Attribute
         Embed embed
         Attribute type = embed:GetType()
         if type not= undefined

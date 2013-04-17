@@ -36,6 +36,7 @@ class WebTable is WebTag
 
         Attribute: Example
 
+        use Libraries.Web.WebTable
         WebTable table
         boolean hasBorder = table:GetBorder()
     */
@@ -58,7 +59,7 @@ class WebTable is WebTag
         Attribute: Parameter value True for a border and false for no border. 
 
         Attribute: Example
-
+        use Libraries.Web.WebTable
         WebTable table
         table:SetBorder(true)
     */
@@ -77,7 +78,9 @@ class WebTable is WebTag
         Attribute: Parameter value A TableRow to be added to the table. 
 
         Attribute: Example
-
+        use Libraries.Web.WebTable
+        use Libraries.Web.TableRow
+        use Libraries.Web.TableHeader
         WebTable table
         TableRow row
         TableHeader header
@@ -96,7 +99,8 @@ class WebTable is WebTag
         Attribute: Parameter value The column group. 
 
         Attribute: Example
-
+        use Libraries.Web.WebTable
+        use Libraries.Web.ColumnGroup
         WebTable table
         ColumnGroup cg
         table:SetColumnGroup(cg)
@@ -114,7 +118,8 @@ class WebTable is WebTag
         Attribute: Returns The column group. 
 
         Attribute: Example
-
+        use Libraries.Web.WebTable
+        use Libraries.Web.ColumnGroup
         WebTable table
         ColumnGroup cg = table:GetColumnGroup()
     */

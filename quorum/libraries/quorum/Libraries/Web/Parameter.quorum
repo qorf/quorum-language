@@ -40,7 +40,7 @@ class Parameter is WebTag
         Attribute: Parameter value Sets the name of the parameter.
 
         Attribute: Example
-
+        use Libraries.Web.Parameter
         Parameter param
         param:SetName("test")
         
@@ -56,7 +56,8 @@ class Parameter is WebTag
         Attribute: Returns The name of the parameter.
 
         Attribute: Example
-
+        use Libraries.Web.Parameter
+        use Libraries.Web.Attribute
         Parameter param
         param:SetName("test")
         Attribute name = param:GetName()
@@ -73,7 +74,7 @@ class Parameter is WebTag
         Attribute: Parameter value Sets the value of the parameter.
 
         Attribute: Example
-
+        use Libraries.Web.Parameter
         Parameter param
         param:SetValue("50")
         
@@ -89,7 +90,8 @@ class Parameter is WebTag
         Attribute: Returns The value of the parameter.
 
         Attribute: Example
-
+        use Libraries.Web.Parameter
+        use Libraries.Web.Attribute
         Parameter param
         param:SetValue("50")
         Attribute value = param:GetValue()

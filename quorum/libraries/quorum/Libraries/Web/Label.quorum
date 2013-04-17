@@ -50,7 +50,8 @@ class Label is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Returns The element id of the corresponding input element. 
 
         Attribute: Example
-
+        use Libraries.Web.Label
+        use Libraries.Web.Attribute
         Label label
         Attribute id = label:GetElementId()
     */
@@ -65,7 +66,8 @@ class Label is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Parameter value The element id that the label is associated with. 
 
         Attribute: Example
-
+        use Libraries.Web.Label
+        use Libraries.Web.Input
         Label label
         label:SetElementId("male")
         Input input
@@ -83,7 +85,8 @@ class Label is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Returns The element id of the corresponding input element. 
 
         Attribute: Example
-
+        use Libraries.Web.Label
+        use Libraries.Web.Attribute
         Label label
         Atribute id = label:GetFormId()
     */
@@ -98,7 +101,8 @@ class Label is WebTag, FormAttributeAccepter, MouseAttributeAccepter
         Attribute: Parameter value The form id that the label is associated with. 
 
         Attribute: Example
-
+        use Libraries.Web.Form
+        use Libraries.Web.Label
         Form form
         form:SetName("form1")
         Label label
