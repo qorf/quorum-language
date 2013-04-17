@@ -1,4 +1,4 @@
-// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2013-04-09 14:13:08
+// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2013-04-17 10:26:08
 
 
 package org.quorum.parser;
@@ -1301,8 +1301,9 @@ public static class STAttrMap extends HashMap {
 
 
         CommonTree ID2=null;
-        CommonTree END3=null;
+        CommonTree ACTION3=null;
         CommonTree END4=null;
+        CommonTree END5=null;
         QuorumTreeWalker.formal_parameter_return fp =null;
 
         QuorumTreeWalker.assignment_declaration_return ad =null;
@@ -1344,7 +1345,7 @@ public static class STAttrMap extends HashMap {
                 case 1 :
                     // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:200:4: ^( ACTION ID (fp= formal_parameter )* ( RETURNS ad= assignment_declaration )? block[false] END )
                     {
-                    match(input,ACTION,FOLLOW_ACTION_in_method_declaration314); 
+                    ACTION3=(CommonTree)match(input,ACTION,FOLLOW_ACTION_in_method_declaration314); 
 
 
                     		((method_declaration_scope)method_declaration_stack.peek()).types = new Vector<TypeDescriptor>();
@@ -1390,10 +1391,11 @@ public static class STAttrMap extends HashMap {
                     	                MethodDescriptor md = symbol.enterMethod(key);
                     	               	md.setAccessModifier(accessModifier);
                     		builder.begin(md);
+                    		
 
                     	
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:215:3: ( RETURNS ad= assignment_declaration )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:216:3: ( RETURNS ad= assignment_declaration )?
                     int alt19=2;
                     int LA19_0 = input.LA(1);
 
@@ -1402,7 +1404,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt19) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:215:4: RETURNS ad= assignment_declaration
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:216:4: RETURNS ad= assignment_declaration
                             {
                             match(input,RETURNS,FOLLOW_RETURNS_in_method_declaration338); 
 
@@ -1431,11 +1433,16 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    END3=(CommonTree)match(input,END,FOLLOW_END_in_method_declaration351); 
+                    END4=(CommonTree)match(input,END,FOLLOW_END_in_method_declaration351); 
 
 
+                    		indexer.append("<action line = \"");
+                    		indexer.append(ACTION3.getLine());
+                    		indexer.append("\" end = \"");
+                    		indexer.append(END4.getLine());
+                    		indexer.append("\"/>");
                     		
-                    		symbol.addStatementFlagToCurrentFile((END3!=null?END3.getLine():0));
+                    		symbol.addStatementFlagToCurrentFile((END4!=null?END4.getLine():0));
                     		
                     		CompilerError error = symbol.getControlFlow().endMethod();
                     		if(error != null) {
@@ -1444,8 +1451,8 @@ public static class STAttrMap extends HashMap {
                     		
                                     if(symbol.getControlFlow().needsReturnStep() && error == null) { //do this only for void types
                                     	LineInformation location = new LineInformation();
-                    	                location.setStartColumn(END3.getCharPositionInLine());
-                    	                location.setStartLine((END3!=null?END3.getLine():0));
+                    	                location.setStartColumn(END4.getCharPositionInLine());
+                    	                location.setStartLine((END4!=null?END4.getLine():0));
                     	                location.setFile(getGrammarFileNameNoExtension());
                     			stepFactory.addReturnStep(location, null, null);
                     		}
@@ -1463,7 +1470,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:245:6: ^( BLUEPRINT ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:251:6: ^( BLUEPRINT ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? )
                     {
                     match(input,BLUEPRINT,FOLLOW_BLUEPRINT_in_method_declaration366); 
 
@@ -1476,7 +1483,7 @@ public static class STAttrMap extends HashMap {
 
                     match(input,ID,FOLLOW_ID_in_method_declaration375); 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:249:6: (fp= formal_parameter )*
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:255:6: (fp= formal_parameter )*
                     loop20:
                     do {
                         int alt20=2;
@@ -1489,7 +1496,7 @@ public static class STAttrMap extends HashMap {
 
                         switch (alt20) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:249:7: fp= formal_parameter
+                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:255:7: fp= formal_parameter
                     	    {
                     	    pushFollow(FOLLOW_formal_parameter_in_method_declaration380);
                     	    fp=formal_parameter();
@@ -1508,7 +1515,7 @@ public static class STAttrMap extends HashMap {
                     } while (true);
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:250:4: ( RETURNS assignment_declaration )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:256:4: ( RETURNS assignment_declaration )?
                     int alt21=2;
                     int LA21_0 = input.LA(1);
 
@@ -1517,7 +1524,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt21) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:250:5: RETURNS assignment_declaration
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:256:5: RETURNS assignment_declaration
                             {
                             match(input,RETURNS,FOLLOW_RETURNS_in_method_declaration389); 
 
@@ -1539,7 +1546,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:251:4: ^( NATIVE ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:257:4: ^( NATIVE ACTION ID (fp= formal_parameter )* ( RETURNS assignment_declaration )? )
                     {
                     match(input,NATIVE,FOLLOW_NATIVE_in_method_declaration400); 
 
@@ -1552,7 +1559,7 @@ public static class STAttrMap extends HashMap {
 
                     match(input,ID,FOLLOW_ID_in_method_declaration409); 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:255:5: (fp= formal_parameter )*
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:261:5: (fp= formal_parameter )*
                     loop22:
                     do {
                         int alt22=2;
@@ -1565,7 +1572,7 @@ public static class STAttrMap extends HashMap {
 
                         switch (alt22) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:255:6: fp= formal_parameter
+                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:261:6: fp= formal_parameter
                     	    {
                     	    pushFollow(FOLLOW_formal_parameter_in_method_declaration414);
                     	    fp=formal_parameter();
@@ -1584,7 +1591,7 @@ public static class STAttrMap extends HashMap {
                     } while (true);
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:256:4: ( RETURNS assignment_declaration )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:262:4: ( RETURNS assignment_declaration )?
                     int alt23=2;
                     int LA23_0 = input.LA(1);
 
@@ -1593,7 +1600,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt23) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:256:5: RETURNS assignment_declaration
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:262:5: RETURNS assignment_declaration
                             {
                             match(input,RETURNS,FOLLOW_RETURNS_in_method_declaration423); 
 
@@ -1615,7 +1622,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 4 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:257:4: ^( ON CREATE block[true] END )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:263:4: ^( ON CREATE block[true] END )
                     {
                     match(input,ON,FOLLOW_ON_in_method_declaration434); 
 
@@ -1635,10 +1642,10 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    END4=(CommonTree)match(input,END,FOLLOW_END_in_method_declaration446); 
+                    END5=(CommonTree)match(input,END,FOLLOW_END_in_method_declaration446); 
 
 
-                    		symbol.addStatementFlagToCurrentFile((END4!=null?END4.getLine():0));
+                    		symbol.addStatementFlagToCurrentFile((END5!=null?END5.getLine():0));
                     		
                     		CompilerError error = symbol.getControlFlow().endMethod();
                     		if(error != null) {
@@ -1647,8 +1654,8 @@ public static class STAttrMap extends HashMap {
                     		
                     		if(symbol.getControlFlow().needsReturnStep() && error == null) { //do this only for void types
                                     	LineInformation location = new LineInformation();
-                    	                location.setStartColumn(END4.getCharPositionInLine());
-                    	                location.setStartLine((END4!=null?END4.getLine():0));
+                    	                location.setStartColumn(END5.getCharPositionInLine());
+                    	                location.setStartLine((END5!=null?END5.getLine():0));
                     	                location.setFile(getGrammarFileNameNoExtension());
                     	                location.setClassName(symbol.getCurrentClass().getStaticKey());
                     	                location.setMethodName(construct.getStaticKey());
@@ -1694,19 +1701,19 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "qualified_name"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:293:1: qualified_name returns [QualifiedNameDescriptor type] : ^( QUALIFIED_NAME ids+= ID ( PERIOD ids+= ID )* ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:299:1: qualified_name returns [QualifiedNameDescriptor type] : ^( QUALIFIED_NAME ids+= ID ( PERIOD ids+= ID )* ) ;
     public final QuorumTreeWalker.qualified_name_return qualified_name() throws RecognitionException {
         QuorumTreeWalker.qualified_name_return retval = new QuorumTreeWalker.qualified_name_return();
         retval.start = input.LT(1);
 
 
-        CommonTree PERIOD5=null;
+        CommonTree PERIOD6=null;
         CommonTree ids=null;
         List list_ids=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:294:2: ( ^( QUALIFIED_NAME ids+= ID ( PERIOD ids+= ID )* ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:294:4: ^( QUALIFIED_NAME ids+= ID ( PERIOD ids+= ID )* )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:300:2: ( ^( QUALIFIED_NAME ids+= ID ( PERIOD ids+= ID )* ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:300:4: ^( QUALIFIED_NAME ids+= ID ( PERIOD ids+= ID )* )
             {
             match(input,QUALIFIED_NAME,FOLLOW_QUALIFIED_NAME_in_qualified_name469); 
 
@@ -1716,7 +1723,7 @@ public static class STAttrMap extends HashMap {
             list_ids.add(ids);
 
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:294:30: ( PERIOD ids+= ID )*
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:300:30: ( PERIOD ids+= ID )*
             loop25:
             do {
                 int alt25=2;
@@ -1729,9 +1736,9 @@ public static class STAttrMap extends HashMap {
 
                 switch (alt25) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:294:31: PERIOD ids+= ID
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:300:31: PERIOD ids+= ID
             	    {
-            	    PERIOD5=(CommonTree)match(input,PERIOD,FOLLOW_PERIOD_in_qualified_name477); 
+            	    PERIOD6=(CommonTree)match(input,PERIOD,FOLLOW_PERIOD_in_qualified_name477); 
 
             	    ids=(CommonTree)match(input,ID,FOLLOW_ID_in_qualified_name481); 
             	    if (list_ids==null) list_ids=new ArrayList();
@@ -1763,7 +1770,7 @@ public static class STAttrMap extends HashMap {
                         		name += ((CommonTree) it.next()).getText();
 
                         		if(it.hasNext()) {
-                            		name += (PERIOD5!=null?PERIOD5.getText():null);
+                            		name += (PERIOD6!=null?PERIOD6.getText():null);
                        		}
 
                         	}
@@ -1800,26 +1807,26 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "block"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:322:1: block[boolean bool] : ^( STATEMENT_LIST ( statement )* ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:328:1: block[boolean bool] : ^( STATEMENT_LIST ( statement )* ) ;
     public final QuorumTreeWalker.block_return block(boolean bool) throws RecognitionException {
         QuorumTreeWalker.block_return retval = new QuorumTreeWalker.block_return();
         retval.start = input.LT(1);
 
 
-        CommonTree STATEMENT_LIST6=null;
+        CommonTree STATEMENT_LIST7=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:322:22: ( ^( STATEMENT_LIST ( statement )* ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:322:24: ^( STATEMENT_LIST ( statement )* )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:328:22: ( ^( STATEMENT_LIST ( statement )* ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:328:24: ^( STATEMENT_LIST ( statement )* )
             {
-            STATEMENT_LIST6=(CommonTree)match(input,STATEMENT_LIST,FOLLOW_STATEMENT_LIST_in_block500); 
+            STATEMENT_LIST7=(CommonTree)match(input,STATEMENT_LIST,FOLLOW_STATEMENT_LIST_in_block500); 
 
 
             		if(bool) {
             			//add scope change step for runtime scoping
             			LineInformation location = new LineInformation();
-            	                location.setStartColumn(STATEMENT_LIST6.getCharPositionInLine());
-            	                location.setStartLine((STATEMENT_LIST6!=null?STATEMENT_LIST6.getLine():0));
+            	                location.setStartColumn(STATEMENT_LIST7.getCharPositionInLine());
+            	                location.setStartLine((STATEMENT_LIST7!=null?STATEMENT_LIST7.getLine():0));
             	                location.setFile(getGrammarFileNameNoExtension());
             		}
 
@@ -1827,7 +1834,7 @@ public static class STAttrMap extends HashMap {
 
             if ( input.LA(1)==Token.DOWN ) {
                 match(input, Token.DOWN, null); 
-                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:333:3: ( statement )*
+                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:339:3: ( statement )*
                 loop26:
                 do {
                     int alt26=2;
@@ -1840,7 +1847,7 @@ public static class STAttrMap extends HashMap {
 
                     switch (alt26) {
                 	case 1 :
-                	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:333:3: statement
+                	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:339:3: statement
                 	    {
                 	    pushFollow(FOLLOW_statement_in_block507);
                 	    statement();
@@ -1861,8 +1868,8 @@ public static class STAttrMap extends HashMap {
                 		if(bool) {
                 			//add scope change step for runtime scoping
                 			LineInformation location2 = new LineInformation();
-                	                location2.setStartColumn(STATEMENT_LIST6.getCharPositionInLine());
-                	                location2.setStartLine((STATEMENT_LIST6!=null?STATEMENT_LIST6.getLine():0));
+                	                location2.setStartColumn(STATEMENT_LIST7.getCharPositionInLine());
+                	                location2.setStartLine((STATEMENT_LIST7!=null?STATEMENT_LIST7.getLine():0));
                 	                location2.setFile(getGrammarFileNameNoExtension());
                 		}
                 	
@@ -1895,14 +1902,14 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:344:1: statement : ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement );
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:350:1: statement : ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement );
     public final QuorumTreeWalker.statement_return statement() throws RecognitionException {
         QuorumTreeWalker.statement_return retval = new QuorumTreeWalker.statement_return();
         retval.start = input.LT(1);
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:344:10: ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:350:10: ( solo_method_call | if_statement | assignment_statement | loop_statement | return_statement | print_statement | speak_statement | check_statement | alert_statement )
             int alt27=9;
             switch ( input.LA(1) ) {
             case SOLO_FUNCTION_CALL:
@@ -1972,7 +1979,7 @@ public static class STAttrMap extends HashMap {
 
             switch (alt27) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:346:3: solo_method_call
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:352:3: solo_method_call
                     {
                     pushFollow(FOLLOW_solo_method_call_in_statement524);
                     solo_method_call();
@@ -1983,7 +1990,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:347:4: if_statement
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:353:4: if_statement
                     {
                     pushFollow(FOLLOW_if_statement_in_statement529);
                     if_statement();
@@ -1994,7 +2001,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:348:4: assignment_statement
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:354:4: assignment_statement
                     {
                     pushFollow(FOLLOW_assignment_statement_in_statement534);
                     assignment_statement();
@@ -2005,7 +2012,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 4 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:349:4: loop_statement
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:355:4: loop_statement
                     {
                     pushFollow(FOLLOW_loop_statement_in_statement539);
                     loop_statement();
@@ -2016,7 +2023,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 5 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:350:4: return_statement
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:356:4: return_statement
                     {
                     pushFollow(FOLLOW_return_statement_in_statement544);
                     return_statement();
@@ -2027,7 +2034,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 6 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:351:4: print_statement
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:357:4: print_statement
                     {
                     pushFollow(FOLLOW_print_statement_in_statement549);
                     print_statement();
@@ -2038,7 +2045,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 7 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:352:4: speak_statement
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:358:4: speak_statement
                     {
                     pushFollow(FOLLOW_speak_statement_in_statement554);
                     speak_statement();
@@ -2049,7 +2056,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 8 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:353:4: check_statement
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:359:4: check_statement
                     {
                     pushFollow(FOLLOW_check_statement_in_statement559);
                     check_statement();
@@ -2060,7 +2067,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 9 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:354:4: alert_statement
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:360:4: alert_statement
                     {
                     pushFollow(FOLLOW_alert_statement_in_statement564);
                     alert_statement();
@@ -2094,22 +2101,22 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "solo_method_call"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:357:1: solo_method_call : ( ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) );
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:363:1: solo_method_call : ( ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) );
     public final QuorumTreeWalker.solo_method_call_return solo_method_call() throws RecognitionException {
         QuorumTreeWalker.solo_method_call_return retval = new QuorumTreeWalker.solo_method_call_return();
         retval.start = input.LT(1);
 
 
-        CommonTree ID8=null;
-        CommonTree ID10=null;
-        CommonTree ID12=null;
+        CommonTree ID9=null;
+        CommonTree ID11=null;
+        CommonTree ID13=null;
         QuorumTreeWalker.expression_return e =null;
 
-        QuorumTreeWalker.qualified_name_return qualified_name7 =null;
+        QuorumTreeWalker.qualified_name_return qualified_name8 =null;
 
-        QuorumTreeWalker.qualified_name_return qualified_name9 =null;
+        QuorumTreeWalker.qualified_name_return qualified_name10 =null;
 
-        QuorumTreeWalker.qualified_name_return qualified_name11 =null;
+        QuorumTreeWalker.qualified_name_return qualified_name12 =null;
 
 
 
@@ -2121,7 +2128,7 @@ public static class STAttrMap extends HashMap {
         	int startLocation = 0;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:366:2: ( ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:372:2: ( ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) | ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN ) )
             int alt36=3;
             switch ( input.LA(1) ) {
             case SOLO_FUNCTION_CALL:
@@ -2149,7 +2156,7 @@ public static class STAttrMap extends HashMap {
 
             switch (alt36) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:367:3: ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:373:3: ^( SOLO_FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN )
                     {
                     match(input,SOLO_FUNCTION_CALL,FOLLOW_SOLO_FUNCTION_CALL_in_solo_method_call584); 
 
@@ -2160,12 +2167,12 @@ public static class STAttrMap extends HashMap {
 
                     match(input, Token.DOWN, null); 
                     pushFollow(FOLLOW_qualified_name_in_solo_method_call593);
-                    qualified_name7=qualified_name();
+                    qualified_name8=qualified_name();
 
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:372:18: ( COLON ID )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:378:18: ( COLON ID )?
                     int alt28=2;
                     int LA28_0 = input.LA(1);
 
@@ -2174,11 +2181,11 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt28) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:372:19: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:378:19: COLON ID
                             {
                             match(input,COLON,FOLLOW_COLON_in_solo_method_call596); 
 
-                            ID8=(CommonTree)match(input,ID,FOLLOW_ID_in_solo_method_call598); 
+                            ID9=(CommonTree)match(input,ID,FOLLOW_ID_in_solo_method_call598); 
 
                             }
                             break;
@@ -2188,7 +2195,7 @@ public static class STAttrMap extends HashMap {
 
                     match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_solo_method_call602); 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:372:41: (e= expression ( COMMA e= expression )* )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:378:41: (e= expression ( COMMA e= expression )* )?
                     int alt30=2;
                     int LA30_0 = input.LA(1);
 
@@ -2197,7 +2204,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt30) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:373:3: e= expression ( COMMA e= expression )*
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:379:3: e= expression ( COMMA e= expression )*
                             {
 
                             			if(builder.getCurrentMethod() != null)
@@ -2226,7 +2233,7 @@ public static class STAttrMap extends HashMap {
                                             			inCallStep = false;
                             		
 
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:393:3: ( COMMA e= expression )*
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:399:3: ( COMMA e= expression )*
                             loop29:
                             do {
                                 int alt29=2;
@@ -2239,7 +2246,7 @@ public static class STAttrMap extends HashMap {
 
                                 switch (alt29) {
                             	case 1 :
-                            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:393:4: COMMA e= expression
+                            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:399:4: COMMA e= expression
                             	    {
                             	    match(input,COMMA,FOLLOW_COMMA_in_solo_method_call626); 
 
@@ -2291,40 +2298,40 @@ public static class STAttrMap extends HashMap {
 
 
                     			LineInformation location = new LineInformation();
-                                    			location.setEndColumn((qualified_name7!=null?qualified_name7.type:null).getColumnEnd());
-                                    			location.setEndLine((qualified_name7!=null?qualified_name7.type:null).getLineEnd());
-                                    			location.setStartColumn((qualified_name7!=null?qualified_name7.type:null).getColumnBegin());
-                                   	 		location.setStartLine((qualified_name7!=null?qualified_name7.type:null).getLineBegin());
+                                    			location.setEndColumn((qualified_name8!=null?qualified_name8.type:null).getColumnEnd());
+                                    			location.setEndLine((qualified_name8!=null?qualified_name8.type:null).getLineEnd());
+                                    			location.setStartColumn((qualified_name8!=null?qualified_name8.type:null).getColumnBegin());
+                                   	 		location.setStartLine((qualified_name8!=null?qualified_name8.type:null).getLineBegin());
                                     			location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
                                     			location.setClassName(symbol.getCurrentClass().getStaticKey());
                                     			location.setMethodName(symbol.getCurrentMethod().getStaticKey());
                                     
                                     
-                                    			symbol.addStatementFlagToCurrentFile((qualified_name7!=null?qualified_name7.type:null).getLineBegin());
+                                    			symbol.addStatementFlagToCurrentFile((qualified_name8!=null?qualified_name8.type:null).getLineBegin());
                                     			
                                     			indexer.append("<action line = \"");
-                    			indexer.append((qualified_name7!=null?qualified_name7.type:null).getLineBegin());
+                    			indexer.append((qualified_name8!=null?qualified_name8.type:null).getLineBegin());
                     			indexer.append("\" />");
                                     
                                     			String key = "";
                                     			String myMethodName = "";
-                                    			if(ID8 == null) {
-                                    				key = MethodDescriptor.generateKey((qualified_name7!=null?qualified_name7.type:null).getStaticKey(), types);
-                                    				myMethodName = (qualified_name7!=null?qualified_name7.type:null).getStaticKey();
+                                    			if(ID9 == null) {
+                                    				key = MethodDescriptor.generateKey((qualified_name8!=null?qualified_name8.type:null).getStaticKey(), types);
+                                    				myMethodName = (qualified_name8!=null?qualified_name8.type:null).getStaticKey();
                     			}
                     			else {
-                    				key = MethodDescriptor.generateKey((ID8!=null?ID8.getText():null), types);
-                    				myMethodName = (ID8!=null?ID8.getText():null);
+                    				key = MethodDescriptor.generateKey((ID9!=null?ID9.getText():null), types);
+                    				myMethodName = (ID9!=null?ID9.getText():null);
                     			}
                     			CallInfo info = new CallInfo();
                     			info.register = temp;
                     			info.location = location;
                     			info.argumentRegisters = registers;
                     			info.argumentSteps = steps;
-                    			info.variable = (qualified_name7!=null?qualified_name7.type:null);
+                    			info.variable = (qualified_name8!=null?qualified_name8.type:null);
                     			info.argumentTypes = argumentTypes;
                     			info.methodName = myMethodName;
-                    			info.isObjectCall = (ID8 != null);
+                    			info.isObjectCall = (ID9 != null);
                     			info.isSoloMethod = true;
                     		
                     			ResultTuple result =  stepFactory.addCallStep(info);
@@ -2336,7 +2343,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:457:4: ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:463:4: ^( SOLO_FUNCTION_CALL_PARENT PARENT COLON qualified_name COLON ID LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN )
                     {
                     match(input,SOLO_FUNCTION_CALL_PARENT,FOLLOW_SOLO_FUNCTION_CALL_PARENT_in_solo_method_call666); 
 
@@ -2351,20 +2358,20 @@ public static class STAttrMap extends HashMap {
                     match(input,COLON,FOLLOW_COLON_in_solo_method_call675); 
 
                     pushFollow(FOLLOW_qualified_name_in_solo_method_call677);
-                    qualified_name9=qualified_name();
+                    qualified_name10=qualified_name();
 
                     state._fsp--;
 
 
                     match(input,COLON,FOLLOW_COLON_in_solo_method_call679); 
 
-                    ID10=(CommonTree)match(input,ID,FOLLOW_ID_in_solo_method_call681); 
+                    ID11=(CommonTree)match(input,ID,FOLLOW_ID_in_solo_method_call681); 
 
                     match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_solo_method_call683); 
 
                     if(builder.getCurrentMethod() != null){startLocation = builder.getCurrentMethod().getSteps().size();}
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:463:3: (e= expression ( COMMA e= expression )* )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:469:3: (e= expression ( COMMA e= expression )* )?
                     int alt32=2;
                     int LA32_0 = input.LA(1);
 
@@ -2373,7 +2380,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt32) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:463:4: e= expression ( COMMA e= expression )*
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:469:4: e= expression ( COMMA e= expression )*
                             {
                             pushFollow(FOLLOW_expression_in_solo_method_call694);
                             e=expression();
@@ -2394,7 +2401,7 @@ public static class STAttrMap extends HashMap {
                                             			inCallStep = false;
                             		
 
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:476:3: ( COMMA e= expression )*
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:482:3: ( COMMA e= expression )*
                             loop31:
                             do {
                                 int alt31=2;
@@ -2407,7 +2414,7 @@ public static class STAttrMap extends HashMap {
 
                                 switch (alt31) {
                             	case 1 :
-                            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:476:4: COMMA e= expression
+                            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:482:4: COMMA e= expression
                             	    {
                             	    match(input,COMMA,FOLLOW_COMMA_in_solo_method_call704); 
 
@@ -2458,40 +2465,40 @@ public static class STAttrMap extends HashMap {
 
 
                     			LineInformation location = new LineInformation();
-                                    			location.setEndColumn((qualified_name9!=null?qualified_name9.type:null).getColumnEnd());
-                                    			location.setEndLine((qualified_name9!=null?qualified_name9.type:null).getLineEnd());
-                                   	 		location.setStartColumn((qualified_name9!=null?qualified_name9.type:null).getColumnBegin());
-                                    			location.setStartLine((qualified_name9!=null?qualified_name9.type:null).getLineBegin());
+                                    			location.setEndColumn((qualified_name10!=null?qualified_name10.type:null).getColumnEnd());
+                                    			location.setEndLine((qualified_name10!=null?qualified_name10.type:null).getLineEnd());
+                                   	 		location.setStartColumn((qualified_name10!=null?qualified_name10.type:null).getColumnBegin());
+                                    			location.setStartLine((qualified_name10!=null?qualified_name10.type:null).getLineBegin());
                                     			location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
                                     			location.setClassName(symbol.getCurrentClass().getStaticKey());
                                     			location.setMethodName(symbol.getCurrentMethod().getStaticKey());
                                     
-                                    			symbol.addStatementFlagToCurrentFile((qualified_name9!=null?qualified_name9.type:null).getLineBegin());
+                                    			symbol.addStatementFlagToCurrentFile((qualified_name10!=null?qualified_name10.type:null).getLineBegin());
                                     			
                                     			indexer.append("<action line = \"");
-                    			indexer.append((qualified_name9!=null?qualified_name9.type:null).getLineBegin());
+                    			indexer.append((qualified_name10!=null?qualified_name10.type:null).getLineBegin());
                     			indexer.append("\" />");
                                     
                                     			String key = "";
                                     			String myMethodName = "";
-                                    			if(ID10 == null) {
-                                    				key = MethodDescriptor.generateKey((qualified_name9!=null?qualified_name9.type:null).getStaticKey(), types);
-                                    				myMethodName = (qualified_name9!=null?qualified_name9.type:null).getStaticKey();
+                                    			if(ID11 == null) {
+                                    				key = MethodDescriptor.generateKey((qualified_name10!=null?qualified_name10.type:null).getStaticKey(), types);
+                                    				myMethodName = (qualified_name10!=null?qualified_name10.type:null).getStaticKey();
                     			}
                     			else {
-                    				key = MethodDescriptor.generateKey((ID10!=null?ID10.getText():null), types);
-                    				myMethodName = (ID10!=null?ID10.getText():null);
+                    				key = MethodDescriptor.generateKey((ID11!=null?ID11.getText():null), types);
+                    				myMethodName = (ID11!=null?ID11.getText():null);
                     			}
                     			CallInfo info = new CallInfo();
                     			info.register = temp;
                     			info.location = location;
                     			info.argumentRegisters = registers;
                     			info.argumentSteps = steps;
-                    			info.variable = (qualified_name9!=null?qualified_name9.type:null);
-                    			info.locatedIn = (qualified_name9!=null?qualified_name9.type:null).getStaticKey();
+                    			info.variable = (qualified_name10!=null?qualified_name10.type:null);
+                    			info.locatedIn = (qualified_name10!=null?qualified_name10.type:null).getStaticKey();
                     			info.argumentTypes = argumentTypes;
                     			info.methodName = myMethodName;
-                    			info.isObjectCall = (ID10 != null);
+                    			info.isObjectCall = (ID11 != null);
                     			info.isSoloMethod = true;
                     		
                     			ResultTuple result =  stepFactory.addParentCallStep(info);
@@ -2504,7 +2511,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:539:4: ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:545:4: ^( SOLO_FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN (e= expression ( COMMA e= expression )* )? RIGHT_PAREN )
                     {
                     match(input,SOLO_FUNCTION_CALL_THIS,FOLLOW_SOLO_FUNCTION_CALL_THIS_in_solo_method_call738); 
 
@@ -2519,12 +2526,12 @@ public static class STAttrMap extends HashMap {
                     match(input,COLON,FOLLOW_COLON_in_solo_method_call747); 
 
                     pushFollow(FOLLOW_qualified_name_in_solo_method_call749);
-                    qualified_name11=qualified_name();
+                    qualified_name12=qualified_name();
 
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:544:26: ( COLON ID )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:550:26: ( COLON ID )?
                     int alt33=2;
                     int LA33_0 = input.LA(1);
 
@@ -2533,11 +2540,11 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt33) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:544:27: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:550:27: COLON ID
                             {
                             match(input,COLON,FOLLOW_COLON_in_solo_method_call752); 
 
-                            ID12=(CommonTree)match(input,ID,FOLLOW_ID_in_solo_method_call754); 
+                            ID13=(CommonTree)match(input,ID,FOLLOW_ID_in_solo_method_call754); 
 
                             }
                             break;
@@ -2554,7 +2561,7 @@ public static class STAttrMap extends HashMap {
                     		}
                     	
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:551:3: (e= expression ( COMMA e= expression )* )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:557:3: (e= expression ( COMMA e= expression )* )?
                     int alt35=2;
                     int LA35_0 = input.LA(1);
 
@@ -2563,7 +2570,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt35) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:551:4: e= expression ( COMMA e= expression )*
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:557:4: e= expression ( COMMA e= expression )*
                             {
                             pushFollow(FOLLOW_expression_in_solo_method_call771);
                             e=expression();
@@ -2584,7 +2591,7 @@ public static class STAttrMap extends HashMap {
                                             			inCallStep = false;
                             		
 
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:563:4: ( COMMA e= expression )*
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:569:4: ( COMMA e= expression )*
                             loop34:
                             do {
                                 int alt34=2;
@@ -2597,7 +2604,7 @@ public static class STAttrMap extends HashMap {
 
                                 switch (alt34) {
                             	case 1 :
-                            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:563:5: COMMA e= expression
+                            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:569:5: COMMA e= expression
                             	    {
                             	    match(input,COMMA,FOLLOW_COMMA_in_solo_method_call778); 
 
@@ -2648,39 +2655,39 @@ public static class STAttrMap extends HashMap {
 
 
                     			LineInformation location = new LineInformation();
-                    	                		location.setEndColumn((qualified_name11!=null?qualified_name11.type:null).getColumnEnd());
-                    	                		location.setEndLine((qualified_name11!=null?qualified_name11.type:null).getLineEnd());
-                    	                		location.setStartColumn((qualified_name11!=null?qualified_name11.type:null).getColumnBegin());
-                    	                		location.setStartLine((qualified_name11!=null?qualified_name11.type:null).getLineBegin());
+                    	                		location.setEndColumn((qualified_name12!=null?qualified_name12.type:null).getColumnEnd());
+                    	                		location.setEndLine((qualified_name12!=null?qualified_name12.type:null).getLineEnd());
+                    	                		location.setStartColumn((qualified_name12!=null?qualified_name12.type:null).getColumnBegin());
+                    	                		location.setStartLine((qualified_name12!=null?qualified_name12.type:null).getLineBegin());
                     	                		location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
                     	                		location.setClassName(symbol.getCurrentClass().getStaticKey());
                     	                		location.setMethodName(symbol.getCurrentMethod().getStaticKey());
                     	                
-                    	                		symbol.addStatementFlagToCurrentFile((qualified_name11!=null?qualified_name11.type:null).getLineBegin());
+                    	                		symbol.addStatementFlagToCurrentFile((qualified_name12!=null?qualified_name12.type:null).getLineBegin());
                     	                
                     	               		indexer.append("<action line = \"");
-                    			indexer.append((qualified_name11!=null?qualified_name11.type:null).getLineBegin());
+                    			indexer.append((qualified_name12!=null?qualified_name12.type:null).getLineBegin());
                     			indexer.append("\" />");
                     			
                     	                		String key = "";
                     	                		String myMethodName = "";
-                    	                		if(ID12 == null) {
-                    	                			key = MethodDescriptor.generateKey((qualified_name11!=null?qualified_name11.type:null).getStaticKey(), types);
-                    	                			myMethodName = (qualified_name11!=null?qualified_name11.type:null).getStaticKey();
+                    	                		if(ID13 == null) {
+                    	                			key = MethodDescriptor.generateKey((qualified_name12!=null?qualified_name12.type:null).getStaticKey(), types);
+                    	                			myMethodName = (qualified_name12!=null?qualified_name12.type:null).getStaticKey();
                     			}
                     			else {
-                    				key = MethodDescriptor.generateKey((ID12!=null?ID12.getText():null), types);
-                    				myMethodName = (ID12!=null?ID12.getText():null);
+                    				key = MethodDescriptor.generateKey((ID13!=null?ID13.getText():null), types);
+                    				myMethodName = (ID13!=null?ID13.getText():null);
                     			}
                     			CallInfo info = new CallInfo();
                     			info.register = temp;
                     			info.location = location;
                     			info.argumentRegisters = registers;
                     			info.argumentSteps = steps;
-                    			info.variable = (qualified_name11!=null?qualified_name11.type:null);
+                    			info.variable = (qualified_name12!=null?qualified_name12.type:null);
                     			info.argumentTypes = argumentTypes;
                     			info.methodName = myMethodName;
-                    			info.isObjectCall = (ID12 != null);
+                    			info.isObjectCall = (ID13 != null);
                     			info.isSoloMethod = true;
                     			
                     			ResultTuple result =  stepFactory.addCallStep(info);
@@ -2722,20 +2729,20 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "alert_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:625:1: alert_statement : ^( ALERT LEFT_PAREN ex= root_expression RIGHT_PAREN ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:631:1: alert_statement : ^( ALERT LEFT_PAREN ex= root_expression RIGHT_PAREN ) ;
     public final QuorumTreeWalker.alert_statement_return alert_statement() throws RecognitionException {
         alert_statement_stack.push(new alert_statement_scope());
         QuorumTreeWalker.alert_statement_return retval = new QuorumTreeWalker.alert_statement_return();
         retval.start = input.LT(1);
 
 
-        CommonTree LEFT_PAREN13=null;
+        CommonTree LEFT_PAREN14=null;
         QuorumTreeWalker.root_expression_return ex =null;
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:631:2: ( ^( ALERT LEFT_PAREN ex= root_expression RIGHT_PAREN ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:631:4: ^( ALERT LEFT_PAREN ex= root_expression RIGHT_PAREN )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:637:2: ( ^( ALERT LEFT_PAREN ex= root_expression RIGHT_PAREN ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:637:4: ^( ALERT LEFT_PAREN ex= root_expression RIGHT_PAREN )
             {
             match(input,ALERT,FOLLOW_ALERT_in_alert_statement824); 
 
@@ -2745,7 +2752,7 @@ public static class STAttrMap extends HashMap {
             	
 
             match(input, Token.DOWN, null); 
-            LEFT_PAREN13=(CommonTree)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_alert_statement832); 
+            LEFT_PAREN14=(CommonTree)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_alert_statement832); 
 
             pushFollow(FOLLOW_root_expression_in_alert_statement836);
             ex=root_expression();
@@ -2771,7 +2778,7 @@ public static class STAttrMap extends HashMap {
             		          	error.setLineNumber(cd.getLineBegin());
             		          	error.setError("Class " + cd.getStaticKey() + " is not an error type." +
             		          				cd.getStaticKey() + " must inherit from class Error to be an error type");
-            		          	error.setColumn(LEFT_PAREN13.getCharPositionInLine());
+            		          	error.setColumn(LEFT_PAREN14.getCharPositionInLine());
             		          	error.setErrorType(ErrorType.INVALID_ERROR);
             		          	error.setFile(getGrammarFileNameNoExtension());
             		          	vm.getCompilerErrors().addError(error);
@@ -2849,7 +2856,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "check_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:694:1: check_statement :check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:700:1: check_statement :check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END ;
     public final QuorumTreeWalker.check_statement_return check_statement() throws RecognitionException {
         check_statement_stack.push(new check_statement_scope());
         QuorumTreeWalker.check_statement_return retval = new QuorumTreeWalker.check_statement_return();
@@ -2864,8 +2871,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:704:2: (check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:705:2: check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:710:2: (check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:711:2: check= CHECK block[true] ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] ) end= END
             {
             	
             		((check_statement_scope)check_statement_stack.peek()).detectJump = new JumpStep();
@@ -2905,7 +2912,7 @@ public static class STAttrMap extends HashMap {
             		stepFactory.addCheckEndJumpStep(((check_statement_scope)check_statement_stack.peek()).info);
             	
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:733:2: ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:739:2: ( (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )? |always= ALWAYS block[true] )
             int alt39=2;
             int LA39_0 = input.LA(1);
 
@@ -2924,9 +2931,9 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt39) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:734:7: (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:740:7: (detect_start= DETECT det_param= detect_parameter block[true] )+ (always= ALWAYS block[true] )?
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:734:7: (detect_start= DETECT det_param= detect_parameter block[true] )+
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:740:7: (detect_start= DETECT det_param= detect_parameter block[true] )+
                     int cnt37=0;
                     loop37:
                     do {
@@ -2940,7 +2947,7 @@ public static class STAttrMap extends HashMap {
 
                         switch (alt37) {
                     	case 1 :
-                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:734:8: detect_start= DETECT det_param= detect_parameter block[true]
+                    	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:740:8: detect_start= DETECT det_param= detect_parameter block[true]
                     	    {
                     	    detect_start=(CommonTree)match(input,DETECT,FOLLOW_DETECT_in_check_statement904); 
 
@@ -3046,7 +3053,7 @@ public static class STAttrMap extends HashMap {
                     } while (true);
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:814:7: (always= ALWAYS block[true] )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:820:7: (always= ALWAYS block[true] )?
                     int alt38=2;
                     int LA38_0 = input.LA(1);
 
@@ -3055,7 +3062,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt38) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:814:8: always= ALWAYS block[true]
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:820:8: always= ALWAYS block[true]
                             {
                             always=(CommonTree)match(input,ALWAYS,FOLLOW_ALWAYS_in_check_statement988); 
 
@@ -3098,7 +3105,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:842:7: always= ALWAYS block[true]
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:848:7: always= ALWAYS block[true]
                     {
                     always=(CommonTree)match(input,ALWAYS,FOLLOW_ALWAYS_in_check_statement1036); 
 
@@ -3204,7 +3211,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "detect_parameter"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:902:1: detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionTypeList] : ^(id= ID ( INHERITS qn= qualified_name ( OR qn= qualified_name )* )? ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:908:1: detect_parameter returns [String name, ArrayList<ErrorTypeDescriptor> exceptionTypeList] : ^(id= ID ( INHERITS qn= qualified_name ( OR qn= qualified_name )* )? ) ;
     public final QuorumTreeWalker.detect_parameter_return detect_parameter() throws RecognitionException {
         detect_parameter_stack.push(new detect_parameter_scope());
         QuorumTreeWalker.detect_parameter_return retval = new QuorumTreeWalker.detect_parameter_return();
@@ -3216,14 +3223,14 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:906:2: ( ^(id= ID ( INHERITS qn= qualified_name ( OR qn= qualified_name )* )? ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:906:4: ^(id= ID ( INHERITS qn= qualified_name ( OR qn= qualified_name )* )? )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:912:2: ( ^(id= ID ( INHERITS qn= qualified_name ( OR qn= qualified_name )* )? ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:912:4: ^(id= ID ( INHERITS qn= qualified_name ( OR qn= qualified_name )* )? )
             {
             id=(CommonTree)match(input,ID,FOLLOW_ID_in_detect_parameter1097); 
 
             if ( input.LA(1)==Token.DOWN ) {
                 match(input, Token.DOWN, null); 
-                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:907:2: ( INHERITS qn= qualified_name ( OR qn= qualified_name )* )?
+                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:913:2: ( INHERITS qn= qualified_name ( OR qn= qualified_name )* )?
                 int alt41=2;
                 int LA41_0 = input.LA(1);
 
@@ -3232,7 +3239,7 @@ public static class STAttrMap extends HashMap {
                 }
                 switch (alt41) {
                     case 1 :
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:907:3: INHERITS qn= qualified_name ( OR qn= qualified_name )*
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:913:3: INHERITS qn= qualified_name ( OR qn= qualified_name )*
                         {
                         match(input,INHERITS,FOLLOW_INHERITS_in_detect_parameter1102); 
 
@@ -3284,7 +3291,7 @@ public static class STAttrMap extends HashMap {
                         		((detect_parameter_scope)detect_parameter_stack.peek()).exceptionList.add(t);
                         	
 
-                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:949:2: ( OR qn= qualified_name )*
+                        // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:955:2: ( OR qn= qualified_name )*
                         loop40:
                         do {
                             int alt40=2;
@@ -3297,7 +3304,7 @@ public static class STAttrMap extends HashMap {
 
                             switch (alt40) {
                         	case 1 :
-                        	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:949:3: OR qn= qualified_name
+                        	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:955:3: OR qn= qualified_name
                         	    {
                         	    match(input,OR,FOLLOW_OR_in_detect_parameter1118); 
 
@@ -3400,30 +3407,30 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "print_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1000:1: print_statement : OUTPUT root_expression ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1006:1: print_statement : OUTPUT root_expression ;
     public final QuorumTreeWalker.print_statement_return print_statement() throws RecognitionException {
         QuorumTreeWalker.print_statement_return retval = new QuorumTreeWalker.print_statement_return();
         retval.start = input.LT(1);
 
 
-        QuorumTreeWalker.root_expression_return root_expression14 =null;
+        QuorumTreeWalker.root_expression_return root_expression15 =null;
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1001:2: ( OUTPUT root_expression )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1001:4: OUTPUT root_expression
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1007:2: ( OUTPUT root_expression )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1007:4: OUTPUT root_expression
             {
             match(input,OUTPUT,FOLLOW_OUTPUT_in_print_statement1149); 
 
             pushFollow(FOLLOW_root_expression_in_print_statement1151);
-            root_expression14=root_expression();
+            root_expression15=root_expression();
 
             state._fsp--;
 
 
 
-            		ExecutionStep step = (root_expression14!=null?root_expression14.step:null);
-            		ExpressionValue value = (root_expression14!=null?root_expression14.eval:null);
+            		ExecutionStep step = (root_expression15!=null?root_expression15.step:null);
+            		ExpressionValue value = (root_expression15!=null?root_expression15.eval:null);
 
             		LineInformation location = new LineInformation();
             	                	location.setEndColumn(step.getEndColumn());
@@ -3434,7 +3441,7 @@ public static class STAttrMap extends HashMap {
             	
                             		symbol.addStatementFlagToCurrentFile(step.getBeginLine());
                             
-            		stepFactory.addPrintStep(location, (root_expression14!=null?root_expression14.eval:null), (root_expression14!=null?root_expression14.step:null));
+            		stepFactory.addPrintStep(location, (root_expression15!=null?root_expression15.eval:null), (root_expression15!=null?root_expression15.step:null));
             		builder.addStepLabel(OpcodeType.PRINT, -1);
             		
             		indexer.append("<print line = \"");
@@ -3466,30 +3473,30 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "speak_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1025:1: speak_statement : SAY root_expression ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1031:1: speak_statement : SAY root_expression ;
     public final QuorumTreeWalker.speak_statement_return speak_statement() throws RecognitionException {
         QuorumTreeWalker.speak_statement_return retval = new QuorumTreeWalker.speak_statement_return();
         retval.start = input.LT(1);
 
 
-        QuorumTreeWalker.root_expression_return root_expression15 =null;
+        QuorumTreeWalker.root_expression_return root_expression16 =null;
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1026:2: ( SAY root_expression )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1026:4: SAY root_expression
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1032:2: ( SAY root_expression )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1032:4: SAY root_expression
             {
             match(input,SAY,FOLLOW_SAY_in_speak_statement1167); 
 
             pushFollow(FOLLOW_root_expression_in_speak_statement1169);
-            root_expression15=root_expression();
+            root_expression16=root_expression();
 
             state._fsp--;
 
 
 
-            		ExecutionStep step = (root_expression15!=null?root_expression15.step:null);
-            		ExpressionValue value = (root_expression15!=null?root_expression15.eval:null);
+            		ExecutionStep step = (root_expression16!=null?root_expression16.step:null);
+            		ExpressionValue value = (root_expression16!=null?root_expression16.eval:null);
 
             		LineInformation location = new LineInformation();
                             		location.setEndColumn(step.getEndColumn());
@@ -3499,7 +3506,7 @@ public static class STAttrMap extends HashMap {
                             		location.setFile(getGrammarFileNameNoExtension());
 
                             		symbol.addStatementFlagToCurrentFile(step.getBeginLine());
-            		stepFactory.addSpeakStep(location, (root_expression15!=null?root_expression15.eval:null), (root_expression15!=null?root_expression15.step:null));
+            		stepFactory.addSpeakStep(location, (root_expression16!=null?root_expression16.eval:null), (root_expression16!=null?root_expression16.step:null));
             		builder.addStepLabel(OpcodeType.SAY, -1);
             		
             		indexer.append("<say line = \"");
@@ -3531,24 +3538,24 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "return_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1048:1: return_statement : RETURN ( root_expression | NOW ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1054:1: return_statement : RETURN ( root_expression | NOW ) ;
     public final QuorumTreeWalker.return_statement_return return_statement() throws RecognitionException {
         QuorumTreeWalker.return_statement_return retval = new QuorumTreeWalker.return_statement_return();
         retval.start = input.LT(1);
 
 
-        CommonTree NOW17=null;
-        CommonTree RETURN18=null;
-        QuorumTreeWalker.root_expression_return root_expression16 =null;
+        CommonTree NOW18=null;
+        CommonTree RETURN19=null;
+        QuorumTreeWalker.root_expression_return root_expression17 =null;
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1049:2: ( RETURN ( root_expression | NOW ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1049:4: RETURN ( root_expression | NOW )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1055:2: ( RETURN ( root_expression | NOW ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1055:4: RETURN ( root_expression | NOW )
             {
-            RETURN18=(CommonTree)match(input,RETURN,FOLLOW_RETURN_in_return_statement1183); 
+            RETURN19=(CommonTree)match(input,RETURN,FOLLOW_RETURN_in_return_statement1183); 
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1049:11: ( root_expression | NOW )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1055:11: ( root_expression | NOW )
             int alt42=2;
             int LA42_0 = input.LA(1);
 
@@ -3567,18 +3574,18 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt42) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1049:12: root_expression
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1055:12: root_expression
                     {
                     pushFollow(FOLLOW_root_expression_in_return_statement1186);
-                    root_expression16=root_expression();
+                    root_expression17=root_expression();
 
                     state._fsp--;
 
 
 
 
-                    		ExecutionStep step = (root_expression16!=null?root_expression16.step:null);
-                    		ExpressionValue value = (root_expression16!=null?root_expression16.eval:null);
+                    		ExecutionStep step = (root_expression17!=null?root_expression17.step:null);
+                    		ExpressionValue value = (root_expression17!=null?root_expression17.eval:null);
 
                     		LineInformation location = new LineInformation();
                                     		location.setEndColumn(step.getEndColumn());
@@ -3588,7 +3595,7 @@ public static class STAttrMap extends HashMap {
                                     		location.setFile(getGrammarFileNameNoExtension());
 
                                     		symbol.addStatementFlagToCurrentFile(step.getBeginLine());
-                    		stepFactory.addReturnStep(location, (root_expression16!=null?root_expression16.eval:null), (root_expression16!=null?root_expression16.step:null));
+                    		stepFactory.addReturnStep(location, (root_expression17!=null?root_expression17.eval:null), (root_expression17!=null?root_expression17.step:null));
                     		builder.addStepLabel(OpcodeType.RETURN, -1);
                     		
                     		indexer.append("<return line = \"");
@@ -3599,24 +3606,24 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1070:4: NOW
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1076:4: NOW
                     {
-                    NOW17=(CommonTree)match(input,NOW,FOLLOW_NOW_in_return_statement1194); 
+                    NOW18=(CommonTree)match(input,NOW,FOLLOW_NOW_in_return_statement1194); 
 
 
                     		LineInformation location = new LineInformation();
-                                    		location.setEndColumn(NOW17.getCharPositionInLine());
-                                    		location.setEndLine(NOW17.getLine());
-                                    		location.setStartColumn(RETURN18.getCharPositionInLine());
-                                    		location.setStartLine(RETURN18.getLine());
+                                    		location.setEndColumn(NOW18.getCharPositionInLine());
+                                    		location.setEndLine(NOW18.getLine());
+                                    		location.setStartColumn(RETURN19.getCharPositionInLine());
+                                    		location.setStartLine(RETURN19.getLine());
                                     		location.setFile(getGrammarFileNameNoExtension());
 
-                                    		symbol.addStatementFlagToCurrentFile(RETURN18.getLine());
+                                    		symbol.addStatementFlagToCurrentFile(RETURN19.getLine());
                     		stepFactory.addReturnStep(location, null, null);
                     		builder.addStepLabel(OpcodeType.RETURN, -1);
                     		
                     		indexer.append("<return line = \"");
-                    		indexer.append(RETURN18.getLine());
+                    		indexer.append(RETURN19.getLine());
                     		indexer.append("\" />");
                     	
 
@@ -3650,7 +3657,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "generic_declaration"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1089:1: generic_declaration : ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1095:1: generic_declaration : ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER ) ;
     public final QuorumTreeWalker.generic_declaration_return generic_declaration() throws RecognitionException {
         QuorumTreeWalker.generic_declaration_return retval = new QuorumTreeWalker.generic_declaration_return();
         retval.start = input.LT(1);
@@ -3660,8 +3667,8 @@ public static class STAttrMap extends HashMap {
         List list_ids=null;
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1090:2: ( ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1090:4: ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1096:2: ( ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1096:4: ^( GENERIC LESS ids+= ID ( COMMA ids+= ID )* GREATER )
             {
             match(input,GENERIC,FOLLOW_GENERIC_in_generic_declaration1212); 
 
@@ -3673,7 +3680,7 @@ public static class STAttrMap extends HashMap {
             list_ids.add(ids);
 
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1090:27: ( COMMA ids+= ID )*
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1096:27: ( COMMA ids+= ID )*
             loop43:
             do {
                 int alt43=2;
@@ -3686,7 +3693,7 @@ public static class STAttrMap extends HashMap {
 
                 switch (alt43) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1090:28: COMMA ids+= ID
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1096:28: COMMA ids+= ID
             	    {
             	    match(input,COMMA,FOLLOW_COMMA_in_generic_declaration1221); 
 
@@ -3734,7 +3741,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "generic_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1093:1: generic_statement returns [ArrayList<GenericDescriptor> templateTypes] : ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1099:1: generic_statement returns [ArrayList<GenericDescriptor> templateTypes] : ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER ) ;
     public final QuorumTreeWalker.generic_statement_return generic_statement() throws RecognitionException {
         QuorumTreeWalker.generic_statement_return retval = new QuorumTreeWalker.generic_statement_return();
         retval.start = input.LT(1);
@@ -3746,8 +3753,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1094:2: ( ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1094:4: ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1100:2: ( ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1100:4: ^( GENERIC LESS ad= assignment_declaration ( COMMA a= assignment_declaration )* GREATER )
             {
             match(input,GENERIC,FOLLOW_GENERIC_in_generic_statement1247); 
 
@@ -3778,7 +3785,7 @@ public static class STAttrMap extends HashMap {
             		types.add(genericType);
             	
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1112:3: ( COMMA a= assignment_declaration )*
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1118:3: ( COMMA a= assignment_declaration )*
             loop44:
             do {
                 int alt44=2;
@@ -3791,7 +3798,7 @@ public static class STAttrMap extends HashMap {
 
                 switch (alt44) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1112:4: COMMA a= assignment_declaration
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1118:4: COMMA a= assignment_declaration
             	    {
             	    match(input,COMMA,FOLLOW_COMMA_in_generic_statement1266); 
 
@@ -3859,7 +3866,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "class_type"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1139:1: class_type returns [TypeDescriptor myType] : qn= qualified_name ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1145:1: class_type returns [TypeDescriptor myType] : qn= qualified_name ;
     public final QuorumTreeWalker.class_type_return class_type() throws RecognitionException {
         QuorumTreeWalker.class_type_return retval = new QuorumTreeWalker.class_type_return();
         retval.start = input.LT(1);
@@ -3869,8 +3876,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1140:2: (qn= qualified_name )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1140:4: qn= qualified_name
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1146:2: (qn= qualified_name )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1146:4: qn= qualified_name
             {
             pushFollow(FOLLOW_qualified_name_in_class_type1311);
             qn=qualified_name();
@@ -3930,7 +3937,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "assignment_declaration"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1169:1: assignment_declaration returns [TypeDescriptor myType] : (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD );
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1175:1: assignment_declaration returns [TypeDescriptor myType] : (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD );
     public final QuorumTreeWalker.assignment_declaration_return assignment_declaration() throws RecognitionException {
         QuorumTreeWalker.assignment_declaration_return retval = new QuorumTreeWalker.assignment_declaration_return();
         retval.start = input.LT(1);
@@ -3942,7 +3949,7 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1170:2: (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1176:2: (qn= qualified_name (gs= generic_statement )? | INTEGER_KEYWORD | NUMBER_KEYWORD | TEXT | BOOLEAN_KEYWORD )
             int alt46=5;
             switch ( input.LA(1) ) {
             case QUALIFIED_NAME:
@@ -3980,7 +3987,7 @@ public static class STAttrMap extends HashMap {
 
             switch (alt46) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1170:4: qn= qualified_name (gs= generic_statement )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1176:4: qn= qualified_name (gs= generic_statement )?
                     {
                     pushFollow(FOLLOW_qualified_name_in_assignment_declaration1333);
                     qn=qualified_name();
@@ -3988,7 +3995,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1170:26: (gs= generic_statement )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1176:26: (gs= generic_statement )?
                     int alt45=2;
                     int LA45_0 = input.LA(1);
 
@@ -3997,7 +4004,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt45) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1170:26: gs= generic_statement
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1176:26: gs= generic_statement
                             {
                             pushFollow(FOLLOW_generic_statement_in_assignment_declaration1337);
                             gs=generic_statement();
@@ -4044,7 +4051,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1200:4: INTEGER_KEYWORD
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1206:4: INTEGER_KEYWORD
                     {
                     match(input,INTEGER_KEYWORD,FOLLOW_INTEGER_KEYWORD_in_assignment_declaration1346); 
 
@@ -4057,7 +4064,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1206:4: NUMBER_KEYWORD
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1212:4: NUMBER_KEYWORD
                     {
                     match(input,NUMBER_KEYWORD,FOLLOW_NUMBER_KEYWORD_in_assignment_declaration1354); 
 
@@ -4070,7 +4077,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 4 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1212:4: TEXT
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1218:4: TEXT
                     {
                     match(input,TEXT,FOLLOW_TEXT_in_assignment_declaration1362); 
 
@@ -4083,7 +4090,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 5 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1218:4: BOOLEAN_KEYWORD
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1224:4: BOOLEAN_KEYWORD
                     {
                     match(input,BOOLEAN_KEYWORD,FOLLOW_BOOLEAN_KEYWORD_in_assignment_declaration1370); 
 
@@ -4119,16 +4126,16 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "assignment_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1224:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1230:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );
     public final QuorumTreeWalker.assignment_statement_return assignment_statement() throws RecognitionException {
         QuorumTreeWalker.assignment_statement_return retval = new QuorumTreeWalker.assignment_statement_return();
         retval.start = input.LT(1);
 
 
         CommonTree name=null;
-        CommonTree ID19=null;
         CommonTree ID20=null;
-        CommonTree PARENT21=null;
+        CommonTree ID21=null;
+        CommonTree PARENT22=null;
         QuorumTreeWalker.selector_return sel =null;
 
         QuorumTreeWalker.assign_right_hand_side_return rhs =null;
@@ -4143,14 +4150,14 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1225:2: ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1231:2: ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? )
             int alt52=3;
             alt52 = dfa52.predict(input);
             switch (alt52) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1226:3: (sel= selector COLON )? ID rhs= assign_right_hand_side
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1232:3: (sel= selector COLON )? ID rhs= assign_right_hand_side
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1226:3: (sel= selector COLON )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1232:3: (sel= selector COLON )?
                     int alt47=2;
                     int LA47_0 = input.LA(1);
 
@@ -4159,7 +4166,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt47) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1226:4: sel= selector COLON
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1232:4: sel= selector COLON
                             {
                             pushFollow(FOLLOW_selector_in_assignment_statement1386);
                             sel=selector();
@@ -4175,7 +4182,7 @@ public static class STAttrMap extends HashMap {
                     }
 
 
-                    ID19=(CommonTree)match(input,ID,FOLLOW_ID_in_assignment_statement1392); 
+                    ID20=(CommonTree)match(input,ID,FOLLOW_ID_in_assignment_statement1392); 
 
                     pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1396);
                     rhs=assign_right_hand_side();
@@ -4186,9 +4193,9 @@ public static class STAttrMap extends HashMap {
 
                     		boolean isMe = false;
                     		LineInformation location = new LineInformation (
-                    			 (ID19!=null?ID19.getLine():0),
+                    			 (ID20!=null?ID20.getLine():0),
                     			 0,
-                    			 ID19.getCharPositionInLine(),
+                    			 ID20.getCharPositionInLine(),
                     			 0
                     		);
                     		
@@ -4209,27 +4216,27 @@ public static class STAttrMap extends HashMap {
                     			}
                     		}
                     		
-                    		symbol.addStatementFlagToCurrentFile((ID19!=null?ID19.getLine():0));
+                    		symbol.addStatementFlagToCurrentFile((ID20!=null?ID20.getLine():0));
                     		
                     		boolean hasRHS = false;
                     		if((rhs!=null?rhs.eval:null) != null){
                     			hasRHS = true;
                     		}
                     		
-                    		stepFactory.addAssignmentStep(location, (ID19!=null?ID19.getText():null), (rhs!=null?rhs.eval:null), (rhs!=null?rhs.step:null), false, "", cd, isMe, hasRHS);
+                    		stepFactory.addAssignmentStep(location, (ID20!=null?ID20.getText():null), (rhs!=null?rhs.eval:null), (rhs!=null?rhs.step:null), false, "", cd, isMe, hasRHS);
                     		builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
                     		
                     		indexer.append("<assignment line = \"");
-                    		indexer.append((ID19!=null?ID19.getLine():0));
+                    		indexer.append((ID20!=null?ID20.getLine():0));
                     		indexer.append("\" variable = \"");
-                    		indexer.append((ID19!=null?ID19.getText():null));
+                    		indexer.append((ID20!=null?ID20.getText():null));
                     		indexer.append("\"/>");
                     	
 
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1269:4: obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1275:4: obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side
                     {
                     pushFollow(FOLLOW_qualified_name_in_assignment_statement1406);
                     obj=qualified_name();
@@ -4237,7 +4244,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1269:23: ( COLON PARENT COLON parent= qualified_name )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1275:23: ( COLON PARENT COLON parent= qualified_name )?
                     int alt48=2;
                     int LA48_0 = input.LA(1);
 
@@ -4250,11 +4257,11 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt48) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1269:24: COLON PARENT COLON parent= qualified_name
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1275:24: COLON PARENT COLON parent= qualified_name
                             {
                             match(input,COLON,FOLLOW_COLON_in_assignment_statement1409); 
 
-                            PARENT21=(CommonTree)match(input,PARENT,FOLLOW_PARENT_in_assignment_statement1411); 
+                            PARENT22=(CommonTree)match(input,PARENT,FOLLOW_PARENT_in_assignment_statement1411); 
 
                             match(input,COLON,FOLLOW_COLON_in_assignment_statement1413); 
 
@@ -4272,7 +4279,7 @@ public static class STAttrMap extends HashMap {
 
                     match(input,COLON,FOLLOW_COLON_in_assignment_statement1421); 
 
-                    ID20=(CommonTree)match(input,ID,FOLLOW_ID_in_assignment_statement1423); 
+                    ID21=(CommonTree)match(input,ID,FOLLOW_ID_in_assignment_statement1423); 
 
                     pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1427);
                     rhs=assign_right_hand_side();
@@ -4282,9 +4289,9 @@ public static class STAttrMap extends HashMap {
 
 
                     		LineInformation location = new LineInformation (
-                    			 (ID20!=null?ID20.getLine():0),
+                    			 (ID21!=null?ID21.getLine():0),
                     			 0,
-                    			 ID20.getCharPositionInLine(),
+                    			 ID21.getCharPositionInLine(),
                     			 0
                     		);
                     		location.setFile(symbol.getCurrentClass().getFile().getStaticKey());
@@ -4295,14 +4302,14 @@ public static class STAttrMap extends HashMap {
                                     
                     		boolean isLocal = (type!=null?type.myType:null) != null;
                     		
-                    		symbol.addStatementFlagToCurrentFile((ID20!=null?ID20.getLine():0));
+                    		symbol.addStatementFlagToCurrentFile((ID21!=null?ID21.getLine():0));
                     		ClassDescriptor cd = null;
                     		
                     		if((parent!=null?parent.type:null) != null){
                     			cd = symbol.findClassDescriptorFromCurrentClass((parent!=null?parent.type:null).getStaticKey());
                     			
                     			if(cd == null){
-                    				CompilerError error = new CompilerError(PARENT21.getLine(), "The class "+ symbol.getCurrentClass().getStaticKey() +" does not have access to " + (parent!=null?parent.type:null).getStaticKey(), ErrorType.MISSING_PARENT);
+                    				CompilerError error = new CompilerError(PARENT22.getLine(), "The class "+ symbol.getCurrentClass().getStaticKey() +" does not have access to " + (parent!=null?parent.type:null).getStaticKey(), ErrorType.MISSING_PARENT);
                     				vm.getCompilerErrors().addError(error);
                     			}
                     		}
@@ -4312,22 +4319,22 @@ public static class STAttrMap extends HashMap {
                     			hasRHS = true;
                     		}
                     		
-                    		stepFactory.addAssignmentStep(location, (obj!=null?obj.type:null).getStaticKey(), (rhs!=null?rhs.eval:null), (rhs!=null?rhs.step:null), isLocal, (ID20!=null?ID20.getText():null), cd, false, hasRHS);
+                    		stepFactory.addAssignmentStep(location, (obj!=null?obj.type:null).getStaticKey(), (rhs!=null?rhs.eval:null), (rhs!=null?rhs.step:null), isLocal, (ID21!=null?ID21.getText():null), cd, false, hasRHS);
                     		builder.addStepLabel(OpcodeType.ASSIGNMENT, -1);
                     		
                     		indexer.append("<assignment line = \"");
-                    		indexer.append((ID20!=null?ID20.getLine():0));
+                    		indexer.append((ID21!=null?ID21.getLine():0));
                     		indexer.append("\" variable = \"");
-                    		indexer.append((ID20!=null?ID20.getText():null));
+                    		indexer.append((ID21!=null?ID21.getText():null));
                     		indexer.append("\"/>");
                     	
 
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1311:4: (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1317:4: (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )?
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1311:13: (modifier= access_modifier )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1317:13: (modifier= access_modifier )?
                     int alt49=2;
                     int LA49_0 = input.LA(1);
 
@@ -4336,7 +4343,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt49) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1311:13: modifier= access_modifier
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1317:13: modifier= access_modifier
                             {
                             pushFollow(FOLLOW_access_modifier_in_assignment_statement1439);
                             modifier=access_modifier();
@@ -4350,7 +4357,7 @@ public static class STAttrMap extends HashMap {
                     }
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1311:32: ( CONSTANT )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1317:32: ( CONSTANT )?
                     int alt50=2;
                     int LA50_0 = input.LA(1);
 
@@ -4359,7 +4366,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt50) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1311:32: CONSTANT
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1317:32: CONSTANT
                             {
                             match(input,CONSTANT,FOLLOW_CONSTANT_in_assignment_statement1442); 
 
@@ -4377,7 +4384,7 @@ public static class STAttrMap extends HashMap {
 
                     name=(CommonTree)match(input,ID,FOLLOW_ID_in_assignment_statement1455); 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1311:85: (rhs= assign_right_hand_side )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1317:85: (rhs= assign_right_hand_side )?
                     int alt51=2;
                     int LA51_0 = input.LA(1);
 
@@ -4386,7 +4393,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt51) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1311:85: rhs= assign_right_hand_side
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1317:85: rhs= assign_right_hand_side
                             {
                             pushFollow(FOLLOW_assign_right_hand_side_in_assignment_statement1459);
                             rhs=assign_right_hand_side();
@@ -4461,26 +4468,26 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "assign_right_hand_side"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1345:1: assign_right_hand_side returns [ExpressionValue eval, ExecutionStep step] : ( EQUALITY root_expression ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1351:1: assign_right_hand_side returns [ExpressionValue eval, ExecutionStep step] : ( EQUALITY root_expression ) ;
     public final QuorumTreeWalker.assign_right_hand_side_return assign_right_hand_side() throws RecognitionException {
         QuorumTreeWalker.assign_right_hand_side_return retval = new QuorumTreeWalker.assign_right_hand_side_return();
         retval.start = input.LT(1);
 
 
-        QuorumTreeWalker.root_expression_return root_expression22 =null;
+        QuorumTreeWalker.root_expression_return root_expression23 =null;
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1346:2: ( ( EQUALITY root_expression ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1347:3: ( EQUALITY root_expression )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1352:2: ( ( EQUALITY root_expression ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1353:3: ( EQUALITY root_expression )
             {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1347:3: ( EQUALITY root_expression )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1347:4: EQUALITY root_expression
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1353:3: ( EQUALITY root_expression )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1353:4: EQUALITY root_expression
             {
             match(input,EQUALITY,FOLLOW_EQUALITY_in_assign_right_hand_side1480); 
 
             pushFollow(FOLLOW_root_expression_in_assign_right_hand_side1482);
-            root_expression22=root_expression();
+            root_expression23=root_expression();
 
             state._fsp--;
 
@@ -4489,8 +4496,8 @@ public static class STAttrMap extends HashMap {
 
 
 
-            		retval.eval = (root_expression22!=null?root_expression22.eval:null);
-            		retval.step = (root_expression22!=null?root_expression22.step:null);
+            		retval.eval = (root_expression23!=null?root_expression23.eval:null);
+            		retval.step = (root_expression23!=null?root_expression23.step:null);
             	
 
             }
@@ -4525,7 +4532,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "if_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1355:1: if_statement : begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1361:1: if_statement : begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END ;
     public final QuorumTreeWalker.if_statement_return if_statement() throws RecognitionException {
         if_statement_stack.push(new if_statement_scope());
         QuorumTreeWalker.if_statement_return retval = new QuorumTreeWalker.if_statement_return();
@@ -4544,8 +4551,8 @@ public static class STAttrMap extends HashMap {
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1361:3: (begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1361:5: begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1367:3: (begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1367:5: begin_if= IF condition= root_expression b= block[true] (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )* (begin_else= ELSE b= block[true] )? end= END
             {
             begin_if=(CommonTree)match(input,IF,FOLLOW_IF_in_if_statement1508); 
 
@@ -4606,7 +4613,7 @@ public static class STAttrMap extends HashMap {
             			
             		
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1406:3: (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )*
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1412:3: (begin_else_if= ELSE_IF condition2= root_expression b= block[true] )*
             loop53:
             do {
                 int alt53=2;
@@ -4619,7 +4626,7 @@ public static class STAttrMap extends HashMap {
 
                 switch (alt53) {
             	case 1 :
-            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1406:4: begin_else_if= ELSE_IF condition2= root_expression b= block[true]
+            	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1412:4: begin_else_if= ELSE_IF condition2= root_expression b= block[true]
             	    {
             	    begin_else_if=(CommonTree)match(input,ELSE_IF,FOLLOW_ELSE_IF_in_if_statement1550); 
 
@@ -4720,7 +4727,7 @@ public static class STAttrMap extends HashMap {
             } while (true);
 
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1482:3: (begin_else= ELSE b= block[true] )?
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1488:3: (begin_else= ELSE b= block[true] )?
             int alt54=2;
             int LA54_0 = input.LA(1);
 
@@ -4729,7 +4736,7 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt54) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1482:4: begin_else= ELSE b= block[true]
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1488:4: begin_else= ELSE b= block[true]
                     {
                     begin_else=(CommonTree)match(input,ELSE,FOLLOW_ELSE_in_if_statement1607); 
 
@@ -4869,41 +4876,41 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "loop_statement"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1562:1: loop_statement : REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1568:1: loop_statement : REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END ;
     public final QuorumTreeWalker.loop_statement_return loop_statement() throws RecognitionException {
         loop_statement_stack.push(new loop_statement_scope());
         QuorumTreeWalker.loop_statement_return retval = new QuorumTreeWalker.loop_statement_return();
         retval.start = input.LT(1);
 
 
-        CommonTree REPEAT23=null;
-        CommonTree TIMES24=null;
-        CommonTree END25=null;
+        CommonTree REPEAT24=null;
+        CommonTree TIMES25=null;
+        CommonTree END26=null;
         QuorumTreeWalker.root_expression_return expr =null;
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1581:2: ( REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1582:2: REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1587:2: ( REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1588:2: REPEAT ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) ) block[true] END
             {
-            REPEAT23=(CommonTree)match(input,REPEAT,FOLLOW_REPEAT_in_loop_statement1649); 
+            REPEAT24=(CommonTree)match(input,REPEAT,FOLLOW_REPEAT_in_loop_statement1649); 
 
 
 
-            		((loop_statement_scope)loop_statement_stack.peek()).marker_top = (REPEAT23!=null?REPEAT23.getText():null) + labelCounter + "_top";
-            		((loop_statement_scope)loop_statement_stack.peek()).marker_loop = (REPEAT23!=null?REPEAT23.getText():null) + labelCounter + "_loop";
-            		((loop_statement_scope)loop_statement_stack.peek()).marker_bottom = (REPEAT23!=null?REPEAT23.getText():null) + labelCounter + "_bottom";
+            		((loop_statement_scope)loop_statement_stack.peek()).marker_top = (REPEAT24!=null?REPEAT24.getText():null) + labelCounter + "_top";
+            		((loop_statement_scope)loop_statement_stack.peek()).marker_loop = (REPEAT24!=null?REPEAT24.getText():null) + labelCounter + "_loop";
+            		((loop_statement_scope)loop_statement_stack.peek()).marker_bottom = (REPEAT24!=null?REPEAT24.getText():null) + labelCounter + "_bottom";
             		labelCounter++;
             		((loop_statement_scope)loop_statement_stack.peek()).location = new LineInformation(
-            			REPEAT23.getLine(),
-            			REPEAT23.getLine(),
-            			REPEAT23.getCharPositionInLine(),
-            			(REPEAT23!=null?REPEAT23.getText():null).length() + REPEAT23.getCharPositionInLine());
+            			REPEAT24.getLine(),
+            			REPEAT24.getLine(),
+            			REPEAT24.getCharPositionInLine(),
+            			(REPEAT24!=null?REPEAT24.getText():null).length() + REPEAT24.getCharPositionInLine());
             		((loop_statement_scope)loop_statement_stack.peek()).loop_counter = null;
             		((loop_statement_scope)loop_statement_stack.peek()).jumpToTop = new JumpStep();
             		((loop_statement_scope)loop_statement_stack.peek()).jumpToTop.setType(JumpType.LOOP);
             		((loop_statement_scope)loop_statement_stack.peek()).jumpToTop.setLineInformation(((loop_statement_scope)loop_statement_stack.peek()).location);
-            		symbol.addStatementFlagToCurrentFile(REPEAT23.getLine());
+            		symbol.addStatementFlagToCurrentFile(REPEAT24.getLine());
 
             		((loop_statement_scope)loop_statement_stack.peek()).first_value = null;
             		((loop_statement_scope)loop_statement_stack.peek()).first_step = null;
@@ -4921,7 +4928,7 @@ public static class STAttrMap extends HashMap {
             		
             	
 
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1616:2: ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1622:2: ( (expr= root_expression TIMES ) | ( ( WHILE | UNTIL ) expr= root_expression ) )
             int alt56=2;
             int LA56_0 = input.LA(1);
 
@@ -4940,10 +4947,10 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt56) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1646:3: (expr= root_expression TIMES )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1652:3: (expr= root_expression TIMES )
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1646:3: (expr= root_expression TIMES )
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1646:4: expr= root_expression TIMES
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1652:3: (expr= root_expression TIMES )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1652:4: expr= root_expression TIMES
                     {
                     pushFollow(FOLLOW_root_expression_in_loop_statement1722);
                     expr=root_expression();
@@ -4951,7 +4958,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    TIMES24=(CommonTree)match(input,TIMES,FOLLOW_TIMES_in_loop_statement1724); 
+                    TIMES25=(CommonTree)match(input,TIMES,FOLLOW_TIMES_in_loop_statement1724); 
 
                     }
 
@@ -4960,7 +4967,7 @@ public static class STAttrMap extends HashMap {
                     		((loop_statement_scope)loop_statement_stack.peek()).first_value = (expr!=null?expr.eval:null);
                     		TypeDescriptor type = (expr!=null?expr.eval:null).getType();
                     		if(type == null || !type.isInteger()) {
-                    			CompilerError error = new CompilerError(TIMES24.getLine(), "repeat times requires an integer.", ErrorType.REPEAT_TIMES_NON_INTEGER);
+                    			CompilerError error = new CompilerError(TIMES25.getLine(), "repeat times requires an integer.", ErrorType.REPEAT_TIMES_NON_INTEGER);
                     			vm.getCompilerErrors().addError(error);	
                     		}
                     		((loop_statement_scope)loop_statement_stack.peek()).first_step = (expr!=null?expr.step:null);
@@ -4987,12 +4994,12 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1674:4: ( ( WHILE | UNTIL ) expr= root_expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1680:4: ( ( WHILE | UNTIL ) expr= root_expression )
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1674:4: ( ( WHILE | UNTIL ) expr= root_expression )
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1674:5: ( WHILE | UNTIL ) expr= root_expression
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1680:4: ( ( WHILE | UNTIL ) expr= root_expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1680:5: ( WHILE | UNTIL ) expr= root_expression
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1674:5: ( WHILE | UNTIL )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1680:5: ( WHILE | UNTIL )
                     int alt55=2;
                     int LA55_0 = input.LA(1);
 
@@ -5011,7 +5018,7 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt55) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1674:6: WHILE
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1680:6: WHILE
                             {
                             match(input,WHILE,FOLLOW_WHILE_in_loop_statement1735); 
 
@@ -5020,7 +5027,7 @@ public static class STAttrMap extends HashMap {
                             }
                             break;
                         case 2 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1674:49: UNTIL
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1680:49: UNTIL
                             {
                             match(input,UNTIL,FOLLOW_UNTIL_in_loop_statement1741); 
 
@@ -5049,7 +5056,7 @@ public static class STAttrMap extends HashMap {
                     			
                     			TypeDescriptor type = (expr!=null?expr.eval:null).getType();
                     			if(type == null || !type.isBoolean()) {
-                    				CompilerError error = new CompilerError(REPEAT23.getLine(), "repeat loops require a boolean expression.", ErrorType.REPEAT_NON_BOOLEAN);
+                    				CompilerError error = new CompilerError(REPEAT24.getLine(), "repeat loops require a boolean expression.", ErrorType.REPEAT_NON_BOOLEAN);
                     				vm.getCompilerErrors().addError(error);	
                     			}
                     			
@@ -5111,7 +5118,7 @@ public static class STAttrMap extends HashMap {
             		builder.addLabel(((loop_statement_scope)loop_statement_stack.peek()).marker_bottom);
             	
 
-            END25=(CommonTree)match(input,END,FOLLOW_END_in_loop_statement1775); 
+            END26=(CommonTree)match(input,END,FOLLOW_END_in_loop_statement1775); 
 
 
             		
@@ -5120,7 +5127,7 @@ public static class STAttrMap extends HashMap {
             		indexer.append("<loop line = \"");
             		indexer.append(((loop_statement_scope)loop_statement_stack.peek()).location.getStartLine());
             		indexer.append("\" end = \"");
-            		indexer.append(END25.getLine());
+            		indexer.append(END26.getLine());
             		indexer.append("\"/>");
             	
 
@@ -5150,18 +5157,18 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "selector"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1766:1: selector returns [ScopeSelector scopeSel] : ( ^( PARENT qualified_name ) | ME );
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1772:1: selector returns [ScopeSelector scopeSel] : ( ^( PARENT qualified_name ) | ME );
     public final QuorumTreeWalker.selector_return selector() throws RecognitionException {
         QuorumTreeWalker.selector_return retval = new QuorumTreeWalker.selector_return();
         retval.start = input.LT(1);
 
 
-        CommonTree PARENT27=null;
-        QuorumTreeWalker.qualified_name_return qualified_name26 =null;
+        CommonTree PARENT28=null;
+        QuorumTreeWalker.qualified_name_return qualified_name27 =null;
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1767:2: ( ^( PARENT qualified_name ) | ME )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1773:2: ( ^( PARENT qualified_name ) | ME )
             int alt57=2;
             int LA57_0 = input.LA(1);
 
@@ -5180,13 +5187,13 @@ public static class STAttrMap extends HashMap {
             }
             switch (alt57) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1767:4: ^( PARENT qualified_name )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1773:4: ^( PARENT qualified_name )
                     {
-                    PARENT27=(CommonTree)match(input,PARENT,FOLLOW_PARENT_in_selector1814); 
+                    PARENT28=(CommonTree)match(input,PARENT,FOLLOW_PARENT_in_selector1814); 
 
                     match(input, Token.DOWN, null); 
                     pushFollow(FOLLOW_qualified_name_in_selector1816);
-                    qualified_name26=qualified_name();
+                    qualified_name27=qualified_name();
 
                     state._fsp--;
 
@@ -5196,10 +5203,10 @@ public static class STAttrMap extends HashMap {
 
 
                     		ScopeSelector scopeItem = new ScopeSelector();
-                    		ClassDescriptor cd = symbol.findClassDescriptorFromCurrentClass((qualified_name26!=null?qualified_name26.type:null).getStaticKey());
+                    		ClassDescriptor cd = symbol.findClassDescriptorFromCurrentClass((qualified_name27!=null?qualified_name27.type:null).getStaticKey());
                     		
                     		if(cd == null){
-                    			CompilerError error = new CompilerError(PARENT27.getLine(), "The class "+ symbol.getCurrentClass().getStaticKey() +" does not have access to " + (qualified_name26!=null?qualified_name26.type:null).getStaticKey(), ErrorType.MISSING_PARENT);
+                    			CompilerError error = new CompilerError(PARENT28.getLine(), "The class "+ symbol.getCurrentClass().getStaticKey() +" does not have access to " + (qualified_name27!=null?qualified_name27.type:null).getStaticKey(), ErrorType.MISSING_PARENT);
                     			vm.getCompilerErrors().addError(error);
                     		}
                     		scopeItem.setIsParent(true);
@@ -5210,7 +5217,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1780:4: ME
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1786:4: ME
                     {
                     match(input,ME,FOLLOW_ME_in_selector1825); 
 
@@ -5248,18 +5255,18 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "root_expression"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1788:1: root_expression returns [ExpressionValue eval, ExecutionStep step] : ^( ROOT_EXPRESSION expression ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1794:1: root_expression returns [ExpressionValue eval, ExecutionStep step] : ^( ROOT_EXPRESSION expression ) ;
     public final QuorumTreeWalker.root_expression_return root_expression() throws RecognitionException {
         QuorumTreeWalker.root_expression_return retval = new QuorumTreeWalker.root_expression_return();
         retval.start = input.LT(1);
 
 
-        QuorumTreeWalker.expression_return expression28 =null;
+        QuorumTreeWalker.expression_return expression29 =null;
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1789:2: ( ^( ROOT_EXPRESSION expression ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1790:2: ^( ROOT_EXPRESSION expression )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1795:2: ( ^( ROOT_EXPRESSION expression ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1796:2: ^( ROOT_EXPRESSION expression )
             {
 
             		builder.addStepLabel(OpcodeType.ROOT_EXPRESSION, -1);
@@ -5269,7 +5276,7 @@ public static class STAttrMap extends HashMap {
 
             match(input, Token.DOWN, null); 
             pushFollow(FOLLOW_expression_in_root_expression1853);
-            expression28=expression();
+            expression29=expression();
 
             state._fsp--;
 
@@ -5279,8 +5286,8 @@ public static class STAttrMap extends HashMap {
 
 
             		expressionDepth = 0;
-            		retval.eval = (expression28!=null?expression28.eval:null);
-            		retval.step = (expression28!=null?expression28.step:null);
+            		retval.eval = (expression29!=null?expression29.eval:null);
+            		retval.step = (expression29!=null?expression29.step:null);
             		retval.eval.getResult().getType().setExpressionLevel(expressionDepth );
             	
 
@@ -5310,31 +5317,31 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "expression"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1802:1: expression returns [ExpressionValue eval, ExecutionStep step] : ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | QUOTE | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN );
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1808:1: expression returns [ExpressionValue eval, ExecutionStep step] : ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | QUOTE | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN );
     public final QuorumTreeWalker.expression_return expression() throws RecognitionException {
         QuorumTreeWalker.expression_return retval = new QuorumTreeWalker.expression_return();
         retval.start = input.LT(1);
 
 
         CommonTree castrpn=null;
-        CommonTree ID30=null;
         CommonTree ID31=null;
-        CommonTree PARENT32=null;
-        CommonTree ID33=null;
-        CommonTree ID36=null;
-        CommonTree ID38=null;
-        CommonTree BOOLEAN39=null;
-        CommonTree DECIMAL40=null;
-        CommonTree MINUS41=null;
-        CommonTree INT42=null;
-        CommonTree MINUS43=null;
-        CommonTree STRING44=null;
-        CommonTree QUOTE45=null;
-        CommonTree NULL46=null;
-        CommonTree ME47=null;
-        CommonTree LEFT_PAREN48=null;
-        CommonTree RIGHT_PAREN49=null;
-        CommonTree CAST50=null;
+        CommonTree ID32=null;
+        CommonTree PARENT33=null;
+        CommonTree ID34=null;
+        CommonTree ID37=null;
+        CommonTree ID39=null;
+        CommonTree BOOLEAN40=null;
+        CommonTree DECIMAL41=null;
+        CommonTree MINUS42=null;
+        CommonTree INT43=null;
+        CommonTree MINUS44=null;
+        CommonTree STRING45=null;
+        CommonTree QUOTE46=null;
+        CommonTree NULL47=null;
+        CommonTree ME48=null;
+        CommonTree LEFT_PAREN49=null;
+        CommonTree RIGHT_PAREN50=null;
+        CommonTree CAST51=null;
         QuorumTreeWalker.expression_return expr =null;
 
         QuorumTreeWalker.expression_return left =null;
@@ -5357,17 +5364,17 @@ public static class STAttrMap extends HashMap {
 
         QuorumTreeWalker.expression_return cast_expr =null;
 
-        QuorumTreeWalker.qualified_name_return qualified_name29 =null;
+        QuorumTreeWalker.qualified_name_return qualified_name30 =null;
 
-        QuorumTreeWalker.qualified_name_return qualified_name34 =null;
+        QuorumTreeWalker.qualified_name_return qualified_name35 =null;
 
-        QuorumTreeWalker.selector_return selector35 =null;
+        QuorumTreeWalker.selector_return selector36 =null;
 
-        QuorumTreeWalker.qualified_name_return qualified_name37 =null;
+        QuorumTreeWalker.qualified_name_return qualified_name38 =null;
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1803:2: ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | QUOTE | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1809:2: ( ^( UNARY_NOT NOT expr= expression ) | ^( EQUALITY left= expression right= expression ) | ^( NOTEQUALS left= expression right= expression ) | ^( GREATER left= expression right= expression ) | ^( GREATER_EQUAL left= expression right= expression ) | ^( INHERITS left= expression dec= class_type ) | ^( LESS left= expression right= expression ) | ^( LESS_EQUAL left= expression right= expression ) | ^( OR left= expression right= expression ) | ^( AND left= expression right= expression ) | ^( PLUS left= expression right= expression ) | ^( MINUS left= expression right= expression ) | ^( MULTIPLY left= expression right= expression ) | ^( DIVIDE left= expression right= expression ) | ^( MODULO left= expression right= expression ) | ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? ) | ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID ) | ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name ) | ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN ) | BOOLEAN | ( MINUS )? DECIMAL | ( MINUS )? INT | STRING | QUOTE | NULL | ME | INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN | CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN )
             int alt63=30;
             switch ( input.LA(1) ) {
             case UNARY_NOT:
@@ -5553,7 +5560,7 @@ public static class STAttrMap extends HashMap {
 
             switch (alt63) {
                 case 1 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1804:3: ^( UNARY_NOT NOT expr= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1810:3: ^( UNARY_NOT NOT expr= expression )
                     {
                     match(input,UNARY_NOT,FOLLOW_UNARY_NOT_in_expression1875); 
 
@@ -5579,7 +5586,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 2 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1811:4: ^( EQUALITY left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1817:4: ^( EQUALITY left= expression right= expression )
                     {
                     match(input,EQUALITY,FOLLOW_EQUALITY_in_expression1895); 
 
@@ -5609,7 +5616,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 3 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1818:4: ^( NOTEQUALS left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1824:4: ^( NOTEQUALS left= expression right= expression )
                     {
                     match(input,NOTEQUALS,FOLLOW_NOTEQUALS_in_expression1917); 
 
@@ -5639,7 +5646,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 4 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1825:4: ^( GREATER left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1831:4: ^( GREATER left= expression right= expression )
                     {
                     match(input,GREATER,FOLLOW_GREATER_in_expression1939); 
 
@@ -5669,7 +5676,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 5 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1832:4: ^( GREATER_EQUAL left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1838:4: ^( GREATER_EQUAL left= expression right= expression )
                     {
                     match(input,GREATER_EQUAL,FOLLOW_GREATER_EQUAL_in_expression1961); 
 
@@ -5699,7 +5706,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 6 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1839:4: ^( INHERITS left= expression dec= class_type )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1845:4: ^( INHERITS left= expression dec= class_type )
                     {
                     match(input,INHERITS,FOLLOW_INHERITS_in_expression1983); 
 
@@ -5729,7 +5736,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 7 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1846:4: ^( LESS left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1852:4: ^( LESS left= expression right= expression )
                     {
                     match(input,LESS,FOLLOW_LESS_in_expression2001); 
 
@@ -5759,7 +5766,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 8 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1853:4: ^( LESS_EQUAL left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1859:4: ^( LESS_EQUAL left= expression right= expression )
                     {
                     match(input,LESS_EQUAL,FOLLOW_LESS_EQUAL_in_expression2023); 
 
@@ -5789,7 +5796,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 9 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1860:4: ^( OR left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1866:4: ^( OR left= expression right= expression )
                     {
                     match(input,OR,FOLLOW_OR_in_expression2045); 
 
@@ -5819,7 +5826,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 10 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1867:4: ^( AND left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1873:4: ^( AND left= expression right= expression )
                     {
                     match(input,AND,FOLLOW_AND_in_expression2067); 
 
@@ -5849,7 +5856,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 11 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1874:4: ^( PLUS left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1880:4: ^( PLUS left= expression right= expression )
                     {
                     match(input,PLUS,FOLLOW_PLUS_in_expression2089); 
 
@@ -5879,7 +5886,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 12 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1881:4: ^( MINUS left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1887:4: ^( MINUS left= expression right= expression )
                     {
                     match(input,MINUS,FOLLOW_MINUS_in_expression2111); 
 
@@ -5909,7 +5916,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 13 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1888:4: ^( MULTIPLY left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1894:4: ^( MULTIPLY left= expression right= expression )
                     {
                     match(input,MULTIPLY,FOLLOW_MULTIPLY_in_expression2133); 
 
@@ -5939,7 +5946,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 14 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1895:4: ^( DIVIDE left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1901:4: ^( DIVIDE left= expression right= expression )
                     {
                     match(input,DIVIDE,FOLLOW_DIVIDE_in_expression2155); 
 
@@ -5969,7 +5976,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 15 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1902:4: ^( MODULO left= expression right= expression )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1908:4: ^( MODULO left= expression right= expression )
                     {
                     match(input,MODULO,FOLLOW_MODULO_in_expression2177); 
 
@@ -5999,18 +6006,18 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 16 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1909:4: ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1915:4: ^( FUNCTION_CALL qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
                     {
                     match(input,FUNCTION_CALL,FOLLOW_FUNCTION_CALL_in_expression2199); 
 
                     match(input, Token.DOWN, null); 
                     pushFollow(FOLLOW_qualified_name_in_expression2201);
-                    qualified_name29=qualified_name();
+                    qualified_name30=qualified_name();
 
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1909:34: ( COLON ID )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1915:34: ( COLON ID )?
                     int alt58=2;
                     int LA58_0 = input.LA(1);
 
@@ -6019,11 +6026,11 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt58) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1909:35: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1915:35: COLON ID
                             {
                             match(input,COLON,FOLLOW_COLON_in_expression2203); 
 
-                            ID30=(CommonTree)match(input,ID,FOLLOW_ID_in_expression2205); 
+                            ID31=(CommonTree)match(input,ID,FOLLOW_ID_in_expression2205); 
 
                             }
                             break;
@@ -6058,10 +6065,10 @@ public static class STAttrMap extends HashMap {
                     	
                     								//Dog.walk(50) should be dissallowed during semantic analysis
                     		LineInformation location = new LineInformation();
-                                    location.setEndColumn((qualified_name29!=null?qualified_name29.type:null).getColumnEnd());
-                                    location.setEndLine((qualified_name29!=null?qualified_name29.type:null).getLineEnd());
-                                    location.setStartColumn((qualified_name29!=null?qualified_name29.type:null).getColumnBegin());
-                                    location.setStartLine((qualified_name29!=null?qualified_name29.type:null).getLineBegin());
+                                    location.setEndColumn((qualified_name30!=null?qualified_name30.type:null).getColumnEnd());
+                                    location.setEndLine((qualified_name30!=null?qualified_name30.type:null).getLineEnd());
+                                    location.setStartColumn((qualified_name30!=null?qualified_name30.type:null).getColumnBegin());
+                                    location.setStartLine((qualified_name30!=null?qualified_name30.type:null).getLineBegin());
                                     location.setFile(fileName);
                                     location.setClassName(symbol.getCurrentClass().getStaticKey());
                                     MethodDescriptor curMethod = symbol.getCurrentMethod();
@@ -6091,23 +6098,23 @@ public static class STAttrMap extends HashMap {
                     		
                                     String key = "";
                                     String myMethodName = "";
-                                    if(ID30 == null) {
-                                    	key = MethodDescriptor.autoGenerateKey((qualified_name29!=null?qualified_name29.type:null).getStaticKey(), types);
-                                    	myMethodName = (qualified_name29!=null?qualified_name29.type:null).getStaticKey();
+                                    if(ID31 == null) {
+                                    	key = MethodDescriptor.autoGenerateKey((qualified_name30!=null?qualified_name30.type:null).getStaticKey(), types);
+                                    	myMethodName = (qualified_name30!=null?qualified_name30.type:null).getStaticKey();
                     		}
                     		else {
-                    			key = MethodDescriptor.autoGenerateKey((ID30!=null?ID30.getText():null), types);
-                    			myMethodName = (ID30!=null?ID30.getText():null);
+                    			key = MethodDescriptor.autoGenerateKey((ID31!=null?ID31.getText():null), types);
+                    			myMethodName = (ID31!=null?ID31.getText():null);
                     		}
                     		CallInfo info = new CallInfo();
                     		info.register = temp;
                     		info.location = location;
                     		info.argumentRegisters = registers;
                     		info.argumentSteps = steps;
-                    		info.variable = (qualified_name29!=null?qualified_name29.type:null);
+                    		info.variable = (qualified_name30!=null?qualified_name30.type:null);
                     		info.argumentTypes = argumentTypes;
                     		info.methodName = myMethodName;
-                    		info.isObjectCall = (ID30 != null);
+                    		info.isObjectCall = (ID31 != null);
                     		info.isNested = nested;
                     		
                     		if(fel!=null && !(fel!=null?fel.list:null).isEmpty()){
@@ -6135,7 +6142,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 17 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1997:4: ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2003:4: ^( QUALIFIED_SOLO_EXPRESSION var= qualified_name ( COLON ID )? )
                     {
                     match(input,QUALIFIED_SOLO_EXPRESSION,FOLLOW_QUALIFIED_SOLO_EXPRESSION_in_expression2234); 
 
@@ -6146,7 +6153,7 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1997:51: ( COLON ID )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2003:51: ( COLON ID )?
                     int alt59=2;
                     int LA59_0 = input.LA(1);
 
@@ -6155,11 +6162,11 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt59) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:1997:52: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2003:52: COLON ID
                             {
                             match(input,COLON,FOLLOW_COLON_in_expression2241); 
 
-                            ID31=(CommonTree)match(input,ID,FOLLOW_ID_in_expression2243); 
+                            ID32=(CommonTree)match(input,ID,FOLLOW_ID_in_expression2243); 
 
                             }
                             break;
@@ -6187,8 +6194,8 @@ public static class STAttrMap extends HashMap {
                     		ResultTuple result = new ResultTuple();
                     		ClassDescriptor cd = null;
                     		
-                    		if(ID31 != null){
-                    			result = stepFactory.addVariableInObjectMoveStep(location, null, null, temp, (var!=null?var.type:null), (ID31!=null?ID31.getText():null), null);
+                    		if(ID32 != null){
+                    			result = stepFactory.addVariableInObjectMoveStep(location, null, null, temp, (var!=null?var.type:null), (ID32!=null?ID32.getText():null), null);
                     		}else{
                     			result = stepFactory.addVariableMoveStep(location, null, null, temp, (var!=null?var.type:null));
                     		}
@@ -6204,7 +6211,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 18 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2028:4: ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2034:4: ^( QUALIFIED_SOLO_PARENT_EXPRESSON var= qualified_name COLON PARENT COLON par= qualified_name COLON ID )
                     {
                     match(input,QUALIFIED_SOLO_PARENT_EXPRESSON,FOLLOW_QUALIFIED_SOLO_PARENT_EXPRESSON_in_expression2255); 
 
@@ -6217,7 +6224,7 @@ public static class STAttrMap extends HashMap {
 
                     match(input,COLON,FOLLOW_COLON_in_expression2261); 
 
-                    PARENT32=(CommonTree)match(input,PARENT,FOLLOW_PARENT_in_expression2263); 
+                    PARENT33=(CommonTree)match(input,PARENT,FOLLOW_PARENT_in_expression2263); 
 
                     match(input,COLON,FOLLOW_COLON_in_expression2265); 
 
@@ -6229,7 +6236,7 @@ public static class STAttrMap extends HashMap {
 
                     match(input,COLON,FOLLOW_COLON_in_expression2271); 
 
-                    ID33=(CommonTree)match(input,ID,FOLLOW_ID_in_expression2273); 
+                    ID34=(CommonTree)match(input,ID,FOLLOW_ID_in_expression2273); 
 
                     match(input, Token.UP, null); 
 
@@ -6255,13 +6262,13 @@ public static class STAttrMap extends HashMap {
                     			cd = symbol.findClassDescriptorFromCurrentClass((par!=null?par.type:null).getStaticKey());
                     			
                     			if(cd == null){
-                    				CompilerError error = new CompilerError(PARENT32.getLine(), "The class "+ symbol.getCurrentClass().getStaticKey() +" does not have access to " + (par!=null?par.type:null).getStaticKey(), ErrorType.MISSING_PARENT);
+                    				CompilerError error = new CompilerError(PARENT33.getLine(), "The class "+ symbol.getCurrentClass().getStaticKey() +" does not have access to " + (par!=null?par.type:null).getStaticKey(), ErrorType.MISSING_PARENT);
                     				vm.getCompilerErrors().addError(error);
                     			}
                     		}
                     		
-                    		if(ID33 != null){
-                    			result = stepFactory.addVariableInObjectMoveStep(location, null, null, temp, (var!=null?var.type:null), (ID33!=null?ID33.getText():null), cd);
+                    		if(ID34 != null){
+                    			result = stepFactory.addVariableInObjectMoveStep(location, null, null, temp, (var!=null?var.type:null), (ID34!=null?ID34.getText():null), cd);
                     		}else{
                     			result = stepFactory.addVariableMoveStep(location, null, null, temp, (var!=null?var.type:null));
                     		}
@@ -6275,13 +6282,13 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 19 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2066:4: ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2072:4: ^( QUALIFIED_SOLO_EXPRESSION_SELECTOR selector COLON qualified_name )
                     {
                     match(input,QUALIFIED_SOLO_EXPRESSION_SELECTOR,FOLLOW_QUALIFIED_SOLO_EXPRESSION_SELECTOR_in_expression2283); 
 
                     match(input, Token.DOWN, null); 
                     pushFollow(FOLLOW_selector_in_expression2285);
-                    selector35=selector();
+                    selector36=selector();
 
                     state._fsp--;
 
@@ -6289,7 +6296,7 @@ public static class STAttrMap extends HashMap {
                     match(input,COLON,FOLLOW_COLON_in_expression2287); 
 
                     pushFollow(FOLLOW_qualified_name_in_expression2289);
-                    qualified_name34=qualified_name();
+                    qualified_name35=qualified_name();
 
                     state._fsp--;
 
@@ -6299,10 +6306,10 @@ public static class STAttrMap extends HashMap {
 
 
                     		LineInformation location = new LineInformation (
-                    			(qualified_name34!=null?qualified_name34.type:null).getLineBegin(),
-                    			(qualified_name34!=null?qualified_name34.type:null).getLineEnd(),
-                    			(qualified_name34!=null?qualified_name34.type:null).getColumnBegin(),
-                    			(qualified_name34!=null?qualified_name34.type:null).getColumnEnd()
+                    			(qualified_name35!=null?qualified_name35.type:null).getLineBegin(),
+                    			(qualified_name35!=null?qualified_name35.type:null).getLineEnd(),
+                    			(qualified_name35!=null?qualified_name35.type:null).getColumnBegin(),
+                    			(qualified_name35!=null?qualified_name35.type:null).getColumnEnd()
                     		);
                     		location.setFile(fileName);
                                     location.setClassName(symbol.getCurrentClass().getStaticKey());
@@ -6312,12 +6319,12 @@ public static class STAttrMap extends HashMap {
                                     }
                     		
                     		ResultTuple result = new ResultTuple();
-                    		ScopeSelector scope = (selector35!=null?selector35.scopeSel:null);
+                    		ScopeSelector scope = (selector36!=null?selector36.scopeSel:null);
                     		
                     		if(!scope.isParent()){
-                    			result = stepFactory.addMeVariableMoveStep(location, null, null, temp, (qualified_name34!=null?qualified_name34.type:null));
+                    			result = stepFactory.addMeVariableMoveStep(location, null, null, temp, (qualified_name35!=null?qualified_name35.type:null));
                     		} else{
-                    			result = stepFactory.addParentVariableMoveStep(location, null, null, temp, (qualified_name34!=null?qualified_name34.type:null), scope.getCurrentClass());
+                    			result = stepFactory.addParentVariableMoveStep(location, null, null, temp, (qualified_name35!=null?qualified_name35.type:null), scope.getCurrentClass());
                     		}
                     		temp++;
                     		retval.eval = result.getValue();
@@ -6329,7 +6336,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 20 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2096:4: ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2102:4: ^( FUNCTION_CALL_PARENT PARENT COLON qn1= qualified_name COLON ID LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
                     {
                     match(input,FUNCTION_CALL_PARENT,FOLLOW_FUNCTION_CALL_PARENT_in_expression2301); 
 
@@ -6346,7 +6353,7 @@ public static class STAttrMap extends HashMap {
 
                     match(input,COLON,FOLLOW_COLON_in_expression2311); 
 
-                    ID36=(CommonTree)match(input,ID,FOLLOW_ID_in_expression2313); 
+                    ID37=(CommonTree)match(input,ID,FOLLOW_ID_in_expression2313); 
 
                     match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_expression2315); 
 
@@ -6406,8 +6413,8 @@ public static class STAttrMap extends HashMap {
                     			}
                     		}
 
-                    		String key = MethodDescriptor.generateKey((ID36!=null?ID36.getText():null), types);
-                    		String myMethodName = (ID36!=null?ID36.getText():null);
+                    		String key = MethodDescriptor.generateKey((ID37!=null?ID37.getText():null), types);
+                    		String myMethodName = (ID37!=null?ID37.getText():null);
                     		
                     		CallInfo info = new CallInfo();
                     		info.register = temp;
@@ -6446,7 +6453,7 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 21 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2178:4: ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2184:4: ^( FUNCTION_CALL_THIS ME COLON qualified_name ( COLON ID )? LEFT_PAREN fel= function_expression_list RIGHT_PAREN )
                     {
                     match(input,FUNCTION_CALL_THIS,FOLLOW_FUNCTION_CALL_THIS_in_expression2338); 
 
@@ -6456,12 +6463,12 @@ public static class STAttrMap extends HashMap {
                     match(input,COLON,FOLLOW_COLON_in_expression2342); 
 
                     pushFollow(FOLLOW_qualified_name_in_expression2344);
-                    qualified_name37=qualified_name();
+                    qualified_name38=qualified_name();
 
                     state._fsp--;
 
 
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2178:49: ( COLON ID )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2184:49: ( COLON ID )?
                     int alt60=2;
                     int LA60_0 = input.LA(1);
 
@@ -6470,11 +6477,11 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt60) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2178:50: COLON ID
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2184:50: COLON ID
                             {
                             match(input,COLON,FOLLOW_COLON_in_expression2347); 
 
-                            ID38=(CommonTree)match(input,ID,FOLLOW_ID_in_expression2349); 
+                            ID39=(CommonTree)match(input,ID,FOLLOW_ID_in_expression2349); 
 
                             }
                             break;
@@ -6508,10 +6515,10 @@ public static class STAttrMap extends HashMap {
 
 
                     		LineInformation location = new LineInformation();
-                                    location.setEndColumn((qualified_name37!=null?qualified_name37.type:null).getColumnEnd());
-                                    location.setEndLine((qualified_name37!=null?qualified_name37.type:null).getLineEnd());
-                                    location.setStartColumn((qualified_name37!=null?qualified_name37.type:null).getColumnBegin());
-                                    location.setStartLine((qualified_name37!=null?qualified_name37.type:null).getLineBegin());
+                                    location.setEndColumn((qualified_name38!=null?qualified_name38.type:null).getColumnEnd());
+                                    location.setEndLine((qualified_name38!=null?qualified_name38.type:null).getLineEnd());
+                                    location.setStartColumn((qualified_name38!=null?qualified_name38.type:null).getColumnBegin());
+                                    location.setStartLine((qualified_name38!=null?qualified_name38.type:null).getLineBegin());
                                     location.setFile(fileName);
                                     location.setClassName(symbol.getCurrentClass().getStaticKey());
                                     MethodDescriptor curMethod = symbol.getCurrentMethod();
@@ -6542,13 +6549,13 @@ public static class STAttrMap extends HashMap {
 
                     		String key = "";
                                     String myMethodName = "";
-                                    if(ID38 == null) {
-                                    	key = MethodDescriptor.generateKey((qualified_name37!=null?qualified_name37.type:null).getStaticKey(), types);
-                                    	myMethodName = (qualified_name37!=null?qualified_name37.type:null).getStaticKey();
+                                    if(ID39 == null) {
+                                    	key = MethodDescriptor.generateKey((qualified_name38!=null?qualified_name38.type:null).getStaticKey(), types);
+                                    	myMethodName = (qualified_name38!=null?qualified_name38.type:null).getStaticKey();
                     		}
                     		else {
-                    			key = MethodDescriptor.generateKey((ID38!=null?ID38.getText():null), types);
-                    			myMethodName = (ID38!=null?ID38.getText():null);
+                    			key = MethodDescriptor.generateKey((ID39!=null?ID39.getText():null), types);
+                    			myMethodName = (ID39!=null?ID39.getText():null);
                     		}
 
                     		CallInfo info = new CallInfo();
@@ -6556,10 +6563,10 @@ public static class STAttrMap extends HashMap {
                     		info.location = location;
                     		info.argumentRegisters = registers;
                     		info.argumentSteps = steps;
-                    		info.variable = (qualified_name37!=null?qualified_name37.type:null);
+                    		info.variable = (qualified_name38!=null?qualified_name38.type:null);
                     		info.argumentTypes = argumentTypes;
                     		info.methodName = myMethodName;
-                    		info.isObjectCall = (ID38!=null);
+                    		info.isObjectCall = (ID39!=null);
                     		info.isThisCall = true;
                     		info.isNested = nested;
                     		
@@ -6586,20 +6593,20 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 22 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2266:4: BOOLEAN
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2272:4: BOOLEAN
                     {
-                    BOOLEAN39=(CommonTree)match(input,BOOLEAN,FOLLOW_BOOLEAN_in_expression2375); 
+                    BOOLEAN40=(CommonTree)match(input,BOOLEAN,FOLLOW_BOOLEAN_in_expression2375); 
 
 
                     		LineInformation location = new LineInformation (
-                    			BOOLEAN39.getLine(),
-                    			BOOLEAN39.getLine(),
-                    			BOOLEAN39.getCharPositionInLine(),
-                    			BOOLEAN39.getCharPositionInLine() + (BOOLEAN39!=null?BOOLEAN39.getText():null).length()
+                    			BOOLEAN40.getLine(),
+                    			BOOLEAN40.getLine(),
+                    			BOOLEAN40.getCharPositionInLine(),
+                    			BOOLEAN40.getCharPositionInLine() + (BOOLEAN40!=null?BOOLEAN40.getText():null).length()
                     		);
                     		location.setFile(fileName);
                     		
-                    		ResultTuple result = stepFactory.addMoveStep(temp, location, Boolean.parseBoolean((BOOLEAN39!=null?BOOLEAN39.getText():null)));
+                    		ResultTuple result = stepFactory.addMoveStep(temp, location, Boolean.parseBoolean((BOOLEAN40!=null?BOOLEAN40.getText():null)));
                     		temp = result.getNextRegister();
                     		retval.eval = result.getValue();
                     		retval.step = result.getStep();
@@ -6609,9 +6616,9 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 23 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2282:4: ( MINUS )? DECIMAL
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2288:4: ( MINUS )? DECIMAL
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2282:4: ( MINUS )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2288:4: ( MINUS )?
                     int alt61=2;
                     int LA61_0 = input.LA(1);
 
@@ -6620,9 +6627,9 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt61) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2282:5: MINUS
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2288:5: MINUS
                             {
-                            MINUS41=(CommonTree)match(input,MINUS,FOLLOW_MINUS_in_expression2384); 
+                            MINUS42=(CommonTree)match(input,MINUS,FOLLOW_MINUS_in_expression2384); 
 
                             }
                             break;
@@ -6630,31 +6637,31 @@ public static class STAttrMap extends HashMap {
                     }
 
 
-                    DECIMAL40=(CommonTree)match(input,DECIMAL,FOLLOW_DECIMAL_in_expression2388); 
+                    DECIMAL41=(CommonTree)match(input,DECIMAL,FOLLOW_DECIMAL_in_expression2388); 
 
 
                     		LineInformation location = new LineInformation (
-                    			DECIMAL40.getLine(),
-                    			DECIMAL40.getLine(),
-                    			DECIMAL40.getCharPositionInLine(),
-                    			DECIMAL40.getCharPositionInLine() + (DECIMAL40!=null?DECIMAL40.getText():null).length()
+                    			DECIMAL41.getLine(),
+                    			DECIMAL41.getLine(),
+                    			DECIMAL41.getCharPositionInLine(),
+                    			DECIMAL41.getCharPositionInLine() + (DECIMAL41!=null?DECIMAL41.getText():null).length()
                     		);
                     		location.setFile(fileName);
                     		
                     		double val = -1;
                     		try{
-                    			val = Double.parseDouble((DECIMAL40!=null?DECIMAL40.getText():null));
+                    			val = Double.parseDouble((DECIMAL41!=null?DECIMAL41.getText():null));
                     		}catch(NumberFormatException e){
                     			CompilerError error = new CompilerError();
-                    			error.setLineNumber(DECIMAL40.getLine());
-                    			error.setError((DECIMAL40!=null?DECIMAL40.getText():null) + " is an invalid number.");
+                    			error.setLineNumber(DECIMAL41.getLine());
+                    			error.setError((DECIMAL41!=null?DECIMAL41.getText():null) + " is an invalid number.");
                     			error.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
-                    			error.setColumn(DECIMAL40.getCharPositionInLine());
+                    			error.setColumn(DECIMAL41.getCharPositionInLine());
                     			error.setFile(getGrammarFileNameNoExtension());
                     			vm.getCompilerErrors().addError(error);
                     		}
                     		
-                    		if(MINUS41 != null) {
+                    		if(MINUS42 != null) {
                     			val *= -1;
                     		}
                     		ResultTuple result = stepFactory.addMoveStep(temp, location, val);
@@ -6667,9 +6674,9 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 24 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2314:4: ( MINUS )? INT
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2320:4: ( MINUS )? INT
                     {
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2314:4: ( MINUS )?
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2320:4: ( MINUS )?
                     int alt62=2;
                     int LA62_0 = input.LA(1);
 
@@ -6678,9 +6685,9 @@ public static class STAttrMap extends HashMap {
                     }
                     switch (alt62) {
                         case 1 :
-                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2314:5: MINUS
+                            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2320:5: MINUS
                             {
-                            MINUS43=(CommonTree)match(input,MINUS,FOLLOW_MINUS_in_expression2397); 
+                            MINUS44=(CommonTree)match(input,MINUS,FOLLOW_MINUS_in_expression2397); 
 
                             }
                             break;
@@ -6688,29 +6695,29 @@ public static class STAttrMap extends HashMap {
                     }
 
 
-                    INT42=(CommonTree)match(input,INT,FOLLOW_INT_in_expression2401); 
+                    INT43=(CommonTree)match(input,INT,FOLLOW_INT_in_expression2401); 
 
 
                     		LineInformation location = new LineInformation (
-                    			INT42.getLine(),
-                    			INT42.getLine(),
-                    			INT42.getCharPositionInLine(),
-                    			INT42.getCharPositionInLine() + (INT42!=null?INT42.getText():null).length()
+                    			INT43.getLine(),
+                    			INT43.getLine(),
+                    			INT43.getCharPositionInLine(),
+                    			INT43.getCharPositionInLine() + (INT43!=null?INT43.getText():null).length()
                     		);
                     		location.setFile(fileName);
                     		int val = -1;
                     		try{
-                    			val = Integer.parseInt((INT42!=null?INT42.getText():null));
+                    			val = Integer.parseInt((INT43!=null?INT43.getText():null));
                     		}catch(NumberFormatException e){
                     			CompilerError error = new CompilerError();
-                    			error.setLineNumber(INT42.getLine());
-                    			error.setError("The integer " + (INT42!=null?INT42.getText():null) + " is not valid. All integers must be between the range of -2,147,483,648 and 2,147,483,647");
+                    			error.setLineNumber(INT43.getLine());
+                    			error.setError("The integer " + (INT43!=null?INT43.getText():null) + " is not valid. All integers must be between the range of -2,147,483,648 and 2,147,483,647");
                     			error.setErrorType(ErrorType.INCOMPATIBLE_TYPES);
-                    			error.setColumn(INT42.getCharPositionInLine());
+                    			error.setColumn(INT43.getCharPositionInLine());
                     			error.setFile(getGrammarFileNameNoExtension());
                     			vm.getCompilerErrors().addError(error);
                     		}
-                    		if(MINUS43 != null) {
+                    		if(MINUS44 != null) {
                     			val *= -1;
                     		}
                     		ResultTuple result = stepFactory.addMoveStep(temp, location, val);
@@ -6723,19 +6730,19 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 25 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2344:4: STRING
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2350:4: STRING
                     {
-                    STRING44=(CommonTree)match(input,STRING,FOLLOW_STRING_in_expression2409); 
+                    STRING45=(CommonTree)match(input,STRING,FOLLOW_STRING_in_expression2409); 
 
 
                     		LineInformation location = new LineInformation (
-                    			STRING44.getLine(),
-                    			STRING44.getLine(),
-                    			STRING44.getCharPositionInLine(),
-                    			STRING44.getCharPositionInLine() + (STRING44!=null?STRING44.getText():null).length()
+                    			STRING45.getLine(),
+                    			STRING45.getLine(),
+                    			STRING45.getCharPositionInLine(),
+                    			STRING45.getCharPositionInLine() + (STRING45!=null?STRING45.getText():null).length()
                     		);
                     		location.setFile(fileName);
-                    		ResultTuple result = stepFactory.addMoveStep(temp, location, (STRING44!=null?STRING44.getText():null));
+                    		ResultTuple result = stepFactory.addMoveStep(temp, location, (STRING45!=null?STRING45.getText():null));
                     		temp = result.getNextRegister();
                     		retval.eval = result.getValue();
                     		retval.step = result.getStep();
@@ -6745,16 +6752,16 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 26 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2359:4: QUOTE
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2365:4: QUOTE
                     {
-                    QUOTE45=(CommonTree)match(input,QUOTE,FOLLOW_QUOTE_in_expression2417); 
+                    QUOTE46=(CommonTree)match(input,QUOTE,FOLLOW_QUOTE_in_expression2417); 
 
 
                     		LineInformation location = new LineInformation (
-                    			QUOTE45.getLine(),
-                    			QUOTE45.getLine(),
-                    			QUOTE45.getCharPositionInLine(),
-                    			QUOTE45.getCharPositionInLine() + (QUOTE45!=null?QUOTE45.getText():null).length()
+                    			QUOTE46.getLine(),
+                    			QUOTE46.getLine(),
+                    			QUOTE46.getCharPositionInLine(),
+                    			QUOTE46.getCharPositionInLine() + (QUOTE46!=null?QUOTE46.getText():null).length()
                     		);
                     		location.setFile(fileName);
                     		//we must pass three double quotes because normal strings strip out the beginning and the end.
@@ -6768,16 +6775,16 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 27 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2375:4: NULL
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2381:4: NULL
                     {
-                    NULL46=(CommonTree)match(input,NULL,FOLLOW_NULL_in_expression2425); 
+                    NULL47=(CommonTree)match(input,NULL,FOLLOW_NULL_in_expression2425); 
 
 
                     		LineInformation location = new LineInformation (
-                    			NULL46.getLine(),
-                    			NULL46.getLine(),
-                    			NULL46.getCharPositionInLine(),
-                    			NULL46.getCharPositionInLine() + (NULL46!=null?NULL46.getText():null).length()
+                    			NULL47.getLine(),
+                    			NULL47.getLine(),
+                    			NULL47.getCharPositionInLine(),
+                    			NULL47.getCharPositionInLine() + (NULL47!=null?NULL47.getText():null).length()
                     		);
                     		location.setFile(fileName);
                     		ResultTuple result = stepFactory.addMoveNullStep(temp, location);
@@ -6790,16 +6797,16 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 28 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2390:4: ME
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2396:4: ME
                     {
-                    ME47=(CommonTree)match(input,ME,FOLLOW_ME_in_expression2433); 
+                    ME48=(CommonTree)match(input,ME,FOLLOW_ME_in_expression2433); 
 
 
                     		LineInformation location = new LineInformation (
-                    			ME47.getLine(),
-                    			ME47.getLine(),
-                    			ME47.getCharPositionInLine(),
-                    			ME47.getCharPositionInLine() + (ME47!=null?ME47.getText():null).length()
+                    			ME48.getLine(),
+                    			ME48.getLine(),
+                    			ME48.getCharPositionInLine(),
+                    			ME48.getCharPositionInLine() + (ME48!=null?ME48.getText():null).length()
                     		);
                     		location.setFile(fileName);
                     		
@@ -6816,13 +6823,13 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 29 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2409:4: INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2415:4: INPUT LEFT_PAREN input_expr= expression RIGHT_PAREN
                     {
                     match(input,INPUT,FOLLOW_INPUT_in_expression2441); 
 
                     inCallStep = true; int parameterPosition = builder.addParameterLabel();
 
-                    LEFT_PAREN48=(CommonTree)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_expression2444); 
+                    LEFT_PAREN49=(CommonTree)match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_expression2444); 
 
                     expressionDepth++;
 
@@ -6832,14 +6839,14 @@ public static class STAttrMap extends HashMap {
                     state._fsp--;
 
 
-                    RIGHT_PAREN49=(CommonTree)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_expression2452); 
+                    RIGHT_PAREN50=(CommonTree)match(input,RIGHT_PAREN,FOLLOW_RIGHT_PAREN_in_expression2452); 
 
 
                     		LineInformation location = new LineInformation (
-                    			LEFT_PAREN48.getLine(),
-                    			RIGHT_PAREN49.getLine(),
-                    			LEFT_PAREN48.getCharPositionInLine(),
-                    			RIGHT_PAREN49.getCharPositionInLine()
+                    			LEFT_PAREN49.getLine(),
+                    			RIGHT_PAREN50.getLine(),
+                    			LEFT_PAREN49.getCharPositionInLine(),
+                    			RIGHT_PAREN50.getCharPositionInLine()
                     		);
                     		location.setFile(fileName);
                     		
@@ -6860,9 +6867,9 @@ public static class STAttrMap extends HashMap {
                     }
                     break;
                 case 30 :
-                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2432:4: CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN
+                    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2438:4: CAST LEFT_PAREN castqn= assignment_declaration COMMA cast_expr= expression castrpn= RIGHT_PAREN
                     {
-                    CAST50=(CommonTree)match(input,CAST,FOLLOW_CAST_in_expression2460); 
+                    CAST51=(CommonTree)match(input,CAST,FOLLOW_CAST_in_expression2460); 
 
                     match(input,LEFT_PAREN,FOLLOW_LEFT_PAREN_in_expression2462); 
 
@@ -6886,9 +6893,9 @@ public static class STAttrMap extends HashMap {
 
 
                     		LineInformation location = new LineInformation (
-                    			CAST50.getLine(),
+                    			CAST51.getLine(),
                     			castrpn.getLine(),
-                    			CAST50.getCharPositionInLine(),
+                    			CAST51.getCharPositionInLine(),
                     			castrpn.getCharPositionInLine()
                     		);
                     		location.setFile(fileName);
@@ -6933,7 +6940,7 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "function_expression_list"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2455:1: function_expression_list returns [List list, int firstParam] : ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2461:1: function_expression_list returns [List list, int firstParam] : ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) ;
     public final QuorumTreeWalker.function_expression_list_return function_expression_list() throws RecognitionException {
         QuorumTreeWalker.function_expression_list_return retval = new QuorumTreeWalker.function_expression_list_return();
         retval.start = input.LT(1);
@@ -6944,14 +6951,14 @@ public static class STAttrMap extends HashMap {
 
         retval.list = new ArrayList(); retval.firstParam = -1;int startLocation = 0;
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2457:2: ( ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2458:2: ^( FUNCTION_EXPRESSION_LIST (e= expression )* )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2463:2: ( ^( FUNCTION_EXPRESSION_LIST (e= expression )* ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2464:2: ^( FUNCTION_EXPRESSION_LIST (e= expression )* )
             {
             match(input,FUNCTION_EXPRESSION_LIST,FOLLOW_FUNCTION_EXPRESSION_LIST_in_function_expression_list2501); 
 
             if ( input.LA(1)==Token.DOWN ) {
                 match(input, Token.DOWN, null); 
-                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2458:29: (e= expression )*
+                // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2464:29: (e= expression )*
                 loop64:
                 do {
                     int alt64=2;
@@ -6964,7 +6971,7 @@ public static class STAttrMap extends HashMap {
 
                     switch (alt64) {
                 	case 1 :
-                	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2459:2: e= expression
+                	    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2465:2: e= expression
                 	    {
 
                 	    		if(retval.list.size() >= 1){
@@ -7029,19 +7036,19 @@ public static class STAttrMap extends HashMap {
 
 
     // $ANTLR start "formal_parameter"
-    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2479:1: formal_parameter returns [TypeDescriptor type, String name] : ^( FPARAM ad= assignment_declaration ID ) ;
+    // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2485:1: formal_parameter returns [TypeDescriptor type, String name] : ^( FPARAM ad= assignment_declaration ID ) ;
     public final QuorumTreeWalker.formal_parameter_return formal_parameter() throws RecognitionException {
         QuorumTreeWalker.formal_parameter_return retval = new QuorumTreeWalker.formal_parameter_return();
         retval.start = input.LT(1);
 
 
-        CommonTree ID51=null;
+        CommonTree ID52=null;
         QuorumTreeWalker.assignment_declaration_return ad =null;
 
 
         try {
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2480:2: ( ^( FPARAM ad= assignment_declaration ID ) )
-            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2480:6: ^( FPARAM ad= assignment_declaration ID )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2486:2: ( ^( FPARAM ad= assignment_declaration ID ) )
+            // /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g:2486:6: ^( FPARAM ad= assignment_declaration ID )
             {
             match(input,FPARAM,FOLLOW_FPARAM_in_formal_parameter2542); 
 
@@ -7052,14 +7059,14 @@ public static class STAttrMap extends HashMap {
             state._fsp--;
 
 
-            ID51=(CommonTree)match(input,ID,FOLLOW_ID_in_formal_parameter2548); 
+            ID52=(CommonTree)match(input,ID,FOLLOW_ID_in_formal_parameter2548); 
 
             match(input, Token.UP, null); 
 
 
             	
             		retval.type = (ad!=null?ad.myType:null);
-            		retval.name = (ID51!=null?ID51.getText():null);
+            		retval.name = (ID52!=null?ID52.getText():null);
             	
 
             }
@@ -7217,7 +7224,7 @@ public static class STAttrMap extends HashMap {
             this.transition = DFA52_transition;
         }
         public String getDescription() {
-            return "1224:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );";
+            return "1230:1: assignment_statement : ( (sel= selector COLON )? ID rhs= assign_right_hand_side |obj= qualified_name ( COLON PARENT COLON parent= qualified_name )? COLON ID rhs= assign_right_hand_side | (modifier= access_modifier )? ( CONSTANT )? type= assignment_declaration name= ID (rhs= assign_right_hand_side )? );";
         }
     }
  

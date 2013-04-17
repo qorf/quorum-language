@@ -209,6 +209,7 @@ scope {
 	                MethodDescriptor md = symbol.enterMethod(key);
 	               	md.setAccessModifier(accessModifier);
 		builder.begin(md);
+		
 
 	}
 
@@ -219,6 +220,11 @@ scope {
 			}
 		})? block[false] END
 	{
+		indexer.append("<action line = \"");
+		indexer.append($ACTION.getLine());
+		indexer.append("\" end = \"");
+		indexer.append($END.getLine());
+		indexer.append("\"/>");
 		
 		symbol.addStatementFlagToCurrentFile($END.line);
 		
