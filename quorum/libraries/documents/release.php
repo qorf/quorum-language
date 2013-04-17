@@ -53,10 +53,17 @@
         Additionally, the -server insecure can be called turn off security settings
         while in this mode. This last mode is not recommended unless the user is
         running the server locally.</li>
+        <li>Added a new flag, -java. This flag allows the user to pass an existing
+        Java jar file to Quorum. When passed, Quorum will automatically wrap 
+        any code into the built jar's manifest on compile. This should make it
+        easier for external groups to combine their existing Java code with
+        Quorum projects.</li>
         <li>Finished a significant optimization pass of the compiler. There is always
         more work that can be done in this area, but a number of the bottlenecks
         in the Quorum 1.7 branch and earlier have been hammered out.</li>
-        
+        <li>Significantly improved the -verify flag, which now gives a much
+        better idea as to which methods have non-compiling, missing, or otherwise
+        broken examples in the documentation.</li>
     </ul>
 </ul>
 <h2>Quorum 1.7 February 25th, 2013</h2>
