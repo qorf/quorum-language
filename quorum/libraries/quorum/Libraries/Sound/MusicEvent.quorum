@@ -11,6 +11,12 @@ use Libraries.Containers.Blueprints.Copyable
     one or more notes.
 
     Attribute: Author Jeff Wilson
+
+    Attribute: Example
+    use Libraries.Sound.MusicEvent
+
+    MusicEvent event
+    event:SetEventType(0)
 */
 
 class MusicEvent is Copyable
@@ -28,6 +34,14 @@ class MusicEvent is Copyable
         Returns the event type for this event.
         
         Attribute: Returns the event type.
+
+        Attribute: Example
+
+        use Libraries.Sound.MusicEvent
+
+        MusicEvent event
+        output event:GetEventType()
+
     */
     public action GetEventType() returns integer
         return eventType
@@ -37,6 +51,14 @@ class MusicEvent is Copyable
         Set the event type for this event.
         
         Attribute: Parameter eventType the event type for this event.
+
+        Attribute: Example
+
+        use Libraries.Sound.MusicEvent
+
+        MusicEvent event
+        event:SetEventType(0)
+
     */
     public action SetEventType(integer eventType)
         me:eventType = eventType
@@ -46,6 +68,14 @@ class MusicEvent is Copyable
         Perform a deep copy of this object.
         
         Attribute: Returns the new MusicEvent
+
+        Attribute: Example
+
+        use Libraries.Sound.MusicEvent
+
+        MusicEvent event
+        Object newEvent = event:Copy()
+        
     */
     public action Copy returns Object
         MusicEvent e

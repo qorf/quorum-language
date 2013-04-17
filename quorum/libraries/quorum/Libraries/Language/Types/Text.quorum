@@ -198,6 +198,7 @@ class Text is Object
         Attribute: Returns The subtext from the text.
 
         Attribute: Example
+        use Libraries.Language.Types.Text
         Text a
         a:SetValue("hello ")
         text result = a:GetSubtext(1)
@@ -458,9 +459,10 @@ class Text is Object
         Attribute: Returns The substring
         
         Attribute: Example
+        use Libraries.Language.Types.Text
         Text a
         a:SetValue("hello world")
-        output a:GetSubstring(0, 5)
+        output a:GetSubtext(0, 5)
     */
     action GetSubtext(integer startIndex, integer endIndex) returns text
         if startIndex = endIndex or startIndex > endIndex or startIndex < 0 or endIndex < 0 or endIndex >= me:GetLength()
@@ -480,6 +482,13 @@ class Text is Object
         
         Attribute: Parameter delimiter The non-empty delimiter to use.
         Attribute: Returns An array of text objects corresponding to the splits by the delimiter.
+
+        Attribute: Example
+        use Libraries.Language.Types.Text
+        use Libraries.Containers.Array
+        Text a
+        a:SetValue("hello world")
+        Array<Text> values = a:Split("l")
     */
     action Split(text delimiter) returns Array<text>
         // TODO: Rewrite this. it is horrid. There are much more clever ways to do this.

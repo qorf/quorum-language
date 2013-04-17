@@ -121,7 +121,7 @@ class Number is Object
         Attribute: Example
 
         Number age
-        integer result = age:GetIntegerValue()
+        integer result = age:GetInteger()
     */ 
     action GetInteger returns integer
         return cast(integer, value)
@@ -150,7 +150,7 @@ class Number is Object
         Attribute: Example
 
         Number age
-        text result = age:GetTextValue()
+        text result = age:GetText()
     */ 
     action GetText returns text
         return cast(text, value)

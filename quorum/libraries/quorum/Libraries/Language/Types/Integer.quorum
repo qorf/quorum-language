@@ -64,7 +64,7 @@ class Integer is Object
         Attribute: Example
 
         Integer age
-        number result = age:GetNumberValue()
+        number result = age:GetNumber()
     */ 
     action GetNumber returns number
         return cast(number, value)
@@ -79,7 +79,7 @@ class Integer is Object
         Attribute: Example
 
         Integer age
-        text result = age:GetTextValue()
+        text result = age:GetText()
     */ 
     action GetText returns text
         return cast(text, value)
@@ -92,7 +92,7 @@ class Integer is Object
 
         Attribute: Example
 
-        integer size
+        Integer size
         integer max = size:GetMaximumValue()
     */ 
     action GetMaximumValue() returns integer
@@ -106,7 +106,7 @@ class Integer is Object
 
         Attribute: Example
 
-        integer size
+        Integer size
         integer min = size:GetMinimumValue()
     */ 
     action GetMinimumValue() returns integer

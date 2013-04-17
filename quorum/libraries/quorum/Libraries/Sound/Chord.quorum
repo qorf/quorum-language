@@ -11,6 +11,9 @@ use Libraries.Containers.Blueprints.Iterator
     Attribute: Author Jeff Wilson
 
     Attribute: Example
+    use Libraries.Sound.Music
+    use Libraries.Sound.Chord
+
     // Play a C major chord.
     Music muse
     Chord c
@@ -28,6 +31,14 @@ class Chord is Playable
         will sound at once.
 
         Attribute: Parameter pitch the pitch to add
+
+        Attribute: Example
+        use Libraries.Sound.Music
+        use Libraries.Sound.Chord
+
+        Music muse
+        Chord c
+        c:Add(60) // C
     */
     public action Add(integer pitch)
         pitches:Add(pitch)
@@ -37,6 +48,16 @@ class Chord is Playable
         Get all the pitches from this chord.
 
         Attribute: Returns an iterator of the pitches.
+
+        Attribute: Example
+        use Libraries.Sound.Music
+        use Libraries.Sound.Chord
+        use Libraries.Containers.Blueprints.Iterator
+
+        Music muse
+        Chord c
+        c:Add(60) // C
+        Iterator<integer> notes = c:GetPitches()
     */
     public action GetPitches returns Iterator<integer>
         return pitches:GetIterator()
@@ -46,6 +67,15 @@ class Chord is Playable
         Perform a deep copy of this object.
         
         Attribute: Returns the new Chord
+
+        Attribute: Example
+        use Libraries.Sound.Music
+        use Libraries.Sound.Chord
+
+        Music muse
+        Chord c
+        c:Add(60) // C
+        Object newChord = c:Copy()
     */
     public action Copy returns Object
         Chord c
