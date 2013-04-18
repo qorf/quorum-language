@@ -176,11 +176,13 @@
 			try {
 				$sqlQuery = "INSERT INTO " . $this->table_name			 										
 						  . " (class_static_key, action_static_key, static_key, user, rating_name, rating_description)"
-						  . " VALUES (?, ?, ?, ?, ?)";
+						  . " VALUES (?, ?, ?, ?, ?, ?)";
 
-				$valuesToPrepare = array($this->class_static_key, $this->action_static_key, $this->static_key, $this->user, $this->rating_name, $this->rating_example, $this->rating_description);
+				$valuesToPrepare = array($this->class_static_key, $this->action_static_key, $this->static_key, $this->user, $this->rating_name, $this->rating_description);
+				
 				$preparedStatement = $this->connection->prepare($sqlQuery);
 				$preparedStatement->execute($valuesToPrepare);
+
 
 				return $preparedStatement->rowCount();
 			}

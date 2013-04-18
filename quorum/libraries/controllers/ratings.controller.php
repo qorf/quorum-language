@@ -1,6 +1,35 @@
 <?php
 	require("../models/ratings.model.php");
 
+	function checkIfValidRating($rating) {
+		try {
+			if (property_exists($rating, 'rating_example')) {
+				if ($rating->rating_example != NULL) {
+					if (($rating->rating_example > 5) || ($rating->rating_example < 1)) {
+						return false;
+					}
+				}
+			}
+
+			if ($rating->rating_name != NULL) {
+				if (($rating->rating_name > 5) || ($rating->rating_name < 1)) {
+					return false;
+				}
+			}
+
+			if ($rating->rating_description != NULL) {
+				if (($rating->rating_description > 5) || ($rating->rating_description < 1)) {
+					return false;
+				}
+			}
+		}
+		catch (Exception $ex) {
+			return "error";
+		}
+
+		return true;
+	}
+
 	function submitClassRating($componentType) {
 		$componentType = str_replace("class-", "", $componentType);
 		$ratingName = ($componentType == "name") ? $_POST['rating'] : null;
@@ -8,6 +37,9 @@
 		$ratingDescription = ($componentType == "description") ? $_POST['rating'] : null;
 
 		$rating = new ClassRating($_POST['classstatickey'], $_POST['username'], $ratingName, $ratingExample, $ratingDescription);
+		
+		if (checkIfValidRating($rating) == false) { print "0"; }
+
 		print $rating->addRatingToDatabase($componentType);
 	}
 
@@ -18,16 +50,21 @@
 		$ratingDescription = ($componentType == "description") ? $_POST['rating'] : null;
 
 		$rating = new ActionRating($_POST['classstatickey'], $_POST['actionkey'], $_POST['username'], $ratingName, $ratingExample, $ratingDescription);
+		
+		if (checkIfValidRating($rating) == false) { print "0"; }
+
 		print $rating->addRatingToDatabase($componentType);
 	}
 
 	function submitParameterRating($componentType) {
 		$componentType = str_replace("parameter-", "", $componentType);
 		$ratingName = ($componentType == "name") ? $_POST['rating'] : null;
-		$ratingExample = ($componentType == "example") ? $_POST['rating'] : null;
 		$ratingDescription = ($componentType == "description") ? $_POST['rating'] : null;
 
-		$rating = new ActionRating($_POST['classstatickey'], $_POST['actionkey'], $_POST['username'], $ratingName, $ratingExample, $ratingDescription);
+		$rating = new ParameterRating($_POST['classstatickey'], $_POST['actionkey'], $_POST['parameterkey'], $_POST['username'], $ratingName, $ratingDescription);
+		
+		if (checkIfValidRating($rating) == false) { print "0"; }
+
 		print $rating->addRatingToDatabase($componentType);
 	}
 

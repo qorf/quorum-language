@@ -58,6 +58,7 @@ var createRatingControls = function() {
 		$(this).append(template(templateData));
 
 		getRatingForId(templateData);
+		console.log(componentType);
 	});
 
 	$('.star-ratings a').tooltip({'selector': '', 'placement': 'bottom'});
@@ -79,19 +80,24 @@ var fiveStarRatings = function(starRatingsList) {
 		var classStaticKey = $("input#classkey").val();
 		var componentType = controllable.data("componenttype")
 		var postData = { username: username, classstatickey: classStaticKey, rating: starNumber, componenttype: componentType };
+
 		switch (componentType) {
 			case "class-name": case "class-description": case "class-example": break;
 			case "action-name": case "action-description": case "action-example": 
 				postData['actionkey'] = controllable.data("actionkey");
+				console.log("action");
 				break;
 			case "parameter-name": case "parameter-description":
 				postData['actionkey'] = controllable.closest(".action").find(".controllable[data-componenttype=action-name]").data("actionkey");
 				postData['parameterkey'] = controllable.data("parameterkey");
+				console.log("parameter");
 				break;
 		}
 
+		console.log(postData['actionkey']);
+		console.log(postData['parameterkey']);
 		console.log(postData);
-
+		
 		$.ajax({
 			type: "POST",
 			url: "/controllers/ratings.controller.php?action=submitRating", // TODO: fix this URL
