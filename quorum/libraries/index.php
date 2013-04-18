@@ -21,10 +21,10 @@
 	<div class="btn-group">
         	<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">Hello, World! <span class="caret"></span></a>
 		<ul class="dropdown-menu">
-                	<li class="code-example" data-toggle="dropdown" href="#"> HELLO! </li>
-                	<li class="code-example" data-toggle="dropdown" href="#"> World! </li>
-                	<li class="code-example" data-toggle="dropdown" href="#"> HELLO! </li>
-                	<li class="code-example" data-toggle="dropdown" href="#"> World! </li>
+                	<li class="code-example" data-toggle="dropdown" href="#"> Conditionals </li>
+                	<li class="code-example" data-toggle="dropdown" href="#"> Loops </li>
+                	<li class="code-example" data-toggle="dropdown" href="#"> Actions </li>
+                	<li class="code-example" data-toggle="dropdown" href="#"> Classes </li>
   		</ul>
 	</div>
 	<div id="run" class="btn-group">
@@ -32,7 +32,7 @@
   	</div>
     </div>
     <div class="input">
-	<textarea class="inputArea">print "Hello, World!"</textarea>
+	<textarea class="inputArea">output "Hello, World!"</textarea>
     </div>
     <div class="output">
 	<pre class="outputArea"></pre>
