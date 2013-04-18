@@ -1,7 +1,7 @@
 <?php
 	require("../models/user.model.php");
 
-	function register() {
+	function controllerRegister() {
 		$email = $_POST['registration-email'];
 		$username = $_POST['registration-username'];
 		$password = $_POST['registration-password'];
@@ -22,7 +22,7 @@
 		}
 	}
 
-	function login() {
+	function controllerLogin() {
 		$username = $_POST['login-username'];
 		$password = $_POST['login-password'];
 
@@ -42,7 +42,7 @@
 		}
 	}
 
-	function signOut() {
+	function controllerSignOut() {
 		header("Location: " . $_GET['url']);
 
 		ob_start();
@@ -54,9 +54,9 @@
 
 	function router($action) {
 		switch ($action) {
-			case "login": login(); break;
-			case "register": register(); break;
-			case "signout": signOut(); break;
+			case "login": controllerLogin(); break;
+			case "register": controllerRegister(); break;
+			case "signout": controllerSignOut(); break;
 		}
 	}
 
