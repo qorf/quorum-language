@@ -79,6 +79,9 @@ var autoComplete = function() {
 
 var registerWithGoogle = function() {
 	if (getUrlVars()["loginWith"] == "google") {
+		$('#modal-login').modal();
+	}
+	if (getUrlVars()["registerWith"] == "google") {
 		$('#modal-registration').modal();
 	}
 }
@@ -297,7 +300,7 @@ var submitCodeSample = function(){
 		var codeData = {code: $(".inputArea").val()};
 
 		console.log(codeData);
-		
+
 		$.ajax({
 			type: "POST",
 			url: "/controllers/IDE.controller.php",

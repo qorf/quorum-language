@@ -1,6 +1,6 @@
 <?php  
   $messages = array(
-      "googleValid" => "You have been authenticated with Google. Please enter a username for your account.",
+      "googleValid" => "You have been authenticated with Google. Please enter a username for your account. <p><small><a href=\"/controllers/user.controller.php?action=cancelgoogle&returnurl=" . getRoot() . getPage() . "\">Cancel registration with Google.</a></small></p>",
       "googleErrors" => "There were errors with your Google authentication. Please use the registration form.",
       "registration" => 'Please create an account below, or ...'
     );
