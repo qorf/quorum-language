@@ -123,7 +123,7 @@ class_declaration 	:
 		String container = thisPackage.toString();
 		ClassDescriptor cl = symbol.enterClass(name, container);
 		builder.begin(cl);
-		indexer.append("<debug><class<name>");
+		indexer.append("<debug><class><name>");
 		className = cl.getStaticKey();
 		indexer.append(className);
 		indexer.append("</name>");

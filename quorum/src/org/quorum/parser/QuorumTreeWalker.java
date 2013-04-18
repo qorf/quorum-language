@@ -1,4 +1,4 @@
-// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2013-04-18 14:03:42
+// $ANTLR 3.4 /Users/melissa/NetBeansProjects/quorum/trunk/quorum/src/org/quorum/parser/QuorumTreeWalker.g 2013-04-18 14:11:15
 
 
 package org.quorum.parser;
@@ -663,7 +663,7 @@ public static class STAttrMap extends HashMap {
                     		String container = thisPackage.toString();
                     		ClassDescriptor cl = symbol.enterClass(name, container);
                     		builder.begin(cl);
-                    		indexer.append("<debug><class<name>");
+                    		indexer.append("<debug><class><name>");
                     		className = cl.getStaticKey();
                     		indexer.append(className);
                     		indexer.append("</name>");
