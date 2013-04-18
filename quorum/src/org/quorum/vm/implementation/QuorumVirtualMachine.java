@@ -1259,12 +1259,16 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                         variable = findVariableInBlocks(request, method, left);
                     }
                     if (variable != null) {
-                        String staticKey = variable.getType().getStaticKey();
-
-                        if(variable.getType().isPrimitiveType()){
-                            TypeDescriptor type = new TypeDescriptor(variable.getType());
-                            type.convertToClass();
+                        TypeDescriptor type = variable.getType();
+                        String staticKey = "";
+                        if(type != null){
                             staticKey = type.getStaticKey();
+                        }
+
+                        if(type.isPrimitiveType()){
+                            TypeDescriptor tempType = new TypeDescriptor(type);
+                            tempType.convertToClass();
+                            staticKey = tempType.getStaticKey();
                         }
                         
                         ClassDescriptor validKey = table.getClassDescriptor(staticKey);
