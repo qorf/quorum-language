@@ -290,24 +290,25 @@ var expandAndCollapseLeftSideMenu = function() {
 }
 
 var submitCodeSample = function(){
-	$("#run").on("click", function(e) {
+	$("#run a").on("click", function(e) {
 		e.preventDefault();
 		$(".outputArea").text("");
 		
+		var codeData = {code: $(".inputArea").val()};
+
+		console.log(codeData);
+		
 		$.ajax({
-			type:"POST",
-			url: "controllers/IDE.controller.php",
-			data:{code: $(".inputArea").val()},
-			dataType: "json",
-			success: function(returnData){
-				$(".outputArea").text(returnData);
-				console.log("suc" + returnData);
+			type: "POST",
+			url: "/controllers/IDE.controller.php",
+			data: codeData,
+			success: function(result) {
+				console.log(result);
 			},
-			completed: function(returnData){
-				$(".outputArea").text(returnData);
-				console.log("comp" + returnData);
+			error: function (xhr, ajaxOptions, thrownError) {
+				console.log(xhr, ajaxOptions, thrownError);
 			}
-		})
+		});
 	})
 }
 
