@@ -1,6 +1,6 @@
 <?php 
 	$username = $_COOKIE['username'];
-	$url = $_SERVER['PHP_SELF'];
+	$url = ($_SERVER['PHP_SELF'] == "/static/templates/user-headercontrols.template.php") ? $_SERVER['PHP_SELF'] : "";
 	$signOutLink = "<a href=\"/controllers/user.controller.php?action=signout&url=" . $url . "\">Sign Out</a>"; 
 ?>
 

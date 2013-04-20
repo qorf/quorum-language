@@ -17,6 +17,7 @@
     has the following features and more:
 </p>
 <div class="runCode">
+    <h2>Try Quorum! <span class="subtitle">Enter some Quorum code below and press "Run" to compile it</span></h2>
     <div class="controller">
 	<div class="btn-group">
         	<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">Hello, World! <span class="caret"></span></a>
