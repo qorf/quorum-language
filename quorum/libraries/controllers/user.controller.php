@@ -6,39 +6,44 @@
 		$username = $_POST['registration-username'];
 		$password = $_POST['registration-password'];
 		$google_id = $_POST['registration-identity'];
+
 		$user = new User($email, $username, $password, $google_id);
 		
 		if ($user->insert() == true) {
 			try {
 				$user->createCookies();
-				print true;
+				print "1";
 			}
 			catch (Exception $ex) {
-				print false;
+				print "-1";
 			}
 		}
 		else {
-			print false;
+			print "0";
 		}
 	}
 
-	function login() {
+	function standardLogin() {
 		$username = $_POST['login-username'];
 		$password = $_POST['login-password'];
 
 		$user = new User(null, $username, $password, null);
 		
+		print (login($user) == true) ? "1" : "0";
+	}
+
+	function login($user) {
 		if ($user->checkLogin() == true) {
 			try {
 				$user->createCookies();
-				print true;
+				return true;
 			}
 			catch (Exception $ex) {
-				print false;
+				return false;
 			}
 		}
 		else {
-			print false;
+			return false;
 		}
 	}
 
@@ -52,11 +57,29 @@
 		ob_end_flush();
 	}
 
+	function cancelGoogle() {
+		session_start();
+		$_SESSION['openIdData'] = null;
+		header('Location: ' . $_GET['returnurl']);
+	}
+
+	function googleUserLoginAuthenticate() {
+		session_start();
+
+		$openIdData = $_SESSION['openIdData'];
+		$user = new User($openIdData['email'], null, null, $openIdData['identity']);
+		$user->getUsernameFromGoogleId();
+
+		print (login($user) == true) ? "1" : "0";
+	}
+
 	function router($action) {
 		switch ($action) {
-			case "login": login(); break;
+			case "login": standardLogin(); break;
 			case "register": register(); break;
 			case "signout": signOut(); break;
+			case "cancelgoogle": cancelGoogle(); break;
+			case "googleUserLoginAuthenticate": googleUserLoginAuthenticate(); break;
 		}
 	}
 
