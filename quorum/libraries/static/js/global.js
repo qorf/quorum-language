@@ -3,7 +3,7 @@ $(function() {
 
 	autoComplete();
 
-	registerWithGoogle();
+	openModalFromURL();
 
 	registrationValidateAndSubmit();
 
@@ -35,7 +35,9 @@ var bodyMessage = function(text, state) {
 	$("body").append(element);
 	
 	$(".alert-body-bottom-right").fadeIn('slow', function(){
-		$(this).delay(5000).fadeOut();
+		$(this).delay(5000).fadeOut('slow', function() {
+			$(this).remove();
+		});
 	});
 }
 
@@ -77,11 +79,13 @@ var autoComplete = function() {
     });	
 }
 
-var registerWithGoogle = function() {
+var openModalFromURL = function() {
 	if (getUrlVars()["loginWith"] == "google") {
-		$('#modal-login').modal();
+		console.log("login");
+		googleUserLoginAuthenticate();
 	}
 	if (getUrlVars()["registerWith"] == "google") {
+		console.log("register");
 		$('#modal-registration').modal();
 	}
 }
@@ -133,11 +137,12 @@ var registerUser = function() {
 				spinner.hide();
 			}
 			else {
-				$("#registration-form #integrity-error").remove();
+				$("#integrity-error").remove();
 				$("#registration-form").before('<duv class="text-error" id="integrity-error">Sorry, but the email or username entered has been registered already.</div>');
 				$("#integrity-error").show();
 				buttons.show();
 				spinner.hide();
+				console.log(result);
 			}
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
@@ -256,7 +261,7 @@ var userSignIn = function() {
 					refresh();
 				}
 				else {
-					$("#modal-login #integrity-error").remove();
+					$("#integrity-error").remove();
 					$("#login-form").before('<div class="text-error" id="integrity-error">Sorry, but that login is not correct.</div>');
 					$("#integrity-error").show();
 					buttons.show();
@@ -265,7 +270,7 @@ var userSignIn = function() {
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
 				errorMessage("<strong>Sorry!</strong> There was a server error and your login could not be completed.");
-				$('#modal-registration').modal('hide');
+				$('#modal-login').modal('hide');
 				spinner.hide();
 			}
 		});
@@ -273,6 +278,36 @@ var userSignIn = function() {
 
 	$("#modal-login .btn-primary").on("click", function() {
 		checkCredentials($("#login-username"), $("#login-password"));
+	});
+}
+
+var googleUserLoginAuthenticate = function() {
+	successMessage("<strong>We're checking your login...</strong>");
+
+	$.ajax({
+		type: "GET",
+		url: "/controllers/user.controller.php",
+		data: { action: "googleUserLoginAuthenticate" },
+		success: function(result) {
+			if ($.trim(result) == "1") {
+				refresh();
+			}
+			else {
+				$('#modal-login').modal();
+				$("#integrity-error").remove();
+				$("#login-form").before('<div class="text-error" id="integrity-error">Sorry, but there has been an error authenticating your Google account.</div>');
+				$("#integrity-error").show();
+				buttons.show();
+				spinner.hide();
+			}
+			console.info(result);
+
+		},
+		error: function(result) {
+			errorMessage("<strong>Sorry!</strong> There was a server error and your login could not be completed.");
+			$('#modal-login').modal('hide');
+		},
+		complete: function() { }
 	});
 }
 

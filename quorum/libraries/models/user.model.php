@@ -42,14 +42,13 @@
 		}
 
 		public function checkLogin() {
-			if ($google_id == null) { // Regular user
-				//var_dump($this);
+			if ($this->google_id == null) { // Regular user
 				$sqlQuery = "SELECT * FROM " . $this->table_name . " WHERE username=? AND password=? AND google_id IS NULL";
 				$valuesToPrepare = array($this->username, $this->password);
 			}
 			else { // Google user
-				$sqlQuery = "SELECT * FROM " . $this->table_name . " WHERE username=? AND google_id=?";
-				$valuesToPrepare = array($this->username, $this->google_id);
+				$sqlQuery = "SELECT * FROM " . $this->table_name . " WHERE email=? AND google_id=?";
+				$valuesToPrepare = array($this->email, $this->google_id);
 			}
 
 			$preparedStatement = $this->connection->prepare($sqlQuery);
@@ -64,6 +63,45 @@
 			setcookie( "username", $this->username, $timeUntilExpire, '/');
 			setcookie( "password", $this->password, $timeUntilExpire, '/');
 			ob_end_flush();
+		}
+
+		public function getUsernameFromEmail() {
+			$sqlQuery = "SELECT * FROM " . $this->table_name . " WHERE email=?";
+			$valuesToPrepare = array($this->email);
+
+			$preparedStatement = $this->connection->prepare($sqlQuery);
+			$preparedStatement->execute($valuesToPrepare);
+
+			if ($preparedStatement->rowCount() == 1) {
+				$result = $preparedStatement->fetchAll();
+
+				$this->username = $result[0]['username'];
+				$this->password = $result[0]['password'];
+				$this->google_id = $result[0]['google_id'];
+
+				return true;
+			}
+
+			return false;
+		}
+
+		public function getUsernameFromGoogleId() {
+			$sqlQuery = "SELECT * FROM " . $this->table_name . " WHERE email=? AND google_id=?";
+			$valuesToPrepare = array($this->email, $this->google_id);
+
+			$preparedStatement = $this->connection->prepare($sqlQuery);
+			$preparedStatement->execute($valuesToPrepare);
+
+			if ($preparedStatement->rowCount() == 1) {
+				$result = $preparedStatement->fetchAll();
+
+				$this->username = $result[0]['username'];
+				$this->password = $result[0]['password'];
+
+				return true;
+			}
+
+			return false;
 		}
 	}
 ?>
