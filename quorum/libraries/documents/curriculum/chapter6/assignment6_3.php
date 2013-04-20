@@ -109,7 +109,7 @@
     </li>
 </ul>
 <p>
-    The <tt>Print</tt> action will be generic in this class, with only a say statement to tell the user the first and last name and social security number. In other classes, we will use polymorphism to implement a more custom print action.
+    The <tt>Print</tt> action will be generic in this class, with only a say statement to tell the user the first and last name and social security number. In other classes, you will use polymorphism to implement a more custom print action.
 </p>
 <h2>Class <tt>SalariedEmployee</tt></h2>
 <p>
@@ -161,7 +161,7 @@
     end
 </pre>
 <p>
-    Since action <tt>GetWeeklySalary</tt> returns a value, we can call the action in a return statement, as seen above.
+    Since action <tt>GetWeeklySalary</tt> returns a value, you can call the action in a return statement, as seen above.
 </p>
 <h2>Class <tt>HourlyEmployee</tt></h2>
 <p>

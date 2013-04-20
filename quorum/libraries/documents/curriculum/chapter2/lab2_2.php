@@ -3,14 +3,14 @@
     document.title = 'Chapter 2';
 </script>
 
-<h1>Lab 2.2: Math, Print and User Input</h1>
+<h1>Lab 2.2: Math, Output and User Input</h1>
 <h2>Objectives</h2>
 <p>
 The goal of this lab is to learn the following:
 </p>
 <ul>
 <li>How to use basic mathematical operations in Quorum</li>
-<li>How to use the print statement and the Sodbeans Output window</li>
+<li>How to use the output statement and the Sodbeans Output window</li>
 <li>How to get input from the user, and use it in computations</li>
 <li>How to analyze problem statements and translate them into Quorum code</li>
 </ul>
@@ -23,7 +23,7 @@ In this lab you will write a program in Quorum that performs basic mathematical 
 For task 1, you will concentrate on performing basic mathematical operations in Quorum. Then, you will move onto solving problem statements in task 2.  Start by opening Sodbeans and creating a new blank Quorum project. Name the project <b>Lab2_2</b>.
 </p>
 <p>
-Declare two <tt>integer</tt> variables <strong>a</strong> and <strong>b</strong>.  Initialize <strong>a</strong> to 7 and <strong>b</strong> to 4.  Next, add two <tt>number</tt> variables <strong>c</strong> and <strong>d</strong>.  Then initialize <strong>c</strong> to 8.5 and <strong>d</strong> to 9.2.  You will use these variables to perform mathematical operations and later print the results to the Sodbeans Output window. 
+Declare two <tt>integer</tt> variables <strong>a</strong> and <strong>b</strong>.  Initialize <strong>a</strong> to 7 and <strong>b</strong> to 4.  Next, add two <tt>number</tt> variables <strong>c</strong> and <strong>d</strong>.  Then initialize <strong>c</strong> to 8.5 and <strong>d</strong> to 9.2.  You will use these variables to perform mathematical operations and later output the results to the Sodbeans Output window. 
 </p>
 <p>
 Starting with addition, create the following two code statements:
@@ -36,7 +36,7 @@ Starting with addition, create the following two code statements:
 Determine the appropriate types for the firstAddition and secondAddition variables.
 </p>
 <p>
-Once the addition has occurred, print each of these variables to the Sodbeans Output window. This can be done by using two <strong><tt>print</tt></strong> statement to output the value of firstAddition and secondAddition. If you run your program(F6), the Sodbeans Output window(CTRL + 5) should have, assuming there are no errors in our code, the following output listed:
+Once the addition has occurred, output each of these variables to the Sodbeans Output window. This can be done by using two <strong><tt>output</tt></strong> statement to output the value of firstAddition and secondAddition. If you run your program(F6), the Sodbeans Output window(CTRL + 5) should have, assuming there are no errors in our code, the following output listed:
 </p>
 <p><pre class="code"><code>
 firstAddition: 11
@@ -54,7 +54,7 @@ You will apply the same concepts to the other mathematical operations. Now move 
 <li>The variable <b>secondSubtraction</b> is assigned the result of subtracting a, b, c, and d in that order.</li>
 </ul>
 <p>
-Once the subtraction has occurred, print each of these variables to the Sodbeans Output Window. If you run your program(F6) again the Sodbeans Output Window(CTRL + 5) should have, assuming there are no errors in our code, the following output listed:
+Once the subtraction has occurred, output each of these variables to the Sodbeans Output Window. If you run your program(F6) again the Sodbeans Output Window(CTRL + 5) should have, assuming there are no errors in our code, the following output listed:
 </p>
 <p><pre class="code"><code>
 firstAddition: 11
@@ -70,7 +70,7 @@ Moving onto multiplication, create the following statements in code:
 <li>The variable <b>secondProduct</b> is assigned the result of multiplying a, b, c, and d.</li>
 </ul>
 <p>
-Once the multiplication has occurred, print each of these variables to the Sodbeans Output Window. If you run your program(F6) again the Sodbeans Output window(CTRL + 5) should have, assuming there are no errors in our code, the following output listed:
+Once the multiplication has occurred, output each of these variables to the Sodbeans Output Window. If you run your program(F6) again the Sodbeans Output window(CTRL + 5) should have, assuming there are no errors in our code, the following output listed:
 </p>
 <p><pre class="code"><code>
 First Addition: 11
@@ -88,7 +88,7 @@ Now move onto division by creating the following statements:
 <li>The variable <b>secondQuotient</b> is assigned the result of dividing c by d.</li>
 </ul>
 <p>
-Once the division has occurred print each of these variables to the Sodbeans Output Window. If you run your program(F6) again the Sodbeans Output window(CTRL + 5) should have, assuming there are no errors in our code, the following output:
+Once the division has occurred output each of these variables to the Sodbeans Output Window. If you run your program(F6) again the Sodbeans Output window(CTRL + 5) should have, assuming there are no errors in our code, the following output:
 </p>
 <p><pre class="code"><code>
 First Addition: 11
@@ -121,7 +121,7 @@ The final mathematical operation available in Quorum is the modulus, or remainde
 <li>Do the same for the variable <b>secondRemainder</b> with the remainder of dividing c by d.</li>
 </ul>
 <p>
-Print these values to the output window. You will see the following output:
+Output these values to the output window. You will see the following output:
 </p>
 <p><pre class="code"><code>
 First Addition: 11
@@ -142,7 +142,7 @@ Let’s wrap up what you have done with the mathematical operations.  Write code
 (a + b) * (c - b) + (d / b)
 </code></pre></p>
 <p>
-Compute this ansyour for yourself, given the values you have assigned to the variables a, b, c, and d. Then, check your ansyour by adding another print statement for the result variable. The output should be the following:
+Compute this ansyour for yourself, given the values you have assigned to the variables a, b, c, and d. Then, check your ansyour by adding another output statement for the result variable. The output should be the following:
 </p>
 <p><pre class="code"><code>
 First Addition: 11
@@ -194,7 +194,7 @@ in each problem, indicated by <b>integer value</b> or <b>number value</b> and re
 <ol><li>A car travels <b>integer value</b> miles on a freeway for <b>number value</b> hours. Given that speed = distance / time, write code to calculate the car’s speed in terms of miles per hour.
 </li></ol><ol start="2"><li>A class goes on a field trip to the museum.  A school bus can hold up to <b>integer value</b> passengers.  A class of <b>integer value</b> students, a teacher, and two teacher assistants board the bus for the trip.  Write code to calculate what percentage of the bus is filled.
 </li></ol><ol start="3"><li>Someone has ordered a pizza for you, free of charge. However, before you can eat the pizza, you are asked to find the area of the top of the pizza box. The box is <b>integer value</b> inches by <b>integer value</b> inches. Write a program that outputs the area of the pizza box in the form, "The pizza box, in square inches, has an area of: "
-</li></ol><ol start="4"><li>A thrift store manager wishes to write a program that allows him to calculate the total cost of an order of shirts. He wishes to enter the name of a shirt, the number of shirts, and the price per shirt. Write code that accepts user input for the shirt name, the number of shirts, and the price of each shirt. The program should calculate and output the total cost of the order using either the <tt>print</tt> or <tt>say</tt> statement. For testing purposes, use the input: shirt name = Navy Polo Shirt, number of shirts = 11, and price = $8.99.  The result should match the following output:
+</li></ol><ol start="4"><li>A thrift store manager wishes to write a program that allows him to calculate the total cost of an order of shirts. He wishes to enter the name of a shirt, the number of shirts, and the price per shirt. Write code that accepts user input for the shirt name, the number of shirts, and the price of each shirt. The program should calculate and output the total cost of the order using either the <tt>output</tt> or <tt>say</tt> statement. For testing purposes, use the input: shirt name = Navy Polo Shirt, number of shirts = 11, and price = $8.99.  The result should match the following output:
 </li></ol>
 <h2>Sample Output</h2>
 <p>

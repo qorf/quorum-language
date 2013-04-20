@@ -151,7 +151,7 @@
     Remember, as seen in the example under <b>Overview</b>, this algorithm must first iterate through the entire array, then iterate through <b>N</b> number of times more in order to perform the swaps again.
 </p>
 <p>
-    To populate the array, create a random integer generator to generate integers no larger than 500. Ask the user how many items they want to sort, and populate the array with that many random integers. Next, print out all the items in the array before the sort, perform the Bubble sort, then print out all the items in the array again to show the user the sorted elements.
+    To populate the array, create a random integer generator to generate integers no larger than 500. Ask the user how many items they want to sort, and populate the array with that many random integers. Next, output all the items in the array before the sort, perform the Bubble sort, then output all the items in the array again to show the user the sorted elements.
 </p>
 <h2>Sample Output</h2>
 <p>

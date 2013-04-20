@@ -76,7 +76,7 @@ class Main
 end
 </code></pre></p>
 <p>
-You will start by writing the <tt>GiveInstructions</tt> action. In this action you should say or print the rules and instructions for the rock, paper, scissors game. That message might be something like the following:
+You will start by writing the <tt>GiveInstructions</tt> action. In this action you should say or output the rules and instructions for the rock, paper, scissors game. That message might be something like the following:
 </p>
 <p><pre class="code"><code>
 Welcome to the Rock Paper Scissors game!

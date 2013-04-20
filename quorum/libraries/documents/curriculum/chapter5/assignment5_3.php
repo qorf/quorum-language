@@ -68,12 +68,12 @@ Students
 </td></tr><tr><td>john</td><td>73</td><td>91</td><td>87</td><td>88</td><td>95
 </td></tr></table>
 <p>
-Once this information is stored you can loop through the Array of students and print out some basic information. The program should produce output that does the following:
+Once this information is stored you can loop through the Array of students and output some basic information. The program should produce output that does the following:
 </p>
 <ul><li>Get the student from the array.
-</li><li>Print or say the student name and the array index the student was found at.
+</li><li>Output or say the student name and the array index the student was found at.
 </li><li>Calculate the students grade.
-</li><li>Print or say the grade of the student
+</li><li>Output or say the grade of the student
 </li></ul><h2>Sample Output</h2>
 <pre class="code">student jenny is at array index 0
 jenny's grade is a A

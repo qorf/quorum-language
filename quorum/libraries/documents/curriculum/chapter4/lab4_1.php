@@ -38,7 +38,7 @@ First, youwill focus on the creation of actions that have no parameters or retur
 </p>
 <p><pre class="code"><code>
 action GreetUser
-    print &quot;Hello there!&quot;
+    output &quot;Hello there!&quot;
 end
 </code></pre></p>
 <p>
@@ -49,7 +49,7 @@ Inside the <tt>Main</tt> action, let's add code to call this action. When you"ca
 </p>
 <p><pre class="code"><code>
 GreetUser()
-print &quot;Back from GreetUser().&quot;
+output &quot;Back from GreetUser().&quot;
 </code></pre></p>
 <p>
 Your code in the Sodbeans editor should now look like the following:
@@ -58,10 +58,10 @@ Your code in the Sodbeans editor should now look like the following:
 class Main
     action Main
         GreetUser()
-        print &quot;Back from GreetUser().&quot;
+        output &quot;Back from GreetUser().&quot;
     end
     action GreetUser
-        print &quot;Hello there!&quot;
+        output &quot;Hello there!&quot;
     end
 end
 </code></pre></p>
@@ -73,15 +73,15 @@ Hello there!
 Back from GreetUser().
 </code></pre></p>
 <p>
-What happened here is that Quorum recognized youwere calling an action by the syntax of the <tt>GreetUser()</tt> line. When youspecify a name followed by an opened and closed parentheses, Quorum assumes youwish to execute the code in that action. In this example, Quorum executed the code inside the <tt>GreetUser</tt> action, and then came back to execute the next line, <tt>print "Back from GreetUser()."</tt>. Run the debugger now and step through the code to get an idea of how this program executes. Try stepping into the <tt>GreetUser()</tt> line of code.
+What happened here is that Quorum recognized youwere calling an action by the syntax of the <tt>GreetUser()</tt> line. When youspecify a name followed by an opened and closed parentheses, Quorum assumes youwish to execute the code in that action. In this example, Quorum executed the code inside the <tt>GreetUser</tt> action, and then came back to execute the next line, <tt>output "Back from GreetUser()."</tt>. Run the debugger now and step through the code to get an idea of how this program executes. Try stepping into the <tt>GreetUser()</tt> line of code.
 </p>
 <p>
-Let's create one more action, called <tt>GetUserBalance</tt>, that asks the user to enter a dollar amount for a bank account. This action will then print the value the user entered to the screen. The code for this action is shown below.
+Let's create one more action, called <tt>GetUserBalance</tt>, that asks the user to enter a dollar amount for a bank account. This action will then output the value the user entered to the screen. The code for this action is shown below.
 </p>
 <p><pre class="code"><code>
 action GetUserBalance
     text in = input(&quot;How much money is in your savings account?&quot;)
-    print &quot;You have $&quot; + in + &quot; in your savings account.&quot;
+    output &quot;You have $&quot; + in + &quot; in your savings account.&quot;
 end
 </code></pre></p>
 <p>
@@ -91,16 +91,16 @@ You will also need to add code to your <tt>Main</tt> method to call this action.
 class Main
     action Main
         GreetUser()
-        print &quot;Back from GreetUser().&quot;
+        output &quot;Back from GreetUser().&quot;
         GetUserBalance()
-        print &quot;Leaving...&quot;
+        output &quot;Leaving...&quot;
     end
     action GreetUser
-        print &quot;Hello there.&quot;
+        output &quot;Hello there.&quot;
     end
     action GetUserBalance
         text in = input(&quot;How much money is in your savings account?&quot;)
-        print &quot;You have $&quot; + in + &quot; in your savings account.&quot;
+        output &quot;You have $&quot; + in + &quot; in your savings account.&quot;
     end
 end
 </code></pre></p>
@@ -128,11 +128,11 @@ That sounds a bit complicated, so let's create an example to demonstrate. Earlie
 </p>
 <p><pre class="code"><code>
 action GreetUser(text name)
-    print &quot;Hello there, &quot; + name + &quot;!&quot;
+    output &quot;Hello there, &quot; + name + &quot;!&quot;
 end
 </code></pre></p>
 <p>
-Notice that the first line of this action is different from the previous <tt>GreetUser</tt> action. Instead of simply ending the line after the <tt>GreetUser</tt> name, youuse an open parenthesis to tell Quorum youare going to specify parameters. In Quorum, parameters are <strong>always</strong> specified between a set of parenthesis. Once youhave specified your parameter, youclose the opened parenthesis. You have added one parameter to this action, called <tt>name</tt>, of type <tt>text</tt>. By doing so, youmake the variable <tt>name</tt> available for use in your action. Multiple parameters can also be specified, separated by a comma (covered in section 5). You use it in the print statement on the next line. Notice that youdid not initialize the variable <tt>name</tt> before using it in <tt>print</tt>. Rather, Quorum took care of this for you, and youcan assume it already has some value.
+Notice that the first line of this action is different from the previous <tt>GreetUser</tt> action. Instead of simply ending the line after the <tt>GreetUser</tt> name, youuse an open parenthesis to tell Quorum youare going to specify parameters. In Quorum, parameters are <strong>always</strong> specified between a set of parenthesis. Once youhave specified your parameter, youclose the opened parenthesis. You have added one parameter to this action, called <tt>name</tt>, of type <tt>text</tt>. By doing so, youmake the variable <tt>name</tt> available for use in your action. Multiple parameters can also be specified, separated by a comma (covered in section 5). You use it in the output statement on the next line. Notice that you did not initialize the variable <tt>name</tt> before using it in <tt>output</tt>. Rather, Quorum took care of this for you, and youcan assume it already has some value.
 </p>
 <p>
 Place this code into the Sodbeans editor and remove the old <tt>GreetUser</tt> action. Run the program. Notice that youreceive the following compiler error:
@@ -153,16 +153,16 @@ Like before, youare still using an open parenthesis after the action name to ind
 class Main
     action Main
         GreetUser(&quot;Jeff&quot;)
-        print &quot;Back from GreetUser().&quot;
+        output &quot;Back from GreetUser().&quot;
         GetUserBalance()
-        print &quot;Leaving...&quot;
+        output &quot;Leaving...&quot;
     end
     action GreetUser(text name)
-        print &quot;Hello there, &quot; + name + &quot;!&quot;
+        output &quot;Hello there, &quot; + name + &quot;!&quot;
     end
     action GetUserBalance
         text in = input(&quot;How much money is in your savings account?&quot;)
-        print &quot;You have $&quot; + in + &quot; in your savings account.&quot;
+        output &quot;You have $&quot; + in + &quot; in your savings account.&quot;
     end
 end
 </code></pre></p>
@@ -204,7 +204,7 @@ Before youcontinue, run the program. Your program no longer prints the value tha
 </p>
 <p><pre class="code"><code>
 integer amount = GetUserBalance()
-print &quot;You entered $&quot; + amount
+output &quot;You entered $&quot; + amount
 </code></pre></p>
 <p>
 Notice that, like before, youare calling <tt>GetUserBalance</tt> using the opened/closed parentheses syntax. However, to the left of this code, youare performing an assignment to the variable <tt>amount</tt>.
@@ -216,13 +216,13 @@ Your full program now looks like this:
 class Main
     action Main
         GreetUser(&quot;Jeff&quot;)
-        print &quot;Back from GreetUser().&quot;
+        output &quot;Back from GreetUser().&quot;
         integer amount = GetUserBalance()
-        print &quot;You entered $&quot; + amount
-        print &quot;Leaving...&quot;
+        output &quot;You entered $&quot; + amount
+        output &quot;Leaving...&quot;
     end
     action GreetUser(text name)
-        print &quot;Hello there, &quot; + name + &quot;!&quot;
+        output &quot;Hello there, &quot; + name + &quot;!&quot;
     end
     action GetUserBalance returns integer
         text in = input(&quot;How much money is in your savings account?&quot;)
@@ -267,7 +267,7 @@ Notice that this action is different than others youhave studied so far, as it a
 </p>
 <p><pre class="code"><code>
 number k = Multiply(2, 4)
-print k
+output k
 </code></pre></p>
 <p>
 Now, your code in the editor looks like the following:
@@ -276,7 +276,7 @@ Now, your code in the editor looks like the following:
 class Main
     action Main
         number k = Multiply(2, 4)
-        print k
+        output k
     end
     action Multiply(number a, number b) returns number
         number result = a * b

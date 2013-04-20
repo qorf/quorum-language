@@ -95,7 +95,7 @@
   One of Quorum's built-in errors is the <tt>InvalidLocationError</tt> error. This error is thrown when an invalid memory location is accessed. GetPlayers will count the number of players in the game (by iterating through your array of names), and will tell the user how many are playing. However, you're going to try and iterate through the array an impossible number of times, given that the array should hold no more than 9 players, and therefore should be no larger than 10. Try repeating through the array 20 times.
 </p>
 <p>
-  Run the program, and see what happens. This is what is called an <tt>InvalidLocationError</tt>, and it happened because you tried to access invalid memory locations. Now put in a check/detect, so that the "detect" will print "Error detected" and follow with the error message. Then, correct the problem so that your repeat loop no longer tries to access invalid memory locations.
+  Run the program, and see what happens. This is what is called an <tt>InvalidLocationError</tt>, and it happened because you tried to access invalid memory locations. Now put in a check/detect, so that the "detect" will output "Error detected" and follow with the error message. Then, correct the problem so that your repeat loop no longer tries to access invalid memory locations.
 </p>
 <ul>
   <li>
@@ -151,7 +151,7 @@
   This algorithm is especially nice in this case because it is highly efficient at creating an array of random, unique integers. In computer science, you can measure this efficiency. Typically, efficiency of a given algorithm is measured by how many comparisons or assignments must be done. In the algorithm above, it takes O(n) (Big-Oh of n) time to fill the array with n number of integers. This is called linear time, since the time it takes changes with the size of n. To shuffle those integers, it takes O(1) time, meaning it is done in near constant time. Big O notation is used to show the upper bound constraints on run time (the worst case). It's important to analyze your algorithms for run time complexities. Doing so allows a programmer to estimate time and memory usage, identify bottlenecks so they can work to reduce run time, compare different implementation approaches, or to speed up critical algorithms.
 </p>
 <p>
-  Action <tt>Play(integer value)</tt> needs to be modified as well. Since you are performing many of these operations in loops, you will need a second array to hold the text values being removed (the players that lost). Then, in a different loop, you can get those text values and print them off for the user to see who lost. Make sure that you're telling the user the correct order in which players lost the game. Again, at the end of the game, tell the user who the winner was.
+  Action <tt>Play(integer value)</tt> needs to be modified as well. Since you are performing many of these operations in loops, you will need a second array to hold the text values being removed (the players that lost). Then, in a different loop, you can get those text values and output them for the user to see who lost. Make sure that you're telling the user the correct order in which players lost the game. Again, at the end of the game, tell the user who the winner was.
 </p>
 <h2>
   Sample Output

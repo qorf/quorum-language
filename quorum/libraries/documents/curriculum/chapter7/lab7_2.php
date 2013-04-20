@@ -191,7 +191,7 @@
     </li>
 </ul>
 <p>
-    Use the <tt>Add()</tt> action to add 128 random integers into the list/array. Use the <tt>Set()</tt> action to set the first 64 items in the list/array to a new random integer. Use the <tt>RemoveFromFront()</tt> action to remove all the items in the list/array. Time how long it took to populate, re-populate, then delete the values from the list/array. Report the time to the user (print or say).
+    Use the <tt>Add()</tt> action to add 128 random integers into the list/array. Use the <tt>Set()</tt> action to set the first 64 items in the list/array to a new random integer. Use the <tt>RemoveFromFront()</tt> action to remove all the items in the list/array. Time how long it took to populate, re-populate, then delete the values from the list/array. Report the time to the user (output or say).
 </p>
 <ul>
     <li>

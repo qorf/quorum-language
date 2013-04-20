@@ -92,7 +92,7 @@ The output should look similar to the sample output.  If the obtained date and t
 </p>
 <h2>Task 3: Meeting Dates and Loops</h2>
 <p>
-Now that you have the current date and time, assume the user has a meeting every seven days from today. Print out the month and day for the next three meetings(don't worry about leap years). There are a few things to remember:
+Now that you have the current date and time, assume the user has a meeting every seven days from today. Output the month and day for the next three meetings(don't worry about leap years). There are a few things to remember:
 </p>
 <ul>
 <li>You can't just add 7 to the day; you need to roll over to a new month when you exceed the number of days in that month.</li>

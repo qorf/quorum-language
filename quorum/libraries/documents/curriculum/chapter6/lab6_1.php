@@ -58,7 +58,7 @@ end
   end
 </code></pre></p>
 <p>
-  Now use the different actions to create diameters for <tt>Circle</tt> and <tt>Sphere</tt>. In Main, create <tt>Circle</tt> and <tt>Sphere</tt> objects. Next, create number variables <tt>circleRadius</tt> and <tt>sphereRadius</tt>. Using the set and get actions in class <tt>Circle</tt>, assign a radius value to <tt>circleRadius</tt>. Recall that in action <tt>SphereSetRadius</tt>, you've already set the value of radius to whatever the user entered, so now you only need to get that value. Using the <tt>GetRadius</tt> method from class <tt>Sphere</tt>, assign the <tt>sphereRadius</tt> variable a value. Next, multiply both values by 2 to get the circle and sphere diameters, then print or say their respective values.
+  Now use the different actions to create diameters for <tt>Circle</tt> and <tt>Sphere</tt>. In Main, create <tt>Circle</tt> and <tt>Sphere</tt> objects. Next, create number variables <tt>circleRadius</tt> and <tt>sphereRadius</tt>. Using the set and get actions in class <tt>Circle</tt>, assign a radius value to <tt>circleRadius</tt>. Recall that in action <tt>SphereSetRadius</tt>, you've already set the value of radius to whatever the user entered, so now you only need to get that value. Using the <tt>GetRadius</tt> method from class <tt>Sphere</tt>, assign the <tt>sphereRadius</tt> variable a value. Next, multiply both values by 2 to get the circle and sphere diameters, then output or say their respective values.
 </p>
 <h2>Task 4: Using Inherited Actions</h2>
 <p>

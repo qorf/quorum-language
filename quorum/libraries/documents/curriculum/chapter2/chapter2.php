@@ -44,7 +44,7 @@ use Libraries.Sound.Music
 <ul>
 <li>Learn about mathematical operations in Quorum.</li>
 <li>Write a program in Quorum that uses order of operations.</li>
-<li>Use the print and input statements.</li>
+<li>Use the output and input statements.</li>
 </ul>
 </ul>
 <ul>

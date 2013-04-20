@@ -77,7 +77,7 @@
 </p>
 <h2>Class <tt>Main</tt></h2>
 <p>
-    <tt>Main</tt> should instantiate an object of class <tt>Translate</tt>, then call the proper functions to translate a file. If the file was translated successfully, then print (or say) a message telling the user so.
+    <tt>Main</tt> should instantiate an object of class <tt>Translate</tt>, then call the proper functions to translate a file. If the file was translated successfully, then output (or say) a message telling the user so.
 </p>
 <h2>Sample Output</h2>
 <p>

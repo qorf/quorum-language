@@ -25,7 +25,7 @@ action SayHello
     SayHello(&quot;stranger&quot;)
 end
 action SayHello(text name)
-    print &quot;Hello, &quot; + name
+    output &quot;Hello, &quot; + name
 end
 </code></pre></p>
 <p>

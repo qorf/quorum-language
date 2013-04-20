@@ -59,7 +59,7 @@
     myList:Get(0) //results in an UndefinedObjectsError
 </pre>
 <p>
-    Write this action in such a way as to cause the compiler to throw an <tt>UndefinedObjectsError</tt>, and then correct the error with a check/detect that will tell the user an error had occurred, print out the error, and then fix it. In the case above, you could add an item to <tt>myList</tt>. Then, the Get call wouldn't result in an error.
+    Write this action in such a way as to cause the compiler to throw an <tt>UndefinedObjectsError</tt>, and then correct the error with a check/detect that will tell the user an error had occurred, output the error, and then fix it. In the case above, you could add an item to <tt>myList</tt>. Then, the Get call wouldn't result in an error.
 </p>
 <ul>
     <li>
@@ -69,7 +69,7 @@
     </li>
 </ul>
 <p>
-    The <tt>CastError</tt> is thrown when there is an error while casting values. Write this action in such a way as to cause the compiler to throw a <tt>CastError</tt>, then correct the error with a check/detect that will tell the user an error had occurred, print out the error, and then fix it.
+    The <tt>CastError</tt> is thrown when there is an error while casting values. Write this action in such a way as to cause the compiler to throw a <tt>CastError</tt>, then correct the error with a check/detect that will tell the user an error had occurred, output out the error, and then fix it.
 </p>
 <ul>
     <li>
@@ -79,7 +79,7 @@
     </li>
 </ul>
 <p>
-    The <tt>InvalidLocationError</tt> is thrown when an invalid memory location is accessed. For example, trying to Set a value in an array to an invalid index. As in Lab 7_3, write this action in such a way as to cause the compiler to throw an <tt>InvalidLocationError</tt>, then correct the error with a check/detect that will tell the user an error had occurred, print out the error, and then fix it.
+    The <tt>InvalidLocationError</tt> is thrown when an invalid memory location is accessed. For example, trying to Set a value in an array to an invalid index. As in Lab 7_3, write this action in such a way as to cause the compiler to throw an <tt>InvalidLocationError</tt>, then correct the error with a check/detect that will tell the user an error had occurred, output the error, and then fix it.
 </p>
 <ul>
     <li>
@@ -89,7 +89,7 @@
     </li>
 </ul>
 <p>
-    The <tt>OutOfBoundsError</tt> is thrown when a parameter is outside of the specified range for an action. For this action, create a random number generator that makes random integers up to a maximum integer (you can use the <tt>RandomInteger(integer)</tt> action to do this). As an argument to this, ask the user for a maximum number that is negative. When ran, this will result in an <tt>OutOfBoundsErrror</tt>. Correct the error with a check/detect that will tell the user an error had occurred, print out the error, and then fix it.
+    The <tt>OutOfBoundsError</tt> is thrown when a parameter is outside of the specified range for an action. For this action, create a random number generator that makes random integers up to a maximum integer (you can use the <tt>RandomInteger(integer)</tt> action to do this). As an argument to this, ask the user for a maximum number that is negative. When ran, this will result in an <tt>OutOfBoundsErrror</tt>. Correct the error with a check/detect that will tell the user an error had occurred, output the error, and then fix it.
 </p>
 <h2>Sample Output</h2>
 <p>

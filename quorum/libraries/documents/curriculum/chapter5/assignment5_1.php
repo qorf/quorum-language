@@ -31,7 +31,7 @@ In this assignment you will be creating a program that mimics a radio. The user 
     </li>
 </ul>
 <p>
-    <tt>StationCheck</tt> should check to make sure the integer value passed in is between 1 and 4, inclusively.  This means the value can be either 1, 2, 3, or 4.  If the value passed in is valid, then this action should return true.  If the value is not valid, it should print an error message and then return false.
+    <tt>StationCheck</tt> should check to make sure the integer value passed in is between 1 and 4, inclusively.  This means the value can be either 1, 2, 3, or 4.  If the value passed in is valid, then this action should return true.  If the value is not valid, it should output an error message and then return false.
 </p>
 <ul>
     <li>
@@ -47,7 +47,7 @@ In this assignment you will be creating a program that mimics a radio. The user 
     </li>
 </ul>
 <p>
-    <tt>TimeCheck</tt> will do the same things that <tt>StationCheck</tt> does: it should check if the integer passed in is between 1 and 20, inclusively.  If it is, then it should return true.  If not, print an error message and return false.
+    <tt>TimeCheck</tt> will do the same things that <tt>StationCheck</tt> does: it should check if the integer passed in is between 1 and 20, inclusively.  If it is, then it should return true.  If not, output an error message and return false.
 </p>
 <ul>
     <li>
@@ -122,7 +122,7 @@ In this assignment you will be creating a program that mimics a radio. The user 
         Another consideration is that you want to make unique sounds for each station selected, but the human ear has a limited range of pitches it's able to hear. So it might take some tinkering to make it so every station played for an unknown amount of time produces an audible sound<br />
     </li>
     <li>
-        When you want to speak a word in the Sodbeans environment it's common to use the Print statement. This is beneficial because it prints to the Sodbeans Command Window, and it also speaks it in an auditory format. It should be noted that when using quorum from anywhere else, like the command line for example, this isn't the case. The Print statement will only print to a Command Window. The Say statement, however, will speak the command in an auditory format in other environments. So for this program it's acceptable to use the Print statement to accomplish both tasks, as you are working in Sodbeans, but if you choose to work in a different environment down the road, this is something to be aware of.
+        When you want to speak a word in the Sodbeans environment it's common to use the output statement. This is beneficial because it prints to the Sodbeans Command Window, and it also speaks it in an auditory format. It should be noted that when using quorum from anywhere else, like the command line for example, this isn't the case. The output statement will only output to a Command Window. The Say statement, however, will speak the command in an auditory format in other environments. So for this program, it's acceptable to use the output statement to accomplish both tasks, as you are working in Sodbeans, but if you choose to work in a different environment down the road, this is something to be aware of.
     </li>
 </ul>
 <h2>Sample Output</h2>

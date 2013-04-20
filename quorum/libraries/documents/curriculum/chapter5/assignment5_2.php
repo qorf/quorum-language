@@ -27,7 +27,7 @@ which is the integer value 120.
 </p>
 <pre class="code">action Main
      integer a = Factorial(5)
-     print "a is equal to" + a
+     output "a is equal to" + a
 
 end
 

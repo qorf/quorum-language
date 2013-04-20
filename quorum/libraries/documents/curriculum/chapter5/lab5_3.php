@@ -51,7 +51,7 @@ end
 The example uses a primitive type for an <tt>integer</tt>, which uses a lower case letter for the first letter.  You also can use an object for an <tt>integer</tt> that starts with an upper case letter for the first letter.  You are using primitive types for this lab.
 </p>
 <p>
-Now, it’s time to start working with arrays!  In a <tt>Main</tt> class, use the array example above to create an array to store 10 integers.  Then, display all integers from an array.  In order to get all integers, you will need to get the size of an array and use it to write a repeat loop. The repeat loop should print <tt>integer</tt> values from 0 to 9.  
+Now, it’s time to start working with arrays!  In a <tt>Main</tt> class, use the array example above to create an array to store 10 integers.  Then, display all integers from an array.  In order to get all integers, you will need to get the size of an array and use it to write a repeat loop. The repeat loop should output <tt>integer</tt> values from 0 to 9.  
 </p>
 <p>
 Create a new array that stores <tt>text</tt> values.  Give the array a name, <strong>weekdays</strong>.  Add four values to the array: Monday, Tuesday, Thursday, and Friday.  Output the result as shown below:

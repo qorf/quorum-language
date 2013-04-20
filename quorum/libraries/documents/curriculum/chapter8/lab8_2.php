@@ -58,7 +58,7 @@
     Repeat for as many files as there are in the directory. Hint: <tt>GetSize()</tt> will return an integer.
 </li>
 <p>
-    Lastly, prompt the user for an index value into <tt>soundArray</tt>. Check to make sure the input is in valid range. If the user enters invalid input, prompt them again to enter something valid. Once valid input is obtained, access the sound file at the given index and play the sound and print out the sound title. Continue to do this until the user enters "0", which will exit the program.
+    Lastly, prompt the user for an index value into <tt>soundArray</tt>. Check to make sure the input is in valid range. If the user enters invalid input, prompt them again to enter something valid. Once valid input is obtained, access the sound file at the given index and play the sound and output the sound title. Continue to do this until the user enters "0", which will exit the program.
 </p>
 <h2>Sample Output</h2>
 <p>

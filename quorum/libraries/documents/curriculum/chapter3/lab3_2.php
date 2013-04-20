@@ -45,7 +45,7 @@ repeat 10 times
 end
 </code></pre></p>
 <p>
-Inside the body of the loop, use the <strong>randomValue</strong> variable to store a randomly generated <tt>integer</tt> value. Line 4 of the above <tt>Random</tt> example shows how this is done. In the next line of code, use the <strong>counter</strong> variable to keep track of each iteration of the loop by incrementing it by one each time the loop runs. Print the value of the counter and randomValue variables.The output should look similar to the following (the random values will be different):
+Inside the body of the loop, use the <strong>randomValue</strong> variable to store a randomly generated <tt>integer</tt> value. Line 4 of the above <tt>Random</tt> example shows how this is done. In the next line of code, use the <strong>counter</strong> variable to keep track of each iteration of the loop by incrementing it by one each time the loop runs. Output the value of the counter and randomValue variables.The output should look similar to the following (the random values will be different):
 </p>
 <p><pre class="code"><code>
 counter =  0; randomValue = 81

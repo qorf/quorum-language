@@ -13,7 +13,7 @@
         How to create and use arrays
     </li>
     <li>
-        How to add, delete, and print items from an array
+        How to add, delete, and output items from an array
     </li>
     <li>
         How to use strings in arrays
@@ -106,9 +106,9 @@
    *frequency:Add(face)
    */
 
-  //print off the results
+  //output the results
   /*repeat 6 times
-   *print "frequency from 1-6:" + frequency:Get(face)
+   *output "frequency from 1-6:" + frequency:Get(face)
    */
 </pre>
 <p>
@@ -125,7 +125,7 @@
 </pre>
 <h2>Class <tt>PollCount</tt></h2>
 <p>
-    Now that you have a better understanding of how arrays work, you will use them for a common computer science problem that is well suited for arrays: poll counting. Like class <tt>RollingDie</tt>, <tt>PollCount</tt> will contain an action that counts the frequency of a rating (1-10). It will then print how many times that rating was voted for. Create 2 arrays:
+    Now that you have a better understanding of how arrays work, you will use them for a common computer science problem that is well suited for arrays: poll counting. Like class <tt>RollingDie</tt>, <tt>PollCount</tt> will contain an action that counts the frequency of a rating (1-10). It will then output how many times that rating was voted for. Create 2 arrays:
 </p>
 <pre class="code">
         Array&lt;integer&gt; frequency
@@ -156,7 +156,7 @@
     Array&lt;text&gt; sports
 </pre>
 <p>
-    This class will contain an action that asks the user for their name, inputs that text into array <tt>names</tt>, then asks the user for a sport they enjoy, and inputs that text into array <tt>sports</tt>. This should repeat 3 times, and then print off the name of the person coupled with the sport they enjoy playing. Example output:
+    This class will contain an action that asks the user for their name, inputs that text into array <tt>names</tt>, then asks the user for a sport they enjoy, and inputs that text into array <tt>sports</tt>. This should repeat 3 times, and then output the name of the person coupled with the sport they enjoy playing. Example output:
 </p>
 <pre class="code">
     Enter a name:

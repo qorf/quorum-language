@@ -51,14 +51,14 @@ class Animal
 end
 </code></pre></p>
 <p>
-So now your animal has two arms, and it's brown. From this point you want to print the animal's existing characteristics, so you are going to put a print line in <tt>Main</tt> that has some text in it, as well as the variables you just coded. I coded the print statement to show the number of arms the animal has, but it's your job to code the print statement for it's color.
+So now your animal has two arms, and it's brown. From this point you want to output the animal's existing characteristics, so you are going to put an output line in <tt>Main</tt> that has some text in it, as well as the variables you just coded. I coded the output statement to show the number of arms the animal has, but it's your job to code the output statement for it's color.
 </p>
 <p><pre class="code"><code>
 class Animal
     integer arms = 2
     text color = &quot;brown&quot;
     action Main
-        print &quot;The animal has &quot; + arms + &quot; arms.&quot;
+        output &quot;The animal has &quot; + arms + &quot; arms.&quot;
     end
 end
 </code></pre></p>
@@ -72,14 +72,14 @@ But what if the user would like to change the animal?
 Next you're going to code a few actions for your class that will change the variables. These are called methods when they're actions for a class, and they're an integral part of class development.
 </p>
 <p>
-Reusability is a fundamental part of programming, so you're going to move the print statements into their own method (called actions in Quorum), called Display. The skeleton code is provided for you. Don't forget to call the Display method once you're finished.
+Reusability is a fundamental part of programming, so you're going to move the output statements into their own method (called actions in Quorum), called Display. The skeleton code is provided for you. Don't forget to call the Display method once you're finished.
 </p>
 <p><pre class="code"><code>
 class Animal
     integer arms = 2
     text color = &quot;brown&quot;
     action Main
-        print &quot;The animal has &quot; + arms + &quot; arms and &quot; + legs + &quot; legs.&quot;
+        output &quot;The animal has &quot; + arms + &quot; arms and &quot; + legs + &quot; legs.&quot;
     end
     action Display
     end
@@ -112,7 +112,7 @@ class Animal
     action Display
     end
     action ChangeArms
-        print &quot;How many arms would you like your animal to have?&quot;
+        output &quot;How many arms would you like your animal to have?&quot;
         text result = input(&quot;Number of Arms&quot;)
         integer v = cast(integer, result)
         arms = v

@@ -177,7 +177,7 @@ In the <tt>Car</tt> class, add the user input checking code to two setters based
 <ul><li>The car must have two or four doors.  If a user enters an invalid value, then a value will be set to two.
 </li><li>The color of a car must be Black, Red, or Silver.  If a user enters an invalid value, then a value will be set to Red.
 </li></ul><p>
-In the <tt>Main</tt> class, make action calls to set a number of doors to three and the color of a car to Purple.  Print or speak the output to see what happens to the invalid values.  The output should look like the following:
+In the <tt>Main</tt> class, make action calls to set a number of doors to three and the color of a car to Purple.  Output or speak the output to see what happens to the invalid values.  The output should look like the following:
 </p>
 <p><pre class="code"><code>
 The car has 4 doors.
