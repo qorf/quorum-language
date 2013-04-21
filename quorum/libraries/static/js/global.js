@@ -333,15 +333,13 @@ var submitCodeSample = function(){
 		$(".outputArea").text("");
 		
 		var codeData = {code: $(".inputArea").val()};
-
-		console.log(codeData);
-
 		$.ajax({
 			type: "POST",
 			url: "/controllers/IDE.controller.php",
 			data: codeData,
-			success: function(result) {
-				console.log(result);
+			success: function(result){
+				var output = result.substring(result.indexOf("|")+1, result.length-2);
+				$(".outputArea").text(output);
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
 				console.log(xhr, ajaxOptions, thrownError);
