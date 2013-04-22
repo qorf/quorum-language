@@ -39,6 +39,9 @@
     <div class="output">
 	<pre class="outputArea"></pre>
     </div>
+    <div class="disclaimer-holder">
+        <span class="disclaimer">Not all Quorum code works on the web. For example, to use sound or music, please download Quorum.</span>
+    </div>
 </div>
 <ul>
     <li>Source code is compiled to Java bytecode</li>
