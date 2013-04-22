@@ -56,17 +56,17 @@
 							createNavBarLink("Blog","http://blog.quorumlanguage.com/");
 							createNavBarLink("Bugs","https://quorum.atlassian.net/");
 						?>
-                                            <div class="search-box-small">
-                                                    <form class="search" name="search" action="/search.php" method="post">
-                                                            <div class="input-append">
-                                                                    <input class="search-query" name="search-query" type="text" autocomplete="on" placeholder="How do I create an array?">
-                                                                    <input class="btn search-submit" name="submit" type="submit" value="Search!">
-                                                            </div>
-                                                    </form>
-                                            </div>
 					</ul>
 					
                                         
+                                        <div class="search-box-small">
+                                                <form class="search" name="search" action="/search.php" method="post">
+                                                        <div class="input-append">
+                                                                <input class="search-query" name="search-query" type="text" autocomplete="on" placeholder="How do I create an array?">
+                                                                <input class="btn search-submit" name="submit" type="submit" value="Search!">
+                                                        </div>
+                                                </form>
+                                        </div>
                                         
 					<div class="user-controls">
 						<?php 
