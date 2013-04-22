@@ -17,7 +17,7 @@
     has the following features and more:
 </p>
 <div class="runCode">
-    <h2>Try Quorum! <span class="subtitle">Enter some Quorum code below and press "Run" to compile it</span></h2>
+    <h2>Try Quorum! <span class="subtitle">Enter some Quorum code below and press "Run" to execute it</span></h2>
     <div class="controller">
 	<div class="btn-group">
         	<a id = "dropdown-button"class="btn dropdown-toggle" data-toggle="dropdown" href="#">Hello, World! <span class="caret"></span></a>
@@ -40,7 +40,7 @@
 	<pre class="outputArea"></pre>
     </div>
     <div class="disclaimer-holder">
-        <span class="disclaimer">Not all Quorum code works on the web. For example, to use sound or music, please download Quorum.</span>
+        <span class="disclaimer">Not all Quorum code works on the web. For example, please download Quorum to use sound or music.</span>
     </div>
 </div>
 <ul>
