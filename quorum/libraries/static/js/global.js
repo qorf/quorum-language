@@ -15,6 +15,10 @@ $(function() {
 
     fadeInLibraryTable();
 
+    changeCodeExample();
+
+	tab();
+
 	extendLeftSidebar(); // keep this at the end
 });
 
@@ -375,6 +379,42 @@ var fadeInLibraryTable = function() {
 			$(tableId).show();
 		});
 	}
+}
+
+var changeCodeExample = function(){
+	$("li.code-example").on("click", function(e) {
+			$(".inputArea").text("");
+			var selection = $(this).text();
+			var carret = '\u25BE';
+			var codeExample = "";
+			$("#dropdown-button").text(selection + carret);	
+			if (selection == " Hello, World! "){
+				codeExample = "output \"Hello, World!\"";
+			}
+			else if(selection == " Conditionals "){
+				codeExample = "integer a = 1\ninteger c = 0\nif a = 1\n\tc = 1\nelseif a > 1\n\tc = 2\nelse\n\tc = 0\nend\noutput c";
+			}
+			else if (selection == " Loops "){
+				codeExample = "repeat 3 times\n\toutput \"Quorum\"\nend"
+			}
+			else if (selection == " Actions "){
+				codeExample = "action main\n\tinteger addedNumbers = add(5,10)\n\toutput addedNumbers\nend\naction add(integer a, integer b) returns integer\n\treturn a + b\nend";
+			}
+			$(".inputArea").val(codeExample);
+	})
+}
+var tab = function(){
+	$("textarea").keydown(function(e) {
+    	if(e.keyCode === 9) { 
+        	var start = this.selectionStart;
+	        var end = this.selectionEnd;
+    	    var $this = $(this);
+       		var value = $this.val();
+    	    $this.val(value.substring(0, start) + "\t" + value.substring(end));
+    	    this.selectionStart = this.selectionEnd = start + 1;
+    	    e.preventDefault();
+    	}
+	});
 }
 
 

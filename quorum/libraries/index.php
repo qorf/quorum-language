@@ -20,8 +20,9 @@
     <h2>Try Quorum! <span class="subtitle">Enter some Quorum code below and press "Run" to compile it</span></h2>
     <div class="controller">
 	<div class="btn-group">
-        	<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">Hello, World! <span class="caret"></span></a>
+        	<a id = "dropdown-button"class="btn dropdown-toggle" data-toggle="dropdown" href="#">Hello, World! <span class="caret"></span></a>
 		<ul class="dropdown-menu">
+                    <li class="code-example" data-toggle="dropdown" href="#"> Hello, World! </li>
                 	<li class="code-example" data-toggle="dropdown" href="#"> Conditionals </li>
                 	<li class="code-example" data-toggle="dropdown" href="#"> Loops </li>
                 	<li class="code-example" data-toggle="dropdown" href="#"> Actions </li>
