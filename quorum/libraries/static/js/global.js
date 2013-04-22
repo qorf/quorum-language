@@ -400,6 +400,18 @@ var changeCodeExample = function(){
 			else if (selection == " Actions "){
 				codeExample = "action main\n\tinteger addedNumbers = add(5,10)\n\toutput addedNumbers\nend\naction add(integer a, integer b) returns integer\n\treturn a + b\nend";
 			}
+                        else if (selection == " Classes "){
+				codeExample = 
+                                    "class Main\n" +
+                                    "   action Main\n" +
+                                    "       i = 1\n" +
+                                    "       repeat 10 times\n" +
+                                    "           output i\n" +
+                                    "           i = i + 1\n" +
+                                    "       end\n" +
+                                    "   end\n" +
+                                    "end";
+			}
 			$(".inputArea").val(codeExample);
 	})
 }
