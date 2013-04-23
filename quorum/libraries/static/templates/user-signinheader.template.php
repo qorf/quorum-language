@@ -1,7 +1,7 @@
 <div class="user-controls-loggedout">
 	<span class="signin-signup-message">
-		<button class="btn btn-primary" type="button" data-toggle="modal" data-target="#modal-login">Sign In</button>
+		[<a data-toggle="modal" data-target="#modal-login">Sign In</a>]
 		<em>or</em>
-  		<button class="btn" type="button" data-toggle="modal" data-target="#modal-registration">Sign Up</button>
+  		[<a data-toggle="modal" data-target="#modal-registration">Sign Up</a>]
 	</span>
 </div>

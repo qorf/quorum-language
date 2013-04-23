@@ -71,6 +71,8 @@
 		$user->getUsernameFromGoogleId();
 
 		print (login($user) == true) ? "1" : "0";
+		
+		$_SESSION['openIdData'] = null;
 	}
 
 	function router($action) {

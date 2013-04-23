@@ -35,6 +35,7 @@
 				return true;
 			}
 			catch (Exception $ex) {
+				var_dump($preparedStatement->errorInfo());
 				return false;
 			}
 

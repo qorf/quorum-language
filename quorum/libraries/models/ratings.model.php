@@ -43,7 +43,6 @@
 						  . " VALUES (?, ?, ?, ?, ?)";
 
 				$valuesToPrepare = array($this->static_key, $this->user, $this->rating_name, $this->rating_example, $this->rating_description);
-				print "<br /><br />"; var_dump($this);	print "<br /><br />"; var_dump($valuesToPrepare);
 				$preparedStatement = $this->connection->prepare($sqlQuery);
 				$preparedStatement->execute($valuesToPrepare);
 
@@ -61,15 +60,15 @@
 
 				switch ($ratingToUpdate) {
 					case "name": 
-						$sqlQuery = "UPDATE " . $this->table_name . " SET rating_name=? WHERE static_key = ? AND user = ?";
+						$sqlQuery = "UPDATE " . $this->table_name . " SET rating_name=? WHERE static_key=? AND user=?";
 						$valuesToPrepare = array($this->rating_name, $this->static_key, $this->user);
 						break;
 					case "example":
-						$sqlQuery = "UPDATE " . $this->table_name . " SET rating_example=? WHERE static_key = ? AND user = ?";
+						$sqlQuery = "UPDATE " . $this->table_name . " SET rating_example=? WHERE static_key=? AND user=?";
 						$valuesToPrepare = array($this->rating_example, $this->static_key, $this->user);
 						break;
 					case "description":
-						$sqlQuery = "UPDATE " . $this->table_name . " SET rating_description=? WHERE static_key = ? AND user = ?";
+						$sqlQuery = "UPDATE " . $this->table_name . " SET rating_description=? WHERE static_key=? AND user=?";
 						$valuesToPrepare = array($this->rating_description, $this->static_key, $this->user);
 						break;
 				}
@@ -216,6 +215,73 @@
 				return $e;
 			}
 		}
+	}
+
+	class RatingsForLibrary extends QuorumDataModel {
+		public $user = "";
+		public $class_static_key = "";
+		public $class = null;
+		public $actions = null;
+		public $parameters = null;
+
+		function __construct($user, $class_static_key) {
+			parent::__construct();
+			$this->user = $user;
+			$this->class_static_key = $class_static_key;
+
+			$this->class = array();
+			$this->actions = array();
+			$this->parameters = array();
+		}
+
+		public function getRatings() {
+			$this->getClassRatings();
+			$this->getActionRatings();
+			$this->getParameterRatings();
+
+			$data = array(
+					"class" => $this->class,
+					"actions" => $this->actions,
+					"parameters" => $this->parameters
+				);
+
+			return $data;
+		}
+
+		public function getClassRatings() {
+			$sqlQuery = "SELECT * FROM class_ratings WHERE static_key=? AND user=?";
+			$valuesToPrepare = array($this->class_static_key, $this->user);
+
+			$preparedStatement = $this->connection->prepare($sqlQuery);
+			$preparedStatement->execute($valuesToPrepare);
+
+			if ($preparedStatement->rowCount() == 1) {
+				$this->class = $preparedStatement->fetchAll();
+
+				return $result[0];
+			}			
+		}
+
+		public function getActionRatings() {
+			$sqlQuery = "SELECT * FROM action_ratings WHERE class_static_key=? AND user=?";
+			$valuesToPrepare = array($this->class_static_key, $this->user);
+
+			$preparedStatement = $this->connection->prepare($sqlQuery);
+			$preparedStatement->execute($valuesToPrepare);
+
+			$this->actions = $preparedStatement->fetchAll();			
+		}
+
+		public function getParameterRatings() {
+			$sqlQuery = "SELECT * FROM parameter_ratings WHERE class_static_key=? AND user=?";
+			$valuesToPrepare = array($this->class_static_key, $this->user);
+
+			$preparedStatement = $this->connection->prepare($sqlQuery);
+			$preparedStatement->execute($valuesToPrepare);
+
+			$this->parameters = $preparedStatement->fetchAll();
+		}
+
 	}
 
 ?>

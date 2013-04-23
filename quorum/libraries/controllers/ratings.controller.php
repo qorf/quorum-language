@@ -80,9 +80,16 @@
 		}
 	}
 
+	function getRatingsForLibrary() {
+		$ratings = new RatingsForLibrary($_COOKIE['username'], $_POST['classstatickey']);
+
+		print json_encode($ratings->getRatings());
+	}
+
 	function router($action) {
 		switch ($action) {
 			case "submitRating": submitRating(); break;
+			case "getRatingsForLibrary": getRatingsForLibrary(); break;
 		}
 	}
 
