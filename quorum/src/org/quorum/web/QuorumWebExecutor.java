@@ -221,6 +221,10 @@ public class QuorumWebExecutor {
 
                 boolean built = false;
                 boolean failure = false;
+                
+                
+                
+                code = code.replaceAll(Matcher.quoteReplacement("\\\""), Matcher.quoteReplacement("\""));
                 if (code != null) {
                     try {
                         CodeGenerator g = virtualMachine.getCodeGenerator();
@@ -313,13 +317,13 @@ public class QuorumWebExecutor {
                 execute(thread, timeout);
             } catch (TimeoutException ex) {
                 System.gc();
-                OutputStream os = t.getResponseBody();
-                String response = "{\n\t "
-                        + "\"status\": \"" + "fail" + "\",\n\t"
-                        + "\"data\": \"" + "Request timed out" + "\"\n}";
-                t.sendResponseHeaders(200, response.length());
-                os.write(response.getBytes());
-                os.close();
+//                OutputStream os = t.getResponseBody();
+//                String response = "{\n\t "
+//                        + "\"status\": \"" + "fail" + "\",\n\t"
+//                        + "\"data\": \"" + "Request timed out" + "\"\n}";
+//                t.sendResponseHeaders(200, response.length());
+//                os.write(response.getBytes());
+//                os.close();
             }
             System.gc();
         }
