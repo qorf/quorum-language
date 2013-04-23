@@ -9,12 +9,14 @@ a { color: @blue2; .transition(color, .1s);
 	@navbar-height: 60px;
 
 	.navbar-container { width: @fullwidth; height: @navbar-height; margin: 0 auto; position: relative;
-		.brand { font-family: "Helvetica Neue", Helvetica; font-size: 45px; line-height: 45px; 
+		.brand { font-family: "Helvetica Neue", Helvetica; font-size: 45px; line-height: 45px; color: darken(@white1, 14%);
 			&:hover { .transition(all, .2s); }
 		}
-		.nav { margin: (@navbar-height - 40px) 0 0 auto; }
+		.nav { margin: (@navbar-height - 40px) 0 0 auto; 
+			li a { color: darken(@white1, 14%); }
+		}
 
-		.user-controls { position: absolute; top: 30px; right: 0; height: 41px;
+		.user-controls { position: absolute; top: 0px; right: 0; height: 41px;
 			.signin-signup-message { display: block; margin-top: 13px; color: @white1;
 				em { display: inline-block; font-style: normal; color: @white1; }
 				a { cursor: pointer; text-decoration: underline;
@@ -23,17 +25,15 @@ a { color: @blue2; .transition(color, .1s);
 			}
 
 			.user-controls-loggedin { 
-				h3 { color: #CCC; font-weight: 300; font-size: 14px; display: inline-block; }
+				h3 { color: #CCC; font-weight: 300; font-size: 14px; line-height: 15px; display: inline-block; width: 50px; position: relative; top: 12px; }
 				h4 { display: inline-block; 
-					a { font-weight: 300; font-size: 13px; margin: 13px 0 0 25px; 
-						&:hover { color: lighten(@blue2,20%); }
-					}
+					a { font-weight: 300; font-size: 13px; margin: 7px 0 0 45px; }
 				}
 			}
 		}
 	}
 
-	.search-box-small { position: absolute; top: 5px; right: 0px; width: 327px; }
+	.search-box-small { position: absolute; top: 18px; right: 197px; width: 327px; }
 }
 
 .hero-unit { padding: 5px; border-bottom: 1px solid darken(@blue, 15%); .gradient-vertical(darken(@blue, 5%), @blue); .rounded-corners(0); .box-shadow(0 3px 10px, @gray3);
