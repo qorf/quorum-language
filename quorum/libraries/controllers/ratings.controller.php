@@ -1,5 +1,6 @@
 <?php
 	require("../models/ratings.model.php");
+	require("../models/user.model.php");
 
 	function checkIfValidRating($rating) {
 		try {
@@ -27,6 +28,11 @@
 			return "error";
 		}
 
+		$user = new User(null, $_COOKIE['username'], $_COOKIE['password'], null);
+		if ($user->checkLogin() == false) {
+			return false;
+		}
+
 		return true;
 	}
 
@@ -36,7 +42,7 @@
 		$ratingExample = ($componentType == "example") ? $_POST['rating'] : null;
 		$ratingDescription = ($componentType == "description") ? $_POST['rating'] : null;
 
-		$rating = new ClassRating($_POST['classstatickey'], $_POST['username'], $ratingName, $ratingExample, $ratingDescription);
+		$rating = new ClassRating($_POST['classstatickey'], $_COOKIE['username'], $ratingName, $ratingExample, $ratingDescription);
 		
 		if (checkIfValidRating($rating) == false) { print "0"; }
 
@@ -49,7 +55,7 @@
 		$ratingExample = ($componentType == "example") ? $_POST['rating'] : null;
 		$ratingDescription = ($componentType == "description") ? $_POST['rating'] : null;
 
-		$rating = new ActionRating($_POST['classstatickey'], $_POST['actionkey'], $_POST['username'], $ratingName, $ratingExample, $ratingDescription);
+		$rating = new ActionRating($_POST['classstatickey'], $_POST['actionkey'], $_COOKIE['username'], $ratingName, $ratingExample, $ratingDescription);
 		
 		if (checkIfValidRating($rating) == false) { print "0"; }
 
@@ -61,7 +67,7 @@
 		$ratingName = ($componentType == "name") ? $_POST['rating'] : null;
 		$ratingDescription = ($componentType == "description") ? $_POST['rating'] : null;
 
-		$rating = new ParameterRating($_POST['classstatickey'], $_POST['actionkey'], $_POST['parameterkey'], $_POST['username'], $ratingName, $ratingDescription);
+		$rating = new ParameterRating($_POST['classstatickey'], $_POST['actionkey'], $_POST['parameterkey'], $_COOKIE['username'], $ratingName, $ratingDescription);
 		
 		if (checkIfValidRating($rating) == false) { print "0"; }
 

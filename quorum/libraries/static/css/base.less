@@ -18,10 +18,8 @@ a { color: @blue2; .transition(color, .1s);
 
 		.user-controls { position: absolute; top: 0px; right: 0; height: 41px;
 			.signin-signup-message { display: block; margin-top: 13px; color: @white1;
-				em { display: inline-block; font-style: normal; color: @white1; }
-				a { cursor: pointer; text-decoration: underline;
-					&:hover { color: @white1; }
-				}
+				em { display: inline-block; font-style: normal; color: @white1; position: relative; top: 4px; }
+				a { cursor: pointer; }
 			}
 
 			.user-controls-loggedin { 

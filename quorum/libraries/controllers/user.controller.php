@@ -48,7 +48,7 @@
 	}
 
 	function signOut() {
-		header("Location: " . $_GET['url']);
+		header("Location: http://quorumlanguage.com");
 
 		ob_start();
 		$timeUntilExpire = time() - 3600; // expire an hour in the past
