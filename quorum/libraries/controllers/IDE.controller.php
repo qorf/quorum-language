@@ -5,7 +5,7 @@
 	$returned = $codeSample->fetchOutput();
 	if ($returned == 1)
 	{
-		var_dump($codeSample->getOutput());
+		print($codeSample->getOutput());
 		$result = 0;
 		do {
 			$result = $codeSample->updateCount();
@@ -22,12 +22,19 @@
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		$result = curl_exec($ch);
 		curl_close($ch);
-		$codeSample->setOutput($result);
-		var_dump($codeSample->getOutput());
-		$result = 0;
-		do {
-			$result = $codeSample->insertCodeSample();
-		}while ($result < 1);
+		$insert = false;
+		if ((strrpos($result,"success") < strrpos($result,"|"))||(strrpos($result, "fail") < strrpos($result,"|")))
+		{
+			$codeSample->setOutput($result);
+			print($codeSample->getOutput());
+			$result = 0;
+			do {
+				$result = $codeSample->insertCodeSample();
+			}while ($result < 1);	
+		}
+		else {
+			print("Could not receive a response from the Quorum server. ");		
+		}
 		
 	}
 	

@@ -342,7 +342,10 @@ var submitCodeSample = function(){
 			url: "/controllers/IDE.controller.php",
 			data: codeData,
 			success: function(result){
-				var output = result.substring(result.indexOf("|")+1, result.length-2);
+				var start = 0;
+				result.indexOf("|") > 0  ? start = result.indexOf("|")+1 : start = 1;
+				var output = result.substring(start, result.length-1);
+				console.log(output);
 				$(".outputArea").text(output);
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
