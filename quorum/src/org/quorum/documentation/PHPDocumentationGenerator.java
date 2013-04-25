@@ -641,34 +641,21 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         return "<li>" + string + "</li>";
     }
     
-    private String controllableComponent(String string, String componentType) {
-        String testEmpty = string.replace("<em>Description</em>:","").replace("<p></p>","");
-        
-        if (testEmpty.length() < 2) {
-            return string;
-        }
-        
+    private String controllableComponent(String string, String componentType) {        
         return "<span class=\"controllable\" data-componentType=\"" + componentType + "\">" + string + "</span>";  
     }
     
     private String controllableComponent(String string, String componentType, String staticKey) {
         String dataName = "";
-        String testEmpty = string;
         
         if (componentType.equals("class-name") || componentType.equals("class-example") || componentType.equals("class-description")) {
             dataName = "data-classkey";
-            testEmpty = string.replace("<em>Description</em>:","");
         }
         if (componentType.equals("action-name") || componentType.equals("action-example") || componentType.equals("action-description")) {
             dataName = "data-actionkey"; 
-            testEmpty = string.replace("<p></p>","");
         }
         else if (componentType.equals("parameter-name") || componentType == "parameter-description") {
             dataName = "data-parameterkey";
-        }
-        
-        if (testEmpty.length() < 2) {
-            return string;
         }
         
         return "<span class=\"controllable\" data-componentType=\"" + componentType + "\" " + dataName + "=\"" + staticKey + "\">" + string + "</span>";  
