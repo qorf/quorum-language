@@ -34,8 +34,6 @@ var createRatingControls = function() {
 		templateData['choice'] = componentType.replace(/-/g, ' ');
 
 		$(this).append(template(templateData));
-
-		console.log(componentType);
 	});
 
 	$('.star-ratings a').tooltip({'selector': '', 'placement': 'bottom'});
@@ -62,12 +60,10 @@ var fiveStarRatings = function(starRatingsList) {
 			case "class-name": case "class-description": case "class-example": break;
 			case "action-name": case "action-description": case "action-example": 
 				postData['actionkey'] = controllable.data("actionkey");
-				console.log("action");
 				break;
 			case "parameter-name": case "parameter-description":
 				postData['actionkey'] = controllable.closest(".action").find(".controllable[data-componenttype=action-name]").data("actionkey");
 				postData['parameterkey'] = controllable.data("parameterkey");
-				console.log("parameter");
 				break;
 		}
 		
@@ -76,15 +72,15 @@ var fiveStarRatings = function(starRatingsList) {
 			url: "/controllers/ratings.controller.php?action=submitRating",
 			dataType: "json",
 			data: postData,
+			/* 
 			success: function(result) {
-				// show a success message
-				console.info(result);
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
 				// show an error message
 				console.error(xhr.status);
 				console.error(thrownError);
 			}
+			*/
 		});
 	}
 
@@ -120,7 +116,6 @@ var fiveStarRatings = function(starRatingsList) {
 
 var getRatingsForLibrary = function() {
 	var triggerRating = function (element, rating) {
-		console.log(element,rating);
 		if( Math.floor(rating) == rating && $.isNumeric(rating)) {
 			element.find(".star-ratings .star-" + rating).addClass("existing").trigger("click");
 		}
@@ -200,15 +195,13 @@ var getRatingsForLibrary = function() {
 		dataType: "json",
 		data: postData,
 		success: function(result) {
-			// show a success message
 			showExistingRatings(result);
-			//console.info(result);
-		},
+		}/*,
 		error: function (xhr, ajaxOptions, thrownError) {
 			// show an error message
 			console.error(xhr.status);
 			console.error(thrownError);
-		}
+		}*/
 	});
 
 }

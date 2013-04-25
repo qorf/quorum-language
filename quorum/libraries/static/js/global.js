@@ -87,11 +87,9 @@ var autoComplete = function() {
 
 var openModalFromURL = function() {
 	if (getUrlVars()["loginWith"] == "google") {
-		console.log("login");
 		googleUserLoginAuthenticate();
 	}
 	if (getUrlVars()["registerWith"] == "google") {
-		console.log("register");
 		$('#modal-registration').modal();
 	}
 }
@@ -148,7 +146,6 @@ var registerUser = function() {
 				$("#integrity-error").show();
 				buttons.show();
 				spinner.hide();
-				console.log(result);
 			}
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
@@ -262,7 +259,6 @@ var userSignIn = function() {
 			url: "/controllers/user.controller.php?action=login",
 			data: $("#login-form").serialize(),
 			success: function(result) {
-				console.log(result);
 				if ($.trim(result) == "1") {
 					refresh();
 				}
