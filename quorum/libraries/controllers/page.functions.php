@@ -12,21 +12,28 @@
 	}
 
 	function createPageTitle() {
-		$page = substr(getPage(),1,-4);
-		$pageTitle = "";
+		$classPageTitle = $GLOBALS["classPageTitle"];
+                
+                if (isset($classPageTitle)) {
+                    $pageTitle = $classPageTitle . " | ";
+                }
+                else {
+			$page = substr(getPage(),1,-4);
+			$pageTitle = "";
 
-		switch($page) {
-			case "": $pageTitle = "Introduction to the Quorum Programming Language"; break;
-			case "index": $pageTitle = "Introduction to the Quorum Programming Language"; break;
-			case "syntax": $pageTitle = "The Syntax of the Quorum Programming Language"; break;
-			case "libraries": $pageTitle = "The Quorum Standard Library"; break;
-			case "download": $pageTitle = "Download the Quorum Programming Language"; break;
-            case "documents/console": $pageTitle = "Console Arguments in Quorum"; break;
-		}
+			switch($page) {
+				case "": $pageTitle = "Introduction to the Quorum Programming Language"; break;
+				case "index": $pageTitle = "Introduction to the Quorum Programming Language"; break;
+				case "syntax": $pageTitle = "The Syntax of the Quorum Programming Language"; break;
+				case "libraries": $pageTitle = "The Quorum Standard Library"; break;
+				case "download": $pageTitle = "Download the Quorum Programming Language"; break;
+	                        case "documents/console": $pageTitle = "Console Arguments in Quorum"; break;
+			}
 
-		$pageTitle = $pageTitle == "" ? $pageTitle : $pageTitle . " | ";
-
-		print "<title>" . $pageTitle . "Quorum Programming Language</title>\n";
+			$pageTitle = $pageTitle == "" ? $pageTitle : $pageTitle . " | ";
+                }
+            
+            print "<title>" . $pageTitle . "Quorum Programming Language</title>\n";
 
 	}
 

@@ -434,16 +434,17 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         currentClass = clazz;
         computeRelativeRoot(clazz);
         addToIndex(clazz);
-          
+
+        //get the class's name in wiki format
+        String className = clazz.getName();
         String key = clazz.getStaticKey();
-        String result = "<?php include('" + root + "static/templates/pageheader.template.php'); ?>";
+        
+        String result = "<?php $classPageTitle = \"" + className + "\"; ?>";
+        result += "<?php include('" + root + "static/templates/pageheader.template.php'); ?>";
         result += "<?php include('" + root + "static/templates/classheader.template.php'); ?>";
         
         result += headingSurround(key, 1, "page_title") + "\n";
         result += "<input type=\"hidden\" id=\"classkey\" value=\"" + clazz.getStaticKey() + "\" />";
-
-        //get the class's name in wiki format
-        String className = clazz.getName();
 
         int numTemplateVariables = 0;
         String templateString = "";
@@ -641,20 +642,33 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
     }
     
     private String controllableComponent(String string, String componentType) {
+        String testEmpty = string.replace("<em>Description</em>:","").replace("<p></p>","");
+        
+        if (testEmpty.length() < 2) {
+            return string;
+        }
+        
         return "<span class=\"controllable\" data-componentType=\"" + componentType + "\">" + string + "</span>";  
     }
     
     private String controllableComponent(String string, String componentType, String staticKey) {
         String dataName = "";
+        String testEmpty = string;
         
         if (componentType.equals("class-name") || componentType.equals("class-example") || componentType.equals("class-description")) {
-            dataName = "data-classkey"; 
+            dataName = "data-classkey";
+            testEmpty = string.replace("<em>Description</em>:","");
         }
         if (componentType.equals("action-name") || componentType.equals("action-example") || componentType.equals("action-description")) {
             dataName = "data-actionkey"; 
+            testEmpty = string.replace("<p></p>","");
         }
         else if (componentType.equals("parameter-name") || componentType == "parameter-description") {
             dataName = "data-parameterkey";
+        }
+        
+        if (testEmpty.length() < 2) {
+            return string;
         }
         
         return "<span class=\"controllable\" data-componentType=\"" + componentType + "\" " + dataName + "=\"" + staticKey + "\">" + string + "</span>";  
@@ -1016,12 +1030,9 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                     }
                     String parameterDocumentation = documentation.getParameter(parameters.get(i).getName());
                     currentParam = "<h5>" + controllableComponent(bold(currentParam) + " " + italics(parameters.get(i).getName()) + ":", "parameter-name", descriptor.getStaticKey()) + "</h5>";
-                    if ("".equals(parameterDocumentation.trim())) {
-                        currentParam += controllableComponent(parameterDocumentation, "parameter-description", descriptor.getStaticKey());
-                    }
-                    else {
-                        currentParam += parameterDocumentation;
-                    }
+                    
+                    currentParam += controllableComponent(parameterDocumentation, "parameter-description", descriptor.getStaticKey());
+                    
                     paramList += "<li>" + currentParam + "</li>\n\n";
                 }
             }
