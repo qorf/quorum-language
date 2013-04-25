@@ -796,9 +796,13 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
             destination = new File(documentation.getAbsolutePath() + "/index.php");
             gen.copyFile(intro, destination);
             
-            File codeRunner = new File(standardLibrary.getParentFile().getAbsolutePath() + "/ide.html");
-            destination = new File(documentation.getAbsolutePath() + "/ide.html");
+            File codeRunner = new File(standardLibrary.getParentFile().getAbsolutePath() + "/ide.php");
+            destination = new File(documentation.getAbsolutePath() + "/ide.php");
             gen.copyFile(codeRunner, destination);
+            
+            File embeddedCodeRunner = new File(standardLibrary.getParentFile().getAbsolutePath() + "/embedded-ide.php");
+            destination = new File(documentation.getAbsolutePath() + "/embedded-ide.php");
+            gen.copyFile(embeddedCodeRunner, destination);
             
             File syntax = new File(standardLibrary.getParentFile().getAbsolutePath() + "/syntax.php");
             destination = new File(documentation.getAbsolutePath() + "/syntax.php");
