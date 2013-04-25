@@ -29,7 +29,7 @@ PRIMARY KEY (class_static_key,static_key,user)
 
 CREATE TABLE parameter_ratings
 (
-class_static_key VARBINARY(500) NOT NULL,
+class_static_key VARCHAR(500) NOT NULL,
 action_static_key VARCHAR(500) NOT NULL,
 static_key VARCHAR(500) NOT NULL,
 user VARCHAR(255) NOT NULL,
