@@ -1,5 +1,7 @@
-<?php 
-    require_once($_SERVER['DOCUMENT_ROOT'] . "/controllers/page.functions.php"); 
+<?php
+
+    require_once($_SERVER['DOCUMENT_ROOT'] . "/controllers/page.functions.php");
+    require_once("config.php"); 
 ?>
 
 <!DOCTYPE>

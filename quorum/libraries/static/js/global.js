@@ -19,6 +19,8 @@ $(function() {
 
 	tab();
 
+	embed();
+
 	extendLeftSidebar(); // keep this at the end
 });
 
@@ -433,7 +435,11 @@ var tab = function(){
 }
 
 
-
+var embed = function() {
+	$(".ide-embed-info label, .ide-embed-info input").on("click", function() {
+		$(".ide-embed-info input").select();
+	});
+}
 
 
 
