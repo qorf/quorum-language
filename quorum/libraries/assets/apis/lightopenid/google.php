@@ -14,14 +14,17 @@ else {
     $extension = null;
 }
 
+if (isset($_SESSION['referer'])) {
+    $_SESSION['referer'] = str_replace("registerWith=google", "", str_replace("?loginWith=google", "", $_POST['referer']));
+}
 if (!isset($_SESSION['referer']) || (($_SESSION['extension'] != $extension) && ($extension != null))) {
-    $_SESSION['referer'] = $_POST['referer'];
+    $_SESSION['referer'] = str_replace("registerWith=google", "", str_replace("?loginWith=google", "", $_POST['referer']));
     $_SESSION['extension'] = $extension;
     $_SESSION['redirectTo'] = $_POST['referer'] . $extension;
 }
 
 try {
-    $openid = new LightOpenID("localhost"); // "localhost" = our domain
+    $openid = new LightOpenID("test.quorumlanguage.com"); // "localhost" = our domain
 
     // The user has clicked "Signin With Google" or "Signup with Google".
     if(!$openid->mode) { 

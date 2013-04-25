@@ -35,6 +35,8 @@
 				return true;
 			}
 			catch (Exception $ex) {
+				var_dump($valuesToPrepare);
+				$preparedStatement = $this->connection->prepare($sqlQuery);
 				var_dump($preparedStatement->errorInfo());
 				return false;
 			}

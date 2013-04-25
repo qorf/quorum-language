@@ -1,4 +1,4 @@
-;<?php
+<?php
 	require("../models/codeSample.model.php");
 	$code = $_POST['code'];
 	$codeSample = new CodeSample($code);
@@ -9,15 +9,14 @@
 		$result = 0;
 		do {
 			$result = $codeSample->updateCount();
-		}while ($result < 1);
+		} while ($result < 1);
 	}
 	else
 	{
 		$url = "http://quorum.cs.siue.edu:8000"; // destination, like localhost:8000 or whatever
-		$data = $code; // make this your data object
 		$ch = @curl_init();
 		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $code);
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		$result = curl_exec($ch);
@@ -33,9 +32,9 @@
 			}while ($result < 1);	
 		}
 		else {
+			print $result;
 			print("Could not receive a response from the Quorum server. ");		
 		}
-		
 	}
 	
 ?>

@@ -33,7 +33,10 @@ function getUrlVars() {
 }
 
 function refresh() {
-	location.reload();
+	var url = document.URL;
+	url = url.replace('?registerWith=google','');
+	url = url.replace('?loginWith=google','');
+	window.location.replace(url);
 }
 
 var bodyMessage = function(text, state) {
@@ -147,11 +150,13 @@ var registerUser = function() {
 				buttons.show();
 				spinner.hide();
 			}
+			console.log(result);
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
 			errorMessage("<strong>Sorry!</strong> There was a server error and your registration could not be completed.");
 			$('#modal-registration').modal('hide');
 			spinner.hide();
+			console.error(xhr, ajaxOptions, thrownError);
 		}
 	});
 }
@@ -269,11 +274,13 @@ var userSignIn = function() {
 					buttons.show();
 					spinner.hide();
 				}
+				console.log(result);
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
 				errorMessage("<strong>Sorry!</strong> There was a server error and your login could not be completed.");
 				$('#modal-login').modal('hide');
 				spinner.hide();
+				console.error(xhr, ajaxOptions, thrownError);
 			}
 		});
 	}
@@ -308,6 +315,7 @@ var googleUserLoginAuthenticate = function() {
 		error: function(result) {
 			errorMessage("<strong>Sorry!</strong> There was a server error and your login could not be completed.");
 			$('#modal-login').modal('hide');
+			console.error(xhr, ajaxOptions, thrownError);
 		},
 		complete: function() { }
 	});
@@ -335,6 +343,7 @@ var submitCodeSample = function(){
 		$(".outputArea").text("");
 		
 		var codeData = {code: $(".inputArea").val()};
+		console.log(codeData);
 		$.ajax({
 			type: "POST",
 			url: "/controllers/IDE.controller.php",

@@ -60,6 +60,8 @@
 	function cancelGoogle() {
 		session_start();
 		$_SESSION['openIdData'] = null;
+		$_SESSION['referer'] = null;
+		$_SESSION['extension'] = null;
 		header('Location: ' . $_GET['returnurl']);
 	}
 
