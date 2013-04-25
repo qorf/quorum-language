@@ -37,6 +37,7 @@ ul{ font-size:13px; display: block; list-style-type: none; margin: 0 0 0 25px; p
 
 	&[data-componenttype=class-example],
 	&[data-componenttype=class-description],
+	&[data-componenttype=action-description],
 	&[data-componenttype=action-example],
 	&[data-componenttype=parameter-name],
 	&[data-componenttype=parameter-description] {
@@ -51,6 +52,10 @@ ul{ font-size:13px; display: block; list-style-type: none; margin: 0 0 0 25px; p
 	}
 
 	span.ratings-success { margin: 0 0 0 10px; position: relative; top: -5px; font-size: 12px !important; font-weight: 400; }
+
+	&[data-componenttype=action-description] { display: block;
+		p { display: inline; }
+	}
 }
 
 .index-package { width: @fullwidth !important; margin: 0 auto 20px; background: @white1; border: 1px solid #CCC; 

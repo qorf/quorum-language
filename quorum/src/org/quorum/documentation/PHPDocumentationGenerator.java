@@ -1012,7 +1012,12 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                     }
                     String parameterDocumentation = documentation.getParameter(parameters.get(i).getName());
                     currentParam = "<h5>" + controllableComponent(bold(currentParam) + " " + italics(parameters.get(i).getName()) + ":", "parameter-name", descriptor.getStaticKey()) + "</h5>";
-                    currentParam += controllableComponent(parameterDocumentation, "parameter-description", descriptor.getStaticKey());
+                    if ("".equals(parameterDocumentation.trim())) {
+                        currentParam += controllableComponent(parameterDocumentation, "parameter-description", descriptor.getStaticKey());
+                    }
+                    else {
+                        currentParam += parameterDocumentation;
+                    }
                     paramList += "<li>" + currentParam + "</li>\n\n";
                 }
             }
@@ -1023,8 +1028,8 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
 
         
         if(documentation != null) {
-            String[] array = Documentation.breakStringIntoParagraphArray(documentation.getDescription());
-            result += "\n\t" + breakIntoParagraphs(array);
+            String[] methodDescription = Documentation.breakStringIntoParagraphArray(documentation.getDescription());
+            result += "\n\t" + breakDescriptionIntoParagraphs(methodDescription, method);
         }
         result += paramList + "\n";
         
@@ -1043,10 +1048,10 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         return result;
     }
     
-    private String breakIntoParagraphs(String[] array) {
+    private String breakDescriptionIntoParagraphs(String[] array, MethodDescriptor method) {
         String result = "";
         for(int i = 0; i < array.length; i++) {
-            result += paragraph(array[i]);
+            result += (i == array.length - 1) ? controllableComponent(paragraph(array[i]), "action-description", method.getStaticKey()) : paragraph(array[i]);
         }
         return result;
     }

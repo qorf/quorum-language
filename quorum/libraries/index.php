@@ -16,9 +16,9 @@
     the <a href="documents/release.php">Quorum release notes</a>), 
     has the following features and more:
 </p>
-<div class="runCode">
-    <?php include("ide.html"); ?>
-</div>
+ 
+ <?php require("ide.php"); ?>
+
 <ul>
     <li>Source code is compiled to Java bytecode</li>
     <li>Static type checking with some type inference</li>
