@@ -20,7 +20,7 @@
  <?php require("ide.php"); ?>
  <div class="ide-embed-info">
     <label>Embed to your website: </label>
-    <input type="text" value='<iframe src="embedded-ide.php" height="432" width="582" scrolling="no" class="quorum-ide" style="border:0; box-shadow: 2px 2px 2px #999999; -webkit-box-shadow: 2px 2px 2px #999999; -moz-box-shadow: 2px 2px 2px #999999; ">'>
+    <input type="text" value='<iframe src="http://www.quorumlanguage.com/embedded-ide.php" height="432" width="582" scrolling="no" class="quorum-ide" style="border:0; box-shadow: 2px 2px 2px #999999; -webkit-box-shadow: 2px 2px 2px #999999; -moz-box-shadow: 2px 2px 2px #999999; ">'>
  </div>
 
 <ul>
