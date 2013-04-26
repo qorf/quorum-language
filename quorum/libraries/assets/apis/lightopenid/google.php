@@ -14,11 +14,9 @@ else {
     $extension = null;
 }
 
-if (isset($_SESSION['referer'])) {
-    $_SESSION['referer'] = str_replace("#googleRegister", "", str_replace("googleLogin", "", $_POST['referer']));
-}
-if (!isset($_SESSION['referer']) || (($_SESSION['extension'] != $extension) && ($extension != null))) {
-    $_SESSION['referer'] = str_replace("#googleRegister", "", str_replace("googleLogin", "", $_POST['referer']));
+$_SESSION['referer'] = str_replace("#googleRegister", "", str_replace("googleLogin", "", $_POST['referer']));
+
+if (($_SESSION['extension'] != $extension) && ($extension != null)) {
     $_SESSION['extension'] = $extension;
     $_SESSION['redirectTo'] = $_POST['referer'] . $extension;
 }
@@ -43,7 +41,7 @@ try {
         $_SESSION['openIdData'] = null;
         $_SESSION['referer'] . $_SESSION['redirectTo'] . 'cancel';
         header('Location: ' . $_SESSION['redirectTo']);
-
+        unset($_SESSION["referer"]);
     } 
 
     // The user has accepted authorization.
@@ -61,7 +59,7 @@ try {
 
         //print $_SESSION['referer'] . $_SESSION['redirectTo'] . 'accept';
         header('Location: ' . $_SESSION['redirectTo']);
-
+        unset($_SESSION["referer"]);
     }
 } 
 

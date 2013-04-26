@@ -109,7 +109,7 @@ var validateEmail = function(email) {
 }
 
 var validateUsername = function(username) {
-	var re = /[-!$%^&*()_+|~=`{}\[\]:";'<>?,.\/]/;
+	var re = /[-!$%^&*()_+|~=`{}\[\]:";'<>?,\/]/;
 
 	if (re.test(username) || (username.indexOf(' ') >= 0) || (username.length <= 0)) {
 		return false;
@@ -140,9 +140,10 @@ var registerUser = function() {
 		success: function(result) {
 			if ($.trim(result) == "1") {
 				successMessage("<strong>You have successfully registered.</strong> Welcome to the Quorum website!");
-				showUserHeaderControls();
+				//showUserHeaderControls();
 				$('#modal-registration').modal('hide');
 				spinner.hide();
+				refresh();
 			}
 			else {
 				$("#integrity-error").remove();
@@ -162,15 +163,15 @@ var registerUser = function() {
 	});
 }
 
-var showUserHeaderControls = function() {
-	$.ajax({
-		url: "/static/templates/user-headercontrols.template.php",
-		context: document.body
-	}).done(function(data) {
-		$(".user-controls-loggedout").remove();
-		$(".user-controls").html(data);
-	});
-}
+// var showUserHeaderControls = function() {
+// 	$.ajax({
+// 		url: "/static/templates/user-headercontrols.template.php",
+// 		context: document.body
+// 	}).done(function(data) {
+// 		$(".user-controls-loggedout").remove();
+// 		$(".user-controls").html(data);
+// 	});
+// }
 
 
 var loginDisplayValidateAndSubmit = function() {
@@ -288,6 +289,28 @@ var userSignIn = function() {
 
 	$("#modal-login .btn-primary").on("click", function() {
 		checkCredentials($("#login-username"), $("#login-password"));
+	});
+
+	$("#login-username").on("blur", function() {
+		var usernameError = $("#modal-login .username .text-error");
+
+		if ($(this).val() == "" || validateUsername($(this).val())) {
+			usernameError.hide();
+		}
+		else {
+			usernameError.show();
+		}
+	});
+
+	$("#login-password").on("blur", function() {
+		var passwordError = $("#modal-login .password .text-error");
+
+		if ($(this).val() == "" || validatePassword($(this).val())) {
+			passwordError.hide();
+		}
+		else {
+			passwordError.show();
+		}
 	});
 }
 
