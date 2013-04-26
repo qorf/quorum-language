@@ -41,7 +41,7 @@
     <form class="form-horizontal" id="registration-form">
       <?php 
         if ($state == "googleValid") {
-          $validEmailAttributes = ' value="' . $data['email'] . '" disabled="disabled"';
+          $validEmailAttributes = ' value="' . $data['email'] . '" readonly';
           print '<input type="hidden" name="registration-firstname" value="' . $data['firstName'] . '" />';  // <input type="hidden" name="registration-firstname" value="Kerry" />
           print '<input type="hidden" name="registration-lastname" value="' . $data['lastName'] . '" />';
           print '<input type="hidden" name="registration-identity" value="' . $data['identity'] . '" />';     // cout << x << y

@@ -48,7 +48,7 @@
 	}
 
 	function signOut() {
-		header("Location: http://quorumlanguage.com");
+		header("Location: " . $_POST['referer']);
 
 		ob_start();
 		$timeUntilExpire = time() - 3600; // expire an hour in the past
@@ -72,7 +72,8 @@
 		$user = new User($openIdData['email'], null, null, $openIdData['identity']);
 		$user->getUsernameFromGoogleId();
 
-		print (login($user) == true) ? "1" : "0";
+		$result = login($user); 
+		print ($result == true) ? "1" : "0";
 		
 		$_SESSION['openIdData'] = null;
 	}

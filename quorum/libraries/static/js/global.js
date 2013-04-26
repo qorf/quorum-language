@@ -21,6 +21,8 @@ $(function() {
 
 	embed();
 
+	detectEnterKey();
+
 	extendLeftSidebar(); // keep this at the end
 });
 
@@ -33,10 +35,7 @@ function getUrlVars() {
 }
 
 function refresh() {
-	var url = document.URL;
-	url = url.replace('?registerWith=google','');
-	url = url.replace('?loginWith=google','');
-	window.location.replace(url);
+	location.reload();
 }
 
 var bodyMessage = function(text, state) {
@@ -89,11 +88,13 @@ var autoComplete = function() {
 }
 
 var openModalFromURL = function() {
-	if (getUrlVars()["loginWith"] == "google") {
+	if (window.location.hash == "#googleLogin") {
 		googleUserLoginAuthenticate();
+		window.location.hash = "";
 	}
-	if (getUrlVars()["registerWith"] == "google") {
+	if (window.location.hash == "#googleRegister") {
 		$('#modal-registration').modal();
+		window.location.hash = "";
 	}
 }
 
@@ -300,14 +301,13 @@ var googleUserLoginAuthenticate = function() {
 		success: function(result) {
 			if ($.trim(result) == "1") {
 				refresh();
+				console.info("refresh");
 			}
 			else {
 				$('#modal-login').modal();
 				$("#integrity-error").remove();
 				$("#login-form").before('<div class="text-error" id="integrity-error">Sorry, but there has been an error authenticating your Google account.</div>');
 				$("#integrity-error").show();
-				buttons.show();
-				spinner.hide();
 			}
 			console.info(result);
 
@@ -447,6 +447,20 @@ var embed = function() {
 }
 
 
+var detectEnterKey = function() {
+	var triggerModalPrimary = function(container) {
+		if ($(container).hasClass("in")) {
+			$(container + " .btn-primary").trigger("click");
+		}
+	}
+
+	$('body').keydown(function (e){
+	    if(e.keyCode == 13) { // Enter has been pressed
+	        triggerModalPrimary("#modal-registration");
+	        triggerModalPrimary("#modal-login");
+	    }
+	});
+}
 
 
 

@@ -1,7 +1,7 @@
 <div id="modal-login" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="modal-label-registration" aria-hidden="true">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="modal-registration-header">Register for Quorum</h3>
+    <h3 id="modal-registration-header">Sign In to Quorum</h3>
   </div>
   <div class="modal-body">
     <?php 

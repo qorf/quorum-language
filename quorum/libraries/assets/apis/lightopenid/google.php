@@ -5,20 +5,20 @@ require 'openid.php';
 require '../../../config.php';
 
 if ($_POST['action'] == "login") { // is logging in
-    $extension = "?loginWith=google";
+    $extension = "#googleLogin";
 }
 else if ($_POST['action'] == "register") { // is registration
-    $extension = "?registerWith=google";
+    $extension = "#googleRegister";
 }
 else {
     $extension = null;
 }
 
 if (isset($_SESSION['referer'])) {
-    $_SESSION['referer'] = str_replace("registerWith=google", "", str_replace("?loginWith=google", "", $_POST['referer']));
+    $_SESSION['referer'] = str_replace("#googleRegister", "", str_replace("googleLogin", "", $_POST['referer']));
 }
 if (!isset($_SESSION['referer']) || (($_SESSION['extension'] != $extension) && ($extension != null))) {
-    $_SESSION['referer'] = str_replace("registerWith=google", "", str_replace("?loginWith=google", "", $_POST['referer']));
+    $_SESSION['referer'] = str_replace("#googleRegister", "", str_replace("googleLogin", "", $_POST['referer']));
     $_SESSION['extension'] = $extension;
     $_SESSION['redirectTo'] = $_POST['referer'] . $extension;
 }

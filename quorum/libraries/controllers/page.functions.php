@@ -4,12 +4,13 @@
 	}
 
 	function getPage() { 
-		return $_SERVER["REQUEST_URI"];
+		return substr($_SERVER["REQUEST_URI"], 1);
 	}
 
 	function getDocRoot() { 
 		return $_SERVER['DOCUMENT_ROOT'] . "/";
 	}
+
 
 	function createPageTitle() {
 		$classPageTitle = $GLOBALS["classPageTitle"];
