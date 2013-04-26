@@ -13,7 +13,7 @@
 	}
 	else
 	{
-		$url = "http://quorum.cs.siue.edu:8000"; // destination, like localhost:8000 or whatever
+		$url = "http://quorum.cs.siue.edu:80"; // destination, like localhost:8000 or whatever
 		$ch = @curl_init();
 		curl_setopt($ch, CURLOPT_POST, true);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $code);
