@@ -1,4 +1,14 @@
 <?php 
+	if ((function_exists('getRoot') == false)) {
+		function getRoot() { 
+			return "http" . (($_SERVER['HTTPS'] == "on") ? "s://" : "://") . $_SERVER["SERVER_NAME"] . "/"; 
+		}
+
+		function getPage() { 
+			return substr($_SERVER["REQUEST_URI"], 1);
+		}
+	}
+
 	$username = $_COOKIE['username'];
 	$url = ($_SERVER['PHP_SELF'] == "/static/templates/user-headercontrols.template.php") ? $_SERVER['PHP_SELF'] : "";
 
