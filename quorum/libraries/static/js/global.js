@@ -373,7 +373,7 @@ var submitCodeSample = function(){
 			data: codeData,
 			success: function(result){
 				var start = 0;
-				result.indexOf("|") > 0  ? start = result.indexOf("|")+1 : start = 1;
+				result.indexOf("|") > 0  ? start = result.indexOf("|")+1 : start = 0;
 				var output = result.substring(start, result.length-1);
 				console.log(output);
 				$(".outputArea").text(output);
