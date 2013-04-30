@@ -548,10 +548,11 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                                 + method.getStaticKey() +  
                                 " has example documentation that will not compile.");
                         numNonCompilingExamples++;
-                    } else {
-                        System.err.println("OK: " + clazz.getStaticKey() + ":" 
-                                + method.getStaticKey());
-                    }
+                    } 
+//                    else {
+//                        System.err.println("OK: " + clazz.getStaticKey() + ":" 
+//                                + method.getStaticKey());
+//                    }
                 } catch(Exception e) {
                     System.err.println("Crash: " + clazz.getStaticKey() + ":" 
                                 + method.getStaticKey());

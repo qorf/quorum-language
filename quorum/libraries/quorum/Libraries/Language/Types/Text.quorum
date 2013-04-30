@@ -140,7 +140,7 @@ class Text is Object
         integer result = a:IndexOf("l", 3)
     */
     action IndexOf(text subText, integer index) returns integer
-        integer size = GetLength()
+        integer size = GetSize()
         if index < size and index >= 0
             return IndexOfNative(value, subText, index)
         else
@@ -204,7 +204,7 @@ class Text is Object
         text result = a:GetSubtext(1)
     */
     action GetSubtext(integer startIndex) returns text
-        integer size = GetLength()
+        integer size = GetSize()
         if startIndex < size and startIndex >= 0
             return GetSubtextNative(value, startIndex)
         else
@@ -412,9 +412,9 @@ class Text is Object
         Attribute: Example
         Text a
         a:SetValue("X")
-        output a:GetLength()
+        output a:GetSize()
     */
-    system action GetLength() returns integer
+    system action GetSize() returns integer
 
     /*
         This action gets the character specified by the given index and returns it.
@@ -428,8 +428,8 @@ class Text is Object
         output a:GetCharacter(0)
     */
     action GetCharacter(integer index) returns text
-        // Index must be in the range 0 <= x < me:GetLength()
-        if index < 0 or index >= me:GetLength()
+        // Index must be in the range 0 <= x < me:GetSize()
+        if index < 0 or index >= me:GetSize()
             InvalidLocationError e
             alert(e)
         end
@@ -465,7 +465,7 @@ class Text is Object
         output a:GetSubtext(0, 5)
     */
     action GetSubtext(integer startIndex, integer endIndex) returns text
-        if startIndex = endIndex or startIndex > endIndex or startIndex < 0 or endIndex < 0 or endIndex >= me:GetLength()
+        if startIndex = endIndex or startIndex > endIndex or startIndex < 0 or endIndex < 0 or endIndex >= me:GetSize()
             InvalidLocationError e
             e:SetErrorMessage("Text index out of range, " + startIndex + " - " + endIndex)
             alert(e)
@@ -495,10 +495,10 @@ class Text is Object
 
 	Array<text> results
 	integer pos = 0
-	integer length = me:GetLength()
+	integer length = me:GetSize()
 	Text delim
         delim:SetValue(delimiter)
-	integer delimLength = delim:GetLength()
+	integer delimLength = delim:GetSize()
 	text newString = ""
         boolean afterDelim = false
 
