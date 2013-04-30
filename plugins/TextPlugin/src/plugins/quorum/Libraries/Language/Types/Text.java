@@ -127,7 +127,7 @@ public class Text {
         return left.trim();
     }
     
-    public int GetLength() {
+    public int GetSize() {
         return text.length();
     }
 
@@ -179,7 +179,7 @@ public class Text {
         }
     }
     
-    public static int PrimitiveGetLength(String self) throws Error {
+    public static int PrimitiveGetSize(String self) throws Error {
         if(self == null){
             quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
             error.SetErrorMessage("Text variable is undefined.");
