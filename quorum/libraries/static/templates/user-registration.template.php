@@ -72,6 +72,13 @@
                 <p class="text-error">Please enter a password</p>
               </div>
             </div>
+            <div class="control-group confirm-password">
+              <label class="control-label" for="registration-confirm-password">Confirm Password</label>
+              <div class="controls">
+                <input type="password" class="input-xlarge" name="registration-confirm-password" id="registration-confirm-password" />
+                <p class="text-error">The passwords do not match</p>
+              </div>
+            </div>
         <?php } ?>
       </fieldset>
     </form>

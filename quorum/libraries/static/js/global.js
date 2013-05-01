@@ -126,6 +126,18 @@ var validatePassword = function(password) {
 	return true;
 }
 
+var validateConfirmPassword = function() {
+	var confirm = $("#registration-confirm-password").val();
+	var password = $("#registration-password").val();
+
+	if ( (password == "") || (confirm != password) ) {
+		return false;
+	}
+	else { 
+		return true;
+	}
+}
+
 var registerUser = function() {
 	var buttons = $("#modal-registration .modal-footer button");
 	var spinner = $("#modal-registration .modal-footer .loading-spinner");
@@ -195,16 +207,19 @@ var registrationValidateAndSubmit = function() {
 		var emailError = $(textError[0]);
 		var usernameError = $(textError[1]);
 		var passwordError = $(textError[2]);
+		var confirmError = $(textError[3]);
 
 		var emailIsValid = validateEmail(email);
 		var usernameIsValid = validateUsername(username);
 		var passwordIsValid = validatePassword(password);
+		var confirmIsValid = validateConfirmPassword();
 
 		emailError.hide();
 		usernameError.hide();
 		passwordError.hide();
+		confirmError.hide();
 
-		if (emailIsValid && usernameIsValid && passwordIsValid) {
+		if (emailIsValid && usernameIsValid && passwordIsValid && confirmIsValid) {
 			registerUser();
 		}
 		else {
@@ -216,6 +231,9 @@ var registrationValidateAndSubmit = function() {
 			}
 			if (!passwordIsValid) {
 				passwordError.show();
+			}
+			if (!confirmIsValid) {
+				confirmError.show();
 			}
 
 			return false;
@@ -448,6 +466,7 @@ var changeCodeExample = function(){
 			$(".inputArea").val(codeExample);
 	})
 }
+
 var tab = function(){
 	$("textarea").keydown(function(e) {
     	if(e.keyCode === 9) { 
