@@ -7,7 +7,7 @@
 	class CodeSample extends QuorumDataModel
 	{
 		private $tableName = "run_code";
-		public $quorumVersion = "1.0";
+		public $quorumVersion = "2.0";
 		public $code = "";
 		public $output = "";
 		public $timesRequested = 1;
