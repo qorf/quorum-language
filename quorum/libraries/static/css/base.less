@@ -70,3 +70,20 @@ body ul {margin-left:20px; list-style-type:circle;}
 .loading-spinner { display: none; width: 16px; height: 16px; background: url(../img/ajax-loader.gif) top left no-repeat; }
 
 .alert-body-bottom-right { position: fixed; bottom: 20px; right: 20px; min-width: 400px; }
+
+.forgot-password { float: left; width: 355px; height: 30px;
+	.forgot-password-btn { float: left; }
+	.forgot-password-form { display: none; 
+		label, input, button { display: inline-block; margin-right: 10px; }
+		label { position: relative; top: -4px; }
+		input { width: 150px; }
+		button { position: relative; top: -6px; }
+	}
+}
+
+.forgot-password-content {
+	.reset-password-form { border: 1px solid @gray3; width: 300px; padding: 30px; margin: 0 auto; background: @white1; .rounded-corners(10px); .box-shadow(0 3px 10px, @gray3); 
+		p { text-align: center; }
+		input { height: 30px; display: block; margin: 0 auto; }
+	}
+}

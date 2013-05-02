@@ -23,6 +23,8 @@ $(function() {
 
 	detectEnterKey();
 
+	forgotPasswordShow();
+
 	extendLeftSidebar(); // keep this at the end
 });
 
@@ -485,6 +487,13 @@ var tab = function(){
 var embed = function() {
 	$(".ide-embed-info label, .ide-embed-info input").on("click", function() {
 		$(".ide-embed-info input").select();
+	});
+}
+
+var forgotPasswordShow = function() {
+	$(".forgot-password-btn").on("click", function() {
+		$(this).hide();
+		$(this).parent().find(".forgot-password-form").show();
 	});
 }
 

@@ -37,6 +37,14 @@
   </div>
   <div class="modal-footer">
     <div class="loading-spinner"></div>
+    <div class="forgot-password">
+      <button class="btn btn-warning forgot-password-btn">Forgot Password?</button>
+      <form class="forgot-password-form" action="/forgot_password.php" method="post">
+        <label for="username">Username:</label><input type="text" name="username" id="username">
+        <button class="btn btn-warning">Send Email</button>
+      </form>
+    </div>
+
     <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
     <button class="btn btn-primary registration-submit">Sign In</button>
   </div>
