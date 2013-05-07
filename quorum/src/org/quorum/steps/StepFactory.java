@@ -1627,7 +1627,11 @@ public class StepFactory {
                                 machine.getBuilder().add(resultStep);
                             }
                         }else{
-                            arg.setCastStepLocation(position);
+                            if(machine.getBuilder().getCurrentMethod() == null){
+                                arg.setCastStepLocation(position-1);
+                            }else{
+                                arg.setCastStepLocation(position);
+                            }
                         }
                     }
                 } else {

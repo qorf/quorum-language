@@ -16,10 +16,7 @@ use Libraries.System.all
 class Main
 action Main
 
-        ColumnGroup cg
-        Attribute span = cg:GetSpan()
-        if span not= undefined
-            text s = span:GetValue()
-        end
+        Returner r
+        output r:value
 end
 end

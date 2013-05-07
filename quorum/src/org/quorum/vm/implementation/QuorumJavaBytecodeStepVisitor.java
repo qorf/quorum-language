@@ -123,8 +123,32 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                 if (finalPosition >= 0) {
                     i = finalPosition;
                 }
+            }else if (opcodeType == OpcodeType.METHOD_CALL) {//if we have a method call in an expression(never a solo method call).
+                int lookahead = 0;
+
+                do {//find the final position indicated by any opcode type other than null or another method call.
+                    lookahead++;
+                    opcodeType = tracker.getOpcodeType((i + 1) + lookahead);
+                } while (opcodeType == null || opcodeType == OpcodeType.METHOD_CALL);
+
+                i = (lookahead) + i;
+
+                //mark the end of the visits
+                tracker.addToQueue(i);
+
+                //visit the final step which should process all the queued up steps.
+                step = steps.get(i);
+                step.visit(this);
             } else {
-                tracker.addToQueue(i + 1);
+
+                //queue up the ending opcodes but still visit them (assignment, print, etc.)
+                if (opcodeType != null) {
+                    tracker.addToQueue(i + 1);
+                }
+
+                //otherwise process each step and let each step decide if it has
+                //queued up steps to visit and in which order they are processed.
+                step = steps.get(i);
                 step.visit(this);
             }
         }
@@ -1548,6 +1572,98 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         }
     }
 
+    private void processFieldExpression(OpcodeTracker tracker, int begin, int end, Vector<ExecutionStep> steps, ArrayList<Integer> visitedCasts) {
+
+        //loop through all op-codes
+        for (int i = begin; i < end; i++) { //visit the expressions
+            // If this is a cast step that we have already visited, ignore
+            // it, so we don't accidentally visit it twice.
+            if (visitedCasts.contains(i)) {
+                continue;
+            }
+
+            //if we are in a call step find that call step and check to see if it
+            //is an autobox. If it is insert the autobox.
+            int castStepLocation = -1;
+            ArrayList<Integer> functionParameterMapping = tracker.getFunctionParameterMapping(i+1);
+            if (functionParameterMapping != null) {
+                for (int count = functionParameterMapping.size() - 1; count >= 0; count--) {
+                    int callStepNumber = functionParameterMapping.get(count);
+                    ExecutionStep callStep = steps.get(callStepNumber);
+
+                    if (callStep instanceof CallStep || callStep instanceof InputStep || callStep.isCastStep()) {
+                        castStepLocation = callStep.getCastStepLocation();
+
+                        i = processAutoBox(steps, i, castStepLocation, callStepNumber, visitedCasts, tracker);
+                    }
+                }
+
+            }
+
+            //is this step the first parameter to a function call?
+            //if yes, call visitCallSpecial, with the call step 
+            //for that function call
+            boolean funcParam = tracker.containsFunctionParameterMapping(i+1);
+            if (funcParam) {
+                CallStep call = null;
+                ArrayList<Integer> callLocations = tracker.getFunctionParameterMapping(i+1);
+                for (int k = callLocations.size() - 1; k >= 0; k--) {
+                    int opcodeLocation = callLocations.get(k);
+                    if (!visitedCasts.contains(k)) {
+                        ExecutionStep callStep = steps.get(opcodeLocation-1);
+
+                        boolean newStep = false;
+
+                        //opcodeLocation = i;
+                        // Make sure this is actually a CallStep.
+                        while (!(callStep instanceof CallStep) && !(callStep instanceof InputStep) && !(callStep.isCastStep())) {
+                            opcodeLocation++;
+                            callStep = steps.get(opcodeLocation-1);
+                            newStep = true;
+                        }
+
+                        if (callStep instanceof CallStep) {
+                             call = (CallStep) callStep;
+
+                            //check the new step for casts
+                            if (newStep) {
+                                castStepLocation = call.getCastStepLocation();
+
+
+                                i = processAutoBox(steps, i, castStepLocation, opcodeLocation, visitedCasts, tracker);
+
+                            }
+
+                            //insert the pointer for the object being called upon
+                            if (!call.isCalleeLoaded()) {
+                                visitCallSpecial(call);
+                            }
+                        } else if (callStep instanceof InputStep || callStep.isCastStep()) {
+
+                            //check the new step for casts
+                            if (newStep) {
+                                castStepLocation = callStep.getCastStepLocation();
+
+
+                                i = processAutoBox(steps, i, castStepLocation, opcodeLocation, visitedCasts, tracker);
+
+                            }
+
+                        } else {
+                            Logger.getLogger(QuorumJavaBytecodeStepVisitor.class.getName()).log(
+                                    Level.SEVERE, "Function mapping between opcode parameters "
+                                    + "and callsteps results in incorrect values. This is a compiler bug.");
+                        }
+                    }
+                }
+                if(call != null){
+                    call.setIsCalleeLoaded(false);
+                }
+            }//if no, do nothing
+
+            i = processCastStep(steps, i, visitedCasts);
+        }
+    }
     /**
      * Helper method used to process expression for loops with hidden variables,
      * this includes repeat times and repeat from.
@@ -1694,20 +1810,20 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //for each item in the queue excluding the last 
         //item(which is the opcode processing the expressions)
         for (int j = 0; j < tracker.getQueueSize() - 1; j++) {
+            ArrayList<Integer> visitedCasts = new ArrayList<Integer>();
+            
             //check queue for its current value
             int begin = tracker.removeFromQueue() - 1;
             int end = tracker.peekQueue() - 1;
 
             //loop through all op-codes
             Vector<ExecutionStep> steps = execution.getSteps();
-            for (int i = begin; i < end; i++) { //visit the expressions
-
-                ExecutionStep step = steps.get(i);
-                step.visit(this);
-            }
+            processFieldExpression(tracker, begin, end, steps, visitedCasts);
 
             //clear out the queue at the end of visiting
-            tracker.clearQueue();
+            if (!tracker.getOpcodeType(end+1).equals(OpcodeType.ROOT_EXPRESSION)) {
+                tracker.clearQueue();
+            }
         }
     }
 

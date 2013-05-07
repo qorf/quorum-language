@@ -1,5 +1,10 @@
-package C
-class B
-action goNow
-end
+class Returner
+ public number value = test(1,3)
+
+ /*on create
+    value = test(1,3)
+ end*/
+ action test(integer value, integer val2) returns integer
+        return value
+ end
 end
