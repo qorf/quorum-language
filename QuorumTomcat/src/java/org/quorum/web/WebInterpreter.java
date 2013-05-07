@@ -208,8 +208,18 @@ public class WebInterpreter extends HttpServlet {
 
 
         try {
-
-            root = new File("/Users/astefik/quorum/trunk/quorum/dist");
+            //for testing
+            //root = new File("/Users/astefik/quorum/trunk/quorum/dist");
+            //for deployment
+            root = new File("/home/stefika/quorum");
+            
+            if(root.isDirectory()) {
+                out.print("fail|Good root:"  + root.getAbsolutePath() + "\n");
+            } else {
+                out.print("fail|Bad root:"  + root.getAbsolutePath() + "\n");
+            }
+            
+            
             if (root == null) {
                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE,
                         "Could not load Virtual Machine, "
@@ -219,28 +229,82 @@ public class WebInterpreter extends HttpServlet {
             File index = new File(root.getAbsolutePath()
                     + "/libraries/indexes/quorum.index");
 
+            if(index.exists()) {
+                out.print("Good index:"  + index.getAbsolutePath() + "\n");
+            } else {
+                out.print("Bad index:"  + index.getAbsolutePath() + "\n");
+            }
+            
             pluginFolder = new File(root.getAbsolutePath() + "/"
                     + DEFAULT_PLUGIN_PATH);
 
+            if(pluginFolder.isDirectory()) {
+                out.print("Good plugins:"  + pluginFolder.getAbsolutePath() + "\n");
+            } else {
+                out.print("Bad plugins:"  + pluginFolder.getAbsolutePath() + "\n");
+            }
             File library = new File(root.getAbsolutePath()
                     + "/libraries/quorum");
 
+            if(library.isDirectory()) {
+                out.print("Good libraries:"  + library.getAbsolutePath() + "\n");
+            } else {
+                out.print("Bad libraries:"  + library.getAbsolutePath() + "\n");
+            }
             // The "build" directory should be in the current directory.
-            File build = new File("./" + BUILD_DIRECTORY);
+            File build = new File(root.getAbsolutePath() + "/"
+                    + BUILD_DIRECTORY);
 
-            File distribution = new File("./" + DISTRIBUTE_DIRECTORY);
+            if(build.isDirectory()) {
+                out.print("Good build:"  + build.getAbsolutePath() + "\n");
+            } else {
+                out.print("Bad build:"  + build.getAbsolutePath() + "\n");
+            }
+            File distribution = new File(root.getAbsolutePath() + "/"
+                    + DISTRIBUTE_DIRECTORY);
 
+            if(distribution.isDirectory()) {
+                out.print("Good run:"  + distribution.getAbsolutePath() + "\n");
+            } else {
+                out.print("Bad run:"  + distribution.getAbsolutePath() + "\n");
+            }
             File dependencies = new File(root.getAbsolutePath()
                     + "/lib");
 
+            if(dependencies.isDirectory()) {
+                out.print("Good dependencies:"  + dependencies.getAbsolutePath() + "\n");
+            } else {
+                out.print("Bad dependencies:"  + dependencies.getAbsolutePath() + "\n");
+            }
             File phonemic = new File(dependencies.getAbsolutePath()
                     + "/phonemic.jar");
 
+            if(phonemic.exists()) {
+                out.print("Good phonemic:"  + root.getAbsolutePath() + "\n");
+            } else {
+                out.print("Bad phonemic:"  + root.getAbsolutePath() + "\n");
+            }
             File phonemicJNI = new File(dependencies.getAbsolutePath()
                     + "/jni");
 
-            File documentation = new File(DOCUMENTATION_DIRECTORY + "/");
+            if(phonemicJNI.isDirectory()) {
+                out.print("Good phonemic jni:"  + root.getAbsolutePath() + "\n");
+            } else {
+                out.print("Bad phonemic jni:"  + root.getAbsolutePath() + "\n");
+            }
+            File documentation = new File(root.getAbsolutePath()  + "/"
+                    +DOCUMENTATION_DIRECTORY + "/");
 
+            if(documentation.isDirectory()) {
+                out.print("Good documentation:"  + documentation.getAbsolutePath() + "\n");
+            } else {
+                out.print("Bad documentation:"  + documentation.getAbsolutePath() + "\n");
+            }
+            
+            if (!build.isDirectory()) {
+                build.mkdir();
+            }
+            
             if (!build.isDirectory()) {
                 build.mkdir();
             }
@@ -264,10 +328,14 @@ public class WebInterpreter extends HttpServlet {
                 reader.read(codeByteArray);
                 line = new String(codeByteArray);
                 String runcode = runcode(line);
-                out.println("<html>"+runcode+"</html>");
+                out.println("<html>"+"Code: " + line + "\n\n Answer: \n" + runcode+"</html>");
             } catch (Exception e) { /*report an error*/ }
             
-        } finally {
+        } catch (Exception e) { 
+            out.print("<html>The Quorum virtual machine could not be loaded: " +
+                    e.getMessage());
+        /*report an error*/ }
+        finally {
             out.close();
         }
     }
@@ -350,11 +418,15 @@ public class WebInterpreter extends HttpServlet {
                 }
             } catch (IllegalAccessException ex) {
 //                    ex.printStackTrace();
+                return "illegal access";
             } catch (IllegalArgumentException ex) {
 //                    ex.printStackTrace();
+                return "illegal argument";
             } catch (NoSuchMethodException ex) {
 //                    ex.printStackTrace();
+                return "no such method";
             } catch (ClassNotFoundException ex) {
+                return "class not found";
 //                    ex.printStackTrace();
             } catch (InvocationTargetException ex) {
                 if (ex.getCause() != null && ex.getCause() instanceof QuorumWebExecutor.ExitException) {
@@ -367,6 +439,11 @@ public class WebInterpreter extends HttpServlet {
                         failure = true;
                     }
                 }
+                response += "Invocation error: " + ex.getCause().getClass().getName() + "\n ";
+                for(int i = 0; i < ex.getStackTrace().length; i++) {
+                    response += ex.getStackTrace()[i] + "\n";
+                }
+                return response;
             }
         }
 
@@ -380,7 +457,7 @@ public class WebInterpreter extends HttpServlet {
         //         + "\"status\": \"" + status + "\",\n\t"
         //         + "\"data\": \"" + response + "\"\n}";
 
-        response = status + "|" + response;
+        response = status + "|" + "monkeY " + response;
         return response;
     }
 }
