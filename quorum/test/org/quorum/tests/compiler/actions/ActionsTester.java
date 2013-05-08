@@ -923,4 +923,46 @@ public class ActionsTester {
         
         assert(r.getLine(0).equals("4.0"));   
     }
+    
+    @Test
+    public void test_pass_field_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "Field.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("4"));   
+    }
+        
+    @Test
+    public void test_pass_field_cast_parameter_value_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "FieldCastParameter.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("4"));   
+    }
+        
+    @Test
+    public void test_pass_field_cast_return_value_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ACTIONS + CompilerTestSuite.PASS + "FieldCastReturn.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("4.0"));   
+    }
 }
