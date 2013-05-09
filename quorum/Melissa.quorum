@@ -1,22 +1,13 @@
-use Libraries.Sound.all
-use Libraries.System.Blueprints.all
-use Libraries.Language.Types.all
-use Libraries.Language.Support.all
-use Libraries.Language.Errors.all
-use Libraries.Containers.Blueprints.all
-use Libraries.Containers.Support.all
-use Libraries.Containers.all
-use Libraries.Compute.all
-use Libraries.Robots.all
-use Libraries.System.Blueprints.all
-use Libraries.System.all
+use MusicalChairs
 
-        use Libraries.Web.Attribute
-        use Libraries.Web.ColumnGroup
 class Main
-action Main
+    action Main()
 
-        Returner r
-        output r:value
-end
+    MusicalChairs game
+    //game:Names()
+    //game:RandomList()
+    game:GetPlayers()
+    //game:Play()
+
+    end
 end

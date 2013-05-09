@@ -788,6 +788,7 @@ scope {
 		    		TypeDescriptor t = new TypeDescriptor();
 		    		
 		    		d = symbol.getVariable($det_param.name);
+		    		er.setIsCaughtException(true);
 		    		er.setVariableNumber(d.getVariableNumber());
 		    		er.errorType = detectParamIt.next();
 		    		t.setName(er.errorType.getName());

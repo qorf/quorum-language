@@ -21,6 +21,7 @@ public class VariableParameterCommonDescriptor extends Descriptor{
     private boolean initialized = false;
     private boolean isField;
     private boolean isConstant = false;
+    private boolean isCaughtException = false;
 
     /**
      * A numeric value that indicates the order in which a particular 
@@ -176,5 +177,19 @@ public class VariableParameterCommonDescriptor extends Descriptor{
 
     public boolean isAssignedAValue() {
         return isAssigned;
+    }
+
+    /**
+     * @return the isCaughtException
+     */
+    public boolean isCaughtException() {
+        return isCaughtException;
+    }
+
+    /**
+     * @param isCaughtException the isCaughtException to set
+     */
+    public void setIsCaughtException(boolean isCaughtException) {
+        this.isCaughtException = isCaughtException;
     }
 }

@@ -71,7 +71,7 @@ end
 <p>
     Then you can use the detect block to specify what type of error to handle 
     or detect. The detect follows the format 
-    <code>detect &lt;name&gt; of type &lt;error type&gt;</code>. 
+    <code>detect &lt;name&gt; is &lt;error type&gt;</code>. 
     It first specifies the name of the error variable (this can be a name of 
     your choosing, but we use &quot;e&quot;). Then you can specify the type of 
     error you will detect. In this case we want the DivideByZeroError.
