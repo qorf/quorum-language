@@ -1656,12 +1656,14 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
                         }
                     }
                 }
-                if(call != null){
-                    call.setIsCalleeLoaded(false);
-                }
             }//if no, do nothing
 
             i = processCastStep(steps, i, visitedCasts);
+            
+            ExecutionStep get = steps.get(i);
+            if(get != null && get instanceof CallStep){
+                ((CallStep)get).setIsCalleeLoaded(false);
+            }
         }
     }
     /**
