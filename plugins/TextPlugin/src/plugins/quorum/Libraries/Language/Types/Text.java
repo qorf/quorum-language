@@ -130,6 +130,26 @@ public class Text {
     public int GetSize() {
         return text.length();
     }
+    
+    public String GetCarriageReturn(){
+        return "\r";
+    }
+    
+    public String GetLineFeed(){
+        return "\n";
+    }
+    
+    public String GetTab(){
+        return "\t";
+    }
+    
+    public String GetDoubleQuote(){
+        return "\"";
+    }
+    
+    public String GetUnicodeValue(int unicode){
+        return Character.toString((char)unicode);
+    }
 
     /**
      * If the value is valid, return its hashcode. Otherwise, return the 
@@ -432,6 +452,52 @@ public class Text {
         }
         
         return self.trim();
+    }
+    
+        
+    public static String PrimitiveGetCarriageReturn(String self) throws Error{
+        if(self == null){
+            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+            error.SetErrorMessage("Text variable is undefined.");
+            throw(error);
+        }
+        return "\r";
+    }
+    
+    public static String PrimitiveGetLineFeed(String self) throws Error{
+        if(self == null){
+            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+            error.SetErrorMessage("Text variable is undefined.");
+            throw(error);
+        }
+        return "\n";
+    }
+    
+    public static String PrimitiveGetTab(String self) throws Error{
+        if(self == null){
+            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+            error.SetErrorMessage("Text variable is undefined.");
+            throw(error);
+        }
+        return "\t";
+    }
+    
+    public static String PrimitiveGetDoubleQuote(String self) throws Error{
+        if(self == null){
+            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+            error.SetErrorMessage("Text variable is undefined.");
+            throw(error);
+        }
+        return "\"";
+    }
+    
+    public static String PrimitiveGetUnicodeValue(String self, int unicode) throws Error{
+        if(self == null){
+            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+            error.SetErrorMessage("Text variable is undefined.");
+            throw(error);
+        }
+        return Character.toString((char)unicode);
     }
 //    
 //    public static void main(String[] args) {
