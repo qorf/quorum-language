@@ -34,6 +34,11 @@ class Text is Object
     system action ParseInteger returns integer
     system action ParseNumber returns number
     system action ParseBoolean returns boolean
+    system action GetLineFeed() returns text
+    system action GetCarriageReturn() returns text
+    system action GetTab() returns text
+    system action GetDoubleQuote() returns text
+    system action GetUnicodeValue(integer twosCompliment) returns text
 
     /*
         This action appends the given text value to the value in this object.
