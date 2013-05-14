@@ -4,9 +4,15 @@ class Main
 
     action Main()
     value = ""
+    integer v = 0
+    v = (cast(integer, (input("hello"))))
+    output v
     value = "hi" + value:GetUnicodeValue(1236) + "."
     output value
     
 
+    end
+    action GetNum() returns integer
+        return 5
     end
 end

@@ -1804,7 +1804,9 @@ root_expression returns[ExpressionValue eval, ExecutionStep step]
 		expressionDepth = 0;
 		$eval = $expression.eval;
 		$step = $expression.step;
-		$eval.getResult().getType().setExpressionLevel(expressionDepth );
+		if($eval != null){
+			$eval.getResult().getType().setExpressionLevel(expressionDepth );
+		}
 	}
 	;
 
@@ -2438,6 +2440,7 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		inCallStep = false;
 		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 	}
+	|^(PAREN_WRAPPED_EXPRESSION LEFT_PAREN expr=expression RIGHT_PAREN){$eval = $expr.eval; $step = $expr.step;}
 	|	CAST LEFT_PAREN castqn=assignment_declaration COMMA {expressionDepth++;}cast_expr=expression castrpn=RIGHT_PAREN
 	{
 		LineInformation location = new LineInformation (

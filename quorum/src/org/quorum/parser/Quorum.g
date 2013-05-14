@@ -23,9 +23,12 @@ tokens { //these are imaginary tokens --- they are inserted to help processing. 
 	FINAL_ELSE;
 	PAREN_WRAPPED_EXPRESSION;
 	ROOT_EXPRESSION;
+	PAREN_EXPRESSION;
 	QUALIFIED_SOLO_EXPRESSION;
 	QUALIFIED_SOLO_EXPRESSION_SELECTOR;
 	QUALIFIED_SOLO_PARENT_EXPRESSON;
+	INPUT_EXPRESSION;
+	CAST_EXPRESSION;
 	GENERIC;
 }
 
@@ -1258,7 +1261,7 @@ atom 	:
 	| NULL
 	| ME
 	| INPUT LEFT_PAREN expression RIGHT_PAREN
-	| LEFT_PAREN expression RIGHT_PAREN -> ^(expression)
+	| LEFT_PAREN expression RIGHT_PAREN -> ^(PAREN_WRAPPED_EXPRESSION LEFT_PAREN expression RIGHT_PAREN)
 	;
 
 function_expression_list 
