@@ -176,11 +176,11 @@
 <script id="template-ratings-controls" type="text/x-dot-template">
 	<div class="ratings-controls">
 		<ul class="star-ratings" data-componenttype="{{=it.componentType}}">
-			<li class="star-1"><a href="#" rel="tooltip" title="This {{=it.choice}} makes no sense"></a></li>
-			<li class="star-2"><a href="#" rel="tooltip" title="This {{=it.choice}} is hard to understand"></a></li>
-			<li class="star-3"><a href="#" rel="tooltip" title="This {{=it.choice}} is somewhat meaningful"></a></li>
-			<li class="star-4"><a href="#" rel="tooltip" title="This {{=it.choice}} is easy to understand"></a></li>
-			<li class="star-5"><a href="#" rel="tooltip" title="This {{=it.choice}} is very intuitive"></a></li>
+			<li class="star-1"><a href="#" rel="tooltip" title="This {{=it.choice}} is a very poor choice"></a></li>
+			<li class="star-2"><a href="#" rel="tooltip" title="This {{=it.choice}} is a poor choice"></a></li>
+			<li class="star-3"><a href="#" rel="tooltip" title="This {{=it.choice}} is an ok choice"></a></li>
+			<li class="star-4"><a href="#" rel="tooltip" title="This {{=it.choice}} is a good choice"></a></li>
+			<li class="star-5"><a href="#" rel="tooltip" title="This {{=it.choice}} is a very good choice"></a></li>
 		</ul>
 	</div>
 </script>
