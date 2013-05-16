@@ -33,6 +33,11 @@ function setPassword($username, $key, $mysql) {
 	if (!array_key_exists('password', $_POST)) {
 		deny();
 	}
+        
+        if (!array_key_exists('confirm', $_POST) || $_POST['password'] != $_POST['confirm']) {
+		passwordMismatch();
+	}
+        
 	$salted_password = saltPassword($_POST['password']);
 	$query = $mysql->prepare('UPDATE sodbeans_users SET password=SHA1(?), reset_password_key=NULL, reset_password_expire=NULL WHERE  username=? AND reset_password_key=? AND reset_password_expire > CURDATE()');
 	$success = $query->execute(array($salted_password, $username, $key));
@@ -49,6 +54,13 @@ function passwordChanged() {
 	require_once("static/templates/pagefooter.template.php");
 }
 
+function passwordMismatch() {
+	require_once("static/templates/pageheader.template.php");
+	print '<div class="content forgot-password-content"><h1>Password mismatch</h1><p>Your password and password confirm did not match.</p></div>';
+	require_once("static/templates/pagefooter.template.php");
+        exit(0);
+}
+
 function showForm($username, $key) {
 	require_once("static/templates/pageheader.template.php");
 		print '<div class="content forgot-password-content">';
@@ -57,7 +69,8 @@ function showForm($username, $key) {
 ?>
         <p><strong>Enter the new password for <b><? $username ?></b> below.</strong></p>
         <p>Password:<input name="password" type="password" /></p>
-		<p><input type="submit" class="btn btn-primary" value="Reset password" /></p>
+        <p>Confirm:<input name="confirm" type="password" /></p>
+        <p><input type="submit" class="btn btn-primary" value="Reset password" /></p>
         </form>
        	</div>
 <?php
