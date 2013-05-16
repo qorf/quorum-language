@@ -817,6 +817,14 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
             destination = new File(documentation.getAbsolutePath() + "/search.php");
             gen.copyFile(search, destination);
             
+            File forgotPassword = new File(standardLibrary.getParentFile().getAbsolutePath() + "/forgot_password.php");
+            destination = new File(documentation.getAbsolutePath() + "/forgot_password.php");
+            gen.copyFile(forgotPassword, destination);
+            
+            File resetPassword = new File(standardLibrary.getParentFile().getAbsolutePath() + "/reset_password.php");
+            destination = new File(documentation.getAbsolutePath() + "/reset_password.php");
+            gen.copyFile(resetPassword, destination);
+            
             File curriculum = new File(standardLibrary.getParentFile().getAbsolutePath() + "/curriculum.php");
             destination = new File(documentation.getAbsolutePath() + "/curriculum.php");
             gen.copyFile(curriculum, destination);
