@@ -24,8 +24,8 @@
 <ul>
 <li><a href="/documents/curriculum/chapter1/lab1_3.php">Lab Manual 1.3</a></li>
 <ul>
-<li>Build and execute a Jar file</li>
-<li>Learn about the JVM and Java Bytecode</li>
-<li>Use the command line</li>
+<li>Build and execute a Jar file.</li>
+<li>Learn about the JVM and Java Bytecode.</li>
+<li>Use the command line.</li>
 </ul>
  <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>
