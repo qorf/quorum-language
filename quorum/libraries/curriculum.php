@@ -18,7 +18,7 @@
     </p>
     <ol>
         <li>Cheat sheets for each chapter that summarize the major syntax
-            learned for those lessons.</li>
+            learned for those lessons</li>
         <li>A test pool of short answer and essay questions</li>
         <li>In-class Lab assignments (1 hour completion time)</li>
         <li>Small programming projects (1-2 hours completion time)</li>
