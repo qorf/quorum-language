@@ -43,8 +43,8 @@ firstAddition: 11
 secondAddition: 28.7
 </code></pre></p>
 <p>
-Notice the variable types of all of the variables in the statement assigning to the secondAddition variable. The variable <b>secondAdditions</b> holds a number with a decimal while <b>firstAddition</b> is only a variable.  When adding the values of <b>a</b>, <b>b</b>, <b>c</b>, and <b>d</b>, you are adding together two different types: an integer type and a number type.  When adding these together in Quorum, the integer types are automatically
-type cast to a number type, even if you don't see it. So for example, 7 becomes 7.0.  Hoyouver, if variable <b>secondAddition</b> youre to be of type integer, you would get an error, since it's impossible to assign a number value to a variable that is type integer.  Thus the need for explicit casting.
+Notice the variable types of all of the variables in the statement assigning to the secondAddition variable. The variable <b>secondAdditions</b> holds a number with a decimal while <b>firstAddition</b> is only a variable that contains an integer.  When adding the values of <b>a</b>, <b>b</b>, <b>c</b>, and <b>d</b>, you are adding together two different types: an integer type and a number type.  When adding these together in Quorum, the integer types are automatically
+type cast to a number type, even if you don't see it. So for example, 7 becomes 7.0.  However, if variable <b>secondAddition</b> were to be of type integer, you would get an error because it's impossible to assign a number value to a variable that is of type integer.  This is why we need explicit casting.
 </p>
 <p>
 You will apply the same concepts to the other mathematical operations. Now move onto subtraction by doing the following:
