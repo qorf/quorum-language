@@ -23,7 +23,7 @@ use Libraries.Sound.Music
 </li><li>Using code completion, find the full name of the <tt>File</tt> object.
 </li><li>Using code completion, find the full name of the <tt>Math</tt> object.
 </li><li>Using code completion, find the full name of the <tt>Array</tt> object.
-</li><li>List 2 general rules you should follow, when naming a variable.
+</li><li>List 2 general rules you should follow when naming a variable.
 </li><li><strong>Hard</strong>: The word <tt>undefined</tt> is used to indicate in Quorum on object that has not been instantiated. Try to come up with another reason, besides the one listed in the chapter (optimization) why an object might be undefined.
 </li></ol>
 <h2>Essay Questions</h2>
