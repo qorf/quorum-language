@@ -31,13 +31,109 @@ class Text is Object
     private system action GetCharacterNative(integer index) returns text
     private system action GetSubstringNative(integer startIndex, integer endIndex) returns text
 
+    /*
+        This action parses a text value and translates it into an integer if the
+        text value is a valid integer value. If the text value is not an integer
+        then the user will be alerted by an Error.
+
+        Attribute: Returns The integer value contained in the text value.
+
+        Attribute: Example
+        text a = "12"
+        integer result = a:ParseInteger()
+    */
     system action ParseInteger returns integer
+
+    /*
+        This action parses a text value and translates it into a number if the
+        text value is a valid number value. If the text value is not a number
+        then the user will be alerted by an Error.
+
+        Attribute: Returns The number value contained in the text value.
+
+        Attribute: Example
+        text a = "12.5"
+        number result = a:ParseNumber()
+    */
     system action ParseNumber returns number
+
+    /*
+        This action parses a text value and translates it into a boolean if the
+        text value is a valid boolean value. If the text value is not a boolean
+        then the user will be alerted by an Error.
+
+        Attribute: Returns The boolean value contained in the text value.
+
+        Attribute: Example
+        text a = "true"
+        boolean result = a:ParseBoolean()
+    */
     system action ParseBoolean returns boolean
+
+    /*
+        This action gets the line feed text value. This allows a line feed to be
+        added to a text variable without using the literal value.
+
+        Attribute: Returns The line feed text value.
+
+        Attribute: Example
+        text a = "hello world"
+        a = a + a:GetLineFeed() + "My name is"
+        output a
+    */
     system action GetLineFeed() returns text
+
+    /*
+        This action gets the carriage return text value. This allows a carriage return to be
+        added to a text variable without using the literal value.
+
+        Attribute: Returns The carriage return text value.
+
+        Attribute: Example
+        text a = "hello world"
+        a = a + a:GetCarriageReturn() + "My name is"
+        output a
+    */
     system action GetCarriageReturn() returns text
+
+    /*
+        This action gets the tab text value. This allows a tab to be
+        added to a text variable without using the literal value.
+
+        Attribute: Returns The tab text value.
+
+        Attribute: Example
+        text a = "hello world"
+        a = a + a:GetTab() + "My name is"
+        output a
+    */
     system action GetTab() returns text
+
+    /*
+        This action gets the double quote text value. This allows a double quote to be
+        added to a text variable without using the literal value.
+
+        Attribute: Returns The double quote text value.
+
+        Attribute: Example
+        text a = "hello world"
+        a = a + a:GetDoubleQuote() + "My name is" + a:GetDoubleQuote()
+        output a
+    */
     system action GetDoubleQuote() returns text
+
+    /*
+        This action gets a unicode symbol text value. This allows any unicode symbol to be
+        added to a text variable without using the literal value.
+
+        Attribute: Parameter twosCompliment the twos compliments value associated with each unicode symbol.
+        Attribute: Returns The unicode symbols text value.
+
+        Attribute: Example
+        text a = "hello world"
+        a = a + a:GetCarriageReturn() + "My name is" + a:GetUnicodeValue(2318)
+        output a
+    */
     system action GetUnicodeValue(integer twosCompliment) returns text
 
     /*
