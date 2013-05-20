@@ -14,7 +14,7 @@ The goal of this lab is to learn the following:
 </ul>
 <h2>Overview</h2>
 <p>
-The goal of this lab is to become familiar with the Sodbeans integrated development environment (IDE), before jumping into the Quorum programming language. This lab will guide you through the tutorial and navigation systems, as well as give you an understanding of projects and files and how they work in the IDE. It is important to understand how to use the tutorials that are provided with Sodbeans, navigate around the environment, and work with projects and files.
+The goal of this lab is to become familiar with the Sodbeans integrated development environment (IDE) before jumping into the Quorum programming language. This lab will guide you through the tutorial and navigation systems, as well as give you an understanding of projects and files and how they work in the IDE. It is important to understand how to use the tutorials that are provided with Sodbeans, navigate around the environment, and work with projects and files.
 </p>
 <h2>Task 1: Using the Tutorial System</h2>
 <p>
