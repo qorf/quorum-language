@@ -84,7 +84,7 @@ int zero = 0; // simplest way I have found to get rid of extra symbols at the en
 // and sends the appropriate information back to Java that will then be converted to speech.
 // It implements the Initialize function defined in the WindowsAccessibleHandler.java
 // file.
-JNIEXPORT void JNICALL Java_AccessibleHandlers_WindowsAccessibleHandler_Initialize
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Accessibility_WindowsAccessibleHandler_Initialize
   (JNIEnv *env, jobject jobj)
 {
 	// Initialize COM to get the text values from Accessibility objects.
@@ -112,7 +112,7 @@ JNIEXPORT void JNICALL Java_AccessibleHandlers_WindowsAccessibleHandler_Initiali
 }
 
 // This function stops the message loop thread and unhooks all of the Windows events
-JNIEXPORT void JNICALL Java_AccessibleHandlers_WindowsAccessibleHandler_Terminate
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Accessibility_WindowsAccessibleHandler_Terminate
   (JNIEnv *env, jobject jobj)
 {
 	// Stop the message loop thread
