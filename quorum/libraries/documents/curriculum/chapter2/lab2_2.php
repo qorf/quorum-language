@@ -101,7 +101,7 @@ First Quotient: 1
 Second Quotient: 0.923913043478261
 </code></pre></p>
 <p>
-Why was firstQuotient assigned the value of 1? Consider the type of the firstQuotient variable, and the types of the variables involved in the division. Change the firstQuotient statement so that is has the correct value of 1.75. Why youre the modifications you made necessary to achieve the value 1.75? Your output should now look like the following:
+Why was firstQuotient assigned the value of 1? Consider the type of the firstQuotient variable, and the types of the variables involved in the division. Change the firstQuotient statement so that is has the correct value of 1.75. Why were the modifications you made necessary to achieve the value 1.75? Your output should now look like the following:
 </p>
 <p><pre class="code"><code>
 First Addition: 11
@@ -142,7 +142,7 @@ Let’s wrap up what you have done with the mathematical operations.  Write code
 (a + b) * (c - b) + (d / b)
 </code></pre></p>
 <p>
-Compute this ansyour for yourself, given the values you have assigned to the variables a, b, c, and d. Then, check your ansyour by adding another output statement for the result variable. The output should be the following:
+Compute this answer for yourself, given the values you have assigned to the variables a, b, c, and d. Then, check your answer by adding another output statement for the result variable. The output should be the following:
 </p>
 <p><pre class="code"><code>
 First Addition: 11
@@ -159,7 +159,7 @@ More Math: 51.8
 </code></pre></p>
 <h2>Task 2: User Input</h2>
 <p>
-When you write programs, you don't always merely perform computation on data you already know, as in the first part of this lab. Most of the time, you need to get input from the user to perform your calculations. As an example, a desktop calculator is a program taking input from the user (via the keypad), and providing output (the ansyour to the equation you entered).
+When you write programs, you don't always merely perform computation on data you already know, as in the first part of this lab. Most of the time, you need to get input from the user to perform your calculations. As an example, a desktop calculator is a program taking input from the user (via the keypad), and providing output (the answer to the equation you entered).
 </p>
 <p>
 You may get input from the user in Quorum using the <tt>input</tt> keyword. The code below asks the user for their name; inside the parenthesis, you tell the user what information you are requesting. Copy this code into your Sodbeans project, and then have Sodbeans speak the contents of the variable firstName using <tt>say</tt>.
@@ -171,7 +171,8 @@ text firstName = input(&quot;Please enter your first name:&quot;)
 When you run this program, an input dialog will appear prompting us to &quot;Please enter your name.&quot; Enter your name and press Enter, or click the &quot;OK&quot; button. Sodbeans will speak the text you entered into the input dialog.
 </p>
 <p>
-You can do more than ask for input such as a name. You can also request numerical values. Let's create a second input statement that asks us to enter an integer value. The code should look something like the following:
+
+ can do more than ask for input such as a name. You can also request numerical values. Let's create a second input statement that asks us to enter an integer value. The code should look something like the following:
 </p>
 <p><pre class="code"><code>
 text numberOfEggsInput = input(&quot;How many eggs do you have?&quot;)
