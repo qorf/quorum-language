@@ -2,6 +2,7 @@
 #include  <JavaVM/jni.h>
 /* Header for class AccessibleHandlers_MacAccessibleHandler */
 
+
 #ifndef _Included_AccessibleHandlers_MacAccessibleHandler
 #define _Included_AccessibleHandlers_MacAccessibleHandler
 #ifdef __cplusplus
@@ -12,7 +13,7 @@ extern "C" {
  * Method:    initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_AccessibleHandlers_MacAccessibleHandler_Initialize
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Accessibility_MacAccessibleHandler_Initialize
   (JNIEnv *env, jobject jobj);
 
 /*
@@ -20,7 +21,7 @@ JNIEXPORT void JNICALL Java_AccessibleHandlers_MacAccessibleHandler_Initialize
  * Method:    terminate
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_AccessibleHandlers_MacAccessibleHandler_Terminate
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Accessibility_MacAccessibleHandler_Terminate
   (JNIEnv *env, jobject jobj);
 
 #ifdef __cplusplus

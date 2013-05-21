@@ -12,7 +12,7 @@ MacAccessibleHandler* handler;
 
 // This function implements the Initialize function defined in the MacAccessibleHandler.java
 // It instantiates a MacAccessibleHandler class and calls this instance's initialize function.
-JNIEXPORT void JNICALL Java_AccessibleHandlers_MacAccessibleHandler_Initialize(JNIEnv *env, jobject jobj)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Accessibility_MacAccessibleHandler_Initialize(JNIEnv *env, jobject jobj)
 {
 	handler = [MacAccessibleHandler alloc];
 	[handler initialize: env object: jobj];
@@ -20,7 +20,7 @@ JNIEXPORT void JNICALL Java_AccessibleHandlers_MacAccessibleHandler_Initialize(J
 
 // This function implements the Terminate function defined in the MacAccessibleHandler.java
 // It calls the MacAccessibleHandler instance's terminate function and releases its memory.
-JNIEXPORT void JNICALL Java_AccessibleHandlers_MacAccessibleHandler_Terminate(JNIEnv *env, jobject jobj)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Accessibility_MacAccessibleHandler_Terminate(JNIEnv *env, jobject jobj)
 {
 	[handler terminate];
 	[handler release];
