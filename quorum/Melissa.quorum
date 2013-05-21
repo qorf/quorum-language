@@ -1,18 +1,21 @@
-//use MusicalChairs
+use Libraries.Accessibility.all
+use Libraries.Sound.Speech
+use Libraries.Containers.Array
 
-class Main
+class Main is EverythingObserver
+
+    Speech speech
+    action RecieveEvent(AccessibilityEvent event)
+        speech:Say(event:GetDescription())
+        //print event:GetDescription()
+    end
 
     action Main()
-    value = ""
-    integer v = 0
-    //v = (cast(integer, (input("hello"))))
-    //output v
-    value = "hi" + value:GetUnicodeValue(2313) + "."
-    output value
-    
+        AccessibilityManager acc
+        acc:Add(me)
+        acc:Start()
 
-    end
-    action GetNum() returns integer
-        return 5
+        repeat while true
+        end
     end
 end

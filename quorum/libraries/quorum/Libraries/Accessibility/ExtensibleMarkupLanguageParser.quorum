@@ -1,0 +1,138 @@
+package Libraries.Accessibility
+
+use Libraries.Containers.all
+use Libraries.Containers.Support.ArrayIterator
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Accessibility.KeyboardEvent
+use Libraries.Language.Types.Text
+
+/*
+    The ExtensibleMarkupLanguageParser class is used to parse XML text that that 
+    it is given into AccessibilityEvent object. The XML is formatted to follow 
+    the XML guidlines in the Legam Screen Reader XML documentation.
+
+    Attribute: Example
+
+    ExtensibleMarkupLanguageParser parser
+    AccessibilityEvent e = parser:ParseEvent(event)
+    text type = parser:GetType()
+
+*/
+class ExtensibleMarkupLanguageParser 
+
+    private text parsedXML
+
+    /*
+        This action returns an array to represent the parsed XML text it was given.
+
+        Attribute: Parameter event Text in XML format to represent an event.
+
+        Attribute: Returns an array to represent the XML.
+
+        Attribute: Example
+
+        ExtensibleMarkupLanguageParser parser
+        Array<text> parsedXML = parser:Parse(toParse)
+    */
+    system action Parse(text toParse) returns text
+
+
+
+    system action GetCategory() returns text
+    
+    system action GetAct() returns text
+
+    system action GetComponent() returns text
+
+    system action GetComponentName() returns text
+
+    system action GetPosition() returns text
+
+    system action GetButton() returns text
+
+    system action GetKey() returns text
+
+    /*
+        This action returns an AccessibilityEvent after parsing the XML text 
+        it was passed.
+
+        Attribute: Parameter event Text in XML format to represent an event.
+
+        Attribute: Returns an AccessibilityEvent to represent the XML text it 
+        was passed.
+
+        Attribute: Example
+
+        ExtensibleMarkupLanguageParser parser
+        AccessibilityEvent e = parser:ParseEvent(event)
+    */
+    action ParseEvent(text toParse) returns AccessibilityEvent
+        //print toParse
+        //parsedXML = Parse(toParse)
+        //toParse = RemoveHeader(toParse)
+        //print "in"
+        text cat = Parse(toParse)
+        //text cat = parsedXML
+        //print "1"
+        if cat = "Keyboard"
+            KeyboardEvent kevent
+            kevent:SetCategory(cat)
+            kevent:SetAct(GetAct())
+            kevent:SetKey(GetKey())
+            return kevent
+        elseif cat = "Mouse"
+            MouseEvent mevent
+            mevent:SetCategory(cat)
+            mevent:SetAct(GetAct())
+            mevent:SetPosition(GetPosition())
+            mevent:SetButton(GetButton())  
+            return mevent
+        else
+            SystemEvent sevent
+            sevent:SetCategory(cat)
+            sevent:SetAct(GetAct())
+            sevent:SetComponent(GetComponent())
+            sevent:SetComponentName(GetComponentName())   
+            return sevent
+        end 
+    end
+
+    /*
+        This action returns the type of observer (Mouse, Keyboard, Focus, 
+        Window, or Everything) the event should be sorted to.
+
+        Attribute: Returns the text of the type of observer ("Keyboard","Mouse",
+        "Focus","Window","System") or "Other" if it does not fall into any of 
+        the above.
+
+        Attribute: Example
+
+        ExtensibleMarkupLanguageParser parser
+        text type = parser:GetType(event)
+    */
+    action GetType(text toParse) returns text
+        //parsedXML = Parse(toParse)
+
+        text cat = Parse(toParse)
+        //text cat = parsedXML
+        text type
+
+        if cat = "Keyboard"
+            type = "Keyboard"
+        elseif cat = "Mouse"
+            type = "Mouse"
+        elseif cat = "Focus"
+            type = "Focus"
+        elseif cat = "Window"
+            type = "Window"
+        elseif (cat = "Notification") or (cat = "Menu") or (cat = "PropertyChange")
+            type = "System"
+        else
+            type = "Other"
+        end
+
+        return type
+            
+    end
+
+end
