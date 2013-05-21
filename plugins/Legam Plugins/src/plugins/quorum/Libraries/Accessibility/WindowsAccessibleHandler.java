@@ -12,11 +12,11 @@ public class WindowsAccessibleHandler extends AccessibleHandler {
         manager = m;
         if (System.getProperty("os.arch").equals("x86"))
         {
-            System.load(System.getProperty("user.dir") + "\\resources\\WindowsAccessibleHandler\\x64\\WindowsAccessibleHandler.dll");
+            System.load(System.getProperty("user.dir") + "\\resources\\WindowsAccessibleHandler\\WindowsAccessibleHandler32.dll");
         }
         else
         {
-            System.load(System.getProperty("user.dir") + "\\resources\\WindowsAccessibleHandler\\x64\\WindowsAccessibleHandler.dll");
+            System.load(System.getProperty("user.dir") + "\\resources\\WindowsAccessibleHandler\\WindowsAccessibleHandler64.dll");
         }
     }
     
