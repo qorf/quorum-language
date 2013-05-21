@@ -16,7 +16,7 @@ The goal of this lab is to learn the following:
 </ul>
 <h2>Overview</h2>
 <p>
-This lab demonstrates the use of the <tt>Music</tt> library in Quorum. The <tt>Music</tt> library can be used to play individual notes, chords, or even entire musical compositions. You will write a program that plays a song of yyour own composition, and you will share this song with yyour classmates. While building yyour musical piece, you will also take advantage of a feature of Sodbeans known as <i>code completion</i>, which allows us to find and read about actions and classes you are unfamiliar with. 
+This lab demonstrates the use of the <tt>Music</tt> library in Quorum. The <tt>Music</tt> library can be used to play individual notes, chords, or even entire musical compositions. You will write a program that plays a song of your own composition, and you will share this song with your classmates. While building your musical piece, you will also take advantage of a feature of Sodbeans known as <i>code completion</i>, which allows us to find and read about actions and classes you are unfamiliar with. 
 </p>
 <h2>Task 1: Getting Started</h2>
 <p>
@@ -35,6 +35,7 @@ Language
 Robots
 Sound
 System
+Web
 </code></pre></p>
 <p>
 Select <strong><tt>Sound</tt></strong> by using the arrow keys and pressing Enter. Type a period to bring up the code completion menu again. You should see the library you are looking for, called <strong><tt>Music</tt></strong>.
@@ -55,7 +56,7 @@ An example use of the <tt>Play</tt> action might look like this:
 muse:Play(60, 1)
 </code></pre></p>
 <p>
-This line of code will play a middle C note for a total of one second. The note will sound on a piano. Add this line of code now, and run the program. There should be no errors, and sound should be heard from the computer speakers (make sure the volume is turned up)! If yyour program does not compile, fix the compiler errors and try again.
+This line of code will play a middle C note for a total of one second. The note will sound on a piano. Add this line of code now, and run the program. There should be no errors, and sound should be heard from the computer speakers (make sure the volume is turned up)! If your program does not compile, fix the compiler errors and try again.
 </p>
 <p>
 Create a word document and answer the following questions:
@@ -63,7 +64,7 @@ Create a word document and answer the following questions:
 <ol><li>What is the full line of code that tells Quorum that you want to use the <tt>Music</tt> library?
 </li><li>How many options does the <tt>Sound</tt> package have (hint: pull up code completion)?
 </li><li>How many different actions does the <tt>Music</tt> class have?
-</li><li>What is the action that plays a note? Include its parameters, and provide an example different from code shown in the lab. Explain in plain english what yyour example does.
+</li><li>What is the action that plays a note? Include its parameters, and provide an example different from code shown in the lab. Explain in plain english what your example does.
 </li></ol>
 <h2>Task 2: Creating a Custom Song</h2>
 <p>
