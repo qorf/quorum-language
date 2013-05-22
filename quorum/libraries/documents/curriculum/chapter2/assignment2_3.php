@@ -14,7 +14,7 @@ The goal of this assignment is to learn the following:
 </ul>
 <h2>Overview</h2>
 <p>
-  In this assignment, you will write a program that plays music with a combination of notes and chords.  This assignment allows you to create yyour own songs by combining single notes and chords. Create a new project and name it <strong>Assignment2_3</strong>.
+  In this assignment, you will write a program that plays music with a combination of notes and chords.  This assignment allows you to create your own songs by combining single notes and chords. Create a new project and name it <strong>Assignment2_3</strong>.
 </p>
 <p>
 So far, you have focused on using the <tt>Play</tt> feature in the <tt>Music</tt> class to play single notes. This feature can also be used to play multiple notes at once, called <i>chords</i>. In this assignment, you will create a piece of music utilizing both single notes and chords to create a piece of music that lasts at least one minute.
