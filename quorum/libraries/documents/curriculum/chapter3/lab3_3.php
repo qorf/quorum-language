@@ -25,7 +25,7 @@ DateTime dateTime
 say dateTime:GetMonth() + &quot;/&quot; + dateTime:GetDayOfMonth() + &quot;/&quot; + dateTime:GetYear()
 </code></pre></p>
 <p>
-In the sample code above, the DateTime object is being instantiated in the first line.  Then, in the second line, the DateTime object is used to get the month, day of month, and year.  All three methods return an integer value from the system.  The output in the month/day/year format is shown below:
+In the sample code above, the DateTime object is being instantiated in the first line.  Then, on the second line, the DateTime object is used to get the month, day of month, and year.  All three methods return an integer value from the system.  The output in the month/day/year format is shown below:
 </p>
 <p><pre class="code"><code>
 1/17/2012
@@ -44,7 +44,7 @@ The output in hour:minute:second format is shown below:
 12:28:54
 </code></pre></p>
 <p>
-For more information about the DateTime class, check out the documentation for the <a href="../../../../Libraries/System/DateTime.html">DateTime class</a>.
+For more information about the DateTime class, check out the documentation for the <a href="../../../../Libraries/System/DateTime.php">DateTime class</a>.
 </p>
 <h2>Task 2: Write a Date/Time Program</h2>
 <p>
