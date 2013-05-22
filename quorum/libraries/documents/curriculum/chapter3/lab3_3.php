@@ -109,14 +109,14 @@ meeting date: 1/31
 meeting date: 2/7
 </code></pre></p>
 <p>
-The meetings given by your program should list the next three meetings, every 7 days from the current date. To test your program for more dates increase the number of times the loop executes. Make sure the number isn't to high, it could take a long time to say all those dates!
+The meetings given by your program should list the next three meetings, every 7 days from the current date. To test your program for more dates increase the number of times the loop executes. Make sure the number isn't too high, it could take a long time to say all those dates!
 </p>
 <h2>Task 4: Use the Debugger</h2>
 <p>
 It’s time to try out the Sodbeans debugger!  The goal of this task is to help you become familiar with the functionality of the debugger in Sodbeans.  The debugger has controls, such as pause, continue, breakpoints, and step over, to navigate through the code in debugger mode.
 </p>
 <p>
-The debugger is a tool in Quorum that helps you solve complicated logic problems in your code.  It executes the program line by line to keep track of what is going on at runtime and observe the behavior of your code.  The debugger issues steps to check the current state of a program and the value of variables.  Steps are commands that execute one line of code or part of the program.
+The debugger is a tool in Quorum that helps you solve complicated logic problems in your code.  It executes the program line by line so that you can keep track of what is going on at runtime and observe the behavior of your code.  The debugger issues steps to check the current state of a program and the value of variables.  Steps are commands that execute one line of code or part of the program.
 </p>
 <p>
 Quorum's debugger offers different types of functionality to help you debug your code.
