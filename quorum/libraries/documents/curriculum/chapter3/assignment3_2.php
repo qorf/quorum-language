@@ -19,7 +19,7 @@ The goal of this assignment is to learn the following:
 </p>
 <h2>Task 1</h2>
 <p>
-Before getting started with this assignment, create a new project and name it <b>GuesingGame</b>. All code should be written in the main.quorum file, as before.
+Before getting started with this assignment, create a new project and name it <b>GuessingGame</b>. All code should be written in the main.quorum file, as before.
 </p>
 <p>
 Your program should:
