@@ -15,7 +15,7 @@ public abstract class AccessibleHandler
     private static final OperatingSystem os = OperatingSystem.getOS();
     private static boolean isLoaded = false;
     private static final Logger logger =
-            Logger.getLogger("org.sodbeans.phonemic.TextToSpeechFactory");
+            Logger.getLogger("plugins.quorum.Libraries.Accessibility.AccessibleHandler");
     
     
     public abstract void Initialize();
@@ -26,7 +26,7 @@ public abstract class AccessibleHandler
 
         if (os == OperatingSystem.MAC_OSX) {
             try {
-                loadLibrary(System.getProperty("user.dir") + "/resources/MacAccessibleHandler/MacAccessibleHandler.dylib");
+                loadLibrary("MacAccessibleHandler.dylib");
             }
             catch (Exception e) {
                 StackTraceElement[] stackTrace = e.getStackTrace();
@@ -38,30 +38,17 @@ public abstract class AccessibleHandler
                 logger.log(Level.SEVERE, "Could not load carbon library. " +
                     getStackTraceString(stackTrace));
             }
-
-            /*if (carbonLibraryLoaded) {
-                // yay! we can use carbon
-                carbonSpeak = new CarbonSpeak();;
-                speech.setSpeech(carbonSpeak);
-                isLoaded = true;
-            }
-            else {
-                // Revert to using the `say' command line utility
-                appleSaySpeak = new AppleSaySpeak();
-                speech.setSpeech(appleSaySpeak);
-                isLoaded = true;
-            }*/
         }
         else if(isWindows()) {
 
             try {
                 if (System.getProperty("os.arch").equals("x86"))
                 {
-                    loadLibrary(System.getProperty("user.dir") + "\\resources\\WindowsAccessibleHandler\\WindowsAccessibleHandler32.dll");
+                    loadLibrary("WindowsAccessibleHandler32.dll");
                 }
                 else
                 {
-                    loadLibrary(System.getProperty("user.dir") + "\\resources\\WindowsAccessibleHandler\\WindowsAccessibleHandler64.dll");
+                    loadLibrary("WindowsAccessibleHandler64.dll");
                 }
                 isLoaded = true;
             }
@@ -101,21 +88,24 @@ public abstract class AccessibleHandler
      */
     private static void loadLibraryRelative(String lib){
         boolean libFound = false;
-        String JNIRoot = new File(
-            AccessibleHandler.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent();
+        File folder = new File(
+            AccessibleHandler.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+        folder = folder.getParentFile();
+        String JNIRoot = 
+                new File(folder.getAbsolutePath() + "\\libraries").getAbsolutePath();
         String JNIPath;
         String libFullName = lib;
 
         // Make the full library name
         if (isWindows()) {
-            libFullName = lib + ".dll";
+            libFullName = lib;
         }
         else if (os == OperatingSystem.MAC_OSX) {
-            libFullName = "lib" + lib + ".jnilib";
+            libFullName = lib;
         }
         else if (os == OperatingSystem.LINUX)
         {
-            libFullName = "lib" + lib + ".so";
+            libFullName = "lib";
         }
 
         // Figure out the proper JNIPath and load the library.
