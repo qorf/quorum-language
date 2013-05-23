@@ -116,7 +116,6 @@ public abstract class AccessibleHandler
         }
         else {
             JNIPath = JNIRoot.replaceAll("\\%20", " ") + "/jni";
-            System.out.println("RESULT: " +JNIPath + "/" + libFullName);
             System.load(JNIPath + "/" + libFullName);
         }
     }
