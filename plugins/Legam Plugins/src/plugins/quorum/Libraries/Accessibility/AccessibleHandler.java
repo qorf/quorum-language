@@ -91,17 +91,18 @@ public abstract class AccessibleHandler
         File folder = new File(
             AccessibleHandler.class.getProtectionDomain().getCodeSource().getLocation().getPath());
         folder = folder.getParentFile();
-        String JNIRoot = 
-                new File(folder.getAbsolutePath() + "\\libraries").getAbsolutePath();
+        String JNIRoot = null;
         String JNIPath;
         String libFullName = lib;
 
         // Make the full library name
         if (isWindows()) {
             libFullName = lib;
+            JNIRoot = new File(folder.getAbsolutePath() + "\\libraries").getAbsolutePath();
         }
         else if (os == OperatingSystem.MAC_OSX) {
             libFullName = lib;
+            JNIRoot = new File(folder.getAbsolutePath() + "/libraries").getAbsolutePath();
         }
         else if (os == OperatingSystem.LINUX)
         {
@@ -115,6 +116,7 @@ public abstract class AccessibleHandler
         }
         else {
             JNIPath = JNIRoot.replaceAll("\\%20", " ") + "/jni";
+            System.out.println("RESULT: " +JNIPath + "/" + libFullName);
             System.load(JNIPath + "/" + libFullName);
         }
     }
