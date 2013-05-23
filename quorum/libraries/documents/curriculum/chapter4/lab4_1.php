@@ -52,7 +52,7 @@ GreetUser()
 output &quot;Back from GreetUser().&quot;
 </code></pre></p>
 <p>
-your code in the Sodbeans editor should now look like the following:
+Your code in the Sodbeans editor should now look like the following:
 </p>
 <p><pre class="code"><code>
 class Main
@@ -85,7 +85,7 @@ action GetUserBalance
 end
 </code></pre></p>
 <p>
-You will also need to add code to your <tt>Main</tt> method to call this action. your <tt>main.quorum</tt> file now looks like so:
+You will also need to add code to your <tt>Main</tt> method to call this action. Your <tt>main.quorum</tt> file now looks like so:
 </p>
 <p><pre class="code"><code>
 class Main
@@ -108,7 +108,7 @@ end
 Notice that you called <tt>GetUserBalance</tt> in the exact same way you called <tt>GreetUser</tt> previously.
 </p>
 <p>
-Run the program. your program will prompt You to enter a dollar amount. After you do, you will see something similar to the output below in the Sodbeans Output Window.
+Run the program. Your program will prompt You to enter a dollar amount. After you do, you will see something similar to the output below in the Sodbeans Output Window.
 </p>
 <p><pre class="code"><code>
 Hello there.
@@ -147,7 +147,7 @@ You receive this error because your previous line for calling <tt>GreetUser</tt>
 GreetUser(&quot;Jeff&quot;)
 </code></pre></p>
 <p>
-Like before, you are still using an open parenthesis after the action name to indicate that the action will be called. However, you are no longer leaving it empty--instead, you are specifying a <tt>text</tt> value. Feel free to replace <tt>"Jeff"</tt> with your own name. your full program will now look like this:
+Like before, you are still using an open parenthesis after the action name to indicate that the action will be called. However, you are no longer leaving it empty--instead, you are specifying a <tt>text</tt> value. Feel free to replace <tt>"Jeff"</tt> with your own name. Your full program will now look like this:
 </p>
 <p><pre class="code"><code>
 class Main
@@ -200,7 +200,7 @@ end
 This code introduces You to two new keywords. On the first line of this code, you see the keyword <tt>returns</tt>. This keyword tells Quorum what type your action will return. The second keyword, <tt>return</tt>, actually specifies <i>what</i> you are returning. In this case, your action returns a type of <tt>integer</tt>, and returns the variable <tt>amount</tt>, which contains the dollar amount the user entered.
 </p>
 <p>
-Before you continue, run the program. your program no longer prints the value that the user entered. However, unlike before, you can now retrieve the value that the user entered and use it outside of the <tt>GetUserBalance</tt> action. You can utilize its return value by calling the action in a slightly different way. When an action returns a value, the action can be used in any expression that requires that type. Let's define an integer variable <tt>amount</tt>, and assign it the return value of <tt>GetUserBalance</tt>:
+Before you continue, run the program. Your program no longer prints the value that the user entered. However, unlike before, you can now retrieve the value that the user entered and use it outside of the <tt>GetUserBalance</tt> action. You can utilize its return value by calling the action in a slightly different way. When an action returns a value, the action can be used in any expression that requires that type. Let's define an integer variable <tt>amount</tt>, and assign it the return value of <tt>GetUserBalance</tt>:
 </p>
 <p><pre class="code"><code>
 integer amount = GetUserBalance()
