@@ -8,7 +8,7 @@
 <ol><li>Following Pascal naming conventions, declare a class called Animal with a Main action.
 </li><li>Explain the difference between implicit and explicit class declarations
 </li><li>Explain the relationship between classes and objects.
-4.What is the idea that certain parts of an object should be hidden?
+</li><li>What is the idea that certain parts of an object should be hidden?
 </li><li>What is the idea that some words or symbols that you type into a text editor might have different meanings in different contexts?
 </li><li>The keyword to gain access to a package is what?
 </li><li>What two methods can one class use to access the variables of another class?
@@ -23,7 +23,7 @@
 </li></ol>
 <h2>Essay Questions</h2>
 <ol><li> One of the biggest benefits to Object Oriented Programming is code reusability and maintainability. Explain why.
-</li><li> Question 2. In order to use an array in Quorum you have to include “use Libraries.Containers.Array”. In comparison, you don’t have to include any other statement to create primitive data types, “integer x = 0” for example. What are the implications of this? What are some differences between the two types?
+</li><li> In order to use an array in Quorum you have to include “use Libraries.Containers.Array”. In comparison, you don’t have to include any other statement to create primitive data types, “integer x = 0” for example. What are the implications of this? What are some differences between the two types?
 </li></ol>
 <h2>In Class Lab Assignments</h2>
 <ul>
