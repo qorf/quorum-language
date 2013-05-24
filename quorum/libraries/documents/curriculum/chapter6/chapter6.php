@@ -8,7 +8,7 @@
 <li>What is the keyword used to inherit a class?</li>
 <li>List at least three pros of inheritance.</li>
 <li>Create a class that inherits another class.</li>
-<li>What is the difference between a derived class and a base class(a parent and child class)?</li>
+<li>What is the difference between a derived class and a base class(a child and parent class)?</li>
 <li>What is a blueprint and what does it do?</li>
 <li>What is the keyword for creating a blueprint, and where does it go in an action?</li>
 <li>Are you able to instantiate an object of a class with only blueprint actions? Why or why not?</li>
