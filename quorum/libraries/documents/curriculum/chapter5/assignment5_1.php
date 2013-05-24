@@ -113,7 +113,7 @@ In this assignment you will be creating a program that mimics a radio. The user 
         Before you begin, think about how you might change the note that's played based only on the user's input<br />
     </li>
     <li>
-        If you use a repeat statement, and don't change the variable you're using for note it will play the same sound for as long as the user specified<br />
+        If you use a repeat statement, and don't change the variable you're using for note, it will play the same sound for as long as the user specified<br />
     </li>
     <li>
         Within the repeat structure you're able to change the variable, so consider how you might change it to make it a more complex sound, rather than playing one note over and over again<br />
@@ -122,7 +122,7 @@ In this assignment you will be creating a program that mimics a radio. The user 
         Another consideration is that you want to make unique sounds for each station selected, but the human ear has a limited range of pitches it's able to hear. So it might take some tinkering to make it so every station played for an unknown amount of time produces an audible sound<br />
     </li>
     <li>
-        When you want to speak a word in the Sodbeans environment it's common to use the output statement. This is beneficial because it prints to the Sodbeans Command Window, and it also speaks it in an auditory format. It should be noted that when using quorum from anywhere else, like the command line for example, this isn't the case. The output statement will only output to a Command Window. The Say statement, however, will speak the command in an auditory format in other environments. So for this program, it's acceptable to use the output statement to accomplish both tasks, as you are working in Sodbeans, but if you choose to work in a different environment down the road, this is something to be aware of.
+        When you want to speak a word in the Sodbeans environment it's common to use the output statement. This is beneficial because it prints to the Sodbeans Output Window, and it also speaks it in an auditory format. It should be noted that when using quorum from anywhere else, like the command line for example, this isn't the case. The output statement will only output to a Command Window. The Say statement, however, will speak the command in an auditory format in other environments. So for this program, it's acceptable to use the output statement to accomplish both tasks, as you are working in Sodbeans. However, if you choose to work in a different environment down the road, this is something to be aware of.
     </li>
 </ul>
 <h2>Sample Output</h2>
