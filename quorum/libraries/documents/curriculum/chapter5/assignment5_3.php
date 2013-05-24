@@ -56,7 +56,7 @@ class Student
     end
 end
 </pre><p>
-In <strong>main.quorum</strong> you will need to define two Arrays one to store <tt>Student</tt> objects and another to store grades, <tt>integer</tt>. Once you have defined these arrays you can start to construct each student and their grades. Define two students with the names and grades listed below:
+In <strong>main.quorum</strong> you will need to define two arrays: one to store <tt>Student</tt> objects and another to store grades, an <tt>integer</tt>. Once you have defined these arrays you can start to construct each student and their grades. Define two students with the names and grades listed below:
 </p>
 <p>
 <br />
@@ -72,7 +72,7 @@ Once this information is stored you can loop through the Array of students and o
 </p>
 <ul><li>Get the student from the array.
 </li><li>Output or say the student name and the array index the student was found at.
-</li><li>Calculate the students grade.
+</li><li>Calculate the student's grade.
 </li><li>Output or say the grade of the student
 </li></ul><h2>Sample Output</h2>
 <pre class="code">student jenny is at array index 0
@@ -84,7 +84,7 @@ john's grade is a B
 </li><li>There should be a total of 2 files.
 <ul><li>main.quorum
 </li><li>Student.quorum
-</li></ul></li><li>Each file should have a corresponding class defined in the file.
+</li></ul></li><li>Each file should have the corresponding class defined in the file.
 </li><li>Use appropriate variables to store and keep track of values (including class variables).
 </li><li>You should implement each action given in the assignment specification.
 </li></ul>
