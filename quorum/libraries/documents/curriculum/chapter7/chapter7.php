@@ -50,9 +50,9 @@
             90, 30, 15, 50, 60, 20, 25, 45
         </li>
     </ol>
-    <li>
+    <!--<li>
         Starting with an empty bst, in what order must you insert the items to get the following tree?
-    </li>
+    </li> Commented out because there is no "following tree" - incomplete question -->
     <li>
         What is a hash function?
     </li>
