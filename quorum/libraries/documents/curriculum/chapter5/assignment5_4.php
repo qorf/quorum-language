@@ -15,7 +15,7 @@ The goal of this assignment is to learn the following:
 </li><li>How to use objects
 </li></ul><h2>Overview</h2>
 <p>
-The game of pig is a dice rolling game. In this game a player will play against the computer in an attempt to bank a total of 100 or more points. Sounds easy, but there is a catch, if either a player or the computer rolls a 1 their turn ends and no points are added onto the players total.
+The game of pig is a dice rolling game. In this game a player will play against the computer in an attempt to bank a total of 100 or more points. Sounds easy, but there is a catch, if either the player or the computer rolls a 1 their turn ends and no points are added onto the players total.
 </p>
 <p>
 Here are the rules of the game:
