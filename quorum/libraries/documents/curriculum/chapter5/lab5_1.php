@@ -14,7 +14,7 @@ The goal of this lab is to learn the following:
 </ul>
 <h2>Overview</h2>
 <p>
-In this lab you will learn about classes and how they can be used. You will start by looking at the code for a basic class named Animal, then you will code a few simple methods for the class and you will observe how you're able to change the class's attributes. The goal of this lab is to give you the foundation in classes needed for moving on to the next labs, and subsequent programming assignments.
+In this lab you will learn about classes and how they can be used. You will start by looking at the code for a basic class named Animal, then you will code a few simple methods for the class and you will observe how you're able to change the class's attributes. The goal of this lab is to give you the foundation in classes needed for moving onto the next labs and subsequent programming assignments.
 </p>
 <h2>Task 1: Getting started</h2>
 <p>
@@ -31,7 +31,7 @@ end
 </code></pre></p>
 <h2>Task 2: Creating Basic Actions</h2>
 <p>
-First, you will code the foundation of your code.
+First, you will create the foundation of your code.
 </p>
 <p><pre class="code"><code>
 class Animal
@@ -125,7 +125,7 @@ end
 From this foundation you should be able to code a few more characteristics, and a few more methods. Most animals have legs, so let's add a legs variable similar to your arm variable. Let's also add a variable so you can give your animal a name like &quot;Fido.&quot; Don't forget to add methods that allow the user to change those variables as well.
 </p>
 <p>
-So by the time you're finished you should have 4 variables: arms, legs, name, and color. And these four methods: &quot;Display&quot;, &quot;ChangeArms&quot;, &quot;ChangeLegs&quot;, &quot;ChangeColor&quot;, and &quot;ChangeName&quot;.
+So by the time you're finished you should have 4 variables: arms, legs, name, and color. It should also have these 5 methods: &quot;Display&quot;, &quot;ChangeArms&quot;, &quot;ChangeLegs&quot;, &quot;ChangeColor&quot;, and &quot;ChangeName&quot;.
 </p>
 
  <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>
