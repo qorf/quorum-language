@@ -41,17 +41,17 @@ In the <tt>Circle</tt> class, add the class variable <b>radius</b> of type <tt>n
 </p>
 <h2>Task 3: Inheriting Actions From Another Class</h2>
 <p>
-  Now that you have your getter and setter for radius, you need to inherit those methods in class <tt>Sphere</tt>. To inherit the actions of another class, tell Sodbeans that "class A" is a "B". The keywords here are "is a" which is used to inherit one class into another. Lets rewrite class <tt>Sphere</tt> so that Sodbeans knows class <tt>Sphere</tt> is inheriting the actions of class <tt>Circle</tt>. Your code should look similar to the following:
+  Now that you have your getter and setter for radius, you need to inherit those methods in class <tt>Sphere</tt>. To inherit the actions of another class, tell Sodbeans that "class A" is a "B". The keywords here are "is" which is used to inherit one class into another. Lets rewrite class <tt>Sphere</tt> so that Sodbeans knows class <tt>Sphere</tt> is inheriting the actions of class <tt>Circle</tt>. Your code should look similar to the following:
 </p>
 <p><pre class="code"><code>
-class Sphere is a Circle
+class Sphere is Circle
 end
 </code></pre></p>
 <p>
   Great! Now use the <tt>SetRadius</tt> method you declared in class <tt>Circle</tt> to create a radius for Sphere. This time, you will get user input for the radius, and use that input as an argument to <tt>SetRadius</tt>:
 </p>
 <p><pre class="code"><code>
-  class Sphere is a Circle    //creates a hierarchy, where sphere is inheriting from Circle
+  class Sphere is Circle    //creates a hierarchy, where sphere is inheriting from Circle
   action SphereSetRadius
   SetRadius(cast(number, input("Enter a radius")))  //this is a method declared in our Circle class
   end
