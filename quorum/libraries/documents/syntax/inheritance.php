@@ -26,7 +26,7 @@ class Truck is LandVehicle
 end
 </code></pre></p>
 <p>
-    In this case, the word <i>is a</i> indicates that our Truck inherits from a 
+    In this case, the word <i>is</i> indicates that our Truck inherits from a 
     LandVehicle. Since our Truck is a LandVehicle, Truck now has access to the 
     features and attributes of the LandVehicle.
 </p>
@@ -73,8 +73,8 @@ end
     In this example a truck object is created. Then the number of wheels the truck 
     has is set to 4 and the number of wheels a truck has is assigned to a 
     variable (a). Notice the truck can call the methods that were defined in the 
-    LandVehicle object. This is possible because a Truck <i>is a</i> LandVehicle. 
-    The result is that a string, &quot;A truck has 4 wheels&quot;, printed to 
+    LandVehicle object. This is possible because a Truck <i>is </i>a LandVehicle. 
+    The result is that a string, &quot;A truck has 4 wheels&quot;, is printed to 
     the console.
 </p>
 <h2>Parent and Me References</h2>
