@@ -1,5 +1,7 @@
 package plugins.quorum.Libraries.Accessibility;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 
 /**
@@ -8,17 +10,17 @@ import javax.swing.SwingUtilities;
  */
 public class AccessibilityManager {
     public Object $me;
-    static AccessibleHandler hander;
+    static AccessibleHandler handler;
     
     public AccessibilityManager()
     {
         if ((System.getProperty("os.name")).contains("Windows"))
         {
-            hander = new WindowsAccessibleHandler(this);
+            handler = new WindowsAccessibleHandler(this);
         }
         else
         {
-            hander = new MacAccessibleHandler(this);
+            handler = new MacAccessibleHandler(this);
         }
     }
     
@@ -26,17 +28,23 @@ public class AccessibilityManager {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                hander.Initialize();
+                handler.Initialize();
             }
         };
                 
         SwingUtilities.invokeLater(runnable);  
-        
-        //System.out.println("After SwingUtilities.invokeLater");
+        try {
+            Object o = new Object();
+            synchronized(o) {
+                o.wait();
+            }
+        } catch (InterruptedException ex) {
+            Logger.getLogger(AccessibilityManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     public void Stop() {
-        hander.Terminate();
+        handler.Terminate();
     } 
     
     public void RecieveEvent(String eventInfo) {

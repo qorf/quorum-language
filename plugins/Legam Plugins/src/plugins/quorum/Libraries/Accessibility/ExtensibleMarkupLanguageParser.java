@@ -114,7 +114,7 @@ public class ExtensibleMarkupLanguageParser {
         return category;
     }
     
-    public String GetAct() {
+    public String GetAction() {
         return act;
     }
 
