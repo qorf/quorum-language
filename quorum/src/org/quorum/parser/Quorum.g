@@ -1257,7 +1257,6 @@ atom 	:
 	| BOOLEAN
 	| (MINUS)? DECIMAL 
 	| STRING
-	| QUOTE
 	| NULL
 	| ME
 	| INPUT LEFT_PAREN expression RIGHT_PAREN
@@ -1273,7 +1272,6 @@ OUTPUT	:	'output';
 ON	:	'on';
 DESTROY	:	'destroy';
 CREATE	:	'create';
-QUOTE	:	'quote';
 CONSTANT	:	'constant';
 ELSE_IF :	'elseif';
 ME	:	'me';

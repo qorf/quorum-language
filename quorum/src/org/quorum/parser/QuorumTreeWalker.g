@@ -2367,22 +2367,6 @@ expression	returns[ExpressionValue eval, ExecutionStep step]
 		$step = result.getStep();
 		$eval.getResult().getType().setExpressionLevel(expressionDepth);
 	}
-	|	QUOTE
-	{
-		LineInformation location = new LineInformation (
-			$QUOTE.getLine(),
-			$QUOTE.getLine(),
-			$QUOTE.getCharPositionInLine(),
-			$QUOTE.getCharPositionInLine() + $QUOTE.text.length()
-		);
-		location.setFile(fileName);
-		//we must pass three double quotes because normal strings strip out the beginning and the end.
-		ResultTuple result = stepFactory.addMoveStep(temp, location, "\"\"\"");
-		temp = result.getNextRegister();
-		$eval = result.getValue();
-		$step = result.getStep();
-		$eval.getResult().getType().setExpressionLevel(expressionDepth);
-	}
 	|	NULL
 	{
 		LineInformation location = new LineInformation (
