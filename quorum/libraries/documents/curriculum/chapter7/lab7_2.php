@@ -165,8 +165,7 @@
     In class <tt>Compute</tt>, create an array and a list. A list can be made using the same syntax as the array:
 </p>
 <pre class="code">
-    List&lt;integer&gt;
-    myList
+    List&lt;integer&gt; myList
     Array&lt;integer&gt; myArray
 </pre>
 <p>
