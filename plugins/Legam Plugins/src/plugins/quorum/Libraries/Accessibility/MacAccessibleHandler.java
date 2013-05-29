@@ -8,7 +8,7 @@ public class MacAccessibleHandler extends AccessibleHandler {
     
     public MacAccessibleHandler(AccessibilityManager m) {
         manager = m;
-        System.load(System.getProperty("user.dir") + "/resources/MacAccessibleHandler/MacAccessibleHandler.dylib");
+        //System.load(System.getProperty("user.dir") + "/resources/MacAccessibleHandler/MacAccessibleHandler.dylib");
     }
     
     @Override
