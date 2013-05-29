@@ -12,7 +12,7 @@ use Libraries.Accessibility.AccessibilityEvent
 
     KeyboardEvent kevent
     kevent:SetCategory("Window")
-    kevent:SetAct("MoveOrResize")
+    kevent:SetAction("MoveOrResize")
     kevent:SetComponent("Window")
     kevent:SetComponentName("Sodbeans")
     say(kevent:GetDescription())
@@ -59,9 +59,9 @@ class SystemEvent is AccessibilityEvent
         use Libraries.Accessibility.all
 
         SystemEvent event
-        text act = event:GetAct()
+        text act = event:GetAction()
     */
-    action GetAct() returns text
+    action GetAction() returns text
         return act
     end
 
@@ -127,9 +127,9 @@ class SystemEvent is AccessibilityEvent
         use Libraries.Accessibility.all
 
         SystemEvent event
-        event:SetAct("CreateComponent")
+        event:SetAction("CreateComponent")
     */
-    action SetAct(text newAct)
+    action SetAction(text newAct)
         act = newAct
     end
 

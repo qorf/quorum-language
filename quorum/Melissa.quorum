@@ -5,7 +5,7 @@ use Libraries.Containers.Array
 class Main is EverythingObserver
 
     Speech speech
-    action RecieveEvent(AccessibilityEvent event)
+    action ReceiveEvent(AccessibilityEvent event)
         speech:Say(event:GetDescription())
         //print event:GetDescription()
     end
@@ -14,8 +14,5 @@ class Main is EverythingObserver
         AccessibilityManager acc
         acc:Add(me)
         acc:Start()
-
-        repeat while true
-        end
     end
 end

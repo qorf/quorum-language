@@ -40,7 +40,7 @@ class ExtensibleMarkupLanguageParser
 
     system action GetCategory() returns text
     
-    system action GetAct() returns text
+    system action GetAction() returns text
 
     system action GetComponent() returns text
 
@@ -77,20 +77,20 @@ class ExtensibleMarkupLanguageParser
         if cat = "Keyboard"
             KeyboardEvent kevent
             kevent:SetCategory(cat)
-            kevent:SetAct(GetAct())
+            kevent:SetAction(GetAction())
             kevent:SetKey(GetKey())
             return kevent
         elseif cat = "Mouse"
             MouseEvent mevent
             mevent:SetCategory(cat)
-            mevent:SetAct(GetAct())
+            mevent:SetAction(GetAction())
             mevent:SetPosition(GetPosition())
             mevent:SetButton(GetButton())  
             return mevent
         else
             SystemEvent sevent
             sevent:SetCategory(cat)
-            sevent:SetAct(GetAct())
+            sevent:SetAction(GetAction())
             sevent:SetComponent(GetComponent())
             sevent:SetComponentName(GetComponentName())   
             return sevent

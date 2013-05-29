@@ -10,7 +10,7 @@ package Libraries.Accessibility
 
     KeyboardEvent kevent
     kevent:SetCategory("Mouse")
-    kevent:SetAct("Click")
+    kevent:SetAction("Click")
     kevent:SetPosition(123,456)
     kevent:SetButton("Left")
     say(kevent:GetDescription())
@@ -56,9 +56,9 @@ class MouseEvent is AccessibilityEvent
         use Libraries.Accessibility.all
 
         MouseEvent event
-        text act = event:GetAct()
+        text act = event:GetAction()
     */
-    action GetAct() returns text
+    action GetAction() returns text
         return act
     end
 
@@ -124,9 +124,9 @@ class MouseEvent is AccessibilityEvent
         use Libraries.Accessibility.all
 
         MouseEvent event
-        event:SetAct("Click")
+        event:SetAction("Click")
     */
-    action SetAct(text newAct)
+    action SetAction(text newAct)
         act = newAct
     end
 
@@ -141,7 +141,7 @@ class MouseEvent is AccessibilityEvent
         use Libraries.Accessibility.all
 
         MouseEvent event
-        event:SetAct("300 , 523")
+        event:SetAction("300 , 523")
     */
     action SetPosition(text newPosition)
         position = newPosition
@@ -158,7 +158,7 @@ class MouseEvent is AccessibilityEvent
         use Libraries.Accessibility.all
 
         MouseEvent event
-        event:SetAct("300 , 523")
+        event:SetAction("300 , 523")
     */
     action SetPosition(integer x, integer y)
         position = "" + x + " , " + y

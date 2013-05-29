@@ -687,50 +687,50 @@ class AccessibilityManager
             Iterator<MouseObserver> mObservers = GetMouseObservers()
             repeat until not(mObservers:HasNext())
                 MouseObserver item = mObservers:Next()
-                item:RecieveEvent(e)
+                item:ReceiveEvent(e)
             end
 
 //            repeat until not(eObservers:HasNext())
 //                EverythingObserver item = eObservers:Next()
-//                item:RecieveEvent(e)
+//                item:ReceiveEvent(e)
 //            end
         elseif type = "Keyboard"
             Iterator<KeyboardObserver> kObservers = GetKeyboardObservers()
             repeat until not(kObservers:HasNext())
                 KeyboardObserver item = kObservers:Next()
-                item:RecieveEvent(e)
+                item:ReceiveEvent(e)
             end
 
 //            repeat until not(eObservers:HasNext())
 //                EverythingObserver item = eObservers:Next()
-//                item:RecieveEvent(e)
+//                item:ReceiveEvent(e)
 //            end
         elseif type = "Focus"
             Iterator<FocusObserver> fObservers = GetFocusObservers()
             repeat until not(fObservers:HasNext())
                 FocusObserver item = fObservers:Next()
-                item:RecieveEvent(e)
+                item:ReceiveEvent(e)
             end
 
             repeat until not(eObservers:HasNext())
                 EverythingObserver item = eObservers:Next()
-                item:RecieveEvent(e)
+                item:ReceiveEvent(e)
             end
         elseif type = "Window"
             Iterator<WindowObserver> wObservers = GetWindowObservers()
             repeat until not(wObservers:HasNext())
                 WindowObserver item = wObservers:Next()
-                item:RecieveEvent(e)
+                item:ReceiveEvent(e)
             end
 
             repeat until not(eObservers:HasNext())
                 EverythingObserver item = eObservers:Next()
-                item:RecieveEvent(e)
+                item:ReceiveEvent(e)
             end
        elseif type = "System"
             repeat until not(eObservers:HasNext())
                 EverythingObserver item = eObservers:Next()
-                item:RecieveEvent(e)
+                item:ReceiveEvent(e)
             end
         end
     end

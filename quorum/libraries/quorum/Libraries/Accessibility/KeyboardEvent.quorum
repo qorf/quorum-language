@@ -11,7 +11,7 @@ package Libraries.Accessibility
 
     KeyboardEvent kevent
     kevent:SetCategory("Keyboard")
-    kevent:SetAct("KeyPress")
+    kevent:SetAction("KeyPress")
     kevent:SetKey("Alt")
     say(kevent:GetDescription())
 
@@ -53,9 +53,9 @@ class KeyboardEvent is AccessibilityEvent
         use Libraries.Accessibility.all
 
         KeyboardEvent event
-        text act = event:GetAct()
+        text act = event:GetAction()
     */
-    action GetAct() returns text
+    action GetAction() returns text
         return act
     end
 
@@ -104,9 +104,9 @@ class KeyboardEvent is AccessibilityEvent
         use Libraries.Accessibility.all
 
         KeyboardEvent event
-        event:SetAct("KeyPress")
+        event:SetAction("KeyPress")
     */
-    action SetAct(text newAct)
+    action SetAction(text newAct)
         act = newAct
     end
 
