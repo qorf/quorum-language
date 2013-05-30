@@ -828,6 +828,13 @@ public class SymbolTable {
         return currentScope;
     }
 
+    public ClassDescriptor getMainClass(){
+        Iterator<MethodDescriptor> iterator = mainMethods.values().iterator();
+        if(iterator.hasNext()){
+            return (ClassDescriptor) iterator.next().getParent();
+        }
+        return null;
+    }
     /**
      * Generates a key indicating whether a particular file, class, or method
      * is a "Main" key, meaning whether the Virtual machine can enter into
@@ -965,6 +972,24 @@ public class SymbolTable {
                             errorManager.setErrorKey(next.getFile().getFile().getAbsolutePath());
                             errorManager.addError(error);
                     }
+                }
+            }
+            
+                            
+            ClassDescriptor classDescriptor = getMainClass();
+            if(classDescriptor.equals(next)){
+                Iterator<BlueprintDescriptor> blueprints = classDescriptor.getUnImplementedInheritedBlueprints();
+                while(blueprints.hasNext()){
+                    BlueprintDescriptor blue = blueprints.next();
+                    CompilerError error = new CompilerError(
+                                            1,
+                                            "You cannot instantiate the abstract class "
+                                            + classDescriptor.getName() + ". This class does not have an implemention for the " + blue.getMethodSignature(false) + " blueprint in the " + ((ClassDescriptor)blue.getParent()).getName() +" class.", ErrorType.INSTANTIATE_ABSTRACT);
+
+                    CompilerErrorManager errorManager = getVirtualMachine().getCompilerErrors();
+                    errorManager.setErrorKey(next.getFile().getFile().getAbsolutePath());
+                    errorManager.addError(error);
+
                 }
             }
             //check to see if this class is already an object

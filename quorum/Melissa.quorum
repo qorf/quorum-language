@@ -1,18 +1,17 @@
 use Libraries.Accessibility.all
 use Libraries.Sound.Speech
 use Libraries.Containers.Array
-
 class Main is EverythingObserver
-
-    Speech speech
-    action ReceiveEvent(AccessibilityEvent event)
-        speech:Say(event:GetDescription())
-        //print event:GetDescription()
-    end
-
-    action Main()
-        AccessibilityManager acc
-        acc:Add(me)
-        acc:Start()
-    end
+Speech speech
+action RecieveEvent(AccessibilityEvent event)
+speech:Say(event:GetDescription())
+//print event:GetDescription()
+end
+action Main()
+AccessibilityManager acc
+acc:Add(me)
+acc:Start()
+repeat while true
+end
+end
 end
