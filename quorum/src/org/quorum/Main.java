@@ -588,9 +588,12 @@ public class Main {
   " for the root of all addresses. If you need to make changes to your web"+
   " project, re-compile the code and restart the server.\n\n"+
        
-  "-update  This will cause Quorum to check the Internet for updates to"
-                + " 1) the updater, 2) the compiler itself, 3) all libraries"
-                + " used in the language, and 4) all compiler plugins.\n\n"+
+  "-java This will cause Quorum to compile using a java .jar file as an additional"
+                + "dependency for the compiler (e.g., quorum -java myjar.jar Main.quorum). " +
+  
+//  "-update  This will cause Quorum to check the Internet for updates to"
+//                + " 1) the updater, 2) the compiler itself, 3) all libraries"
+//                + " used in the language, and 4) all compiler plugins.\n\n"+
                 
                 
   "-name [String] This sets the name which is output for the corresponding distribution files."+
