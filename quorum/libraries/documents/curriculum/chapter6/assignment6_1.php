@@ -62,16 +62,16 @@ Class <tt>Shape</tt> will contain Getter and Setter actions for the following va
 </p>
 <ul>
     <li>
-        <tt>number side</tt> //the length of a side of a square, or cube.
+        <tt>number side</tt> - the length of a side of a square or cube.
     </li>
     <li>
-        <tt>number height</tt> //the height of a triangle
+        <tt>number height</tt> - the height of a triangle
     </li>
     <li>
-        <tt>number radius</tt>
+        <tt>number radius</tt> - half the diameter of a circle
     </li>
     <li>
-        <tt>number base</tt> //the length of the base of a triangle
+        <tt>number base</tt> - the length of the base of a triangle
     </li>
 </ul>
 <p>
