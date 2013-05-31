@@ -88,7 +88,7 @@
   Now that your parent class has the needed actions, you will implement classes <tt>Cat</tt>, <tt>Dog</tt>, and <tt>Lizard</tt>. Using inheritance, write actions for each of the before mentioned classes that will prompt the user to input a value that will be used for each of the setter actions you made in class <tt>Pet</tt> (weight in pounds, sleep in hours, playtime in hours, and number of toys). Also, implement the <tt>PetNoise</tt> action in such a way that it overrides the default message with a noise that each of the respective animals would make (woof, meow, etc.). Recall that you had two variables of type text, one for food, and one for gender in the parent class. For each of the child classes, create actions that will return the text entered by the user for these two variables. An example of such an action might look like this:
 </p>
 <pre class="code">
-  class Cat is a Pet
+  class Cat is Pet
     action AskWeight()
         number pounds = cast(number, input("How heavy is your cat?")) //casting to type number is done in one go with an input statement.
         parent:Pet:SetWeight(pounds) //uses the keyword parent to access actions in the Pet class.
