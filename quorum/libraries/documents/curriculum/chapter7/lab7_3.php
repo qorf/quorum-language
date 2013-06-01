@@ -39,13 +39,13 @@
   integer result = 0
   integer divisor = cast(integer, input("divide by?"))
   result = 12/divisor
-  detect e of type DivideByZeroError
+  detect e is DivideByZeroError
   say "Error detected" + e:GetErrorMessage() //prints the error that occurred
   result = 12/1
   end
 </pre>
 <p>
-  In the above example, you enclose code that might cause an error to be thrown in the check block, and use the detect block to specify the type of error to handle, and how to handle it (set result = 12/1). Detect uses the format detect &lt name &gt of type &lt error type="" &gt where name is a name of your choosing, and the error type is the error you expect to be thrown. As with if/elseif/else, you end a check/detect with the keyword end.
+  In the above example, you enclose code that might cause an error to be thrown in the check block, and use the detect block to specify the type of error to handle, and how to handle it (set result = 12/1). Detect uses the format detect &lt name &gt is &lt error type="" &gt where name is a name of your choosing, and the error type is the error you expect to be thrown. As with if/elseif/else, you end a check/detect with the keyword end.
 </p>
 <h2>Getting Started (Part A)</h2>
 <p>
