@@ -8,28 +8,27 @@
 	</div>
 </div>
 <div class="content index-content">
-<h2>Sodbeans 4.0 - June 9th, 2013</h2>
+<h2>Sodbeans 4.0 - June 6th, 2013</h2>
 <p>In this release, we focused on creating a commercially scalable version of the omniscient 
 talking debugger in Quorum. This significantly increases the applicability of 
 the approach toward real-world applications, in addition to providing a proof of 
-concept is possible for at least the JVM languages. In addition, we made a number
+concept for the JVM languages. In addition, we made a number
 of small changes to improve the usability of Quorum in the development environment.</p>
     <ul> 
     <li> <strong>Talking Omniscient Debugger 2.0</strong>: The talking omniscient
-        debugger is now commercial scale and much more advanced. In our view, 
-        this is a significant breakthrough in building accessible debuggers
-        for the blind and has been on the drawing board for more than three years.
-        <ul><li>Based on the excellent <a href=""http://pleiad.dcc.uchile.cl/tod/">TOD architecture</a> out of the University of Chile. </li>
+        debugger is now commercial scale and much more advanced. This version works
+        paves the way for building accessible debuggers for other JVM languages, such
+        as Java.
+        <ul><li>Based on the excellent <a href=""http://pleiad.dcc.uchile.cl/tod/">TOD architecture</a> 
+                out of the University of Chile. </li>
             <li>Made significant improvements to the auditory cues for the talking
             debugger. It should now be, hopefully, even more obvious to a blind
             or visually impaired user what is going on in the debugger.</li>
-            <li>Added an omniscient call stack window, allowing one to roll-back
-            to any point in the execution history.</li>
-            <li>Added a variable history window so a user can, either by sight or
-            through audio, roll-back to any point in a variable's history.</li>
+            <li>Added a call stack window.</li>
+            <li>Implemented the pause button.</li>
             <li>Unlike TOD, the Quorum debugger tracks control flow information. 
                 This makes our debugger slightly slower, but allows the user to work using a somewhat more
-            traditional user interface.</li>
+                traditional user interface.</li>
             <li>Added a significant amount of architecture for looking at the history
             of variables. We have not yet decided what we will do with it, but there
             are significant options now for future research.</li>
@@ -43,8 +42,6 @@ of small changes to improve the usability of Quorum in the development environme
             several minor bugs have been fixed in this system.</li>
             
         </ul></li>
-        <li>Continued work on adding Braille support into Sodbeans. It is still
-        not finished in this release, but we are making good progress.</li>
         <li>Upgraded all module dependencies to work under the 7.3 branch, 
         including the latest Java Development Kit release. This update now
         requires JDK 7 Update 10 or above, even on Mac OS X.</li>
