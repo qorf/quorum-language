@@ -386,7 +386,7 @@ solo_method_call
 		}
 		e = expression 
 		{
-			if(builder.getCurrentMethod() != null && startLocation != builder.getCurrentMethod().getSteps().size() -1){
+			if(builder.getCurrentMethod() != null && startLocation < builder.getCurrentMethod().getSteps().size() -1){
 				builder.getCurrentMethod().getSteps().get(startLocation).setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
 				$e.step.setExpressionEndPosition(builder.getCurrentMethod().getSteps().size() - 1);
 			}

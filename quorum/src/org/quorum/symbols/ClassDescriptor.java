@@ -120,6 +120,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
      * @return
      */
     public CompilerError add(MethodDescriptor descriptor) {
+        descriptor.setParent(this);
         //this takes into account the potential for overloaded methods.
         CompilerError error = isDefined(descriptor, methods);
         if (error != null) {
@@ -132,13 +133,13 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                 //if it is a constructor
                 error = hasConstructor(descriptor);
                 if(error == null){
-                    descriptor.setParent(this);
+                    //descriptor.setParent(this);
                     constructor = descriptor;
                     return null;
                 }
                 return error;
             }else {
-                descriptor.setParent(this);
+                //descriptor.setParent(this);
                 methods.put(descriptor.getStaticKey(), descriptor);
                 return null;
             }

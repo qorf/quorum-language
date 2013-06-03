@@ -1195,6 +1195,17 @@ public class OtherTester {
     }
     
     @Test
+    public void test_UndefinedVariable_bytecode(){
+        File[] files = new File[1];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.FAIL + "UndefinedVariable.quorum");
+        
+        CompilerTestSuite.build(files);
+        if (vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+    }
+        
+    @Test
     public void test_ReassignConstantUsingMeInPrivateMethod_bytecode(){
         File[] files = new File[1];
         files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.FAIL + "ReassignConstantUsingMeInPrivateMethod.quorum");

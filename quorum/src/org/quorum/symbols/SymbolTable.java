@@ -829,11 +829,11 @@ public class SymbolTable {
     }
 
     public ClassDescriptor getMainClass(){
-        Iterator<MethodDescriptor> iterator = mainMethods.values().iterator();
-        if(iterator.hasNext()){
-            return (ClassDescriptor) iterator.next().getParent();
-        }
-        return null;
+        String main = this.getVirtualMachine().getMain();
+        FileDescriptor mainFile = this.getFileDescriptor(main);
+        ClassDescriptor firstClass = mainFile.getFirstClass();
+        
+        return firstClass;
     }
     /**
      * Generates a key indicating whether a particular file, class, or method

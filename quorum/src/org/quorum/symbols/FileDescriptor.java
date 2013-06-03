@@ -113,6 +113,20 @@ public class FileDescriptor extends Descriptor{
     public Iterator<ClassDescriptor> getClassIterator() {
         return classes.values().iterator();
     }
+    
+    /**
+     * If this file has at least one valid file in it, this method returns
+     * the first one.
+     * 
+     * @return 
+     */
+    public ClassDescriptor getFirstClass() {
+        Iterator<ClassDescriptor> iterator = classes.values().iterator();
+        if(iterator.hasNext()) {
+            return iterator.next();
+        }
+        return null;
+    }
 
     /**
      * @return the name
