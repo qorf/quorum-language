@@ -1,6 +1,6 @@
 <?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <script type="text/javascript">
-    document.title = 'Assignment 8_3';
+    document.title = 'Assignment 8_4';
 </script>
 
 <h1>Challenge Assignment 8.4: Pirate Translator</h1>
