@@ -1,10 +1,9 @@
+use Libraries.Accessibility.AccessibilityManager
+use Libraries.Accessibility.EverythingObserver
 
+AccessibilityManager m
+EverythingObserver o
 
-use Libraries.Containers.Array
-class Main
-action Main
-integer something = 0
-Array<integer> test
-test:Add(nothing) // nothing has not be declared
-end
-end
+m:Add(o)
+m:Start()
+m:Stop()
