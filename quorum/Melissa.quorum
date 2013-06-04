@@ -1,9 +1,19 @@
 use Libraries.Accessibility.AccessibilityManager
 use Libraries.Accessibility.EverythingObserver
+use Libraries.Accessibility.AccessibilityEvent
 
-AccessibilityManager m
-EverythingObserver o
+class Main is EverythingObserver
+    
 
-m:Add(o)
-m:Start()
-m:Stop()
+    action ReceiveEvent(AccessibilityEvent event)
+        
+    end
+
+    action Main
+        AccessibilityManager m
+
+        m:Add(me)
+        m:Start()
+        m:Stop()
+    end
+end
