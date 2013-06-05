@@ -111,6 +111,7 @@ class Attribute is WebGenerator
     end
     
     action Generate returns text
-        return name + "= " + quote + value + quote
+        text a = ""
+        return name + "= " + a:GetDoubleQuote() + value + a:GetDoubleQuote()
     end
 end

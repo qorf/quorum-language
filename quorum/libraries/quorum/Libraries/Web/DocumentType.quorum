@@ -8,11 +8,11 @@ package Libraries.Web
     doctype page</a>.
 
 */
-class DocumentType //is a WebGenerator
+class DocumentType
     constant text html5 = "<!DOCTYPE html>"
-    constant text html4Strict = "<!DOCTYPE HTML PUBLIC " + quote + 
-        "-//W3C//DTD HTML 4.01//EN" + quote + " " +
-         quote + "http://www.w3.org/TR/html4/strict.dtd" + quote + ">"
+    constant text html4Strict = "<!DOCTYPE HTML PUBLIC " + html5:GetDoubleQuote() + 
+        "-//W3C//DTD HTML 4.01//EN" + html5:GetDoubleQuote() + " " +
+         html5:GetDoubleQuote() + "http://www.w3.org/TR/html4/strict.dtd" + html5:GetDoubleQuote() + ">"
 
     text documentType = html5
 
