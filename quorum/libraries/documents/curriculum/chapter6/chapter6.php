@@ -56,6 +56,14 @@
 <li>Create and use a class hierarchical system</li>
 </ul>
 </ul>
+<ul>
+<li><a href="lab6_4.php">Lab Manual 6.4</a></li>
+<ul>
+<li>Learn about inheritance</li>
+<li>Learn about the Libraries.Accessibility classes</li>
+<li>Apply the concept of inheritance to build a screen reader</li>
+</ul>
+</ul>
 <h2>Short Programming Projects</h2>
 <ul>
 <li><a href="assignment6_1.php">Assignment Manual 6.1</a></li>
