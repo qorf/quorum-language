@@ -176,7 +176,7 @@ class KeyboardEvent is AccessibilityEvent
     end
 
     /*
-        This action implements the inherited GetSpecificAction action from the 
+        This action implements the inherited GetMoreActionInformation action from the 
         AccessibilityEvent class. 
 
         There is no further detail available for keyboard events, so this 
@@ -189,9 +189,9 @@ class KeyboardEvent is AccessibilityEvent
         use Libraries.Accessibility.all
 
         KeyboardEvent event
-        text result = event:GetSpecificAction()
+        text result = event:GetMoreActionInformation()
     */
-    action GetSpecificAction() returns text
+    action GetMoreActionInformation() returns text
         return ""
     end
 end

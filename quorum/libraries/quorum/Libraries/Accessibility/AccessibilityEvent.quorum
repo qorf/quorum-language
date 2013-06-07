@@ -72,9 +72,9 @@ class AccessibilityEvent
         use Libraries.Accessibility.all
 
         KeyboardEvent event
-        text result = event:GetSpecificAction()
+        text result = event:GetMoreActionInformation()
     */
-    blueprint action GetSpecificAction() returns text
+    blueprint action GetMoreActionInformation() returns text
 
     blueprint action GetCategory() returns text
 

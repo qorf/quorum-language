@@ -238,7 +238,7 @@ class MouseEvent is AccessibilityEvent
     end
 
     /*
-        This action implements the inherited GetSpecificAction action from the 
+        This action implements the inherited GetMoreActionInformation action from the 
         AccessibilityEvent class. 
 
         For a mouse event this returns the position on the screen of the event.
@@ -250,9 +250,9 @@ class MouseEvent is AccessibilityEvent
         use Libraries.Accessibility.all
 
         MouseEvent event
-        text result = event:GetSpecificAction()
+        text result = event:GetMoreActionInformation()
     */
-    action GetSpecificAction() returns text
+    action GetMoreActionInformation() returns text
         return GetPosition()
     end
 end

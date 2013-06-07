@@ -150,7 +150,11 @@ class SystemEvent is AccessibilityEvent
         event:SetComponent("List")
     */
     action SetComponent(text newComponent)
-        component = newComponent
+        if newComponent = " "
+            component = "item"
+        else
+            component = newComponent
+        end
     end
 
     /*
@@ -235,7 +239,7 @@ class SystemEvent is AccessibilityEvent
     end
 
     /*
-        This action implements the inherited GetSpecificAction action from the 
+        This action implements the inherited GetMoreActionInformation action from the 
         AccessibilityEvent class. 
 
         For a system event this returns the type of object that the event 
@@ -248,9 +252,9 @@ class SystemEvent is AccessibilityEvent
         use Libraries.Accessibility.all
 
         SystemEvent event
-        text result = event:GetSpecificAction()
+        text result = event:GetMoreActionInformation()
     */
-    action GetSpecificAction() returns text
+    action GetMoreActionInformation() returns text
         return GetComponent()
     end
 

@@ -1,10 +1,10 @@
 use Libraries.Accessibility.all
 use Libraries.Sound.Speech
 
-class Observer is MouseObserver
+class Observer is FocusObserver
     Speech speech
     action ReceiveEvent(AccessibilityEvent event)
-        speech:Say(event:GetDescription())
-        output(event:GetName() + "     " + event:GetAction() + "      " + event:GetSpecificAction())
+        speech:Say("The " + event:GetMoreActionInformation() + ", " + event:GetName() + ", was focused.")
+        //output ("You focused the " + event:GetName() + " " + event:GetMoreActionInformation())
     end
 end
