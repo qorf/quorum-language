@@ -1,0 +1,10 @@
+use Libraries.Accessibility.all
+use Libraries.Sound.Speech
+
+class Observer is MouseObserver
+    Speech speech
+    action ReceiveEvent(AccessibilityEvent event)
+        speech:Say(event:GetDescription())
+        output(event:GetName() + "     " + event:GetAction() + "      " + event:GetSpecificAction())
+    end
+end

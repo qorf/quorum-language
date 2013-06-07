@@ -678,13 +678,13 @@ class AccessibilityManager
         boolean result = manager:GetEvent(eventXML)
     */
     action GetEvent(text event)
-        //print event
+        
         AccessibilityEvent e = parser:ParseEvent(event)
         text type = e:GetCategory()
 
         Iterator<EverythingObserver> eObservers = GetEverythingObservers()
 
-        if type = "Mouse"
+        if type = " Mouse " or type = " Mouse" or type = "Mouse " or type = "Mouse"
             Iterator<MouseObserver> mObservers = GetMouseObservers()
             repeat until not(mObservers:HasNext())
                 MouseObserver item = mObservers:Next()

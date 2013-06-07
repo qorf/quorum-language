@@ -31,6 +31,51 @@ class AccessibilityEvent
     */
     blueprint action GetDescription() returns text
 
+    /*
+        This action should return the name of the object that the event happened to.
+        
+        Attribute: Returns the text of the event.
+
+        Attribute: Example
+
+        use Libraries.Accessibility.all
+
+        SystemEvent event
+        text result = event:GetName()
+    */
+    blueprint action GetName() returns text
+
+    /*
+        This action should return the action of what happened during the event.
+        
+        Attribute: Returns text of what the act is.
+
+        Attribute: Example
+
+        use Libraries.Accessibility.all
+
+        MouseEvent event
+        text act = event:GetAction()
+    */
+    blueprint action GetAction() returns text
+
+    /*
+        This action should return more discription of the event that happened. 
+        For mouse events, it is the position on the screen. For system events, 
+        it is the type of object that triggered the event. Keyboard events do 
+        not return any extra description.
+        
+        Attribute: Returns the text of the event.
+
+        Attribute: Example
+
+        use Libraries.Accessibility.all
+
+        KeyboardEvent event
+        text result = event:GetSpecificAction()
+    */
+    blueprint action GetSpecificAction() returns text
+
     blueprint action GetCategory() returns text
 
 end

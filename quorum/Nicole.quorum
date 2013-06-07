@@ -1,20 +1,10 @@
-use Libraries.Accessibility.AccessibilityManager
-use Libraries.Accessibility.KeyboardObserver
-use Libraries.Accessibility.AccessibilityEvent
-use Libraries.Sound.Speech
+use Libraries.Accessibility.all
 
-class Main is KeyboardObserver
-    
-    Speech sp
-    action ReceiveEvent(AccessibilityEvent event)
-        sp:Say(event:GetDescription())
-    end
-
-    action Main
-        AccessibilityManager m
-
-        m:Add(me)
-        m:Start()
-        m:Stop()
+class main
+    action main
+        AccessibilityManager manager
+        Observer fObserver
+        manager:Add(fObserver)
+        manager:Start()
     end
 end

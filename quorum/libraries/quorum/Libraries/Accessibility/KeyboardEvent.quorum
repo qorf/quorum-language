@@ -44,6 +44,9 @@ class KeyboardEvent is AccessibilityEvent
     end
 
     /*
+        This action implements the inherited GetName action from the 
+        AccessibilityEvent class. 
+        
         This action gets the act of the keyboard event. The acts are used to 
         define what keyboard event happened (e.g. KeyPress, KeyRelease).
         
@@ -129,9 +132,12 @@ class KeyboardEvent is AccessibilityEvent
     end
 
     /*
+        This action implements the inherited GetDescription action from the 
+        AccessibilityEvent class. 
+        
         This action gets a string to describe the event.
         
-        Attribute: Parameter value The text of the event.
+        Attribute: Returns the text of the event.
 
         Attribute: Example
 
@@ -144,9 +150,48 @@ class KeyboardEvent is AccessibilityEvent
         boolean pressResult = (act = keyPress)
         
         if pressResult
-            return(key + " Pressed.")
+            return(key + " Released.")
         else
-            return (key + " Released.")
+            return (key + " Pressed.")
         end
+    end
+
+    /*
+        This action implements the inherited GetName action from the 
+        AccessibilityEvent class. 
+        
+        For a keyboard event this returns the name of the key that was pressed.
+        
+        Attribute: Returns the text of the event.
+
+        Attribute: Example
+
+        use Libraries.Accessibility.all
+
+        KeyboardEvent event
+        text result = event:GetName()
+    */
+    action GetName() returns text
+        return GetKey()
+    end
+
+    /*
+        This action implements the inherited GetSpecificAction action from the 
+        AccessibilityEvent class. 
+
+        There is no further detail available for keyboard events, so this 
+        returns an empty text object.
+        
+        Attribute: Returns the text of the event.
+
+        Attribute: Example
+
+        use Libraries.Accessibility.all
+
+        KeyboardEvent event
+        text result = event:GetSpecificAction()
+    */
+    action GetSpecificAction() returns text
+        return ""
     end
 end

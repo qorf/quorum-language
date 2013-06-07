@@ -48,6 +48,9 @@ class MouseEvent is AccessibilityEvent
     end
 
     /*
+        This action implements the inherited GetAction action from the 
+        AccessibilityEvent class. 
+
         This action gets the act of the mouse event. The acts are used to define 
         what mouse event happened (e.g. Move, Click, Release, Wheel).
         
@@ -184,6 +187,9 @@ class MouseEvent is AccessibilityEvent
     end
 
     /*
+        This action implements the inherited GetDescription action from the 
+        AccessibilityEvent class. 
+
         This action gets a string to describe the event.
         
         Attribute: Parameter value The text of the event.
@@ -211,4 +217,42 @@ class MouseEvent is AccessibilityEvent
         end
     end
 
+    /*
+        This action implements the inherited GetName action from the 
+        AccessibilityEvent class. 
+        
+        For a mouse event this returns the name of the button that was used, if 
+        no button was used then it will return an empty string.
+        
+        Attribute: Returns the text of the event.
+
+        Attribute: Example
+
+        use Libraries.Accessibility.all
+
+        MouseEvent event
+        text result = event:GetName()
+    */
+    action GetName() returns text
+        return GetButton()
+    end
+
+    /*
+        This action implements the inherited GetSpecificAction action from the 
+        AccessibilityEvent class. 
+
+        For a mouse event this returns the position on the screen of the event.
+        
+        Attribute: Returns the text of the event.
+
+        Attribute: Example
+
+        use Libraries.Accessibility.all
+
+        MouseEvent event
+        text result = event:GetSpecificAction()
+    */
+    action GetSpecificAction() returns text
+        return GetPosition()
+    end
 end
