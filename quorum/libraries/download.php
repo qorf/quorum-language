@@ -11,16 +11,16 @@
 
 <div class="content download-content">
 	<ul class="download-links">
-		<li class="links-windows"><h2><a href="http://sourceforge.net/projects/quorum/files/Quorum%201.7/Quorum%201.7.exe/download">Download Quorum 2.0 for Windows</a></h2></li>
-		<li class="links-macosx"><h2><a href="http://sourceforge.net/projects/quorum/files/Quorum%201.7/Quorum%201.7.pkg/download">Download Quorum 2.0 for Mac OS X</a></h2></li>
+		<li class="links-windows"><h2><a href="https://sourceforge.net/projects/quorum/files/Quorum%202.0/Quorum%202.0.exe/download">Download Quorum 2.0 for Windows</a></h2></li>
+		<li class="links-macosx"><h2><a href="https://sourceforge.net/projects/quorum/files/Quorum%202.0/Quorum%202.0.pkg/download">Download Quorum 2.0 for Mac OS X</a></h2></li>
 	</ul>
         <ul class="download-links">
-		<li class="links-windows"><h2><a href="http://sourceforge.net/projects/quorum/files/Quorum%201.7/Quorum%201.7.exe/download">Download Sodbeans 4.0 for Windows</a></h2></li>
-		<li class="links-macosx"><h2><a href="http://sourceforge.net/projects/quorum/files/Quorum%201.7/Quorum%201.7.pkg/download">Download Sodbeans 4.0 for Mac OS X</a></h2></li>
+		<li class="links-windows"><h2><a href="https://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_0/Public/Sodbeans%204.0.exe/download">Download Sodbeans 4.0 for Windows</a></h2></li>
+		<li class="links-macosx"><h2><a href="http://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_0/Public/sodbeans-macosx.tgz/download">Download Sodbeans 4.0 for Mac OS X</a></h2></li>
 	</ul>
         <ul class="download-links">
-		<li class="links-windows"><h2><a href="http://sourceforge.net/projects/quorum/files/Quorum%201.7/Quorum%201.7.exe/download">Download Sodbeans 4.0 for Windows (School)</a></h2></li>
-		<li class="links-macosx"><h2><a href="http://sourceforge.net/projects/quorum/files/Quorum%201.7/Quorum%201.7.pkg/download">Download Sodbeans 4.0 for Mac OS X (School)</a></h2></li>
+		<li class="links-windows"><h2><a href="http://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_0/Student/Sodbeans%204.0.exe/download">Download Sodbeans 4.0 for Windows (School)</a></h2></li>
+		<li class="links-macosx"><h2><a href="http://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_0/Student/sodbeans-macosx.tgz/download">Download Sodbeans 4.0 for Mac OS X (School)</a></h2></li>
 	</ul>
 
 	<h1>Getting started with Quorum</h1>
