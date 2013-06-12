@@ -1,19 +1,10 @@
-use Libraries.Accessibility.AccessibilityManager
-use Libraries.Accessibility.EverythingObserver
-use Libraries.Accessibility.AccessibilityEvent
 
-class Main is EverythingObserver
-    
-
-    action ReceiveEvent(AccessibilityEvent event)
-        
-    end
+class Main
+    text t
+    text j = t:GetDoubleQuote()
 
     action Main
-        AccessibilityManager m
-
-        m:Add(me)
-        m:Start()
-        m:Stop()
+    
+        output j
     end
 end

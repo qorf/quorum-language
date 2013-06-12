@@ -3591,7 +3591,7 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             }
         }
 
-        if (!isParameter && !isCalledOnField && !isCalledOnInterface && isStaticCallOnPrimitive) {
+        if (!isParameter && !isCalledOnInterface && isStaticCallOnPrimitive) {
             methodVisitor.visitMethodInsn(INVOKESTATIC, QuorumConverter.convertPrimitiveToObjectPath(step.getParentObject().getType()), "Primitive" + step.getMethodCallee().getName(),
                 QuorumConverter.convertPrimitiveMethodDescriptorToBytecodeSignature(callee,step.getParentObject().getType()));
         }else if (!isParameter && !isCalledOnField && !isCalledOnInterface) {
