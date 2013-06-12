@@ -10,11 +10,15 @@ package Libraries.Web
 */
 class DocumentType
     constant text html5 = "<!DOCTYPE html>"
-    constant text html4Strict = "<!DOCTYPE HTML PUBLIC " + html5:GetDoubleQuote() + 
-        "-//W3C//DTD HTML 4.01//EN" + html5:GetDoubleQuote() + " " +
-         html5:GetDoubleQuote() + "http://www.w3.org/TR/html4/strict.dtd" + html5:GetDoubleQuote() + ">"
+    text html4Strict 
 
     text documentType = html5
+
+    on create 
+        html4Strict = "<!DOCTYPE HTML PUBLIC " + html5:GetDoubleQuote() + 
+        "-//W3C//DTD HTML 4.01//EN" + html5:GetDoubleQuote() + " " +
+         html5:GetDoubleQuote() + "http://www.w3.org/TR/html4/strict.dtd" + html5:GetDoubleQuote() + ">"
+    end
 
     /*
         Sets the document type to html5.
