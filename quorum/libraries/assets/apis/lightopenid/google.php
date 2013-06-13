@@ -22,7 +22,7 @@ if (($_SESSION['extension'] != $extension) && ($extension != null)) {
 }
 
 try {
-    $openid = new LightOpenID("test.quorumlanguage.com"); // "localhost" = our domain
+    $openid = new LightOpenID("quorumlanguage.com"); // "localhost" = our domain
 
     // The user has clicked "Signin With Google" or "Signup with Google".
     if(!$openid->mode) { 
