@@ -3,8 +3,13 @@ use Libraries.Accessibility.all
 class main
     action main
         AccessibilityManager manager
-        Observer fObserver
-        manager:Add(fObserver)
+
+        fObserver focus
+        //manager:Add(focus)
+
+        kObserver ev
+        manager:Add(ev)
+
         manager:Start()
     end
 end

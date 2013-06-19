@@ -1,0 +1,24 @@
+use Libraries.Accessibility.all
+use Libraries.Sound.Speech
+use Libraries.Containers.Array
+
+class fObserver is FocusObserver
+    boolean onDesktop
+    Speech speech
+    Array<text> actions
+
+    action ReceiveEvent(AccessibilityEvent event)
+        if event:GetAction() = "Desktop" or event:GetAction() = "Desktop " or event:GetAction() = " Desktop" or event:GetAction() = " Desktop "
+            onDesktop = true
+            speech:Say(event:GetName() + " focused. ")
+        elseif event:GetAction() = "Component"
+            if event:GetMoreActionInformation() = "ListItem"
+                //speech:Say(event:GetName() )
+            else
+                onDesktop = false
+            end
+        else
+            onDesktop = false
+        end
+    end
+end

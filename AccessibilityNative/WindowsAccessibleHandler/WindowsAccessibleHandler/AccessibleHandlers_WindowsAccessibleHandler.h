@@ -12,7 +12,7 @@ extern "C" {
  * Method:    Initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Accessibility_WindowsAccessibleHandler_Initialize
+JNIEXPORT void JNICALL Java_AccessibleHandlers_WindowsAccessibleHandler_Initialize
   (JNIEnv *, jobject);
 
 /*
@@ -20,7 +20,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Accessibility_WindowsAccess
  * Method:    Terminate
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Accessibility_WindowsAccessibleHandler_Terminate
+JNIEXPORT void JNICALL Java_AccessibleHandlers_WindowsAccessibleHandler_Terminate
   (JNIEnv *, jobject);
 
 #ifdef __cplusplus

@@ -37,7 +37,8 @@ LRESULT CALLBACK MouseEventCallback(int id, WPARAM wparam, LPARAM lparam);
 // XML functions
 string createKeyboardXML(DWORD eventID, string key);
 string createMouseXML(DWORD eventID, string name, string position, string button);
-string createXML(DWORD eventID, string category, string type, string component, string name);
+string createXML(DWORD eventID, string category, string type, string component, string name, string shortcut, long numChildren, string childInfo);
+string createChildXML(string childName, string childRole, string childShortcut);
 string getKeyPressedName(int code);
 void getMouseEventNames(int code, string &button, string &type);
 void getWinEventNames(int code, string &category, string &type);
@@ -62,6 +63,13 @@ const string COMPONENT_TAG = "Component";
 const string READING_TAG = "Reading";
 const string POSITION_TAG = "Position";
 const string MOUSE_BUTTON_TAG = "MouseButton";
+const string SHORTCUT_TAG = "Shortcut";
+const string CHILD_COUNT_TAG = "ChildCount";
+const string CHILDREN_TAG = "Children";
+const string CHILD_TAG = "Child";
+const string CHILD_NAME_TAG = "ChildName";
+const string CHILD_COMPONENT_TAG = "ChildComponent";
+const string CHILD_SHORTCUT_TAG = "ChildName";
 
 // Global Variables
 vector<HWINEVENTHOOK> winEventHookIDs;
@@ -84,7 +92,7 @@ int zero = 0; // simplest way I have found to get rid of extra symbols at the en
 // and sends the appropriate information back to Java that will then be converted to speech.
 // It implements the Initialize function defined in the WindowsAccessibleHandler.java
 // file.
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Accessibility_WindowsAccessibleHandler_Initialize
+JNIEXPORT void JNICALL Java_AccessibleHandlers_WindowsAccessibleHandler_Initialize
   (JNIEnv *env, jobject jobj)
 {
 	// Initialize COM to get the text values from Accessibility objects.
@@ -112,7 +120,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Accessibility_WindowsAccess
 }
 
 // This function stops the message loop thread and unhooks all of the Windows events
-JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Accessibility_WindowsAccessibleHandler_Terminate
+JNIEXPORT void JNICALL Java_AccessibleHandlers_WindowsAccessibleHandler_Terminate
   (JNIEnv *env, jobject jobj)
 {
 	// Stop the message loop thread
@@ -278,9 +286,9 @@ vector<DWORD> CreateEventList()
 void CALLBACK WinEventCallback(HWINEVENTHOOK hook, DWORD eventID, HWND window, LONG idObject, LONG idChild, DWORD dwEventThread, DWORD dwmsEventTime)
 {
 	// Gets the accessiblity object that is the main object for which the event was called.
-	IAccessible* pAcc = NULL;
+	IAccessible* pAccParent = NULL;
 	VARIANT varChild, varRole;
-	HRESULT hr = AccessibleObjectFromEvent(window, idObject, idChild, &pAcc, &varChild);
+	HRESULT hr = AccessibleObjectFromEvent(window, idObject, idChild, &pAccParent, &varChild);
 
 	// Initialize the UIA listener for a new window when it becomes the foreground window.
 	if (eventID == EVENT_SYSTEM_FOREGROUND)
@@ -294,19 +302,20 @@ void CALLBACK WinEventCallback(HWINEVENTHOOK hook, DWORD eventID, HWND window, L
 	}
 
 	// If the object exists
-	if ((hr == S_OK) && (pAcc != NULL))
+	if ((hr == S_OK) && (pAccParent != NULL))
 	{
 		// Get the Accessibility object's name and check if it's valid
 		BSTR nameCom;
-		if (pAcc->get_accName(varChild, &nameCom) == S_OK)
+		if (pAccParent->get_accName(varChild, &nameCom) == S_OK)
 		{
 			// Convert the COM string to a standard C string.
 			_bstr_t nameComT(nameCom);
 			char* name = new char[nameComT.length() + 1];
 			strcpy(name, nameComT);
 
+			// Getting the component type of the IAccessible object
 			string comp;
-			if (pAcc->get_accRole(varChild, &varRole) == S_OK)
+			if (pAccParent->get_accRole(varChild, &varRole) == S_OK)
 			{
 				 comp = getComponentName(varRole);
 			}
@@ -314,8 +323,129 @@ void CALLBACK WinEventCallback(HWINEVENTHOOK hook, DWORD eventID, HWND window, L
 			string cat, ty;
 			getWinEventNames(eventID, cat, ty);
 
+			// Getting the keyboard shortcut of the IAccessible object
+			char* shortcut = "";
+			BSTR keyShortcut;
+			if (pAccParent->get_accKeyboardShortcut(varChild, &keyShortcut) == S_OK)
+			{
+				_bstr_t keyShortcutT(keyShortcut);
+				shortcut = new char[keyShortcutT.length() + 1];
+				strcpy(shortcut, keyShortcutT);
+			}
+
+			// Getting the Children of the IAccessible object
+				long nChild;
+				unsigned long nFetched = 0;
+				bool shouldContinue = true;
+				IEnumVARIANT *pEnum = NULL;
+				VARIANT cvarChild, cvarRole;
+				VariantInit(&cvarChild);
+				IAccessible *pAcc = NULL;
+				IAccessible *pIAccChild = NULL;
+
+				// initialize cvarChild
+				cvarChild.vt = VT_I4;
+				cvarChild.lVal = CHILDID_SELF;
+
+				// initialize pEnum
+				HRESULT hr = pAccParent->QueryInterface(IID_IEnumVARIANT, (PVOID*) &pEnum);
+				if (pEnum)
+					pEnum->Reset();
+
+				string childInfo = "";
+				if ( (pAccParent->get_accChildCount(&nChild) == S_OK) )
+				{
+
+					for (long index = 1; (index < nChild) && shouldContinue; index++)
+					{
+						VariantClear(&cvarChild);
+
+						if (pEnum)
+						{
+							hr = pEnum->Next(1, &cvarChild, &nFetched);
+							if (!SUCCEEDED(hr))
+							{
+								shouldContinue = false;
+								break;
+							}
+						}
+						else
+						{
+							cvarChild.vt = VT_I4;
+							cvarChild.lVal = index;
+						}
+
+						// get IDispatch interface for the child
+						IDispatch *pDisp = NULL;
+
+						if (cvarChild.vt == VT_I4)
+						{
+							hr = pAccParent->get_accChild(cvarChild, &pDisp);
+						}
+						else if (cvarChild.vt == VT_DISPATCH)
+						{
+							pDisp = cvarChild.pdispVal;
+						}
+
+						// get IAccessible interface for the child
+						if (pDisp)
+						{
+							hr = pDisp->QueryInterface(IID_IAccessible, (void**)&pAcc);
+						}
+
+						// get information about the child
+						if (pAcc)
+						{
+							VariantInit(&cvarChild);
+							cvarChild.vt = VT_I4;
+							cvarChild.lVal = CHILDID_SELF;
+							pIAccChild = pAcc;
+						}
+						else
+						{
+							pIAccChild = pAccParent;
+							cvarChild = varChild;
+						}
+
+						///////////////////////////////////// Get info for children 
+						string childName, childRole, childShortcut;
+
+						// component type (role)
+						if (pIAccChild->get_accRole(cvarChild, &cvarRole) == S_OK)
+						{
+							childRole = getComponentName(cvarRole);
+						}
+
+						// name
+						BSTR cnameCom;	
+						if (pIAccChild->get_accName(cvarChild, &cnameCom) == S_OK)
+						{
+							_bstr_t cnameComT(cnameCom);
+							char* cname = new char[cnameComT.length() + 1];
+							strcpy(cname, cnameComT);
+
+							childName += cname;
+						}
+
+						// keyboard shortcut
+						char* cshortcut = "";
+						BSTR ckeyShortcut;
+						if (pIAccChild->get_accKeyboardShortcut(cvarChild, &ckeyShortcut) == S_OK)
+						{
+							_bstr_t ckeyShortcutT(ckeyShortcut);
+							cshortcut = new char[ckeyShortcutT.length() + 1];
+							strcpy(cshortcut, ckeyShortcutT);
+
+							childShortcut += cshortcut;
+						}
+
+						childInfo += createChildXML(childName, childRole, childShortcut);
+						/////////////////////////////////////////
+					}
+				}
+
 			// Create an xml of the event and sets it as a jvalue
-			string xmlString = createXML(eventID, cat, ty, comp, name);
+			string xmlString = createXML(eventID, cat, ty, comp, name, shortcut, nChild, childInfo);
 			xmlString += zero;
 			char* xmlCharArray = new char[xmlString.size()];
 			for ( int i = 0; i < xmlString.size(); i++)
@@ -449,7 +579,7 @@ string createMouseXML(DWORD eventID, string type, string position, string button
 
 // This creates a string of xml to describe the event.
 // The xml is formated according to the Screen Reader XML Spec doccument.
-string createXML(DWORD eventID, string category, string type, string component, string name)
+string createXML(DWORD eventID, string category, string type, string component, string name, string shortcut, long numChildren, string childInfo)
 {
 	string xmlCode = "";
 	xmlCode += (XML_HEADER + "\n");
@@ -468,6 +598,7 @@ string createXML(DWORD eventID, string category, string type, string component, 
 		{
 			xmlCode += ("\t<" + READING_TAG + ">" + name + "</" + READING_TAG + ">\n");
 		}
+		
 	}
 	// Window Events
 	else if ( category == "Window" )
@@ -506,9 +637,39 @@ string createXML(DWORD eventID, string category, string type, string component, 
 		xmlCode += ("\t<" + READING_TAG + ">" + name + "</" + READING_TAG + ">\n");
 	}
 
+	if (shortcut != "")
+		xmlCode += ("\t<" + SHORTCUT_TAG + ">" + shortcut + "</" + SHORTCUT_TAG + ">\n");
+	if (numChildren > 0)
+	{
+		string c;
+		stringstream ss;
+		ss << numChildren;
+		ss >> c;
+
+		xmlCode += ("\t<" + CHILD_COUNT_TAG + ">" + c + "</" + CHILD_COUNT_TAG + ">\n");
+	}
+	if ( (childInfo != "") && (numChildren > 0) )
+		xmlCode += ("\t<" + CHILDREN_TAG + ">\n" + childInfo + "\t</" + CHILDREN_TAG + ">\n");
+
 	xmlCode += ("</" + ROOT_TAG + ">\n");
 
 	return xmlCode;
+}
+
+// This creates a string of xml to describe a single child of an event.
+// This is to be added into the Children tag.
+// The xml is formated according to the Screen Reader XML Spec doccument.
+string createChildXML(string childName, string childRole, string childShortcut)
+{
+	string childXML = "";
+
+	childXML += ("\t\t<" + CHILD_TAG + ">\n");
+	childXML += ("\t\t\t<" + CHILD_NAME_TAG + ">" + childName + "</" + CHILD_NAME_TAG + ">\n");
+	childXML += ("\t\t\t<" + CHILD_COMPONENT_TAG + ">" + childRole + "</" + CHILD_COMPONENT_TAG + ">\n");
+	childXML += ("\t\t\t<" + CHILD_SHORTCUT_TAG + ">" + childShortcut + "</" + CHILD_SHORTCUT_TAG + ">\n");
+	childXML += ("\t\t</" + CHILD_TAG + ">\n");
+
+	return childXML;
 }
 
 // This gets the name of the keyboard event.
