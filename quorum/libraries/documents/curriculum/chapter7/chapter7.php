@@ -121,6 +121,17 @@
         Big O notation and algorithm analysis
     </li>
 </ul>
+<ul>
+    <li>
+        <a href="lab7_4.php">Lab Manual 7.4</a>
+    </li>
+    <li>
+        Using arrays to customize a screen reader
+    </li>
+    <li>
+        Learn about the Libraries.Accessibility classes
+    </li>
+</ul>
 <h2>Short Programming Projects</h2>
 <ul>
     <li>

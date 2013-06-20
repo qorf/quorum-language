@@ -61,7 +61,15 @@
 <ul>
 <li>Learn about inheritance</li>
 <li>Learn about the Libraries.Accessibility classes</li>
-<li>Apply the concept of inheritance to build a screen reader</li>
+<li>Build a screen reader that reads keystrokes</li>
+</ul>
+</ul>
+<ul>
+<li><a href="lab6_5.php">Lab Manual 6.5</a></li>
+<ul>
+<li>Use blueprint actions</li>
+<li>Learn about the Libraries.Accessibility classes</li>
+<li>Build a screen reader that identifies a change in focus</li>
 </ul>
 </ul>
 <h2>Short Programming Projects</h2>
