@@ -80,6 +80,17 @@ class KeyboardEvent is AccessibilityEvent
         return key
     end
 
+
+    action GetKeyboardShortcut() returns text
+        return ""
+    end
+
+
+    action GetChildCount() returns number
+        return 0
+    end
+
+
     /*
         This action sets the category of the keyboard event. The category for 
         mouse events should be "Keyboard".

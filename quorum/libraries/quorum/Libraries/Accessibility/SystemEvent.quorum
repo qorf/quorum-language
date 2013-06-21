@@ -24,6 +24,8 @@ class SystemEvent is AccessibilityEvent
     private text act = ""
     private text component = ""
     private text componentName = ""
+    private text keyboardShortcut = ""
+    private number childCount = 0
 
     constant text focus = "Focus"
     constant text window = "Window"
@@ -258,4 +260,13 @@ class SystemEvent is AccessibilityEvent
         return GetComponent()
     end
 
+    action GetKeyboardShortcut() returns text
+        return keyboardShortcut 
+    end
+
+
+    action GetChildCount() returns number
+        return childCount
+    end
+    
 end

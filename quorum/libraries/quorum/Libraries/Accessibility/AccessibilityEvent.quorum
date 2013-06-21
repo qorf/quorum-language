@@ -76,6 +76,50 @@ class AccessibilityEvent
     */
     blueprint action GetMoreActionInformation() returns text
 
+    /*
+        This action gets the category of the event. This will be one of the 
+        following: Focus, Keyboard, Mouse, Window, Notification, Menu, or 
+        PropertyChange.
+        
+        Attribute: Returns text of what the category is.
+
+        Attribute: Example
+
+        use Libraries.Accessibility.all
+
+        KeyboardEvent event
+        text category = event:GetCategory()
+    */
     blueprint action GetCategory() returns text
 
+
+    /*
+        This action should return the keyboard shortcut for the object that 
+        triggered the event. Only SystemEvents will use this functionality.
+        
+        Attribute: Returns the text of the event.
+
+        Attribute: Example
+
+        use Libraries.Accessibility.all
+
+        SystemEvent event
+        text result = event:GetKeyboardShortcut()
+    */
+    blueprint action GetKeyboardShortcut() returns text
+
+    /*
+        This action should return the number of children for the object that 
+        triggered the event. Only SystemEvents will use this functionality.
+        
+        Attribute: Returns the text of the event.
+
+        Attribute: Example
+
+        use Libraries.Accessibility.all
+
+        SystemEvent event
+        number result = event:GetChildCount()
+    */
+    blueprint action GetChildCount() returns number
 end
