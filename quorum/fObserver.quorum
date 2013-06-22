@@ -3,7 +3,7 @@ use Libraries.Sound.Speech
 use Libraries.Containers.Array
 
 class fObserver is FocusObserver
-    action ReceiveEvent(AccessibilityEvent event)
+    action ReceiveEvent(FocusEvent event)
         //output event:GetDescription()
         text summary = "Name: " + event:GetName() + " Child count:" + event:GetChildCount() +
          " Keyboard Shortcut:" + event:GetKeyboardShortcut()

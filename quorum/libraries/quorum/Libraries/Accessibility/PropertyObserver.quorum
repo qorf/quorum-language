@@ -1,21 +1,22 @@
 package Libraries.Accessibility
 
 /*
-    The KeyboardObserver class provides functionality to output any keyboard 
-    event from the system. 
+    The MenuObserver class provides functionality to output any menu 
+    event from the system. An example of a property even would be a change in the
+    graphic for the cursor.
 
     Attribute: Example
 
     AccessibilityManager manager
-    KeyboardObserver kObserver
-    manager:Add(kObsekrver)
+    PropertyObserver observer
+    manager:Add(observer)
 
     manager:Start()
     manager:Stop()
 
 */
 
-class KeyboardObserver 
+class PropertyObserver 
 
     /*
         This action is a blueprint function that receives an event from the system
@@ -25,10 +26,10 @@ class KeyboardObserver
 
         Attribute: Example
 
-        KeyboardObserver observer
+        PropertyObserver observer
         SystemEvent event
         observer:ReceiveEvent(event)
     */
-    blueprint action ReceiveEvent(KeyboardEvent event)
+    blueprint action ReceiveEvent(PropertyEvent event)
 
 end

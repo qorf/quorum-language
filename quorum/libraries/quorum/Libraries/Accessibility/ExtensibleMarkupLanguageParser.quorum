@@ -78,38 +78,47 @@ class ExtensibleMarkupLanguageParser
         text cat = Parse(toParse)
 
         if cat = "Keyboard"
-            KeyboardEvent kevent
-            kevent:SetCategory(cat)
-            kevent:SetAction(GetAction())
-            kevent:SetKey(GetKey())
-            return kevent
+            KeyboardEvent event
+            event:SetCategory(cat)
+            event:SetAction(GetAction())
+            event:SetKey(GetKey())
+            return event
         elseif cat = "Mouse"
-            MouseEvent mevent
-            mevent:SetCategory(cat)
-            mevent:SetAction(GetAction())
-            mevent:SetPosition(GetPosition())
-            mevent:SetButton(GetButton())  
-            return mevent
+            MouseEvent event
+            event:SetCategory(cat)
+            event:SetAction(GetAction())
+            event:SetPosition(GetPosition())
+            event:SetButton(GetButton())  
+            return event
+        
         else
-            SystemEvent sevent
-            sevent:SetCategory(cat)
-            sevent:SetAction(GetAction())
-            sevent:SetComponent(GetComponent())
-            sevent:SetComponentName(GetComponentName()) 
-            sevent:SetKeyboardShortcut(GetShortcut())
-            sevent:SetChildCount(GetChildCount())
+            SystemEvent event = undefined
+            if cat = "Focus"
+                FocusEvent fevent
+                event = fevent
+            elseif cat = "PropertyChange"
+                PropertyEvent pevent
+                event = pevent
+            end
+
+            event:SetCategory(cat)
+            event:SetAction(GetAction())
+            event:SetComponent(GetComponent())
+            event:SetComponentName(GetComponentName()) 
+            event:SetKeyboardShortcut(GetShortcut())
+            event:SetChildCount(GetChildCount())
             //output GetChildCount()
 
             integer count = 0
-            repeat until count >= sevent:GetChildCount()
+            repeat until count >= event:GetChildCount()
                 AccessibleChild child
                 child:SetName(GetChildName(count))
                 child:SetComponentType(GetChildComponent(count))
                 child:SetKeyboardShortcut(GetChildShortcut(count))
-                sevent:AddChild(child)
+                event:AddChild(child)
                 count = count + 1
             end
-            return sevent
+            return event
         end 
     end
 

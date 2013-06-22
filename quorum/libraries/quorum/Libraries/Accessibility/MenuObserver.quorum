@@ -1,21 +1,21 @@
 package Libraries.Accessibility
 
 /*
-    The KeyboardObserver class provides functionality to output any keyboard 
-    event from the system. 
+    The MenuObserver class provides functionality to output any menu 
+    event from the system. Common examples would be opening or closing a menu.
 
     Attribute: Example
 
     AccessibilityManager manager
-    KeyboardObserver kObserver
-    manager:Add(kObsekrver)
+    MenuObserver observer
+    manager:Add(observer)
 
     manager:Start()
     manager:Stop()
 
 */
 
-class KeyboardObserver 
+class MenuObserver 
 
     /*
         This action is a blueprint function that receives an event from the system
@@ -25,10 +25,10 @@ class KeyboardObserver
 
         Attribute: Example
 
-        KeyboardObserver observer
+        MenuObserver observer
         SystemEvent event
         observer:ReceiveEvent(event)
     */
-    blueprint action ReceiveEvent(KeyboardEvent event)
+    blueprint action ReceiveEvent(MenuEvent event)
 
 end
