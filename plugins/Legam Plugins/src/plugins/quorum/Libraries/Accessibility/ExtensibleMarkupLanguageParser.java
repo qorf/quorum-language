@@ -2,6 +2,8 @@ package plugins.quorum.Libraries.Accessibility;
 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
@@ -23,7 +25,12 @@ public class ExtensibleMarkupLanguageParser {
     public String position;
     public String button;
     public String key;
+    public String shortcut;
+    //public int childCount;
+    public List<List<String>> children;
+    public List<String> child;
     public int numComp;
+    public int childNum;
     
     public String temp;
     
@@ -35,7 +42,11 @@ public class ExtensibleMarkupLanguageParser {
         position = new String();
         button = new String();
         key = new String();
+        shortcut = new String();
         numComp = 0;
+        childNum = 0;
+        children = new ArrayList<List<String>>();
+        child = new ArrayList<String>();
     }
     
     public static void main(String[] args) {
@@ -46,17 +57,16 @@ public class ExtensibleMarkupLanguageParser {
 //            for (int i = 0; i < stackTrace.length; i++) {
 //                System.out.println(stackTrace[i]);
 //            }
-//        System.out.println("Made it in");
-        //System.out.println(toParse);
         String[] values = new String[0];
         numComp = 0;
+        childNum = 0;
         try {
-            //System.out.println("trying");
+            //System.out.println(toParse);
+            
             SAXParserFactory factory = SAXParserFactory.newInstance();
             
-            //System.out.print("between");
             SAXParser parser = factory.newSAXParser();
-            //System.out.println("Before handler");
+
             DefaultHandler handler = new DefaultHandler() {
                 public void startElement(String uri, String localName,String qName, Attributes attributes) throws SAXException {
 
@@ -91,6 +101,31 @@ public class ExtensibleMarkupLanguageParser {
                         button = temp;
                         numComp++;
                     }
+                    if (name.equalsIgnoreCase("Shortcut")) {
+                        shortcut = temp;
+                        numComp++;
+                    }
+                    if (name.equalsIgnoreCase("ChildCount")) {
+                        childNum = Integer.parseInt(temp);
+                        numComp++;
+                    }
+                    if (name.equalsIgnoreCase("Child"))
+                    {
+                        children.add(child);
+                        childNum++;
+                    }
+                    if (name.equalsIgnoreCase("ChildName")) {
+                        child.add(temp);
+                        numComp++;
+                    }
+                    if (name.equalsIgnoreCase("ChildComponent")) {
+                        child.add(temp);
+                        numComp++;
+                    }
+                    if (name.equalsIgnoreCase("ChildShortcut")) {
+                        child.add(temp);
+                        numComp++;
+                    }
                 }
 
                 public void characters(char ch[], int start, int length) throws SAXException {
@@ -98,15 +133,13 @@ public class ExtensibleMarkupLanguageParser {
                 }
             };
             
-            //System.out.println("end of trying");
             parser.parse(new InputSource(new ByteArrayInputStream(toParse.getBytes("utf-8"))), handler);
-            //System.out.println("after parsed");
             
         } catch (Exception e) {
             System.out.println(toParse);
             e.printStackTrace();
         }
-        //System.out.println("end");
+        //System.out.println("java: N:" + componentName + " S:" + shortcut + " C:" + childNum);
         return category;
     }  
     
@@ -136,5 +169,46 @@ public class ExtensibleMarkupLanguageParser {
     
     public String GetKey() {
         return key;
+    }
+    
+    public String GetShortcut() {
+        return shortcut;
+    }
+
+    public int GetChildCount() {
+        return childNum;
+    }
+    
+    public String GetChildName(int childNum) {
+        //System.out.println("get child name");
+        if ( (childNum >= 0) && (childNum < children.size()) )
+        {
+            String[] a = new String[0];
+            return children.get(childNum - 1).get(0);
+        }
+        else
+            return null;
+    }
+    
+    public String GetChildComponent(int childNum) {
+        //System.out.println("get child component");
+        if ( (childNum >= 0) && (childNum < children.size()) )
+        {
+            String[] a = new String[0];
+            return children.get(childNum - 1).get(1);
+        }
+        else
+            return null;
+    }
+    
+    public String GetChildShortcut(int childNum) {
+        //System.out.println("get child shortcut");
+        if ( (childNum >= 0) && (childNum < children.size()) )
+        {
+            String[] a = new String[0];
+            return children.get(childNum - 1).get(2);
+        }
+        else
+            return null;
     }
 }

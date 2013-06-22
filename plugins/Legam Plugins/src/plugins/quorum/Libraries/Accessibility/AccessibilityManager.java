@@ -51,12 +51,23 @@ public class AccessibilityManager {
         eventInfo = eventInfo.replace("\t", "");
         eventInfo = eventInfo.replace("\n", " ");
         eventInfo = eventInfo.replace("&", "&amp");
+        //eventInfo = eventInfo.replace("+", "_");
+        eventInfo = eventInfo.replace("amphl", " ");
         
+        if ( eventInfo.endsWith("</AccessibleEvent>") || eventInfo.endsWith("</AccessibleEvent> ") )
+            eventInfo = eventInfo + "";
+        else
+        {
+            int index = eventInfo.lastIndexOf(">");    
+            eventInfo = eventInfo.substring(0, index+1);
+            eventInfo += "</AccessibleEvent>";
+        }
+        //System.out.println(eventInfo);
         if ($me instanceof quorum.Libraries.Accessibility.AccessibilityManager) {
             quorum.Libraries.Accessibility.AccessibilityManager m = (quorum.Libraries.Accessibility.AccessibilityManager)$me;
             m.GetEvent(eventInfo);
         }
-        //System.out.println(eventInfo);
+        
     }
     
     /**
