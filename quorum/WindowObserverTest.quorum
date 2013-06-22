@@ -1,0 +1,10 @@
+use Libraries.Accessibility.all
+use Libraries.Sound.Speech
+use Libraries.Containers.Array
+
+class WindowObserverTest is WindowObserver
+    action ReceiveEvent(WindowEvent event)
+        output "hello from WindowObserverTest"
+        output event:GetName() + " " + event:GetAction()
+    end
+end

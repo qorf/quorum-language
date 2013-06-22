@@ -1,0 +1,8 @@
+use Libraries.Accessibility.all
+
+class KeyboardObserverTest is KeyboardObserver
+    action ReceiveEvent(KeyboardEvent e)
+        output "hello from KeyboardObserver"
+        output "You pressed " + e:GetKey()
+    end
+end

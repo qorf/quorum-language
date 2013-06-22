@@ -1,0 +1,8 @@
+use Libraries.Accessibility.all
+
+class EverythingObserverTest is EverythingObserver
+    action ReceiveEvent(AccessibilityEvent e)
+        output "hello from EverythingObserver "
+        output "EVERYTHING: " + e:GetName()
+    end
+end

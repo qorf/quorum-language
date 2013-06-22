@@ -1,0 +1,8 @@
+use Libraries.Accessibility.all
+
+class FocusObserverTest is FocusObserver
+    action ReceiveEvent(FocusEvent e)
+        output "hello from FocusObserver"
+        output "Focused on " + e:GetComponent()
+    end
+end

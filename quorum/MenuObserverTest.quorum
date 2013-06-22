@@ -1,0 +1,8 @@
+use Libraries.Accessibility.all
+
+class MenuObserverTest is MenuObserver
+    action ReceiveEvent(MenuEvent e)
+        output "hello from MenuObserver"
+        output "Menu = " + e:GetName()
+    end
+end

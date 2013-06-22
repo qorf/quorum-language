@@ -1,0 +1,8 @@
+use Libraries.Accessibility.all
+
+class MouseObserverTest is MouseObserver
+    action ReceiveEvent(MouseEvent e)
+        output "hello from MouseObserver"
+        output "Mouse at " + e:GetPosition()
+    end
+end
