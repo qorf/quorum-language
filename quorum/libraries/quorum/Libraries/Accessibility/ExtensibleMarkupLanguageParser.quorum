@@ -96,6 +96,12 @@ class ExtensibleMarkupLanguageParser
             if cat = "Focus"
                 FocusEvent fevent
                 event = fevent
+            elseif cat = "Menu"
+                MenuEvent mevent
+                event = mevent
+            elseif cat = "Window"
+                WindowEvent wevent
+                event = wevent
             elseif cat = "PropertyChange"
                 PropertyEvent pevent
                 event = pevent

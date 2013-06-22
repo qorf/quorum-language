@@ -707,12 +707,15 @@ class AccessibilityManager
                 item:ReceiveEvent(focus)
             end
         elseif type = "PropertyChange"
-        
+            
+        elseif type = "Menu"
+            
         elseif type = "Window"
             Iterator<WindowObserver> wObservers = GetWindowObservers()
             repeat until not(wObservers:HasNext())
                 WindowObserver item = wObservers:Next()
-                item:ReceiveEvent(e)
+                WindowEvent window = cast(WindowEvent, e)
+                item:ReceiveEvent(window)
             end
         end
     end
