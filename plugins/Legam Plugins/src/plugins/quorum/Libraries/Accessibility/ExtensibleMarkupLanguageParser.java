@@ -1,9 +1,10 @@
 package plugins.quorum.Libraries.Accessibility;
 
+import java.util.logging.Logger;
 import java.io.ByteArrayInputStream;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
@@ -53,20 +54,11 @@ public class ExtensibleMarkupLanguageParser {
         
     }
     public synchronized String Parse(String toParse) {
-//        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-//            for (int i = 0; i < stackTrace.length; i++) {
-//                System.out.println(stackTrace[i]);
-//            }
-        String[] values = new String[0];
-        numComp = 0;
         childNum = 0;
         try {
             //System.out.println(toParse);
-            
             SAXParserFactory factory = SAXParserFactory.newInstance();
-            
             SAXParser parser = factory.newSAXParser();
-
             DefaultHandler handler = new DefaultHandler() {
                 public void startElement(String uri, String localName,String qName, Attributes attributes) throws SAXException {
 
@@ -75,56 +67,44 @@ public class ExtensibleMarkupLanguageParser {
                 public void endElement(String uri, String localName, String name) throws SAXException {
                     if (name.equalsIgnoreCase("Category")) {
                         category = temp;
-                        numComp++;
                     }
                     if ( (name.equalsIgnoreCase("FocusType")) || (name.equalsIgnoreCase("KeyboardType")) || 
                             (name.equalsIgnoreCase("MouseType")) || (name.equalsIgnoreCase("WindowType")) || 
                             (name.equalsIgnoreCase("NotificationType")) || (name.equalsIgnoreCase("MenuType")) || 
                             (name.equalsIgnoreCase("PropertyChangeType")) ) {
                         act = temp;
-                        numComp++;
                     }
                     if (name.equalsIgnoreCase("Component")) {
                         component = temp;
-                        numComp++;
                     }
                     if (name.equalsIgnoreCase("Reading")) {
                         componentName = temp;
                         key = temp;
-                        numComp++;
                     }
                     if (name.equalsIgnoreCase("Position")) {
                         position = temp;
-                        numComp++;
                     }
                     if (name.equalsIgnoreCase("MouseButton")) {
                         button = temp;
-                        numComp++;
                     }
                     if (name.equalsIgnoreCase("Shortcut")) {
                         shortcut = temp;
-                        numComp++;
                     }
                     if (name.equalsIgnoreCase("ChildCount")) {
                         childNum = Integer.parseInt(temp);
-                        numComp++;
                     }
                     if (name.equalsIgnoreCase("Child"))
                     {
                         children.add(child);
-                        childNum++;
                     }
                     if (name.equalsIgnoreCase("ChildName")) {
                         child.add(temp);
-                        numComp++;
                     }
                     if (name.equalsIgnoreCase("ChildComponent")) {
                         child.add(temp);
-                        numComp++;
                     }
                     if (name.equalsIgnoreCase("ChildShortcut")) {
                         child.add(temp);
-                        numComp++;
                     }
                 }
 
@@ -136,10 +116,10 @@ public class ExtensibleMarkupLanguageParser {
             parser.parse(new InputSource(new ByteArrayInputStream(toParse.getBytes("utf-8"))), handler);
             
         } catch (Exception e) {
-            System.out.println(toParse);
-            e.printStackTrace();
+            Logger logger = Logger.getLogger(ExtensibleMarkupLanguageParser.class.getName());
+            logger.log(Level.INFO, e.getMessage());
         }
-        //System.out.println("java: N:" + componentName + " S:" + shortcut + " C:" + childNum);
+        System.out.println("java: N:" + componentName + " S:" + shortcut + " C:" + childNum);
         return category;
     }  
     
