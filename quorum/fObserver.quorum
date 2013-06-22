@@ -5,14 +5,23 @@ use Libraries.Containers.Array
 class fObserver is FocusObserver
     action ReceiveEvent(AccessibilityEvent event)
         //output event:GetDescription()
-        output event:GetName() + " C:" + event:GetChildCount() + " KS:" + event:GetKeyboardShortcut()
+        text summary = "Name: " + event:GetName() + " Child count:" + event:GetChildCount() +
+         " Keyboard Shortcut:" + event:GetKeyboardShortcut()
+
+         summary = summary + summary:GetCarriageReturn()
+         output summary
         
+         output "*************** Children  ***************" + summary:GetCarriageReturn()
         integer count = 0
         repeat until count >= event:GetChildCount()
             AccessibleChild child
             child = event:GetChild(count)
-            output ("    N:" + child:GetName() + " T:" + child:GetComponentType() + " KS:" + child:GetKeyboardShortcut())
+            output ("    Name:" + child:GetName() + " Type:" + child:GetComponentType() + 
+                " Keyboard shortcut:" + child:GetKeyboardShortcut() + summary:GetCarriageReturn())
+
             count = count + 1
         end
+        output count + " children" + summary:GetCarriageReturn()
+        output "*************** Death to Children  ***************" + summary:GetCarriageReturn()
     end
 end
