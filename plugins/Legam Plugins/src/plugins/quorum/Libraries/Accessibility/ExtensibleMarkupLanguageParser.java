@@ -32,7 +32,6 @@ public class ExtensibleMarkupLanguageParser {
     public List<String> child;
     public int numComp;
     public int childNum;
-    
     public String temp;
     
     public ExtensibleMarkupLanguageParser() {
@@ -91,10 +90,12 @@ public class ExtensibleMarkupLanguageParser {
                     }
                     if (name.equalsIgnoreCase("ChildCount")) {
                         childNum = Integer.parseInt(temp);
+                        System.out.println("temp = " + temp + " " + category + " " + act);
                     }
                     if (name.equalsIgnoreCase("Child"))
                     {
                         children.add(child);
+                        child.clear();
                     }
                     if (name.equalsIgnoreCase("ChildName")) {
                         child.add(temp);
