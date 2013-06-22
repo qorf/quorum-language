@@ -128,7 +128,9 @@ public abstract class AccessibleHandler
     private static boolean isWindows() {
         return (OperatingSystem.WINDOWS7 == os ||
             OperatingSystem.WINDOWS_VISTA == os ||
-            OperatingSystem.WINDOWS_XP == os);
+            OperatingSystem.WINDOWS_XP == os ||
+            OperatingSystem.WINDOWS8 == os ||
+            OperatingSystem.WINDOWS_OTHER == os);
     }
     
     private static String getStackTraceString(StackTraceElement[] elements) {

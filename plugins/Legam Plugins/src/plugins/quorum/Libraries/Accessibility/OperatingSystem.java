@@ -13,6 +13,8 @@ public enum OperatingSystem {
     WINDOWS_XP,
     WINDOWS_VISTA,
     WINDOWS7,
+    WINDOWS8,
+    WINDOWS_OTHER,
     MAC_OSX,
     LINUX;
 
@@ -42,6 +44,12 @@ public enum OperatingSystem {
         }
         else if (os.compareTo("Windows 7") == 0) {
             return WINDOWS7;
+        }
+        else if (os.compareTo("Windows 8") == 0) {
+            return WINDOWS8;
+        } else if (os.contains("Windows")) {
+            // Unidentified Windows system.
+            return WINDOWS_OTHER;
         }
         else if (os.compareTo("Mac OS X") == 0) {
             return MAC_OSX;
