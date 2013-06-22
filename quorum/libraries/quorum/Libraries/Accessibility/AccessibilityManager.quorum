@@ -41,9 +41,6 @@ class AccessibilityManager
     private boolean isFocusObservers = false
     private boolean isWindowObservers = false
     private boolean isEverythingObservers = false
-
-    private ExtensibleMarkupLanguageParser parser
-
     
     /*
         This action adds a KeyboardObserver to the AccessibilityManager.
@@ -678,6 +675,7 @@ class AccessibilityManager
         boolean result = manager:GetEvent(eventXML)
     */
     action GetEvent(text event)
+        ExtensibleMarkupLanguageParser parser
         AccessibilityEvent e = parser:ParseEvent(event)
         text type = e:GetCategory()
 
