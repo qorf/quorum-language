@@ -56,7 +56,6 @@ public class ExtensibleMarkupLanguageParser {
     public synchronized String Parse(String toParse) {
         childNum = 0;
         try {
-            //System.out.println(toParse);
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser parser = factory.newSAXParser();
             DefaultHandler handler = new DefaultHandler() {
