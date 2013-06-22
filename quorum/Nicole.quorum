@@ -5,11 +5,9 @@ class main
         AccessibilityManager manager
 
         fObserver focus
-        //manager:Add(focus)
-
-        kObserver ev
-        manager:Add(ev)
-
+        manager:Add(focus)
+        
+        output "Begin!"
         manager:Start()
     end
 end

@@ -86,7 +86,7 @@ class KeyboardEvent is AccessibilityEvent
     end
 
 
-    action GetChildCount() returns number
+    action GetChildCount() returns integer
         return 0
     end
 
@@ -204,5 +204,14 @@ class KeyboardEvent is AccessibilityEvent
     */
     action GetMoreActionInformation() returns text
         return ""
+    end
+
+    action AddChild(AccessibleChild newChild)
+        
+    end
+
+    action GetChild(integer index) returns AccessibleChild
+        AccessibleChild emptyChild
+        return emptyChild
     end
 end

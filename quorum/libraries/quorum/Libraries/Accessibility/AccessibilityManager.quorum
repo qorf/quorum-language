@@ -678,7 +678,6 @@ class AccessibilityManager
         boolean result = manager:GetEvent(eventXML)
     */
     action GetEvent(text event)
-        
         AccessibilityEvent e = parser:ParseEvent(event)
         text type = e:GetCategory()
 
@@ -728,7 +727,7 @@ class AccessibilityManager
                 EverythingObserver item = eObservers:Next()
                 item:ReceiveEvent(e)
             end
-       elseif type = "System"
+       else
             repeat until not(eObservers:HasNext())
                 EverythingObserver item = eObservers:Next()
                 item:ReceiveEvent(e)

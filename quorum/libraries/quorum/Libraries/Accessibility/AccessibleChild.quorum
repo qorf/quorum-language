@@ -1,0 +1,59 @@
+package Libraries.Accessibility
+
+/*
+    The AccessibleChild stores information about a child of an accessible event.
+
+    Attribute: Example
+
+    AccessibleChild child
+    child:SetName("Edit")
+    child:SetComponentType("MenuItem")
+    child:SetKeyboardShortcut("e")
+    output child:GetName()
+
+*/
+
+class AccessibleChild
+    private text component = ""
+    private text name = ""
+    private text keyboardShortcut = ""
+
+    /*
+        This action gets the component type of the child item. 
+        The component is used to define what object the event happened to 
+        (e.g. Button, Window, Toolbar...).
+        
+        Attribute: Returns text of what the component is.
+
+        Attribute: Example
+
+        use Libraries.Accessibility.all
+
+        AccessibleChild child
+        text componentType = child:GetComponent()
+    */
+    action GetComponentType() returns text
+        return component
+    end
+
+    action GetName() returns text
+        return name
+    end
+
+    action GetKeyboardShortcut() returns text
+        return keyboardShortcut
+    end
+
+    action SetName(text newName)
+        name = newName
+    end
+    
+    action SetComponentType(text newComponent)
+        component = newComponent
+    end
+
+    action SetKeyboardShortcut(text newKeyboardShortcut)
+        keyboardShortcut = newKeyboardShortcut
+    end
+
+end

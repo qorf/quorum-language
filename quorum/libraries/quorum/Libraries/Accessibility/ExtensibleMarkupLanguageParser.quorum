@@ -36,8 +36,6 @@ class ExtensibleMarkupLanguageParser
     */
     system action Parse(text toParse) returns text
 
-
-
     system action GetCategory() returns text
     
     system action GetAction() returns text
@@ -51,6 +49,16 @@ class ExtensibleMarkupLanguageParser
     system action GetButton() returns text
 
     system action GetKey() returns text
+
+    system action GetShortcut() returns text
+
+    system action GetChildCount() returns integer
+
+    system action GetChildName(integer childNum) returns text
+
+    system action GetChildComponent(integer childNum) returns text
+
+    system action GetChildShortcut(integer childNum) returns text
 
     /*
         This action returns an AccessibilityEvent after parsing the XML text 
@@ -67,13 +75,8 @@ class ExtensibleMarkupLanguageParser
         AccessibilityEvent e = parser:ParseEvent(event)
     */
     action ParseEvent(text toParse) returns AccessibilityEvent
-        //print toParse
-        //parsedXML = Parse(toParse)
-        //toParse = RemoveHeader(toParse)
-        //print "in"
         text cat = Parse(toParse)
-        //text cat = parsedXML
-        //print "1"
+
         if cat = "Keyboard"
             KeyboardEvent kevent
             kevent:SetCategory(cat)
@@ -92,7 +95,20 @@ class ExtensibleMarkupLanguageParser
             sevent:SetCategory(cat)
             sevent:SetAction(GetAction())
             sevent:SetComponent(GetComponent())
-            sevent:SetComponentName(GetComponentName())   
+            sevent:SetComponentName(GetComponentName()) 
+            sevent:SetKeyboardShortcut(GetShortcut())
+            sevent:SetChildCount(GetChildCount())
+            //output GetChildCount()
+
+            integer count = 0
+            repeat until count >= sevent:GetChildCount()
+                AccessibleChild child
+                child:SetName(GetChildName(count))
+                child:SetComponentType(GetChildComponent(count))
+                child:SetKeyboardShortcut(GetChildShortcut(count))
+                sevent:AddChild(child)
+                count = count + 1
+            end
             return sevent
         end 
     end

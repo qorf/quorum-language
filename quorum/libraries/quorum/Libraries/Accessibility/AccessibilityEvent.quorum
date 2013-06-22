@@ -121,5 +121,22 @@ class AccessibilityEvent
         SystemEvent event
         number result = event:GetChildCount()
     */
-    blueprint action GetChildCount() returns number
+    blueprint action GetChildCount() returns integer
+
+    /*
+        This action should return a AccessibleChild of the object that 
+        triggered the event at the parameter's index. Only SystemEvents will 
+        use this functionality.
+        
+        Attribute: Returns the AccessibleChild of the event at the index.
+
+        Attribute: Example
+
+        use Libraries.Accessibility.all
+
+        SystemEvent event
+        number result = event:GetChildCount()
+    */
+    blueprint action GetChild(integer index) returns AccessibleChild
+
 end

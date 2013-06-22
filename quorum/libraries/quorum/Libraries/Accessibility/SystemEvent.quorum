@@ -1,6 +1,8 @@
 package Libraries.Accessibility
 
 use Libraries.Accessibility.AccessibilityEvent
+use Libraries.Accessibility.AccessibleChild
+use Libraries.Containers.Array
 
 /*
     The SystemEvent class is used to represent an event that happened on the 
@@ -25,7 +27,8 @@ class SystemEvent is AccessibilityEvent
     private text component = ""
     private text componentName = ""
     private text keyboardShortcut = ""
-    private number childCount = 0
+    private integer childCount = 0
+    private Array<AccessibleChild> children
 
     constant text focus = "Focus"
     constant text window = "Window"
@@ -261,12 +264,32 @@ class SystemEvent is AccessibilityEvent
     end
 
     action GetKeyboardShortcut() returns text
-        return keyboardShortcut 
+        return keyboardShortcut
     end
 
 
-    action GetChildCount() returns number
+    action GetChildCount() returns integer
         return childCount
     end
+
+    action SetKeyboardShortcut(text newShortcut) 
+        keyboardShortcut = newShortcut
+    end
     
+    action SetChildCount(integer newChildCount)
+        childCount = newChildCount
+    end
+
+    action AddChild(AccessibleChild newChild)
+        children:Add(newChild)
+    end
+
+    action GetChild(integer index) returns AccessibleChild
+        if (index > 0) and (index < childCount)
+            return children:Get(index)
+        else
+            AccessibleChild emptyChild
+            return emptyChild
+        end
+    end
 end
