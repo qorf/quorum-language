@@ -119,7 +119,7 @@ public class ExtensibleMarkupLanguageParser {
             Logger logger = Logger.getLogger(ExtensibleMarkupLanguageParser.class.getName());
             logger.log(Level.INFO, e.getMessage());
         }
-        System.out.println("java: N:" + componentName + " S:" + shortcut + " C:" + childNum);
+        //System.out.println("java: N:" + componentName + " S:" + shortcut + " C:" + childNum);
         return category;
     }  
     
