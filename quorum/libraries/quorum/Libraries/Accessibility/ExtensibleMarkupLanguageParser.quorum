@@ -127,10 +127,8 @@ class ExtensibleMarkupLanguageParser
         text type = parser:GetType(event)
     */
     action GetType(text toParse) returns text
-        //parsedXML = Parse(toParse)
-
         text cat = Parse(toParse)
-        //text cat = parsedXML
+        cat = cat:Trim()
         text type
 
         if cat = "Keyboard"

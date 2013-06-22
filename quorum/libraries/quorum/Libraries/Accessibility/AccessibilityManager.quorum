@@ -678,10 +678,10 @@ class AccessibilityManager
         ExtensibleMarkupLanguageParser parser
         AccessibilityEvent e = parser:ParseEvent(event)
         text type = e:GetCategory()
-
+        type = type:Trim()
         Iterator<EverythingObserver> eObservers = GetEverythingObservers()
 
-        if type = " Mouse " or type = " Mouse" or type = "Mouse " or type = "Mouse"
+        if type = "Mouse"
             Iterator<MouseObserver> mObservers = GetMouseObservers()
             repeat until not(mObservers:HasNext())
                 MouseObserver item = mObservers:Next()
