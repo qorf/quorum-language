@@ -48,7 +48,6 @@ public abstract class AccessibleHandler
                 }
                 else
                 {
-                    //System.load("C:\\Users\\jojobubu\\Documents\\QuorumGit\\quorum\\trunk\\quorum\\dependencies\\jni\\WindowsAccessibleHandler64.dll");
                     loadLibrary("WindowsAccessibleHandler64.dll");
                 }
                 isLoaded = true;

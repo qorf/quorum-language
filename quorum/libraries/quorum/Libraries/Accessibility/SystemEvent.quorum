@@ -285,7 +285,7 @@ class SystemEvent is AccessibilityEvent
     end
 
     action GetChild(integer index) returns AccessibleChild
-        if (index > 0) and (index < childCount)
+        if (index >= 0) and (index < childCount)
             return children:Get(index)
         else
             AccessibleChild emptyChild

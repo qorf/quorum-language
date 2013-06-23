@@ -121,7 +121,8 @@ class ExtensibleMarkupLanguageParser
         integer count = 0
         repeat until count >= event:GetChildCount()
             AccessibleChild child
-            child:SetName(GetChildName(count))
+            text childName = GetChildName(count)
+            child:SetName(childName)
             child:SetComponentType(GetChildComponent(count))
             child:SetKeyboardShortcut(GetChildShortcut(count))
             event:AddChild(child)
