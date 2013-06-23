@@ -92,81 +92,19 @@ class ExtensibleMarkupLanguageParser
             return event
         elseif cat = "Focus"
             FocusEvent event
-            event:SetCategory(cat)
-            event:SetAction(GetAction())
-            event:SetComponent(GetComponent())
-            event:SetComponentName(GetComponentName()) 
-            event:SetKeyboardShortcut(GetShortcut())
-            event:SetChildCount(GetChildCount())
-
-            integer count = 0
-            repeat until count >= event:GetChildCount()
-                AccessibleChild child
-                child:SetName(GetChildName(count))
-                child:SetComponentType(GetChildComponent(count))
-                child:SetKeyboardShortcut(GetChildShortcut(count))
-                event:AddChild(child)
-                count = count + 1
-            end
+            SetupSystemEvent(event, cat)
             return event
         elseif cat = "Menu"
             MenuEvent event
-            event:SetCategory(cat)
-            event:SetAction(GetAction())
-            event:SetComponent(GetComponent())
-            event:SetComponentName(GetComponentName()) 
-            event:SetKeyboardShortcut(GetShortcut())
-            event:SetChildCount(GetChildCount())
-
-            integer count = 0
-            repeat until count >= event:GetChildCount()
-                AccessibleChild child
-                child:SetName(GetChildName(count))
-                child:SetComponentType(GetChildComponent(count))
-                child:SetKeyboardShortcut(GetChildShortcut(count))
-                event:AddChild(child)
-                count = count + 1
-            end
+            SetupSystemEvent(event, cat)
             return event
         elseif cat = "PropertyChange"
             PropertyEvent event
-            event:SetCategory(cat)
-            event:SetAction(GetAction())
-            event:SetComponent(GetComponent())
-            event:SetComponentName(GetComponentName()) 
-            event:SetKeyboardShortcut(GetShortcut())
-            event:SetChildCount(GetChildCount())
-
-            integer count = 0
-            repeat until count >= event:GetChildCount()
-                AccessibleChild child
-                child:SetName(GetChildName(count))
-                child:SetComponentType(GetChildComponent(count))
-                child:SetKeyboardShortcut(GetChildShortcut(count))
-                event:AddChild(child)
-                count = count + 1
-            end
+            SetupSystemEvent(event, cat)
             return event
         else
             SystemEvent event
-
-            event:SetCategory(cat)
-            event:SetAction(GetAction())
-            event:SetComponent(GetComponent())
-            event:SetComponentName(GetComponentName()) 
-            event:SetKeyboardShortcut(GetShortcut())
-            event:SetChildCount(GetChildCount())
-            //output GetChildCount()
-
-            integer count = 0
-            repeat until count >= event:GetChildCount()
-                AccessibleChild child
-                child:SetName(GetChildName(count))
-                child:SetComponentType(GetChildComponent(count))
-                child:SetKeyboardShortcut(GetChildShortcut(count))
-                event:AddChild(child)
-                count = count + 1
-            end
+            SetupSystemEvent(event, cat)
             return event
         end 
     end
