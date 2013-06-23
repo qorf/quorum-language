@@ -862,50 +862,50 @@ class AccessibilityManager
         text type = e:GetCategory()
         type = type:Trim()
         Iterator<EverythingObserver> eObservers = GetEverythingObservers()
-
-        repeat until not(eObservers:HasNext())
+        
+        repeat while(eObservers:HasNext())
             EverythingObserver item = eObservers:Next()
             item:ReceiveEvent(e)
         end
 
         if type = mouseEvent
             Iterator<MouseObserver> mObservers = GetMouseObservers()
-            repeat until not(mObservers:HasNext())
+            repeat while(mObservers:HasNext())
                 MouseObserver item = mObservers:Next()
                 MouseEvent mouse = cast(MouseEvent, e)
                 item:ReceiveEvent(mouse)
             end
         elseif type = keyboardEvent
             Iterator<KeyboardObserver> kObservers = GetKeyboardObservers()
-            repeat until not(kObservers:HasNext())
+            repeat while(kObservers:HasNext())
                 KeyboardObserver item = kObservers:Next()
                 KeyboardEvent key = cast(KeyboardEvent, e)
                 item:ReceiveEvent(key)
             end
         elseif type = focusEvent
             Iterator<FocusObserver> fObservers = GetFocusObservers()
-            repeat until not(fObservers:HasNext())
+            repeat while(fObservers:HasNext())
                 FocusObserver item = fObservers:Next()
                 FocusEvent focus = cast(FocusEvent, e)
                 item:ReceiveEvent(focus)
             end
         elseif type = propertyEvent
             Iterator<PropertyObserver> observers = GetPropertyObservers()
-            repeat until not(observers:HasNext())
+            repeat while(observers:HasNext())
                 PropertyObserver item = observers:Next()
                 PropertyEvent property = cast(PropertyEvent, e)
                 item:ReceiveEvent(property)
             end
         elseif type = menuEvent
             Iterator<MenuObserver> observers = GetMenuObservers()
-            repeat until not(observers:HasNext())
+            repeat while(observers:HasNext())
                 MenuObserver item = observers:Next()
                 MenuEvent menu = cast(MenuEvent, e)
                 item:ReceiveEvent(menu)
             end
         elseif type = windowEvent
             Iterator<WindowObserver> wObservers = GetWindowObservers()
-            repeat until not(wObservers:HasNext())
+            repeat while(wObservers:HasNext())
                 WindowObserver item = wObservers:Next()
                 WindowEvent window = cast(WindowEvent, e)
                 item:ReceiveEvent(window)
