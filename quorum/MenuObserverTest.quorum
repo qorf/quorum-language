@@ -2,7 +2,23 @@ use Libraries.Accessibility.all
 
 class MenuObserverTest is MenuObserver
     action ReceiveEvent(MenuEvent e)
-        output "hello from MenuObserver"
-        output "Menu = " + e:GetName()
+        text category = e:GetCategory()
+        text act = e:GetAction()
+        text component = e:GetComponent()
+        text componentName = e:GetComponentName()
+        text description = e:GetDescription()
+        text name = e:GetName()
+        text moreActionInformation = e:GetMoreActionInformation()
+        text keyboardShortcut = e:GetKeyboardShortcut()
+
+        output "category = " + category
+        output "action = " + act
+        output "component = " + component
+        output "componentName = " + componentName
+        output "description = " + description
+        output "name = " + name
+        output "moreActionInformation = " + moreActionInformation
+        output "keyboardShortcut = " + keyboardShortcut
+        output "---------------------------------------------------------------"
     end
 end
