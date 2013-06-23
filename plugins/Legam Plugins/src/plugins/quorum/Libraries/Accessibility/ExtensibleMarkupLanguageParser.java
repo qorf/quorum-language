@@ -73,10 +73,15 @@ public class ExtensibleMarkupLanguageParser {
                     String value = stack.pop().trim();
                     if (name.equalsIgnoreCase("Category")) {
                         category = value;
-                    } else if ( (name.equalsIgnoreCase("FocusType")) || (name.equalsIgnoreCase("KeyboardType")) || 
-                            (name.equalsIgnoreCase("MouseType")) || (name.equalsIgnoreCase("WindowType")) || 
-                            (name.equalsIgnoreCase("NotificationType")) || (name.equalsIgnoreCase("MenuType")) || 
-                            (name.equalsIgnoreCase("PropertyChangeType")) ) {
+                    } else if ( (name.equalsIgnoreCase("FocusType"))
+                            || (name.equalsIgnoreCase("KeyboardType")) 
+                            ||  (name.equalsIgnoreCase("MouseType")) 
+                            || (name.equalsIgnoreCase("WindowType")) 
+                            || (name.equalsIgnoreCase("NotificationType")) 
+                            || (name.equalsIgnoreCase("MenuType")) 
+                            ||  (name.equalsIgnoreCase("PropertyChangeType")
+                            ) 
+                            ) {
                         act = value;
                     } else if (name.equalsIgnoreCase("Component")) {
                         component = value;
