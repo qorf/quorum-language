@@ -19,6 +19,19 @@ class MenuObserverTest is MenuObserver
         output "name = " + name
         output "moreActionInformation = " + moreActionInformation
         output "keyboardShortcut = " + keyboardShortcut
+        output "childCount = " + e:GetChildCount()
         output "---------------------------------------------------------------"
+
+        integer i = 0
+        repeat while i < e:GetChildCount()
+            AccessibleChild c = e:GetChild(i)
+            if c not= undefined
+                output "Child " + i
+                output "    Name: " + c:GetName()
+                output "    Keyboard Shortcut: " + c:GetKeyboardShortcut()
+                output "    Component Type: " + c:GetComponentType()
+            end
+            i = i + 1
+        end
     end
 end

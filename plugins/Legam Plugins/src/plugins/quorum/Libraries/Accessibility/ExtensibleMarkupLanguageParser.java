@@ -163,32 +163,29 @@ public class ExtensibleMarkupLanguageParser {
         //System.out.println("get child name");
         if ( (childNum >= 0) && (childNum < children.size()) )
         {
-            String[] a = new String[0];
-            return children.get(childNum - 1).getName();
+            return children.get(childNum).getName();
         }
         else
-            return null;
+            return "invalid child";
     }
     
     public String GetChildComponent(int childNum) {
         //System.out.println("get child component");
         if ( (childNum >= 0) && (childNum < children.size()) )
         {
-            String[] a = new String[0];
-            return children.get(childNum - 1).getComponent();
+            return children.get(childNum).getComponent();
         }
         else
-            return null;
+            return "invalid child";
     }
     
     public String GetChildShortcut(int childNum) {
         //System.out.println("get child shortcut");
         if ( (childNum >= 0) && (childNum < children.size()) )
         {
-            String[] a = new String[0];
-            return children.get(childNum - 1).getShortcut();
+            return children.get(childNum).getShortcut();
         }
         else
-            return null;
+            return "invalid child";
     }
 }
