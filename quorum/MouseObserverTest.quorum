@@ -2,7 +2,24 @@ use Libraries.Accessibility.all
 
 class MouseObserverTest is MouseObserver
     action ReceiveEvent(MouseEvent e)
-        output "hello from MouseObserver"
-        output "Mouse at " + e:GetPosition()
+        text act = e:GetAction()
+        text position = e:GetPosition()
+        text button = e:GetButton()
+
+        if act = "Move"
+            output "Mouse moved to " + position
+        end
+
+        if act = "Click"
+            output button + " mouse button clicked at " + position
+        end
+
+        if act = "Release"
+            output button + " mouse button released at " + position
+        end
+
+        if act = "Wheel"
+            output "Scrolling"
+        end
     end
 end
