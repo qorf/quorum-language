@@ -61,6 +61,8 @@ class Script is WebTag
         use Libraries.Web.Script
 
         Script script
+        text quote = ""
+        quote = quote:GetDoubleQuote()
         script:SetCode("write.document(" + quote + "My webpage!" + quote +")")
         
     */
