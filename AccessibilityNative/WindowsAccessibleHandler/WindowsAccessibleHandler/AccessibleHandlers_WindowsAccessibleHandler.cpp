@@ -39,6 +39,7 @@ string createKeyboardXML(DWORD eventID, string key);
 string createMouseXML(DWORD eventID, string name, string position, string button);
 string createXML(DWORD eventID, string category, string type, string component, string name, string shortcut, long numChildren, string childInfo);
 string createChildXML(string childName, string childRole, string childShortcut);
+string removeInvalidXMLCharacters(string xmlValue);
 string getKeyPressedName(int code);
 void getMouseEventNames(int code, string &button, string &type);
 void getWinEventNames(int code, string &category, string &type);
@@ -540,6 +541,8 @@ LRESULT CALLBACK KeyboardEventCallback(int eventID, WPARAM wparam, LPARAM lparam
 // The xml is formated according to the Screen Reader XML Spec doccument.
 string createKeyboardXML(DWORD eventID, string key)
 {
+	key = removeInvalidXMLCharacters(key);
+
 	string xmlCode = "";
 	xmlCode += (XML_HEADER + "\n");
 	xmlCode += ("<" + ROOT_TAG + ">\n");
@@ -557,6 +560,10 @@ string createKeyboardXML(DWORD eventID, string key)
 // The xml is formated according to the Screen Reader XML Spec doccument.
 string createMouseXML(DWORD eventID, string type, string position, string button)
 {
+	type = removeInvalidXMLCharacters(type);
+	position = removeInvalidXMLCharacters(position);
+	button = removeInvalidXMLCharacters(button);
+
 	string xmlCode = "";
 	xmlCode += (XML_HEADER + "\n");
 	xmlCode += ("<" + ROOT_TAG + ">\n");
@@ -581,6 +588,12 @@ string createMouseXML(DWORD eventID, string type, string position, string button
 // The xml is formated according to the Screen Reader XML Spec doccument.
 string createXML(DWORD eventID, string category, string type, string component, string name, string shortcut, long numChildren, string childInfo)
 {
+	category = removeInvalidXMLCharacters(category);
+	type = removeInvalidXMLCharacters(type);
+	component = removeInvalidXMLCharacters(component);
+	name = removeInvalidXMLCharacters(name);
+	shortcut = removeInvalidXMLCharacters(shortcut);
+
 	string xmlCode = "";
 	xmlCode += (XML_HEADER + "\n");
 	xmlCode += ("<" + ROOT_TAG + ">\n");
@@ -661,6 +674,10 @@ string createXML(DWORD eventID, string category, string type, string component, 
 // The xml is formated according to the Screen Reader XML Spec doccument.
 string createChildXML(string childName, string childRole, string childShortcut)
 {
+	childName = removeInvalidXMLCharacters(childName);
+	childRole = removeInvalidXMLCharacters(childRole);
+	childShortcut = removeInvalidXMLCharacters(childShortcut);
+
 	string childXML = "";
 
 	childXML += ("\t\t<" + CHILD_TAG + ">\n");
@@ -670,6 +687,49 @@ string createChildXML(string childName, string childRole, string childShortcut)
 	childXML += ("\t\t</" + CHILD_TAG + ">\n");
 
 	return childXML;
+}
+
+// This takes out all of the invalid characters in xml, these characters are <>"'&.
+string removeInvalidXMLCharacters(string xmlValue)
+{
+	string newXML = xmlValue;
+	string sub1, sub2;
+
+	for (int count = 0; count < newXML.length(); count++)
+	{
+		if (newXML[count] == '&')
+		{
+			sub1 = newXML.substr(0, count);
+			sub2 = newXML.substr(count+1, xmlValue.length());
+			newXML = sub1 + "&amp;" + sub2;
+		}
+		else if (newXML[count] == '<')
+		{
+			sub1 = newXML.substr(0, count);
+			sub2 = newXML.substr(count+1, xmlValue.length());
+			newXML = sub1 + "&lt;" + sub2;
+		}
+		else if (newXML[count] == '>')
+		{
+			sub1 = newXML.substr(0, count);
+			sub2 = newXML.substr(count+1, xmlValue.length());
+			newXML = sub1 + "&gt;" + sub2;
+		}
+		else if (newXML[count] == '\"')
+		{
+			sub1 = newXML.substr(0, count);
+			sub2 = newXML.substr(count+1, xmlValue.length());
+			newXML = sub1 + "&quot;" + sub2;
+		}
+		else if (newXML[count] == '\'')
+		{
+			sub1 = newXML.substr(0, count);
+			sub2 = newXML.substr(count+1, xmlValue.length());
+			newXML = sub1 + "&apos;" + sub2;
+		}
+	}
+
+	return newXML;
 }
 
 // This gets the name of the keyboard event.
