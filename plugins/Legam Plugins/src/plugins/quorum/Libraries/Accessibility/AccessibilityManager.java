@@ -14,12 +14,9 @@ public class AccessibilityManager {
     
     public AccessibilityManager()
     {
-        if ((System.getProperty("os.name")).contains("Windows"))
-        {
+        if ((System.getProperty("os.name")).contains("Windows")) {
             handler = new WindowsAccessibleHandler(this);
-        }
-        else
-        {
+        } else {
             handler = new MacAccessibleHandler(this);
         }
     }
@@ -62,7 +59,6 @@ public class AccessibilityManager {
             eventInfo = eventInfo.substring(0, index+1);
             eventInfo += "</AccessibleEvent>";
         }
-        //System.out.println(eventInfo);
         if ($me instanceof quorum.Libraries.Accessibility.AccessibilityManager) {
             quorum.Libraries.Accessibility.AccessibilityManager m = (quorum.Libraries.Accessibility.AccessibilityManager)$me;
             m.GetEvent(eventInfo);
@@ -76,15 +72,5 @@ public class AccessibilityManager {
     public static void main(String[] args) {
         AccessibilityManager h = new AccessibilityManager();
         h.Start();
-//        Runnable runnable = new Runnable() {
-//            @Override
-//            public void run() {
-//                AccessibilityManager h = new AccessibilityManager();
-//                h.Start();
-//            }
-//        };
-//                
-//        SwingUtilities.invokeLater(runnable);
-
     }
 }
