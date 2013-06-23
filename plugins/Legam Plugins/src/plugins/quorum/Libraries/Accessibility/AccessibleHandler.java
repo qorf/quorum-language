@@ -44,13 +44,11 @@ public abstract class AccessibleHandler
             try {
                 if (System.getProperty("os.arch").equals("x86"))
                 {
-                    System.load("C:\\Users\\Jeff\\Documents\\dev\\quorum\\trunk\\quorum\\dependencies\\jni\\WindowsAccessibleHandler32.dll");
-                    //loadLibrary("WindowsAccessibleHandler32.dll");
+                    loadLibrary("WindowsAccessibleHandler32.dll");
                 }
                 else
                 {
-                    System.load("C:\\Users\\Jeff\\Documents\\dev\\quorum\\trunk\\quorum\\dependencies\\jni\\WindowsAccessibleHandler64.dll");
-                    //loadLibrary("WindowsAccessibleHandler64.dll");
+                    loadLibrary("WindowsAccessibleHandler64.dll");
                 }
                 isLoaded = true;
             }
