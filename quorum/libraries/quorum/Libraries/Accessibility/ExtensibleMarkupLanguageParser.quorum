@@ -90,7 +90,63 @@ class ExtensibleMarkupLanguageParser
             event:SetPosition(GetPosition())
             event:SetButton(GetButton())  
             return event
-        
+        elseif cat = "Focus"
+            FocusEvent event
+            event:SetCategory(cat)
+            event:SetAction(GetAction())
+            event:SetComponent(GetComponent())
+            event:SetComponentName(GetComponentName()) 
+            event:SetKeyboardShortcut(GetShortcut())
+            event:SetChildCount(GetChildCount())
+
+            integer count = 0
+            repeat until count >= event:GetChildCount()
+                AccessibleChild child
+                child:SetName(GetChildName(count))
+                child:SetComponentType(GetChildComponent(count))
+                child:SetKeyboardShortcut(GetChildShortcut(count))
+                event:AddChild(child)
+                count = count + 1
+            end
+            return event
+        elseif cat = "Menu"
+            MenuEvent event
+            event:SetCategory(cat)
+            event:SetAction(GetAction())
+            event:SetComponent(GetComponent())
+            event:SetComponentName(GetComponentName()) 
+            event:SetKeyboardShortcut(GetShortcut())
+            event:SetChildCount(GetChildCount())
+
+            integer count = 0
+            repeat until count >= event:GetChildCount()
+                AccessibleChild child
+                child:SetName(GetChildName(count))
+                child:SetComponentType(GetChildComponent(count))
+                child:SetKeyboardShortcut(GetChildShortcut(count))
+                event:AddChild(child)
+                count = count + 1
+            end
+            return event
+        elseif cat = "PropertyChange"
+            PropertyEvent event
+            event:SetCategory(cat)
+            event:SetAction(GetAction())
+            event:SetComponent(GetComponent())
+            event:SetComponentName(GetComponentName()) 
+            event:SetKeyboardShortcut(GetShortcut())
+            event:SetChildCount(GetChildCount())
+
+            integer count = 0
+            repeat until count >= event:GetChildCount()
+                AccessibleChild child
+                child:SetName(GetChildName(count))
+                child:SetComponentType(GetChildComponent(count))
+                child:SetKeyboardShortcut(GetChildShortcut(count))
+                event:AddChild(child)
+                count = count + 1
+            end
+            return event
         else
             SystemEvent event
 
@@ -115,6 +171,25 @@ class ExtensibleMarkupLanguageParser
         end 
     end
 
+    private action SetupSystemEvent(SystemEvent event, text category) 
+        event:SetCategory(category)
+        event:SetAction(GetAction())
+        event:SetComponent(GetComponent())
+        event:SetComponentName(GetComponentName()) 
+        event:SetKeyboardShortcut(GetShortcut())
+        event:SetChildCount(GetChildCount())
+        //output GetChildCount()
+
+        integer count = 0
+        repeat until count >= event:GetChildCount()
+            AccessibleChild child
+            child:SetName(GetChildName(count))
+            child:SetComponentType(GetChildComponent(count))
+            child:SetKeyboardShortcut(GetChildShortcut(count))
+            event:AddChild(child)
+            count = count + 1
+        end
+    end
     /*
         This action returns the type of observer (Mouse, Keyboard, Focus, 
         Window, or Everything) the event should be sorted to.
