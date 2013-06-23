@@ -2,7 +2,7 @@ use Libraries.Accessibility.all
 
 class PropertyObserverTest is PropertyObserver
     action ReceiveEvent(PropertyEvent e)
-        output "hello from PropertyObserver"
-        output "Property = " + e:GetName()
+        //output "hello from PropertyObserver"
+        output "Category: " + e:GetCategory() + " Action: " + e:GetAction() + " Name: " + e:GetName() + " More: " + e:GetMoreActionInformation()
     end
 end
