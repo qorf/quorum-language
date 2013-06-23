@@ -86,7 +86,7 @@ public class ExtensibleMarkupLanguageParser {
                     } else if (name.equalsIgnoreCase("Component")) {
                         component = value;
                     } else if (name.equalsIgnoreCase("Reading")) {
-                        componentName = stack.peek().trim();
+                        componentName = value;
                         key = value;
                     } else if (name.equalsIgnoreCase("Position")) {
                         position = value;
