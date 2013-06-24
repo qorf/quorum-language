@@ -21,80 +21,127 @@
 </ul>
 <h2 id="Overview">Overview</h2>
 <p>
-  In Chapter 6, you made two different screen readers. In <a href="../../../../documents/curriculum/chapter6/lab6_4.php">lab 6_4</a> you made a screen reader for the keyboard. In <a href="../../../../documents/curriculum/chapter6/lab6_5.php">lab 6_5</a> you made a screen reader that told you which component on the screen had gained focus. For this lab, you will use arrays to customize multiple types of observers, then combine the observers into one screen reader.
+  In the Chapter 6 labs, you made two different screen readers. In <a href="../../../../documents/curriculum/chapter6/lab6_4.php">lab 6_4</a> you made a screen reader that read keystrokes. In <a href="../../../../documents/curriculum/chapter6/lab6_5.php">lab 6_5</a> you made a screen reader that told you which component on the screen had gained focus. For this lab, we will customize the output of a few different types of observers, then combine the observers into one screen reader.
 </p>
 <h2>Task 1: Getting Started</h2>
 <p>
   Start Sodbeans. Create a new “Quorum Application” project, and name it <strong>Lab7_4</strong>.  In the <tt>Main.quorum</tt> file, it should contain a <tt>Main</tt> class and <tt>Main</tt> action.
 </p>
 <p>
-  You will create 3 additional class in this project.  In the New File dialog, create a new file by selecting “Quorum” and “Quorum Class” in the Categories and File Types windows, respectively.  Then, name  the new files <strong>fObserver</strong>, <strong>wObserver</strong>, and <strong>kObserver</strong> in the New Quorum Class dialog.
+  You will create 3 additional class in this project.  In the New File dialog, create a new file by selecting “Quorum” and “Quorum Class” in the Categories and File Types windows, respectively.  Then, name  the new files <strong>CustomizedFocusObserver</strong>, <strong>CustomizedMenuObserver</strong>, and <strong>CustomizedKeyboardObserver</strong> in the New Quorum Class dialog.
 </p>
 <p>
-  Don't forget to include the Accessibility and Speech libraries.
+  Don't forget to include the Accessibility, Speech, and Array libraries!
 </p>
 <h2>Task 2: Inheriting from the Observer Classes</h2>
 <p>
-  To make multiple types of observers we will need multiple classes. Your <strong>fObserver</strong> class should inherit from the <tt>FocusObserver</tt> class, <strong>wObserver</strong> from the <tt>WindowObserver</tt> class, and <strong>kObserver</strong> from the <tt>KeyboardObserver</tt> class. To do this, use the "is" keyword just as you did in <tt>lab 6.4</tt> and <tt>lab 6.5</tt>. 
+  To make multiple types of observers we will need multiple classes to implement them. Our <strong>CustomizedFocusObserver</strong> class should inherit from the <tt>FocusObserver</tt> class, <strong>CustomizedMenuObserver</strong> from the <tt>MenuObserver</tt> class, and <strong>CustomizedKeyboardObserver</strong> from the <tt>KeyboardObserver</tt> class. To do this, use the <tt>is</tt> keyword just as we did in <tt>lab 6.4</tt> and <tt>lab 6.5</tt>. 
 </p>
 <p>
-  You are still going to need an instance of the Speech class in all of your observer classes, just as you did in the first two screen reader labs, to say the events quickly. In this lab, you are also going to need an array of text objects that will be used to filter out the kinds of events we want to say.
+  We are still going to need an instance of the Speech class in all of your observer classes, just as you did in the first two screen reader labs, to say the events quickly. In this lab, we are also going to use array of text objects, called actions, to customize the FocusObserver and MenuObserver.
+</p>
+<pre class="code">
+  use Libraries.Accessibility.all 
+  use Libraries.Sound.Speech
+  use Libraries.Containers.Array
+  
+  class CustomizedFocusObserver is FocusObserver
+	Speech speech
+	Array<text> actions
+  end
+</pre>
+<p>
+  <strong>CustomizedKeyboardObserver</strong>
 </p>
 <p>
-  Each of the types of observers, <tt>FocusObserver</tt>, <tt>WindowObserver</tt>, <tt>KeyboardObserver</tt>, <tt>MouseObserver</tt>, and <tt>EverythingObserver</tt>, have a specific list of actions that can be used. Using that knowledge, you can choose which events you say by comparing the action of the event, using the <tt>GetAction action</tt>, to the phrase you want. For this lab choose a couple of actions that you want to filter out of your observers from the lists below.
+  Now we can choose how we are going to customize our observers within the ReceiveEvent. In our <strong>CustomizedKeyboardObserver</strong>, let's only say the events for keys being pressed and take out the events for keys being released. The KeyboardEvent class has an action called <tt>GetAction()</tt> that will return one of two text values, "KeyPress" or "KeyRelease". Before we say the event, we can use an if statement and see if the <tt>GetAction()</tt> action returned "KeyPress". We will only say the event inside that if statement so that we are only going to speak when a key was pressed.
+</p>
+<pre class="code">
+  action ReceiveEvent(AccessibilityEvent event)
+	if event:GetAction() = "KeyPress"
+		speech:Say(event:GetKey())
+	end
+  end
+</pre>
+<p>
+  <strong>CustomizedMenuObserver</strong>
 </p>
 <p>
-  KeyboardType
+  Now, let's customize our <strong>CustomizedMenuObserver</strong> class. The MenuEvent class also has a <tt>GetAction()</tt> function, but there are 4 different text values that it can return. 
 </p>
 <ul>
-  <li><strong>KeyPress:</strong> Indicates that the user has pressed a key on the keyboard</li>
-  <li><strong>KeyRelease:</strong> Indicates that the user has let go of a key (released it)</li>
+  <li><strong>MenuOpen:</strong> Indicates that a menu from the menu bar was opened.</li>
+  <li><strong>MenuClose:</strong> Indicates that a menu from the menu bar was closed.</li>
+  <li><strong>PopUpMenuOpen:</strong> Indicates that a pop up menu was opened.</li>
+  <li><strong>PopUpMenuClose:</strong> Indicates that a pop up menu was closed.</li>
 </ul>
 <p>
-  FocusObserver
+  For this lab, let's choose the "MenuOpen" and "PopUpMenuOpen" events to say. To filter out everything else, the first thing we need to do is add those values to the <tt>actions</tt> array.  We are going to want this array initialized as soon as we create the <strong>CustomizedMenuObserver</strong> class. This can be done by implementing the <tt>on create</tt> action that is called as soon as we create an instance of the class. In this action, use the <tt>Add</tt> action to add the action phrases to the <strong>actions</strong> array. 
+</p>
+<pre class="code">
+  on create
+	actions:Add("MenuOpen")
+	actions:Add("PopUpMenuOpen")
+  end
+</pre>
+<p>
+  In the <tt>ReceiveEvent</tt> action we can use the <tt>Has(Type value)</tt> action and check to see if <tt>GetAction()</tt> returned a value in the array. Just as in the <strong>CustomizedKeyboardObserver</strong>, we will only say the event inside an if statement so that we will speak when one of those events happened.
+</p>
+<pre class="code">
+  text toSay 
+  if actions:Has(event:GetAction())
+	toSay = event:GetName() + "opened."
+  end
+</pre>
+<p>
+  <tt>MenuEvents</tt> often have children in them as well. These children represent the individual items of the menu. We can access them using the <tt>GetChild(integer index)</tt> action of the <tt>MenuEvent</tt> class. 
+</p>
+<p>
+  The first step to getting all of the children for a menu is to figure out how many children there are using the <tt>GetChildCount()</tt> action of the <tt>MenuEvent</tt> class. We can then use a <tt>repeat</tt> block to loop through each one of the children to get its information.
+</p>
+<p>
+  Inside of our <tt>repeat</tt> block we need to create an AccessibleChild. We can then set the child using the <tt>GetChild(integer index)</tt> action, using a counting variable as the index. Using the <tt>AccessibleChild</tt>'s<tt>GetName()</tt>, <tt>GetComponentType()</tt>, and <tt>GetKeyboardShortcut()</tt> actions we can build a description of the child to say. An example of how to use this AccessibleChild is below.
+</p>
+<pre class="code">
+  integer count = 0
+  repeat while count < event:GetChildCount()
+	AccessibleChild child = event:GetChild(count)
+	if child not= undefined
+		toSay = toSay + " " + child:GetName() + " " + child:GetKeyboardShortcut()
+	end
+	count = count + 1
+  end
+</pre>
+<p>
+  We can then add the repeat block into the <tt>ReceiveEvent</tt> action to include that in the information we say about the menu event.
+</p>
+<p>
+  <strong>CustomizedFocusObserver</strong>
+</p>
+<p>
+  Just as the two previous observers the FocusEvent class also has a <tt>GetAction()</tt> function, this time with 5 different text values that it can return. 
 </p>
 <ul>
   <li><strong>Component:</strong> Indicates that a component has been focused</li>
   <li><strong>Desktop:</strong> Indicates that the active desktop was switched.</li>
-  <li><strong>SwitchWindow:</strong> Indicates that the user has pressed or released ALT + TAB and the switch window was activated or deactivated
-</li>
+  <li><strong>SwitchWindow:</strong> Indicates that the user has pressed or released ALT + TAB and the switch window was activated or deactivated</li>
   <li><strong>MouseCaptureStart:</strong> Indicates that a window has received mouse capture focus</li>
   <li><strong>MouseCaptureStop:</strong> Indicates that a window has lost the mouse capture focus</li>
 </ul>
 <p>
-  WindowObserver
-</p>
-<ul>
-  <li><strong>Minimize:</strong> Indicates that a window is about to be minimized</li>
-  <li><strong>RestoreMinimized:</strong> Indicates that a minimized window will be restored</li>
-  <li><strong>MoveOrResize:</strong> Indicates that a window has started or stopped being  moved or resized</li>
-  <li><strong>HelpMode:</strong> Indicates that a window has entered or exited help mode</li>
-  <li><strong>DragDropMode:</strong> Indicates that an application is entering or exiting drag-and-drop mode</li>
-  <li><strong>Scroll:</strong> Indicates that the user has started or stopped scrolling a scroll bar</li>
-  <li><strong>ElementTriggered:</strong> Indicates that an element has been triggered (e.g. clicking a button)</li>
-  <li><strong>CreateComponent:</strong> Indicates that a new object has been created, this object could be a caret, header, list, tab, toolbar, tree view, or window</li>
-  <li><strong>DestroyComponent:</strong> Indicates that an object has been destroyed, this object could be a caret, header, list, tab, toolbar, tree view, or window</li>
-  <li><strong>ShowComponent:</strong> Indicates that an object that was hidden is now shown, this object could be a caret, cursor, or window</li>
-  <li><strong>HideComponent:</strong> Indicates that an object was hidden, this object could be a caret or cursor</li>
-  <li><strong>ReorderComponents:</strong> A container object has changed the order of its children, the object could be a header, list, toolbar, or window</li>
-</ul>
-<p>
-  You can store all of the actions you want to say in the array you created so that it can be easily searched when deciding to say an event. To make sure that the array has the action phrases you want before you use them, you can add the text to the arrays in the <tt>on create</tt> action. Use the <tt>Add</tt> action to add the action phrases you want to say.
+  For this lab add the "Component" and "Desktop" values to the actions array in the same way we did for the <strong>CustomizedMenuObserver</strong> class. Then use the <tt>Has()</tt> action to check the array in the <tt>ReceiveEvent</tt> action.
 </p>
 <p>
-  Now that you have all of the phrases in an array you can check the array in the <tt>ReceiveEvent</tt> action. Using the <tt>Has</tt> action you can check the action of the event, using the <tt>GetAction</tt> action, to see if it is in the array. If it is in the array then you can say that event, otherwise you can filter it out by not doing anything with it.
-</p>
-<p>
-  You can apply this type of filtering to other aspects of the event as well. For example you can only say events that have "Sodbeans" in the name or only say events for the number keys. Feel free to try filtering the events based on other details if you want to.
+
+  We can apply this type of filtering to other aspects of the event as well. For example, we can only say events that have "Sodbeans" in the name or only say events for the number keys. Feel free to try filtering the events based on other details if you want to.
 </p>
 <h2>Task 3: Using the observer classes</h2>
 <p>
-  Now that you have created your three observer classes, you can add them all to an <tt>AccessibilityManager</tt> to begin listening for events. 
-  Go to your <tt>Main</tt> and create an instance of all three of your observer classes. Then, use the AccessibilityManager's <tt>Add</tt> action to add all three of your observers. Now all you have to do is call AccessibilityManager's <tt>Start</tt> action to run all three of the observers at once.
+  Now that we have created our three observer classes, we can add them all to an <tt>AccessibilityManager</tt> to begin listening for events. Go to our <tt>Main</tt> and create an instance of all three of our observer classes. Then, use the AccessibilityManager's <tt>Add</tt> action to add all three of our observers. Now all we have to do is call <tt>AccessibilityManager</tt>'s <tt>Start</tt> action to run all three of the observers at once.
 </p>
 <h2>Sample Output</h2>
 <p>
-  When you run the program it should not do anything until you create one of the events that you filtered your observers to say.
+  When you run the program it should not do anything until you trigger one of the events that we filtered our observers to say.
 </p>
 <p>
   When you are done, debug and fix any errors, then show your code to your instructor.
