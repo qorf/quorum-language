@@ -57,7 +57,7 @@
   Now we can choose how we are going to customize our observers within the ReceiveEvent. In our <strong>CustomizedKeyboardObserver</strong>, let's only say the events for keys being pressed and take out the events for keys being released. The KeyboardEvent class has an action called <tt>GetAction()</tt> that will return one of two text values, "KeyPress" or "KeyRelease". Before we say the event, we can use an if statement and see if the <tt>GetAction()</tt> action returned "KeyPress". We will only say the event inside that if statement so that we are only going to speak when a key was pressed.
 </p>
 <pre class="code">
-  action ReceiveEvent(AccessibilityEvent event)
+  action ReceiveEvent(KeyboardEvent event)
 	if event:GetAction() = "KeyPress"
 		speech:Say(event:GetKey())
 	end
