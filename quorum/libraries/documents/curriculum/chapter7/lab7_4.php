@@ -47,7 +47,7 @@
   
   class CustomizedFocusObserver is FocusObserver
 	Speech speech
-	Array<text> actions
+	Array&lttext&gt actions
   end
 </pre>
 <p>
