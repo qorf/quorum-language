@@ -89,17 +89,17 @@ contain a <tt>Main</tt> class and <tt>Main</tt> action.
 a blueprint action, <strong>RecieveEvent</strong>, that we need to 
 implement in order to use them. The implementation of the <tt>RecieveEvent</tt> 
 is where we code our implementation. To do that, we will use the 
-<tt>RecieveEvent</tt>'s parameter of type <tt>AccessibilityEvent</tt>, <tt>FocusEvent</tt>,
+<tt>RecieveEvent</tt>'s parameter of type <tt>KeyboardEvent</tt>, <tt>FocusEvent</tt>,
 or other types of events, depending on the kind of Observer. An 
-<tt>AccessibilityEvent</tt> contains information about the 
-event (e.g., what key was pressed, the coordinates of the mouse on the screen). \
-The <tt>AccessibilityEvent</tt> class also has a custom action called 
-<tt>GetDescription</tt>, which returns a sentence describing 
+<tt>KeyboardEvent</tt> contains information about the 
+event (e.g. what key was pressed).
+The <tt>KeyboardEvent</tt> class also has a custom action called 
+<tt>GetDescription()</tt>, which returns a sentence describing 
 the event in English. We can use this sentence if we wish, or other values in the 
 event, to write our screen reader.
 </p>
 <pre class="code">
-  action RecieveEvent(AccessibilityEvent event)
+  action RecieveEvent(KeyboardEvent event)
 	speech:Say(event:GetDescription())
   end
 </pre>

@@ -77,7 +77,7 @@
   Use any or all of these actions to create a description of the event and use the <tt>Speech</tt> object to say it.
 </p>
 <pre class="code">
-  action ReceiveEvent(AccessibilityEvent event)
+  action ReceiveEvent(FocusEvent event)
 	speech:Say("The " + event:GetComponent() + ", " + event:GetComponentName() + ", was focused. Its keyboard shortcut is " + event:GetKeyboardShortcut() + ".")
   end
 </pre>
