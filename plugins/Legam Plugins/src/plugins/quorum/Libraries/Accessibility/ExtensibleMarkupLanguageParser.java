@@ -63,16 +63,19 @@ public class ExtensibleMarkupLanguageParser {
             DefaultHandler handler = new DefaultHandler() {
                 String xml = xmlMethod;
                 Stack<String> stack = new Stack<String>();
+                private StringBuilder chars = new StringBuilder();
+                boolean illegal = false;
                 @Override
                 public void startElement(String uri, String localName,String qName, Attributes attributes) throws SAXException {
                     int a = 0;
+                    chars.setLength(0);
                 }
 
                 @Override
                 public void endElement(String uri, String localName, String name) throws SAXException {
                     String value = stack.pop().trim();
                     if (name.equalsIgnoreCase("Category")) {
-                        category = value;
+                        category = ReplaceSpecialCharacters(value);
                     } else if ( (name.equalsIgnoreCase("FocusType"))
                             || (name.equalsIgnoreCase("KeyboardType")) 
                             ||  (name.equalsIgnoreCase("MouseType")) 
@@ -82,29 +85,29 @@ public class ExtensibleMarkupLanguageParser {
                             ||  (name.equalsIgnoreCase("PropertyChangeType")
                             ) 
                             ) {
-                        act = value;
+                        act = ReplaceSpecialCharacters(value);
                     } else if (name.equalsIgnoreCase("Component")) {
-                        component = value;
+                        component = ReplaceSpecialCharacters(value);
                     } else if (name.equalsIgnoreCase("Reading")) {
-                        componentName = value;
-                        key = value;
+                        componentName = ReplaceSpecialCharacters(value);
+                        key = ReplaceSpecialCharacters(value);
                     } else if (name.equalsIgnoreCase("Position")) {
-                        position = value;
+                        position = ReplaceSpecialCharacters(value);
                     } else if (name.equalsIgnoreCase("MouseButton")) {
-                        button = value;
+                        button = ReplaceSpecialCharacters(value);
                     } else if (name.equalsIgnoreCase("Shortcut")) {
-                        shortcut = value;
+                        shortcut = ReplaceSpecialCharacters(value);
                     } else if (name.equalsIgnoreCase("ChildCount")) {
                         childNum = Integer.parseInt(value);
                     } else if (name.equalsIgnoreCase("Child")) {
                         children.add(child);
                         child = new AccessibleChild();
                     } else if (name.equalsIgnoreCase("ChildName")) {
-                        child.setName(value);
+                        child.setName(ReplaceSpecialCharacters(value));
                     } else if (name.equalsIgnoreCase("ChildComponent")) {
-                        child.setComponent(value);
+                        child.setComponent(ReplaceSpecialCharacters(value));
                     } else if (name.equalsIgnoreCase("ChildShortcut")) {
-                        child.setShortcut(value);
+                        child.setShortcut(ReplaceSpecialCharacters(value));
                     }
                 }
 
@@ -112,7 +115,8 @@ public class ExtensibleMarkupLanguageParser {
                 public void characters(char ch[], int start, int length) throws SAXException {
                     String temp = new String(ch, start, length);
                     temp = temp.trim();
-                    stack.push(temp);
+                    chars.append(temp);
+                    stack.push(chars.toString());
                 }
             };
             parser.parse(new InputSource(new ByteArrayInputStream(toParse.getBytes("utf-8"))), handler);
@@ -122,6 +126,16 @@ public class ExtensibleMarkupLanguageParser {
         }
         return category;
     }  
+    
+    private String ReplaceSpecialCharacters(String xml) {
+        String newXML = xml;
+        newXML = newXML.replace("&lt;", "<");
+        newXML = newXML.replace("&gt;", ">");
+        newXML = newXML.replace("&quot;", "\"");
+        newXML = newXML.replace("&apos;", "\'");
+        newXML = newXML.replace("&amp;", "&");
+        return newXML;
+    }
     
     public String GetCategory() {
         return category;
@@ -160,7 +174,6 @@ public class ExtensibleMarkupLanguageParser {
     }
     
     public String GetChildName(int childNum) {
-        //System.out.println("get child name");
         if ( (childNum >= 0) && (childNum < children.size()) )
         {
             return children.get(childNum).getName();
@@ -170,7 +183,6 @@ public class ExtensibleMarkupLanguageParser {
     }
     
     public String GetChildComponent(int childNum) {
-        //System.out.println("get child component");
         if ( (childNum >= 0) && (childNum < children.size()) )
         {
             return children.get(childNum).getComponent();
@@ -180,7 +192,6 @@ public class ExtensibleMarkupLanguageParser {
     }
     
     public String GetChildShortcut(int childNum) {
-        //System.out.println("get child shortcut");
         if ( (childNum >= 0) && (childNum < children.size()) )
         {
             return children.get(childNum).getShortcut();

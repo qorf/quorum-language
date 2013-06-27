@@ -45,12 +45,14 @@ public class AccessibilityManager {
     } 
     
     public void RecieveEvent(String eventInfo) {
+        
         eventInfo = eventInfo.replace("\t", "");
         eventInfo = eventInfo.replace("\n", " ");
-        eventInfo = eventInfo.replace("&", "&amp");
+        //eventInfo = eventInfo.replace("&", "&amp");
         //eventInfo = eventInfo.replace("+", "_");
-        eventInfo = eventInfo.replace("amphl", " ");
-        
+        //eventInfo = eventInfo.replace("amphl", " ");
+        eventInfo = eventInfo.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "<?xml version=\"1.0\"?> <!DOCTYPE doc_type [<!ENTITY lt \"&#60;\"> <!ENTITY amp \"&#38;\"> <!ENTITY gt \"&#62;\"> <!ENTITY quot \"&#34;\"> <!ENTITY apos \"&#39;\">]>");
+        //System.out.println(eventInfo);
         if ( eventInfo.endsWith("</AccessibleEvent>") || eventInfo.endsWith("</AccessibleEvent> ") )
             eventInfo = eventInfo + "";
         else
