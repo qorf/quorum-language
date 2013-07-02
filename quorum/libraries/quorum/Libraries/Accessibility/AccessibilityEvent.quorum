@@ -32,51 +32,6 @@ class AccessibilityEvent
     blueprint action GetDescription() returns text
 
     /*
-        This action should return the name of the object that the event happened to.
-        
-        Attribute: Returns the text of the event.
-
-        Attribute: Example
-
-        use Libraries.Accessibility.all
-
-        SystemEvent event
-        text result = event:GetName()
-    */
-    blueprint action GetName() returns text
-
-    /*
-        This action should return the action of what happened during the event.
-        
-        Attribute: Returns text of what the act is.
-
-        Attribute: Example
-
-        use Libraries.Accessibility.all
-
-        MouseEvent event
-        text act = event:GetAction()
-    */
-    blueprint action GetAction() returns text
-
-    /*
-        This action should return more discription of the event that happened. 
-        For mouse events, it is the position on the screen. For system events, 
-        it is the type of object that triggered the event. Keyboard events do 
-        not return any extra description.
-        
-        Attribute: Returns the text of the event.
-
-        Attribute: Example
-
-        use Libraries.Accessibility.all
-
-        KeyboardEvent event
-        text result = event:GetMoreActionInformation()
-    */
-    blueprint action GetMoreActionInformation() returns text
-
-    /*
         This action gets the category of the event. This will be one of the 
         following: Focus, Keyboard, Mouse, Window, Notification, Menu, or 
         PropertyChange.
@@ -91,52 +46,5 @@ class AccessibilityEvent
         text category = event:GetCategory()
     */
     blueprint action GetCategory() returns text
-
-
-    /*
-        This action should return the keyboard shortcut for the object that 
-        triggered the event. Only SystemEvents will use this functionality.
-        
-        Attribute: Returns the text of the event.
-
-        Attribute: Example
-
-        use Libraries.Accessibility.all
-
-        SystemEvent event
-        text result = event:GetKeyboardShortcut()
-    */
-    blueprint action GetKeyboardShortcut() returns text
-
-    /*
-        This action should return the number of children for the object that 
-        triggered the event. Only SystemEvents will use this functionality.
-        
-        Attribute: Returns the text of the event.
-
-        Attribute: Example
-
-        use Libraries.Accessibility.all
-
-        SystemEvent event
-        number result = event:GetChildCount()
-    */
-    blueprint action GetChildCount() returns integer
-
-    /*
-        This action should return a AccessibleChild of the object that 
-        triggered the event at the parameter's index. Only SystemEvents will 
-        use this functionality.
-        
-        Attribute: Returns the AccessibleChild of the event at the index.
-
-        Attribute: Example
-
-        use Libraries.Accessibility.all
-
-        SystemEvent event
-        number result = event:GetChildCount()
-    */
-    blueprint action GetChild(integer index) returns AccessibleChild
 
 end

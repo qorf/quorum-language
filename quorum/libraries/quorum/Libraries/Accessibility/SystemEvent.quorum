@@ -292,4 +292,59 @@ class SystemEvent is AccessibilityEvent
             return emptyChild
         end
     end
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*
+        This action should return the keyboard shortcut for the object that 
+        triggered the event. Only SystemEvents will use this functionality.
+        
+        Attribute: Returns the text of the event.
+
+        Attribute: Example
+
+        use Libraries.Accessibility.all
+
+        SystemEvent event
+        text result = event:GetKeyboardShortcut()
+    */
+    blueprint action GetKeyboardShortcut() returns text
+
+    /*
+        This action should return the number of children for the object that 
+        triggered the event. Only SystemEvents will use this functionality.
+        
+        Attribute: Returns the text of the event.
+
+        Attribute: Example
+
+        use Libraries.Accessibility.all
+
+        SystemEvent event
+        number result = event:GetChildCount()
+    */
+    blueprint action GetChildCount() returns integer
+
+    /*
+        This action should return a AccessibleChild of the object that 
+        triggered the event at the parameter's index. Only SystemEvents will 
+        use this functionality.
+        
+        Attribute: Returns the AccessibleChild of the event at the index.
+
+        Attribute: Example
+
+        use Libraries.Accessibility.all
+
+        SystemEvent event
+        number result = event:GetChildCount()
+    */
+    blueprint action GetChild(integer index) returns AccessibleChild
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 end
