@@ -26,6 +26,7 @@ public class AccessibilityManager {
             @Override
             public void run() {
                 handler.Initialize();
+                System.out.println("after initialize");
             }
         };
                 
@@ -45,7 +46,7 @@ public class AccessibilityManager {
     } 
     
     public void RecieveEvent(String eventInfo) {
-        
+        System.out.println(eventInfo);
         eventInfo = eventInfo.replace("\t", "");
         eventInfo = eventInfo.replace("\n", " ");
         //eventInfo = eventInfo.replace("&", "&amp");

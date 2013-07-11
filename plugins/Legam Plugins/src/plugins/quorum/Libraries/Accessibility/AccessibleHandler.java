@@ -27,6 +27,7 @@ public abstract class AccessibleHandler
         if (os == OperatingSystem.MAC_OSX) {
             try {
                 loadLibrary("MacAccessibleHandler.dylib");
+                isLoaded = true;
             }
             catch (Exception e) {
                 StackTraceElement[] stackTrace = e.getStackTrace();

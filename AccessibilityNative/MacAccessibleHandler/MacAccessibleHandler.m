@@ -189,7 +189,6 @@ NSString* const GET_COMPONENT = @"getConponent";
                     break;
                 }//end of name if
             }
-            
 		}
         
 		// Check if the thread has been cancelled (the handler has been terminated)
@@ -224,16 +223,25 @@ NSString* const GET_COMPONENT = @"getConponent";
 	jstring paramString = (*jniEnv)->NewStringUTF(jniEnv, [eventInfo UTF8String]);
 	param.l = paramString;
     
-    //NSLog(@"Here we go:");
-    //NSLog(jniEnv);
+    NSLog(@"Here we go:");
+    if (jniEnv == NULL)
+        NSLog(@"null jniEnv");
+    if (jniObject == NULL)
+        NSLog(@"null jniObject");
     //NSLog(jniObject);
+    if (methodID == NULL)
+        NSLog(@"null methodID");
     //NSLog(methodID);
+    if (&param == NULL)
+        NSLog(@"null param");
     //NSLog(&param);
     
     /// 95% sure that this method call is the problem!///
     
 	// Call the ReceiveEvent function with the eventInfo Java string as the parameter
 	(*jniEnv)->CallVoidMethodA(jniEnv, jniObject, methodID, &param); 
+    
+    NSLog(@"nope");
 }
 
 // This function initializes global mouse and keyboard events.
@@ -489,6 +497,9 @@ void ProcessNotification(AXObserverRef observer, AXUIElementRef element, CFStrin
                     else
                         name = @"unknown";
                 }
+                CFMutableArrayRef childrenArray;
+                GetEventParameter (element, kEventParamAccessibleAttributeNames, typeCFMutableArrayRef, NULL, sizeof(typeCFMutableArrayRef), NULL, &childrenArray);
+                
             }
         }
         
