@@ -8,6 +8,32 @@
     </div>
 </div>
 <div class="content index-content">
+    <h2>Sodbeans 4.0.2 - July 24th, 2013</h2>
+    <p>Sodbeans 4.0.2 is a bug fix release for the Sodbeans 4.0 branch. It includes
+    an updated version of Quorum and several important bug fixes for the new debugger, 
+    which were identified at the recent Quorum workshop in Vancouver, Washington.</p>
+    <ul> 
+        <li>Fixed a bug causing the debugger to not show variables
+        correctly under some circumstances.</li>
+        <li>Fixed a bug causing the debugger to speak incorrectly if the screen reader
+        in Sodbeans is off.</li>
+        <li>Fixed a bug causing the user to be able to incorrectly execute code
+        "before and after" the execution of a program. The code the debugger was executing
+        was injected bytecode that the debugger should have ignored, but wasn't.</li>
+        <li>Fixed several bugs causing the debugger to force the user to step 
+        too many times over a section of bytecode. This rare bug made it look as if you had
+        to click the step over button several times on one line of code.</li>
+        <li>Added a button to the debugger known as rewind to start. The button does
+        what is claims. A new image was added for this button.</li>
+        <li>Changed the behavior of the rewind button so that it honors breakpoints,
+        making it work like the reverse the forward button. Like a video tape, rewinding
+        stops if the beginning of the program is reached.</li>
+        <li>Hid the restart button, which no longer appears to be used in newer
+        versions of NetBeans.</li>
+    </ul>
+    
+    
+    
     <h2>Sodbeans 4.0.1 - June 23rd, 2013</h2>
     <p>Sodbeans 4.0.1 is a bug fix release for the Sodbeans 4.0 branch. It includes
     an updated version of Quorum and a host of important bug fixes.</p>

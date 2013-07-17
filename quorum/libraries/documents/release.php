@@ -7,6 +7,17 @@
 	</div>
 </div>
 <div class="content index-content">
+<h2>Quorum 2.0.1 July 24th, 2013</h2>
+<p>This is a bug fix release for the Quorum 2.0 branch.</p>
+<ul> 
+        <li>Finished and integrated the Mac OS X version of the accessibility 
+        libraries. While the accessibility model on Mac is very different than
+        on PC, the Quorum libraries should work as similarly as we could make
+        them on each platform.</li>
+        <li>Fixed a bug causing the output buffer to not be cleared correctly on
+        shutdown of a program.</li>
+        <li>Fixed a number of bugs in the accessibility libraries.</li>
+</ul>
 <h2>Quorum 2.0 June 6th, 2013</h2>
 <p>Quorum 2.0 includes a host of improvements to the type system, adds the 
     ability to call actions on primitives, includes minor syntactic improvements, 
