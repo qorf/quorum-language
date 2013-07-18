@@ -58,7 +58,7 @@ Using Project
 <tr><td><strong>Task</strong></td><td><strong>Hotkey</strong></td><td><strong>Action</strong>
 </td></tr><tr><td>Build Project</td><td>F11</td><td>Builds a main project
 </td></tr><tr><td>Editor Window</td><td>CTRL + 0</td><td>Changes the focus to the editor window
-</td></tr><tr><td>Output Window</td><td>CTRL + 5</td><td>Changes the focus to the Sodbeans output window
+</td></tr><tr><td>Output Window</td><td>CTRL + SHIFT + 5</td><td>Changes the focus to the Sodbeans output window
 </td></tr><tr><td>Projects Window</td><td>CTRL + 1</td><td>Changes the focus to the Projects window
 </td></tr><tr><td>Run Project</td><td>F6</td><td>Runs a main project
 </td></tr></table>
@@ -77,20 +77,20 @@ You will start by writing code in the main.quorum file.  In the Projects window,
 To build a program that declares several variables we should first make sure main.quorum is blank (go ahead and delete anything that might have been generated in this file). The first line should declare the variable <strong>myInteger</strong> with the <strong><tt>integer</tt></strong> type and assign the variable the value of 4. Once this variable is declared build your project and check for any compiler errors.
 </p>
 <p>
-Build the project by going to Run -&gt; Build Main Project or press F11.  The program should compile with no errors. If it does have errors there is a problem with the line of code in your project. The message in the Sodbeans Output window should give you a clue as to what went wrong. In addition, Sodbeans will automatically display a line under the code that has an error so that you will know where something went wrong. Remember, compiling this code will not check that you assigned the value 4 to the variable <strong>myInteger</strong>. Instead, it checks that the format of the code is valid: <strong><tt>&lt;type&gt; &lt;unique name&gt; = &lt;value&gt;</tt></strong>.  Sodbeans compiles the code and checks for any errors in the background, so there is no need to keep building the project when you want to compile your code again. Once all of the compiler errors are gone run the program by going to Run -&gt; Run Main Project or press F6.  When the project runs nothing should have happened because you have not gone that far yet!
+Build the project by going to Run -&gt; Build Main Project or by pressing F11.  The program should compile with no errors. If it does have errors there is a problem with the line of code in your project. The message in the Sodbeans Output window should give you a clue as to what went wrong. In addition, Sodbeans will automatically display a line under the code that has an error so that you will know where something went wrong. Remember, compiling this code will not check that you assigned the value 4 to the variable <strong>myInteger</strong>. Instead, it checks that the format of the code is valid: <strong><tt>&lt;type&gt; &lt;unique name&gt; = &lt;value&gt;</tt></strong>.  Sodbeans compiles the code and checks for any errors in the background, so there is no need to keep building the project when you want to compile your code again. Once all of the compiler errors are gone run the program by going to Run -&gt; Run Main Project or by pressing F6.  When the project runs, nothing should have happened because you have not gone that far yet!
 </p>
 <p>
-Next, add two lines of code:
+Next, add two lines of code (you can copy and paste from here):
 </p>
 <p><pre class="code"><code>
-integer 2myInteger = 5
-integer _myInteger = 6
+integer 2myInteger1 = 5
+integer _myInteger2 = 6
 </code></pre></p>
 <p>
 Run the program.  The compiler errors will appear in the Sodbeans Output window as shown below:
 </p>
 <p><pre class="code"><code>
-no variable alternative as character ‘_’
+Incomplete or invalid statement '_'
 extraneous input ‘2’
 </code></pre></p>
 <p>
@@ -105,7 +105,7 @@ Now add more variables and types to the program.  Do the following steps to add 
 </li><li>In the next line, define a <strong><tt>text</tt></strong> type and give the variable name <strong>quorumText</strong>. Assign quorumText to “Quorum is fun.”
 </li></ul>
 <p>
-Now that you have defined all four variables, have Sodbeans speak each variable out to the user. You can make the computer speak your variables by using the <strong><tt>say</tt></strong> statement. Once this is completed the output should say the following:
+Now that you have defined these four new variables, have Sodbeans output each variable out to the user. You can make the computer print your variables the the Sodbeans output window by using the <strong><tt>output</tt></strong> statement. Once this is completed the output should say the following:
 </p>
 <p><pre class="code"><code>
 4
@@ -114,22 +114,13 @@ true
 Quorum is fun
 </code></pre></p>
 <p>
-Now have your program speak another sentence but this time the variables should be used in the sentence. Try to use only one <strong><tt>say</tt></strong> statement to speak the above text (hint:  use concatenation). The output should say the following:
+Now have your program output another sentence but this time the variables should be used in the sentence. Try to use only one <strong><tt>output</tt></strong> statement to print the following text (hint:  use concatenation). The output should say the following:
 </p>
 <p><pre class="code"><code>
 The program returns true when 8.9 is greater than 4. Quorum is fun.
 </code></pre></p>
 <p>
-You still have the three unused integers variables.  Although it is okay to leave them declared and not use them somewhere in the program, it is a better practice to use all declared variables.  Below the line with the fifth <strong><tt>say</tt></strong> statement, write one line of code that adds all of the unused integer variables together and assigns the result to the variable <b>firstInteger</b>.
-</p>
-<p>
-Then, add a new <strong><tt>say</tt></strong> statement that matches the following output.  Be sure to set any new values to the the necessary variables (hint: checkResult and quorumText have new values).
-</p>
-<p><pre class="code"><code>
-The program returns false when 8.9 is less than 15. Quorum is cool.
-</code></pre></p>
-<p>
-You are done! Show your work to the instructor.
+Once you have done this, you are done! Show your work to the instructor.
 </p>
 
  <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>
