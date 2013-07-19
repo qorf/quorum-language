@@ -857,6 +857,8 @@ class AccessibilityManager
         boolean result = manager:GetEvent(eventXML)
     */
     action GetEvent(text event)
+        //output event
+    
         ExtensibleMarkupLanguageParser parser
         AccessibilityEvent e = parser:ParseEvent(event)
         text type = e:GetCategory()

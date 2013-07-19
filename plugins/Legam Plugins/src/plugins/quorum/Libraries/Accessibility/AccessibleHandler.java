@@ -26,7 +26,7 @@ public abstract class AccessibleHandler
 
         if (os == OperatingSystem.MAC_OSX) {
             try {
-                loadLibrary("MacAccessibleHandler.dylib");
+                loadLibrary("MacAccessibleHandler.dylib");                
                 isLoaded = true;
             }
             catch (Exception e) {
@@ -150,7 +150,7 @@ public abstract class AccessibleHandler
      * @param eventInfo 
      */
     public void ReceiveEvent(String eventInfo)
-    {
+    {        
         manager.RecieveEvent(eventInfo);
     }
     

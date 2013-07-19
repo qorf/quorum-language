@@ -46,6 +46,7 @@ public class AccessibilityManager {
     } 
     
     public void RecieveEvent(String eventInfo) {
+        //Logger.getLogger(AccessibilityManager.class.getName()).log(Level.SEVERE, null);
         System.out.println(eventInfo);
         eventInfo = eventInfo.replace("\t", "");
         eventInfo = eventInfo.replace("\n", " ");

@@ -14,7 +14,7 @@
 
 @implementation MacAccessibleHandler
 
-// XML constants
+// XML tag constants
 NSString* const XML_HEADER = @"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" ;
 NSString* const ROOT_TAG = @"<AccessibleEvent>\n";
 NSString* const ROOT_TAG_END = @"</AccessibleEvent>\n";
@@ -42,17 +42,29 @@ NSString* const POSITION_TAG = @"\t<Position>";
 NSString* const POSITION_TAG_END = @"</Position>\n";
 NSString* const MOUSE_BUTTON_TAG = @"\t<MouseButton>";
 NSString* const MOUSE_BUTTON_TAG_END = @"</MouseButton>\n";
-
-// constants
-NSString* const GET_CATEGORY = @"getCategory";
-NSString* const GET_TYPE = @"getType";
-NSString* const GET_COMPONENT = @"getConponent";
+NSString* const SHORTCUT_TAG = @"\t<Shortcut>";
+NSString* const SHORTCUT_TAG_END = @"</Shortcut>\n";
+NSString* const CHILD_COUNT_TAG = @"\t<ChildCount>";
+NSString* const CHILD_COUNT_TAG_END = @"</ChildCount>\n";
+NSString* const CHILDREN_TAG = @"\t<Children>\n";
+NSString* const CHILDREN_TAG_END = @"\t</Children>\n";
+NSString* const CHILD_TAG = @"\t\t<Child>\n";
+NSString* const CHILD_TAG_END = @"\t\t</Child>\n";
+NSString* const CHILD_NAME_TAG = @"\t\t\t<ChildName>";
+NSString* const CHILD_NAME_TAG_END = @"</ChildName>\n";
+NSString* const CHILD_COMPONENT_TAG = @"\t\t\t<ChildComponent>";
+NSString* const CHILD_COMPONENT_TAG_END = @"</ChildComponent>\n";
+NSString* const CHILD_SHORTCUT_TAG = @"\t\t\t<ChildShortcut>";
+NSString* const CHILD_SHORTCUT_TAG_END = @"</ChildShortcut>\n";
 
 
 // This function starts the message loop thread that listens for Mac accessibility notifications
 // and sends the appropriate information back to Java that will then be converted to speech.
 - (void) initialize: (JNIEnv*) env object: (jobject) jobj
 {
+    NSLog(@"Setting Self");
+    thisClass = self;
+    
     hasRunningApplication = false;
     
 	// Create an AutoreleasePool for local variables
@@ -73,7 +85,7 @@ NSString* const GET_COMPONENT = @"getConponent";
 	jniObject = (*env)->NewGlobalRef(env, jobj);
     
 	// Create and start the message loop thread with MessageThreadLoop as the main function
-	loopThread = [[NSThread alloc] initWithTarget:self selector:@selector(MessageThreadLoop:) object:nil];
+	loopThread = [[NSThread alloc] initWithTarget:thisClass selector:@selector(MessageThreadLoop:) object:nil];
 	[loopThread start];
 	
 	[pool release];
@@ -96,10 +108,10 @@ NSString* const GET_COMPONENT = @"getConponent";
             AXObserverRef applicationObserver = (AXObserverRef)[applicationsWithNotifications objectForKey: currPIDInt];
             
             // Unitialize the notifications for the previous application
-            [self UnInitializeObserverNotifications: &applicationObserver pid: currPID];
+            [thisClass UnInitializeObserverNotifications: &applicationObserver pid: currPID];
         }
     }
-    [self UnInitializeKeyboardAndMouseEvents];
+    [thisClass UnInitializeKeyboardAndMouseEvents];
     
     hasRunningApplication = false;
     
@@ -114,16 +126,13 @@ NSString* const GET_COMPONENT = @"getConponent";
 	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
 	
 	// Attach the new thread to the Java Virtual Machine instance that called the Mac native code
-	(*jvm)->AttachCurrentThread(jvm, (void**) &jniEnv, NULL);
-	
-    // Get the methodID of the ReceiveEvent function from 
-    jclass className = (*jniEnv)->GetObjectClass(jniEnv, jniObject);
-	methodID = (*jniEnv)->GetMethodID(jniEnv, className, "ReceiveEvent", "(Ljava/lang/String;)V");
+	(*jvm)->AttachCurrentThread(jvm, (void**) &jniEnv, NULL);    
     
 	AXUIElementRef focusedApplication;
 	
+    NSLog(@"right before it should do something");
     // Start keyboard and mouse events
-    [self InitializeKeyboardAndMouseEvents];
+    //[thisClass InitializeKeyboardAndMouseEvents];
     
 	while (true)
 	{
@@ -132,68 +141,72 @@ NSString* const GET_COMPONENT = @"getConponent";
 		{
             NSString* name = nil;
             AXUIElementCopyAttributeValue(focusedApplication, kAXTitleAttribute, (CFTypeRef*) &name);
-            if ([name rangeOfString:@"java"].location == NSNotFound)
+            if (name)
             {
-                // Get the process ID of the focused application
-                pid_t newPID;
-                if (AXUIElementGetPid(focusedApplication, &newPID) == kAXErrorSuccess)
-                {     
-                    // Create an NSRunningApplication instance for the running application
-                    NSRunningApplication* newRunningApplication = [NSRunningApplication runningApplicationWithProcessIdentifier: newPID];
-                    
-                    // Check if the focused application has changed (true if it has changed)
-                    if (![newRunningApplication isEqual: focusedRunningApplication])
-                    {                        
-                        // Get an NSNumber instance of the new process ID (used as a key in a hashmap)
-                        NSNumber* newPIDInt = [NSNumber numberWithInt: (int) newPID];
-                        
-                        // If the hashmap of applications for which notifications have been configured does not contain
-                        // the new application
-                        if ([applicationsWithNotifications objectForKey: newPIDInt] == nil)
-                        {
-                            // Create a new accessibility observer for the new application and initialize the notifications
-                            AXObserverRef applicationObserver = [self InitializeObserverNotifications: newPID];					
-                            
-                            // Add the new application to the hashmap
-                            [applicationsWithNotifications setObject:(id)applicationObserver forKey:newPIDInt];
-                            
-                            // If the previous focused application has been terminated
-                            if (focusedRunningApplication != nil)
-                            {
-                                // Get the previous application's process ID
-                                pid_t oldPID = [focusedRunningApplication processIdentifier];
-                                NSNumber* oldPIDInt = [NSNumber numberWithInt: (int) oldPID];
-                                
-                                // Get the observer for the previous application
-                                AXObserverRef applicationObserverOld = (AXObserverRef)[applicationsWithNotifications objectForKey: oldPIDInt];
-                                
-                                // Unitialize the notifications for the previous application
-                                [self UnInitializeObserverNotifications: &applicationObserverOld pid: oldPID];
-                                
-                                // Remove the application from the hashmap
-                                [applicationsWithNotifications removeObjectForKey: oldPIDInt];
-                            }
-                        }
-                        
-                        [self SendEventInfo: [self CreateXML:@"Focus" : @"Component" : @"Window" : name]];
-                        focusedRunningApplication = newRunningApplication;
-                        
-                        // Set the focused application to the new application
-                        focusedRunningApplication = newRunningApplication;	
-                        hasRunningApplication = true;
-                    }  
-                }
-                else
+                if ([name rangeOfString:@"java"].location == NSNotFound)
                 {
-                    NSLog(@"break");
-                    break;
-                }//end of name if
+                    // Get the process ID of the focused application
+                    pid_t newPID = nil;
+                    if (AXUIElementGetPid(focusedApplication, &newPID) == kAXErrorSuccess)
+                    {     
+                        // Create an NSRunningApplication instance for the running application
+                        NSRunningApplication* newRunningApplication = [NSRunningApplication runningApplicationWithProcessIdentifier: newPID];
+                        
+                        // Check if the focused application has changed (true if it has changed)
+                        if (![newRunningApplication isEqual: focusedRunningApplication])
+                        {                        
+                            // Get an NSNumber instance of the new process ID (used as a key in a hashmap)
+                            NSNumber* newPIDInt = [NSNumber numberWithInt: (int) newPID];
+                            
+                            // If the hashmap of applications for which notifications have been configured does not contain
+                            // the new application
+                            if ([applicationsWithNotifications objectForKey: newPIDInt] == nil)
+                            {
+                                // Create a new accessibility observer for the new application and initialize the notifications
+                                AXObserverRef applicationObserver = [thisClass InitializeObserverNotifications: newPID];					
+                                
+                                // Add the new application to the hashmap
+                                [applicationsWithNotifications setObject:(id)applicationObserver forKey:newPIDInt];
+                                
+                                // If the previous focused application has been terminated
+                                if (focusedRunningApplication != nil)
+                                {
+                                    // Get the previous application's process ID
+                                    pid_t oldPID = [focusedRunningApplication processIdentifier];
+                                    NSNumber* oldPIDInt = [NSNumber numberWithInt: (int) oldPID];
+                                    
+                                    // Get the observer for the previous application
+                                    AXObserverRef applicationObserverOld = (AXObserverRef)[applicationsWithNotifications objectForKey: oldPIDInt];
+                                    
+                                    // Unitialize the notifications for the previous application
+                                    [thisClass UnInitializeObserverNotifications: &applicationObserverOld pid: oldPID];
+                                    
+                                    // Remove the application from the hashmap
+                                    [applicationsWithNotifications removeObjectForKey: oldPIDInt];
+                                }
+                            }
+                            
+                            [thisClass SendEventInfo: [thisClass CreateXML:@"Focus" : @"Component" : @"Window" : name : nil : nil]];
+                            //focusedRunningApplication = newRunningApplication;
+                            
+                            // Set the focused application to the new application
+                            focusedRunningApplication = newRunningApplication;	
+                            hasRunningApplication = true;
+                        }  
+                    }
+                    else
+                    {
+                        NSLog(@"break");
+                        break;
+                    }//end of name if
+                }
             }
 		}
         
 		// Check if the thread has been cancelled (the handler has been terminated)
 		if ([loopThread isCancelled])
 		{
+            //NSLog(@"thread was cancelled");
 			// Delete the reference to the MacAccessiblityHandler java object
 			(*jniEnv)->DeleteGlobalRef(jniEnv, jniObject);
             
@@ -202,7 +215,7 @@ NSString* const GET_COMPONENT = @"getConponent";
 			for (NSNumber* key in applicationsWithNotifications)
 			{
 				AXObserverRef observer = (AXObserverRef) [applicationsWithNotifications objectForKey: key];
-				[self UnInitializeObserverNotifications: &observer pid: (pid_t) [key integerValue]];
+				[thisClass UnInitializeObserverNotifications: &observer pid: (pid_t) [key integerValue]];
 			}
 			
 			// Release the memory for the application hashmap
@@ -216,32 +229,21 @@ NSString* const GET_COMPONENT = @"getConponent";
 
 // This function sends the information stored in string parameter to Java by calling the
 // ReceiveEvent function in AccessibleHandler.java.
-- (void) SendEventInfo: (NSString*) eventInfo 
-{  
+- (void) SendEventInfo: (NSString*) eventInfo
+{      
+    (*jvm)->AttachCurrentThread(jvm, (void**) &jniEnv, NULL);
+    
+    // Get the methodID of the ReceiveEvent function from 
+    jclass className = (*jniEnv)->GetObjectClass(jniEnv, jniObject);
+	methodID = (*jniEnv)->GetMethodID(jniEnv, className, "ReceiveEvent", "(Ljava/lang/String;)V");
+    
 	// Create a new Java string using the C string (UTF8String) representation of the eventInfo NSString
 	jvalue param;
 	jstring paramString = (*jniEnv)->NewStringUTF(jniEnv, [eventInfo UTF8String]);
-	param.l = paramString;
-    
-    NSLog(@"Here we go:");
-    if (jniEnv == NULL)
-        NSLog(@"null jniEnv");
-    if (jniObject == NULL)
-        NSLog(@"null jniObject");
-    //NSLog(jniObject);
-    if (methodID == NULL)
-        NSLog(@"null methodID");
-    //NSLog(methodID);
-    if (&param == NULL)
-        NSLog(@"null param");
-    //NSLog(&param);
-    
-    /// 95% sure that this method call is the problem!///
+	param.l = paramString;    
     
 	// Call the ReceiveEvent function with the eventInfo Java string as the parameter
-	(*jniEnv)->CallVoidMethodA(jniEnv, jniObject, methodID, &param); 
-    
-    NSLog(@"nope");
+	(*jniEnv)->CallVoidMethodA(jniEnv, jniObject, methodID, &param);
 }
 
 // This function initializes global mouse and keyboard events.
@@ -253,7 +255,7 @@ NSString* const GET_COMPONENT = @"getConponent";
     CGEventMask keyboardMask = CGEventMaskBit(kCGEventKeyDown) | CGEventMaskBit(NSKeyUp) | CGEventMaskBit(NSFlagsChanged);
     
     // Create keyboard event hooks.
-    CFMachPortRef mMachPortRef = CGEventTapCreate(kCGAnnotatedSessionEventTap, kCGHeadInsertEventTap, kCGEventTapOptionListenOnly, keyboardMask, (CGEventTapCallBack)KeyboardEventTapCallBack, self);
+    CFMachPortRef mMachPortRef = CGEventTapCreate(kCGAnnotatedSessionEventTap, kCGHeadInsertEventTap, kCGEventTapOptionListenOnly, keyboardMask, (CGEventTapCallBack)KeyboardEventTapCallBack, nil);
     
     if (mMachPortRef == NULL)
         printf("Error initializing keyboard notifications.\n");
@@ -273,7 +275,7 @@ NSString* const GET_COMPONENT = @"getConponent";
     CGEventMask mouseMask = CGEventMaskBit(kCGEventLeftMouseDown) | CGEventMaskBit(kCGEventLeftMouseUp) | CGEventMaskBit(kCGEventMouseMoved) | CGEventMaskBit(kCGEventRightMouseDown) | CGEventMaskBit(kCGEventRightMouseUp) | CGEventMaskBit(kCGEventOtherMouseDown) | CGEventMaskBit(kCGEventOtherMouseUp) | CGEventMaskBit(kCGEventScrollWheel);
     
     // Create mouse event hooks.
-    mMachPortRef = CGEventTapCreate(kCGHIDEventTap, kCGHeadInsertEventTap, kCGEventTapOptionListenOnly, mouseMask, (CGEventTapCallBack)MouseEventTapCallBack, self);
+    mMachPortRef = CGEventTapCreate(kCGHIDEventTap, kCGHeadInsertEventTap, kCGEventTapOptionListenOnly, mouseMask, (CGEventTapCallBack)MouseEventTapCallBack, nil);
     
     if (mMachPortRef == NULL)
     {
@@ -311,13 +313,13 @@ NSString* const GET_COMPONENT = @"getConponent";
     {
         //Add notifications
         NSMutableArray* eventList = [[NSMutableArray alloc] init]; 
-        [self CreateEventList:eventList];
+        [thisClass CreateEventList:eventList];
         
         // Add notifications
         for(int i = 0; i < [eventList count]; i++)
         {
             NSString* eventName = [eventList objectAtIndex:i];
-            er = AXObserverAddNotification(applicationObserver, element, (CFStringRef)eventName, self);
+            er = AXObserverAddNotification(applicationObserver, element, (CFStringRef)eventName, nil);
             if (er != kAXErrorSuccess)
             {
                 printf("Error initializing %s notifications.\n", CFStringGetCStringPtr((CFStringRef)eventName, CFStringGetSystemEncoding()));
@@ -336,7 +338,7 @@ NSString* const GET_COMPONENT = @"getConponent";
 {
 	// Remove the notification hooks from the observer parameter
     NSMutableArray* eventList = [[NSMutableArray alloc] init]; 
-    [self CreateEventList:eventList];
+    [thisClass CreateEventList:eventList];
     
     for(int i = 0; i < [eventList count]; i++)
     {
@@ -346,6 +348,8 @@ NSString* const GET_COMPONENT = @"getConponent";
 	
 	// Remove the observer's run loop from the main run loop
 	CFRunLoopRemoveSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(*observer), kCFRunLoopDefaultMode);
+    
+    //[loopThread cancel];
 }
 
 // This function creates an array of events to be initialized for the system.
@@ -389,7 +393,6 @@ NSString* const GET_COMPONENT = @"getConponent";
     return;
 }
 
-
 ////////////////////////
 // Callback Functions //
 ////////////////////////
@@ -400,117 +403,83 @@ NSString* const GET_COMPONENT = @"getConponent";
 void ProcessNotification(AXObserverRef observer, AXUIElementRef element, CFStringRef notification, void* refcon)
 {         
 	// Get the active instance of the MacAccessibleHandler (the refcon parameter)
-	MacAccessibleHandler* handler = (MacAccessibleHandler*) refcon;
-	
+	//MacAccessibleHandler* handler = (MacAccessibleHandler*) refcon;
+    
+    AXUIElementRef uiElement = element;
+    
 	// Get the application title from the application AXUIElementRef (element)
-	NSString* sendString = @"nothing";
-    NSString* name = @"nothing";
+	NSString* sendString = @"";
+    NSString* name = @"";
+    NSString* shortcut = nil;
+    NSString* children;
     
-	AXUIElementCopyAttributeValue(element, kAXTitleAttribute, (CFTypeRef*) &name);
+	//AXUIElementCopyAttributeValue(element, kAXTitleAttribute, (CFTypeRef*) &name);
+    NSString * cat, * ty, * comp;        
+    cat  = [[NSString alloc] init];
+    ty   = [[NSString alloc] init];
+    comp = [[NSString alloc] init];
+    //comp = nil;
     
-    //NSLog([@"Name: " stringByAppendingString:name]);
+    [thisClass getWinEventNames:(NSString*)notification : &cat : &ty : &comp];
     
-	if (name != nil)
-	{    
-        // get the category, type and component of the event according to the xml specification
-        NSString * cat, * ty, * comp;        
-        cat  = [[NSString alloc] init];
-        ty   = [[NSString alloc] init];
-        comp = [[NSString alloc] init];
-        comp = NULL;
-        
-        cat = [handler getWinEventNames:(NSString*)notification : GET_CATEGORY];     
-        ty = [handler getWinEventNames:(NSString*)notification : GET_TYPE];
-        comp = [handler getWinEventNames:(NSString*)notification : GET_COMPONENT];
-        
-        // if more information is needed about the component, get the role attribute from the element
-        if ( [comp isEqualToString:@"unknown"] )
-        {
-            AXUIElementCopyAttributeValue(element, kAXRoleAttribute, (CFTypeRef*) &comp);
-            comp = [handler renameComponent:(NSString*)comp];
-        }
-        
-        // get the name of the window the event occured in if it was a java program
-        if ([name isEqualToString:@"java"])
-        {
-            AXUIElementRef window;
-            AXUIElementCopyAttributeValue(element, kAXFocusedWindowAttribute, (CFTypeRef*) &window);        
-            AXUIElementCopyAttributeValue(window, kAXTitleAttribute, (CFTypeRef*) &name);
-            
-            if (name == NULL)
-                name = @"unknown";
-        }
-        
-        // Create xml string using values gathered
-        sendString = [handler CreateXML:cat : ty : comp : name];       
-	}
-    else
+    //NSLog((NSString*)notification);
+    
+    CFArrayRef selected = nil;
+    CFIndex	count;
+    
+    // if more information is needed about the component, get the role attribute from the element
+    if ( [comp isEqualToString:@"unknown"] )
     {
-        // get the category, type and component of the event according to the xml specification
-        NSString * cat, * ty, * comp;
-        cat  = [[NSString alloc] init];
-        ty   = [[NSString alloc] init];
-        comp = [[NSString alloc] init];
-        comp = NULL;
-        
-        cat = [handler getWinEventNames:(NSString*)notification : GET_CATEGORY];        
-        ty = [handler getWinEventNames:(NSString*)notification : GET_TYPE];   
-        comp = [handler getWinEventNames:(NSString*)notification : GET_COMPONENT];
-        
-        // if more information is needed about the component, get the role attribute from the element
-        if ( [comp isEqualToString:@"unknown"] )
-        {
-            AXUIElementCopyAttributeValue(element, kAXRoleAttribute, (CFTypeRef*) &comp);
-            comp = [handler renameComponent:(NSString*)comp];
-            //if (comp == nil)
-            //    return;
-        }
-        
-        // get information for the reading tag
-        AXUIElementRef systemWide = AXUIElementCreateSystemWide();
-        AXUIElementRef app = nil;
-        AXUIElementCopyAttributeValue(systemWide, kAXFocusedApplicationAttribute, (CFTypeRef *) &app);
-        if (app != NULL)
-        {
-            AXUIElementRef attr = nil;
-            AXUIElementCopyAttributeValue(app, kAXFocusedUIElementAttribute, (CFTypeRef *)&attr);
-            if (attr != NULL)
-            {
-                if ([(NSString*)notification isEqualToString:(NSString*)kAXSelectedTextChangedNotification])
-                {
-                    CFTypeRef value = nil;
-                    AXUIElementCopyAttributeValue(attr, kAXSelectedTextAttribute, &value);
-                    if (value != NULL)
-                    {
-                        name = [(id)value description];
-                    }
-                    else
-                        name = @"unknown";
-                }
-                else
-                {
-                    //name = titleValue;
-                    NSString* val;
-                    AXUIElementCopyAttributeValue(attr, kAXDescriptionAttribute, (CFTypeRef*) &val);
-                    if (val != nil)
-                        name = val;
-                    else
-                        name = @"unknown";
-                }
-                CFMutableArrayRef childrenArray;
-                GetEventParameter (element, kEventParamAccessibleAttributeNames, typeCFMutableArrayRef, NULL, sizeof(typeCFMutableArrayRef), NULL, &childrenArray);
-                
-            }
-        }
-        
-        if (name == NULL)
-            name = @"unknown";
-        
-        // Create xml string using values gathered
-        sendString = [handler CreateXML: cat : ty : comp : name];
+        AXUIElementCopyAttributeValue(uiElement, kAXRoleAttribute, (CFTypeRef*) &comp);
+        if (comp)
+            comp = [thisClass renameComponent:(NSString*)comp];
     }
     
-	[handler SendEventInfo: sendString];
+    // Get the name of the element
+    AXUIElementCopyAttributeValue(uiElement, kAXTitleAttribute, (CFTypeRef*) &name);
+    
+    if (!name)
+    {
+        AXUIElementCopyAttributeValue(uiElement, kAXValueAttribute, (CFTypeRef*) &name);
+        if (!name)
+        {
+            AXUIElementCopyAttributeValue(uiElement, kAXDescriptionAttribute, (CFTypeRef*) &name);
+        }
+    }
+    
+    // Get the keyboard shortcut if it exists
+    CFStringRef titleRef = nil;
+    AXUIElementCopyAttributeValue(uiElement, kAXMenuItemCmdCharAttribute, (const void**)&titleRef);
+    if (titleRef)
+    {
+        NSString* keys = @"";
+        CFTypeRef theValue;
+        AXUIElementCopyAttributeValue(uiElement, kAXMenuItemCmdModifiersAttribute, &theValue);
+        if (theValue)
+        {
+            int mod = [[(id)theValue description] intValue];
+            if (mod & 4) { keys = [keys stringByAppendingString:@"ctrl + "]; }
+            if (mod & 2) { keys = [keys stringByAppendingString:@"alt + "]; }
+            if (mod & 1) { keys = [keys stringByAppendingString:@"shift + "]; }
+        }
+        shortcut = @"";
+        shortcut = [shortcut stringByAppendingFormat:@"cmd + %@%@", keys, (NSString*)titleRef];
+    }
+    
+    // Get the children (in XML format) if they exist
+    children = [thisClass descriptionOfChildren:uiElement :(NSString*)notification]; 
+//    if ([(NSString*)notification isEqualToString:(NSString*)kAXSelectedChildrenChangedNotification] || [(NSString*)notification isEqualToString:(NSString*)kAXSelectedChildrenMovedNotification] || [(NSString*)notification isEqualToString:(NSString*)kAXSelectedCellsChangedNotification] || [(NSString*)notification isEqualToString:(NSString*)kAXSelectedRowsChangedNotification] || [(NSString*)notification isEqualToString:(NSString*)kAXSelectedColumnsChangedNotification])
+//        children = [thisClass descriptionOfChildren:uiElement :true]; 
+//    else
+//        children = [thisClass descriptionOfChildren:uiElement :false]; 
+    
+    //NSLog((NSString*)notification);
+    sendString = [thisClass CreateXML:cat : ty : comp : name : shortcut : children];
+    
+    //NSLog(sendString);
+	[thisClass SendEventInfo: sendString];
+    
+    return;
 }
 
 // This function serves as the Keyboard Callback function that is called whenever a keyboard event 
@@ -638,141 +607,148 @@ CGEventRef MouseEventTapCallBack (CGEventTapProxy proxy, CGEventType type, CGEve
     return event;
 }
 
+// This function get the children of the event and puts them into xml format.    
+- (NSString *)descriptionOfChildren:(AXUIElementRef)uiElement : (NSString*)notification {
+    
+    NSString *	theValueDescString	= NULL;
+    CFTypeRef	theValue;
+    CFIndex	count;
+    CFArrayRef children = nil;
+    
+    AXUIElementRef winRef;
+    CFStringRef titleRef,componentRef, shortcutRef;
+    NSString *shortcut, *comp;
+    
+    NSString* childType;
+    if ([notification isEqualToString:(NSString*)kAXSelectedChildrenChangedNotification] || [notification isEqualToString:(NSString*)kAXSelectedChildrenMovedNotification])
+        childType = NSAccessibilitySelectedChildrenAttribute;
+    else if ([notification isEqualToString:(NSString*)kAXSelectedRowsChangedNotification])
+        childType = NSAccessibilitySelectedRowsAttribute;
+    else if ([notification isEqualToString:(NSString*)kAXSelectedColumnsChangedNotification])
+        childType = NSAccessibilitySelectedColumnsAttribute; // check options, there might be something to get the headers
+    else if ([notification isEqualToString:(NSString*)kAXSelectedCellsChangedNotification])
+        childType = NSAccessibilitySelectedCellsAttribute;
+    else
+        childType = NSAccessibilityChildrenAttribute;
+    
+    if (AXUIElementCopyAttributeValue(uiElement, (CFStringRef)NSAccessibilitySelectedRowsAttribute, &children) == kAXErrorSuccess && children)
+    {
+        count = CFArrayGetCount(children);
+        //NSLog(@"children: %ld", count);
+        if (count > 0)
+        {
+            theValueDescString = [@"" stringByAppendingFormat:@"%@%ld%@%@",CHILD_COUNT_TAG, count, CHILD_COUNT_TAG_END, CHILDREN_TAG];
+            
+            for (int i = 0; i <= count -1; i++)
+            {
+                winRef = (AXUIElementRef)CFArrayGetValueAtIndex(children, i);
+                
+                titleRef = NULL;
+                AXUIElementCopyAttributeValue(winRef, kAXTitleAttribute, (const void**)&titleRef);
+                
+                componentRef = NULL;
+                AXUIElementCopyAttributeValue(winRef, kAXRoleAttribute, (const void**)&componentRef);
+                if (componentRef)
+                    comp = [thisClass renameComponent:(NSString*)componentRef];
+                else
+                    comp = (NSString*)componentRef;
+                
+                if ([(NSString*)componentRef isEqualToString:kAXRowRole])
+                {
+                    CFArrayRef rowChildren = nil;
+                    if (AXUIElementCopyAttributeValue(winRef, (CFStringRef)NSAccessibilityChildrenAttribute, &rowChildren) == kAXErrorSuccess && rowChildren)
+                    {
+                        AXUIElementRef rowRef = (AXUIElementRef)CFArrayGetValueAtIndex(rowChildren, 0);
+                        AXUIElementCopyAttributeValue(rowRef, kAXValueAttribute, &titleRef);
+                    }
+                }
+                
+                shortcut = NULL;
+                shortcutRef = NULL;
+                AXUIElementCopyAttributeValue(winRef, kAXMenuItemCmdCharAttribute, (const void**)&shortcutRef);
+                if (shortcutRef)
+                {
+                    NSString* keys = @"";
+                    CFTypeRef theValue;
+                    AXUIElementCopyAttributeValue(winRef, kAXMenuItemCmdModifiersAttribute, &theValue);
+                    if (theValue)
+                    {
+                        int mod = [[(id)theValue description] intValue];
+                        if (mod & 4) { keys = [keys stringByAppendingString:@"ctrl + "]; }
+                        if (mod & 2) { keys = [keys stringByAppendingString:@"alt + "]; }
+                        if (mod & 1) { keys = [keys stringByAppendingString:@"shift + "]; }
+                    }
+                    shortcut = [@"cmd + " stringByAppendingFormat:@"%@%@", keys, (NSString*)shortcutRef];
+                }
+                
+                if (componentRef)
+                    componentRef = [thisClass renameComponent:(NSString*)componentRef];
+                
+                theValueDescString = [theValueDescString stringByAppendingString:[thisClass CreateChildXML:(NSString*)titleRef :(NSString*)componentRef : shortcut]];
+            }
+            theValueDescString = [theValueDescString stringByAppendingString:CHILDREN_TAG_END];
+        }
+    }
+    
+    return theValueDescString;
+}  
 
 ///////////////////
 // XML Functions //
 ///////////////////
 
 // This fuction creates a string of xml according to the specification.
-- (NSString*) CreateXML:(NSString*)category :(NSString*)type :(NSString*)component :(NSString*)name 
-{
-    //if((category != nil));
-    //assert(type != nil);
-    if (component == nil)
-        component = @"unknown";
-    //assert(name != nil);
-    
+- (NSString*) CreateXML:(NSString*)category :(NSString*)type :(NSString*)component :(NSString*)name  :(NSString*) shortcut : (NSString*) childXML
+{    
+    category =  [thisClass removeInvalidXMLCharacters:category];
+    type =      [thisClass removeInvalidXMLCharacters:type];
+    component = [thisClass removeInvalidXMLCharacters:component];
+    name =      [thisClass removeInvalidXMLCharacters:name];
+    shortcut =  [thisClass removeInvalidXMLCharacters:shortcut];
     NSString* xmlString;
     
-    xmlString = XML_HEADER;
-    xmlString = [xmlString stringByAppendingString:@"\n"];
-    xmlString = [xmlString stringByAppendingString:ROOT_TAG];
+    xmlString = [XML_HEADER stringByAppendingFormat:@"\n%@", ROOT_TAG];
     
-	// Focus Events
-	if ( [category isEqualToString:@"Focus"] )
-	{
-		xmlString = [xmlString stringByAppendingString:CATEGORY_TAG];
-        xmlString = [xmlString stringByAppendingString:category];
-        xmlString = [xmlString stringByAppendingString:CATEGORY_TAG_END];
-        
-        xmlString = [xmlString stringByAppendingString:FOCUS_TYPE_TAG];
-        xmlString = [xmlString stringByAppendingString:type];
-        xmlString = [xmlString stringByAppendingString:FOCUS_TYPE_TAG_END];
-        
-        if ( ( type != @"Desktop" ) /*&& (type != @"MouseCaptureStart" ) && ( type != @"MouseCaptureStop" )*/ )  
-        {
-            xmlString = [xmlString stringByAppendingString:COMPONENT_TAG];
-            xmlString = [xmlString stringByAppendingString:component];
-            xmlString = [xmlString stringByAppendingString:COMPONENT_TAG_END];
-        }
-        
-        if (name != NULL)
-        {
-            xmlString = [xmlString stringByAppendingString:READING_TAG];
-            xmlString = [xmlString stringByAppendingString:name];
-            xmlString = [xmlString stringByAppendingString:READING_TAG_END];
-        }
-	}
-	// Window Events
-	else if ( [category isEqualToString:@"Window"] )
-	{
-		xmlString = [xmlString stringByAppendingString:CATEGORY_TAG];
-        xmlString = [xmlString stringByAppendingString:category];
-        xmlString = [xmlString stringByAppendingString:CATEGORY_TAG_END];
-        
-        xmlString = [xmlString stringByAppendingString:WINDOW_TYPE_TAG];
-        xmlString = [xmlString stringByAppendingString:type];
-        xmlString = [xmlString stringByAppendingString:WINDOW_TYPE_TAG_END];
-        
-        xmlString = [xmlString stringByAppendingString:COMPONENT_TAG];
-        xmlString = [xmlString stringByAppendingString:component];
-        xmlString = [xmlString stringByAppendingString:COMPONENT_TAG_END];
-        
-        if (name != NULL)
-        {
-            xmlString = [xmlString stringByAppendingString:READING_TAG];
-            xmlString = [xmlString stringByAppendingString:name];
-            xmlString = [xmlString stringByAppendingString:READING_TAG_END];
-        }
-	}
-	// Notification Events
-	else if ( [category isEqualToString:@"Notification"] )
-	{
-		xmlString = [xmlString stringByAppendingString:CATEGORY_TAG];
-        xmlString = [xmlString stringByAppendingString:category];
-        xmlString = [xmlString stringByAppendingString:CATEGORY_TAG_END];
-        
-        xmlString = [xmlString stringByAppendingString:NOTIFICATION_TYPE_TAG];
-        xmlString = [xmlString stringByAppendingString:type];
-        xmlString = [xmlString stringByAppendingString:NOTIFICATION_TYPE_TAG_END];
-        
-        if ( type != @"Sound" )
-        {
-            xmlString = [xmlString stringByAppendingString:READING_TAG];
-            xmlString = [xmlString stringByAppendingString:name];
-            xmlString = [xmlString stringByAppendingString:READING_TAG_END];
-        }
-	}
-	// Menu Events
-	else if ( [category isEqualToString:@"Menu"] )
-	{
-		xmlString = [xmlString stringByAppendingString:CATEGORY_TAG];
-        xmlString = [xmlString stringByAppendingString:category];
-        xmlString = [xmlString stringByAppendingString:CATEGORY_TAG_END];
-        
-        xmlString = [xmlString stringByAppendingString:MENU_TYPE_TAG];
-        xmlString = [xmlString stringByAppendingString:type];
-        xmlString = [xmlString stringByAppendingString:MENU_TYPE_TAG_END];
-        
-        if ( ( type != @"PopUpMenuOpen" ) && ( type != @"PopUpMenuClose" ) )
-        {
-            xmlString = [xmlString stringByAppendingString:READING_TAG];
-            xmlString = [xmlString stringByAppendingString:name];
-            xmlString = [xmlString stringByAppendingString:READING_TAG_END];
-        }
-	}
-	// Property Change Events
-	else if ( [category isEqualToString:@"PropertyChange"] )
-	{
-		xmlString = [xmlString stringByAppendingString:CATEGORY_TAG];
-        xmlString = [xmlString stringByAppendingString:category];
-        xmlString = [xmlString stringByAppendingString:CATEGORY_TAG_END];
-        
-        xmlString = [xmlString stringByAppendingString:PROPERTY_CHANGE_TYPE_TAG];
-        xmlString = [xmlString stringByAppendingString:type];
-        xmlString = [xmlString stringByAppendingString:PROPERTY_CHANGE_TYPE_TAG_END];
-        
-        xmlString = [xmlString stringByAppendingString:COMPONENT_TAG];
-        xmlString = [xmlString stringByAppendingString:component];
-        xmlString = [xmlString stringByAppendingString:COMPONENT_TAG_END];
-        
-        if (name != NULL)
-        {
-            xmlString = [xmlString stringByAppendingString:READING_TAG];
-            xmlString = [xmlString stringByAppendingString:name];
-            xmlString = [xmlString stringByAppendingString:READING_TAG_END];
-        }
-	}
+    if (category)
+        xmlString = [xmlString stringByAppendingFormat:@"%@%@%@", CATEGORY_TAG, category, CATEGORY_TAG_END];
+    
+    if (type)
+    {
+        // Choose which type of event it is so that the proper type tag is added
+        if ( [category isEqualToString:@"Focus"] ) // Focus Events
+            xmlString = [xmlString stringByAppendingFormat:@"%@%@%@", FOCUS_TYPE_TAG, type, FOCUS_TYPE_TAG_END];
+        else if ( [category isEqualToString:@"Window"] ) // Window Events
+            xmlString = [xmlString stringByAppendingFormat:@"%@%@%@", WINDOW_TYPE_TAG, type, WINDOW_TYPE_TAG_END];
+        else if ( [category isEqualToString:@"Notification"] ) // Notification Events
+            xmlString = [xmlString stringByAppendingFormat:@"%@%@%@", NOTIFICATION_TYPE_TAG, type, NOTIFICATION_TYPE_TAG_END];
+        else if ( [category isEqualToString:@"Menu"] ) // Menu Events
+            xmlString = [xmlString stringByAppendingFormat:@"%@%@%@", MENU_TYPE_TAG, type, MENU_TYPE_TAG_END];
+        else if ( [category isEqualToString:@"PropertyChange"] ) // Property Change Events
+            xmlString = [xmlString stringByAppendingFormat:@"%@%@%@", PROPERTY_CHANGE_TYPE_TAG, type, PROPERTY_CHANGE_TYPE_TAG_END];
+    }
+    
+    if (component)
+        xmlString = [xmlString stringByAppendingFormat:@"%@%@%@", COMPONENT_TAG, component, COMPONENT_TAG_END];
+    
+    if (name)
+        xmlString = [xmlString stringByAppendingFormat:@"%@%@%@", READING_TAG, name, READING_TAG_END];
+    
+    if (shortcut)
+        xmlString = [xmlString stringByAppendingFormat:@"%@%@%@", SHORTCUT_TAG, shortcut, SHORTCUT_TAG_END];
+    
+    if (childXML)
+        xmlString = [xmlString stringByAppendingString:childXML];
     
     xmlString = [xmlString stringByAppendingString:ROOT_TAG_END];
-
+    
     return xmlString;
 }
 
 // This function creates a string of xml according to the specification for keyboard events.
 - (NSString*) CreateKeyboardXML: (NSString*) type : (NSString*) key
 {
-    assert((key != nil) && (type != nil));
+    type =  [thisClass removeInvalidXMLCharacters:type];
+    key =   [thisClass removeInvalidXMLCharacters:key];
     NSString* xmlString;
     
     xmlString = XML_HEADER;
@@ -799,6 +775,9 @@ CGEventRef MouseEventTapCallBack (CGEventTapProxy proxy, CGEventType type, CGEve
 // This fuction creates a string of xml according to the specification for mouse events.
 - (NSString*) CreateMouseXML: (NSString*) type : (NSString*) position : (NSString*) button
 {
+    type =      [thisClass removeInvalidXMLCharacters:type];
+    position =  [thisClass removeInvalidXMLCharacters:position];
+    button =    [thisClass removeInvalidXMLCharacters:button];
     //assert((position != nil) && (type != nil) && (button != nil));
     NSString* xmlString;
     
@@ -833,96 +812,110 @@ CGEventRef MouseEventTapCallBack (CGEventTapProxy proxy, CGEventType type, CGEve
     return xmlString;
 }
 
+// This function creates a string of xml according to the specification for a child element.
+- (NSString*) CreateChildXML: (NSString*) name : (NSString*) component : (NSString*) shortcut
+{
+    name =      [thisClass removeInvalidXMLCharacters:name];
+    component = [thisClass removeInvalidXMLCharacters:component];
+    shortcut =  [thisClass removeInvalidXMLCharacters:shortcut];
+    NSString* xmlString;
+    
+    xmlString = CHILD_TAG;
+    
+    xmlString = [xmlString stringByAppendingString: CHILD_NAME_TAG];
+    if (name)
+        xmlString = [xmlString stringByAppendingString:name];
+    xmlString = [xmlString stringByAppendingString: CHILD_NAME_TAG_END];
+    
+    xmlString = xmlString = [xmlString stringByAppendingString: CHILD_COMPONENT_TAG];
+    if (component)
+        xmlString = [xmlString stringByAppendingString:component];
+    xmlString = [xmlString stringByAppendingString: CHILD_COMPONENT_TAG_END];
+    
+    xmlString = xmlString = [xmlString stringByAppendingString: CHILD_SHORTCUT_TAG];
+    if (shortcut)
+        xmlString = [xmlString stringByAppendingString:shortcut];
+    xmlString = [xmlString stringByAppendingString: CHILD_SHORTCUT_TAG_END];
+    
+    xmlString = [xmlString stringByAppendingString: CHILD_TAG_END];
+    
+    return xmlString;
+}
+
 // This function gets the names of the category, type, and component of the event to
 // be used in the xml.
-- (NSString*) getWinEventNames: (NSString*) event : (NSString*) nameToGet 
-{
-    NSString *category, *type, *component;
-    category = [[NSString alloc] init];
-    type = [[NSString alloc] init];
-    component = [[NSString alloc] init];
-    
+- (void) getWinEventNames: (NSString*) event : (NSString**) category : (NSString**) type : (NSString**) component
+{    
     if ([event isEqualToString:(NSString*)kAXMainWindowChangedNotification])
-    {   category = @"Focus"; type = @"Component"; component = @"Window";   }
+    {   *category = @"Focus"; *type = @"Component"; *component = @"Window";   }
     else if ([event isEqualToString:(NSString*)kAXFocusedWindowChangedNotification])
-    {   category = @"Focus"; type = @"Component"; component = @"Window";   }
+    {   *category = @"Focus"; *type = @"Component"; *component = @"Window";   }
     else if ([event isEqualToString:(NSString*)kAXFocusedUIElementChangedNotification])
-    {   category = @"Focus"; type = @"Component"; component = @"unknown";    }
+    {   *category = @"Focus"; *type = @"Component"; *component = @"unknown";    }
     else if ([event isEqualToString: (NSString*)kAXApplicationActivatedNotification])
-    {   category = @"Focus"; type = @"Component"; component = @"Window";   }
+    {   *category = @"Focus"; *type = @"Component"; *component = @"Window";   }
     //    else if ([event isEqualToString:(NSString*)kAXApplicationDeactivatedNotification])
     //    {   return NULL;    } //category = @"Focus"; type = @"Component"; component = @"Window"; }
     //    else if ([event isEqualToString:(NSString*)kAXApplicationHiddenNotification])
     //    {   return NULL;    } //category = @"Window"; type = @"HideComponent"; component = @"Window";   }
     else if ([event isEqualToString:(NSString*)kAXApplicationShownNotification])
-    {   category = @"Focus"; type = @"Component"; component = @"Window";   }
+    {   *category = @"Focus"; *type = @"Component"; *component = @"Window";   }
     else if ([event isEqualToString:(NSString*)kAXWindowCreatedNotification])
-    {   category = @"Window"; type = @"CreateComponent"; component = @"Window";   }
+    {   *category = @"Window"; *type = @"CreateComponent"; *component = @"Window";   }
     else if ([event isEqualToString:(NSString*)kAXWindowMovedNotification])
-    {   category = @"Window"; type = @"MoveOrResize"; component = @"Window";   }
+    {   *category = @"Window"; *type = @"MoveOrResize"; *component = @"Window";   }
     else if ([event isEqualToString:(NSString*)kAXWindowResizedNotification])
-    {   category = @"Window"; type = @"MoveOrResize"; component = @"Window";   }
+    {   *category = @"Window"; *type = @"MoveOrResize"; *component = @"Window";   }
     else if ([event isEqualToString:(NSString*)kAXWindowMiniaturizedNotification])
-    {   category = @"Window"; type = @"Minimize"; component = @"Window";   }
+    {   *category = @"Window"; *type = @"Minimize"; *component = @"Window";   }
     else if ([event isEqualToString:(NSString*)kAXWindowDeminiaturizedNotification])
-    {   category = @"Window"; type = @"RestoreMinimized"; component = @"Window";   }    
+    {   *category = @"Window"; *type = @"RestoreMinimized"; *component = @"Window";   }
     else if ([event isEqualToString:(NSString*)kAXDrawerCreatedNotification])
-    {   category = @"Focus"; type = @"unknown"; component = @"unknown";   }
+    {   *category = @"Window"; *type = @"CreateComponent"; *component = @"Drawer";   }
     else if ([event isEqualToString:(NSString*)kAXSheetCreatedNotification])
-    {   category = @"Focus"; type = @"unknown"; component = @"unknown";   }
+    {   *category = @"Window"; *type = @"CreateComponent"; *component = @"Sheet";   }
     else if ([event isEqualToString:(NSString*)kAXHelpTagCreatedNotification])
-    {   category = @"Focus"; type = @"unknown"; component = @"unknown";   }    
+    {   *category = @"Window"; *type = @"CreateComponent"; *component = @"ToolTip";   } 
     else if ([event isEqualToString:(NSString*)kAXValueChangedNotification])
-    {   category = @"PropertyChange"; type = @"Value"; component = @"unknown";   }
+    {   *category = @"PropertyChange"; *type = @"Value"; *component = @"unknown";   }
     else if ([event isEqualToString:(NSString*)kAXUIElementDestroyedNotification])
-    {   category = @"Window"; type = @"DestroyComponent"; component = @"unknown";   }
+    {   *category = @"Window"; *type = @"DestroyComponent"; *component = @"unknown";   }
     else if ([event isEqualToString:(NSString*)kAXSelectedChildrenChangedNotification])
-    {   category = @"PropertyChange"; type = @"Selection"; component = @"unknown";   }
+    {   *category = @"PropertyChange"; *type = @"Selection"; *component = @"unknown";   }
     else if ([event isEqualToString:(NSString*)kAXSelectedTextChangedNotification])
-    {   category = @"PropertyChange"; type = @"TextSelection"; component = @"unknown";   }
+    {   *category = @"PropertyChange"; *type = @"TextSelection"; *component = @"unknown";   }
     else if ([event isEqualToString:(NSString*)kAXRowCountChangedNotification])
-    {   category = @"PropertyChange"; type = @"Selection"; component = @"Table";   } // not sure about windows conv
+    {   *category = @"PropertyChange"; *type = @"State"; *component = @"Table";   } // not sure about windows conv
     else if ([event isEqualToString:(NSString*)kAXSelectedColumnsChangedNotification])
-    {   category = @"PropertyChange"; type = @"Selection"; component = @"Table";   } // not sure about windows conv
+    {   *category = @"PropertyChange"; *type = @"Selection"; *component = @"Table";   }
     else if ([event isEqualToString:(NSString*)kAXSelectedRowsChangedNotification])
-    {   category = @"PropertyChange"; type = @"Component"; component = @"Table";   } // not sure about windows conv
+    {   *category = @"PropertyChange"; *type = @"Selection"; *component = @"Table";   }
     else if ([event isEqualToString:(NSString*)kAXRowExpandedNotification])
-    {   category = @"'Focus"; type = @"unknown"; component = @"unknown";   }
+    {   *category = @"'Focus"; *type = @"unknown"; *component = @"unknown";   }
     else if ([event isEqualToString:(NSString*)kAXRowCollapsedNotification])
-    {   category = @"'Focus"; type = @"unknown"; component = @"unknown";   }
+    {   *category = @"'Focus"; *type = @"unknown"; *component = @"unknown";   }
     else if ([event isEqualToString:(NSString*)kAXSelectedCellsChangedNotification])
-    {   category = @"'Focus"; type = @"unknown"; component = @"unknown";   }
+    {   *category = @"'PropertyChange"; *type = @"unknown"; *component = @"unknown";   }
     else if ([event isEqualToString:(NSString*)kAXUnitsChangedNotification])
-    {   category = @"'Focus"; type = @"unknown"; component = @"unknown";   }
+    {   *category = @"'Focus"; *type = @"unknown"; *component = @"unknown";   }
     else if ([event isEqualToString:(NSString*)kAXSelectedChildrenMovedNotification])
-    {   category = @"'Focus"; type = @"unknown"; component = @"unknown";   }
+    {   *category = @"'Focus"; *type = @"Selection"; *component = @"Table";   }
     else if ([event isEqualToString:(NSString*)kAXTitleChangedNotification])
-    {   category = @"'Focus"; type = @"unknown"; component = @"unknown";   }
+    {   *category = @"'Focus"; *type = @"unknown"; *component = @"unknown";   }
     else if ([event isEqualToString:(NSString*)kAXCreatedNotification])
-    {   category = @"Window"; type = @"CreateComponent"; component = @"unknown";   }
+    {   *category = @"Window"; *type = @"CreateComponent"; *component = @"unknown";   }
     else if ([event isEqualToString:(NSString*)kAXMovedNotification])
-    {   category = @"Window"; type = @"MoveOrResize"; component = @"unknown";   }
+    {   *category = @"Window"; *type = @"MoveOrResize"; *component = @"unknown";   }
     else if ([event isEqualToString:(NSString*)kAXResizedNotification])
-    {   category = @"Window"; type = @"MoveOrResize"; component = @"unknown";   }
+    {   *category = @"Window"; *type = @"MoveOrResize"; *component = @"unknown";   }
     else if ([event isEqualToString:(NSString*)kAXMenuClosedNotification])
-    {   category = @"Menu"; type = @"MenuClose"; component = NULL;   }
+    {   *category = @"Menu"; *type = @"MenuClose"; *component = @"Menu";   }
     else if ([event isEqualToString:(NSString*)kAXMenuItemSelectedNotification])
-    {   category = @"Focus"; type = @"Component"; component = @"MenuItem";   }
+    {   *category = @"Focus"; *type = @"Component"; *component = @"MenuItem";   }
     else if ([event isEqualToString:(NSString*)kAXMenuOpenedNotification])
-    {   category = @"Menu"; type = @"MenuOpen"; component = NULL;   }
-    else if ([event isEqualToString:@"Application Changed"])
-    {   return NULL;    }
+    {   *category = @"Menu"; *type = @"MenuOpen"; *component = @"Menu";   }
     else
-    {   return NULL;    }
-    
-    if (nameToGet == GET_CATEGORY)
-        return category;
-    if (nameToGet == GET_TYPE)
-        return type;
-    if (nameToGet == GET_COMPONENT) 
-        return component;
-    else 
-        return category;
+    {   *category = @"unknown"; *type = @"unknown"; *component = @"unknown";    }
 }
 
 // This function renames the component value to match the xml specification.
@@ -964,51 +957,51 @@ CGEventRef MouseEventTapCallBack (CGEventTapProxy proxy, CGEventType type, CGEve
         component = @"ToolTip";
     
     // the following do not conform to XML specification
-        else if ([roleValue isEqualToString:NSAccessibilityCellRole])
-            component = @"cell";
-        else if ([roleValue isEqualToString:NSAccessibilityColorWellRole])
-            component = @"color well";
-        else if ([roleValue isEqualToString:NSAccessibilityColumnRole])
-            component = @"column";
-        else if ([roleValue isEqualToString:NSAccessibilityDisclosureTriangleRole])
-            component = @"disclosure triangle";
-        else if ([roleValue isEqualToString:NSAccessibilityDrawerRole])
-            component = @"drawer";
-        else if ([roleValue isEqualToString:NSAccessibilityGridRole])
-            component = @"grind";
-        else if ([roleValue isEqualToString:NSAccessibilityGrowAreaRole])
-            component = @"grow area";
-        else if ([roleValue isEqualToString:NSAccessibilityHandleRole])
-            component = @"handle";
-        
-        else if ([roleValue isEqualToString:NSAccessibilityLayoutAreaRole])
-            component = @"layout area";
-        else if ([roleValue isEqualToString:NSAccessibilityLayoutItemRole])
-            component = @"layout item";
-        else if ([roleValue isEqualToString:NSAccessibilityLinkRole])
-            component = @"link";
-        else if ([roleValue isEqualToString:NSAccessibilityMatteRole])
-            component = @"matte";
-        else if ([roleValue isEqualToString:NSAccessibilityMenuButtonRole])
-            component = @"menu button";
-        else if ([roleValue isEqualToString:NSAccessibilityOutlineRole])
-            component = @"outline";
-        else if ([roleValue isEqualToString:NSAccessibilityRowRole])
-            component = @"row";
-        else if ([roleValue isEqualToString:NSAccessibilityRulerMarkerRole])
-            component = @"ruler marker";
-        else if ([roleValue isEqualToString:NSAccessibilityRulerRole])
-            component = @"ruler";
-        else if ([roleValue isEqualToString:NSAccessibilityScrollAreaRole])
-            component = @"scroll area";
-        else if ([roleValue isEqualToString:NSAccessibilitySheetRole])
-            component = @"sheet";
-        else if ([roleValue isEqualToString:NSAccessibilitySplitterRole])
-            component = @"splitter";    
-        else if ([roleValue isEqualToString:NSAccessibilitySystemWideRole])
-            component = @"system wide";
-        else if ([roleValue isEqualToString:NSAccessibilityUnknownRole])
-            component = @"unknown role";
+    else if ([roleValue isEqualToString:NSAccessibilityCellRole])
+        component = @"cell";
+    else if ([roleValue isEqualToString:NSAccessibilityColorWellRole])
+        component = @"color well";
+    else if ([roleValue isEqualToString:NSAccessibilityColumnRole])
+        component = @"column";
+    else if ([roleValue isEqualToString:NSAccessibilityDisclosureTriangleRole])
+        component = @"disclosure triangle";
+    else if ([roleValue isEqualToString:NSAccessibilityDrawerRole])
+        component = @"drawer";
+    else if ([roleValue isEqualToString:NSAccessibilityGridRole])
+        component = @"grind";
+    else if ([roleValue isEqualToString:NSAccessibilityGrowAreaRole])
+        component = @"grow area";
+    else if ([roleValue isEqualToString:NSAccessibilityHandleRole])
+        component = @"handle";
+    
+    else if ([roleValue isEqualToString:NSAccessibilityLayoutAreaRole])
+        component = @"layout area";
+    else if ([roleValue isEqualToString:NSAccessibilityLayoutItemRole])
+        component = @"layout item";
+    else if ([roleValue isEqualToString:NSAccessibilityLinkRole])
+        component = @"link";
+    else if ([roleValue isEqualToString:NSAccessibilityMatteRole])
+        component = @"matte";
+    else if ([roleValue isEqualToString:NSAccessibilityMenuButtonRole])
+        component = @"menu button";
+    else if ([roleValue isEqualToString:NSAccessibilityOutlineRole])
+        component = @"outline";
+    else if ([roleValue isEqualToString:NSAccessibilityRowRole])
+        component = @"row";
+    else if ([roleValue isEqualToString:NSAccessibilityRulerMarkerRole])
+        component = @"ruler marker";
+    else if ([roleValue isEqualToString:NSAccessibilityRulerRole])
+        component = @"ruler";
+    else if ([roleValue isEqualToString:NSAccessibilityScrollAreaRole])
+        component = @"scroll area";
+    else if ([roleValue isEqualToString:NSAccessibilitySheetRole])
+        component = @"sheet";
+    else if ([roleValue isEqualToString:NSAccessibilitySplitterRole])
+        component = @"splitter";    
+    else if ([roleValue isEqualToString:NSAccessibilitySystemWideRole])
+        component = @"system wide";
+    else if ([roleValue isEqualToString:NSAccessibilityUnknownRole])
+        component = @"unknown role";
     
     else
         component = nil;
@@ -1140,6 +1133,20 @@ CGEventRef MouseEventTapCallBack (CGEventTapProxy proxy, CGEventType type, CGEve
 	} // end switch
     
     return keyPressed;
+}
+
+// This function removes all of the invalid characters in xml, these characters are <>"'&.
+- (NSString*) removeInvalidXMLCharacters: (NSString*) xmlValue
+{
+    NSString* newXML = xmlValue;
+    
+    newXML = [newXML stringByReplacingOccurrencesOfString:@"&" withString:@"&amp;"];
+    newXML = [newXML stringByReplacingOccurrencesOfString:@"<" withString:@"&lt;"];
+    newXML = [newXML stringByReplacingOccurrencesOfString:@">" withString:@"&gt;"];
+    newXML = [newXML stringByReplacingOccurrencesOfString:@"\"" withString:@"&quot;"];
+    newXML = [newXML stringByReplacingOccurrencesOfString:@"\'" withString:@"&apos;"];
+    
+    return newXML;
 }
 
 @end
