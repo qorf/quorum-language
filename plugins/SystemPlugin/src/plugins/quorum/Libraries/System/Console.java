@@ -140,8 +140,13 @@ public class Console {
     }
     
     public static void Unload() {
-        if (useDialog && dialog != null)
+        if (useDialog && dialog != null) {
             dialog.dispose();
+        }
+        System.out.flush();
+        System.err.flush();
+        System.out.close();
+        System.err.flush();
     }
     
     public static void main(String args[]) {
