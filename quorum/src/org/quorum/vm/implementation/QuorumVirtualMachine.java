@@ -1838,16 +1838,16 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         
         if(insideMethod != null) {
             addVariablesForMethod("", result, request, clazz, insideMethod);
-            
-            //add filtered classes you can instantiate
-            addValidClassUses("", result, request, clazz);
-
-            //add common control structures
-            addControlStructures(result);
-            
-            //add primitives that you can use from here
-            addPrimitiveValues(result);
         }
+        
+        //add filtered classes you can instantiate
+        addValidClassUses("", result, request, clazz);
+
+        //add common control structures
+        addControlStructures(result);
+
+        //add primitives that you can use from here
+        addPrimitiveValues(result);
     }
     
     /**

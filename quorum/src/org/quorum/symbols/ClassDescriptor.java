@@ -1851,6 +1851,12 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                 return next;
             }
         }
+        
+        if(isLineWithinMethod(constructor, lineNumber)
+           || (constructor.getLineBegin() == 1 && constructor.getLineEnd() == 0)) {
+            return constructor;
+        }
+        
         return null;
     }
     
