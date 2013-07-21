@@ -1512,6 +1512,77 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         item.setDocumentation(description);
         item.setCompletion("if true\n"+textOffset+"end\n");
         result.add(item);
+        
+        //check detect statements
+        item = new CodeCompletionItem();
+        item.setCodeCompletionType(CodeCompletionType.CONTROL_STRUCTURE);
+        signature = "check";
+        name = "check";
+
+        description = "";
+        description += "<h1>" + signature + "</h1>"
+                + "<p align=\"justify\">The word "
+                + "check begins a control structure that allows the computer to detect "
+                + "any errors that a computer program throws. "
+                + "An example might be checking for errors when reading a file "
+                + "or checking to ensure a program does not divide by zero."
+                + "</p>";
+        description += "<h2>" + "Code Example:" + "</h2>";
+        description += "<PRE><CODE>" + 
+                "use Libraries.Language.Errors.Error\n" +
+                "use Libraries.Language.Errors.DivideByZeroError\n" +
+                "\n" +
+                "class Main\n" +
+                "    action Main\n" +
+                "        number result = 0\n" +
+                "        check\n" +
+                "            text userInput = input(\"divide by?\")\n" +
+                "            integer divisor = cast(integer, userInput)\n" +
+                "            result = 12/divisor\n" +
+                "        detect e is Error or DivideByZeroError\n" +
+                "            say e:GetErrorMessage()\n" +
+                "            result = 12/1\n" +
+                "        always\n" +
+                "            say \"calculating result\"\n" +
+                "        end\n" +
+                "        say \"The result is \" + result\n" +
+                "    end\n" +
+                "end"
+                + "</PRE></CODE>";
+
+        item.setDisplayName(name);
+        item.setDocumentation(description);
+        item.setCompletion("check\n" +textOffset+ "detect error\n"+textOffset+"end\n");
+        result.add(item);
+        
+        //alert statements
+        item = new CodeCompletionItem();
+        item.setCodeCompletionType(CodeCompletionType.CONTROL_STRUCTURE);
+        signature = "alert";
+        name = "alert";
+
+        description = "";
+        description += "<h1>" + signature + "</h1>"
+                + "<p align=\"justify\">The word "
+                + "alert begins a control structure that "
+                + "tells the computer there has been an error. Since alerts "
+                + "end the control flow in an action, no statements can execute "
+                + "after an alert has been issued."
+                + "</p>";
+        description += "<h2>" + "Code Example:" + "</h2>";
+        description += "<PRE><CODE>" +
+                "    text userInput = input(\"divide by?\")\n" +
+                "    integer divisor = cast(integer, userInput)\n" +
+                "    if divisor = 0\n" +
+                "       alert(\"Divisor cannot be zero.\")\n" +
+                "    end\n" +
+                "    result = 12/divisor\n" +
+                "</PRE></CODE>";
+
+        item.setDisplayName(name);
+        item.setDocumentation(description);
+        item.setCompletion("alert(\"Place an error message here.\")");
+        result.add(item);
     }
 
     /**
