@@ -1194,7 +1194,8 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         final String parent = "parent";
 
         if (clazz != null) {
-            MethodDescriptor method = clazz.getMethodAtLine(request.getLineNumber());
+            MethodDescriptor method = clazz.getMethodAtLine(
+                    request.getLineNumber() + 1, request.getStartOffset());
             //if the method is null, it must be a class variable (or garbage)
             boolean isMe = false;
             //if (method != null) {
@@ -1338,7 +1339,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         addValidClassUses(partial, result, request, clazz);
 
         //add common control structures
-        addControlStructures(result);
+        addControlStructures(request, result, partial);
 
         //add filtered primitive values you can use.
         addPrimitiveValues(result);
@@ -1393,7 +1394,13 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
      *
      * @param result
      */
-    private void addControlStructures(CodeCompletionResult result) {
+    private void addControlStructures(CodeCompletionRequest request, 
+            CodeCompletionResult result, String partial) {
+        int offset = request.getStartOffset() - partial.length();
+        String textOffset = "";
+        for(int i = 0; i < offset; i++) {
+            textOffset += " ";
+        }
         //repeat times
         CodeCompletionItem item = new CodeCompletionItem();
         item.setCodeCompletionType(CodeCompletionType.CONTROL_STRUCTURE);
@@ -1420,7 +1427,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
         item.setDisplayName(name);
         item.setDocumentation(description);
-        item.setCompletion("repeat 10 times\nend\n");
+        item.setCompletion("repeat 10 times\n"+textOffset+"end\n");
         result.add(item);
 
         //repeat while
@@ -1448,7 +1455,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
         item.setDisplayName(name);
         item.setDocumentation(description);
-        item.setCompletion("repeat while false\nend\n");
+        item.setCompletion("repeat while false\n"+textOffset+"end\n");
         result.add(item);
 
         //repeat while
@@ -1476,7 +1483,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
         item.setDisplayName(name);
         item.setDocumentation(description);
-        item.setCompletion("repeat until true\nend\n");
+        item.setCompletion("repeat until true\n"+textOffset+"end\n");
         result.add(item);
 
         //conditional statements
@@ -1503,7 +1510,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
 
         item.setDisplayName(name);
         item.setDocumentation(description);
-        item.setCompletion("if true\nend\n");
+        item.setCompletion("if true\n"+textOffset+"end\n");
         result.add(item);
     }
 
@@ -1843,9 +1850,11 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
         //add filtered classes you can instantiate
         addValidClassUses("", result, request, clazz);
 
-        //add common control structures
-        addControlStructures(result);
-
+        if(insideMethod != null) {
+            //add common control structures
+            addControlStructures(request, result, "");
+        }
+        
         //add primitives that you can use from here
         addPrimitiveValues(result);
     }

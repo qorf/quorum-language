@@ -1819,7 +1819,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
      * @param lineNumber
      * @return 
      */
-    public MethodDescriptor getMethodAtLine(int lineNumber) {
+    public MethodDescriptor getMethodAtLine(int lineNumber, int column) {
         Iterator<MethodDescriptor> mIt = this.methods.values().iterator();
         
         
@@ -1830,7 +1830,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         //will be 1, but the ending line number will be zero.
         while(mIt.hasNext()) {
             MethodDescriptor next = mIt.next();
-            if(isLineWithinMethod(next, lineNumber)
+            if(isLineWithinMethod(next, lineNumber, column)
                || (next.getLineBegin() == 1 && next.getLineEnd() == 0)) {
                 return next;
             }
@@ -1839,7 +1839,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         Iterator<BlueprintDescriptor> bIt = this.getBlueprints();
         while(bIt.hasNext()) {
             MethodDescriptor next = bIt.next();
-            if(isLineWithinMethod(next, lineNumber)) {
+            if(isLineWithinMethod(next, lineNumber, column)) {
                 return next;
             }
         }
@@ -1847,22 +1847,31 @@ public class ClassDescriptor extends Descriptor implements Scopable {
         Iterator<SystemActionDescriptor> aIt = this.getSystemActions();
         while(mIt.hasNext()) {
             MethodDescriptor next = mIt.next();
-            if(isLineWithinMethod(next, lineNumber)) {
+            if(isLineWithinMethod(next, lineNumber, column)) {
                 return next;
             }
         }
         
-        if(isLineWithinMethod(constructor, lineNumber)
-           || (constructor.getLineBegin() == 1 && constructor.getLineEnd() == 0)) {
-            return constructor;
+        if(constructor != null) {
+            if(isLineWithinMethod(constructor, lineNumber, column)
+               || (constructor.getLineBegin() == 1 && constructor.getLineEnd() == 0)) {
+                return constructor;
+            }
         }
         
         return null;
     }
     
-    private boolean isLineWithinMethod(MethodDescriptor method, int line) {
-        if(method.getLineInformation().getStartLine() <= line &&
-           method.getLineInformation().getEndLine() >= line) {
+    private boolean isLineWithinMethod(MethodDescriptor method, int line, int column) {
+        LineInformation info = method.getLineInformation();
+        if(info.getEndLine() == line
+           && column < info.getEndColumn()) {
+            return true;
+        } else if(info.getStartLine() == line //make sure they are typing after the signature
+           && column > info.getStartColumn() + ("action " + method.getStaticKey()).length() - 1) {
+            return true;
+        } else if(line > method.getLineInformation().getStartLine() &&
+           line < method.getLineInformation().getEndLine()) {
             return true;
         }
         return false;
