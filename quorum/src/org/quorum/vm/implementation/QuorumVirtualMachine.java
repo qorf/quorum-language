@@ -1294,6 +1294,22 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                     } else if (variable == null) {
                         if(split.length == 0) {
                             addDefaultValues(partialLine, result, request, clazz, method);
+                        } else if(split.length == 1){
+                            CodeCompletionRequest newRequest = new CodeCompletionRequest();
+                            newRequest.setEndOffset(request.getEndOffset());
+                            newRequest.setFileKey(request.getFileKey());
+                            newRequest.setLineNumber(request.getLineNumber());
+                            newRequest.setStartOffset(request.getStartOffset());
+                            
+                            String newLine = "";
+                            int oldLineLength = request.getLine().length();
+                            for(int i = 0; i < oldLineLength; i++) {
+                                newLine += " "; //make the lengths match exactly, but make them empty.
+                            }
+                            
+                            
+                            addDefaultValues(partialLine, result, newRequest, clazz, method);
+                            result.setFilter(partialLine);
                         }
                     }
                 }
