@@ -16,7 +16,7 @@ The goal of this lab is to learn the following:
 </ul>
 <h2>Overview</h2>
 <p>
-Algorithms often include steps such as &quot;keep moving all books onto the bookshelf until no more books remain on the cart.&quot; Loops allow you to perform the same task repeatedly until some condition is met. Loops, in addition to conditional statements, are a fundamental tool in computer programming. They not only allow you to reduce the amount of code you write, but also improve readability and make it possible to perform far more complex operations, such as sorting numbers.
+Algorithms often include steps such as &quot;keep moving all books onto the bookshelf until no more books remain on the cart.&quot; Loops allow you to perform the same task repeatedly until some condition is met. Loops, in addition to conditional statements, are a fundamental tool in computer programming. They not only allow you to reduce the amount of code you write, but also improve readability and make it possible to perform far more complex operations, such as number sorting.
 </p>
 <p>
 In this lab, you will discuss the types of loops available in Quorum, provide examples of how to use them and solve some problems that require the use of loops.
@@ -32,7 +32,7 @@ Also, for this task, you will be using the <tt>Random</tt> class.  Add a use sta
 use Libraries.Compute.Random
 Random random
 integer randomNumber = 0
-randomNumber = random:RandomInteger(100)
+randomValue = random:RandomInteger(100)
 </code></pre></p>
 <p>
 To get started, you will need to declare three variables.  Create the <tt>Random</tt> object and name it <strong>random</strong>.  Next, declare two new <tt>integer</tt> variables and name them <strong>counter</strong> and <strong>randomValue</strong>.  Initialize both of these integers to 0.
@@ -45,7 +45,7 @@ repeat 10 times
 end
 </code></pre></p>
 <p>
-Inside the body of the loop, use the <strong>randomValue</strong> variable to store a randomly generated <tt>integer</tt> value. Line 4 of the above <tt>Random</tt> example shows how this is done. In the next line of code, use the <strong>counter</strong> variable to keep track of each iteration of the loop by incrementing it by one each time the loop runs. Output the value of the counter and randomValue variables.The output should look similar to the following (the random values will be different):
+Inside the body of the loop, use the <strong>randomValue</strong> variable to store a randomly generated <tt>integer</tt> value. Line 4 of the above <tt>Random</tt> example shows how this is done. In the next line of code, use the <strong>counter</strong> variable to keep track of each iteration of the loop by incrementing it by one each time the loop runs. Output the value of the counter and randomValue variables. The output should look similar to the following (the random values will be different):
 </p>
 <p><pre class="code"><code>
 counter =  0; randomValue = 81
