@@ -36,7 +36,7 @@ Starting with addition, create the following two code statements:
 Determine the appropriate types for the firstAddition and secondAddition variables.
 </p>
 <p>
-Once the addition has occurred, output each of these variables to the Sodbeans Output window. This can be done by using two <strong><tt>output</tt></strong> statement to output the value of firstAddition and secondAddition. If you run your program(F6), the Sodbeans Output window(CTRL + 5) should have, assuming there are no errors in our code, the following output listed:
+Once the addition has occurred, output each of these variables to the Sodbeans Output window. This can be done by using two <strong><tt>output</tt></strong> statements to output the value of firstAddition and secondAddition. If you run your program (F6), the Sodbeans Output window (CTRL + SHIFT + 5) should have, assuming there are no errors in our code, the following output listed:
 </p>
 <p><pre class="code"><code>
 firstAddition: 11
@@ -114,7 +114,13 @@ First Quotient: 1.75
 Second Quotient: 0.923913043478261
 </code></pre></p>
 <p>
-The final mathematical operation available in Quorum is the modulus, or remainder, operation. Create the following statements in code:
+The final mathematical operation available in Quorum is the modulus, or remainder, operation. This is usually written using the keyword <strong>mod</strong>.
+</p>
+<p><pre class="code"><code>
+remainder = 10 mod 6
+</code></pre></p>
+<p>
+In this example, <b>remainder</b> would contain the value of 4. Using modulus, create the following statements in code:
 </p>
 <ul>
 <li>The variable <b>firstRemainder</b> gets the remainder of dividing a by b.</li>
