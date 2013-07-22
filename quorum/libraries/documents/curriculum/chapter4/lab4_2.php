@@ -18,7 +18,7 @@ In this lab, you will be writing a Rock Paper Scissors game. In this game a huma
 </p>
 <h2>Task 1: Getting Started</h2>
 <p>
-Start Sodbeans.  Create a new &quot;Quorum Application&quot; project, and name it <b>RockPaperScissors</b>. As in the previous labs, this will leave you with a skeleton <tt>Main.quorum</tt> file, containing a <tt>Main</tt> class and <tt>Main</tt> action. After your project is created, you can use the following code skeleton(replace the code in your project with the following code):
+Start Sodbeans.  Create a new &quot;Quorum Application&quot; project, and name it <b>RockPaperScissors</b>. As in the previous labs, this will leave you with a skeleton <code>Main.quorum</code> file, containing a <code>Main</code> class and <code>Main</code> action. After your project is created, you can use the following code skeleton(replace the code in your project with the following code):
 </p>
 <p><pre class="code""><code>
 use Libraries.Compute.Random
@@ -76,7 +76,7 @@ class Main
 end
 </code></pre></p>
 <p>
-You will start by writing the <tt>GiveInstructions</tt> action. In this action you should say or output the rules and instructions for the rock, paper, scissors game. That message might be something like the following:
+You will start by writing the <code>GiveInstructions</code> action. In this action you should say or output the rules and instructions for the rock, paper, scissors game. That message might be something like the following:
 </p>
 <p><pre class="code"><code>
 Welcome to the Rock Paper Scissors game!
@@ -88,14 +88,14 @@ Scissors beat paper.
 Enter a 1 for rock, a 2 for paper, or a 3 for scissors.
 </code></pre></p>
 <p>
-Once the <tt>GiveInstructions</tt> action is written, call the action in the <tt>Main</tt> action. Remember <tt>Main</tt> is where your program begins executing or running and the <tt>end</tt> following the <tt>Main</tt> action is where it ends. Run the program and it should give the instructions you wrote in the <tt>GiveInstructions</tt> action.
+Once the <code>GiveInstructions</code> action is written, call the action in the <code>Main</code> action. Remember <code>Main</code> is where your program begins executing or running and the <code>end</code> following the <code>Main</code> action is where it ends. Run the program and it should give the instructions you wrote in the <code>GiveInstructions</code> action.
 </p>
 <h2>Task 2: Create A Game with Actions</h2>
 <p>
-You are going to create a game with actions.  You will separate each action so that they serve their own purpose. The first of these actions will be the <tt>PlayersTurn</tt> action. This action should ask the user to choose rock, paper, or scissors and it should continue to ask the user this until a valid input is given.
+You are going to create a game with actions.  You will separate each action so that they serve their own purpose. The first of these actions will be the <code>PlayersTurn</code> action. This action should ask the user to choose rock, paper, or scissors and it should continue to ask the user this until a valid input is given.
 </p>
 <p>
-Go to the <tt>PlayersTurn</tt> action. Within that action start writing code at the comment that says "your code goes here". You will need your code to do the following:
+Go to the <code>PlayersTurn</code> action. Within that action start writing code at the comment that says "your code goes here". You will need your code to do the following:
 </p>
 <ul><li>Declare a boolean and initialize it to false to track valid input.
 </li><li>Create a loop that loops until the input is valid.
@@ -103,19 +103,19 @@ Go to the <tt>PlayersTurn</tt> action. Within that action start writing code at 
 </li><li>Cast the input from the user to an integer and store it in the <strong>choice</strong> variable(has already been declared in this action).
 </li><li>Check if the input is valid; if it is valid the loop should stop.
 </li></ul><p>
-The existing code then returns the user's choice from the action, <tt>return choice</tt>, is already written into the action. Don't worry about calling and testing this action right now. You will come back to this when you write the <tt>PlayGame</tt> action. Instead move onto writing the <tt>ComputersTurn</tt> action.
+The existing code then returns the user's choice from the action, <code>return choice</code>, is already written into the action. Don't worry about calling and testing this action right now. You will come back to this when you write the <code>PlayGame</code> action. Instead move onto writing the <code>ComputersTurn</code> action.
 </p>
 <p>
-Go to the <tt>ComputersTurn</tt> action. Within that action start writing code at the comment that says "your code goes here". You will need your code to do the following:
+Go to the <code>ComputersTurn</code> action. Within that action start writing code at the comment that says "your code goes here". You will need your code to do the following:
 </p>
-<ul><li>Declare a Random object. e.g. <tt>Random random</tt>.
+<ul><li>Declare a Random object. e.g. <code>Random random</code>.
 </li><li>Generate a random integer between 1 and 3, including 1 and 3.
-</li><li>Assign the random integer to the <tt>choice</tt> variable.
+</li><li>Assign the random integer to the <code>choice</code> variable.
 </li></ul><p>
 The computers choice is then returned(the code for this is already included). 
 </p>
 <p>
-The next action you are going to write is the <tt>DetermineWinner</tt> action. This action has two parameters playerChoice and computerChoice. For this to be a general solution you won't worry about the value of each parameter; those are determined when you call the <tt>DetermineWinner</tt> action. In this action you want to use conditional statements to determine if there is a tie, if the computer won, or if the player won. 
+The next action you are going to write is the <code>DetermineWinner</code> action. This action has two parameters playerChoice and computerChoice. For this to be a general solution you won't worry about the value of each parameter; those are determined when you call the <code>DetermineWinner</code> action. In this action you want to use conditional statements to determine if there is a tie, if the computer won, or if the player won. 
 </p>
 <p>
 To start writing this action you can use the following code:
@@ -135,13 +135,13 @@ Add onto this conditional so that, if:
 </li><li>Player chooses scissors and computer chooses paper the output is, "Scissors beats paper - you win!"
 </li><li>Player chooses scissors and computer chooses rock the output is, "Rock beat scissors - the computer wins!"
 </li></ul><p>
-The next action you will write is the <tt>PlayGame</tt> action. This action handles all of the game play, including, getting the players choice, randomly generating the computers choice, determining a winner of the round, and asking the player if they want to continue playing or stop the game.
+The next action you will write is the <code>PlayGame</code> action. This action handles all of the game play, including, getting the players choice, randomly generating the computers choice, determining a winner of the round, and asking the player if they want to continue playing or stop the game.
 </p>
 <p>
-In this action, start by defining a text variable called <strong>playAgain</strong> and initialize it to "Y". Create a loop that will continue to loop when <strong>playAgain</strong> is equal to "Y" or "y". Inside this loop you need to call the <tt>PlayersTurn</tt> action and store the returned value in a variable named <strong>player</strong> with a type of integer. Then do the same with the <tt>ComputersTurn</tt> action. Store the returned value in a variable named <strong>computer</strong> with a type of integer. Call <tt>DetermineWinner</tt> passing the arguments <strong>player</strong> and <strong>computer</strong>. Finally, ask the user, "Would you like to play again (Y/N)?", and assign the result to the <strong>playAgain</strong> variable.
+In this action, start by defining a text variable called <strong>playAgain</strong> and initialize it to "Y". Create a loop that will continue to loop when <strong>playAgain</strong> is equal to "Y" or "y". Inside this loop you need to call the <code>PlayersTurn</code> action and store the returned value in a variable named <strong>player</strong> with a type of integer. Then do the same with the <code>ComputersTurn</code> action. Store the returned value in a variable named <strong>computer</strong> with a type of integer. Call <code>DetermineWinner</code> passing the arguments <strong>player</strong> and <strong>computer</strong>. Finally, ask the user, "Would you like to play again (Y/N)?", and assign the result to the <strong>playAgain</strong> variable.
 </p>
 <p>
-When you are done the <tt>PlayGame</tt> action should look like the following code:
+When you are done the <code>PlayGame</code> action should look like the following code:
 </p>
 <p><pre class="code"><code>
     action PlayGame
@@ -155,7 +155,7 @@ When you are done the <tt>PlayGame</tt> action should look like the following co
     end
 </code></pre></p>
 <p>
-The final step is to finish writing the <tt>Main</tt> action. The <tt>Main</tt> action should give the instructions, play the game, and say "Game over" when the game is done. 
+The final step is to finish writing the <code>Main</code> action. The <code>Main</code> action should give the instructions, play the game, and say "Game over" when the game is done. 
 </p>
 <h2>Sample Output</h2>
 <p>

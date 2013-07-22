@@ -29,10 +29,10 @@ action SayHello(text name)
 end
 </code></pre></p>
 <p>
-There are two possible ways to call the <tt>SayHello</tt> action. The first way, writing <tt>SayHello()</tt>, will say "Hello, stranger," as Quorum recognizes that you wish to call the first action, as you did not specify any parameters. The second possible way to call the <tt>SayHello</tt> action is to provide a text parameter, such as <tt>SayHello("Jeff")</tt>. In this case, Quorum will call the second <tt>SayHello</tt> action, saying "Hello, Jeff."
+There are two possible ways to call the <code>SayHello</code> action. The first way, writing <code>SayHello()</code>, will say "Hello, stranger," as Quorum recognizes that you wish to call the first action, as you did not specify any parameters. The second possible way to call the <code>SayHello</code> action is to provide a text parameter, such as <code>SayHello("Jeff")</code>. In this case, Quorum will call the second <code>SayHello</code> action, saying "Hello, Jeff."
 </p>
 <p>
-Notice that in the body of the first <tt>SayHelllo</tt> action, you call the second <tt>SayHello</tt> action with a text parameter. This gives you a way to tell Quorum what the default values of parameters should be if you don't wish to specify them for every action call.
+Notice that in the body of the first <code>SayHelllo</code> action, you call the second <code>SayHello</code> action with a text parameter. This gives you a way to tell Quorum what the default values of parameters should be if you don't wish to specify them for every action call.
 </p>
 <h2>Major Scales</h2>
 <p>
@@ -52,16 +52,16 @@ m:Play(tonic + 11, 1) // B
 m:Play(tonic + 12, 1) // C (the eighth note -- one octave higher)
 </code></pre></p>
 <p>
-The application should start by prompting the user for a starting note number. However, it is not required that the user enter a value. If the user does not enter a value, the result of the <tt>input</tt> action will be an empty string (<tt>""</tt>). If the user does enter a note value, prompt the user to enter the number of octaves to play. It is not required that the user enter a value for this prompt, either.
+The application should start by prompting the user for a starting note number. However, it is not required that the user enter a value. If the user does not enter a value, the result of the <code>input</code> action will be an empty string (<code>""</code>). If the user does enter a note value, prompt the user to enter the number of octaves to play. It is not required that the user enter a value for this prompt, either.
 </p>
 <p>
 After the user has been prompted, the application should then call an action to play a major scale. When calling this action, the program must take advantage of action overloading. To do this, your program should define the following actions:
 </p>
-<ul><li><tt>PlayMajorScale</tt>, with no parameters.
-</li><li><tt>PlayMajorScale</tt>, which takes an <tt>integer</tt> parameter specifying the starting note.
-</li><li><tt>PlayMajorScale</tt>, which takes an <tt>integer</tt> parameter specifying the starting note, and an <tt>integer</tt> parameter specifying the number of octaves to play.
+<ul><li><code>PlayMajorScale</code>, with no parameters.
+</li><li><code>PlayMajorScale</code>, which takes an <code>integer</code> parameter specifying the starting note.
+</li><li><code>PlayMajorScale</code>, which takes an <code>integer</code> parameter specifying the starting note, and an <code>integer</code> parameter specifying the number of octaves to play.
 </li></ul><p>
-In the <tt>Main</tt> action, you must call one of these three methods depending on the data the user has given. Note that <strong>all</strong> of these methods should be called somewhere in <tt>Main</tt>.
+In the <code>Main</code> action, you must call one of these three methods depending on the data the user has given. Note that <strong>all</strong> of these methods should be called somewhere in <code>Main</code>.
 </p>
 
  <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>
