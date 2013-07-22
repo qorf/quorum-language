@@ -23,7 +23,7 @@ In this lab you will write a program in Quorum that performs basic mathematical 
 For task 1, you will concentrate on performing basic mathematical operations in Quorum. Then, you will move onto solving problem statements in task 2.  Start by opening Sodbeans and creating a new blank Quorum project. Name the project <b>Lab2_2</b>.
 </p>
 <p>
-Declare two <tt>integer</tt> variables <strong>a</strong> and <strong>b</strong>.  Initialize <strong>a</strong> to 7 and <strong>b</strong> to 4.  Next, add two <tt>number</tt> variables <strong>c</strong> and <strong>d</strong>.  Then initialize <strong>c</strong> to 8.5 and <strong>d</strong> to 9.2.  You will use these variables to perform mathematical operations and later output the results to the Sodbeans Output window. 
+Declare two <code>integer</code> variables <strong>a</strong> and <strong>b</strong>.  Initialize <strong>a</strong> to 7 and <strong>b</strong> to 4.  Next, add two <code>number</code> variables <strong>c</strong> and <strong>d</strong>.  Then initialize <strong>c</strong> to 8.5 and <strong>d</strong> to 9.2.  You will use these variables to perform mathematical operations and later output the results to the Sodbeans Output window. 
 </p>
 <p>
 Starting with addition, create the following two code statements:
@@ -36,7 +36,7 @@ Starting with addition, create the following two code statements:
 Determine the appropriate types for the firstAddition and secondAddition variables.
 </p>
 <p>
-Once the addition has occurred, output each of these variables to the Sodbeans Output window. This can be done by using two <strong><tt>output</tt></strong> statements to output the value of firstAddition and secondAddition. If you run your program (F6), the Sodbeans Output window (CTRL + SHIFT + 5) should have, assuming there are no errors in our code, the following output listed:
+Once the addition has occurred, output each of these variables to the Sodbeans Output window. This can be done by using two <strong><code>output</code></strong> statements to output the value of firstAddition and secondAddition. If you run your program (F6), the Sodbeans Output window (CTRL + SHIFT + 5) should have, assuming there are no errors in our code, the following output listed:
 </p>
 <p><pre class="code"><code>
 firstAddition: 11
@@ -168,7 +168,7 @@ More Math: 51.8
 When you write programs, you don't always merely perform computation on data you already know, as in the first part of this lab. Most of the time, you need to get input from the user to perform your calculations. As an example, a desktop calculator is a program taking input from the user (via the keypad), and providing output (the answer to the equation you entered).
 </p>
 <p>
-You may get input from the user in Quorum using the <tt>input</tt> keyword. The code below asks the user for their name; inside the parenthesis, you tell the user what information you are requesting. Copy this code into your Sodbeans project, and then have Sodbeans speak the contents of the variable firstName using <tt>say</tt>.
+You may get input from the user in Quorum using the <code>input</code> keyword. The code below asks the user for their name; inside the parenthesis, you tell the user what information you are requesting. Copy this code into your Sodbeans project, and then have Sodbeans speak the contents of the variable firstName using <code>say</code>.
 </p>
 <p><pre class="code"><code>
 text firstName = input(&quot;Please enter your first name:&quot;)
@@ -184,24 +184,24 @@ When you run this program, an input dialog will appear prompting us to &quot;Ple
 text numberOfEggsInput = input(&quot;How many eggs do you have?&quot;)
 </code></pre></p>
 <p>
-Notice, input will always be of type <tt>text</tt>. However, you can convert the <tt>text</tt> value of the <tt>numberOfEggsInput</tt> variable to any other type you desire, such as <tt>integer</tt> or <tt>number</tt>. You do this using the <tt>cast</tt> statement, as below. Here, you desire to have the number of eggs as a whole number, so you will use the <tt>integer</tt> type.
+Notice, input will always be of type <code>text</code>. However, you can convert the <code>text</code> value of the <code>numberOfEggsInput</code> variable to any other type you desire, such as <code>integer</code> or <code>number</code>. You do this using the <code>cast</code> statement, as below. Here, you desire to have the number of eggs as a whole number, so you will use the <code>integer</code> type.
 </p>
 <p><pre class="code"><code>
 integer numberOfEggs = cast(integer, numberOfEggsInput)
 </code></pre></p>
 <p>
-Now write the Quorum code to speak the numberOfEggs result. It should say "You have this many eggs: " followed by the <tt>numberOfEggs</tt> value.
+Now write the Quorum code to speak the numberOfEggs result. It should say "You have this many eggs: " followed by the <code>numberOfEggs</code> value.
 Next, modify <b>a</b>, <b>b</b>, <b>c</b>, and <b>d</b> to use an input statement to obtain their values from the user.  Remember to prompt the user for integer values for <b>a</b> and <b>b</b>, and prompt the user for decimal values for <b>c</b> and <b>d</b>.
 </p>
 <h2>Task 3: Problem Statements</h2>
 <p>
-There are real-world problems that you can solve using math. In this lab you will focus on analyzing problem statements and turn them into the Quorum code. Before you jump into problem-solving situations, you will need to have a new project in Sodbeans.  Create a new project and name it <strong>Lab2_2_1</strong>.  Be sure to comment and label each solution with the problem statement number (comments can be created by typing <tt>//</tt> in front of the comment you are making).  For each problem statement, assign values to the appropriate variables and have your program speak the results. Get user input for the values listed
+There are real-world problems that you can solve using math. In this lab you will focus on analyzing problem statements and turn them into the Quorum code. Before you jump into problem-solving situations, you will need to have a new project in Sodbeans.  Create a new project and name it <strong>Lab2_2_1</strong>.  Be sure to comment and label each solution with the problem statement number (comments can be created by typing <code>//</code> in front of the comment you are making).  For each problem statement, assign values to the appropriate variables and have your program speak the results. Get user input for the values listed
 in each problem, indicated by <b>integer value</b> or <b>number value</b> and remember to cast them to the appropriate type if needed.
 </p>
 <ol><li>A car travels <b>integer value</b> miles on a freeway for <b>number value</b> hours. Given that speed = distance / time, write code to calculate the car’s speed in terms of miles per hour.
 </li></ol><ol start="2"><li>A class goes on a field trip to the museum.  A school bus can hold up to <b>integer value</b> passengers.  A class of <b>integer value</b> students, a teacher, and two teacher assistants board the bus for the trip.  Write code to calculate what percentage of the bus is filled.
 </li></ol><ol start="3"><li>Someone has ordered a pizza for you, free of charge. However, before you can eat the pizza, you are asked to find the area of the top of the pizza box. The box is <b>integer value</b> inches by <b>integer value</b> inches. Write a program that outputs the area of the pizza box in the form, "The pizza box, in square inches, has an area of: "
-</li></ol><ol start="4"><li>A thrift store manager wishes to write a program that allows him to calculate the total cost of an order of shirts. He wishes to enter the name of a shirt, the number of shirts, and the price per shirt. Write code that accepts user input for the shirt name, the number of shirts, and the price of each shirt. The program should calculate and output the total cost of the order using either the <tt>output</tt> or <tt>say</tt> statement. For testing purposes, use the input: shirt name = Navy Polo Shirt, number of shirts = 11, and price = $8.99.  The result should match the following output:
+</li></ol><ol start="4"><li>A thrift store manager wishes to write a program that allows him to calculate the total cost of an order of shirts. He wishes to enter the name of a shirt, the number of shirts, and the price per shirt. Write code that accepts user input for the shirt name, the number of shirts, and the price of each shirt. The program should calculate and output the total cost of the order using either the <code>output</code> or <code>say</code> statement. For testing purposes, use the input: shirt name = Navy Polo Shirt, number of shirts = 11, and price = $8.99.  The result should match the following output:
 </li></ol>
 <h2>Sample Output</h2>
 <p>

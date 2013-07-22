@@ -44,7 +44,7 @@ Your program should add all of the trial distances together and compute the aver
 <h2>Task 2: Analysis</h2>
 <ul><li>Calculate the average distance in yards.
 </li><li>Convert the average in yards to each of the provided units (centimeters, feet, inches, meters, and miles).
-</li><li>Round each result to the nearest two decimal points. For this, you will need to use the <tt>Math</tt> library. The <tt>Math</tt> library requires the following <strong><tt>use</tt></strong> statement:
+</li><li>Round each result to the nearest two decimal points. For this, you will need to use the <code>Math</code> library. The <code>Math</code> library requires the following <strong><code>use</code></strong> statement:
 <pre class="code">use Libraries.Compute.Math
 </pre></li></ul>
 <h2>Sample Output</h2>
