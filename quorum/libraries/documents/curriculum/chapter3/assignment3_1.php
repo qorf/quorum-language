@@ -25,7 +25,7 @@ A small travel agency in St. Louis offers vacation packages to clients in the St
 The travel agency wants to know the number of travelers planning to go on the trip. Prompt the client for the number of people who will be traveling.  The program should only accept the input value of one or more travelers.  There is no limit for the number of travelers. If the client enters a value of zero or less, the program should reset the value to one traveler and inform the client of an error.
 </p>
 <p>
-After the user has entered the number of travelers the program should provide a list of offered destinations with a price(per person) for each destination for the client to book a round trip flight.  Prompt the client to select a destination number by entering an <tt>integer</tt> value.  The program will determine which destination to get and store the correct city name and price.  A list of cities with prices is shown in the table below:
+After the user has entered the number of travelers the program should provide a list of offered destinations with a price(per person) for each destination for the client to book a round trip flight.  Prompt the client to select a destination number by entering an <code>integer</code> value.  The program will determine which destination to get and store the correct city name and price.  A list of cities with prices is shown in the table below:
 </p>
 <table class="wiki">
 <tr><td><strong>Destination</strong></td><td><strong>Round Trip Fare</strong>
@@ -57,7 +57,7 @@ When the client wants to include hotel in the package, the program will do the f
 </td></tr><tr><td>Standard Hotel</td><td>$98.50
 </td></tr><tr><td>Luxury Hotel</td><td>$199.75
 </td></tr></table>
-<ul><li>If the client does not enter a correct <tt>integer</tt> value for any of three hotel types, the program will automatically reset the hotel type to Standard Hotel and price to $98.50.
+<ul><li>If the client does not enter a correct <code>integer</code> value for any of three hotel types, the program will automatically reset the hotel type to Standard Hotel and price to $98.50.
 </li><li>Ask the client to enter a number of hotel rooms.  If the input is zero or less, then the number of hotel rooms will be reset to one.
 </li><li>Ask the client to enter a number of nights to stay at the hotel.  If the input is zero or less, then the number of nights will be reset to one.
 </li><li>Calculate the total hotel price with the hotel price, a number of rooms, and a number of nights.

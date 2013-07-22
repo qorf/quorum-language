@@ -20,21 +20,21 @@ end
 </code></pre></p>
 <ol start="4"><li>What are the differences between the three conditional clauses?
 </li><li>What are nesting conditionals?  Give an example of the nesting conditionals in Quorum.
-</li><li>Why should the <tt>else if</tt> statements be used over nesting conditionals?
-</li><li>How many <tt>else if</tt> statements can we have?
+</li><li>Why should the <code>else if</code> statements be used over nesting conditionals?
+</li><li>How many <code>else if</code> statements can we have?
 </li><li>List four kinds of loops and explain what they are used for.
 </li><li>What is an infinite loop?
 </li><li>What is lexical scoping?
 </li><li>What is a debugger?
 </li><li>Why is a debugger useful and what makes Quorum’s debugger unique to the other debuggers?
 </li><li>What is a breakpoint?
-</li><li>Can keywords, such as <tt>repeat</tt> and <tt>if</tt>, be used in the variable names?  Why or why not?
+</li><li>Can keywords, such as <code>repeat</code> and <code>if</code>, be used in the variable names?  Why or why not?
 </li><li><strong>Hard:</strong> The debugger is used to help us remove any errors in our programs.  Come up with an alternative technique for debugging a program.  Give one example of how it might be done.
 </li></ol>
 <h2>Essay Questions</h2>
 <ol><li>There are situations where a specific loop type is more appropriate to use.  Think of one example for each of the Quorum loop types.  Explain why the specific loop type would be used in the situation and not one of the others
 </li></ol><ol start="2"><li>Geometry involves conditional statements. Write a paragraph explaining how this relate to the object-oriented paradigm. Then, write another paragraph explaining the differences and similarities between this abstract concept and the physical aspects of geometry.
-</li></ol><ol start="3"><li><strong>Hard:</strong> Various programming languages have their own loop syntax.  Some programming languages even share similar syntax for specific loop types.  Compare and contrast the loop syntax for each of the loop types in Quorum to the other programming languages.  Provide the comparison of at least three different programming languages.  You can choose Java, Ruby, and any other programming languages to compare different loop syntax.  For example, <tt>repeat 10 times</tt> in Quorum is compared to <tt>for(int i = 0; i &lt; 10; i++) {...</tt>} in Java.
+</li></ol><ol start="3"><li><strong>Hard:</strong> Various programming languages have their own loop syntax.  Some programming languages even share similar syntax for specific loop types.  Compare and contrast the loop syntax for each of the loop types in Quorum to the other programming languages.  Provide the comparison of at least three different programming languages.  You can choose Java, Ruby, and any other programming languages to compare different loop syntax.  For example, <code>repeat 10 times</code> in Quorum is compared to <code>for(int i = 0; i &lt; 10; i++) {...</code>} in Java.
 </li></ol>
 <h2>In Class Lab Assignments</h2>
 <ul>

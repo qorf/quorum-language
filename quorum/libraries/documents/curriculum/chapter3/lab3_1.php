@@ -22,10 +22,10 @@ Conditionals are one of the most important aspects of programming.  Conditional 
 Create a new blank Quorum project and name it <strong>Lab3_1</strong>.  In this task, you will concentrate on working with basic conditionals and decision making.
 </p>
 <p>
-This program will allow the user to place an order for a given number of cars. The program will then make decisions based on the car dealership’s business rules and calculate the total price of the order.  Before you start working with conditionals, let’s add the code that gets the user input. Write code that prompts the user for the number of cars to purchase.  Get the user input and store it in a variable named <strong>carNumber</strong>.  Then, cast the value of the number of cars to an <tt>integer</tt> variable named <strong>numberOfCars</strong>.
+This program will allow the user to place an order for a given number of cars. The program will then make decisions based on the car dealership’s business rules and calculate the total price of the order.  Before you start working with conditionals, let’s add the code that gets the user input. Write code that prompts the user for the number of cars to purchase.  Get the user input and store it in a variable named <strong>carNumber</strong>.  Then, cast the value of the number of cars to an <code>integer</code> variable named <strong>numberOfCars</strong>.
 </p>
 <p>
-Write an if statement that checks if the variable <strong>numberOfCars</strong> is equal to one.  In the body of the if-statement, declare a new <tt>integer</tt> and name it <strong>price</strong>.  Assign 20,000 to the <strong>price</strong> variable.  The example of this code is shown below:
+Write an if statement that checks if the variable <strong>numberOfCars</strong> is equal to one.  In the body of the if-statement, declare a new <code>integer</code> and name it <strong>price</strong>.  Assign 20,000 to the <strong>price</strong> variable.  The example of this code is shown below:
 </p>
 <p><pre class="code"><code>
 if numberOfCars = 1
@@ -36,20 +36,20 @@ end
 Run the program and there should not be any errors.  The input dialog will appear.
 </p>
 <p>
-Enter a value of 1 in the input dialog.  Nothing should have happened.  Add the code to tell Sodbeans to speak the price right after the line starting with <tt>integer price =</tt>. Run the program again. This time, notice that the number "20,000" is only spoken if you enter the number 1.
+Enter a value of 1 in the input dialog.  Nothing should have happened.  Add the code to tell Sodbeans to speak the price right after the line starting with <code>integer price =</code>. Run the program again. This time, notice that the number "20,000" is only spoken if you enter the number 1.
 </p>
 <p>
-One problem with this solution is the user only knows the price of their order if they order a single car. To correct this, move the say statement you wrote to after the line starting with <tt>end</tt>. This puts the code outside of the if statement, so it will always execute. Run the program. Whoops! You are getting the following compiler errors:
+One problem with this solution is the user only knows the price of their order if they order a single car. To correct this, move the say statement you wrote to after the line starting with <code>end</code>. This puts the code outside of the if statement, so it will always execute. Run the program. Whoops! You are getting the following compiler errors:
 </p>
 <p><pre class="code"><code>
 The variable ‘price’ has not been defined.  Did you spell the variable’s name correctly?
 The operation “text implicitCast void,” is not allowed.
 </code></pre></p>
 <p>
-The problem is, you defined the <tt>price</tt> variable inside of the if statement. In Quorum, this means it only exists inside the <i>scope</i> of the if statement, between the <tt>if</tt> and <tt>end</tt> keywords. This is what is called <i>lexical scoping</i>, and it is very useful to keep a program organized. In this case, however, you want the <tt>price</tt> variable to be accessible outside of the if statement's scope. To fix this, define the <tt>price</tt> variable above the if statement, and remove the <tt>integer</tt> keyword from the line inside the if statement. The compiler error you witnessed before should no longer be present. Before you run the program, add a statement to output the value of the <tt>price</tt> variable after the line containing the <tt>end</tt> keyword. When you run the program, the input dialog will appear as before.
+The problem is, you defined the <code>price</code> variable inside of the if statement. In Quorum, this means it only exists inside the <i>scope</i> of the if statement, between the <code>if</code> and <code>end</code> keywords. This is what is called <i>lexical scoping</i>, and it is very useful to keep a program organized. In this case, however, you want the <code>price</code> variable to be accessible outside of the if statement's scope. To fix this, define the <code>price</code> variable above the if statement, and remove the <code>integer</code> keyword from the line inside the if statement. The compiler error you witnessed before should no longer be present. Before you run the program, add a statement to output the value of the <code>price</code> variable after the line containing the <code>end</code> keyword. When you run the program, the input dialog will appear as before.
 </p>
 <p>
-Our program behaves properly when you enter a value of one. However, you have not yet considered what happens when you enter a value greater than one. Run the program and enter a larger value. Note the program's behavior. Since you did not account for this condition, the price is set to $0. When users want to purchase multiple cars, you need to multiply the price of $20,000 by the number of cars purchased. This is done by first using an else statement, as shown below. The else-statement should be executed only if the program skips the first if-statement, which occurs when <tt>numberOfCars</tt> does not equal 1. Our else statement looks like so:
+Our program behaves properly when you enter a value of one. However, you have not yet considered what happens when you enter a value greater than one. Run the program and enter a larger value. Note the program's behavior. Since you did not account for this condition, the price is set to $0. When users want to purchase multiple cars, you need to multiply the price of $20,000 by the number of cars purchased. This is done by first using an else statement, as shown below. The else-statement should be executed only if the program skips the first if-statement, which occurs when <code>numberOfCars</code> does not equal 1. Our else statement looks like so:
 </p>
 <p><pre class="code"><code>
 else
@@ -57,7 +57,7 @@ else
 end
 </code></pre></p>
 <p>
-Run the program again, and note that the else statement is executed when you enter a value greater than one. Experiment by modifying the constant value 20000 inside the <tt>else</tt> block so that customers get a discount when purchasing multiple cars. What happens when you wish to purchase two cars? Justify to yourself that this behavior is different than if you had a constant price for all cases.
+Run the program again, and note that the else statement is executed when you enter a value greater than one. Experiment by modifying the constant value 20000 inside the <code>else</code> block so that customers get a discount when purchasing multiple cars. What happens when you wish to purchase two cars? Justify to yourself that this behavior is different than if you had a constant price for all cases.
 </p>
 <h2>Task 2: More Work with Conditionals</h2>
 <p>
@@ -82,10 +82,10 @@ The price for the order of 12 car(s) is $237600
 There are a few problems with the logic side of the program.  They will need to be fixed before the car dealership starts having some problems.
 </p>
 <p>
-First, you need to implement additional checking on the user’s numerical input.  Run the program and enter any negative value in the input dialog. Notice that the price you give the user is a negative value. This would imply that the car dealership is giving away money! The application should not allow this to occur. In order to fix this problem, write an if statement immediately before the <tt>if</tt> block you created earlier. This if statement should determine if <tt>numberOfCars</tt> is less than one. If <tt>numberOfCars</tt> is less than one, set <tt>numberOfCars</tt> to 1.
+First, you need to implement additional checking on the user’s numerical input.  Run the program and enter any negative value in the input dialog. Notice that the price you give the user is a negative value. This would imply that the car dealership is giving away money! The application should not allow this to occur. In order to fix this problem, write an if statement immediately before the <code>if</code> block you created earlier. This if statement should determine if <code>numberOfCars</code> is less than one. If <code>numberOfCars</code> is less than one, set <code>numberOfCars</code> to 1.
 </p>
 <p>
-Second, when a client tries to place an order for 1,000 cars, there is no way for the car dealership to supply this huge number of cars.  In order to prevent this problem from occurring, they decided to limit the purchase quantity of cars to 20.  In the same if statement, add an <tt>elseif</tt> clause that checks for an excessive number of cars and set the number of cars to 20.
+Second, when a client tries to place an order for 1,000 cars, there is no way for the car dealership to supply this huge number of cars.  In order to prevent this problem from occurring, they decided to limit the purchase quantity of cars to 20.  In the same if statement, add an <code>elseif</code> clause that checks for an excessive number of cars and set the number of cars to 20.
 </p>
 <p>
 Last but not least, the user does not know when a mistake has been made.  For example, if the user enters 100 instead of 10 for the number of cars, the program will automatically reset the number of cars from 100 to 20 without informing the user of the mistake.  To fix this problem, you will need to add code in the body of the if-statements for two problems that you have solved above.  Use the following output to have the program announce the user’s mistake with a reason for the error.
