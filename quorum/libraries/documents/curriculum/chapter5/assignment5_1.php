@@ -20,9 +20,9 @@ In this assignment you will be creating a program that mimics a radio. The user 
 
     You will learn about how to use separate files, and how to utilize the classes you define in them.  Create a new assignment and label it Assignment 5_1.
 </p>
-<h2>Class <tt>Main</tt></h2>
+<h2>Class <code>Main</code></h2>
 <p>
-    Class <tt>Main</tt> should have the following actions:
+    Class <code>Main</code> should have the following actions:
 </p>
 
 <ul>
@@ -31,7 +31,7 @@ In this assignment you will be creating a program that mimics a radio. The user 
     </li>
 </ul>
 <p>
-    <tt>StationCheck</tt> should check to make sure the integer value passed in is between 1 and 4, inclusively.  This means the value can be either 1, 2, 3, or 4.  If the value passed in is valid, then this action should return true.  If the value is not valid, it should output an error message and then return false.
+    <code>StationCheck</code> should check to make sure the integer value passed in is between 1 and 4, inclusively.  This means the value can be either 1, 2, 3, or 4.  If the value passed in is valid, then this action should return true.  If the value is not valid, it should output an error message and then return false.
 </p>
 <ul>
     <li>
@@ -39,7 +39,7 @@ In this assignment you will be creating a program that mimics a radio. The user 
     </li>
 </ul>
 <p>
-    <tt>GetStation</tt> should ask the user to input a station (1-4) and then return the integer they enter.  It should continue to ask for a station until the user enters a valid station number.
+    <code>GetStation</code> should ask the user to input a station (1-4) and then return the integer they enter.  It should continue to ask for a station until the user enters a valid station number.
 </p>
 <ul>
     <li>
@@ -47,7 +47,7 @@ In this assignment you will be creating a program that mimics a radio. The user 
     </li>
 </ul>
 <p>
-    <tt>TimeCheck</tt> will do the same things that <tt>StationCheck</tt> does: it should check if the integer passed in is between 1 and 20, inclusively.  If it is, then it should return true.  If not, output an error message and return false.
+    <code>TimeCheck</code> will do the same things that <code>StationCheck</code> does: it should check if the integer passed in is between 1 and 20, inclusively.  If it is, then it should return true.  If not, output an error message and return false.
 </p>
 <ul>
     <li>
@@ -55,11 +55,11 @@ In this assignment you will be creating a program that mimics a radio. The user 
     </li>
 </ul>
 <p>
-    <tt>GetTime</tt> should ask the user to input an integer between 1 and 20 inclusively, and then return that integer value.  It should continue to ask the user for a value until a valid one is given.
+    <code>GetTime</code> should ask the user to input an integer between 1 and 20 inclusively, and then return that integer value.  It should continue to ask the user for a value until a valid one is given.
 </p>
-<h2>Class <tt>Station</tt></h2>
+<h2>Class <code>Station</code></h2>
 <p>
-    Class <tt>Station</tt> should have the following actions:
+    Class <code>Station</code> should have the following actions:
 </p>
 <ul>
     <li>
@@ -67,7 +67,7 @@ In this assignment you will be creating a program that mimics a radio. The user 
     </li>
 </ul>
 <p>
-    <tt>Play</tt> should use the <tt>Play</tt> action from the <tt>Music</tt> library to play the note passed for the duration of <strong>time</strong>(the first integer passed in).
+    <code>Play</code> should use the <code>Play</code> action from the <code>Music</code> library to play the note passed for the duration of <strong>time</strong>(the first integer passed in).
 </p>
 <ul>
     <li>
@@ -75,7 +75,7 @@ In this assignment you will be creating a program that mimics a radio. The user 
     </li>
 </ul>
 <p>
-    <tt>Station</tt> should use action <tt>Play</tt> from above using the parameters passed in to <tt>Station</tt> as the parameters needed for <tt>Play</tt>.
+    <code>Station</code> should use action <code>Play</code> from above using the parameters passed in to <code>Station</code> as the parameters needed for <code>Play</code>.
 </p>
 <h2>Using Separate Files</h2>
 <ul>
@@ -122,7 +122,7 @@ In this assignment you will be creating a program that mimics a radio. The user 
         Another consideration is that you want to make unique sounds for each station selected, but the human ear has a limited range of pitches it's able to hear. So it might take some tinkering to make it so every station played for an unknown amount of time produces an audible sound<br />
     </li>
     <li>
-        When you want to speak a word in the Sodbeans environment it's common to use the output statement. This is beneficial because it prints to the Sodbeans Output Window, and it also speaks it in an auditory format. It should be noted that when using quorum from anywhere else, like the command line for example, this isn't the case. The output statement will only output to a Command Window. The Say statement, however, will speak the command in an auditory format in other environments. So for this program, it's acceptable to use the output statement to accomplish both tasks, as you are working in Sodbeans. However, if you choose to work in a different environment down the road, this is something to be aware of.
+        When you want to speak a word in the Sodbeans environment, you can use the <code>say</code> statement. However, if you want to output a word to the Sodbeans output window, you must use an <code>output</code> statement. Be aware of these differences when completing this assignment.<br />
     </li>
 </ul>
 <h2>Sample Output</h2>
