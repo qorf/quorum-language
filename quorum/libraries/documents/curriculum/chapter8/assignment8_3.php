@@ -22,11 +22,11 @@
     Because many things are automated and digitized in today's world, its the constant job of the developer to consider the security and privacy of people's information. In this assignment you will write a program to create, encrypt, and decrypt medical records. Using the substitution cipher you created in <a href="lab8_3.php">lab 8_3</a> (slightly modified), users will be given the choice to create a medical record, encrypt a medical record, or decrypt a medical record.
 </p>
 <p>
-    Create a new project and name it <b>Assignment8_3</b>. You will also need to create two more classes called <tt>Record</tt> and <tt>Cipher</tt>.
+    Create a new project and name it <b>Assignment8_3</b>. You will also need to create two more classes called <code>Record</code> and <code>Cipher</code>.
 </p>
-<h2>Class <tt>Cipher</tt></h2>
+<h2>Class <code>Cipher</code></h2>
 <p>
-    You can use the class <tt>Cipher</tt> that you created in <a href="lab8_3.php">lab 8_3</a> for this assignment. Take a moment to walk through the class and familiarize yourself with what you implemented. Now think about the kinds of restrictions this cipher was limited to. In this assignment, you may need to encrypt and decrypt upper-case letters, numbers, and different special characters.
+    You can use the class <code>Cipher</code> that you created in <a href="lab8_3.php">lab 8_3</a> for this assignment. Take a moment to walk through the class and familiarize yourself with what you implemented. Now think about the kinds of restrictions this cipher was limited to. In this assignment, you may need to encrypt and decrypt upper-case letters, numbers, and different special characters.
 </p>
 <p>
     Edit this class so that it can encrypt and decrypt all letters (upper-case and lower-case), all numbers, spaces, and the following special characters:
@@ -34,9 +34,9 @@
 <pre class="code">
     /.,-@_
 </pre>
-<h2>Class <tt>Record</tt></h2>
+<h2>Class <code>Record</code></h2>
 <p>
-    Class <tt>Record</tt> will contain the following actions:
+    Class <code>Record</code> will contain the following actions:
 </p>
 <ul>
     <li>
@@ -75,7 +75,7 @@
     First Name:Brandon
 </pre>
 <p>
-    Only the text "Brandon" should be added to the return array, and not "First Name:". To parse text, you can use the <tt>Split()</tt> action from class <tt>Text</tt>. For each line, read the contents of the line, parse it on the ":", and add the text after the ":" to the return array. You can use the <tt>ReadLine()</tt> action from class <tt>FileReader</tt>. <tt>ReadLine()</tt> will allow you to sequentially read each line from the file by making multiple calls to <tt>ReadLine()</tt>.
+    Only the text "Brandon" should be added to the return array, and not "First Name:". To parse text, you can use the <code>Split()</code> action from class <code>Text</code>. For each line, read the contents of the line, parse it on the ":", and add the text after the ":" to the return array. You can use the <code>ReadLine()</code> action from class <code>FileReader</code>. <code>ReadLine()</code> will allow you to sequentially read each line from the file by making multiple calls to <code>ReadLine()</code>.
 </p>
 <ul>
     <li>
@@ -85,7 +85,7 @@
     </li>
 </ul>
 <p>
-    This action will encode the text values passed into the action as arguments (using the <tt>Encode()</tt> action from class <tt>Cipher</tt>), add the encrypted text to an array, and then return the array.
+    This action will encode the text values passed into the action as arguments (using the <code>Encode()</code> action from class <code>Cipher</code>), add the encrypted text to an array, and then return the array.
 </p>
 <ul>
     <li>
@@ -95,9 +95,9 @@
     </li>
 </ul>
 <p>
-    This action will do the same as <tt>EncryptRecord()</tt>, but will instead use the <tt>Decode()</tt> action to decrypt the text passed in as arguments.
+    This action will do the same as <code>EncryptRecord()</code>, but will instead use the <code>Decode()</code> action to decrypt the text passed in as arguments.
 </p>
-<h2>Class <tt>Main</tt></h2>
+<h2>Class <code>Main</code></h2>
 <p>
     Create a small menu for the user, with a welcoming line to your program, and a list of options. There should be five different options. If the user selects 1, create a medical record using text values obtained by the user. If the user selects 2, encrypt a medical record and then write the encrypted record to a new file. If the user selects 3, decrypt a medical record and write the decrypted record to a new file. If the user selects 4, exit the program. If the user selects 5, repeat all the choices to them again. This should repeat until the user has selected a valid entry, and should tell the user they have entered invalid input if they do.
 </p>

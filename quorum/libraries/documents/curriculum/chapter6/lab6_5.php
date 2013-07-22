@@ -25,7 +25,7 @@
 </p>
 <h2>Task 1: Getting Started</h2>
 <p>
-  Start Sodbeans. Create a new “Quorum Application” project, and name it <strong>Lab6_5</strong>.  In the <tt>Main.quorum</tt> file, it should contain a <tt>Main</tt> class and <tt>Main</tt> action.
+  Start Sodbeans. Create a new “Quorum Application” project, and name it <strong>Lab6_5</strong>.  In the <code>Main.quorum</code> file, it should contain a <code>Main</code> class and <code>Main</code> action.
 </p>
 <p>
   We will need to create an additional class in this project.  In the New File dialog, create a new file by selecting “Quorum” and “Quorum Class” in the Categories and File Types windows, respectively.  Then, name  the new file <strong>Observer</strong> in the New Quorum Class dialog.
@@ -35,7 +35,7 @@
 </p>
 <h2>Task 2: Inheriting from the FocusObserver Class</h2>
 <p>
-  Just like in <a href="lab6_4.php">lab 6_4</a>, our <strong>Observer</strong> class will need to inherit the variables and actions of an observer class. The class we need to include in order to get the events that involve the focus changing is the <tt>FocusObserver</tt> class. Just as in the last lab, use the <tt>is</tt> keyword to inherit from the <tt>FocusObserver</tt> class.
+  Just like in <a href="lab6_4.php">lab 6_4</a>, our <strong>Observer</strong> class will need to inherit the variables and actions of an observer class. The class we need to include in order to get the events that involve the focus changing is the <code>FocusObserver</code> class. Just as in the last lab, use the <code>is</code> keyword to inherit from the <code>FocusObserver</code> class.
 </p>
 <pre class="code">
   use Libraries.Accessibility.all 
@@ -45,10 +45,10 @@
   end
 </pre>
 <p>
-  Just as in <a href="lab6_4.php">lab 6_4</a>, our <tt>Observer</tt> class is going to need an instance of the <tt>Speech</tt> class to say things quickly. 
+  Just as in <a href="lab6_4.php">lab 6_4</a>, our <code>Observer</code> class is going to need an instance of the <code>Speech</code> class to say things quickly. 
 </p>
 <p>
-  We will also need to implement the blueprint action <tt>ReceiveEvent</tt> in our <tt>Observer</tt> class. In <a href="lab6_4.php">lab 6_4</a> we used the <tt>GetDescription</tt> action to explain the event, but you can also get the individual aspects of the event and make your own sentence to describe the event. The FocusEvent class has quite a few actions that you can use to get individual information about the event.
+  We will also need to implement the blueprint action <code>ReceiveEvent</code> in our <code>Observer</code> class. In <a href="lab6_4.php">lab 6_4</a> we used the <code>GetDescription</code> action to explain the event, but you can also get the individual aspects of the event and make your own sentence to describe the event. The FocusEvent class has quite a few actions that you can use to get individual information about the event.
 </p>
 <ul>
   <li>
@@ -74,7 +74,7 @@
   </li>
 </ul>
 <p>
-  Use any or all of these actions to create a description of the event and use the <tt>Speech</tt> object to say it.
+  Use any or all of these actions to create a description of the event and use the <code>Speech</code> object to say it.
 </p>
 <pre class="code">
   action ReceiveEvent(FocusEvent event)
@@ -87,7 +87,7 @@
 
 <h2>Task 3: Using the Observer class</h2>
 <p>
-  Now that we have implemented the <tt>Observer</tt> class, we can add an instance of it to our of <tt>AccessibilityManager</tt>. You can then start the <tt>AccessibilityManager</tt> and begin listening for events just as you did in <a href="lab6_4.php">lab 6_4</a>.
+  Now that we have implemented the <code>Observer</code> class, we can add an instance of it to our of <code>AccessibilityManager</code>. You can then start the <code>AccessibilityManager</code> and begin listening for events just as you did in <a href="lab6_4.php">lab 6_4</a>.
 </p>
 <h2>Sample Output</h2>
 <p>

@@ -16,7 +16,7 @@
         How to use derived classes with blueprint actions
     </li>
     <li>
-        How to use the <tt>Libraries.Compute.Random</tt> class
+        How to use the <code>Libraries.Compute.Random</code> class
     </li>
 </ul>
 <h2>Overview</h2>
@@ -25,7 +25,7 @@
 </p>
 <h2>Requirements</h2>
 <p>
-    You will need three classes: <tt>SuperHeroParts</tt>, <tt>SuperHeroGenerator</tt>, and <tt>Main</tt>. Class <tt>SuperHeroParts</tt> will be the base class in which all of the blueprint actions are created. Recall that in Lab 6_2 two categories were defined: super powers and equipment. For this program, create 5 blueprint actions for each of the above categories. As a developer, opportunities will arise where you are able to add your own flare and zest to a program. For this task, feel free to flex your creative muscle and create unique and interesting actions to fulfill the requirements above. Each of these blueprint actions will take one argument, of type text. For example:
+    You will need three classes: <code>SuperHeroParts</code>, <code>SuperHeroGenerator</code>, and <code>Main</code>. Class <code>SuperHeroParts</code> will be the base class in which all of the blueprint actions are created. Recall that in Lab 6_2 two categories were defined: super powers and equipment. For this program, create 5 blueprint actions for each of the above categories. As a developer, opportunities will arise where you are able to add your own flare and zest to a program. For this task, feel free to flex your creative muscle and create unique and interesting actions to fulfill the requirements above. Each of these blueprint actions will take one argument, of type text. For example:
 </p>
 <pre class="code">
     //super powers
@@ -36,7 +36,7 @@
 <p>
     You will also need 1 blueprint action that returns the name of a superhero.
 </p>
-<h2>Class <tt>SuperHeroGenerator</tt></h2>
+<h2>Class <code>SuperHeroGenerator</code></h2>
 <p>
     In this class, you implement all of the blueprint actions inherited from class SuperHeroParts. Recall that the blueprint actions all take 1 argument or type text. This argument will be the name of a character. Your blueprint action that returns the name of a superhero should ask the user to input a name, and then return that text. For example:
 </p>
@@ -104,9 +104,9 @@
 <p>
     This action calls the above three actions, and uses the arguments passed into it as the arguments for each of the three actions it calls.
 </p>
-<h2>Class <tt>Main</tt></h2>
+<h2>Class <code>Main</code></h2>
 <p>
-    Class <tt>Main</tt> should have one action, <tt>Main</tt>, which instantiates an object of class <tt>Random</tt> and <tt>SuperHeroGenerator</tt>. Use the Libraries.Compute.Random in order to create an object of class <tt>Random</tt>. Use the <tt>Random</tt> class action <tt>RandomIntegerBetween(integer min, integer max)</tt>, which returns a random integer in the range of (min, max). Set the min to 0, and the max to 50. <tt>Main</tt> should also call the action <tt>CreateHero(integer value, text name)</tt> from the derived class <tt>SuperHeroGenerator</tt>.
+    Class <code>Main</code> should have one action, <code>Main</code>, which instantiates an object of class <code>Random</code> and <code>SuperHeroGenerator</code>. Use the Libraries.Compute.Random in order to create an object of class <code>Random</code>. Use the <code>Random</code> class action <code>RandomIntegerBetween(integer min, integer max)</code>, which returns a random integer in the range of (min, max). Set the min to 0, and the max to 50. <code>Main</code> should also call the action <code>CreateHero(integer value, text name)</code> from the derived class <code>SuperHeroGenerator</code>.
 </p>
 <h2>Sample Output</h2>
 <p>

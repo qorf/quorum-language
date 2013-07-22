@@ -32,7 +32,7 @@
   Overview
 </h2>
 <p>
-  In this lab, you will be using arrays and lists to simulate a game of musical chairs. The user will be asked to enter the names of players, then the players will be randomly selected and pulled from the array. At the end, the user will be told who the game winner was. You will also get the chance to work with Quorum's error class. Errors are typically caused by invalid user input. For example, if a user tries to divide by zero, then a <tt>DivideByZeroError</tt> will be generated. When errors occur, the program will stop running and the user will get an error message, indicating what error occurred. Usually you want Quorum to do something more than this when an error is encountered. This is what error handling will allow you to do. To handle an error, use the keywords <tt>check</tt> and <tt>detect</tt>. Here is an example of a <tt>DivideByZeroError</tt>, and how you can use check/detect to handle that error:
+  In this lab, you will be using arrays and lists to simulate a game of musical chairs. The user will be asked to enter the names of players, then the players will be randomly selected and pulled from the array. At the end, the user will be told who the game winner was. You will also get the chance to work with Quorum's error class. Errors are typically caused by invalid user input. For example, if a user tries to divide by zero, then a <code>DivideByZeroError</code> will be generated. When errors occur, the program will stop running and the user will get an error message, indicating what error occurred. Usually you want Quorum to do something more than this when an error is encountered. This is what error handling will allow you to do. To handle an error, use the keywords <code>check</code> and <code>detect</code>. Here is an example of a <code>DivideByZeroError</code>, and how you can use check/detect to handle that error:
 </p>
 <pre class="code">
   check
@@ -49,7 +49,7 @@
 </p>
 <h2>Getting Started (Part A)</h2>
 <p>
-  Start Sodbeans. Create a new “Quorum Application” project, and name it <b>Lab7_3a</b>. Create a second class called <tt>MusicalChairs</tt>. You will need to use the following libraries for this lab:
+  Start Sodbeans. Create a new “Quorum Application” project, and name it <b>Lab7_3a</b>. Create a second class called <code>MusicalChairs</code>. You will need to use the following libraries for this lab:
 </p>
 <pre class="code">
   use Libraries.Containers.List
@@ -59,10 +59,10 @@
   use Libraries.Language.Errors.InvalidLocationError
 </pre>
 <h2>
-  Class <tt>MusicalChairs</tt>
+  Class <code>MusicalChairs</code>
 </h2>
 <p>
-  In class <tt>MusicalChairs</tt>, create a list of type integer and an array of type text. Next, you will create actions as follows:
+  In class <code>MusicalChairs</code>, create a list of type integer and an array of type text. Next, you will create actions as follows:
 </p>
 <ul>
   <li>
@@ -72,7 +72,7 @@
   </li>
 </ul>
 <p>
-  <tt>Names</tt> should ask the user to enter the name of a player and should input this name into an array. The array should be populated with at least 5 players.
+  <code>Names</code> should ask the user to enter the name of a player and should input this name into an array. The array should be populated with at least 5 players.
 </p>
 <ul>
   <li>
@@ -82,7 +82,7 @@
   </li>
 </ul>
 <p>
-  <tt>RandomList</tt> needs to populate a list with 1 less integer than there are players. Note that the random integers must be between 1 and <tt>n-1</tt>, where <tt>n</tt> is the number of players in your game.
+  <code>RandomList</code> needs to populate a list with 1 less integer than there are players. Note that the random integers must be between 1 and <code>n-1</code>, where <code>n</code> is the number of players in your game.
 </p>
 <ul>
   <li>
@@ -92,10 +92,10 @@
   </li>
 </ul>
 <p>
-  One of Quorum's built-in errors is the <tt>InvalidLocationError</tt> error. This error is thrown when an invalid memory location is accessed. GetPlayers will count the number of players in the game (by iterating through your array of names), and will tell the user how many are playing. However, you're going to try and iterate through the array an impossible number of times, given that the array should hold no more than 9 players, and therefore should be no larger than 10. Try repeating through the array 20 times.
+  One of Quorum's built-in errors is the <code>InvalidLocationError</code> error. This error is thrown when an invalid memory location is accessed. GetPlayers will count the number of players in the game (by iterating through your array of names), and will tell the user how many are playing. However, you're going to try and iterate through the array an impossible number of times, given that the array should hold no more than 9 players, and therefore should be no larger than 10. Try repeating through the array 20 times.
 </p>
 <p>
-  Run the program, and see what happens. This is what is called an <tt>InvalidLocationError</tt>, and it happened because you tried to access invalid memory locations. Now put in a check/detect, so that the "detect" will output "Error detected" and follow with the error message. Then, correct the problem so that your repeat loop no longer tries to access invalid memory locations.
+  Run the program, and see what happens. This is what is called an <code>InvalidLocationError</code>, and it happened because you tried to access invalid memory locations. Now put in a check/detect, so that the "detect" will output "Error detected" and follow with the error message. Then, correct the problem so that your repeat loop no longer tries to access invalid memory locations.
 </p>
 <ul>
   <li>
@@ -105,10 +105,10 @@
   </li>
 </ul>
 <p>
-  Play will conduct the game of musical chairs. Using the <tt>RemoveAt(value)</tt> action for both arrays and lists, this action should use the random integers held in your list as indexes to remove players from your array. After each player that is removed, tell the user who that person was. When the game is over, tell the user who won.
+  Play will conduct the game of musical chairs. Using the <code>RemoveAt(value)</code> action for both arrays and lists, this action should use the random integers held in your list as indexes to remove players from your array. After each player that is removed, tell the user who that person was. When the game is over, tell the user who won.
 </p>
 <p>
-  The <tt>RemoveAt(value)</tt> action removes the item in the array(or list, this action is the same for both data structures). It returns the item that was removed, and takes the index of the item to be removed as a parameter. It can be used like this:
+  The <code>RemoveAt(value)</code> action removes the item in the array(or list, this action is the same for both data structures). It returns the item that was removed, and takes the index of the item to be removed as a parameter. It can be used like this:
 </p>
 <pre class="code">
   List &lt integer &gt myList
@@ -139,19 +139,19 @@
 <p>
   &#160;
 </p>
-<h2>Class <tt>Musical Chairs</tt>revised: (7_3 part B)</h2>
+<h2>Class <code>Musical Chairs</code>revised: (7_3 part B)</h2>
 <p>
   Now that you have a working Musical Chairs game, you're going to make it so the user can decide how many players are going to be playing. When run, the program should prompt the user to enter the number of players. After entered, they will need to supply the names of the players. Then, the program will play the game of musical chairs and will output, in order, who was removed from the game, and lastly, who the winner was.
 </p>
 <p>
-  In order to accomplish this autonomously, each action will require at least one parameter(the number of players in the game). You also have a unique problem that you didn't address in 7_3A: the integers populated into your list were not unique. They were random, but may contain multiple instances of the same integer. To make this program more robust, you will need to find a solution to check for unique, but random integers, and be able to populate the list with as many integers as there are people playing. This can be done relatively quickly using the <tt>Knuth-Fisher-Yates</tt> algorithm. The idea behind this algorithm is to populate a list with an ordered number of integers N, starting with 0. If the user says that 1000 people are playing, then you need to populate a list of ordered integers from 0 to 1000, so it would be 1001 nodes long. Once you have an ordered list, you grab the Max value (1000), and a random value, and then swap them in the list. In the next iteration, you decrement Max by 1 and pick another random integer and swap the two in the list. This continues until Max is equal to 0. You can see how this works in the following figure:
+  In order to accomplish this autonomously, each action will require at least one parameter(the number of players in the game). You also have a unique problem that you didn't address in 7_3A: the integers populated into your list were not unique. They were random, but may contain multiple instances of the same integer. To make this program more robust, you will need to find a solution to check for unique, but random integers, and be able to populate the list with as many integers as there are people playing. This can be done relatively quickly using the <code>Knuth-Fisher-Yates</code> algorithm. The idea behind this algorithm is to populate a list with an ordered number of integers N, starting with 0. If the user says that 1000 people are playing, then you need to populate a list of ordered integers from 0 to 1000, so it would be 1001 nodes long. Once you have an ordered list, you grab the Max value (1000), and a random value, and then swap them in the list. In the next iteration, you decrement Max by 1 and pick another random integer and swap the two in the list. This continues until Max is equal to 0. You can see how this works in the following figure:
 </p>
 <img src="https://quorum.svn.sourceforge.net/svnroot/quorum/trunk/quorum/libraries/documents/curriculum/chapter7/Knuth-Fisher-Yates.PNG" alt="Knuth-Fisher-Yates Algorithm"></img>
 <p>
   This algorithm is especially nice in this case because it is highly efficient at creating an array of random, unique integers. In computer science, you can measure this efficiency. Typically, efficiency of a given algorithm is measured by how many comparisons or assignments must be done. In the algorithm above, it takes O(n) (Big-Oh of n) time to fill the array with n number of integers. This is called linear time, since the time it takes changes with the size of n. To shuffle those integers, it takes O(1) time, meaning it is done in near constant time. Big O notation is used to show the upper bound constraints on run time (the worst case). It's important to analyze your algorithms for run time complexities. Doing so allows a programmer to estimate time and memory usage, identify bottlenecks so they can work to reduce run time, compare different implementation approaches, or to speed up critical algorithms.
 </p>
 <p>
-  Action <tt>Play(integer value)</tt> needs to be modified as well. Since you are performing many of these operations in loops, you will need a second array to hold the text values being removed (the players that lost). Then, in a different loop, you can get those text values and output them for the user to see who lost. Make sure that you're telling the user the correct order in which players lost the game. Again, at the end of the game, tell the user who the winner was.
+  Action <code>Play(integer value)</code> needs to be modified as well. Since you are performing many of these operations in loops, you will need a second array to hold the text values being removed (the players that lost). Then, in a different loop, you can get those text values and output them for the user to see who lost. Make sure that you're telling the user the correct order in which players lost the game. Again, at the end of the game, tell the user who the winner was.
 </p>
 <h2>
   Sample Output

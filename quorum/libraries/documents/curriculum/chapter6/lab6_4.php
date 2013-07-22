@@ -35,8 +35,8 @@
   the accessibility libraries were created for Quorum 2.0, they are not available
   in Sodbeans 3.5 or earlier. Once we have started Sodbeans, we will create a 
   new "Quorum Application" project, and name it 
-  <strong>Lab6_4</strong>.  In the <tt>Main.quorum</tt> file, it should
-contain a <tt>Main</tt> class and <tt>Main</tt> action.
+  <strong>Lab6_4</strong>.  In the <code>Main.quorum</code> file, it should
+contain a <code>Main</code> class and <code>Main</code> action.
 </p>
 <p>
   Next, we will create an additional class for the project. This class is going to
@@ -54,7 +54,7 @@ contain a <tt>Main</tt> class and <tt>Main</tt> action.
   At the top of our <strong>Observer</strong> file, we need to include the 1) 
   Speech class from the Sound library and 2) all of the Accessibility 
   libraries. Our main file will also need to use the Accessibility libraries, 
-  so we will need to include that <tt>use</tt> statement in our main file as well.
+  so we will need to include that <code>use</code> statement in our main file as well.
 </p>
 <pre class="code">
   use Libraries.Accessibility.all 
@@ -63,8 +63,8 @@ contain a <tt>Main</tt> class and <tt>Main</tt> action.
 <h2>Task 2: Inheriting from the KeyboardObserver Class</h2>
 <p>
   Our <strong>Observer</strong> class will need to inherit the variables and 
-  actions of the <tt>KeyboardObserver</tt> class. To do this, tell Sodbeans that 
-  our <tt>Observer</tt> class "is" a <tt>KeyboardObserver</tt>. 
+  actions of the <code>KeyboardObserver</code> class. To do this, tell Sodbeans that 
+  our <code>Observer</code> class "is" a <code>KeyboardObserver</code>. 
 </p>
 <pre class="code">
   //This is called "inheritance"
@@ -72,29 +72,29 @@ contain a <tt>Main</tt> class and <tt>Main</tt> action.
   end
 </pre>
 <p>
-  Since you we will be using our <tt>Observer</tt> class to say things very 
-  quickly, we will need to use an object of class <tt>Speech</tt>, which 
-  has more functionality than the <tt>say</tt> command for controlling speech. Using the
-  <tt>Speech</tt> class instead of the say command will allow us to say events
+  Since you we will be using our <code>Observer</code> class to say things very 
+  quickly, we will need to use an object of class <code>Speech</code>, which 
+  has more functionality than the <code>say</code> command for controlling speech. Using the
+  <code>Speech</code> class instead of the say command will allow us to say events
   as soon as we get them instead of waiting until the previous event is done. 
-  To use the <tt>Speech</tt> class, we use the action <tt>Say</tt> and pass it the text 
-  we want it to say. As usual, when we use the <tt>Speech</tt> class, we need to
-  add <tt>use Libraries.Sound.Speech</tt> to our file.
+  To use the <code>Speech</code> class, we use the action <code>Say</code> and pass it the text 
+  we want it to say. As usual, when we use the <code>Speech</code> class, we need to
+  add <code>use Libraries.Sound.Speech</code> to our file.
 </p>
 <p>
  As mentioned previously, there are many kinds of Observer. Specifically, Quorum 
- defines a <tt>MouseObserver</tt>, <tt>KeyboardObserver</tt>,
-<tt>FocusObserver</tt>, <tt>WindowObserver</tt>, <tt>MenuObserver</tt>, 
-<tt>PropertyObserver</tt>, and <tt>EverythingObserver</tt>. Each observer has
+ defines a <code>MouseObserver</code>, <code>KeyboardObserver</code>,
+<code>FocusObserver</code>, <code>WindowObserver</code>, <code>MenuObserver</code>, 
+<code>PropertyObserver</code>, and <code>EverythingObserver</code>. Each observer has
 a blueprint action, <strong>RecieveEvent</strong>, that we need to 
-implement in order to use them. The implementation of the <tt>RecieveEvent</tt> 
+implement in order to use them. The implementation of the <code>RecieveEvent</code> 
 is where we code our implementation. To do that, we will use the 
-<tt>RecieveEvent</tt>'s parameter of type <tt>KeyboardEvent</tt>, <tt>FocusEvent</tt>,
+<code>RecieveEvent</code>'s parameter of type <code>KeyboardEvent</code>, <code>FocusEvent</code>,
 or other types of events, depending on the kind of Observer. An 
-<tt>KeyboardEvent</tt> contains information about the 
+<code>KeyboardEvent</code> contains information about the 
 event (e.g. what key was pressed).
-The <tt>KeyboardEvent</tt> class also has a custom action called 
-<tt>GetDescription()</tt>, which returns a sentence describing 
+The <code>KeyboardEvent</code> class also has a custom action called 
+<code>GetDescription()</code>, which returns a sentence describing 
 the event in English. We can use this sentence if we wish, or other values in the 
 event, to write our screen reader.
 </p>
@@ -104,29 +104,29 @@ event, to write our screen reader.
   end
 </pre>
 <p>
-  In the example above, we used the <tt>Speech</tt> variable in the class to say the description of the event.
+  In the example above, we used the <code>Speech</code> variable in the class to say the description of the event.
 
 </p>
 
 <h2>Task 3: Using the Observer class</h2>
 <p>
   Now that we have created a observer class, we can add that to an 
-<tt>AccessibilityManager</tt> to begin listening for events. 
+<code>AccessibilityManager</code> to begin listening for events. 
 </p>
 <p>
-  Go to our <tt>Main</tt> and instantiate an object of <tt>AccessibilityManager</tt> 
-  and one of your <tt>Observer</tt> class. The <tt>AccessibilityManager</tt> is 
+  Go to our <code>Main</code> and instantiate an object of <code>AccessibilityManager</code> 
+  and one of your <code>Observer</code> class. The <code>AccessibilityManager</code> is 
   what will run your screen reader. You can add as many instances of the 
-  observer classes as we want to the <tt>AccessibilityManager</tt>. When we 
-  start the <tt>AccessibilityManager</tt> it will begin receiving events from the 
-  system. More specifically, the <tt>RecieveEvent</tt> action will begin obtaining
+  observer classes as we want to the <code>AccessibilityManager</code>. When we 
+  start the <code>AccessibilityManager</code> it will begin receiving events from the 
+  system. More specifically, the <code>RecieveEvent</code> action will begin obtaining
   events from the system. 
 </p>
 <p>
-  We should have an instance of <tt>Observer</tt> and an instance of 
-<tt>AccessibilityManager</tt>. We can use AccessibilityManager's <tt>Add</tt> action to 
-add our observer to the instance of <tt>AccessibilityManager</tt>. Now, we need 
-to call AccessibilityManager's <tt>Start</tt> action and run our program. 
+  We should have an instance of <code>Observer</code> and an instance of 
+<code>AccessibilityManager</code>. We can use AccessibilityManager's <code>Add</code> action to 
+add our observer to the instance of <code>AccessibilityManager</code>. Now, we need 
+to call AccessibilityManager's <code>Start</code> action and run our program. 
 Congratulations, we now the beginnings of a screen reader that talks to us! 
 </p>
 <h2>Sample Output</h2>

@@ -35,7 +35,7 @@
   Design Requirements
 </h2>
 <p>
-  The transformations are described in detail below, with all the action prototypes given. For most actions, the first argument is the array, and the second is the size of the array. Create a new quorum application named <b>Assignment 7_1</b>. Next, create a second class named <tt>ArrayModification</tt>
+  The transformations are described in detail below, with all the action prototypes given. For most actions, the first argument is the array, and the second is the size of the array. Create a new quorum application named <b>Assignment 7_1</b>. Next, create a second class named <code>ArrayModification</code>
 </p>
 <ul>
   <li>
@@ -248,11 +248,11 @@
   </li>
 </ul>
 <p>
-  When called, <tt>ChooseManipulation</tt> will present the user with list of available manipulations. It will ask for their input, and then return it.
+  When called, <code>ChooseManipulation</code> will present the user with list of available manipulations. It will ask for their input, and then return it.
 </p>
 <h2>Generics</h2>
 <p>
-  In computer programming, you often want to create a class that generically specifies an algorithm. For example, you might want to create a list of numbers, integers, or anything else. There are two ways you could accomplish this: you could create separate implementations for each data type, or you could create a "generic" class. In Quorum, you can do just that. In order to specify a generic type, you need to tell Quorum that your class is of generic type. To do this, use the keyword <tt>Type</tt> enclosed in angle brackets:
+  In computer programming, you often want to create a class that generically specifies an algorithm. For example, you might want to create a list of numbers, integers, or anything else. There are two ways you could accomplish this: you could create separate implementations for each data type, or you could create a "generic" class. In Quorum, you can do just that. In order to specify a generic type, you need to tell Quorum that your class is of generic type. To do this, use the keyword <code>Type</code> enclosed in angle brackets:
 </p>
 <pre class="code">
   class ArrayModification &lt Type &gt;

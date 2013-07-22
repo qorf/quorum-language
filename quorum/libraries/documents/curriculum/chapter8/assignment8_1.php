@@ -33,9 +33,9 @@
     </li>
 </ul>
 <p>
-    Create a new project and name it <b>Assignment8_1</b>. Create a second class and name it <tt>NutritionLog</tt>.
+    Create a new project and name it <b>Assignment8_1</b>. Create a second class and name it <code>NutritionLog</code>.
 </p>
-<h2>Class <tt>NutritionLog</tt></h2>
+<h2>Class <code>NutritionLog</code></h2>
 <p>
     You will need the following libraries for this assignment:
 </p>
@@ -57,7 +57,7 @@
     </li>
 </ul>
 <p>
-    Class <tt>NutritionLog</tt> will have the following actions:
+    Class <code>NutritionLog</code> will have the following actions:
 </p>
 <ul>
     <li>
@@ -77,7 +77,7 @@
     </li>
 </ul>
 <p>
-    This action will do the same as <tt>CalculateCarbs()</tt>, except the user will be prompted to enter grams of protein. A gram of protein is worth the same caloric value as a gram of carbs.
+    This action will do the same as <code>CalculateCarbs()</code>, except the user will be prompted to enter grams of protein. A gram of protein is worth the same caloric value as a gram of carbs.
 </p>
 <ul>
     <li>
@@ -87,7 +87,7 @@
     </li>
 </ul>
 <p>
-    This action will do the same as <tt>CalculateProteins</tt>, except the user will be prompted for fats. A gram of fat is worth 9 calories instead of four.
+    This action will do the same as <code>CalculateProteins</code>, except the user will be prompted for fats. A gram of fat is worth 9 calories instead of four.
 </p>
 <ul>
     <li>
@@ -97,7 +97,7 @@
     </li>
 </ul>
 <p>
-    <tt>CalculateTotalCalories</tt> will add up the values entered as arguments and return their sum.
+    <code>CalculateTotalCalories</code> will add up the values entered as arguments and return their sum.
 </p>
 <ul>
     <li>
@@ -107,7 +107,7 @@
     </li>
 </ul>
 <p>
-    <tt>CalculateCarbsDaily</tt> will calculate the percentage of consumed calories that were carbs, then return that percentage.
+    <code>CalculateCarbsDaily</code> will calculate the percentage of consumed calories that were carbs, then return that percentage.
 </p>
 <ul>
     <li>
@@ -117,7 +117,7 @@
     </li>
 </ul>
 <p>
-    <tt>CalculateProteinsDaily</tt> will calculate the percentage of consumed calories that were proteins, then return that percentage.
+    <code>CalculateProteinsDaily</code> will calculate the percentage of consumed calories that were proteins, then return that percentage.
 </p>
 <ul>
     <li>
@@ -127,7 +127,7 @@
     </li>
 </ul>
 <p>
-    <tt>CalculateFatsDaily</tt> will calculate the percentage of consumed calories that were fats, then return that percentage.
+    <code>CalculateFatsDaily</code> will calculate the percentage of consumed calories that were fats, then return that percentage.
 </p>
 <ul>
     <li>
@@ -137,7 +137,7 @@
     </li>
 </ul>
 <p>
-    <tt>CalculateCaloriesMet</tt> will calculate the percentage of calories consumed (totalCalories) as per the calorie goal that is entered, and then return that percentage.
+    <code>CalculateCaloriesMet</code> will calculate the percentage of calories consumed (totalCalories) as per the calorie goal that is entered, and then return that percentage.
 </p>
 <ul>
     <li>
@@ -147,7 +147,7 @@
     </li>
 </ul>
 <p>
-    Because this log can be used across multiple days, you want to be able to time stamp each entry. You can do this by using the DateTime class in Quorum. In the next action, you will write the month, day, year, and hour of time to the log. However, the <tt>GetHour</tt> action from the <tt>DateTime</tt> class returns an integer for the hour in a 0-23 range, where 0-12 = 12Am to 12Pm and 13-23 = 1Pm to 11Pm. <tt>ConvertHour</tt> is going to convert the hour integer into normal time. The algorithm for this looks like the following:
+    Because this log can be used across multiple days, you want to be able to time stamp each entry. You can do this by using the DateTime class in Quorum. In the next action, you will write the month, day, year, and hour of time to the log. However, the <code>GetHour</code> action from the <code>DateTime</code> class returns an integer for the hour in a 0-23 range, where 0-12 = 12Am to 12Pm and 13-23 = 1Pm to 11Pm. <code>ConvertHour</code> is going to convert the hour integer into normal time. The algorithm for this looks like the following:
 </p>
 <pre class="code">
     if hour &gt 12 and hour &lt 24
@@ -177,7 +177,7 @@ end
     ....do stuff
 </pre>
 <p>
-    If they enter yes, then you need to get a valid directory. This can be done by using the <tt>SetWorkingDirectory()</tt> action from the File class. The <tt>SetWorkingDirectory()</tt> action can only be called after the <tt>SetPath()</tt> action, where the path should be set to the path the user enters. For example:
+    If they enter yes, then you need to get a valid directory. This can be done by using the <code>SetWorkingDirectory()</code> action from the File class. The <code>SetWorkingDirectory()</code> action can only be called after the <code>SetPath()</code> action, where the path should be set to the path the user enters. For example:
 </p>
 <pre class="code">
     File file
@@ -186,13 +186,13 @@ end
     file::SetWorkingDirectory(directory)
 </pre>
 <p>
-    However, you before setting the directory, you should check if the entered directory is valid or not. This can be done using the <tt>IsDirectory()</tt> action from the <tt>File</tt> class. If it's not a valid directory, give the user an error message telling them its not.
+    However, you before setting the directory, you should check if the entered directory is valid or not. This can be done using the <code>IsDirectory()</code> action from the <code>File</code> class. If it's not a valid directory, give the user an error message telling them its not.
 </p>
 <p>
     Next, you need to get the name of a file to write to. Prompt the user to enter a name, followed by the extension type. Quorum can make many different file types, such as .txt files or .doc files. Again, check to make sure the user has entered a valid document name. For instance, they should not be allowed to enter only a name, without the extension, or to enter only numbers or integers. *Hint* a good way to do this is to check for the location of the "." in the name. Because the "." will always be followed by three characters, you should be able to create a loop that will only exit if the "." is in the correct spot (the fourth from the end of the name).
 </p>
 <p>
-    Once a valid name is obtained, open the file in such a way so that items can continue to be written to it without the fear of erasing the whole document. Next, using the <tt>WriteLine</tt> action, write the date and hour into the log. The date can be obtained automatically using the <tt>GetMonth()</tt>, <tt>GetDayOfMonth()</tt>, and <tt>GetYear()</tt> actions from the <tt>DateTime</tt> class. Write these values to the log in the following format: mm/dd/yyyy. Next, write the total calories consumed so far, percentage of calories from carbs, percentage of calories from proteins, percentage of calories from fats, and percentage of calories consumed based off of the user's caloric goal. (All of these values are arguments entered into the action). Don't forget to call the <tt>Close()</tt> action so the file closes properly.
+    Once a valid name is obtained, open the file in such a way so that items can continue to be written to it without the fear of erasing the whole document. Next, using the <code>WriteLine</code> action, write the date and hour into the log. The date can be obtained automatically using the <code>GetMonth()</code>, <code>GetDayOfMonth()</code>, and <code>GetYear()</code> actions from the <code>DateTime</code> class. Write these values to the log in the following format: mm/dd/yyyy. Next, write the total calories consumed so far, percentage of calories from carbs, percentage of calories from proteins, percentage of calories from fats, and percentage of calories consumed based off of the user's caloric goal. (All of these values are arguments entered into the action). Don't forget to call the <code>Close()</code> action so the file closes properly.
 </p>
 <h2>Main</h2>
 <p>

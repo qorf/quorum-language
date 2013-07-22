@@ -22,14 +22,14 @@
     A common excercise in software development is to change the contents of a file.  This may mean opening a file and modifying certain pieces, then closing it again, or it could mean writing a whole new file based on the information from another file.  In this assignment, you will be simulating this excercise.  You will be creating a program that reads text from a file chose by the user, then translating that file into Pirate-speak, and finally writing the translated text to a new file chosen by the user.
 </p>
 <p>
-    Create a new project and name it <b>Assignment8_4</b>. You will need to create one more class, named <tt>Translate</tt>.
+    Create a new project and name it <b>Assignment8_4</b>. You will need to create one more class, named <code>Translate</code>.
 </p>
-<h2>Class <tt>Translate</tt></h2>
+<h2>Class <code>Translate</code></h2>
 <p>
     There are many different ways you could set up this translator.  Below is one option, but feel free to explore different design options and test your own implementation ideas.  To start, make your translator capable of handling only lower-case text with no grammer.  When you have this working, as an optional step, try to make it so your translator can handle capitalized words with commas, periods, exclamation marks, question marks, and semicolons.
 </p>
 <p>
-    Class <tt>Translate</tt> will contain the following actions:
+    Class <code>Translate</code> will contain the following actions:
 </p>
 <ul>
     <li>
@@ -60,7 +60,7 @@
     </li>
 </ul>
 <p>
-    Using the two arrays returned from the previous two actions <tt>TranslateAndWrite()</tt> should translate each word from the input file that has a pirate equivalent and translate that word into pirate.  One way to do this is to compare each word from the input file with each english word from the translation key.  If the two words are the same, then grab the equivalent pirate word.  Once all the words that have an quivalent pirate meaning are translated, prompt the user for the name of a file to write to.  Again, this action should continue prompting the user until a valid file name is entered.  Write the translated text to the user-specified file.  If the file gets written to successfully, this action should return true, otherwise it should return false.
+    Using the two arrays returned from the previous two actions <code>TranslateAndWrite()</code> should translate each word from the input file that has a pirate equivalent and translate that word into pirate.  One way to do this is to compare each word from the input file with each english word from the translation key.  If the two words are the same, then grab the equivalent pirate word.  Once all the words that have an quivalent pirate meaning are translated, prompt the user for the name of a file to write to.  Again, this action should continue prompting the user until a valid file name is entered.  Write the translated text to the user-specified file.  If the file gets written to successfully, this action should return true, otherwise it should return false.
 </p>
 <p>
     Something that should be considered is: "what if a particular word has no pirate equivalent?"  When writing to the new file, this action should also write the words that don't have any translation.  For example:
@@ -75,9 +75,9 @@
 <p>
     In the above example, the word "there" had to pirate translation, but it was still written to the output file in the correct position, so that when read, the text still makes sense.
 </p>
-<h2>Class <tt>Main</tt></h2>
+<h2>Class <code>Main</code></h2>
 <p>
-    <tt>Main</tt> should instantiate an object of class <tt>Translate</tt>, then call the proper functions to translate a file. If the file was translated successfully, then output (or say) a message telling the user so.
+    <code>Main</code> should instantiate an object of class <code>Translate</code>, then call the proper functions to translate a file. If the file was translated successfully, then output (or say) a message telling the user so.
 </p>
 <h2>Sample Output</h2>
 <p>
