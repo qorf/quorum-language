@@ -101,7 +101,7 @@ Now that you have the current date and time, assume the user has a meeting every
 <li>All other months have 31 days</li>
 </ul>
 <p>
-You will need to use a <tt>repeat times</tt> loop to output the next three meetings. Within that loop you will need to calculate the date of the meeting (hint: use a conditional statement). Given the current date from the sample output, the output of your program should look something like:
+You will need to use a <code>repeat times</code> loop to output the next three meetings. Within that loop you will need to calculate the date of the meeting (hint: use a conditional statement). Given the current date from the sample output, the output of your program should look something like:
 </p>
 <p><pre class="code"><code>
 meeting date: 1/24
@@ -171,7 +171,7 @@ Start the debugger.  Tell the debugger to continue and the program will then hal
 Use the Step Over to move the active line to the next line.  Use the step controls, such as Step Back Over, Step Back Into, Step Over, and so on, to move the active line around in the editor.  Watch and/or listen to how the active line moves into the part of the code.  For instance, notice how it jumps into the proper conditional.  It only skips a block of the code in the conditional because it was checked as false, and it only enters a block of the code in the conditional that returns true.  In the case of a loop, notice that the active line keeps moving around until the proper action in the program has been taken.
 </p>
 <ol start="5"><li>What happens when a programmer tells the debugger to continue and rewind?
-</li><li>Using either Step Over or Step Into function, what happens after the active line enters a block of code in the conditional when it returns true?  Will it continue checking more <tt>else-if</tt> statements?
+</li><li>Using either Step Over or Step Into function, what happens after the active line enters a block of code in the conditional when it returns true?  Will it continue checking more <code>else-if</code> statements?
 </li><li>Using either Step Over or Step Into function, will the program continue going through the loop or exit the loop after the appropriate value has been matched in the conditional inside the loop that runs a block of code a number of times?
 </li></ol><p>
 <strong>Goal 4: Variables window</strong>

@@ -49,10 +49,10 @@ In addition to the Default.jar there is a folder containing all the additional l
 <ul>
 <li>Phonemic.jar - The text-to-speech engine used by Quorum.</li>
 <li>Interop.SpeechLib.5.3.dll - This allows text-to-speech to work on Windows.</li>
-<li>libCarbonSpeakJNI.jnilib -</li>
+<li>libCarbonSpeakJNI.jnilib - This allows text-to-speceh to work on Mac.</li>
 <li>libLinuxSpeakJNI.so and libLinuxSpeakJNI64.so - This allows text-to-speech to work on Linux.</li>
-<li>nvdaControllerClient32.dll and nvdaControllerClient64.dll -</li>
-<li>SappyJNI.dll and SappyJNI64 -</li>
+<li>nvdaControllerClient32.dll and nvdaControllerClient64.dll - These files are a Dynamic-link Library. These libraries can be loaded and executed in any running process. </li>
+<li>SappyJNI.dll and SappyJNI64 - Support files for common screen-reader applications</li>
 </ul>
 <p>
 More information on Jar files can be found on <a class="ext-link" href="http://en.wikipedia.org/wiki/JAR_(file_format)"><span class="icon">wikipedia</span></a>.

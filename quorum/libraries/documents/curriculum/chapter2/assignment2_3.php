@@ -17,11 +17,11 @@ The goal of this assignment is to learn the following:
   In this assignment, you will write a program that plays music with a combination of notes and chords.  This assignment allows you to create your own songs by combining single notes and chords. Create a new project and name it <strong>Assignment2_3</strong>.
 </p>
 <p>
-So far, you have focused on using the <tt>Play</tt> feature in the <tt>Music</tt> class to play single notes. This feature can also be used to play multiple notes at once, called <i>chords</i>. In this assignment, you will create a piece of music utilizing both single notes and chords to create a piece of music that lasts at least one minute.
+So far, you have focused on using the <code>Play</code> feature in the <code>Music</code> class to play single notes. This feature can also be used to play multiple notes at once, called <i>chords</i>. In this assignment, you will create a piece of music utilizing both single notes and chords to create a piece of music that lasts at least one minute.
 </p>
 <h2>Task 1</h2>
 <p>
-To play chords in Quorum, you must use the <tt>Chord</tt> type. To include this type for use in your program, use the following <strong><tt>use</tt></strong> statement:
+To play chords in Quorum, you must use the <code>Chord</code> type. To include this type for use in your program, use the following <strong><code>use</code></strong> statement:
 </p>
 <p><pre class="code"><code>
 use Libraries.Sound.Chord
@@ -41,7 +41,7 @@ Once the chord has been created make sure the chord is played.
 <h2>Task 2: Analysis</h2>
 <ul><li>Compose a piece of music consisting of notes and chords.
 </li><li>The piece of music must last at least one minute.
-</li><li>Use the <tt>chord</tt> type.
+</li><li>Use the <code>chord</code> type.
 </li></ul>
 <h2>Sample Output</h2>
 <p>

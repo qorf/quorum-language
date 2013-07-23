@@ -20,15 +20,15 @@
 </ul>
 <h2>Overview</h2>
 <p>
-    In this assignment you will create an interactive battle simulator. Users will be given the chance to record their own sound effects using Quorum's <tt>Record()</tt> action. They will be given a description of three different types of champions, and will get to choose their champion and their opponent. Then, the two will fight to the death, with the user's own sound effects detailing each hit and miss in this epic battle.
+    In this assignment you will create an interactive battle simulator. Users will be given the chance to record their own sound effects using Quorum's <code>Record()</code> action. They will be given a description of three different types of champions, and will get to choose their champion and their opponent. Then, the two will fight to the death, with the user's own sound effects detailing each hit and miss in this epic battle.
 </p>
 <h2>Requirements</h2>
 <p>
-    You will need six classes: <tt>Equipment</tt>, <tt>Sounds</tt>, <tt>Stats</tt>, <tt>Warrior</tt>, <tt>Wizard</tt>, and <tt>Ranger</tt>. Class <tt>Stats</tt> will be your base class, and will contain actions and blueprint actions to be used in each class that inherits from <tt>Stats</tt>.
+    You will need six classes: <code>Equipment</code>, <code>Sounds</code>, <code>Stats</code>, <code>Warrior</code>, <code>Wizard</code>, and <code>Ranger</code>. Class <code>Stats</code> will be your base class, and will contain actions and blueprint actions to be used in each class that inherits from <code>Stats</code>.
 </p>
-<h2>Class <tt>Equipment</tt></h2>
+<h2>Class <code>Equipment</code></h2>
 <p>
-    In this class, you will implement a getter and a setter a class variable of type text called <tt>name</tt>:
+    In this class, you will implement a getter and a setter a class variable of type text called <code>name</code>:
 </p>
 <ul>
     <li>
@@ -38,7 +38,7 @@
     </li>
 </ul>
 <p>
-    Setter for <tt>name</tt>.
+    Setter for <code>name</code>.
 </p>
 <ul>
     <li>
@@ -48,9 +48,9 @@
     </li>
 </ul>
 <p>
-    Getter for <tt>name</tt>.
+    Getter for <code>name</code>.
 </p>
-<h2>Class <tt>Stats</tt></h2>
+<h2>Class <code>Stats</code></h2>
 <p>
     This class will need the following libraries:
 </p>
@@ -62,7 +62,7 @@
     </li>
 </ul>
 <p>
-    As you did in <a href="lab6_2.php">lab 6_2</a>, you will need to create an array of type <tt>Equipment</tt>. Name this array inventory. Class <tt>Stats</tt> will use the following actions:
+    As you did in <a href="lab6_2.php">lab 6_2</a>, you will need to create an array of type <code>Equipment</code>. Name this array inventory. Class <code>Stats</code> will use the following actions:
 </p>
 <ul>
     <li>
@@ -92,9 +92,9 @@
     </li>
 </ul>
 <p>
-    This is a blueprint that will be later implemented in classes <tt>Warrior</tt>, <tt>Wizard</tt>, and <tt>Ranger</tt>.
+    This is a blueprint that will be later implemented in classes <code>Warrior</code>, <code>Wizard</code>, and <code>Ranger</code>.
 </p>
-<h2>Class <tt>Sounds</tt></h2>
+<h2>Class <code>Sounds</code></h2>
 <p>
     This class will contain several actions to record your own sound effects to be used in the simulator. Implement the following actions:
 </p>
@@ -158,9 +158,9 @@
 <p>
     Records for 2 seconds a "defeat" sound. To be used if your enemy defeats your champion.
 </p>
-<h2>Class <tt>Ranger</tt></h2>
+<h2>Class <code>Ranger</code></h2>
 <p>
-    Class <tt>Ranger</tt> will inherit from class <tt>Stats</tt>. It will have one action:
+    Class <code>Ranger</code> will inherit from class <code>Stats</code>. It will have one action:
 </p>
 <ul>
     <li>
@@ -170,7 +170,7 @@
     </li>
 </ul>
 <p>
-    Similar to <a href="lab6_2.php">lab 6_2</a>, <tt>BuildCharacter</tt> will describe the <tt>Ranger</tt> in terms of his equipment and weapons. Using the inherited actions from class <tt>Stats</tt>, add at least 5 items to describe the Ranger. Example:
+    Similar to <a href="lab6_2.php">lab 6_2</a>, <code>BuildCharacter</code> will describe the <code>Ranger</code> in terms of his equipment and weapons. Using the inherited actions from class <code>Stats</code>, add at least 5 items to describe the Ranger. Example:
 </p>
 <pre class="code">
     action BuildCharacter
@@ -179,9 +179,9 @@
     parent:Stats:AddEquipment(bow)
     end
 </pre>
-<h2>Class <tt>Warrior</tt></h2>
+<h2>Class <code>Warrior</code></h2>
 <p>
-    Class <tt>Warrior</tt> will inherit from class <tt>Stats</tt>. It will have one action:
+    Class <code>Warrior</code> will inherit from class <code>Stats</code>. It will have one action:
 </p>
 <ul>
     <li>
@@ -191,11 +191,11 @@
     </li>
 </ul>
 <p>
-    <tt>BuildCharacter</tt> will do the same in class <tt>Warrior</tt> as it did in class <tt>Ranger</tt>.
+    <code>BuildCharacter</code> will do the same in class <code>Warrior</code> as it did in class <code>Ranger</code>.
 </p>
-<h2>Class <tt>Wizard</tt></h2>
+<h2>Class <code>Wizard</code></h2>
 <p>
-    Class <tt>Wizard</tt> will inherit from class <tt>Stats</tt>. It will have one action:
+    Class <code>Wizard</code> will inherit from class <code>Stats</code>. It will have one action:
 </p>
 <ul>
     <li>
@@ -205,11 +205,11 @@
     </li>
 </ul>
 <p>
-    <tt>BuildCharacter</tt> will do the same in class <tt>Wizard</tt> as it did in class <tt>Warrior</tt>.
+    <code>BuildCharacter</code> will do the same in class <code>Wizard</code> as it did in class <code>Warrior</code>.
 </p>
-<h2>Class <tt>Main</tt></h2>
+<h2>Class <code>Main</code></h2>
 <p>
-    Class <tt>Main</tt> will have two actions:
+    Class <code>Main</code> will have two actions:
 </p>
 <ul>
     <li>
@@ -219,7 +219,7 @@
     </li>
 </ul>
 <p>
-    <tt>Damage</tt> will use a random number generator (named <tt>value</tt> to generate integers no larger than 50). It will then follow this format:
+    <code>Damage</code> will use a random number generator (named <code>value</code> to generate integers no larger than 50). It will then follow this format:
 </p>
 <pre class="code">
     if value is between 0 and 10, decrement HP by 10.
@@ -234,13 +234,13 @@
     </li>
 </ul>
 <p>
-    <tt>Main</tt>should call all the actions to describe the three champions. It should also call all of the actions so the user can record their own sound effects. After this, the user should be prompted to choose a champion. If the user selects the warrior, tell them they selected the warrior, and using the audio files that came with this project, play "Warrior.wav". Do the same if the user selects the Ranger or the Wizard, playing the appropriate files for each.
+    <code>Main</code>should call all the actions to describe the three champions. It should also call all of the actions so the user can record their own sound effects. After this, the user should be prompted to choose a champion. If the user selects the warrior, tell them they selected the warrior, and using the audio files that came with this project, play "Warrior.wav". Do the same if the user selects the Ranger or the Wizard, playing the appropriate files for each.
 </p>
 <p>
     Next, prompt the user to choose an opponent. Do the same for the opponent selection as you did for the champion selection: telling the user which opponent they selected, and playing the appropriate sound.
 </p>
 <p>
-    Now you will simulate a battle between the champion and the opponent. Create a random number generator (named <tt>decider</tt>) that will generate integers between 0 and 3. Repeat the following until either the champion or the opponent has less than or equal to 0 hp:
+    Now you will simulate a battle between the champion and the opponent. Create a random number generator (named <code>decider</code>) that will generate integers between 0 and 3. Repeat the following until either the champion or the opponent has less than or equal to 0 hp:
 </p>
 <pre class="code">
     if decider = 0

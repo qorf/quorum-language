@@ -19,10 +19,10 @@ The car trip calculator will calculate the trip time and the total gas price of 
 </p>
 <h2>Task 1: Creating Actions with Parameters and Return Types</h2>
 <p>
-Start up the Sodbeans program.  Create a new project and name it <strong>TripCalculator</strong>.  Don’t forget to select the Quorum Application project type.  In this task, you will add variables in the <tt>Main</tt> action that will get the return values from actions and set up five additional actions.  The actions will help you calculate the trip time in hours and minutes and perform the gas price calculation.
+Start up the Sodbeans program.  Create a new project and name it <strong>TripCalculator</strong>.  Don’t forget to select the Quorum Application project type.  In this task, you will add variables in the <code>Main</code> action that will get the return values from actions and set up five additional actions.  The actions will help you calculate the trip time in hours and minutes and perform the gas price calculation.
 </p>
 <p>
-Inside the <tt>Main</tt> action, add the following variables:
+Inside the <code>Main</code> action, add the following variables:
 </p>
 <ul><li><strong>userInput</strong> is used to get user inputs when the user is prompted to enter a value.
 </li><li><strong>carSpeed</strong> is an integer that gets the average speed of the car in terms of miles per hour.
@@ -40,17 +40,17 @@ end
 <p>
 Let’s add five actions that will calculate the trip time and the total gas price.  The actions should be defined as follows:
 </p>
-<ul><li><strong>GetTripTime</strong> accepts two parameter values of an <tt>integer</tt> and a <tt>number</tt>.  Name an <tt>integer</tt> <strong>speed</strong> and a <tt>number</tt> <strong>distance</strong>.  This action returns a <tt>number</tt>.  Within the <tt>GetTime</tt> action, calculate the total trip time in terms of hours by dividing the distance by the speed of the car.  This action should be able to return the total number of hours.
-</li><li><strong>GetTimeInMinutes</strong> has one parameter value of a <tt>number</tt>.  Give the parameter a name, <strong>hours</strong>.  The action returns an <tt>integer</tt>.  Inside the action, calculate the total number of minutes by multiplying the total number of hours and 60 minutes.  This action should be able to return the total number of minutes.
-</li><li><strong>GetTotalHours</strong> gets the parameter value of a <tt>number</tt>.  Give the parameter a name, <strong>hours</strong>.  The action returns an <tt>integer</tt>.  Inside the action, calculate the total hours by dividing the total number of hours by 60 minutes.  This action returns the total number of hours in terms of the hour number only.  For example, when the total trip time is 2.6, the action will return a value of 2 for the hour value.  More details will be explained n the next task.
-</li><li><strong>GetRemainingMinutes</strong> accepts the parameter value of a <tt>number</tt>.  Name the parameter <strong>hours</strong>.  The action returns an <tt>integer</tt>.  Inside the action, perform the calculation to find the number of minutes that are outside of the complete hours calculated in the <tt>GetTotalHours</tt> action.  This action returns the remaining number of minutes; for example, 2.5 hours will get 30 minutes after the number of hours has been calculated.  More details will be explained in the next task. (Hint: use the <tt>mod</tt> operator to accomplish the calculation).
-</li><li><strong>CalculateGasPrice</strong> accepts two parameter values of a <tt>number</tt> and an <tt>integer</tt>.  Name a <tt>number</tt> <strong>distance</strong> and an <tt>integer</tt> <strong>milesPerGallon</strong>.  The action returns a <tt>number</tt>.  Inside the action, calculate the total gas price by dividing distance and miles per gallon, and then multiply it by the gas price for each gallon.  The price for gas per gallon is $3.59.  The action should be able to return the total gas price for the duration of the trip.
+<ul><li><strong>GetTripTime</strong> accepts two parameter values of an <code>integer</code> and a <code>number</code>.  Name an <code>integer</code> <strong>speed</strong> and a <code>number</code> <strong>distance</strong>.  This action returns a <code>number</code>.  Within the <code>GetTime</code> action, calculate the total trip time in terms of hours by dividing the distance by the speed of the car.  This action should be able to return the total number of hours.
+</li><li><strong>GetTimeInMinutes</strong> has one parameter value of a <code>number</code>.  Give the parameter a name, <strong>hours</strong>.  The action returns an <code>integer</code>.  Inside the action, calculate the total number of minutes by multiplying the total number of hours and 60 minutes.  This action should be able to return the total number of minutes.
+</li><li><strong>GetTotalHours</strong> gets the parameter value of a <code>number</code>.  Give the parameter a name, <strong>hours</strong>.  The action returns an <code>integer</code>.  Inside the action, calculate the total hours by dividing the total number of hours by 60 minutes.  This action returns the total number of hours in terms of the hour number only.  For example, when the total trip time is 2.6, the action will return a value of 2 for the hour value.  More details will be explained n the next task.
+</li><li><strong>GetRemainingMinutes</strong> accepts the parameter value of a <code>number</code>.  Name the parameter <strong>hours</strong>.  The action returns an <code>integer</code>.  Inside the action, perform the calculation to find the number of minutes that are outside of the complete hours calculated in the <code>GetTotalHours</code> action.  This action returns the remaining number of minutes; for example, 2.5 hours will get 30 minutes after the number of hours has been calculated.  More details will be explained in the next task. (Hint: use the <code>mod</code> operator to accomplish the calculation).
+</li><li><strong>CalculateGasPrice</strong> accepts two parameter values of a <code>number</code> and an <code>integer</code>.  Name a <code>number</code> <strong>distance</strong> and an <code>integer</code> <strong>milesPerGallon</strong>.  The action returns a <code>number</code>.  Inside the action, calculate the total gas price by dividing distance and miles per gallon, and then multiply it by the gas price for each gallon.  The price for gas per gallon is $3.59.  The action should be able to return the total gas price for the duration of the trip.
 </li></ul><p>
 Make sure that the program runs without any problem.  Nothing should have happened since you have not made any action calls yet.
 </p>
 <h2>Task 2: Calling Actions</h2>
 <p>
-It’s time to give the <tt>Main</tt> action some attention!  Before you can get started with action calls, let’s take a quick look at how to call an action that has parameters and a return type.
+It’s time to give the <code>Main</code> action some attention!  Before you can get started with action calls, let’s take a quick look at how to call an action that has parameters and a return type.
 </p>
 <p><pre class="code"><code>
 integer total = DoExample(2, 3)
@@ -60,12 +60,12 @@ Before the first action call can be made, you are going to have the user enter t
 </p>
 <ul><li>The user must enter the value of between 1 and 100 miles per hour for the average speed of the car.  Otherwise, the program will ask the user to enter the correct value again.  The reason is that this trip calculator is strictly designed for the ground vehicles only.  There is no way that you could drive a car at the speed of 500 miles per hour!
 </li><li>The user must enter the value of at least one mile for the length of the trip.  Otherwise, the program will ask the user to enter the correct value again.  It would be silly to start a trip without moving around.
-</li><li>The user can choose one of the available vehicles to calculate the total gas price.  First, inform the user of the vehicle choice: 1) Jeep, 2) Pickup Truck, 3) Sedan, and 4) Van.  The program should accept an <tt>integer</tt> from the user input and re-prompt the user to enter the correct value if a value is outside the range.
+</li><li>The user can choose one of the available vehicles to calculate the total gas price.  First, inform the user of the vehicle choice: 1) Jeep, 2) Pickup Truck, 3) Sedan, and 4) Van.  The program should accept an <code>integer</code> from the user input and re-prompt the user to enter the correct value if a value is outside the range.
 </li></ul><p>
-Now that you have received the user inputs of the average speed, the trip distance, and the type of car, it’s time to invoke actions!  Call the <tt>GetTripTime</tt> action to get the total number of hours for the trip.  Then, call the <tt>GetTimeInMinutes</tt> to get the total number of minutes for the trip.
+Now that you have received the user inputs of the average speed, the trip distance, and the type of car, it’s time to invoke actions!  Call the <code>GetTripTime</code> action to get the total number of hours for the trip.  Then, call the <code>GetTimeInMinutes</code> to get the total number of minutes for the trip.
 </p>
 <p>
-The program then should determine which vehicle to compute the total gas price.  Invoke the <tt>CalculateGasPrice</tt> action to calculate the total gas price of a specific vehicle based on its mile per gallon.  The table that shows each vehicle with its respective miles per gallon is shown below:
+The program then should determine which vehicle to compute the total gas price.  Invoke the <code>CalculateGasPrice</code> action to calculate the total gas price of a specific vehicle based on its mile per gallon.  The table that shows each vehicle with its respective miles per gallon is shown below:
 </p>
 <table class="table">
 <tr><td><strong>Vehicle Type</strong></td><td><strong>Miles Per Gallon</strong>

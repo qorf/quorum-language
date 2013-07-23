@@ -56,7 +56,7 @@ class Student
     end
 end
 </pre><p>
-In <strong>main.quorum</strong> you will need to define two arrays: one to store <tt>Student</tt> objects and another to store grades, an <tt>integer</tt>. Once you have defined these arrays you can start to construct each student and their grades. Define two students with the names and grades listed below:
+In <strong>main.quorum</strong> you will need to define two arrays: one to store <code>Student</code> objects and another to store grades, an <code>integer</code>. Once you have defined these arrays you can start to construct each student and their grades. Define two students with the names and grades listed below:
 </p>
 <p>
 <br />

@@ -91,7 +91,7 @@
     end
 </pre>
 <p>
-    A binary tree is built so that each node has a left and right reference, and a data element. The class above can be used to build a basic binary tree. In this case, class Node is a "dumb" class, it's used for creating and storing values in the nodes of the tree. Using the <tt>Node</tt> class above, create the following actions:
+    A binary tree is built so that each node has a left and right reference, and a data element. The class above can be used to build a basic binary tree. In this case, class Node is a "dumb" class, it's used for creating and storing values in the nodes of the tree. Using the <code>Node</code> class above, create the following actions:
 </p>
 <ul>
     <li>
@@ -205,7 +205,7 @@
 <p>
     This action should return the minimum value in the right sub-tree. *Hint* uses a recursive call.
 </p>
-<h2>Class <tt>Main</tt></h2>
+<h2>Class <code>Main</code></h2>
 <p>
     In Main, populate a tree with random integers between 0 and 500. Let the user input the size of the tree, that is, how many integers will be placed into the tree. After populated, prompt the user for integer values to search the tree for. Perform the search, and then tell the user if the value(s) were present. Then tell the user the values in the tree in order. Next, prompt the user for integers to delete from the tree. If the integers are present, delete them. If they are not present, then tell the user those integers are not in the tree. Lastly, tell the user the values in the tree in order once again.
 </p>

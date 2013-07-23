@@ -74,10 +74,10 @@ Editor Window
 You will start by writing code in the main.quorum file.  In the Projects window, use arrow keys to navigate to the "main.quorum" file and press Enter.
 </p>
 <p>
-To build a program that declares several variables we should first make sure main.quorum is blank (go ahead and delete anything that might have been generated in this file). The first line should declare the variable <strong>myInteger</strong> with the <strong><tt>integer</tt></strong> type and assign the variable the value of 4. Once this variable is declared build your project and check for any compiler errors.
+To build a program that declares several variables we should first make sure main.quorum is blank (go ahead and delete anything that might have been generated in this file). The first line should declare the variable <strong>myInteger</strong> with the <strong><code>integer</code></strong> type and assign the variable the value of 4. Once this variable is declared build your project and check for any compiler errors.
 </p>
 <p>
-Build the project by going to Run -&gt; Build Main Project or by pressing F11.  The program should compile with no errors. If it does have errors there is a problem with the line of code in your project. The message in the Sodbeans Output window should give you a clue as to what went wrong. In addition, Sodbeans will automatically display a line under the code that has an error so that you will know where something went wrong. Remember, compiling this code will not check that you assigned the value 4 to the variable <strong>myInteger</strong>. Instead, it checks that the format of the code is valid: <strong><tt>&lt;type&gt; &lt;unique name&gt; = &lt;value&gt;</tt></strong>.  Sodbeans compiles the code and checks for any errors in the background, so there is no need to keep building the project when you want to compile your code again. Once all of the compiler errors are gone run the program by going to Run -&gt; Run Main Project or by pressing F6.  When the project runs, nothing should have happened because you have not gone that far yet!
+Build the project by going to Run -&gt; Build Main Project or by pressing F11.  The program should compile with no errors. If it does have errors there is a problem with the line of code in your project. The message in the Sodbeans Output window should give you a clue as to what went wrong. In addition, Sodbeans will automatically display a line under the code that has an error so that you will know where something went wrong. Remember, compiling this code will not check that you assigned the value 4 to the variable <strong>myInteger</strong>. Instead, it checks that the format of the code is valid: <strong><code>&lt;type&gt; &lt;unique name&gt; = &lt;value&gt;</code></strong>.  Sodbeans compiles the code and checks for any errors in the background, so there is no need to keep building the project when you want to compile your code again. Once all of the compiler errors are gone run the program by going to Run -&gt; Run Main Project or by pressing F6.  When the project runs, nothing should have happened because you have not gone that far yet!
 </p>
 <p>
 Next, add two lines of code (you can copy and paste from here):
@@ -99,13 +99,13 @@ You are receiving those compiler errors because variable names must start with a
 <p>
 Now add more variables and types to the program.  Do the following steps to add types:
 </p>
-<ul><li>Define an <strong><tt>integer</tt></strong> type and give the variable name <strong>firstInteger</strong>. Assign firstInteger to 4.
-</li><li>In the next line, define a <strong><tt>number</tt></strong> type and give the variable name <strong>secondNumber</strong>. Assign secondNumber to 8.9.
-</li><li>In the next line, define a <strong><tt>boolean</tt></strong> type and give the variable name <strong>checkResult</strong>. Assign checkResult to true.
-</li><li>In the next line, define a <strong><tt>text</tt></strong> type and give the variable name <strong>quorumText</strong>. Assign quorumText to “Quorum is fun.”
+<ul><li>Define an <strong><code>integer</code></strong> type and give the variable name <strong>firstInteger</strong>. Assign firstInteger to 4.
+</li><li>In the next line, define a <strong><code>number</code></strong> type and give the variable name <strong>secondNumber</strong>. Assign secondNumber to 8.9.
+</li><li>In the next line, define a <strong><code>boolean</code></strong> type and give the variable name <strong>checkResult</strong>. Assign checkResult to true.
+</li><li>In the next line, define a <strong><code>text</code></strong> type and give the variable name <strong>quorumText</strong>. Assign quorumText to “Quorum is fun.”
 </li></ul>
 <p>
-Now that you have defined these four new variables, have Sodbeans output each variable out to the user. You can make the computer print your variables the the Sodbeans output window by using the <strong><tt>output</tt></strong> statement. Once this is completed the output should say the following:
+Now that you have defined these four new variables, have Sodbeans output each variable out to the user. You can make the computer print your variables the the Sodbeans output window by using the <strong><code>output</code></strong> statement. Once this is completed the output should say the following:
 </p>
 <p><pre class="code"><code>
 4
@@ -114,7 +114,7 @@ true
 Quorum is fun
 </code></pre></p>
 <p>
-Now have your program output another sentence but this time the variables should be used in the sentence. Try to use only one <strong><tt>output</tt></strong> statement to print the following text (hint:  use concatenation). The output should say the following:
+Now have your program output another sentence but this time the variables should be used in the sentence. Try to use only one <strong><code>output</code></strong> statement to print the following text (hint:  use concatenation). The output should say the following:
 </p>
 <p><pre class="code"><code>
 The program returns true when 8.9 is greater than 4. Quorum is fun.

@@ -10,15 +10,15 @@
 </li><li>Distinguish between an implicit main action and an explicit main action.  List one advantage for each technique and provide an example in Quorum.
 </li><li>List three general rules for naming actions.  
 </li><li>In Quorum, it is recommended that Pascal case be used. Give an example, in Quorum, of a valid action signature using Pascal case.
-</li><li>Distinguish between an implicit call and an explicit call to an action.  Give an example, in Quorum, to call the <tt>SayHelloWorld()</tt> action for each.
+</li><li>Distinguish between an implicit call and an explicit call to an action.  Give an example, in Quorum, to call the <code>SayHelloWorld()</code> action for each.
 </li><li>Define the terms <i>argument</i> and <i>parameter</i>.
 </li><li>What is the difference between an argument and a parameter? Give an example of each in Quorum code.
 </li><li>What is meant by the return value of an action? What is the purpose of returning a values?
-</li><li>What does the <tt>return now</tt> keyword do?  Give an example in plain English of when it should be used.
+</li><li>What does the <code>return now</code> keyword do?  Give an example in plain English of when it should be used.
 </li><li>What is action overloading?
 </li><li>What is recursion?  Explain in both general and computer science language.
 </li><li>Why is it necessary to set up a base case when using recursion?
-</li><li>Suppose the <tt>Dog</tt> object exists in the <tt>Libraries.Animal</tt> package.  We would like to add a new action to the <tt>Dog</tt> class to instruct the dog to bark in a more detailed way.  Write an action that accepts the values of the pitch of a bark, how many times a dog barks, and the length of time it takes a dog to bark.
+</li><li>Suppose the <code>Dog</code> object exists in the <code>Libraries.Animal</code> package.  We would like to add a new action to the <code>Dog</code> class to instruct the dog to bark in a more detailed way.  Write an action that accepts the values of the pitch of a bark, how many times a dog barks, and the length of time it takes a dog to bark.
 </li><li><strong>Hard:</strong> Actions are useful in separating individual tasks and organize code to control a variety of software behaviors in the program.  Think of an advantage of using the actions that is not discussed in the chapter.  Explain your reasoning.
 </li></ol>
 <h2>Essay Questions</h2>

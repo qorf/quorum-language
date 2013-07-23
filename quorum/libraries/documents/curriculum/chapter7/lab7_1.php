@@ -86,12 +86,12 @@
     By default, the array now takes up enough memory for ten integers, so it has 10 cells with indexes 0-9. With arrays, the first value is accessed at index 0. As a rule of thumb, the last value in an array will be accessed at index <i>n-1</i>, where n is the number of values stored in the array.
 </p>
 <p>
-    Start Sodbeans. Create a new “Quorum Application” project, and name it <b>Lab7_1</b>. The Main.quorum file should contain a <tt>Main</tt> class and <tt>Main</tt> action.
-    You will create three additional classes in this project. Name the classes <tt>RollingDie</tt>, <tt>PollCount</tt>, and <tt>StringArray</tt>.
+    Start Sodbeans. Create a new “Quorum Application” project, and name it <b>Lab7_1</b>. The Main.quorum file should contain a <code>Main</code> class and <code>Main</code> action.
+    You will create three additional classes in this project. Name the classes <code>RollingDie</code>, <code>PollCount</code>, and <code>StringArray</code>.
 </p>
-<h2>Class <tt>RollingDie</tt></h2>
+<h2>Class <code>RollingDie</code></h2>
 <p>
-    In class <tt>RollingDie</tt>, create an array of type integer and name it <tt>frequency</tt>. You will also be using the <tt>Random</tt> class to generate random integers between 1 and 500. The goal of this class is to create a function that tallies the number of times a particular face shows up on a randomly thrown die, for 6000 rolls. How can you keep track of that many variables? An array would be an excellent choice, since you can keep adding values into this one structure and will be able to easily access those same values. Your class may look something like the following:
+    In class <code>RollingDie</code>, create an array of type integer and name it <code>frequency</code>. You will also be using the <code>Random</code> class to generate random integers between 1 and 500. The goal of this class is to create a function that tallies the number of times a particular face shows up on a randomly thrown die, for 6000 rolls. How can you keep track of that many variables? An array would be an excellent choice, since you can keep adding values into this one structure and will be able to easily access those same values. Your class may look something like the following:
 </p>
 <pre class="code">
     class RollingDie
@@ -112,7 +112,7 @@
    */
 </pre>
 <p>
-    Notice that one way to add values to an array is by using the Add(type) action. This action adds values to the end of the array. You can access those values by calling the <tt>Get:()</tt> action. The results should look similar to:
+    Notice that one way to add values to an array is by using the Add(type) action. This action adds values to the end of the array. You can access those values by calling the <code>Get:()</code> action. The results should look similar to:
 </p>
 <pre class="code">
     Frequency from 1-6:
@@ -123,16 +123,16 @@
     1010
     990
 </pre>
-<h2>Class <tt>PollCount</tt></h2>
+<h2>Class <code>PollCount</code></h2>
 <p>
-    Now that you have a better understanding of how arrays work, you will use them for a common computer science problem that is well suited for arrays: poll counting. Like class <tt>RollingDie</tt>, <tt>PollCount</tt> will contain an action that counts the frequency of a rating (1-10). It will then output how many times that rating was voted for. Create 2 arrays:
+    Now that you have a better understanding of how arrays work, you will use them for a common computer science problem that is well suited for arrays: poll counting. Like class <code>RollingDie</code>, <code>PollCount</code> will contain an action that counts the frequency of a rating (1-10). It will then output how many times that rating was voted for. Create 2 arrays:
 </p>
 <pre class="code">
         Array&lt;integer&gt; frequency
         Array&lt;integer&gt; response
 </pre>
 <p>
-    Next, using the <tt>Add:()</tt> action, add 20 integer vales between 1 and 10 to the array response. Using what you learned from the <tt>RollDie</tt> class, implement the action so it tallies up the number of votes each rating got. Hint: you will need to use the <tt>Get()</tt> action nested inside an <tt>Add()</tt> action. Finish the action by printing off the results to the user:
+    Next, using the <code>Add:()</code> action, add 20 integer vales between 1 and 10 to the array response. Using what you learned from the <code>RollDie</code> class, implement the action so it tallies up the number of votes each rating got. Hint: you will need to use the <code>Get()</code> action nested inside an <code>Add()</code> action. Finish the action by printing off the results to the user:
 </p>
 <pre class="code">
     Ratings from 1 to 10:
@@ -147,16 +147,16 @@
     5
     1
 </pre>
-<h2>Class <tt>StringArray</tt></h2>
+<h2>Class <code>StringArray</code></h2>
 <p>
-    Now that you've seen integer use in arrays, it's time to use text in arrays. In class <tt>StringArray</tt>, create 2 arrays:
+    Now that you've seen integer use in arrays, it's time to use text in arrays. In class <code>StringArray</code>, create 2 arrays:
 </p>
 <pre class="code">
     Array&lt;text&gt; names
     Array&lt;text&gt; sports
 </pre>
 <p>
-    This class will contain an action that asks the user for their name, inputs that text into array <tt>names</tt>, then asks the user for a sport they enjoy, and inputs that text into array <tt>sports</tt>. This should repeat 3 times, and then output the name of the person coupled with the sport they enjoy playing. Example output:
+    This class will contain an action that asks the user for their name, inputs that text into array <code>names</code>, then asks the user for a sport they enjoy, and inputs that text into array <code>sports</code>. This should repeat 3 times, and then output the name of the person coupled with the sport they enjoy playing. Example output:
 </p>
 <pre class="code">
     Enter a name:

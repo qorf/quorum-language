@@ -21,7 +21,7 @@ The goal of this assignment is to learn the following concepts:
 </ul>
 <h2>Overview</h2>
 <p>
-    In this assignment you will create a program that computes area, volume, and other geometric attributes for a variety of 2D and 3D shapes. To do this, you will create a class hierarchy through inheritance. Your base class, <tt>Shape</tt>, will have derived classes <tt>TwoDShape</tt> and <tt>ThreeDShape</tt>. <tt>TwoDShape</tt> will have derived classes <tt>Circle</tt>, <tt>Square</tt>, <tt>Triangle</tt>, and <tt>3DShape</tt> will have derived classes <tt>Sphere</tt>, <tt>Cube</tt>, and <tt>Pyramid</tt>. Because the 2D shapes and 3D shapes require many of the same things to complete the area and volume formulas, you can use inheritance to reuse the same variables and actions, thus creating a more robust program. In computer science, a robust program is one that that will perform well under undesirable conditions, such as low memory, or receiving invalid input.
+    In this assignment you will create a program that computes area, volume, and other geometric attributes for a variety of 2D and 3D shapes. To do this, you will create a class hierarchy through inheritance. Your base class, <code>Shape</code>, will have derived classes <code>TwoDShape</code> and <code>ThreeDShape</code>. <code>TwoDShape</code> will have derived classes <code>Circle</code>, <code>Square</code>, <code>Triangle</code>, and <code>3DShape</code> will have derived classes <code>Sphere</code>, <code>Cube</code>, and <code>Pyramid</code>. Because the 2D shapes and 3D shapes require many of the same things to complete the area and volume formulas, you can use inheritance to reuse the same variables and actions, thus creating a more robust program. In computer science, a robust program is one that that will perform well under undesirable conditions, such as low memory, or receiving invalid input.
 </p>
 <h2>Design Criteria</h2>
 <ul>
@@ -56,38 +56,38 @@ The goal of this assignment is to learn the following concepts:
         Create a source file named Pyramid.quorum
     </li>
 </ul>
-<h3>Class <tt>Shape</tt></h3>
+<h3>Class <code>Shape</code></h3>
 <p>
-Class <tt>Shape</tt> will contain Getter and Setter actions for the following variables:
+Class <code>Shape</code> will contain Getter and Setter actions for the following variables:
 </p>
 <ul>
     <li>
-        <tt>number side</tt> - the length of a side of a square or cube.
+        <code>number side</code> - the length of a side of a square or cube.
     </li>
     <li>
-        <tt>number height</tt> - the height of a triangle
+        <code>number height</code> - the height of a triangle
     </li>
     <li>
-        <tt>number radius</tt> - half the diameter of a circle
+        <code>number radius</code> - half the diameter of a circle
     </li>
     <li>
-        <tt>number base</tt> - the length of the base of a triangle
+        <code>number base</code> - the length of the base of a triangle
     </li>
 </ul>
 <p>
-This class should also have a static variable, <tt>number pi</tt> = 3.1415.
+This class should also have a static variable, <code>number pi</code> = 3.1415.
 </p>
-<h3>Class <tt>TwoDShape</tt></h3>
+<h3>Class <code>TwoDShape</code></h3>
 <p>
-Class <tt>TwoDShape</tt> will contain actions that will ask for user input and use that input as the arguments for the Setter actions from base class <tt>Employee</tt>.  Note: you will need to cast the input as type number, otherwise you will receive a compiler error.
+Class <code>TwoDShape</code> will contain actions that will ask for user input and use that input as the arguments for the Setter actions from base class <code>Employee</code>.  Note: you will need to cast the input as type number, otherwise you will receive a compiler error.
 </p>
-<h3>Class <tt>ThreeDShape</tt></h3>
+<h3>Class <code>ThreeDShape</code></h3>
 <p>
-Class <tt>ThreeDShape</tt> will do the same as class <tt>TwoDShape</tt>, except that the user should be queried to enter input for cube, pyramid, and sphere, instead of for square, triangle, and circle.
+Class <code>ThreeDShape</code> will do the same as class <code>TwoDShape</code>, except that the user should be queried to enter input for cube, pyramid, and sphere, instead of for square, triangle, and circle.
 </p>
-<h3>Class <tt>Circle</tt></h3>
+<h3>Class <code>Circle</code></h3>
 <p>
-Class <tt>Circle</tt> is a derived class from class <tt>TwoDShape</tt>.  It will have two actions:
+Class <code>Circle</code> is a derived class from class <code>TwoDShape</code>.  It will have two actions:
 </p>
 <pre class="code">action CalculateArea(number radius) returns number
 </pre>
@@ -96,9 +96,9 @@ Class <tt>Circle</tt> is a derived class from class <tt>TwoDShape</tt>.  It will
 </p>
 <pre class="code">action CalculateCircumference(number radius) returns number
 </pre>
-<h3>Class <tt>Square</tt></h3>
+<h3>Class <code>Square</code></h3>
 <p>
-Class <tt>Square</tt> is a derived class from <tt>TwoDShape</tt>. It will have two actions:
+Class <code>Square</code> is a derived class from <code>TwoDShape</code>. It will have two actions:
 </p>
 <pre class="code">action CalculateArea(number side) returns number
 </pre><p>
@@ -106,31 +106,31 @@ and
 </p>
 <pre class="code">action CalculatePerimeter(number side) returns number
 </pre>
-<h3>Class <tt>Triangle</tt></h3>
+<h3>Class <code>Triangle</code></h3>
 <p>
-Class <tt>Triangle</tt> is a derived class from <tt>TwoDShape</tt>. It will have one action:
+Class <code>Triangle</code> is a derived class from <code>TwoDShape</code>. It will have one action:
 </p>
 <pre class="code">action CalculateArea(number base, number height) returns number
 </pre>
-<h3>Class <tt>Cube</tt></h3>
+<h3>Class <code>Cube</code></h3>
 <p>
-Class <tt>Cube</tt> is derived from <tt>ThreeDShape</tt>.  It will have two actions, one to calculate the volume of a cube, and one to calculate surface area of a cube.
+Class <code>Cube</code> is derived from <code>ThreeDShape</code>.  It will have two actions, one to calculate the volume of a cube, and one to calculate surface area of a cube.
 </p>
-<h3>Class <tt>Sphere</tt></h3>
+<h3>Class <code>Sphere</code></h3>
 <p>
-Class <tt>Sphere</tt> is derived from <tt>ThreeDShape</tt>.  It will have two actions, one to calculate the volume of a sphere, and one to calculate the surface area of a sphere. Note: the variable <tt>pi</tt> that you made in class <tt>Shape</tt> can be accessed using the <tt>parent:</tt> keyword.
+Class <code>Sphere</code> is derived from <code>ThreeDShape</code>.  It will have two actions, one to calculate the volume of a sphere, and one to calculate the surface area of a sphere. Note: the variable <code>pi</code> that you made in class <code>Shape</code> can be accessed using the <code>parent:</code> keyword.
 </p>
-<h3>Class <tt>Pyramid</tt></h3>
+<h3>Class <code>Pyramid</code></h3>
 <p>
-Class <tt>Pyramid</tt> is derived from <tt>ThreeDShape</tt>.  It will have one action that calculates the volume of a pyramid.
-</p>
-<p>
-<h3>Class <tt>Main</tt></h3>
+Class <code>Pyramid</code> is derived from <code>ThreeDShape</code>.  It will have one action that calculates the volume of a pyramid.
 </p>
 <p>
-    Class <tt>Main</tt> will have three actions. One will call all the actions from <tt>Circle</tt>, <tt>Square</tt>, and <tt>Triangle</tt>, and will report the calculations of each to the user.
-    The second action will do the same as above, except will call the <tt>Sphere</tt>, <tt>Cube</tt>, and <tt>Pyramid</tt> actions, and report those calculations to the user.
-    The third is action Main, which will call the previous two actions. When run, the program should prompt the user to input numbers for the variables created in class <tt>Shape</tt>. After receiving input, the program will do the various calculations, then output (say) the results to the user.
+<h3>Class <code>Main</code></h3>
+</p>
+<p>
+    Class <code>Main</code> will have three actions. One will call all the actions from <code>Circle</code>, <code>Square</code>, and <code>Triangle</code>, and will report the calculations of each to the user.
+    The second action will do the same as above, except will call the <code>Sphere</code>, <code>Cube</code>, and <code>Pyramid</code> actions, and report those calculations to the user.
+    The third is action Main, which will call the previous two actions. When run, the program should prompt the user to input numbers for the variables created in class <code>Shape</code>. After receiving input, the program will do the various calculations, then output (say) the results to the user.
 </p>
 <h2>Sample Output</h2>
 <p>

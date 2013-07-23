@@ -16,15 +16,15 @@ use Libraries.Sound.Music
 </li><li>Describe the four primitive types. In each case, say a) the name of the type, b) what that type stores in it, c) give an example of its use.
 </li><li>What is optimization?
 </li><li>What is code completion?
-</li><li>Which operator is used to call actions? Similarly, which operator separates values in a <tt>use</tt> statement (Hint: think of the world wide web)?
+</li><li>Which operator is used to call actions? Similarly, which operator separates values in a <code>use</code> statement (Hint: think of the world wide web)?
 </li><li>Describe the concept of instantiating an object in your own words. Be sure to give at least one example in Quorum code.
-</li><li>Suppose that we had another object representing a <tt>Dog</tt>. The <tt>Dog</tt> object lived at <tt>Libraries.Animals.Dog</tt> and could bark, an action which took no parameters. Write Quorum code to a) gain permission to use the <tt>Dog</tt> object, b) instantiate the <tt>Dog</tt> object, and c) make the dog bark.
-</li><li>Give definitions for the following Quorum keywords: a) <tt>cast</tt>, b) <tt>mod</tt>, c) <tt>undefined</tt>.
-</li><li>Using code completion, find the full name of the <tt>File</tt> object.
-</li><li>Using code completion, find the full name of the <tt>Math</tt> object.
-</li><li>Using code completion, find the full name of the <tt>Array</tt> object.
+</li><li>Suppose that we had another object representing a <code>Dog</code>. The <code>Dog</code> object lived at <code>Libraries.Animals.Dog</code> and could bark, an action which took no parameters. Write Quorum code to a) gain permission to use the <code>Dog</code> object, b) instantiate the <code>Dog</code> object, and c) make the dog bark.
+</li><li>Give definitions for the following Quorum keywords: a) <code>cast</code>, b) <code>mod</code>, c) <code>undefined</code>.
+</li><li>Using code completion, find the full name of the <code>File</code> object.
+</li><li>Using code completion, find the full name of the <code>Math</code> object.
+</li><li>Using code completion, find the full name of the <code>Array</code> object.
 </li><li>List 2 general rules you should follow when naming a variable.
-</li><li><strong>Hard</strong>: The word <tt>undefined</tt> is used to indicate in Quorum on object that has not been instantiated. Try to come up with another reason, besides the one listed in the chapter (optimization) why an object might be undefined.
+</li><li><strong>Hard</strong>: The word <code>undefined</code> is used to indicate in Quorum on object that has not been instantiated. Try to come up with another reason, besides the one listed in the chapter (optimization) why an object might be undefined.
 </li></ol>
 <h2>Essay Questions</h2>
 <ol><li>Discuss each data type and explain why they should be used.  Be sure to include all primitive types and objects and provide the brief explanations of variables and why the variables are important to understand.

@@ -122,7 +122,7 @@
     This algorithm gets its name from the way smaller elements "bubble" to the top of the list. Because of the number of times a given list must be stepped through to be sorted, the performance of this sort is sub-par, with an average case and worst case performance being the exact same O(n2). The best case is O(n), which can only occur if the list is already sorted.
 </p>
 <p>
-    Create a new project and name it <b>Assignment8_2</b>. All of the code for this program will be done in <tt>Main</tt>, so no additional classes need to be created.
+    Create a new project and name it <b>Assignment8_2</b>. All of the code for this program will be done in <code>Main</code>, so no additional classes need to be created.
 </p>
 <h2>Main</h2>
 <p>
