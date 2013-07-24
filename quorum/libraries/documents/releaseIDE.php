@@ -15,6 +15,10 @@
     <ul> 
         <li>Fixed a bug causing the debugger to not show variables
         correctly under some circumstances.</li>
+        <li>Fixed a bug causing the debugger to sometimes pull variables
+        from the wrong scope.</li>
+        <li>Fixed a bug causing the debugger to sometimes "turn off" if requested
+        to conduct a long-running process.</li>
         <li>Fixed a bug causing the debugger to speak incorrectly if the screen reader
         in Sodbeans is off.</li>
         <li>Fixed a bug causing the user to be able to incorrectly execute code
