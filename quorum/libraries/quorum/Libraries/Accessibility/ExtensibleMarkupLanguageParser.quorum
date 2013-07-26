@@ -269,6 +269,10 @@ class ExtensibleMarkupLanguageParser
             PropertyEvent event
             SetupSystemEvent(event, cat)
             return event
+        elseif cat = "Window"
+            WindowEvent event
+            SetupSystemEvent(event, cat)
+            return event
         else
             SystemEvent event
             SetupSystemEvent(event, cat)
@@ -303,8 +307,7 @@ class ExtensibleMarkupLanguageParser
         integer count = 0
         repeat until count >= event:GetChildCount()
             AccessibleChild child
-            text childName = GetChildName(count)
-            child:SetName(childName)
+            child:SetName(GetChildName(count))
             child:SetComponentType(GetChildComponent(count))
             child:SetKeyboardShortcut(GetChildShortcut(count))
             event:AddChild(child)

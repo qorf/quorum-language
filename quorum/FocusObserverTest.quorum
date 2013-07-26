@@ -1,14 +1,14 @@
 use Libraries.Accessibility.all
+use Libraries.Sound.Speech
 
 class FocusObserverTest is FocusObserver
+    Speech speech
     action ReceiveEvent(FocusEvent e)
         text category = e:GetCategory()
         text act = e:GetAction()
         text component = e:GetComponent()
         text componentName = e:GetComponentName()
         text description = e:GetDescription()
-        text name = e:GetName()
-        text moreActionInformation = e:GetMoreActionInformation()
         text keyboardShortcut = e:GetKeyboardShortcut()
 
         output "category = " + category
@@ -16,9 +16,23 @@ class FocusObserverTest is FocusObserver
         output "component = " + component
         output "componentName = " + componentName
         output "description = " + description
-        output "name = " + name
-        output "moreActionInformation = " + moreActionInformation
         output "keyboardShortcut = " + keyboardShortcut
+        output "childCount = " + e:GetChildCount()
+
+        integer i = 0
+        repeat while i < e:GetChildCount()
+            AccessibleChild c = e:GetChild(i)
+            if c not= undefined
+                output "Child " + i
+                output "    Name: " + c:GetName()
+                output "    Keyboard Shortcut: " + c:GetKeyboardShortcut()
+                output "    Component Type: " + c:GetComponentType()
+            end
+            i = i + 1
+        end
+
         output "---------------------------------------------------------------"
+
+        speech:Say(e:GetDescription())
     end
 end

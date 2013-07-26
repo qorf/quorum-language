@@ -14,7 +14,6 @@ MacAccessibleHandler* handler;
 // It instantiates a MacAccessibleHandler class and calls this instance's initialize function.
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Accessibility_MacAccessibleHandler_Initialize(JNIEnv *env, jobject jobj)
 {
-    NSLog(@"running!");
 	handler = [MacAccessibleHandler alloc];
 	[handler initialize: env object: jobj];
 }

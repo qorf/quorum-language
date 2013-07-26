@@ -1,8 +1,38 @@
 use Libraries.Accessibility.all
+use Libraries.Sound.Speech
 
 class PropertyObserverTest is PropertyObserver
+    Speech speech
     action ReceiveEvent(PropertyEvent e)
-        //output "hello from PropertyObserver"
-        output "Category: " + e:GetCategory() + " Action: " + e:GetAction() + " Name: " + e:GetName() + " More: " + e:GetMoreActionInformation()
+        text category = e:GetCategory()
+        text act = e:GetAction()
+        text component = e:GetComponent()
+        text componentName = e:GetComponentName()
+        text description = e:GetDescription()
+        text keyboardShortcut = e:GetKeyboardShortcut()
+
+        output "category = " + category
+        output "action = " + act
+        output "component = " + component
+        output "componentName = " + componentName
+        output "description = " + description
+        output "keyboardShortcut = " + keyboardShortcut
+        output "childCount = " + e:GetChildCount()
+
+        integer i = 0
+        repeat while i < e:GetChildCount()
+            AccessibleChild c = e:GetChild(i)
+            if c not= undefined
+                output "Child " + i
+                output "    Name: " + c:GetName()
+                output "    Keyboard Shortcut: " + c:GetKeyboardShortcut()
+                output "    Component Type: " + c:GetComponentType()
+            end
+            i = i + 1
+        end
+
+        output "---------------------------------------------------------------"
+        
+        speech:Say(e:GetDescription())
     end
 end

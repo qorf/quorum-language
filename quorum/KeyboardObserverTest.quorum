@@ -1,15 +1,19 @@
 use Libraries.Accessibility.all
+use Libraries.Sound.Speech
 
 class KeyboardObserverTest is KeyboardObserver
+    Speech speech
     action ReceiveEvent(KeyboardEvent e)
+        text desc
         if e:GetAction() = "KeyPress"
-            output ("Category: " + e:GetCategory() + " Action: " + e:GetAction() + " Key: " + e:GetKey() )
+            desc = ("Category: " + e:GetCategory() + " Action: " + e:GetAction() + " Key: " + e:GetKey() )
         elseif e:GetAction() = "KeyRelease"
-            output e:GetDescription()
+            desc = e:GetDescription()
         else
-            output "other keyboard event"
+            desc = "other keyboard event"
         end
-        //output "hello from KeyboardObserver"
-        //output "You pressed " + e:GetKey()
+
+        output desc
+        speech:Say(desc)
     end
 end

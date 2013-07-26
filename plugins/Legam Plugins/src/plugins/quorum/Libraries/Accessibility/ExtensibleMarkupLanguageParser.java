@@ -73,7 +73,10 @@ public class ExtensibleMarkupLanguageParser {
 
                 @Override
                 public void endElement(String uri, String localName, String name) throws SAXException {
-                    String value = stack.pop().trim();
+                    String value = "";
+                    if (!stack.isEmpty())
+                        value= stack.pop().trim();
+                    
                     if (name.equalsIgnoreCase("Category")) {
                         category = ReplaceSpecialCharacters(value);
                     } else if ( (name.equalsIgnoreCase("FocusType"))
@@ -115,8 +118,11 @@ public class ExtensibleMarkupLanguageParser {
                 public void characters(char ch[], int start, int length) throws SAXException {
                     String temp = new String(ch, start, length);
                     temp = temp.trim();
-                    chars.append(temp);
-                    stack.push(chars.toString());
+                    if (!temp.isEmpty())
+                    {
+                        chars.append(temp);
+                        stack.push(chars.toString());
+                    }
                 }
             };
             parser.parse(new InputSource(new ByteArrayInputStream(toParse.getBytes("utf-8"))), handler);

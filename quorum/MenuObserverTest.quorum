@@ -1,14 +1,14 @@
 use Libraries.Accessibility.all
+use Libraries.Sound.Speech
 
 class MenuObserverTest is MenuObserver
+    Speech speech
     action ReceiveEvent(MenuEvent e)
         text category = e:GetCategory()
         text act = e:GetAction()
         text component = e:GetComponent()
         text componentName = e:GetComponentName()
         text description = e:GetDescription()
-        text name = e:GetName()
-        text moreActionInformation = e:GetMoreActionInformation()
         text keyboardShortcut = e:GetKeyboardShortcut()
 
         output "category = " + category
@@ -16,11 +16,8 @@ class MenuObserverTest is MenuObserver
         output "component = " + component
         output "componentName = " + componentName
         output "description = " + description
-        output "name = " + name
-        output "moreActionInformation = " + moreActionInformation
         output "keyboardShortcut = " + keyboardShortcut
         output "childCount = " + e:GetChildCount()
-        output "---------------------------------------------------------------"
 
         integer i = 0
         repeat while i < e:GetChildCount()
@@ -33,5 +30,9 @@ class MenuObserverTest is MenuObserver
             end
             i = i + 1
         end
+
+        output "---------------------------------------------------------------"
+
+        speech:Say(e:GetDescription())
     end
 end

@@ -4,15 +4,22 @@ class main
     action main
         AccessibilityManager manager
 
-        //MouseObserverTest mouseObserver
-        //FocusObserverTest focusObserver
+        MouseObserverTest mouseObserver
         KeyboardObserverTest keyboardObserver
-        //WindowObserverTest windowObserver
-        //MenuObserverTest menuObserver
-        //PropertyObserverTest propertyObserver
-        //EverythingObserverTest everythingObserver*/
-        //manager:Add(mouseObserver)
-        manager:Add(keyboardObserver)
+        FocusObserverTest focusObserver
+        WindowObserverTest windowObserver
+        MenuObserverTest menuObserver
+        PropertyObserverTest propertyObserver
+        EverythingObserverTest everythingObserver
+
+        //manager:Add(mouseObserver) // working!
+        //manager:Add(keyboardObserver) // working!
+        //manager:Add(focusObserver)
+        //manager:Add(windowObserver)
+        //manager:Add(menuObserver)
+        manager:Add(propertyObserver)
+        //manager:Add(everythingObserver)
+
         output "Begin!"
         manager:Start()
     end
