@@ -16,7 +16,7 @@ The goal of this lab is to learn the following:
 </ul>
 <h2>Overview</h2>
 <p>
-Start Sodbeans.  Create a new “Quorum Application” project, and name it <strong>Lab5_3A</strong>.  You will focus on practicing arrays in a <tt>Main</tt> class.  You will write two different arrays: the first array will give you an idea of how arrays work, and the second array will show you how to add and manipulate data in an array.
+Start Sodbeans.  Create a new “Quorum Application” project, and name it <strong>Lab5_3A</strong>.  You will focus on practicing arrays in a <code>Main</code> class.  You will write two different arrays: the first array will give you an idea of how arrays work, and the second array will show you how to add and manipulate data in an array.
 </p>
 <p>
 Before you get started, let’s review the definition of an array.  An array is an indexed data structure or container.  The rules of using an array are the following:
@@ -48,13 +48,13 @@ class Main
     end
 end
 </pre><p>
-The example uses a primitive type for an <tt>integer</tt>, which uses a lower case letter for the first letter.  You also can use an object for an <tt>integer</tt> that starts with an upper case letter for the first letter.  You are using primitive types for this lab.
+The example uses a primitive type for an <code>integer</code>, which uses a lower case letter for the first letter.  You also can use an object for an <code>integer</code> that starts with an upper case letter for the first letter.  You are using primitive types for this lab.
 </p>
 <p>
-Now, it’s time to start working with arrays!  In a <tt>Main</tt> class, use the array example above to create an array to store 10 integers.  Then, display all integers from an array.  In order to get all integers, you will need to get the size of an array and use it to write a repeat loop. The repeat loop should output <tt>integer</tt> values from 0 to 9.  
+Now, it’s time to start working with arrays!  In a <code>Main</code> class, use the array example above to create an array to store 10 integers.  Then, display all integers from an array.  In order to get all integers, you will need to get the size of an array and use it to write a repeat loop. The repeat loop should output <code>integer</code> values from 0 to 9.  
 </p>
 <p>
-Create a new array that stores <tt>text</tt> values.  Give the array a name, <strong>weekdays</strong>.  Add four values to the array: Monday, Tuesday, Thursday, and Friday.  Output the result as shown below:
+Create a new array that stores <code>text</code> values.  Give the array a name, <strong>weekdays</strong>.  Add four values to the array: Monday, Tuesday, Thursday, and Friday.  Output the result as shown below:
 </p>
 <pre class="code">Monday
 Tuesday
@@ -80,20 +80,20 @@ Saturday
 </code></pre></p>
 <h2>Task 2: Using Generics</h2>
 <p>
-This task introduces the concepts of generics and how to use them.  A generic represents a type of item that a container will contain.  An <tt>Array</tt> object needs to specify what type of item it will store with &lt; and &gt;.  The type is placed between the angle brackets.  The type can also be a custom object.  For this lab, you will be using a generic for an <tt>Array</tt>, but a generic also works with any container or data structure.  The example of using a custom object in a generic array is shown below:
+This task introduces the concepts of generics and how to use them.  A generic represents a type of item that a container will contain.  An <code>Array</code> object needs to specify what type of item it will store with &lt; and &gt;.  The type is placed between the angle brackets.  The type can also be a custom object.  For this lab, you will be using a generic for an <code>Array</code>, but a generic also works with any container or data structure.  The example of using a custom object in a generic array is shown below:
 </p>
 <pre class="code">Array&lt;Player&gt; arrayOfPlayers
 </pre><p>
 You will create a new program that keeps track of information for each basketball player and coach.  Create a new “Quorum Application” project, and name it <strong>Lab5_3B</strong>.  Before you could use a generic for an array, you are going to create a new class first.  Create a new “Quorum Class” file, and name it <strong>Player</strong>.
 </p>
 <p>
-In the <tt>Player</tt> class, create the following class variables:
+In the <code>Player</code> class, create the following class variables:
 </p>
-<ul><li><strong>name:</strong> a <tt>text</tt> that stores the player’s name.
-</li><li><strong>uniformNumber:</strong> an <tt>integer</tt> that stores the player’s number on their uniform.
-</li><li><strong>points:</strong> an <tt>integer</tt> that stores a number of points that a player earns in the game.
+<ul><li><strong>name:</strong> a <code>text</code> that stores the player’s name.
+</li><li><strong>uniformNumber:</strong> an <code>integer</code> that stores the player’s number on their uniform.
+</li><li><strong>points:</strong> an <code>integer</code> that stores a number of points that a player earns in the game.
 </li></ul><p>
-Create a constructor and initialize all class variables.  Set <tt>name</tt> to Unknown and <tt>uniformNumber</tt> and <tt>points</tt> to 0.  Then, create accessor actions to return an appropriate value for all class variables.
+Create a constructor and initialize all class variables.  Set <code>name</code> to Unknown and <code>uniformNumber</code> and <code>points</code> to 0.  Then, create accessor actions to return an appropriate value for all class variables.
 </p>
 <p>
 You are creating access modifiers a little differently this time.  Let’s take a look at an example of the access modifier:
@@ -102,10 +102,10 @@ You are creating access modifiers a little differently this time.  Let’s take 
     me:name = name
 end
 </pre><p>
-It uses the <tt>me</tt> keyword to indicate that the current instance is used to access a local variable in the current instance of a class.  Create access modifiers for three class variables that follow this technique.
+It uses the <code>me</code> keyword to indicate that the current instance is used to access a local variable in the current instance of a class.  Create access modifiers for three class variables that follow this technique.
 </p>
 <p>
-You are done with the <tt>Player</tt> class, so let's move to the <tt>Main</tt> class.  Use the code snippet below to help you get started with writing the code in the <tt>Main</tt> class:
+You are done with the <code>Player</code> class, so let's move to the <code>Main</code> class.  Use the code snippet below to help you get started with writing the code in the <code>Main</code> class:
 </p>
 <pre class="code">use Libraries.Containers.Array
 class Main
@@ -140,16 +140,16 @@ class Main
     end
 end
 </pre><p>
-The <tt>arrayOfPlayers</tt> is declared as a class variable because you need to use it in both <tt>SetPlayerInfo</tt> and <tt>DisplayPlayerInfo</tt> actions.  It is undefined because you want to create an array inside the <tt>Main</tt> action.
+The <code>arrayOfPlayers</code> is declared as a class variable because you need to use it in both <code>SetPlayerInfo</code> and <code>DisplayPlayerInfo</code> actions.  It is undefined because you want to create an array inside the <code>Main</code> action.
 </p>
 <p>
-In a <tt>SetPlayerInfo</tt> action, in order to store individual <tt>Player</tt> object in an array, do the following:
+In a <code>SetPlayerInfo</code> action, in order to store individual <code>Player</code> object in an array, do the following:
 </p>
-<ul><li>Instantiate a new <tt>Player</tt> object.
+<ul><li>Instantiate a new <code>Player</code> object.
 </li><li>Set all parameters for the player information.
-</li><li>Add a <tt>Player</tt> object to an array.
+</li><li>Add a <code>Player</code> object to an array.
 </li></ul><p>
-In the <tt>Main</tt> action, call a <tt>SetPlayerInfo</tt> to set the information for three players with the data provided in the table below:
+In the <code>Main</code> action, call a <code>SetPlayerInfo</code> to set the information for three players with the data provided in the table below:
 </p>
 <table class="table">
 <tr><td><strong>Player Name</strong></td><td><strong>Uniform Number</strong></td><td><strong>Points</strong>
@@ -158,12 +158,12 @@ In the <tt>Main</tt> action, call a <tt>SetPlayerInfo</tt> to set the informatio
 </td></tr><tr><td>Chris</td><td>78</td><td>18
 </td></tr></table>
 <p>
-In the <tt>DisplayPlayerInfo</tt> action, do the following:
+In the <code>DisplayPlayerInfo</code> action, do the following:
 </p>
-<ul><li>Instantiate a <tt>Player</tt> object and get a location of an index from an array.
+<ul><li>Instantiate a <code>Player</code> object and get a location of an index from an array.
 </li><li>Display the player information as shown in the output below.
 </li></ul><p>
-Back to the <tt>Main</tt> action, add the code that loops through an array to display the player information as shown in the output below:
+Back to the <code>Main</code> action, add the code that loops through an array to display the player information as shown in the output below:
 </p>
 <pre class="code">James #42 scored 38 points in the game.
 Dwyane #28 scored 31 points in the game.
@@ -171,7 +171,7 @@ Chris #78 scored 18 points in the game.
 </pre>
 <h2>Task 3: More Practice with Object-Oriented Programming</h2>
 <p>
-You are almost done! You are going to practice a little more with object-oriented programming in this task.  You will create a new class and use it as a class variable in the <tt>Main</tt> class.  It will be explained shortly after you set up a new class.
+You are almost done! You are going to practice a little more with object-oriented programming in this task.  You will create a new class and use it as a class variable in the <code>Main</code> class.  It will be explained shortly after you set up a new class.
 </p>
 <p>
 Create a new “Quorum Class” file and name it <strong>Coach</strong>.  Use the code snippet below to help you get started:
@@ -196,12 +196,12 @@ class Coach
     end
 end
 </pre><p>
-You are using <tt>arrayOfCoaches</tt> as a class variable so that you could use it in any actions in this class.  It is instantiated in a constructor so that it will be ready when you need it.  Do the following to complete the <tt>Coach</tt> class:
+You are using <code>arrayOfCoaches</code> as a class variable so that you could use it in any actions in this class.  It is instantiated in a constructor so that it will be ready when you need it.  Do the following to complete the <code>Coach</code> class:
 </p>
-<ul><li>The <tt>GetCoachNames</tt> action returns an array of coaches.
-</li><li>The <tt>AddCoachName</tt> action adds a name of the coach to an array.
+<ul><li>The <code>GetCoachNames</code> action returns an array of coaches.
+</li><li>The <code>AddCoachName</code> action adds a name of the coach to an array.
 </li></ul><p>
-Move to the  <tt>Main</tt> class.  Declare a <tt>Coach</tt> object as a class variable but do not define it.  The sample code is shown below:
+Move to the  <code>Main</code> class.  Declare a <code>Coach</code> object as a class variable but do not define it.  The sample code is shown below:
 </p>
 <pre class="code">use Libraries.Containers.Array
 class Main
@@ -209,7 +209,7 @@ class Main
     Array&lt;Player&gt; arrayOfPlayers = undefined
     action Main
 </pre><p>
-Having an object declared as a class variable allows you to use it and call actions from an object anywhere in this class.  In the <tt>Main</tt> action, instantiate a <tt>Coach</tt> object and assign that value to the <tt>coach</tt> class variable.  If you do not do that, then an error will occur because an object has not been created.  Use the code snippet below to create two actions.  Read the comments for a hint to write the code within each action.
+Having an object declared as a class variable allows you to use it and call actions from an object anywhere in this class.  In the <code>Main</code> action, instantiate a <code>Coach</code> object and assign that value to the <code>coach</code> class variable.  If you do not do that, then an error will occur because an object has not been created.  Use the code snippet below to create two actions.  Read the comments for a hint to write the code within each action.
 </p>
 <pre class="code">/* Action AddCoach has one parameter and no return type.
  * The parameter is a name of the coach.
@@ -226,7 +226,7 @@ end
 action DisplayCoachInfo
 end
 </pre><p>
-Make action calls in the <tt>Main</tt> class and the output should match the following:
+Make action calls in the <code>Main</code> class and the output should match the following:
 </p>
 <pre class="code">James #42 scored 38 points in the game.
 Dwyane #28 scored 31 points in the game.
@@ -239,7 +239,7 @@ There is one more thing to learn about object-oriented programming.  An action t
 <pre class="code">private action DisplayCoachInfo
 end
 </pre><p>
-Make changes to the <tt>Main</tt> class so that all actions, not including the <tt>Main</tt> action, are hidden from <tt>Player</tt> and <tt>Coach</tt> classes.  Run the program and it will function the same as before.  Show both Lab5_3A and Lab5_3B programs to the instructor.
+Make changes to the <code>Main</code> class so that all actions, not including the <code>Main</code> action, are hidden from <code>Player</code> and <code>Coach</code> classes.  Run the program and it will function the same as before.  Show both Lab5_3A and Lab5_3B programs to the instructor.
 </p>
 
  <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

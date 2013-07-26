@@ -25,7 +25,7 @@
 </p>
 <h2>Task 1: Getting Started</h2>
 <p>
-  Start Sodbeans. Create a new “Quorum Application” project, and name it <strong>Lab6_3</strong>.  In the <tt>Main.quorum</tt> file, it should contain a <tt>Main</tt> class and <tt>Main</tt> action.
+  Start Sodbeans. Create a new “Quorum Application” project, and name it <strong>Lab6_3</strong>.  In the <code>Main.quorum</code> file, it should contain a <code>Main</code> class and <code>Main</code> action.
 </p>
 <p>
   You will create four additional classes in this project.  In the New File dialog, create a new file by selecting “Quorum” and “Quorum Class” in the Categories and File Types windows, respectively.  Then, name  the new file <strong>Pet</strong> in the New Quorum Class dialog.  Repeat the above steps to create Classes named <strong>Cat</strong>, <strong>Dog</strong>, and <strong>Lizard</strong>.
@@ -36,22 +36,22 @@
 </p>
 <ul>
   <li>
-    a <tt>number</tt> type to store the weight
+    a <code>number</code> type to store the weight
   </li>
   <li>
-    a <tt>text</tt> type to store food
+    a <code>text</code> type to store food
   </li>
   <li>
-    a <tt>text</tt> type to store gender
+    a <code>text</code> type to store gender
   </li>
   <li>
-    an <tt>integer</tt> type to store number of hours of sleep
+    an <code>integer</code> type to store number of hours of sleep
   </li>
   <li>
-    an <tt>integer</tt> type to store number of hours of playtime
+    an <code>integer</code> type to store number of hours of playtime
   </li>
   <li>
-    an <tt>integer</tt> type to store number of toys
+    an <code>integer</code> type to store number of toys
   </li>
 </ul>
 <p>
@@ -66,7 +66,7 @@
   </b>
 </li>
 <p>
-  When called, <tt>PetNoise</tt> should say "generic pet noise." Later, you will use polymorphism to change this default message into something else for each of your pet classes. Polymorphism is the idea that some variables, operations, or objects behave differently in different contexts. For example, in Sodbeans, the + (plus) operator can be used in different ways:
+  When called, <code>PetNoise</code> should say "generic pet noise." Later, you will use polymorphism to change this default message into something else for each of your pet classes. Polymorphism is the idea that some variables, operations, or objects behave differently in different contexts. For example, in Sodbeans, the + (plus) operator can be used in different ways:
 </p>
 <ul>
   <li>
@@ -85,7 +85,7 @@
 
 <h2>Task 3: Inheriting Your Pet Class</h2>
 <p>
-  Now that your parent class has the needed actions, you will implement classes <tt>Cat</tt>, <tt>Dog</tt>, and <tt>Lizard</tt>. Using inheritance, write actions for each of the before mentioned classes that will prompt the user to input a value that will be used for each of the setter actions you made in class <tt>Pet</tt> (weight in pounds, sleep in hours, playtime in hours, and number of toys). Also, implement the <tt>PetNoise</tt> action in such a way that it overrides the default message with a noise that each of the respective animals would make (woof, meow, etc.). Recall that you had two variables of type text, one for food, and one for gender in the parent class. For each of the child classes, create actions that will return the text entered by the user for these two variables. An example of such an action might look like this:
+  Now that your parent class has the needed actions, you will implement classes <code>Cat</code>, <code>Dog</code>, and <code>Lizard</code>. Using inheritance, write actions for each of the before mentioned classes that will prompt the user to input a value that will be used for each of the setter actions you made in class <code>Pet</code> (weight in pounds, sleep in hours, playtime in hours, and number of toys). Also, implement the <code>PetNoise</code> action in such a way that it overrides the default message with a noise that each of the respective animals would make (woof, meow, etc.). Recall that you had two variables of type text, one for food, and one for gender in the parent class. For each of the child classes, create actions that will return the text entered by the user for these two variables. An example of such an action might look like this:
 </p>
 <pre class="code">
   class Cat is Pet
@@ -95,11 +95,11 @@
     end
 </pre>
 <p>
-  First, notice that the variable pounds has to be cast to type number. In the above example, this is being done on the same line as the input statement, but it doesn't have to be. Second, notice that the action <tt>SetWeight</tt>, which was declared in class <tt>Pet</tt>, is being accessed by the keyword parent. The parent keyword allows us to reference a class directly.
+  First, notice that the variable pounds has to be cast to type number. In the above example, this is being done on the same line as the input statement, but it doesn't have to be. Second, notice that the action <code>SetWeight</code>, which was declared in class <code>Pet</code>, is being accessed by the keyword parent. The parent keyword allows us to reference a class directly.
 </p>
 <h2>Task 4: Using Inherited Actions</h2>
 <p>
-  In Main, instantiate objects of your <tt>Cat</tt>, <tt>Dog</tt>, and <tt>Lizard</tt> classes. Next, ask the user what kind of pet they have, 1 for cat, 2 for dog, or 3 for lizard. You will now need to create control structures that perform like the following:
+  In Main, instantiate objects of your <code>Cat</code>, <code>Dog</code>, and <code>Lizard</code> classes. Next, ask the user what kind of pet they have, 1 for cat, 2 for dog, or 3 for lizard. You will now need to create control structures that perform like the following:
 </p>
 <p>
   if cat:

@@ -51,7 +51,7 @@ class Animal
 end
 </code></pre></p>
 <p>
-So now your animal has two arms, and it's brown. From this point you want to output the animal's existing characteristics, so you are going to put an output line in <tt>Main</tt> that has some text in it, as well as the variables you just coded. I coded the output statement to show the number of arms the animal has, but it's your job to code the output statement for it's color.
+So now your animal has two arms, and it's brown. From this point you want to output the animal's existing characteristics, so you are going to put an output line in <code>Main</code> that has some text in it, as well as the variables you just coded. I coded the output statement to show the number of arms the animal has, but it's your job to code the output statement for it's color.
 </p>
 <p><pre class="code"><code>
 class Animal

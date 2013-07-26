@@ -41,7 +41,7 @@
     * private action Insert(Node node, integer data) returns Node
 </pre>
 <p>
-    Using the <tt>Node</tt> class above, implement the following actions:
+    Using the <code>Node</code> class above, implement the following actions:
 </p>
 <ul>
     <li>
@@ -61,7 +61,7 @@
     </li>
 </ul>
 <p>
-    Helper action for <tt>Size()</tt>. Should traverse the tree and count each node it hits.
+    Helper action for <code>Size()</code>. Should traverse the tree and count each node it hits.
 </p>
 <ul>
     <li>
@@ -71,11 +71,11 @@
     </li>
 </ul>
 <p>
-    This is implemented much the same as the <tt>SayTree</tt> action from <a href="assignment7_2.php">assignment 7_2</a>, except this action will use the <tt>Music</tt> class to play MIDI notes based on the integer value of the nodes "in order." So the tree...
+    This is implemented much the same as the <code>SayTree</code> action from <a href="assignment7_2.php">assignment 7_2</a>, except this action will use the <code>Music</code> class to play MIDI notes based on the integer value of the nodes "in order." So the tree...
 </p>
 <img src="https://quorum.svn.sourceforge.net/svnroot/quorum/trunk/quorum/libraries/documents/curriculum/chapter7/tree.PNG" alt="Tree"></img>
 <p>
-    would play the MIDI notes for "1 2 3 4 5." This can be done using the <tt>Play(integer note, number duration)</tt> action from class <tt>Music</tt>. For example, the following:
+    would play the MIDI notes for "1 2 3 4 5." This can be done using the <code>Play(integer note, number duration)</code> action from class <code>Music</code>. For example, the following:
 </p>
 <pre class="code">
     use Libraries.Sound.Music
@@ -84,7 +84,7 @@
     music:Close()
 </pre>
 <p>
-    would play a "Middle C" for half of a second. Notice that the <tt>Close()</tt> action was called after all music was done being played. This action has to be called or the program will not exit properly.
+    would play a "Middle C" for half of a second. Notice that the <code>Close()</code> action was called after all music was done being played. This action has to be called or the program will not exit properly.
 </p>
 <ul>
     <li>
@@ -104,7 +104,7 @@
     </li>
 </ul>
 <p>
-    This action will use the <tt>Music</tt> class to play MIDI notes based on the integer value of the nodes in "postorder." so the tree...
+    This action will use the <code>Music</code> class to play MIDI notes based on the integer value of the nodes in "postorder." so the tree...
 </p>
 <img src="https://quorum.svn.sourceforge.net/svnroot/quorum/trunk/quorum/libraries/documents/curriculum/chapter7/tree.PNG" alt="Tree"></img>
 <p>
@@ -118,7 +118,7 @@
     </li>
 </ul>
 <p>
-    Recursive helper action for <tt>SayPostOrder()</tt>. Traverses the tree to each node.
+    Recursive helper action for <code>SayPostOrder()</code>. Traverses the tree to each node.
 </p>
 <ul>
     <li>
@@ -142,7 +142,7 @@
     </li>
 </ul>
 <p>
-    The helper action for <tt>HasPathSum(integer sum)</tt>. Hint: subtract the current node value from the sum as you traverse down the tree.
+    The helper action for <code>HasPathSum(integer sum)</code>. Hint: subtract the current node value from the sum as you traverse down the tree.
 </p>
 <ul>
     <li>
@@ -167,7 +167,7 @@
     </li>
 </ul>
 <p>
-    The recursive helper for <tt>Mirror()</tt>. It should traverse the tree and swap the left and right references of the tree for every subtree.
+    The recursive helper for <code>Mirror()</code>. It should traverse the tree and swap the left and right references of the tree for every subtree.
 </p>
 <ul>
     <li>
@@ -177,17 +177,17 @@
     </li>
 </ul>
 <p>
-    This recursive action should return the number of structurally unique BST's that can be made with <tt>numValue</tt> number of nodes. Hint: if each value could the root, then find the size of the left and right subtrees.
+    This recursive action should return the number of structurally unique BST's that can be made with <code>numValue</code> number of nodes. Hint: if each value could the root, then find the size of the left and right subtrees.
 </p>
-<h2>Class <tt>Main</tt></h2>
+<h2>Class <code>Main</code></h2>
 <p>
-    In <tt>Main</tt>, create a random number generator to create integers between 30 and 120. These number work well, since on the chromatic scale of 1 to 127, the notes represented by integers less than 30 and greater than 120 are generally painful to listen to. Next, ask the user how large of a tree they want to create, and then build a tree of that size using your random number generator. After, call the action <tt>SayTree()</tt>.
+    In <code>Main</code>, create a random number generator to create integers between 30 and 120. These number work well, since on the chromatic scale of 1 to 127, the notes represented by integers less than 30 and greater than 120 are generally painful to listen to. Next, ask the user how large of a tree they want to create, and then build a tree of that size using your random number generator. After, call the action <code>SayTree()</code>.
 </p>
 <p>
     Next, ask the user to enter an integer to search for in the tree. Preform the search, and if tell the user if the integer was present or not.
 </p>
 <p>
-    Next, create a loop that will ask the user for an integer to add to the tree, add that integer, and call <tt>SayTree()</tt>. This should be done 3 times.
+    Next, create a loop that will ask the user for an integer to add to the tree, add that integer, and call <code>SayTree()</code>. This should be done 3 times.
 </p>
 <p>
     Next, tell the user the size of the tree. After, tell the user the nodes in order, and then in post order.
@@ -196,10 +196,10 @@
     Next, mirror the tree. Tell the user the tree is being mirrored, and then tell the user the nodes in order, and then in post order.
 </p>
 <p>
-    Next, create a loop that will ask the user for an integer value for a path sum. Call the action <tt>HasPathSum()</tt> and tell the user if the sum they entered was present in the tree or not. This should be done 3 times.
+    Next, create a loop that will ask the user for an integer value for a path sum. Call the action <code>HasPathSum()</code> and tell the user if the sum they entered was present in the tree or not. This should be done 3 times.
 </p>
 <p>
-    Lastly, ask the user to enter an integer value to find the number of structurally unique trees given that number of nodes. Call <tt>CountTrees()</tt> and report to the user the number of unique trees that can be built.
+    Lastly, ask the user to enter an integer value to find the number of structurally unique trees given that number of nodes. Call <code>CountTrees()</code> and report to the user the number of unique trees that can be built.
 </p>
 <h2>Sample Output</h2>
 <p>

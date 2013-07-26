@@ -25,11 +25,11 @@
 </p>
 <h2>Requirements</h2>
 <p>
-    You will need five classes: <tt>Employee</tt>, <tt>SalariedEmployee</tt>, <tt>HourlyEmployee</tt>, <tt>CommissionEmployee</tt>, and <tt>Main</tt>. Class <tt>Employee</tt> will be your base class, and will contain actions and blueprint actions to be used in each class that inherits from <tt>Employee</tt>.
+    You will need five classes: <code>Employee</code>, <code>SalariedEmployee</code>, <code>HourlyEmployee</code>, <code>CommissionEmployee</code>, and <code>Main</code>. Class <code>Employee</code> will be your base class, and will contain actions and blueprint actions to be used in each class that inherits from <code>Employee</code>.
 </p>
-<h2>Class <tt>Employee</tt></h2>
+<h2>Class <code>Employee</code></h2>
 <p>
-    In this class, you will implement several setters and getters for variables that will be used in each class that inherits from Employee. Since every employee, regardless of how they are paid, share some common information (they have a name and a social security number), this class will obtain and provide that information. Class <tt>Employee</tt> will have the following actions:
+    In this class, you will implement several setters and getters for variables that will be used in each class that inherits from Employee. Since every employee, regardless of how they are paid, share some common information (they have a name and a social security number), this class will obtain and provide that information. Class <code>Employee</code> will have the following actions:
 </p>
 <ul>
     <li>
@@ -39,7 +39,7 @@
     </li>
 </ul>
 <p>
-    Each class will have a separate implementation for <tt>Earnings</tt>, so a blueprint action will work well here.
+    Each class will have a separate implementation for <code>Earnings</code>, so a blueprint action will work well here.
 </p>
 <ul>
     <li>
@@ -49,7 +49,7 @@
     </li>
 </ul>
 <p>
-    Setter for the text variable <tt>firstName</tt>
+    Setter for the text variable <code>firstName</code>
 </p>
 <ul>
     <li>
@@ -69,7 +69,7 @@
     </li>
 </ul>
 <p>
-    Setter for the text variable <tt>lastName</tt>
+    Setter for the text variable <code>lastName</code>
 </p>
 <ul>
     <li>
@@ -89,7 +89,7 @@
     </li>
 </ul>
 <p>
-    Setter for the integer variable <tt>ssn</tt>
+    Setter for the integer variable <code>ssn</code>
 </p>
 <ul>
     <li>
@@ -109,11 +109,11 @@
     </li>
 </ul>
 <p>
-    The <tt>Print</tt> action will be generic in this class, with only a say statement to tell the user the first and last name and social security number. In other classes, you will use polymorphism to implement a more custom print action.
+    The <code>Print</code> action will be generic in this class, with only a say statement to tell the user the first and last name and social security number. In other classes, you will use polymorphism to implement a more custom print action.
 </p>
-<h2>Class <tt>SalariedEmployee</tt></h2>
+<h2>Class <code>SalariedEmployee</code></h2>
 <p>
-    This class will inherit from <tt>Employee</tt>. It needs the following actions:
+    This class will inherit from <code>Employee</code>. It needs the following actions:
 </p>
 <ul>
     <li>
@@ -123,7 +123,7 @@
     </li>
 </ul>
 <p>
-    Setter for the number variable <tt>weeklySalary</tt>.
+    Setter for the number variable <code>weeklySalary</code>.
 </p>
 <ul>
     <li>
@@ -143,7 +143,7 @@
     </li>
 </ul>
 <p>
-    <tt>ReportSalariedEmployee</tt> should call the setters for the name(first and last), ssn, and weekly salary of an employee.
+    <code>ReportSalariedEmployee</code> should call the setters for the name(first and last), ssn, and weekly salary of an employee.
 </p>
 <ul>
     <li>
@@ -153,7 +153,7 @@
     </li>
 </ul>
 <p>
-    <tt>Earnings</tt> should return the weekly salary of an employee by making a call to action <tt>GetWeeklySalary</tt>. It should look similar to the following:
+    <code>Earnings</code> should return the weekly salary of an employee by making a call to action <code>GetWeeklySalary</code>. It should look similar to the following:
 </p>
 <pre class="code">
     action Earnings returns number
@@ -161,11 +161,11 @@
     end
 </pre>
 <p>
-    Since action <tt>GetWeeklySalary</tt> returns a value, you can call the action in a return statement, as seen above.
+    Since action <code>GetWeeklySalary</code> returns a value, you can call the action in a return statement, as seen above.
 </p>
-<h2>Class <tt>HourlyEmployee</tt></h2>
+<h2>Class <code>HourlyEmployee</code></h2>
 <p>
-    This class also inherits from <tt>Employee</tt>. It needs the following actions:
+    This class also inherits from <code>Employee</code>. It needs the following actions:
 </p>
 <ul>
     <li>
@@ -175,7 +175,7 @@
     </li>
 </ul>
 <p>
-    Setter for the number variable <tt>hourlyWage</tt>.
+    Setter for the number variable <code>hourlyWage</code>.
 </p>
 <ul>
     <li>
@@ -195,7 +195,7 @@
     </li>
 </ul>
 <p>
-    Setter for the number variable <tt>hoursWorked</tt>.
+    Setter for the number variable <code>hoursWorked</code>.
 </p>
 <ul>
     <li>
@@ -215,7 +215,7 @@
     </li>
 </ul>
 <p>
-    <tt>ReportHourlyEmployee</tt> does the same thing <tt>ReportSalariedEmployee</tt> does, only it should call the setters for wage and hours instead.
+    <code>ReportHourlyEmployee</code> does the same thing <code>ReportSalariedEmployee</code> does, only it should call the setters for wage and hours instead.
 </p>
 <ul>
     <li>
@@ -225,11 +225,11 @@
     </li>
 </ul>
 <p>
-    <tt>Earnings</tt> should return the weekly earnings of an hourly employee. If the hourly employee has worked over 40 hours, then make sure that action <tt>Earnings</tt> is giving the employee the proper overtime(overtime is 1.5x the normal pay).
+    <code>Earnings</code> should return the weekly earnings of an hourly employee. If the hourly employee has worked over 40 hours, then make sure that action <code>Earnings</code> is giving the employee the proper overtime(overtime is 1.5x the normal pay).
 </p>
-<h2>Class <tt>CommissionEmployee</tt></h2>
+<h2>Class <code>CommissionEmployee</code></h2>
 <p>
-    This class also inherits from <tt>Employee</tt>. It needs the following actions:
+    This class also inherits from <code>Employee</code>. It needs the following actions:
 </p>
 <ul>
     <li>
@@ -239,7 +239,7 @@
     </li>
 </ul>
 <p>
-    Setter for the number variable <tt>commissionRate</tt>
+    Setter for the number variable <code>commissionRate</code>
 </p>
 <ul>
     <li>
@@ -259,7 +259,7 @@
     </li>
 </ul>
 <p>
-    Setter for the number variable <tt>sales</tt>
+    Setter for the number variable <code>sales</code>
 </p>
 <ul>
     <li>
@@ -279,7 +279,7 @@
     </li>
 </ul>
 <p>
-    <tt>ReportCommissionEmployee</tt> will do as the previous "Report" actions do, except it will call the setters for commission rate and sales.
+    <code>ReportCommissionEmployee</code> will do as the previous "Report" actions do, except it will call the setters for commission rate and sales.
 </p>
 <ul>
     <li>
@@ -289,11 +289,11 @@
     </li>
 </ul>
 <p>
-    <tt>Earnings</tt> should return the earnings of a commissioned employee. This values can be calculated by commission rate * number of sales.
+    <code>Earnings</code> should return the earnings of a commissioned employee. This values can be calculated by commission rate * number of sales.
 </p>
-<h2>Class <tt>Main</tt></h2>
+<h2>Class <code>Main</code></h2>
 <p>
-    In class <tt>Main</tt>, create variables that will satisfy all the arguments for each class. Then call the appropriate actions from each class to satisfy the requirements in the Sample Output section.
+    In class <code>Main</code>, create variables that will satisfy all the arguments for each class. Then call the appropriate actions from each class to satisfy the requirements in the Sample Output section.
 </p>
 <h2>Sample Output</h2>
 <p>

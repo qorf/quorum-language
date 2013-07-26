@@ -28,31 +28,31 @@ In this assignment, you will write a calculator that performs common mathematica
     Define the following actions with necessary parameters and return values:
     <ul>
         <li>
-            <tt>action Add</tt>
+            <code>action Add</code>
         </li>
         <li>
-            <tt>action Subtract</tt>
+            <code>action Subtract</code>
         </li>
         <li>
-            <tt>action Multiply</tt>
+            <code>action Multiply</code>
         </li>
         <li>
-            <tt>action Divide</tt>
+            <code>action Divide</code>
         </li>
         <li>
-            <tt>action Exponent</tt>
+            <code>action Exponent</code>
         </li>
         <li>
-            <tt>action Factorial</tt>
+            <code>action Factorial</code>
         </li>
     </ul>
 </li>
 <p>
-    The application should start by asking the user to pick one of the operations outlined above. After the user has selected an option, the application should prompt the user to enter any appropriate values. For the first five operations, two values are needed from the user. For the last, only one value is required from the user. After the user enters any required values, the application should show the result of the operation. Create a new project and name it <strong>Assignment4_1</strong>. You may use the <tt>Add</tt>, <tt>Subtract</tt>, <tt>Multiply</tt> and <tt>Divide</tt> methods you wrote in lab 4.1 for this project.
+    The application should start by asking the user to pick one of the operations outlined above. After the user has selected an option, the application should prompt the user to enter any appropriate values. For the first five operations, two values are needed from the user. For the last, only one value is required from the user. After the user enters any required values, the application should show the result of the operation. Create a new project and name it <strong>Assignment4_1</strong>. You may use the <code>Add</code>, <code>Subtract</code>, <code>Multiply</code> and <code>Divide</code> methods you wrote in lab 4.1 for this project.
 </p>
 <h2>Exponentiation</h2>
 <p>
-In mathematics, a common operation is used known as <strong>exponentiation</strong>. This is often denoted using the caret symbol (<tt>^</tt>). When you exponentiate a number, you multiply that number by itself a certain number of times. This is also commonly stated as "raised to the power of." For example, 3 raised to the power of 2 is written as:
+In mathematics, a common operation is used known as <strong>exponentiation</strong>. This is often denoted using the caret symbol (<code>^</code>). When you exponentiate a number, you multiply that number by itself a certain number of times. This is also commonly stated as "raised to the power of." For example, 3 raised to the power of 2 is written as:
 </p>
 <p><pre class="code"><code>
 3^2 = 3 * 3
@@ -76,11 +76,11 @@ There is one notable exception. Any number raised to the power of zero is one. F
 <p>
 Before writing this program, work out the following problems to gain an understanding of the concept:
 </p>
-<ul><li>What is <tt>5^2</tt>? Show your work.
-</li><li>What is <tt>3^3</tt>? Show your work.
-</li><li>What is <tt>2^5</tt>? Show your work.
-</li><li>What is <tt>1^0</tt>?
-</li><li>What is <tt>4^0</tt>?
+<ul><li>What is <code>5^2</code>? Show your work.
+</li><li>What is <code>3^3</code>? Show your work.
+</li><li>What is <code>2^5</code>? Show your work.
+</li><li>What is <code>1^0</code>?
+</li><li>What is <code>4^0</code>?
 </li></ul><p>
 For this assignment, calculate the exponential using conditionals and loops.
 </p>
