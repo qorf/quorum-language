@@ -26,7 +26,6 @@ public class AccessibilityManager {
             @Override
             public void run() {
                 handler.Initialize();
-                System.out.println("after initialize");
             }
         };
                 
