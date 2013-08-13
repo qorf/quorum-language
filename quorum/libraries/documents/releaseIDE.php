@@ -8,7 +8,7 @@
     </div>
 </div>
 <div class="content index-content">
-    <h2>Sodbeans 4.0.2 - July 24th, 2013</h2>
+    <h2>Sodbeans 4.0.2 August 13th, 2013</h2>
     <p>Sodbeans 4.0.2 is a bug fix release for the Sodbeans 4.0 branch. It includes
     an updated version of Quorum and several important bug fixes for the new debugger, 
     which were identified at the recent Quorum workshop in Vancouver, Washington.</p>
@@ -21,6 +21,8 @@
         to conduct a long-running process.</li>
         <li>Fixed a bug causing the debugger to speak incorrectly if the screen reader
         in Sodbeans is off.</li>
+        <li>Fixed a bug causing the debugger to run slowly. Debugger optimization
+        is an on-going research project.</li>
         <li>Fixed a bug causing the user to be able to incorrectly execute code
         "before and after" the execution of a program. The code the debugger was executing
         was injected bytecode that the debugger should have ignored, but wasn't.</li>
@@ -34,9 +36,20 @@
         stops if the beginning of the program is reached.</li>
         <li>Hid the restart button, which no longer appears to be used in newer
         versions of NetBeans.</li>
+        <li>Fixed a bug in the code completion causing the library to sometimes
+        show variables that were out of scope in a given method.</li>
+        <li>Fixed a bug in the code completion library that caused the library
+        to stop filtering items correctly when narrowing the list.</li>
+        <li>Fixed a bug in the code completion library causing certain language
+        primitives to not show up correctly.</li>
+        <li>Updated documentation in the code completion library to Quorum 2.0.
+        While most of the library had been updated previously, this patch fixes
+        a few places that had not.</li>
+        <li>Fixed a bug in the code completion library causing injected code to
+        be indented incorrectly.</li>
+        <li>Fixed a bug in the editor causing red underlines (and auditory cues)
+        to not show up correctly in Quorum projects.</li>
     </ul>
-    
-    
     
     <h2>Sodbeans 4.0.1 - June 23rd, 2013</h2>
     <p>Sodbeans 4.0.1 is a bug fix release for the Sodbeans 4.0 branch. It includes
