@@ -141,4 +141,12 @@ public class Integer {
     public static int PrimitiveGetMinimumValue(int self){
         return java.lang.Integer.MIN_VALUE;
     }
+    
+    public int GetHashCode() {
+        return integer;
+    }
+    
+    public int PrimitiveGetHashCode(int self) {
+        return self;
+    }
 }

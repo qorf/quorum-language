@@ -13,6 +13,8 @@ import quorum.Libraries.Language.Types.Boolean$Interface;
 public class Boolean {
     public java.lang.Object $me = null;
     private boolean bool = false;
+    private static final int trueHash = 1231;
+    private static final int falseHash = 1237;
     
     public void SetValueNative(boolean value){
         bool = value;
@@ -38,5 +40,21 @@ public class Boolean {
             r.result = r.LARGER;
         }
         return r;
+    }
+    
+    public int GetHashCode() {
+        if(bool) {
+            return trueHash;
+        } else {
+            return falseHash;
+        }
+    }
+    
+    public int PrimitiveGetHashCode(boolean self) {
+        if(self) {
+            return trueHash;
+        } else {
+            return falseHash;
+        }
     }
 }

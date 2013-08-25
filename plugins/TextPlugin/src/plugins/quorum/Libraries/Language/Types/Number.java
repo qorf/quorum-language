@@ -117,4 +117,14 @@ public class Number {
     public static boolean PrimitiveIsNotANumber(double self){
         return java.lang.Double.isNaN(self);
     }
+    
+    public int GetHashCode() {
+        long returnMe = Double.doubleToLongBits(number);
+        return (int)(returnMe^(returnMe>>>32));
+    }
+    
+    public int PrimitiveGetHashCode(double self) {
+        long returnMe = Double.doubleToLongBits(self);
+        return (int)(returnMe^(returnMe>>>32));
+    }
 }
