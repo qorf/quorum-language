@@ -7,6 +7,11 @@
 	</div>
 </div>
 <div class="content index-content">
+<h2>Quorum 2.0.2 August 13th, 2013 (TBD)</h2>
+<p>This is a bug fix release for the Quorum 2.0 branch.</p>
+<ul> 
+        <li>Fixed a bug causing certain primitive types to not hash correctly.</li>
+</ul>
 <h2>Quorum 2.0.1 August 13th, 2013</h2>
 <p>This is a bug fix release for the Quorum 2.0 branch.</p>
 <ul> 
