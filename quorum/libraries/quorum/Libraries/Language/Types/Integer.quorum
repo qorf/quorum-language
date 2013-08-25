@@ -56,6 +56,20 @@ class Integer is Object
     end
 
     /*
+        This action gets the hash code for an object. In this case, GetHashCode
+        is overriden to be equivalent to the hash code of its containing object,
+        value.
+
+        Attribute: Returns The integer hash code of the object.
+
+        Attribute: Example
+
+        Object o
+        integer hash = o:GetHashCode()
+    */ 
+    system action GetHashCode() returns integer
+
+    /*
         This action gets the value from the Integer object and casts it to
         a number.
 
