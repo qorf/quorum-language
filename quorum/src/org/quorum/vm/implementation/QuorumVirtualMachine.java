@@ -1269,7 +1269,7 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                             staticKey = type.getStaticKey();
                         }
 
-                        if(type.isPrimitiveType()){
+                        if(type != null && type.isPrimitiveType()){
                             TypeDescriptor tempType = new TypeDescriptor(type);
                             tempType.convertToClass();
                             staticKey = tempType.getStaticKey();
@@ -1914,20 +1914,24 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
             }
         }
         
-        if(insideMethod != null) {
+        if(insideMethod != null && variable == null) {
             addVariablesForMethod("", result, request, clazz, insideMethod);
         }
         
         //add filtered classes you can instantiate
-        addValidClassUses("", result, request, clazz);
+        if(variable == null) {
+            addValidClassUses("", result, request, clazz);
+        }
 
-        if(insideMethod != null) {
+        if(insideMethod != null && variable == null) {
             //add common control structures
             addControlStructures(request, result, "");
         }
         
         //add primitives that you can use from here
-        addPrimitiveValues(result);
+        if(variable == null) {
+            addPrimitiveValues(result);
+        }
     }
     
     /**
