@@ -1090,7 +1090,7 @@ public class StepFactory {
 
         if (info.isObjectCall) { //we're calling on an object
             vd = machine.getSymbolTable().getCurrentScope().getVariable(info.variable.getName());
-            if (vd == null) { //Compiler error, object was not found
+            if (vd == null || (vd != null && vd.getType() == null)) { //Compiler error, object was not found
                 CompilerError error = new CompilerError();
                 error.setLineNumber(info.location.getStartLine());
                 error.setError("The variable " + info.variable.getName() + " must be defined before it is used.");
