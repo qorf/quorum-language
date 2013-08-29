@@ -72,9 +72,11 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
         HashNode<Key, Value> node = array:Get(index)
         if node = undefined
             return undefined
+        elseif key:Equals(node:key)
+            return node:value
+        else
+            return undefined
         end
-        
-        return node:value
     end
 
     /*

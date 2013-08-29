@@ -121,6 +121,20 @@ public class HashTableTester {
     }
     
     @Test
+    public void test_GetValueWrap_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.HASHTABLE + CompilerTestSuite.PASS + "GetValueWrap.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("undefined"));
+    }
+    
+    @Test
     public void test_GetKeyIterator_pass_bytecode(){
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.HASHTABLE + CompilerTestSuite.PASS + "GetKeyIterator.quorum"));
         if (!vm.getCompilerErrors().isCompilationErrorFree()){

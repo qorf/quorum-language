@@ -831,6 +831,12 @@ public class SymbolTable {
     public ClassDescriptor getMainClass(){
         String main = this.getVirtualMachine().getMain();
         FileDescriptor mainFile = this.getFileDescriptor(main);
+        
+        //temporary, for testing removal of an exception that is being thrown.
+        if(mainFile == null) {
+            int a = 5;
+        }
+        
         ClassDescriptor firstClass = mainFile.getFirstClass();
         
         return firstClass;
