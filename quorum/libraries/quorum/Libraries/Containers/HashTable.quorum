@@ -385,8 +385,10 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
         HashNode<Key, Value> node = array:Get(index)
         if node = undefined
             return false
-        else 
+        elseif key:Equals(node:key)
             return true
+        else 
+            return false
         end
     end
 

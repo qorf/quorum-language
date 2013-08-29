@@ -295,6 +295,20 @@ public class HashTableTester {
         assert(r.getLine(0).equals("true"));
     }
     
+    @Test
+    public void test_HasKeyWrap_pass_bytecode(){
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.HASHTABLE + CompilerTestSuite.PASS + "HasKeyWrap.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+    }
+    
 //    @Test
 //    public void test_RemoveKey_pass_execute(){
 //        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.HASHTABLE + CompilerTestSuite.PASS + "RemoveKey.quorum"));

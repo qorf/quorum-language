@@ -1217,6 +1217,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                     //resplit it
                     partialLine = partialLine.trim();
                     split = partialLine.split(":");
+                    if(split.length == 0) {
+                        return; //the string is garbage, so return
+                    }
                     left = split[0];
                     if (split.length > 1 || !partialLine.contains(":")) {
                         result.setFilter(split[split.length - 1]);
@@ -1831,7 +1834,9 @@ public class QuorumVirtualMachine extends AbstractVirtualMachine {
                 clazz = validatedClassUse;
             }
         }
-        addClassToResult(variable, null, result, clazz, false, null);
+        if (clazz != null) { //add some defensive coding
+            addClassToResult(variable, null, result, clazz, false, null);
+        }
     }
 
     /**
