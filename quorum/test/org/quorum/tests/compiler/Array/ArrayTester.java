@@ -201,6 +201,34 @@ public class ArrayTester {
         assert(r.getLine(0).equals("sorted"));
     }
     
+    @Test
+    public void test_pass_Array_Sort_number_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArraySortNumber.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("sorted"));
+    }
+    
+    @Test
+    public void test_pass_Array_Sort_text_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArraySortText.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("sorted"));
+    }
+    
 //    @Test
 //    public void test_pass_Array_Of_Type_Number_Action_Set_Get_Number_Template_execute() {
 //        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeNumberActionSetGetNumber.quorum"));
