@@ -187,6 +187,20 @@ public class ArrayTester {
             assert(r.getLine(i).equals("1"));
     }
     
+    @Test
+    public void test_pass_Array_Sort_integer_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArraySortInteger.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("sorted"));
+    }
+    
 //    @Test
 //    public void test_pass_Array_Of_Type_Number_Action_Set_Get_Number_Template_execute() {
 //        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.ARRAYS + CompilerTestSuite.PASS + "ArrayOfTypeNumberActionSetGetNumber.quorum"));

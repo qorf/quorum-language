@@ -4,6 +4,7 @@ use Libraries.Containers.Blueprints.ArrayBlueprint
 use Libraries.Language.Errors.InvalidLocationError
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Containers.Support.ArrayIterator
+use Libraries.Language.Support.CompareResult
 
 /*
 The Array class is a data structure that stores items in contiguous memory. An
@@ -574,6 +575,79 @@ class Array <Type> is ArrayBlueprint<Type>
     action RemoveFromFront returns Type
         return RemoveAt(0)
     end
+
+    /*
+        This action sorts the values of the array using a merge sort algorithm.
+        It is guaranteed to execute in O(n log n).
+
+        Attribute: Example
+        use Libraries.Containers.Array
+        Array<integer> myArray
+        myArray:Add(33)
+        myArray:Add(13)
+        myArray:Add(43)
+        myArray:Sort()
+    */
+    action Sort
+        Array<Type> temp
+        temp:SetMaxSize(me:GetSize())
+        temp:SetSize(me:GetSize())
+        MergeSort(me, temp, 0, me:GetSize() - 1)
+    end
+
+    private action MergeSort(Array<Type> original, Array<Type> temp,
+        integer left, integer right)
+
+        if left < right 
+           center = (left + right) / 2
+           MergeSort(original, temp, left, center)
+           MergeSort(original, temp, center + 1, right)
+           Merge(original, temp, left, center + 1, right)
+        end
+    end
+    
+    private action Merge(Array<Type> original, Array<Type> temp,
+        integer left, integer center, integer right)
+        leftEnd = center - 1
+        leftTemp = left
+        rightTemp = right
+        centerTemp = center
+        position = left
+
+        repeat while leftTemp <= leftEnd and centerTemp <= right 
+            Type l = original:Get(leftTemp)
+            Type r = original:Get(centerTemp)
+            CompareResult result = l:Compare(r)
+            if  result:result = result:SMALLER or result:result = result:EQUAL
+                temp:Set(position, original:Get(leftTemp))
+                leftTemp = leftTemp + 1
+            else 
+                temp:Set(position, original:Get(centerTemp))
+                centerTemp = centerTemp + 1
+            end
+            position = position + 1
+        end
+
+        repeat while leftTemp <= leftEnd
+            temp:Set(position, original:Get(leftTemp))
+            leftTemp = leftTemp + 1
+            position = position + 1
+        end
+
+        repeat while centerTemp <= right
+            temp:Set(position, original:Get(centerTemp))
+            centerTemp = centerTemp + 1
+            position = position + 1
+        end
+
+        size = right - left + 1
+        i = left
+        repeat size times
+            original:Set(i, temp:Get(i))
+            i = i + 1
+        end
+    end
+    
 
     /*
         This action empty's the list, clearing out all of the items contained within it. 
