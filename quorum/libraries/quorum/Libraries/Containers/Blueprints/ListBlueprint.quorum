@@ -4,7 +4,9 @@ use Libraries.Containers.Blueprints.Addable
 use Libraries.Containers.Blueprints.Container
 use Libraries.Containers.Blueprints.Copyable
 use Libraries.Containers.Blueprints.Indexed
+use Libraries.Containers.Blueprints.Sortable
 use Libraries.Containers.Blueprints.Iterative
+use Libraries.Containers.Array
 
 /*
 
@@ -23,7 +25,7 @@ class MyList<Type> is ListBlueprint<Type>
     end
 end
 */
-class ListBlueprint <Type> is Addable<Type>, Container<Type>, Copyable<Type>, Indexed<Type>, Iterative<Type>
+class ListBlueprint <Type> is Addable<Type>, Container<Type>, Copyable<Type>, Indexed<Type>, Iterative<Type>, Sortable<Type>
     /*
         This action adds an item to the end of the list.
 
@@ -38,8 +40,12 @@ class ListBlueprint <Type> is Addable<Type>, Container<Type>, Copyable<Type>, In
     */
     blueprint action AddToFront(Type value)
 
-    //add this later
-    //blueprint action CopyToArray returns Array<Type>
+    /*
+        This action copies the list to an array data structure.
+
+        Attribute: Returns This returns an array of the list.
+    */
+    blueprint action CopyToArray returns Array<Type>
 
     /*
         This action gets the item at the front of the list(the item will remain in the list). 

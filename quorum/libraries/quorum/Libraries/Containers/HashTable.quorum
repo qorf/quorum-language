@@ -132,6 +132,32 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
     end
 
     /*
+        This action gets an array that contains all the keys in the
+        hash table. This method requires iterating over all elements in the 
+        array, and as such, should be used sparing.
+
+        Attribute: Returns The iterator of keys. 
+
+        Attribute: Example
+        use Libraries.Containers.HashTable
+        use Libraries.Containers.Blueprints.Iterator
+
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+        Array<text> keysIterator = phoneBook:GetKeyArray()
+    */
+    action CopyToKeyArray returns Array<Key>
+        Array<Key> array
+        
+        Iterator<Key> it = me:GetKeyIterator()
+        repeat while it:HasNext()
+            Key key = it:Next()
+            array:Add(key)
+        end
+        return array
+    end
+
+    /*
         This action gets an iterator that iterates over all the values in the
         hash table.
 
@@ -152,6 +178,32 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
         HashTableValueIterator<Key, Value> values
         values:iterator = support
         return values
+    end
+
+    /*
+        This action gets an array that contains all the values in the
+        hash table. This method requires iterating over all elements in the 
+        array, and as such, should be used sparingly.
+
+        Attribute: Returns The iterator of keys. 
+
+        Attribute: Example
+        use Libraries.Containers.HashTable
+        use Libraries.Containers.Blueprints.Iterator
+
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+        Array<text> keysIterator = phoneBook:GetKeyArray()
+    */
+    action CopyToValueArray returns Array<Value>
+        Array<Value> array
+        
+        Iterator<Key> it = me:GetValueIterator()
+        repeat while it:HasNext()
+            Value value = it:Next()
+            array:Add(value)
+        end
+        return array
     end
 
     /*
@@ -200,7 +252,8 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
     end
 
     /*
-        This action adds an item to the hash table, given the key-value pair.
+        This action adds an item to the hash table, given the key-value pair. The
+        implementation of this action is identical to that of Set.
 
         Attribute: Parameter key The key used to access the value.
 
@@ -212,6 +265,33 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
         phoneBook:Add("Jane", 2626984)
     */
     action Add(Key key, Value value)
+        KeyedNode<Key, Value> item = undefined
+        if key not= undefined
+            Set(array, key, value)
+        else 
+        end
+
+        if size >= me:maxItemsBeforeResize
+            Resize(arraySize * resizeAmount)
+            
+        end
+    end
+
+    /*
+        This action adds an item to the hash table, given the key-value pair. It
+        functions identically to the add action and exists only as a convencience
+        action, given that there are also actions named with the prefix Get.
+
+        Attribute: Parameter key The key used to access the value.
+
+        Attribute: Parameter value The value to be stored.
+
+        Attribute: Example
+        use Libraries.Containers.HashTable
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+    */
+    action Set(Key key, Value value)
         KeyedNode<Key, Value> item = undefined
         if key not= undefined
             Set(array, key, value)

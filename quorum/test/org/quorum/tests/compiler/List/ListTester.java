@@ -108,6 +108,20 @@ public class ListTester {
         assert(r.getLine(0).equals("ThisIsATestIThinkMaybe"));
     }
     
+    @Test
+    public void test_List_Sort_Integer_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "ListSortInteger.quorum"));
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("sorted"));
+    }
+    
 //    @Test
 //    public void test_Clear_execute() {
 //        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.LIST + CompilerTestSuite.PASS + "Clear.quorum"));

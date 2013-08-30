@@ -5,6 +5,7 @@ use Libraries.Containers.Blueprints.ListBlueprint
 use Libraries.Containers.Support.ListNode
 use Libraries.Language.Errors.InvalidLocationError
 use Libraries.Containers.Support.ListIterator
+use Libraries.Containers.Blueprints.Sortable
 
 /*
 The List class is a data structure that stores items in nodes. Each of these
@@ -591,6 +592,59 @@ class List <Type> is ListBlueprint<Type>
         Type result = tail:value
         RemoveNode(tail)
         return result
+    end
+
+    /*
+        This action copies the list to an array data structure.
+
+        Attribute: Returns This returns an array of the list.
+
+        Attribute: Example
+        use Libraries.Containers.List
+        List<integer> myArray
+        myArray:Add(33)
+        myArray:Add(13)
+        myArray:Add(43)
+        myArray:Sort()
+    */
+    action CopyToArray returns Array<Type>
+        Array<Type> array
+        
+        Iterator<Type> it = me:GetIterator()
+        repeat while it:HasNext()
+            Type key = it:Next()
+            array:Add(key)
+        end
+        return array
+    end
+
+    /*
+        This action sorts the values of the array. The example below sorts an
+        array. Implementors may use any known sorting algorithm. Objects that
+        should be sorted in a custom fashion should override the default
+        Compare action in Libraries.Language.Object.
+
+        Attribute: Example
+        use Libraries.Containers.List
+        List<integer> myList
+        myList:Add(33)
+        myList:Add(13)
+        myList:Add(43)
+        myList:Sort()
+    */
+    action Sort
+        Array<Type> array = CopyToArray()
+        array:Sort()
+
+        ListIterator<Type> iterator
+        iterator:Set(me, head, tail)
+
+        integer i = 0
+        repeat while iterator:HasNext()
+            iterator:Next()
+            iterator:Set(array:Get(i))
+            i = i + 1
+        end
     end
 
     /*

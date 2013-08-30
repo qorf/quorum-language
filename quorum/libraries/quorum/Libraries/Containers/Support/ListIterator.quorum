@@ -142,6 +142,16 @@ class ListIterator<Type> is Iterator<Type>
     end
 
     /*
+        This action sets the value of the current point in the list. Generally,
+        this action should not be used outside of the Libraries.Containers.List class.
+
+        Attribute: Parameter The value to be set.
+    */
+    action Set(Type t)
+        current:SetValue(t)
+    end
+
+    /*
         This action starts the iteration over from the beginning. 
 
         Attribute: Example
