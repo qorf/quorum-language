@@ -1,0 +1,14 @@
+use Libraries.Language.Support.CompareResult
+
+class Main
+    public text test1 = "dog"
+    public text test2 = "cat"
+
+    action main
+        text a = test1
+        text b = test2
+
+        CompareResult result = a:Compare(b)
+        output result:result //should be 1
+    end
+end

@@ -625,6 +625,22 @@ public class ExpressionsTester {
         assert(r.getLine(0).equals("false"));
         assert(r.getLine(1).equals("true"));
     }
+    
+    @Test
+    public void test_pass_CompareTextTextField_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "CompareTextTextField.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("1"));
+    }
+    
     @Test
     public void test_pass_EqualDoubleDouble_bytecode() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "EqualDoubleDouble.quorum"));
