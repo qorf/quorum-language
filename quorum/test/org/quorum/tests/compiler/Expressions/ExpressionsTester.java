@@ -563,6 +563,69 @@ public class ExpressionsTester {
     }
     
     @Test
+    public void test_pass_LTTextText_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "LTTextText.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("false"));
+    }
+    
+    @Test
+    public void test_pass_LTETextText_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "LTETextText.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(1).equals("true"));
+    }
+    
+    @Test
+    public void test_pass_GTTextText_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "GTTextText.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+        assert(r.getLine(1).equals("false"));
+    }
+    
+    @Test
+    public void test_pass_GTETextText_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "GTETextText.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("false"));
+        assert(r.getLine(1).equals("true"));
+    }
+    @Test
     public void test_pass_EqualDoubleDouble_bytecode() {
         CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "EqualDoubleDouble.quorum"));
 
