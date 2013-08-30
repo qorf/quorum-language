@@ -334,10 +334,11 @@ class Array <Type> is ArrayBlueprint<Type>
     end
 
     /*
-        This blueprint action copies an object and returns the copy. 
+        This action returns a deep copy of the array in question. As such,
+        all elements are copied from one array to the other. While the array
+        is a deep copy, the elements inside of the array are not copied.
 
-        Attribute: Returns Returns a copy of this object. This copy is not guaranteed
-        to be a deep copy.
+        Attribute: Returns Returns a deep copy of the array.
         
         Attribute: Example
         //the array class is Copyable
