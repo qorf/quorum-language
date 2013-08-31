@@ -1,0 +1,11 @@
+class Main
+    action main
+        boolean max = Test(0.7)
+        output max //should be false
+    end
+
+    action Test(number a) returns boolean
+        boolean returnMe = a:IsInfinite()
+        return returnMe
+    end
+end
