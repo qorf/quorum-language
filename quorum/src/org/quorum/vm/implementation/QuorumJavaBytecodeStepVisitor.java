@@ -1082,7 +1082,48 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             // This is where our "jumpPastLabel" label begins.
             methodVisitor.visitLabel(jumpPastLabel);
 
-        } else {
+        } else if (operandType.isText()) {
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "compareTo", "(Ljava/lang/String;)I");
+            
+            //push a constant 0. If the value is 1, it is greater, if it is -1
+            //it is less then
+           // methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+            // Start two labels: One we will jump to if we're not equal, and the
+            // other will jump past that case.
+            Label jumpIfFalseLabel = new Label();
+            Label jumpPastLabel = new Label();
+
+            // Do the comparison against zero directly, unlike the other cases.
+            if (lessThan) {
+                if (!testEqual) // if testing equality, use IF_ICMPGT.
+                {
+                    methodVisitor.visitJumpInsn(IFGE, jumpIfFalseLabel);
+                } else {
+                    methodVisitor.visitJumpInsn(IFGT, jumpIfFalseLabel);
+                }
+            } else {
+                if (!testEqual) // if testing equality, use IF_ICMPGT.
+                {
+                    methodVisitor.visitJumpInsn(IFLE, jumpIfFalseLabel);
+                } else {
+                    methodVisitor.visitJumpInsn(IFLT, jumpIfFalseLabel);
+                }
+            }
+
+            // If they are, we will fall through to here. We will need to jump past
+            // the next instructions below.
+            methodVisitor.visitInsn(ICONST_1); // push a constant 'true'.
+
+            methodVisitor.visitJumpInsn(GOTO, jumpPastLabel);
+
+            // This is where our "jumpIfNotEqualLabel" label begins.
+            methodVisitor.visitLabel(jumpIfFalseLabel);
+
+            methodVisitor.visitInsn(ICONST_0); // push a constant 'false'.
+
+            // This is where our "jumpPastLabel" label begins.
+            methodVisitor.visitLabel(jumpPastLabel);
+        }else {
             // Start two labels: One we will jump to if we're not equal, and the
             // other will jump past that case.
             Label jumpIfFalseLabel = new Label();
