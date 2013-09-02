@@ -668,7 +668,7 @@ public class ExpressionsTester {
         if (!r.isSuccessful())
             fail();
         
-        assert(r.getLine(0).equals("true"));
+        assert(r.getLine(0).equals("false"));
     }
     
     @Test
