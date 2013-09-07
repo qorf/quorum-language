@@ -25,6 +25,8 @@ $(function() {
 
 	forgotPasswordShow();
 
+	submitLibraryWizard();
+
 	extendLeftSidebar(); // keep this at the end
 });
 
@@ -470,7 +472,7 @@ var changeCodeExample = function(){
 }
 
 var tab = function(){
-	$("textarea").keydown(function(e) {
+	$("textarea.ide").keydown(function(e) {
     	if(e.keyCode === 9) { 
         	var start = this.selectionStart;
 	        var end = this.selectionEnd;
@@ -514,7 +516,37 @@ var detectEnterKey = function() {
 }
 
 
+var submitLibraryWizard = function () {
+    var checkboxEnableNext = function () {
+        var checkbox = wizard.find(".checkbox input");
+        checkbox.on("click", function () {
+            var button = wizard.find("#wizard-1 .btn-next");
+            var slideVal = button.attr("disabled");
+            console.log(slideVal);
+            if (slideVal == "disabled") {
+                button
+                    .removeAttr("disabled");
 
+                $(button).on("click", function (e) {
+                    wizard.carousel("next");
+                    console.log(wizard)
+                    e.preventDefault();
+                });
+            }
+            else {
+                button
+                    .attr("disabled", "disabled")
+                    .unbind("click");
+            }
+        });
+
+
+    }
+
+    var wizard = $('#submission-wizard');
+    wizard.carousel({ 'interval': false });
+    checkboxEnableNext(wizard);
+}
 
 
 

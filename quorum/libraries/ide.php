@@ -16,7 +16,7 @@
         </div>
     </div>
     <div class="input">
-        <textarea class="inputArea">output "Hello, World!"</textarea>
+        <textarea class="ide inputArea">output "Hello, World!"</textarea>
     </div>
     <div class="output">
         <pre class="outputArea"></pre>

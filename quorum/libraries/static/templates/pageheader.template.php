@@ -26,7 +26,7 @@
 				createCSSLink("http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,400,300,600,700");
 				createCSSLink("http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css");
 				createCSSLink("assets/css/bootstrap.min.css",1);
-				createCSSLink("static/css/stylesheet.less",1,1);
+				createCSSLink("static/css/style.php",1);
 
 				createScriptLink("assets/js/less.min.js", 1);
 				createScriptLink("assets/js/bootstrap.min.js", 1);
