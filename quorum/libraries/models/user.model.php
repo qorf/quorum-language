@@ -8,6 +8,7 @@
 		public $username = "";
 		public $password = "";
 		public $google_id = "";
+		public $administrator = ""; 
 		private $ip;
 
 		function __construct($email, $username, $password, $google_id) {
@@ -21,6 +22,7 @@
 			$this->username = $username;
 			$this->password = sha1(saltPassword($password));
 			$this->google_id = $google_id;
+			$this->administrator = $administrator;
 			$this->ip = $_SERVER['SERVER_ADDR'];
 		}
 
