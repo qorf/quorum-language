@@ -85,8 +85,12 @@ public class InheritanceTester {
         }
         
         RunResult r = CompilerTestSuite.runQuorumFiles(build);
-        if (!r.isSuccessful())
+        if (!r.isSuccessful()) {
             fail();
+        }
+        assert(r.getLine(0).equals("6"));
+        assert(r.getLine(1).equals("5"));
+        assert(r.getLine(1).equals("117"));
     }
 
 //    @Test
