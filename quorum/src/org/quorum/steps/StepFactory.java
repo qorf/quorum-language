@@ -659,7 +659,32 @@ public class StepFactory {
         if(info.isAssignedToMe){
             vd = machine.getSymbolTable().getCurrentClass().getVariable(info.variableName);
         }else{
-            vd = machine.getSymbolTable().getVariable(info.variableName);
+            if(machine.getSymbolTable().getVariable(info.variableName) != null
+                && info.parent != null && machine.getSymbolTable().getCurrentClass() != null
+                && machine.getSymbolTable().getCurrentClass().getParent(info.parent.getStaticKey()) != null
+                && machine.getSymbolTable().getCurrentClass().getParent(
+                    info.parent.getStaticKey()).getVariable(
+                    info.variableName).getStaticKey().equals(
+                    machine.getSymbolTable().getVariable(info.variableName).getStaticKey())
+               ) {
+                ClassDescriptor curClass = machine.getSymbolTable().getCurrentClass();
+                ClassDescriptor parent = curClass.getParent(info.parent.getStaticKey());
+
+                if(parent != null){
+                    VariableDescriptor variable = parent.getVariable(info.variableName);
+                    if(variable != null){
+                        vd = (VariableParameterCommonDescriptor)variable;
+                    }
+                }else{
+                    CompilerError error = new CompilerError(info.location.getStartLine(),
+                        info.parent.getStaticKey() + " is not a parent of the class "
+                        + curClass.getStaticKey(), ErrorType.MISSING_PARENT);
+                    error.setFile(info.location.getFile());
+                    machine.getCompilerErrors().addError(error);
+                }
+            } else {
+                vd = machine.getSymbolTable().getVariable(info.variableName);
+            }
         }
 
         if(vd == null && info.parent != null){
