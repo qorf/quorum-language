@@ -1055,7 +1055,7 @@ public class OtherTester {
     
     @Test
     public void test_nested_function_autobox_alternating_params_bytecode() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "NestedFunctionAutoBoxAlternatingParams.quorum"));
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "NestedFunctionAutoboxAlternatingParams.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
