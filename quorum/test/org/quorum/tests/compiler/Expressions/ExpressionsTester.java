@@ -911,7 +911,7 @@ public class ExpressionsTester {
     
     @Test
     public void test_pass_LTIntDouble_bytecode() {
-        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "LTIntDouble.quorum"));
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXPRESSIONS + CompilerTestSuite.PASS + "LtIntDouble.quorum"));
 
         if (!vm.getCompilerErrors().isCompilationErrorFree()){
             fail();
