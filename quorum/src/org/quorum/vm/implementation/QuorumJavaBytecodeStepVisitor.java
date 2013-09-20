@@ -1970,12 +1970,18 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
         //if you need to cheat temporarily, this will compute the maxS
         //function automatically. This is useful for reverse engineering.
         classWriter = new QuorumClassWriter(ClassWriter.COMPUTE_FRAMES);
+        
         //classWriter = new ClassWriter(0);
         interfaceWriter = new QuorumClassWriter(ClassWriter.COMPUTE_FRAMES);
         //interfaceWriter = new QuorumClassWriter(0);
 
         String staticKey = clazz.getClassDescriptor().getStaticKey();
         currentClass = clazz.getClassDescriptor();
+        if(currentClass != null && currentClass.getFile() != null &&
+                currentClass.getFile().getFile() != null) {
+            String name = currentClass.getFile().getFile().getName();
+            classWriter.visitSource(name, null);
+        }
         currentClassExecution = clazz;
 
         //garbage code to ease debugging, remove for reality.
