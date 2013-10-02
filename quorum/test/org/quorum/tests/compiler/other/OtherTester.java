@@ -117,6 +117,21 @@ public class OtherTester {
         assert(r.getLine(1).equals("true"));
     }
     
+    @Test
+    public void test_frame_error_bytecode() {
+        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "FrameError.quorum"));
+
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFile();
+        if (!r.isSuccessful())
+            fail();
+        
+        assert(r.getLine(0).equals("Worked."));
+    }
+    
 //    @Test
 //    public void test_parameters_with_same_names_as_ivars() {
 //        CompilerTestSuite.build(CompilerTestSuite.getQuorumFile(CompilerTestSuite.OTHER + CompilerTestSuite.PASS + "ParametersWithSameNameAsIVars.quorum"));
