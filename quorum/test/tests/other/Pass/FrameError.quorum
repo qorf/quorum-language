@@ -1,0 +1,14 @@
+class Main
+    action Main 
+        Object test
+        repeat while test:GetHashCode() = 5
+            test = fillToRight()
+        end
+
+        output "Worked."
+    end
+
+    action fillToRight() returns Object
+        return undefined
+    end
+end
