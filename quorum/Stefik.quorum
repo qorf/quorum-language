@@ -1,4 +1,33 @@
 use Libraries.Containers.Array
 
-text value = ""
-a = value:GetCharacter(12)
+class Main
+    Object value
+    action Main 
+        Object test
+        repeat while false//test:GetHashCode() = 5
+            Value = test:GetHashCode() = 5
+            test = fillToRight()
+        end
+        Test(test)
+        test = value
+
+        Array<Object> vals
+        vals:Add(test)
+        Object g = vals:Get(0)
+        monkey = g:GetHashCode()
+
+        output test:GetHashCode()
+        output "it worked."
+    end
+
+    action fillToRight() returns Object
+        Object c
+        return c
+    end
+
+    action Test(Object val)
+        a = val:GetHashCode()
+        val = value
+        a = val:GetHashCode()
+    end
+end

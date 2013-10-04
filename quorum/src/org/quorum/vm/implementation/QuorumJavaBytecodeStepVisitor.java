@@ -3560,8 +3560,8 @@ public class QuorumJavaBytecodeStepVisitor implements ExecutionStepVisitor, Opco
             TypeDescriptor varType = null;
             if (var != null) {
                 varType = stack.getVariable(stack.getMappedVariableNumber(var.getVariableNumber() - currentClass.getNumberOfVariables(), var.getType(), true));
-                if (varType != null) {
-                    isCalledOnInterface = varType.isBytecodeInterface();
+                if (varType != null && !var.getType().isPrimitiveType()) {
+                    isCalledOnInterface = varType.isBytecodeInterface() || !var.isFieldVariable();
                 }
                 
                 if (var.getType().isPrimitiveType()) {
