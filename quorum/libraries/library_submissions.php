@@ -1,12 +1,8 @@
 <?php require_once("static/templates/pageheader.template.php"); ?> 
 <div class="container">
-    <div class="actions">
-        <button {{action 'prevPage'}}>Previous Page</button>
-        <button {{action 'nextPage'}}>Next Page</button>
-    </div>
         
-    <table class='table'>
-        <thead>
+    <table class='table table-bordered' style="background:#F9F9F9;margin-top:40px;">
+        <thead style="background:#EEEEEE;">
             <tr>
                 <th>Library Name <b>^</b></th>
                 <th>Author Name <b>^</b></th>
@@ -19,10 +15,12 @@
         </thead>
         
         <?php 
-        require_once("models/submissions.model.php"); 
+        require_once("models/librarySubmissions.model.php"); 
+        require_once("models/librarySubmission.model.php"); 
               
         $submissions = new LibrarySubmissions($_GET['sort_by'], $_GET['ascending_or_descending'], $_GET['search_query'], $_GET['page']);
         $submissionsResults = $submissions->getPublicSubmissions();
+        
         function displayLibrary($row) {
             $date = new DateTime($row["date_submitted"]);
 
@@ -45,6 +43,20 @@
         }
         print '</tbody></table>';
         ?>
+        
+    <div class="actions clearfix" style="margin: 40px auto 20px; width: 550px; ">
+        <button class="btn btn-primary pull-left">Previous Page</button>
+        <div class="btn-toolbar pull-left" style="margin: 0 90px;">
+          <div class="btn-group">
+            <a class="btn" href="#">1</a>
+            <a class="btn" href="#">2</a>
+            <a class="btn" href="#">3</a>
+            <a class="btn" href="#">4</a>
+            <a class="btn" href="#">5</a>
+          </div>
+        </div>
+        <button class="btn btn-primary pull-right" style="margin-top:-30px;">Next Page</button>
+    </div>
 </div>
 
 <?php require_once("static/templates/pagefooter.template.php"); ?>

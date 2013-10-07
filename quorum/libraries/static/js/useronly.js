@@ -188,20 +188,21 @@ var getRatingsForLibrary = function() {
 	}
 
 	var postData = { classstatickey: $("input#classkey").val() };
-	
-	$.ajax({
-		type: "POST",
-		url: "/controllers/ratings.controller.php?action=getRatingsForLibrary", 
-		dataType: "json",
-		data: postData,
-		success: function(result) {
-			showExistingRatings(result);
-		}/*,
-		error: function (xhr, ajaxOptions, thrownError) {
-			// show an error message
-			console.error(xhr.status);
-			console.error(thrownError);
-		}*/
-	});
 
+	if (postData.classstatickey !== undefined) {
+	    $.ajax({
+		    type: "POST",
+		    url: "/controllers/ratings.controller.php?action=getRatingsForLibrary", 
+		    dataType: "json",
+		    data: postData,
+		    success: function(result) {
+			    showExistingRatings(result);
+		    }/*,
+		    error: function (xhr, ajaxOptions, thrownError) {
+			    // show an error message
+			    console.error(xhr.status);
+			    console.error(thrownError);
+		    }*/
+	    });
+	}
 }

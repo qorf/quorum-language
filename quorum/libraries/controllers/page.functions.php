@@ -82,6 +82,7 @@
     
     function slugify($text)
     { 
+      $text = str_replace("'", "", $text);
       $text = preg_replace('~[^\\pL\d]+~u', '-', $text);
       $text = trim($text, '-');
       $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);

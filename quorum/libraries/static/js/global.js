@@ -27,6 +27,10 @@ $(function() {
 
 	submitLibraryWizard();
 
+	reviewerControls();
+
+	adminControls();
+
 	extendLeftSidebar(); // keep this at the end
 });
 
@@ -549,9 +553,51 @@ var submitLibraryWizard = function () {
 }
 
 
+var reviewerControls = function () {
+    $("#reviewer-feedback-select").on("change", function () {
+        var libraryId = $(this).val();
+        if (libraryId != "") {
+            window.location = "/reviewer_feedback.php?id=" + libraryId;
+        }
+    });
+}
 
 
 
+var adminControls = function () {
+    $("#admin-pending-feedback-select").on("change", function () {
+        var libraryId = $(this).val();
+        if (libraryId != "") {
+            window.location = "/submitted_library.php?id=" + libraryId;
+        }
+    });
+
+    $("#add-user-submit").on("click", function () {
+        var data = {
+            library_id: $("#add-user-to-library-library").val(),
+            username: $("#add-user-to-library-user").val()
+        }
+
+        var endpoint = "/controllers/control_panel.controller.php?action=addUserToLibrary";
+        console.log("click", data, endpoint);
+
+        $.ajax({
+            type: "POST",
+            url: endpoint,
+            data: data,
+            success: function (result) {
+                console.log(result);
+                $("#add-user-to-library").append('<span class="text-success" style="display:block;">' + data.username + ' has been added to library "' + data.library_id + '</span>');
+                setTimeout(function () {
+                    $("#add-user-to-library .text-success").fadeOut('slow', function () { $(this).remove(); });
+                }, 2000);
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                console.log(xhr, ajaxOptions, thrownError);
+            }
+        });
+    });
+}
 
 
 

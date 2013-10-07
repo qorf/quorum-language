@@ -14,7 +14,7 @@
 
 	function Truncate($string, $length, $stopanywhere=false) {
 		if (strlen($string) > $length) {
-			return substr($string,0,$length) . "...";
+			return substr($string,0,$length) . "..";
 		}
 		else {
 			return $string;
@@ -23,7 +23,7 @@
 ?>
 
 <div class="user-controls-loggedin">
-	<h3>Welcome, <?php print Truncate($_COOKIE['username'], 8); ?>!</h3> 
+	<h3><a href="/control_panel.php">Welcome, <u><?php print Truncate($_COOKIE['username'], 10); ?>!</u></a></h3> 
 	<form action="/controllers/user.controller.php?action=signout" method="post">
 		<?php 
 			print '<input type="hidden" name="referer" value="' . getRoot() . getPage() . '" />'; 

@@ -11,7 +11,8 @@ $files = array(
     'download.less',
     'libraries.less',
     'librarysubmissions.less',
-    'index.less'
+    'index.less',
+    'controlpanel.less'
 );
 
 $time = mktime(0,0,0,21,5,1980);

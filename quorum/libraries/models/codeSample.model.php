@@ -68,7 +68,8 @@
 				return 0;
 			}			
 		}
-		public function insertCodeSample()
+
+        public function insertCodeSample()
 		{
 			$sqlQuery = "INSERT INTO " . $this->tableName . " (quorum_version, code, output, times_requested) VALUES (?, ?, ?, ?)";
 			$valuesToPrepare = array($this->quorumVersion, $this->code, $this->output, $this->timesRequested);

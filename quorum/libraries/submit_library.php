@@ -1,6 +1,8 @@
 <?php require_once("static/templates/pageheader.template.php"); ?>
 
 <?php
+require("models/librarySubmission.model.php");
+
 function send_email() {
     $to      = 'nobody@example.com';
     $subject = 'A Library Submission has been made';
@@ -30,6 +32,51 @@ function error_message($msg) {
     return '<li class="text-error">' . $msg . '</span>';
 }
 
+
+function insert_to_database() {
+    $library_slug = slugify($_POST['library-name']);
+    
+    $check_for_id_existence = new LibrarySubmission($library_slug, null, null, null, null, null, null, null, null, null, null);
+    $library_exists = !($check_for_id_existence->getSubmissionByID());
+    
+    if ($library_exists) {    
+        $submissionURL = "/submissions/" . $_FILES["library-supplements"]["name"];
+        $supplementaryFilesURL = isset($_FILES["library-supplements"]) ? "/submissions/supplements/" . $_FILES["library-supplements"]["name"] : "";
+    
+        $submission = new LibrarySubmission($library_slug, $_POST['library-name'], $_COOKIE['username'], $_POST['author-name'], $_POST['library-description'], $_POST['library-usage'], $submissionURL, $supplementaryFilesURL, 1, "pending-reviewer", date("Y-m-d H:i:s"));
+        try {
+            $submission->insertSubmission();            
+            return true;
+        }
+        catch (Exception $ex) {
+            return false; 
+        }   
+    }
+    return false;
+}
+
+function email_administrators() {
+    // Check that the library ID exists, and if so, append a number to it. 
+}
+
+function upload_files() {
+    try {
+        $submissions_save_location = "/home/stefika/public_html/test/submissions/" . $_FILES["library-files"]["name"];
+        $tmp_name =  $_FILES["library-files"]["tmp_name"];
+        $result = move_uploaded_file( $tmp_name, $submissions_save_location );
+    
+        if (isset($_FILES["library-supplements"])) {
+            $tmp_name =  $_FILES["library-supplements"]["tmp_name"];
+            $supplements_save_location = "/home/stefika/public_html/test/submissions/supplements/" . $_FILES["library-supplements"]["name"];
+            move_uploaded_file( $tmp_name, $supplements_save_location );
+        }
+        return true;
+    }
+    catch (Exception $ex) {
+        return false;
+    }
+}
+
 function process_post() {
      if ($_GET['post'] == "true") {
         $errors = "";
@@ -50,7 +97,8 @@ function process_post() {
             if ($_FILES["library-files"]["size"] >= 524288) {
                 $errors .= error_message("Your submission exceeds the maximum file size.");
             }
-            if ($_FILES["library-files"]["type"] != "application/zip") {
+            $file_type = $_FILES["library-files"]["type"];
+            if ($file_type != "application/zip" && $file_type != "application/x-zip-compressed") {
                 $errors .= error_message("Your submission must be a ZIP file.");
             }
         }
@@ -58,7 +106,8 @@ function process_post() {
             $errors .= error_message("Please enter a submission file.");
         }
         if (isset($_FILES["library-supplements"])) {
-            if ($_FILES["library-supplements"]["type"] != "application/zip") {
+            $file_type = $_FILES["library-supplements"]["type"];
+            if ($file_type != "application/zip" && $file_type != "application/x-zip-compressed") {
                 $errors .= error_message("Your supplement file must be a ZIP file.");
             }
         }
@@ -67,29 +116,32 @@ function process_post() {
             return '<ul class=" container errors">' . $errors . '</ul>';
         }
         
-        move_uploaded_file(
-            $_FILES["library-files"]["tmp_name"],
-            "/library-submissions/" . $_FILES["library-files"]["name"]
-        );
-        
-        if (isset($_FILES["library-supplements"])) {
-            move_uploaded_file(
-                $_FILES["library-supplements"]["tmp_name"],
-                "/library-submissions/supplements" . $_FILES["library-supplements"]["name"]
-            );
+        // At this point, we know there are no errors so post to the DB upload the files.
+        if (insert_to_database()) {
+            if (upload_files()) {
+                email_administrators();
+            }
+            else {
+                // could not upload files
+                return '<ul class=" container errors"><li class="text-error">There was an error uploading your files.</span></ul>';
+            }
+        }
+        else {
+            // could not insert to database
+            return '<ul class=" container errors"><li class="text-error">This library name already exists on in our database.</span></ul>';
         }
         
         return false;
     }
-     return "";
+     return true;
 }
 
 $errors = process_post();
 
-if ($errors != false) {
+if ($errors == false) { // Successful submission
 ?>
 
-<div id="library-submission-wizard-container container">
+<div class="library-submission-wizard-container container">
 	<h1 class="container">Submit a Library to Quorum</h1>
     <h2>Your submission has been received!</h2>
     <p>Some text here about what happens with submission.</p>
@@ -102,7 +154,9 @@ else {
 
 <div id="library-submission-wizard-container">
 	<h1 class="container">Submit a Library to Quorum</h1>
-    <?php print $errors; ?>
+    <?php     
+    if (isset($_COOKIE['username'])) {
+    ?>
 	<form id="library-submission" class="form-horizontal" method="post" action="?post=true" enctype="multipart/form-data">
 		<div id="submission-wizard" class="carousel">
 			<div class="carousel-inner">
@@ -130,7 +184,7 @@ else {
 						<div class="control-group">
 							<label class="control-label" for="library-name">Name of the Library Submission</label>
 							<div class="controls">
-                                <?php create_input("library-name", "Email"); ?>
+                                <?php create_input("library-name", "Library Name"); ?>
 							</div>
 						</div>
 						<div class="control-group">
@@ -152,7 +206,7 @@ else {
 							</div>
 						</div>
 						<div class="actions clearfix">
-							<a class="btn btn-previous pull-left" href="#submission-wizard" data-slide="previous">Back</a>
+							<a class="btn btn-previous pull-left" href="#submission-wizard" data-slide="prev">Back</a>
 							<a class="btn btn-primary btn-next pull-right" href="#submission-wizard" data-slide="next">Next</a>
 						</div>
 					</div>
@@ -174,14 +228,21 @@ else {
 							</div>
 						</div>
 						<div class="actions clearfix">
-							<a class="btn btn-previous pull-left" href="#submission-wizard" data-slide="previous">Back</a>
+							<a class="btn btn-previous pull-left" href="#submission-wizard" data-slide="prev">Back</a>
 							<input type="submit" class="btn btn-primary btn-submit pull-right" value="Submit">
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-	</form>
+	</form>   
+    
+    <?php            
+    }
+    else { // User is not logged in
+        echo "<h1>You must be registered to submit a library to Quorum.</h1>";
+    }
+    ?>
 </div>
 <?php
 }

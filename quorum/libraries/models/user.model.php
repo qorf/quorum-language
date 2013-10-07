@@ -1,6 +1,6 @@
 <?php
 	require_once("data.model.php");
-	require_once("../config.php");
+	require_once("config.php");
 
 	class User extends QuorumDataModel {
 		private $table_name = "sodbeans_users";
@@ -37,9 +37,7 @@
 				return true;
 			}
 			catch (Exception $ex) {
-				var_dump($valuesToPrepare);
 				$preparedStatement = $this->connection->prepare($sqlQuery);
-				var_dump($preparedStatement->errorInfo());
 				return false;
 			}
 
@@ -104,6 +102,36 @@
 				$this->password = $result[0]['password'];
 
 				return true;
+			}
+
+			return false;
+		}
+
+		public function getDataFromUsername() {
+			$sqlQuery = "SELECT * FROM " . $this->table_name . " WHERE username=?";
+			$valuesToPrepare = array($this->username);
+
+			$preparedStatement = $this->connection->prepare($sqlQuery);
+			$preparedStatement->execute($valuesToPrepare);
+
+			if ($preparedStatement->rowCount() == 1) {
+				$result = $preparedStatement->fetchAll();
+				$this->email = $result[0]['email'];
+				$this->administrator = $result[0]['administrator'];
+				return true;
+			}
+
+			return false;
+		}
+
+		public function getAllUsers() {
+			$sqlQuery = "SELECT * FROM " . $this->table_name;
+
+			$preparedStatement = $this->connection->prepare($sqlQuery);
+			$preparedStatement->execute();
+
+			if ($preparedStatement->rowCount() > 0) {
+				return $preparedStatement->fetchAll();
 			}
 
 			return false;
