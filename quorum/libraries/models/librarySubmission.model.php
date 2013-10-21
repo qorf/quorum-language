@@ -64,9 +64,9 @@
             if ($this->status == "pending-reviewer") {
                 $this->status = "pending-admin";
             }
-            $sqlQuery = "UPDATE " . $this->submissionsTable . " SET public_display=?, status=? WHERE library_id=?";            
 			$valuesToPrepare = array($this->public_display, $this->status, $this->libraryID);
 			$queryResults = $this->attemptQueryWithValues($sqlQuery,$valuesToPrepare);
 		}
+
     }
     

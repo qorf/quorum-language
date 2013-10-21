@@ -30,12 +30,28 @@
             $queryResults = $this->attemptQueryWithValues($query, $values);
             return $this->returnResultsOfQuery($queryResults);
         }
-        
+
+        public function getPublicLibrarySubmisionCount()
+        {
+            $public = '1';
+            $values = array($public);
+            $query = "SELECT COUNT(*) FROM " . $this->submissionsTable . " WHERE public_display = ?";
+            $queryResults = $this->attemptQueryWithValues($query, $values);
+            return $this->returnResultsOfQuery($queryResults);
+        }
+
         public function getAllSubmissions() {
             $values = array();
             $query = "SELECT * FROM " . $this->submissionsTable . " " . $this->search($values) . $this->orderBy($values) . $this->limit($values);
             $queryResults = $this->attemptQueryWithValues($query, $values);
             return $this->returnResultsOfQuery($queryResults);
+        }
+
+        public function getLibrarySubmisionCount()
+        {
+            $sqlQuery = "SELECT COUNT(*) FROM" . $this->submissionsTable;
+            return $this->returnResultsOfQuery($queryResults);
+
         }
 
         public function getLibrarySubmissionsForUser($authorName) {
