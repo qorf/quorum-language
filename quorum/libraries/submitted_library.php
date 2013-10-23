@@ -35,7 +35,7 @@ if (isset($_GET['id'])) {
             $submissionReviews = $submissionReviews->getFeedbackForLibrary();
             
             echo '<div class="submission-reviews">';
-            if (count($submissionReviews)) {
+            if ($submissionReviews == true && $submissionReviews > 0) {
                 echo '<h3>Feedback for this review</h3><ul class="no-bullets">';
                 foreach ($submissionReviews as $review)
                 {

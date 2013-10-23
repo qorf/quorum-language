@@ -10,7 +10,7 @@
         private $submissionsTable = "library_submissions";
         private $reviewersTable = "library_submission_reviewer";
         public $quorumVersion = "2.0";
-        public $order_by = "upvotes";
+        public $order_by = "date_submitted";
         public $ascending_or_descending = "DESC";
         public $search_query = "";
         public $page = 0;
@@ -26,7 +26,7 @@
         
         public function getPublicSubmissions() {
             $values = array();
-            $query = "SELECT * FROM " . $this->submissionsTable . " WHERE public_display = '1'" . $this->search($values) . $this->orderBy($values) . $this->limit($values);
+            $query = "SELECT * FROM " . $this->submissionsTable . " WHERE public_display = '1'" . $this->orderBy($values) . $this->limit($values);
             $queryResults = $this->attemptQueryWithValues($query, $values);
             return $this->returnResultsOfQuery($queryResults);
         }
@@ -42,7 +42,7 @@
 
         public function getAllSubmissions() {
             $values = array();
-            $query = "SELECT * FROM " . $this->submissionsTable . " " . $this->search($values) . $this->orderBy($values) . $this->limit($values);
+            $query = "SELECT * FROM " . $this->submissionsTable . " " . $this->orderBy($values) . $this->limit($values);
             $queryResults = $this->attemptQueryWithValues($query, $values);
             return $this->returnResultsOfQuery($queryResults);
         }

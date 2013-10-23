@@ -12,6 +12,15 @@
 	}
 
 
+	function Truncate($string, $length, $stopanywhere=false) {
+		if (strlen($string) > $length) {
+			return substr($string,0,$length) . "..";
+		}
+		else {
+			return $string;
+		}
+	}
+
 	function createPageTitle() {
 		$classPageTitle = $GLOBALS["classPageTitle"];
                 
