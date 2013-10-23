@@ -63,7 +63,7 @@
         }
         
         public function getFeedbackForLibraryAndUser() {
-            $values = array($this->libraryID, $_COOKIE['username']);
+            $values = array($this->libraryID, $this->username);
             $query = "SELECT * FROM " . $this->reviewsTable . " WHERE library_id = ? AND username = ?";
             $queryResults = $this->attemptQueryWithValues($query, $values); // the results
             $fetchResults = $this->returnResultsOfQuery($queryResults);     // the results in form of an array

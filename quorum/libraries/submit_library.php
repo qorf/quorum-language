@@ -2,6 +2,7 @@
 
 <?php
 require("models/librarySubmission.model.php");
+require("models/user.model.php");
 
 function send_email() {
     $to      = 'nobody@example.com';
@@ -154,93 +155,113 @@ else {
 
 <div id="library-submission-wizard-container">
 	<h1 class="container">Submit a Library to Quorum</h1>
-    <?php     
+    <?php
     if (isset($_COOKIE['username'])) {
+        $user = new User(null, $_COOKIE['username'], null, null);
+        $user->getDataFromUsername();
+
+        if (trim($user->first_name) == "" || trim($user->last_name) == "") {
     ?>
-	<form id="library-submission" class="form-horizontal" method="post" action="?post=true" enctype="multipart/form-data">
-		<div id="submission-wizard" class="carousel">
-			<div class="carousel-inner">
-				<div class="active item" id="wizard-1">
-					<div class="container">
-						<h2>Software License Agreement (BSD License)</h2>
-						<h3>Copyright &copy; 2013 Quorum Language All rights reserved.</h3>
-						<p>Redistribution and use of this software in source and binary forms, with or without modification, are permitted provided that the following conditions are met:</p>
-						<ul>
-							<li>Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.</li>
-							<li>Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.</li>
-						</ul>
-						<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
-						<div class="actions clearfix">
-							<a class="btn btn-primary btn-next pull-right" href="#submission-wizard" disabled>Next</a>
-							<label class="checkbox pull-right">
-							<input type="checkbox" id="agree-to-bsd" value="">
-							I agree to submit my work under the BSD license
-							</label>
-						</div>
-					</div>
-				</div>
-				<div class="item" id="wizard-2">
-					<div class="container">
-						<div class="control-group">
-							<label class="control-label" for="library-name">Name of the Library Submission</label>
-							<div class="controls">
-                                <?php create_input("library-name", "Library Name"); ?>
-							</div>
-						</div>
-						<div class="control-group">
-							<label class="control-label" for="author-name">Name of the Submission's Author(s)</label>
-							<div class="controls">
-                                <?php create_input("author-name", "Author Name(s)"); ?>
-							</div>
-						</div>
-						<div class="control-group">
-							<label class="control-label" for="library-description">Description of the Library Submission</label>
-							<div class="controls">
-                                <?php create_input("library-description", "", true); ?>
-							</div>
-						</div>
-						<div class="control-group">
-							<label class="control-label" for="library-usage">Instructions on the Library's Usage</label>
-							<div class="controls">
-                                <?php create_input("library-usage", "", true); ?>
-							</div>
-						</div>
-						<div class="actions clearfix">
-							<a class="btn btn-previous pull-left" href="#submission-wizard" data-slide="prev">Back</a>
-							<a class="btn btn-primary btn-next pull-right" href="#submission-wizard" data-slide="next">Next</a>
-						</div>
-					</div>
-				</div>
-				<div class="item" id="wizard-3">
-					<div class="container">
-						<div class="control-group">
-							<label class="control-label" for="library-files">Library Submission Files</label>
-							<div class="controls">
-								<input type="file" id="library-files" name="library-files" placeholder="">
-								<span class="help-block"><em>Note: ZIP files only. Please upload only text files in the archive and do not upload any binaries. <br />Maximum file size: 512KB</em></span>
-							</div>
-						</div>
-						<div class="control-group">
-							<label class="control-label" for="library-supplements">Supplementary Files</label>
-							<div class="controls">
-								<input type="file" id="library-supplements" name="library-supplements" placeholder="">
-								<span class="help-block">Upload any files relevant to the submission that can help users understand your submission, such as usability studies or testing results.</span>
-							</div>
-						</div>
-						<div class="actions clearfix">
-							<a class="btn btn-previous pull-left" href="#submission-wizard" data-slide="prev">Back</a>
-							<input type="submit" class="btn btn-primary btn-submit pull-right" value="Submit">
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</form>   
-    
+
+    <div class="container">
+        <h4 class="text-info">
+            To submit a library, we need to have your first and last name. To continue with
+            submitting a library, please go to the control panel and update your profile with 
+            your legal first and last name. Thank you for your interest in submitting to
+            the Quorum standard library!
+        </h4>
+    </div>
+
+    <?php
+        }
+        else {
+    ?>
+    	<form id="library-submission" class="form-horizontal" method="post" action="?post=true" enctype="multipart/form-data">
+    		<div id="submission-wizard" class="carousel">
+    			<div class="carousel-inner">
+    				<div class="active item" id="wizard-1">
+    					<div class="container">
+    						<h2>Quorum Project Contributors Certification of Origin and Rights</h2>
+                            <p> contributors to the Quorum Programming Language must formally agree to abide by this certificate of origin by signing on the bottom with their quorumlanguage.com userid, full name, email address (you can obscure your e-mail, but it must be computable by human), and date.</p>
+                            <p>By signing this agreement, you are warranting and representing that you have the right to release code contributions or other content free of any obligations to third parties and are granting Andreas Stefik and Quorum project contributors, henceforth referred to as The Quorum Project, a license to incorporate it into The Quorum Project tools (such as Sodbeans and the Quorum standard library) or related works under the BSD license. You understand that The Quorum Project may or may not incorporate your contribution and you warrant and represent the following:</p>
+                            <ol>
+                                <li> I am the creator of all my contributions. I am the author of all contributed work submitted and further warrant and represent that such work is my original creation and I have the right to license it to The Quorum Project for release under the 3-clause BSD license. I hereby grant The Quorum Project a nonexclusive, irrevocable, royalty-free, worldwide license to reproduce, distribute, prepare derivative works, and otherwise use this contribution as part of the Quorum project, associated documentation, books, and tools at no cost to The Quorum Project. </li>
+                                <li>I have the right to submit. This submission does not violate the rights of any person or entity and that I have legal authority over this submission and to make this certification.</li>
+                                <li>If I violate another's rights, liability lies with me. I agree to defend, indemnify, and hold The Quorum Project and Quorum users harmless from any claim or demand, including reasonable attorney fees, made by any third party due to or arising out of my violation of these terms and conditions or my violation of the rights of another person or entity.</li>
+                                <li>I understand and agree that this project and the contribution are public and that a record of the contribution (including all personal information I submit with it, including my sign-off) is maintained indefinitely and may be redistributed consistent with this project or the open source license indicated in the file.</li>
+                            </ol>
+
+    						<div class="actions clearfix">
+    							<a class="btn btn-primary btn-next pull-right" href="#submission-wizard" disabled>Next</a>
+    							<label class="checkbox pull-right">
+    							<input type="checkbox" id="agree-to-bsd" value="">
+    							I have read this agreement and do so certify by adding my signoff to the end of the following contributors list.
+    							</label>
+    						</div>
+    					</div>
+    				</div>
+    				<div class="item" id="wizard-2">
+    					<div class="container">
+    						<div class="control-group">
+    							<label class="control-label" for="library-name">Name of the Library Submission</label>
+    							<div class="controls">
+                                    <?php create_input("library-name", "Library Name"); ?>
+    							</div>
+    						</div>
+    						<div class="control-group">
+    							<label class="control-label" for="author-name">Name of the Submission's Author(s)</label>
+    							<div class="controls">
+                                    <?php create_input("author-name", "Author Name(s)"); ?>
+    							</div>
+    						</div>
+    						<div class="control-group">
+    							<label class="control-label" for="library-description">Description of the Library Submission</label>
+    							<div class="controls">
+                                    <?php create_input("library-description", "", true); ?>
+    							</div>
+    						</div>
+    						<div class="control-group">
+    							<label class="control-label" for="library-usage">Instructions on the Library's Usage</label>
+    							<div class="controls">
+                                    <?php create_input("library-usage", "", true); ?>
+    							</div>
+    						</div>
+    						<div class="actions clearfix">
+    							<a class="btn btn-previous pull-left" href="#submission-wizard" data-slide="prev">Back</a>
+    							<a class="btn btn-primary btn-next pull-right" href="#submission-wizard" data-slide="next">Next</a>
+    						</div>
+    					</div>
+    				</div>
+    				<div class="item" id="wizard-3">
+    					<div class="container">
+    						<div class="control-group">
+    							<label class="control-label" for="library-files">Library Submission Files</label>
+    							<div class="controls">
+    								<input type="file" id="library-files" name="library-files" placeholder="">
+    								<span class="help-block"><em>Note: ZIP files only. Please upload only text files in the archive and do not upload any binaries. <br />Maximum file size: 512KB</em></span>
+    							</div>
+    						</div>
+    						<div class="control-group">
+    							<label class="control-label" for="library-supplements">Supplementary Files</label>
+    							<div class="controls">
+    								<input type="file" id="library-supplements" name="library-supplements" placeholder="">
+    								<span class="help-block">Upload any files relevant to the submission that can help users understand your submission, such as usability studies or testing results.</span>
+    							</div>
+    						</div>
+    						<div class="actions clearfix">
+    							<a class="btn btn-previous pull-left" href="#submission-wizard" data-slide="prev">Back</a>
+    							<input type="submit" class="btn btn-primary btn-submit pull-right" value="Submit">
+    						</div>
+    					</div>
+    				</div>
+    			</div>
+    		</div>
+    	</form>   
     <?php            
+        }
     }
     else { // User is not logged in
-        echo "<h1>You must be registered to submit a library to Quorum.</h1>";
+        echo '<div class="container"><h4 class="text-info">You must be registered and logged in to submit a library to Quorum.</h4></div>';
     }
     ?>
 </div>

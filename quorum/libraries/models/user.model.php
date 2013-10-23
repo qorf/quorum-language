@@ -9,9 +9,11 @@
 		public $password = "";
 		public $google_id = "";
 		public $administrator = ""; 
+		public $first_name = "";
+		public $last_name = "";
 		private $ip;
 
-		function __construct($email, $username, $password, $google_id) {
+		function __construct($email, $username, $password, $google_id, $first_name = "", $last_name = "") {
 			parent::__construct();
 
 			if ($password == null || $password == "") {
@@ -23,13 +25,15 @@
 			$this->password = sha1(saltPassword($password));
 			$this->google_id = $google_id;
 			$this->administrator = $administrator;
+			$this->first_name = $first_name;
+			$this->last_name = $last_name;
 			$this->ip = $_SERVER['SERVER_ADDR'];
 		}
 
 		public function insert() {
-			$sqlQuery = "INSERT INTO " . $this->table_name . " (email, username, password, reset_password_key, reset_password_expire, google_id) VALUES (?, ?, ?, NULL, NULL, ?)";
+			$sqlQuery = "INSERT INTO " . $this->table_name . " (email, username, password, reset_password_key, reset_password_expire, google_id, first_name, last_name) VALUES (?, ?, ?, NULL, NULL, ?, ?, ?)";
 
-			$valuesToPrepare = array($this->email, $this->username, $this->password, $this->google_id);
+			$valuesToPrepare = array($this->email, $this->username, $this->password, $this->google_id, $this->first_name, $this->last_name);
 
 			try {
 				$preparedStatement = $this->connection->prepare($sqlQuery);
@@ -118,6 +122,8 @@
 				$result = $preparedStatement->fetchAll();
 				$this->email = $result[0]['email'];
 				$this->administrator = $result[0]['administrator'];
+				$this->first_name = $result[0]['first_name'];
+				$this->last_name = $result[0]['last_name'];
 				return true;
 			}
 
@@ -135,6 +141,12 @@
 			}
 
 			return false;
+		}
+
+		public function updateUser() {
+			$values = array($this->password, $this->first_name, $this->last_name, $this->username);
+			$preparedStatement = $this->connection->prepare('UPDATE sodbeans_users SET password=?, first_name=?, last_name = ? WHERE username=?');
+			$preparedStatement->execute($values);
 		}
 	}
 ?>

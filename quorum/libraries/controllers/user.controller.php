@@ -6,8 +6,10 @@
 		$username = $_POST['registration-username'];
 		$password = $_POST['registration-password'];
 		$google_id = $_POST['registration-identity'];
+		$first_name = $_POST['registration-first-name'];
+		$last_name = $_POST['registration-last-name'];
 
-		$user = new User($email, $username, $password, $google_id);
+		$user = new User($email, $username, $password, $google_id, $first_name, $last_name);
 		
 		if ($user->insert() == true) {
 			try {

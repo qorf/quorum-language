@@ -30,7 +30,7 @@ if (isset($_GET['id'])) {
 <?php
         $user = new User(null, $_COOKIE['username'], null, null);
         $user->getDataFromUsername();
-        if ($user->administrator) {
+        if ($user->administrator || ($_COOKIE['username'] == $library->uploaderUsername)) {
             $submissionReviews= new LibrarySubmissionReview($library->libraryID, null, null, null, null, null, null);
             $submissionReviews = $submissionReviews->getFeedbackForLibrary();
             
@@ -46,8 +46,13 @@ if (isset($_GET['id'])) {
             else {
                 echo '<p>There has been no feedback submitted for this library.</p>';
             }
-            
         }    
+
+        if ($user->administrator == 1) {
+            echo '<a href="/admin_feedback.php?id=' . $library->libraryID . '" class="btn btn-primary btn-admin-review">Create Administrator Review</a>';
+        }
+
+        echo '</div>'; // </div.submission-review>
 }
 ?>
 <?php include("static/templates/pagefooter.template.php"); ?>

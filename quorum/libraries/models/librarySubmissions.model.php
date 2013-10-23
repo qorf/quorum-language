@@ -6,15 +6,15 @@
     * 
     */
     class LibrarySubmissions extends QuorumDataModel {
-	   
-	    private $submissionsTable = "library_submissions";
-	    private $reviewersTable = "library_submission_reviewer";
-	    public $quorumVersion = "2.0";
-	    public $order_by = "upvotes";
-	    public $ascending_or_descending = "DESC";
-	    public $search_query = "";
-	    public $page = 0;
-	    public $countPerPage = 25;
+       
+        private $submissionsTable = "library_submissions";
+        private $reviewersTable = "library_submission_reviewer";
+        public $quorumVersion = "2.0";
+        public $order_by = "upvotes";
+        public $ascending_or_descending = "DESC";
+        public $search_query = "";
+        public $page = 0;
+        public $countPerPage = 25;
     
         function __construct($order_by, $ascending_or_descending, $search_query, $page) {
              parent::__construct();
@@ -30,12 +30,28 @@
             $queryResults = $this->attemptQueryWithValues($query, $values);
             return $this->returnResultsOfQuery($queryResults);
         }
-        
+
+        public function getPublicLibrarySubmisionCount()
+        {
+            $public = '1';
+            $values = array($public);
+            $query = "SELECT COUNT(*) FROM " . $this->submissionsTable . " WHERE public_display = ?";
+            $queryResults = $this->attemptQueryWithValues($query, $values);
+            return $this->returnResultsOfQuery($queryResults);
+        }
+
         public function getAllSubmissions() {
             $values = array();
             $query = "SELECT * FROM " . $this->submissionsTable . " " . $this->search($values) . $this->orderBy($values) . $this->limit($values);
             $queryResults = $this->attemptQueryWithValues($query, $values);
             return $this->returnResultsOfQuery($queryResults);
+        }
+
+        public function getLibrarySubmisionCount()
+        {
+            $sqlQuery = "SELECT COUNT(*) FROM" . $this->submissionsTable;
+            return $this->returnResultsOfQuery($queryResults);
+
         }
 
         public function getLibrarySubmissionsForUser($authorName) {

@@ -3,7 +3,7 @@
 <?php include("models/librarySubmission.model.php"); ?>
 
 <div class="container content" id="reviewer-feedback">
-    <h1>Submit Feedback</h1>
+    <h1>Submit Admin Feedback</h1>
     <div id="library-info">
     <?php
         function displayLibrary($row) {
@@ -21,9 +21,10 @@
             return $html;
         }
 
-        if ($_GET['library_id']) {
-            $library = new LibrarySubmission($_GET['library_id'], null, null, null, null, null, null, null, null, null, null);
-            $library = $library->getSubmissionByID();
+        $library = new LibrarySubmission($_GET['id'], null, null, null, null, null, null, null, null, null, null);
+        $library = $library->getSubmissionByID();
+
+        if ($_GET['id'] && (!isset($_POST['decision']))) {
     ?>
    
     <div class="container well">
@@ -106,6 +107,18 @@
             
             $review = new LibrarySubmissionReview($_POST['library_id'], $_COOKIE['username'], $_POST['feedback'], $_POST['confidential_feedback'], $_POST['decision'], $technical, $usability);
             $review->insertReview();
+
+            $library->status = $_POST['decision'];
+            $library->public_display = 0;
+
+            $library->updateSubmissionStatus();
+    ?>
+   
+    <div class="container">
+        <h3 class="text-info">Your feedback has been submitted. The library has been set to "<?php echo $_POST['decision']; ?>"</h3>
+    </div>
+
+    <?php
         }
     ?>
     

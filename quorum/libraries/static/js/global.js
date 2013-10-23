@@ -146,6 +146,22 @@ var validateConfirmPassword = function() {
 	}
 }
 
+var validateFirstName = function(name) {
+	if (name == undefined || $.trim(name) == "") {
+		return false;
+	}
+
+	return true;
+}
+
+var validateLastName = function(name) {
+	if (name == undefined || $.trim(name) == "") {
+		return false;
+	}
+
+	return true;
+}
+
 var registerUser = function() {
 	var buttons = $("#modal-registration .modal-footer button");
 	var spinner = $("#modal-registration .modal-footer .loading-spinner");
@@ -183,17 +199,6 @@ var registerUser = function() {
 	});
 }
 
-// var showUserHeaderControls = function() {
-// 	$.ajax({
-// 		url: "/static/templates/user-headercontrols.template.php",
-// 		context: document.body
-// 	}).done(function(data) {
-// 		$(".user-controls-loggedout").remove();
-// 		$(".user-controls").html(data);
-// 	});
-// }
-
-
 var loginDisplayValidateAndSubmit = function() {
 	$('#modal-login').modal();
 	$("#modal-registration button.btn-primary").on("click", function() {
@@ -206,28 +211,40 @@ var registrationValidateAndSubmit = function() {
 		var emailField = $("#registration-email");
 		var usernameField = $("#registration-username");
 		var passwordField = $("#registration-password");
+		var firstNameField = $("#registration-first-name");
+		var lastNameField = $("#registration-last-name");
 
 		var email = emailField.val();
 		var username = usernameField.val();
 		var password = passwordField.val();
+		var firstName = firstNameField.val();
+		var lastName = lastNameField.val();
 
 		var textError = $("#modal-registration .text-error");
 		var emailError = $(textError[0]);
 		var usernameError = $(textError[1]);
-		var passwordError = $(textError[2]);
-		var confirmError = $(textError[3]);
+		var firstNameError = $(textError[2]);
+		var lastNameError = $(textError[3]);
+		var passwordError = $(textError[4]);
+		var confirmError = $(textError[5]);
+
+		console.log(lastName, firstName);
 
 		var emailIsValid = validateEmail(email);
 		var usernameIsValid = validateUsername(username);
 		var passwordIsValid = validatePassword(password);
 		var confirmIsValid = validateConfirmPassword();
+		var firstNameIsValid = validateFirstName(firstName);
+		var lastNameIsValid = validateLastName(lastName);
 
 		emailError.hide();
 		usernameError.hide();
 		passwordError.hide();
 		confirmError.hide();
+		firstNameError.hide();
+		lastNameError.hide();
 
-		if (emailIsValid && usernameIsValid && passwordIsValid && confirmIsValid) {
+		if (emailIsValid && usernameIsValid && passwordIsValid && confirmIsValid && firstNameIsValid && lastNameIsValid) {
 			registerUser();
 		}
 		else {
@@ -243,6 +260,16 @@ var registrationValidateAndSubmit = function() {
 			if (!confirmIsValid) {
 				confirmError.show();
 			}
+			
+			if (!firstNameIsValid) {
+				firstNameError.show();
+			}
+			else { firstNameError.hide(); }
+
+			if (!lastNameIsValid) {
+				lastNameError.show();
+			}
+			else { lastNameError.hide(); }
 
 			return false;
 		}
@@ -278,6 +305,28 @@ var registrationValidateAndSubmit = function() {
 		}
 		else {
 			passwordError.show();
+		}
+	});
+
+	$("#registration-first-name").on("blur", function() {
+		var firstNameError = $("#modal-registration .first-name .text-error");
+
+		if (validateFirstName($(this).val())) {
+			firstNameError.hide();
+		}
+		else {
+			firstNameError.show();
+		}
+	});
+
+	$("#registration-last-name").on("blur", function() {
+		var lastNameError = $("#modal-registration .last-name .text-error");
+
+		if (validateLastName($(this).val())) {
+			lastNameError.hide();
+		}
+		else {
+			lastNameError.show();
 		}
 	});
 }

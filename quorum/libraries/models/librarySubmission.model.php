@@ -52,21 +52,21 @@
         }
 
         public function insertSubmission()
-		{
+        {
             $sqlQuery = "INSERT INTO " . $this->submissionsTable . " (library_id, library_name, uploader_username, author_name, library_description, usage_instructions, submission_url, supplementary_files_url, public_display, status, date_submitted)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-			$valuesToPrepare = array($this->libraryID, $this->libraryName, $this->uploaderUsername, $this->authorName, $this->libraryDescription, $this->usageInstructions, $this->submissionURL, $this->supplementaryFilesURL, $this->public_display, $this->status, $this->dateSubmitted);
-			$queryResults = $this->attemptQueryWithValues($sqlQuery,$valuesToPrepare);
-		}
+            $valuesToPrepare = array($this->libraryID, $this->libraryName, $this->uploaderUsername, $this->authorName, $this->libraryDescription, $this->usageInstructions, $this->submissionURL, $this->supplementaryFilesURL, $this->public_display, $this->status, $this->dateSubmitted);
+            $queryResults = $this->attemptQueryWithValues($sqlQuery,$valuesToPrepare);
+        }
 
         public function updateSubmissionStatus()
-		{
+        {
             if ($this->status == "pending-reviewer") {
                 $this->status = "pending-admin";
             }
-            $sqlQuery = "UPDATE " . $this->submissionsTable . " SET public_display=?, status=? WHERE library_id=?";            
-			$valuesToPrepare = array($this->public_display, $this->status, $this->libraryID);
-			$queryResults = $this->attemptQueryWithValues($sqlQuery,$valuesToPrepare);
-		}
+            $valuesToPrepare = array($this->public_display, $this->status, $this->libraryID);
+            $queryResults = $this->attemptQueryWithValues($sqlQuery,$valuesToPrepare);
+        }
+
     }
     

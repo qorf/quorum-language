@@ -64,6 +64,20 @@
             <p class="text-error">Please enter a valid username</p>
           </div>
         </div>
+        <div class="control-group first-name">
+          <label class="control-label" for="registration-first-name">First Name</label>
+          <div class="controls">
+            <input type="text" class="input-xlarge" name="registration-first-name" id="registration-first-name" />
+            <p class="text-error">Please enter your first name</p>
+          </div>
+        </div>
+        <div class="control-group last-name">
+          <label class="control-label" for="registration-last-name">Last Name</label>
+          <div class="controls">
+            <input type="text" class="input-xlarge" name="registration-last-name" id="registration-last-name" />
+            <p class="text-error">Please enter your last name</p>
+          </div>
+        </div>
         <?php if ($state != "googleValid") { ?>
             <div class="control-group password">
               <label class="control-label" for="registration-password">Password</label>

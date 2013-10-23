@@ -10,6 +10,12 @@
     <ProjectTypeGuids>{A0786B88-2ADB-4C21-ABE8-AA2D79766269}</ProjectTypeGuids>
     <AssemblyName>Quorum Language Site</AssemblyName>
     <IISProjectUrl>http://localhost:39812/</IISProjectUrl>
+    <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+    <Server>Custom</Server>
+    <CustomServerUrl>http://test.quorumlanguage.com/</CustomServerUrl>
+    <PublishEvent>None</PublishEvent>
+    <PHPDevAutoPort>True</PHPDevAutoPort>
+    <PHPDevPort>25507</PHPDevPort>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <IncludeDebugInformation>true</IncludeDebugInformation>
@@ -22,6 +28,15 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="assets\apis\lightopenid\openid.php">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="config.php">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="controllers\control_panel.controller.php">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="control_panel.php">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="controllers\IDE.controller.php">
@@ -37,6 +52,18 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="controllers\user.controller.php">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="admin_feedback.php">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="models\libraryReviewers.model.php">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="submitted_library.php">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="models\librarySubmissionReview.model.php">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="curriculum.php">
@@ -307,10 +334,22 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="index.php" />
+    <Compile Include="library_submissions.php">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="models\codeSample.model.php">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="models\config.php">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="models\data.model.php">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="models\librarySubmission.model.php">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="models\librarySubmissions.model.php">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="models\ratings.model.php">
@@ -320,6 +359,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="reset_password.php">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="reviewer_feedback.php">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="search.php">
@@ -382,6 +424,15 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="assets\js\dot.min.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="assets\js\ember-1.0.0-rc.8.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="assets\js\handlebars-1.0.0.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="assets\js\jquery-1.9.1.js">
       <SubType>Content</SubType>
     </Content>
     <Content Include="assets\js\less.min.js">
@@ -1069,6 +1120,13 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="static\css\class.less">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="static\css\controlpanel.css">
+      <SubType>Content</SubType>
+      <DependentUpon>static\css\controlpanel.less</DependentUpon>
+    </Content>
+    <Content Include="static\css\controlpanel.less">
       <SubType>Content</SubType>
     </Content>
     <Content Include="static\css\librarysubmissions.less">
