@@ -64,9 +64,15 @@
             if ($this->status == "pending-reviewer") {
                 $this->status = "pending-admin";
             }
+<<<<<<< HEAD
             $valuesToPrepare = array($this->public_display, $this->status, $this->libraryID);
             $queryResults = $this->attemptQueryWithValues($sqlQuery,$valuesToPrepare);
         }
+=======
+			$valuesToPrepare = array($this->public_display, $this->status, $this->libraryID);
+			$queryResults = $this->attemptQueryWithValues($sqlQuery,$valuesToPrepare);
+		}
+>>>>>>> f6af427dc61959f6fe130998032b622ccd32e8a4
 
     }
     
