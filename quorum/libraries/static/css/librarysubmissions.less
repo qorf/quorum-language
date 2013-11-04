@@ -22,6 +22,12 @@
     }
 }
 
+.library-submissions { background:#F9F9F9; margin-top:40px;
+    thead { background:#EEEEEE; }
+    th span { height: 25px; display: inline-block; position: relative; top: -6px; }
+    th .sort-by-icon { position: relative; top: 2px; margin-left: 8px; }
+    .library-row-description { max-width: 280px; }
+}
 
 #reviewer_submission_form { font-size: 14px; 
     label { font-size: 14px; }
@@ -41,4 +47,10 @@ div#library-info table.library-info { width: 100%; margin: 0 auto; background: @
 .submission-reviews {
     a { font-size: 14px; }
     .btn-admin-review { margin-top: 20px; }
+}
+
+.sort-by-icon { display: inline-block; height: 40px; width: 16px; background: url(../img/updown-arrows.png);
+    * { text-indent: -9999px; }
+    .sort-desc { display: block; }
+    .sort-asc { display: block; }
 }

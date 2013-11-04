@@ -11,15 +11,6 @@
 
 	$username = $_COOKIE['username'];
 	$url = ($_SERVER['PHP_SELF'] == "/static/templates/user-headercontrols.template.php") ? $_SERVER['PHP_SELF'] : "";
-
-	function Truncate($string, $length, $stopanywhere=false) {
-		if (strlen($string) > $length) {
-			return substr($string,0,$length) . "..";
-		}
-		else {
-			return $string;
-		}
-	}
 ?>
 
 <div class="user-controls-loggedin">
