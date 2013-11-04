@@ -17,20 +17,11 @@
         public $countPerPage = 25;
     
         function __construct($order_by, $ascending_or_descending, $search_query, $page) {
-            parent::__construct();
-            $ascending_or_descending = strtoupper($ascending_or_descending);
+             parent::__construct();
             $this->order_by = ($order_by != null) ? $order_by : $this->order_by;
             $this->ascending_or_descending = ($ascending_or_descending != null) ? $ascending_or_descending : $this->ascending_or_descending;
             $this->search_query = ($search_query != null) ? $search_query : $this->search_query;
             $this->page = ($page != null) ? $page : $this->page;
-
-            // prevent teh haxx0rz
-            if ($order_by != "library_name" && $order_by != "author_name" && $order_by != "date_submitted") {
-                $this->order_by = "date_submitted";
-            }
-            if (($ascending_or_descending != "ASC") && ($ascending_or_descending != "DESC")) {
-                $this->ascending_or_descending = "DESC";
-            }
         }
         
         public function getPublicSubmissions() {
