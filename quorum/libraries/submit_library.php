@@ -3,6 +3,7 @@
 <?php
 require("models/librarySubmission.model.php");
 require("models/user.model.php");
+require("model/badge.model.php");
 
 function send_email() {
     $to      = 'nobody@example.com';
@@ -121,6 +122,7 @@ function process_post() {
         if (insert_to_database()) {
             if (upload_files()) {
                 email_administrators();
+                checkBadgeStatusForUser();
             }
             else {
                 // could not upload files
@@ -135,6 +137,15 @@ function process_post() {
         return false;
     }
      return true;
+}
+
+function checkBadgeStatusForUser($username) {
+    $badge = new Badge($username,null);
+    $userBadgeCount = count($badge->getBadgesForUser());
+    $badge->getBadgeTitleForSubmittedBadge($userBadgeCount);
+    if(!$badge->doesUserHaveBadge()) {
+        $badge->insertBadge();
+    }
 }
 
 $errors = process_post();

@@ -37,11 +37,20 @@
             }
         }
         
-        public function doesUserHaveBadge($badge) {
+        public function doesUserHaveBadge() {
             $query = "SELECT * FROM " . $this->badgesTable . " WHERE username = ? AND badge = ?";
-            $values = array("test_user", $badge);
+            $values = array($this->username, $this->$badge);
             $queryResults = $this->attemptQueryWithValues($query, $values); // the results
             return ($queryResults->rowCount() > 0);
+        }
+
+        public function getBadgeTitleForSubmittedBadge($badgeCount){
+            if ($badgeCount == 0) {
+                $this->badge = "novice-submitter";
+            } 
+            elseif ($badgeCount == 4) {
+                $this->badge = "journeyman-submitter";
+            }
         }
     }
 ?>    
