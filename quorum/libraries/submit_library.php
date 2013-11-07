@@ -122,7 +122,7 @@ function process_post() {
         if (insert_to_database()) {
             if (upload_files()) {
                 email_administrators();
-                checkBadgeStatusForUser();
+                checkBadgeStatusForUser($_COOKIE("username"));
             }
             else {
                 // could not upload files
@@ -140,12 +140,9 @@ function process_post() {
 }
 
 function checkBadgeStatusForUser($username) {
-    $badge = new Badge($username,null);
-    $userBadgeCount = count($badge->getBadgesForUser());
-    $badge->getBadgeTitleForSubmittedBadge($userBadgeCount);
-    if(!$badge->doesUserHaveBadge()) {
-        $badge->insertBadge();
-    }
+    $badgeType = "type-submission";
+    $badge = new Badge($username, null, $badgeType);
+    $badge->checkUserBadgeStatusForType();
 }
 
 $errors = process_post();
