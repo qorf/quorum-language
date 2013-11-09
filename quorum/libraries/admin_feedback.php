@@ -43,11 +43,11 @@
     </div>
     
     <form id="reviewer_submission_form" action="" method="post">
-        <input type="hidden" name="library_id" value="<?php print $_GET['library_id']; ?>" />
+        <input type="hidden" name="library_id" value="<?php echo $library->libraryID; ?>" />
         <div class="control-group">
-            <label class="control-label" for="decision">Decision:</label>
+            <label class="control-label" for="decision"><h4>Decision:</h4></label>
             <div class="controls">
-                <ul>
+                <ul class="unstyled">
                     <li class="radio"><input type="radio" name="decision" value="reject"><strong>Reject:</strong> We never want to see this library again and will not accept it.</li>
                     <li class="radio"><input type="radio" name="decision" value="request-more-information"><strong>Request More Information:</strong> We don't know what to make of this library and need more information to evaluate it.</li>
                     <li class="radio"><input type="radio" name="decision" value="accept-with-revisions"><strong>Accept with Revisions:</strong> We like this library and are willing to accept it, but we expect changes to be made first.</li>
@@ -56,9 +56,9 @@
             </div>
         </div>
         <div class="control-group">
-            <label class="control-label" for="usability">Usability Rating:</label>
+            <label class="control-label" for="usability"><h4>Usability Rating:</h4></label>
             <div class="controls">
-                <ul>
+                <ul class="unstyled">
                     <li class="radio"><input type="radio" name="usability" value="a"><strong>1:</strong> Not usable. The designer made design decisions that are inconsistent or hard to understand.</li>
                     <li class="radio"><input type="radio" name="usability" value="b"><strong>2:</strong> Difficult to use. There is some consistency, but it is still hard to understand.</li>
                     <li class="radio"><input type="radio" name="usability" value="c"><strong>3:</strong> Usable after some experience. This library is usable after a hard learning curve.</li>
@@ -68,9 +68,9 @@
             </div>
         </div>
         <div class="control-group">
-            <label class="control-label" for="technical">Technical Rating:</label>
+            <label class="control-label" for="technical"><h4>Technical Rating:</h4></label>
             <div class="controls">
-                <ul>
+                <ul class="unstyled">
                     <li class="radio"><input type="radio" name="technical" value="a"><strong>1:</strong> Does not work. This library does not provide its intended functionality.</li>
                     <li class="radio"><input type="radio" name="technical" value="b"><strong>2:</strong> Some of it works. While most of the intended functionality is there, the library has a lot of bugs.</li>
                     <li class="radio"><input type="radio" name="technical" value="c"><strong>3:</strong> Functional, but inefficient. The functionality works, but the library's functions use more computation than needed.</li>
@@ -80,13 +80,13 @@
             </div>
         </div>
         <div class="control-group">
-            <label class="control-label" for="feedback">Feedback for Library's Submitter:</label>
+            <label class="control-label" for="feedback"><h4>Feedback for Library's Submitter:</h4></label>
             <div class="controls">
                 <textarea rows="6" name="feedback"></textarea>
             </div>
         </div>
         <div class="control-group">
-            <label class="control-label" for="confidential_feedback">Confidential Feedback for Editor:</label>
+            <label class="control-label" for="confidential_feedback"><h4>Confidential Feedback for Editor:</h4></label>
             <div class="controls">
                 <textarea rows="6" name="confidential_feedback"></textarea>
             </div>
@@ -95,7 +95,7 @@
             <button type="submit" class="btn btn-primary">Submit Review</button>
             <button type="button" class="btn">Cancel</button>
         </div>
-    </form>
+    </form>    
     
     <?php
         }

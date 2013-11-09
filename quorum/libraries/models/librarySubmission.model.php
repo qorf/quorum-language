@@ -43,6 +43,7 @@
             $queryResults = $this->attemptQueryWithValues($query, $values); // the results
             $fetchResults = $this->returnResultsOfQuery($queryResults);     // the results in form of an array
             $data = $fetchResults[0];                                       // first result (our data)
+            
             if ($data != null) {
                 return new LibrarySubmission($data[0], $data[1], $data[2], $data[3], $data[4], $data[5], $data[6], $data[7], $data[8], $data[9], $data[10]);
             }
@@ -64,15 +65,11 @@
             if ($this->status == "pending-reviewer") {
                 $this->status = "pending-admin";
             }
-<<<<<<< HEAD
+
+            $sqlQuery = "UPDATE " . $this->submissionsTable . " SET public_display=?, status=? WHERE library_id=?";  
             $valuesToPrepare = array($this->public_display, $this->status, $this->libraryID);
             $queryResults = $this->attemptQueryWithValues($sqlQuery,$valuesToPrepare);
         }
-=======
-			$valuesToPrepare = array($this->public_display, $this->status, $this->libraryID);
-			$queryResults = $this->attemptQueryWithValues($sqlQuery,$valuesToPrepare);
-		}
->>>>>>> f6af427dc61959f6fe130998032b622ccd32e8a4
 
     }
     

@@ -1,7 +1,7 @@
 $(function() {
 	slideInSublibraries();
 
-	autoComplete();
+	//autoComplete();
 
 	openModalFromURL();
 
@@ -622,21 +622,25 @@ var adminControls = function () {
     });
 
     $("#add-user-submit").on("click", function () {
+    	$("#add-user-to-library .text-info, #add-user-to-library .text-success").remove();
+
         var data = {
             library_id: $("#add-user-to-library-library").val(),
             username: $("#add-user-to-library-user").val()
         }
 
         var endpoint = "/controllers/control_panel.controller.php?action=addUserToLibrary";
-        console.log("click", data, endpoint);
-
         $.ajax({
             type: "POST",
             url: endpoint,
             data: data,
             success: function (result) {
-                console.log(result);
-                $("#add-user-to-library").append('<span class="text-success" style="display:block;">' + data.username + ' has been added to library "' + data.library_id + '</span>');
+                result = result.replace(" ", "");
+
+            	message = data.username + ' has been assigned to library "' + data.library_id;
+				clasz = "text-success";
+
+                $("#add-user-to-library").append('<span class="' + clasz + '" style="display:block;">' + message + '</span>');
                 setTimeout(function () {
                     $("#add-user-to-library .text-success").fadeOut('slow', function () { $(this).remove(); });
                 }, 2000);
@@ -646,6 +650,8 @@ var adminControls = function () {
             }
         });
     });
+
+
 }
 
 

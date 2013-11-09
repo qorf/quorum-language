@@ -103,7 +103,7 @@ function render_admin_controls() {
     $waiting_on_information_reviews = $library_submissions->getLibrariesForAdmin("request-more-information");
 ?>    
     <h4>Administrator Controls</h4>
-    <ul>
+    <ul class="unstyled admin-controls">
         <li>
             <select id="admin-pending-feedback-select">
                 <option value="">-- View Libraries Pending Admin Review --</option>
@@ -154,7 +154,7 @@ function render_admin_controls() {
                 ?>
             </select>
         </li>
-        <li id="add-user-to-library">
+        <li id="add-user-to-library" class="control-group well">
             <select id="add-user-to-library-library">
                 <option value="">-- Select Library to Set Reviewer --</option>
                 <?php
@@ -171,6 +171,24 @@ function render_admin_controls() {
                 }
                 ?>
             </select>
+            <input class="typeahead tt-query users-typeahead" type="text" placeholder="Begin typing a username..." autocomplete="off" spellcheck="false" />
+
+            <script type="text/javascript" src="/assets/js/typeahead.min.js"></script>
+            <script type="text/javascript">
+                <?php // form a javascript using PHP to avoid another server call. blowin ya mind. ...kinda yuck, sorry.
+                echo "var users = [''";
+                foreach ($users as $user) {
+                    echo ", '" . $user['username'] . "'"; 
+                }
+                echo "];";
+                ?>
+
+                // Set up the typeahead and when an option is selected, update the dropdown.
+                $(".users-typeahead").typeahead({ name: 'users', local: users, limit: 10 })
+                                    .bind('typeahead:selected', function (obj, datum) {
+                                        $("#add-user-to-library-user").val(datum.value);
+                                    });
+            </script>
             <button class="btn btn-primary" id="add-user-submit" />Add User</button>
         </li>
     </ul>

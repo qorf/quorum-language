@@ -1,16 +1,14 @@
 <?php
 require("../models/user.model.php");
 require("../models/libraryReviewers.model.php");
-require_once("../config.php");
 
 function addUserToLibrary() {
     $library_review = new LibraryReviewers($_POST['username'], $_POST['library_id']);
     try {
-        $library_review->insertSubmission();
-        return true;
+        echo ($library_review->insertSubmission()) ? "true" : "false";
     }
     catch (Exception $ex) {
-        return false;
+        echo "false";
     }
 }
 

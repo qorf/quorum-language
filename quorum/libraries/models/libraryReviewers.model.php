@@ -20,9 +20,22 @@ class LibraryReviewers extends QuorumDataModel {
     
     public function insertSubmission()
     {
-        $sqlQuery = "INSERT INTO " . $this->reviewersTable . " (library_id, username, review_submitted) VALUES (?, ?, ?);";
-        $valuesToPrepare = array($this->libraryID, $this->username, 0);
+        if (!$this->isReviewerAlreadyAssigned()) {
+            $sqlQuery = "INSERT INTO " . $this->reviewersTable . " (library_id, username, review_submitted) VALUES (?, ?, ?);";
+            $valuesToPrepare = array($this->libraryID, $this->username, 0);
+            $queryResults = $this->attemptQueryWithValues($sqlQuery,$valuesToPrepare);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public function isReviewerAlreadyAssigned() {
+        $sqlQuery = "SELECT * FROM " . $this->reviewersTable . " WHERE username = ?;";
+        $valuesToPrepare = array($this->username);
         $queryResults = $this->attemptQueryWithValues($sqlQuery,$valuesToPrepare);
+        return ($queryResults->rowCount() > 0);
     }
     
     public function setReviewSubmitted()
