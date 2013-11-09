@@ -99,12 +99,6 @@
     
     <?php
         }
-        
-        function checkBadgeStatusForUser($username) {
-            $badgeType = "type-acception";
-            $badge = new Badge($username, null, $badgeType) ;
-            $badge->checkUserBadgeStatusForType();
-        }
 
         if (isset($_POST['decision'])) {
             require('models/librarySubmissionReview.model.php');
@@ -118,10 +112,6 @@
             $library->public_display = 0;
 
             $library->updateSubmissionStatus();
-
-            if($_POST['decision'] == "accept"){
-
-            }
     ?>
    
     <div class="container">
