@@ -56,7 +56,7 @@
         print '</tbody></table>';
         ?>
         
-    <div class="actions clearfix" style="margin: 40px auto 20px; width: 550px; ">
+<!--    <div class="actions clearfix" style="margin: 40px auto 20px; width: 550px; ">
         <button class="btn btn-primary pull-left">Previous Page</button>
         <div class="btn-toolbar pull-left" style="margin: 0 90px;">
           <div class="btn-group">
@@ -68,5 +68,5 @@
           </div>
         </div>
         <button class="btn btn-primary pull-right" style="margin-top:-30px;">Next Page</button>
-    </div>
+    </div>-->
 </div>

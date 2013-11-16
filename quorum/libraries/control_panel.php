@@ -6,20 +6,26 @@ else {
     require_once("static/templates/pageheader.template.php");
     require_once("models/user.model.php");
     require_once("models/librarySubmissions.model.php");
+    require_once("models/badge.model.php");
 
     $user = new User("", $_COOKIE['username'], "", "");
     $user->getDataFromUsername();
 
     $library_submissions = new LibrarySubmissions(null, null, null, null);
     $submissions_for_reviewer = $library_submissions->getLibrarySubmissionsForReviewer($_COOKIE['username']);
+    $submissions_for_user = $library_submissions->getLibrarySubmissionsForUser($_COOKIE['username']);
 ?>
     <div class="container control-panel-container">
         <div class="row">
             <div class="span6">
-                <?php render_user_controls(); ?>
+                <?php render_left_user_controls(); ?>
             </div>
             <div class="span6">
                 <?php
+                if (count($submissions_for_user) > 0) {
+                    render_right_user_controls();
+                }
+
                 if (count($submissions_for_reviewer) > 0) {
                     render_reviewer_controls();
                 }
@@ -43,14 +49,34 @@ function process_profile_save() {
     echo '<p class="text-info">Your changes have been saved!</p>';
 }
 
-function render_user_controls() {
-    global $library_submissions;
-    global $submissions_for_reviewer;
+function render_badges() {
+    global $user;
+
+    $badges_model = new Badge($user->username, null, null);
+    $badges = $badges_model->getBadgesForUser();
+
+    if (count($badges) > 0) {
+        echo '<h3>Your Earned Badges</h3>';
+        echo '<ul class="badges-list unstyled">';
+        foreach ($badges as $badge) {
+            $englishified_badge_name = ucwords(str_replace('-', ' ', $badge["badge"]));
+            echo '<li class="quorum-badge">';
+            echo ' <img src="/static/img/badges/' . $badge["badge"] . '.png" alt="' . $englishified_badge_name . '" />';
+            echo ' <span class="title">' . $englishified_badge_name . '</span>';
+            echo '</li>';
+        }
+        echo '</ul>';
+    }
+}
+
+function render_left_user_controls() {
     global $user;
 ?>
     <h1>Welcome, <?php echo $_COOKIE['username']; ?> </h1>
 
-    <h4><a href="/submit_library.php">Submit a Library to Quorum</a></h4>
+    <?php render_badges(); ?>
+
+    <a href="/submit_library.php" class="btn btn-primary">Earn badges by submitting libraries to Quorum</a>
 
     <form method="post" id="edit-profile">
         <fieldset>
@@ -64,6 +90,27 @@ function render_user_controls() {
             <button class="btn" />Save Profile</button>
         </fieldset>
     </form>
+<?php
+}
+
+function render_right_user_controls() {
+    global $library_submissions;
+    global $submissions_for_user;
+    global $user;
+?>
+    <h4>User Controls</h4>
+    <ul>
+        <li>
+            <select id="user-feedback-select">
+                <option value="">-- View your Submitted Libraries --</option>
+                <?php
+                foreach ($submissions_for_user as $submission) {
+                  echo '<option value="' . $submission['library_id'] . '">' . $submission['library_name'] . '</option>'; 
+                }
+                ?>
+            </select>
+        </li>
+    </ul>
 <?php
 }
 

@@ -5,6 +5,10 @@
 				<p>Quorum includes library classes like: 1) text-to-speech and audio playback, 2) container classes (e.g., arrays, lists, hash tables), 3) system classes, 4) classes for iCreate robotics, and 5) mathematics and random numbers. The standard library is expanded in each release.</p>
 		</div>
 </div>
+
+<div class="container clearfix">
+	<a href="/library_index.php" class="btn btn-primary pull-right">View User-Submitted Experimental Libraries</a>
+</div><br /><br />
 <ul class="index-grid">
 <li class="grid-item grid-item-libraries-compute"><h2 class="index_package_title"><a href="#libraries-compute">Libraries.<br />Compute</a></h2>
 <i></i>

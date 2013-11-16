@@ -27,9 +27,7 @@ $(function() {
 
 	submitLibraryWizard();
 
-	reviewerControls();
-
-	adminControls();
+	controlPanel();
 
 	extendLeftSidebar(); // keep this at the end
 });
@@ -601,19 +599,26 @@ var submitLibraryWizard = function () {
     checkboxEnableNext(wizard);
 }
 
+var controlPanel = function () {
+	// Change URL on dropdown for users
+    $("#user-feedback-select").on("change", function () {
+        var libraryId = $(this).val();
+        if (libraryId != "") {
+            window.location = "/submitted_library.php?id=" + libraryId;
+        }
+    });
 
-var reviewerControls = function () {
+
+	// Change URL on dropdown for reviewers
     $("#reviewer-feedback-select").on("change", function () {
         var libraryId = $(this).val();
         if (libraryId != "") {
             window.location = "/reviewer_feedback.php?id=" + libraryId;
         }
     });
-}
 
 
-
-var adminControls = function () {
+	// Change URL on dropdown for admins
     $("#admin-pending-feedback-select").on("change", function () {
         var libraryId = $(this).val();
         if (libraryId != "") {
@@ -621,6 +626,8 @@ var adminControls = function () {
         }
     });
 
+
+    // Add a reviewer to a library
     $("#add-user-submit").on("click", function () {
     	$("#add-user-to-library .text-info, #add-user-to-library .text-success").remove();
 
@@ -650,8 +657,6 @@ var adminControls = function () {
             }
         });
     });
-
-
 }
 
 

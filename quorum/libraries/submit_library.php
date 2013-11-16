@@ -1,19 +1,30 @@
 <?php require_once("static/templates/pageheader.template.php"); ?>
 
 <?php
-require("models/librarySubmission.model.php");
-require("models/user.model.php");
-require("model/badge.model.php");
+require_once("models/librarySubmission.model.php");
+require_once("models/librarySubmissions.model.php");
+require_once("models/user.model.php");
+require_once("models/badge.model.php");
+require_once("models/email.model.php");
 
-function send_email() {
-    $to      = 'nobody@example.com';
-    $subject = 'A Library Submission has been made';
-    $message = '';
-    $headers = 'From: webmaster@example.com' . "\r\n" .
-        'Reply-To: webmaster@example.com' . "\r\n" .
-        'X-Mailer: PHP/' . phpversion();
+function award_badge($submission) {
+    $submissions = new LibrarySubmissions("", "", "", "");
+    $submissions = $submissions->getLibrarySubmissionsForUser($_COOKIE['username']);
+    $number_of_submissions = count($submissions);
+    $badge = null;
 
-    mail($to, $subject, $message, $headers);
+    switch ($number_of_submissions) {
+        case 1: $badge = new Badge($_COOKIE['username'], "novice-submitter", "type-submitted"); break;
+        case 5: $badge = new Badge($_COOKIE['username'], "journeyman-submitter", "type-submitted"); break;
+        default: $badge = null;
+    }
+
+    if ($badge != null) { // There is a badge to be awarded
+        if ($badge->doesUserHaveBadge() == false) { // Double-check  
+            $badge->insertBadge();
+            $badge->emailUserAboutBadge($submission);
+        }
+    }
 }
 
 function create_input($name, $placeholder, $textarea = false) {
@@ -48,7 +59,7 @@ function insert_to_database() {
         $submission = new LibrarySubmission($library_slug, $_POST['library-name'], $_COOKIE['username'], $_POST['author-name'], $_POST['library-description'], $_POST['library-usage'], $submissionURL, $supplementaryFilesURL, 1, "pending-reviewer", date("Y-m-d H:i:s"));
         try {
             $submission->insertSubmission();            
-            return true;
+            return $submission;
         }
         catch (Exception $ex) {
             return false; 
@@ -57,8 +68,12 @@ function insert_to_database() {
     return false;
 }
 
-function email_administrators() {
-    // Check that the library ID exists, and if so, append a number to it. 
+
+function email_administrators($submission) {        
+    $message = "The library " . $submission->libraryName . " has been submitted by " . $submission->uploaderUsername . ". ";
+    $message .= "You can see the library at http://quorumlanguage.com/submitted_library.php?id=" . $submission->libraryID;
+    $email = new Email("kerrylritter+ql@gmail.com","quorum@quorumlanguage.com","A library submisson has been submitted",$message);
+    $email->send();
 }
 
 function upload_files() {
@@ -119,10 +134,11 @@ function process_post() {
         }
         
         // At this point, we know there are no errors so post to the DB upload the files.
-        if (insert_to_database()) {
+        $submission = insert_to_database();
+        if ($submission != false) {
             if (upload_files()) {
-                email_administrators();
-                checkBadgeStatusForUser($_COOKIE("username"));
+                email_administrators($submission);
+                award_badge($submission);
             }
             else {
                 // could not upload files
@@ -137,12 +153,6 @@ function process_post() {
         return false;
     }
      return true;
-}
-
-function checkBadgeStatusForUser($username) {
-    $badgeType = "type-submission";
-    $badge = new Badge($username, null, $badgeType);
-    $badge->checkUserBadgeStatusForType();
 }
 
 $errors = process_post();
@@ -183,6 +193,9 @@ else {
     <?php
         }
         else {
+            if ($_GET["post"] == "true") {
+                echo '<div class="container"><h3 class="text-error">There were errors with your submission:</h3>' . $errors . '</div>';
+            }
     ?>
     	<form id="library-submission" class="form-horizontal" method="post" action="?post=true" enctype="multipart/form-data">
     		<div id="submission-wizard" class="carousel">
@@ -190,7 +203,7 @@ else {
     				<div class="active item" id="wizard-1">
     					<div class="container">
     						<h2>Quorum Project Contributors Certification of Origin and Rights</h2>
-                            <p> contributors to the Quorum Programming Language must formally agree to abide by this certificate of origin by signing on the bottom with their quorumlanguage.com userid, full name, email address (you can obscure your e-mail, but it must be computable by human), and date.</p>
+                            <p>Contributors to the Quorum Programming Language must formally agree to abide by this certificate of origin by signing on the bottom with their quorumlanguage.com userid, full name, email address (you can obscure your e-mail, but it must be computable by human), and date.</p>
                             <p>By signing this agreement, you are warranting and representing that you have the right to release code contributions or other content free of any obligations to third parties and are granting Andreas Stefik and Quorum project contributors, henceforth referred to as The Quorum Project, a license to incorporate it into The Quorum Project tools (such as Sodbeans and the Quorum standard library) or related works under the BSD license. You understand that The Quorum Project may or may not incorporate your contribution and you warrant and represent the following:</p>
                             <ol>
                                 <li> I am the creator of all my contributions. I am the author of all contributed work submitted and further warrant and represent that such work is my original creation and I have the right to license it to The Quorum Project for release under the 3-clause BSD license. I hereby grant The Quorum Project a nonexclusive, irrevocable, royalty-free, worldwide license to reproduce, distribute, prepare derivative works, and otherwise use this contribution as part of the Quorum project, associated documentation, books, and tools at no cost to The Quorum Project. </li>

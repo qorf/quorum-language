@@ -1,24 +1,11 @@
 <?php include("static/templates/pageheader.template.php"); ?>
-<?php include("models/librarySubmissions.model.php"); ?>
-<?php include("models/librarySubmission.model.php"); ?>
-<?php require("models/libraryReviewers.model.php"); ?>
+<?php 
+require_once("models/librarySubmissions.model.php");
+require_once("models/librarySubmission.model.php");
+require_once("models/libraryReviewers.model.php"); 
+?>
 
     <?php
-        function displayLibrary($row) {
-            $date = new DateTime($row["date_submitted"]);
-
-            $html = '<tr id="' . $row["library_id"] . '">';
-            $html .= '<td>' . $row["library_name"] . '</td>';
-            $html .= '<td>' . $row["author_name"] . '</td>';
-            $html .= '<td>' . $row["library_description"] . '</td>';
-            $html .= '<td>' . $date->format('m-d-y') . '</td>';
-            $html .= '<td><a href="' . $row["submission_url"] . '" target="_blank">Download Files</a></td>';
-            $html .= '<td><a href="#" class="upvote">Upvote Library</a></td>';
-            $html .= '<td><a href="#" class="downvote">Downvote Library</a></td>';
-            $html .= '</tr>';
-            return $html;
-        }
-
         if ($_GET['id'] && !isset($_POST['decision'])) {
             $library = new LibrarySubmission($_GET['id'], null, null, null, null, null, null, null, null, null, null);
             $library = $library->getSubmissionByID();
@@ -115,9 +102,10 @@
         $submission = $submission->getSubmissionByID();
         $submission->updateSubmissionStatus();
 ?>
-<div class="container">
-    <h3 class="text-info">Your feedback has been submitted with the decision of "<?php echo $_POST['decision']; ?></h3>
-</div>
+    <div class="container documents-content">
+        <h1>Review submission successful!</h1>
+        <h3 class="text-info">Your feedback has been submitted with the decision of "<?php echo $_POST['decision']; ?>".</h3>
+    </div>
 <?php
     }
 ?>

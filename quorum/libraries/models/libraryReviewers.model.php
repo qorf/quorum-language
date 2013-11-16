@@ -32,10 +32,11 @@ class LibraryReviewers extends QuorumDataModel {
     }
 
     public function isReviewerAlreadyAssigned() {
-        $sqlQuery = "SELECT * FROM " . $this->reviewersTable . " WHERE username = ?;";
-        $valuesToPrepare = array($this->username);
+        $sqlQuery = "SELECT * FROM " . $this->reviewersTable . " WHERE username = ? AND library_id = ?;";
+        $valuesToPrepare = array($this->username, $this->libraryID);
         $queryResults = $this->attemptQueryWithValues($sqlQuery,$valuesToPrepare);
-        return ($queryResults->rowCount() > 0);
+        //return ($queryResults->rowCount() > 0);
+        return false;
     }
     
     public function setReviewSubmitted()

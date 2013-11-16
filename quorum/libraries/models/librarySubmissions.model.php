@@ -49,14 +49,23 @@
 
         public function getLibrarySubmisionCount()
         {
-            $sqlQuery = "SELECT COUNT(*) FROM" . $this->submissionsTable;
+            $sqlQuery = "SELECT COUNT(*) FROM " . $this->submissionsTable;
             return $this->returnResultsOfQuery($queryResults);
-
         }
 
-        public function getLibrarySubmissionsForUser($authorName) {
-            $values = array($authorName);
-            $query = "SELECT * FROM " . $this->submissionsTable . "WHERE authorName = ?" . $this->search($values) . $this->orderBy($values) . $this->limit($values);
+        public function getLibrarySubmissionsForUser($uploader_username, $status = "") {
+            $values = array();
+            $query = "";
+
+            if ($status == "") {
+                $values = array($uploader_username);
+                $query = "SELECT * FROM " . $this->submissionsTable . " WHERE uploader_username = ?";   
+            }
+            else {
+                $values = array($uploader_username, $status);
+                $query = "SELECT * FROM " . $this->submissionsTable . " WHERE uploader_username = ? AND status = ?";   
+            }
+
             $queryResults = $this->attemptQueryWithValues($query, $values);
             return $this->returnResultsOfQuery($queryResults);
         }

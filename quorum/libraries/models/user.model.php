@@ -144,8 +144,8 @@
 		}
 
 		public function updateUser() {
-			$values = array($this->password, $this->first_name, $this->last_name, $this->username);
-			$preparedStatement = $this->connection->prepare('UPDATE sodbeans_users SET password=?, first_name=?, last_name = ? WHERE username=?');
+			$values = array($this->first_name, $this->last_name, $this->username);
+			$preparedStatement = $this->connection->prepare('UPDATE sodbeans_users SET first_name=?, last_name = ? WHERE username=?');
 			$preparedStatement->execute($values);
 		}
 	}

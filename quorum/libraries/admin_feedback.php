@@ -1,26 +1,14 @@
 <?php include("static/templates/pageheader.template.php"); ?>
-<?php include("models/librarySubmissions.model.php"); ?>
-<?php include("models/librarySubmission.model.php"); ?>
+<?php 
+require_once("models/librarySubmissions.model.php");
+require_once("models/librarySubmission.model.php"); 
+require_once("models/badge.model.php"); 
+?>
 
 <div class="container content" id="reviewer-feedback">
     <h1>Submit Admin Feedback</h1>
     <div id="library-info">
     <?php
-        function displayLibrary($row) {
-            $date = new DateTime($row["date_submitted"]);
-
-            $html = '<tr id="' . $row["library_id"] . '">';
-            $html .= '<td>' . $row["library_name"] . '</td>';
-            $html .= '<td>' . $row["author_name"] . '</td>';
-            $html .= '<td>' . $row["library_description"] . '</td>';
-            $html .= '<td>' . $date->format('m-d-y') . '</td>';
-            $html .= '<td><a href="' . $row["submission_url"] . '" target="_blank">Download Files</a></td>';
-            $html .= '<td><a href="#" class="upvote">Upvote Library</a></td>';
-            $html .= '<td><a href="#" class="downvote">Downvote Library</a></td>';
-            $html .= '</tr>';
-            return $html;
-        }
-
         $library = new LibrarySubmission($_GET['id'], null, null, null, null, null, null, null, null, null, null);
         $library = $library->getSubmissionByID();
 
@@ -98,6 +86,32 @@
     </form>    
     
     <?php
+        }   
+
+        function award_badge($submission) {
+            $submitter_username = $submission->uploaderUsername;
+
+            $submissions = new LibrarySubmissions("", "", "", "");
+            $submissions = $submissions->getLibrarySubmissionsForUser($submitter_username, "accept");
+            $number_of_submissions = count($submissions);
+            $badge = null;
+
+            switch ($number_of_submissions) {
+                case 1: $badge = new Badge($submitter_username, "quorum-private", "type-accepted"); break;
+                case 2: $badge = new Badge($submitter_username, "quorum-private-first-class", "type-accepted"); break;
+                case 4: $badge = new Badge($submitter_username, "quorum-specialist", "type-accepted"); break;
+                case 7: $badge = new Badge($submitter_username, "quorum-corporal", "type-accepted"); break;
+                case 11: $badge = new Badge($submitter_username, "quorum-sergeant", "type-accepted"); break;
+                case 16: $badge = new Badge($submitter_username, "quorum-staff-sergeant", "type-accepted"); break;
+                default: $badge = null;
+            }
+
+            if ($badge != null) { // There is a badge to be awarded
+                if ($badge->doesUserHaveBadge() == false) { // Double-check  
+                    $badge->insertBadge();
+                    $badge->emailUserAboutBadge($submission);
+                }
+            }
         }
 
         if (isset($_POST['decision'])) {
@@ -112,10 +126,15 @@
             $library->public_display = 0;
 
             $library->updateSubmissionStatus();
+
+            if($_POST['decision'] == "accept") {
+                award_badge($library);
+            }
     ?>
    
-    <div class="container">
-        <h3 class="text-info">Your feedback has been submitted. The library has been set to "<?php echo $_POST['decision']; ?>"</h3>
+    <div class="container documents-content">
+        <h1>Review submission successful!</h1>
+        <h3 class="text-info">Your feedback has been submitted with the decision of "<?php echo $_POST['decision']; ?>".</h3>
     </div>
 
     <?php

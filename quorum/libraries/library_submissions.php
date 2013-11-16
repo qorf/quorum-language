@@ -1,3 +1,14 @@
+<<<<<<< HEAD
+<?php 
+
+require_once("static/templates/pageheader.template.php"); 
+
+$user_type="guest";
+require_once("static/templates/showlibraries.template.php"); 
+require_once("static/templates/pagefooter.template.php"); 
+
+?>
+=======
 <?php require_once("static/templates/pageheader.template.php"); ?> 
 <div class="container">
         
@@ -17,11 +28,10 @@
         <?php 
         require_once("models/librarySubmissions.model.php"); 
         require_once("models/librarySubmission.model.php"); 
-        $submissionsPerPage = 25;
+              
         $submissions = new LibrarySubmissions($_GET['sort_by'], $_GET['ascending_or_descending'], $_GET['search_query'], $_GET['page']);
         $submissionsResults = $submissions->getPublicSubmissions();
-        $submissonCount = count($submissionsResults);
-
+        
         function displayLibrary($row) {
             $date = new DateTime($row["date_submitted"]);
 
@@ -43,25 +53,22 @@
             print displayLibrary($row);
         }
         print '</tbody></table>';
+        ?>
         
-        if ($submissonCount > $submissionsPerPage) 
-        { ?>
-        <div class="actions clearfix" style="margin: 40px auto 20px auto; width: 550px; ">
-            <button class="btn btn-primary pull-left">Previous Page</button>
-            <div class="btn-toolbar pull-left" style="margin: 0px 0px 0px 110px;">
-                <div class="btn-group">
-                    <?php for ($i = 0; $submissonCount >= $i; ) 
-                    { 
-                            $i+=$submissionsPerPage;
-                            ?>
-                            <a class="btn" href="#"> <?php echo $i/$submissionsPerPage ?> </a>
-                   <?php  } ?>
-                </div>    
-            </div>  
-            <button class="btn btn-primary pull-right" style="margin:0 0 0 -200px;">Next Page</button> 
-        </div> 
-       <?php } ?>
-    
+    <div class="actions clearfix" style="margin: 40px auto 20px; width: 550px; ">
+        <button class="btn btn-primary pull-left">Previous Page</button>
+        <div class="btn-toolbar pull-left" style="margin: 0 90px;">
+          <div class="btn-group">
+            <a class="btn" href="#">1</a>
+            <a class="btn" href="#">2</a>
+            <a class="btn" href="#">3</a>
+            <a class="btn" href="#">4</a>
+            <a class="btn" href="#">5</a>
+          </div>
+        </div>
+        <button class="btn btn-primary pull-right" style="margin-top:-30px;">Next Page</button>
+    </div>
 </div>
 
 <?php require_once("static/templates/pagefooter.template.php"); ?>
+>>>>>>> f6af427dc61959f6fe130998032b622ccd32e8a4
