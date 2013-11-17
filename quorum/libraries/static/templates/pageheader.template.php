@@ -4,7 +4,9 @@
 ?>
 
 <!DOCTYPE>
-<html>
+<!--[if lt IE 9]>      <html class="lt-ie9"> <![endif]-->
+<!--[if IE 9]>         <html class="ie9"> <![endif]-->
+<!--[if gt IE 9]><!--> <html> <!--<![endif]-->
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     		<meta name="viewport" content="width=1190, initial-scale=0.268, maximum-scale=1.0"/>

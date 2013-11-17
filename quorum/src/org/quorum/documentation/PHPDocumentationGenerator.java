@@ -72,7 +72,19 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
     }
     
     @Override
-    public void finishIndex() {
+    public void finishIndex() {    
+        indexPage += "<?php include('static/templates/pageheader.template.php'); ?>\n";
+        indexPage += "\t\t<div class=\"hero-unit\">\n";
+        indexPage += "\t\t\t<div class=\"hero-unit-container\">\n";
+        indexPage += "\t\t\t\t<h1>The Quorum Standard Library</h1>\n";
+        indexPage += "\t\t\t\t<p>Quorum includes library classes like: 1) "
+                + "text-to-speech and audio playback, 2) container classes "
+                + "(e.g., arrays, lists, hash tables), 3) system classes, "
+                + "4) classes for iCreate robotics,"
+                + " and 5) mathematics and random numbers. "
+                + "The standard library is expanded in each release.</p>\n";
+        indexPage += "\t\t</div>\n";
+        indexPage += "</div>\n";       
         indexPage += "<ul class=\"index-grid\">\n";
         
         Iterator<IndexWrapperClass> iterator = getContainersCollection().iterator();
@@ -96,6 +108,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         indexPage += "</ul>\n";
         
         createClassTables();
+        indexPage += "<?php include('static/templates/pagefooter.template.php'); ?>";
     }
         
     private void startNewIndex() {
