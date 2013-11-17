@@ -7,7 +7,13 @@
 </div>
 
 <div class="container clearfix">
-	<a href="/library_index.php" class="btn btn-primary pull-right">View User-Submitted Experimental Libraries</a>
+	<a href="/submitted_library_index.php" class="btn btn-primary pull-right" style="display:block;">View User-Submitted Experimental Libraries</a>
+	<?php 
+	if (isset($_COOKIE['username'])) {
+		echo '<a href="/submit_library.php" class="btn btn-info pull-left">Submit a Library to the Quorum Standard Library</a>';
+	}
+	?>
+	
 </div><br /><br />
 <ul class="index-grid">
 <li class="grid-item grid-item-libraries-compute"><h2 class="index_package_title"><a href="#libraries-compute">Libraries.<br />Compute</a></h2>

@@ -1,0 +1,117 @@
+/* MIXINS */
+.opacity(@opacity: 1) { @integerOpacity: @opacity * 100; opacity: @opacity; -ms-filter: ~"progid:DXImageTransform.Microsoft.Alpha(Opacity=@{integerOpacity})"; filter: ~"alpha(opacity=@{integerOpacity})"; }
+.transition(@style, @time: .2s) { -webkit-transition: @style @time ease-in; -moz-transition:@style @time ease-in; -o-transition:@style @time ease-in; transition:@style @time ease-in; }
+.box-shadow(@style, @c) when (iscolor(@c)) { box-shadow: @style @c; -webkit-box-shadow: @style @c; -moz-box-shadow: @style @c; }
+.gradient-circle(@outer, @inner) { background: @inner; background: -moz-radial-gradient(center, ellipse cover, @inner 0%, @outer 100%); background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,@inner), color-stop(100%,@outer)); background: -webkit-radial-gradient(center, ellipse cover,  @inner 0%,@outer 100%); background: -o-radial-gradient(center, ellipse cover,  @inner 0%,@outer 100%); background: -ms-radial-gradient(center, ellipse cover,  @inner 0%,@outer 100%); background: radial-gradient(ellipse at center,  @inner 0%,@outer 100%); filter: e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=1)",@inner,@outer)); }
+.gradient-vertical(@top, @bottom) { background: @top; background: -moz-linear-gradient(top, @top 0%, @bottom 100%); background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,@top), color-stop(100%,@bottom)); background: -webkit-linear-gradient(top,  @top 0%,@bottom 100%); background: -o-linear-gradient(top, @top 0%, @bottom 100%); background: -ms-linear-gradient(top, @top 0%, @bottom 100%); background: linear-gradient(to bottom, @top 0%, @bottom 100%); filter: e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0)",@top,@bottom)); }
+.rounded-corners (@radius: 5px) { -webkit-border-radius: @radius; -moz-border-radius: @radius; -ms-border-radius: @radius; -o-border-radius: @radius; border-radius: @radius; }
+.rounded-corners-top (@radius: 5px) { -webkit-border-top-left-radius: @radius; -moz-border-top-left-radius: @radius; -ms-border-top-left-radius: @radius; -o-border-top-left-radius: @radius; border-top-left-radius: @radius; -webkit-border-top-right-radius: @radius; -moz-border-top-right-radius: @radius; -ms-border-top-right-radius: @radius; -o-border-top-right-radius: @radius; border-top-right-radius: @radius; }
+.rounded-corners-bottom (@radius: 5px) { -webkit-border-bottom-left-radius: @radius; -moz-border-bottom-left-radius: @radius; -ms-border-bottom-left-radius: @radius; -o-border-bottom-left-radius: @radius; border-bottom-left-radius: @radius; -webkit-border-bottom-right-radius: @radius; -moz-border-bottom-right-radius: @radius; -ms-border-bottom-right-radius: @radius; -o-border-bottom-right-radius: @radius; border-bottom-right-radius: @radius; }
+.rounded-corners-left (@radius: 5px) { -webkit-border-bottom-left-radius: @radius; -moz-border-bottom-left-radius: @radius; -ms-border-bottom-left-radius: @radius; -o-border-bottom-left-radius: @radius; border-bottom-left-radius: @radius; -webkit-border-top-left-radius: @radius; -moz-border-top-left-radius: @radius; -ms-border-top-left-radius: @radius; -o-border-bottom-right-radius: @radius; border-top-left-radius: @radius; }
+.rounded-corners-right (@radius: 5px) { -webkit-border-bottom-right-radius: @radius; -moz-border-bottom-right-radius: @radius; -ms-border-bottom-right-radius: @radius; -o-border-bottom-right-radius: @radius; border-bottom-right-radius: @radius; -webkit-border-top-right-radius: @radius; -moz-border-top-right-radius: @radius; -ms-border-top-right-radius: @radius; -o-border-top-right-radius: @radius; border-top-right-radius: @radius; }
+.clearfix() { display:block; zoom:1; &::after { content:"\0020"; display:block; height:0; clear:both; visibility:hidden; overflow:hidden; }}
+.rgba(@r:255,@g:255,@b:255,@o:1) { background-color: rgb(@r,@g,@b); background-color: rgba(@r,@g,@b,@o); }
+
+/* COLORS */
+@fullwidth: 1190px;
+@sidebarwidth: 350px;
+@blue: #049cdb;
+@blue2: #0088cc;
+@lightblue: #BFE5F5;
+@bluegray: #DEEDEE;
+@gray1: #EEEEEE;
+@gray2: #333333;
+@gray3: #999999;
+@white1: #FFFFFF;
+
+/* IMPORTS 
+@import "base";
+@import "libraries";
+@import "class";
+@import "download";
+@import "documents";
+@import "library_submission";
+@import "index";*/
+
+.index-content{ padding-top: 0; position: relative; }
+.ide-embedded .runCode { position: absolute; top: 0; left: 0; margin: 0; float: left; }
+.ide-embed-info { position: absolute; top: 20px; right: 0; width: 585px;
+	label { width: 160px; float: left; position: relative; top: 5px;}
+	input { height: 30px; width: 405px; float: right; }
+}
+
+.runCode
+{
+	width:550px;
+	height:400px;
+	float:right;
+	padding: 15px;
+	border: 1px solid @gray3;
+	background: @gray1;
+	margin: -20px 0 100px 35px;
+	.box-shadow(2px 2px 2px, @gray3);
+
+	h2 { margin: 0 0 25px; background: @blue2; padding: 5px 10px; color: @gray1; text-shadow: 1px 1px 1px darken(@blue2, 30%);
+		span.subtitle { font-size: 14px; font-weight: 300;  color: @white1; width: 298px; display: inline-block; line-height: 20px; margin: 0px 0 0 10px; position: relative; top: 2px; text-shadow: 0 0 0; }
+	}
+
+	.input
+	{
+		.inputArea
+		{
+			min-width:550px;
+			min-height:180px;
+			resize:none;
+			font-family: Menlo, monospace;
+			text-align: left;
+			overflow: scroll;
+			overflow-y: scroll; 
+			overflow-x: hidden;	
+			overflow:-moz-scrollbars-vertical;
+		}
+	}
+	.output
+	{
+
+		.outputArea
+		{
+			margin-top:-10px;
+			height:70px;
+			text-align: left;
+			overflow: scroll;
+			overflow-x: scroll; 
+			overflow-y: scroll;	
+			-ms-overflow-x: scroll;
+			-ms-overflow-y: scroll;
+			overflow:-moz-scrollbars-horizontal;
+			overflow:-moz-scrollbars-vertical;
+		}
+	}
+	.controller
+	{
+		position: relative;
+		top:-5px;
+		.dropdown-menu
+		{
+			z-index: 1;		
+			text-align: left;
+			.code-example:hover
+			{
+				background-color:#049cdb;
+				color:#fff;
+			}	
+		}
+		#run 
+		{
+			float:right;
+		}
+	}
+	.disclaimer-holder
+	{
+		text-align: center;	
+		.disclaimer
+		{
+			font-size:80%
+		}
+	}
+}

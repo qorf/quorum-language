@@ -13,29 +13,35 @@
         public $order_by = "date_submitted";
         public $ascending_or_descending = "DESC";
         public $search_query = "";
-        public $page = 0;
-        public $countPerPage = 25;
+        public $countPerPage = 10;
     
         function __construct($order_by, $ascending_or_descending, $search_query, $page) {
              parent::__construct();
             $this->order_by = ($order_by != null) ? $order_by : $this->order_by;
             $this->ascending_or_descending = ($ascending_or_descending != null) ? $ascending_or_descending : $this->ascending_or_descending;
             $this->search_query = ($search_query != null) ? $search_query : $this->search_query;
-            $this->page = ($page != null) ? $page : $this->page;
+            //$this->page = ($page != null) ? $page : $this->page;
+        }
+
+        public function getPageOfResults($page, $submissions) {
+            $page_results = array();
+            $page = $page - 1;
+            $offset = $page * $this->countPerPage;
+            for ($i = $offset; $i < $offset + $this->countPerPage; $i++) { 
+                if ($submissions[$i] != NULL) {
+                    array_push($page_results, $submissions[$i]);
+                }
+            }
+
+            return $page_results;
         }
         
         public function getPublicSubmissions() {
-            $values = array();
-            $query = "SELECT * FROM " . $this->submissionsTable . " WHERE public_display = '1'" . $this->orderBy($values) . $this->limit($values);
-            $queryResults = $this->attemptQueryWithValues($query, $values);
-            return $this->returnResultsOfQuery($queryResults);
-        }
+            $query = "SELECT * FROM " 
+                    . $this->submissionsTable . " WHERE public_display = '1' "
+                    . "ORDER BY " . $this->order_by . " " 
+                    . $this->ascending_or_descending;
 
-        public function getPublicLibrarySubmisionCount()
-        {
-            $public = '1';
-            $values = array($public);
-            $query = "SELECT COUNT(*) FROM " . $this->submissionsTable . " WHERE public_display = ?";
             $queryResults = $this->attemptQueryWithValues($query, $values);
             return $this->returnResultsOfQuery($queryResults);
         }

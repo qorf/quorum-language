@@ -53,7 +53,7 @@ function insert_to_database() {
     $library_exists = !($check_for_id_existence->getSubmissionByID());
     
     if ($library_exists) {    
-        $submissionURL = "/submissions/" . $_FILES["library-supplements"]["name"];
+        $submissionURL = "/submissions/" . $_FILES["library-files"]["name"];
         $supplementaryFilesURL = isset($_FILES["library-supplements"]) ? "/submissions/supplements/" . $_FILES["library-supplements"]["name"] : "";
     
         $submission = new LibrarySubmission($library_slug, $_POST['library-name'], $_COOKIE['username'], $_POST['author-name'], $_POST['library-description'], $_POST['library-usage'], $submissionURL, $supplementaryFilesURL, 1, "pending-reviewer", date("Y-m-d H:i:s"));
@@ -101,15 +101,19 @@ function process_post() {
         if (input_invalid("library-name")) {
             $errors .= error_message("Please enter a library name.");
         }
+
         if (input_invalid("author-name")) {
             $errors .= error_message("Please enter an author name.");
         }
+        
         if (input_invalid("library-description")) {
             $errors .= error_message("Please enter a description for your library.");
         }
+        
         if (input_invalid("library-usage")) {
             $errors .= error_message("Please enter usage instructions for the library.");
         }
+
         if (isset($_FILES["library-files"])) {
             if ($_FILES["library-files"]["size"] >= 524288) {
                 $errors .= error_message("Your submission exceeds the maximum file size.");
@@ -122,11 +126,10 @@ function process_post() {
         else {
             $errors .= error_message("Please enter a submission file.");
         }
-        if (isset($_FILES["library-supplements"])) {
-            $file_type = $_FILES["library-supplements"]["type"];
-            if ($file_type != "application/zip" && $file_type != "application/x-zip-compressed") {
-                $errors .= error_message("Your supplement file must be a ZIP file.");
-            }
+
+        $supplements_file_type = $_FILES["library-supplements"]["type"];
+        if ($supplements_file_type != "application/zip" && $supplements_file_type != "application/x-zip-compressed" && $_FILES["library-supplements"]["type"] != "") {
+            $errors .= error_message("Your supplement file must be a ZIP file.");
         }
         
         if ($errors != "") {

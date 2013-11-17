@@ -1,0 +1,56 @@
+#library-submission-wizard-container { margin-top: 95px; 
+    h1 {}
+    .errors { margin: 10px 20px; position: relative; left: 20px; list-style-type: disc; 
+        li { font-size: 16px; letter-spacing: 1px; margin-bottom: 10px; }
+    }
+}
+
+#submission-wizard {  font-size: 14px;
+    h2 { margin-top: 0; }
+    h3 { color: @blue2; margin: 0 0 10px; }
+    ul { margin-bottom: 15px;
+        li { font-size: 14px; }
+    }
+    p { font-size: 16px; line-height: 150%; }
+    .actions { margin-top: 20px; padding: 15px; background: @gray1; border: 1px solid @gray3; 
+        .checkbox { position: relative; left: -30px; top: 6px; }
+    }
+    .item .container { padding: 20px; background: @white1; border: 1px solid @gray1; .rounded-corners(); }
+    .control-group { width: 600px; margin: 10px auto 20px;
+        input { font-size: 14px; height: 30px; width: 400px; }
+        textarea { font-size: 14px; min-height: 200px; width: 400px; }
+    }
+}
+
+.library-submissions { background:#F9F9F9; margin-top:40px;
+    thead { background:#EEEEEE; }
+    th span { height: 25px; display: inline-block; position: relative; top: -6px; }
+    th .sort-by-icon { position: relative; top: 2px; margin-left: 8px; }
+    .library-row-description { max-width: 280px; }
+}
+
+#reviewer_submission_form { font-size: 14px; 
+    label { font-size: 14px; }
+    textarea { min-width: 100%; }
+}
+
+
+div#library-info table.library-info { width: 100%; margin: 0 auto; background: @white1;
+    td.label-row { background: @blue2; color: @white1; text-align: center; }
+}
+
+#submitted-reviewer-feedback {
+    .control-label { display: inline-block; width: 300px; font-weight: bold; }
+    .controls, .controls textarea { display: inline-block; min-width: 880px; max-width: 880px; }
+}
+
+.submission-reviews {
+    a { font-size: 14px; }
+    .btn-admin-review { margin-top: 20px; }
+}
+
+.sort-by-icon { display: inline-block; height: 40px; width: 16px; background: url(../img/updown-arrows.png);
+    * { text-indent: -9999px; }
+    .sort-desc { display: block; }
+    .sort-asc { display: block; }
+}

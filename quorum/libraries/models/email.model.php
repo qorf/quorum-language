@@ -20,8 +20,6 @@ class Email {
 			'Content-type: text/html; charset=iso-8859-1' . "\r\n" .
 	        'X-Mailer: PHP/' . phpversion();
 
-	    var_dump($this);
-
 	    mail($this->to, $this->subject, $this->message, $headers);
 	}
 }

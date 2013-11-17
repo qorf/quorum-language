@@ -72,27 +72,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
     }
     
     @Override
-    public void finishIndex() {        
-        indexPage += generateHeader();
-        indexPage += "\t\t<div class=\"hero-unit\">\n";
-        indexPage += "\t\t\t<div class=\"hero-unit-container\">\n";
-        indexPage += "\t\t\t\t<h1>The Quorum Standard Library</h1>\n";
-        indexPage += "\t\t\t\t<p>Quorum includes library classes like: 1) "
-                + "text-to-speech and audio playback, 2) container classes "
-                + "(e.g., arrays, lists, hash tables), 3) system classes, "
-                + "4) classes for iCreate robotics,"
-                + " and 5) mathematics and random numbers. "
-                + "The standard library is expanded in each release.</p>\n";
-        indexPage += "\t\t</div>\n";
-//        indexPage += "\t<div class=\"search-box-large\">\n";
-//        indexPage += "\t\t<form class=\"search\" name=\"search\" action=\"/search.php\" method=\"post\">\n";
-//        indexPage += "\t\t\t<div class=\"input-append\">\n";
-//        indexPage += "\t\t\t\t<input class=\"search-query\" name=\"search-query\" type=\"text\" autocomplete=\"off\" placeholder=\"Example: Array, Object, Music\">\n";
-//        indexPage += "\t\t\t\t<input class=\"btn search-submit\" name=\"submit\" type=\"submit\" value=\"Search!\">\n";
-//        indexPage += "\t\t\t</div>\n";
-//        indexPage += "\t\t</form>\n";
-//        indexPage += "\t</div>\n";
-        indexPage += "</div>\n";        
+    public void finishIndex() {
         indexPage += "<ul class=\"index-grid\">\n";
         
         Iterator<IndexWrapperClass> iterator = getContainersCollection().iterator();
@@ -116,13 +96,8 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         indexPage += "</ul>\n";
         
         createClassTables();
-        indexPage += "<?php include('static/templates/pagefooter.template.php'); ?>";
     }
-    
-    private String generateHeader() {
-        return "<?php include('static/templates/pageheader.template.php'); ?>\n";
-    }
-    
+        
     private void startNewIndex() {
         classes.clear();
         currentClass = null;
@@ -230,53 +205,6 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         }
         indexPage += "\n</table>";
     }
-    
-    
-    /**
-    * Generate the left-side navigation on the documentation pages.
-    * 
-    * @param
-    * @return
-    */
-    private void generateSidebar() {
-        String html = "\n<ul class=\"index\">";
-        String previousContainer = "!!!!----invalid----!!!!";
-        boolean firstPackage = true;
-        boolean standardListItem = true;
-        boolean firstSublistItem = true;
-        boolean beginSublist = false;
-        
-        for(int i = 0; i < classes.size(); i++) {
-            ClassDescriptor clazz = classes.get(i);
-            String newContainer = clazz.getContainer().getContainer();
-            if(previousContainer.compareTo(newContainer)!=0) { // if it's a new container
-                previousContainer = newContainer;
-                if(!firstPackage) { html += "\t</li></ul>\n"; }
-                
-                html += "<li>";
-                html += "\t<span class=\"collapsable\"><a href=\"#\">" + (newContainer.isEmpty() ? "Default Package" : newContainer) + "</a></span>\n";
-                standardListItem = true;
-                beginSublist = true;
-            }
-            
-            if (firstSublistItem) {
-                html += "</ul>";
-                firstSublistItem = false;
-            }
-            if (beginSublist) {
-                html += "<ul class=\"child\">";
-            }
-            
-            html += "<li><span class=\"collapsable\">" + linkForClassFromRoot(clazz) + "</span></li>";
-            
-            firstPackage = false;
-            beginSublist = false;
-        }
-        
-        html += "\n</li></ul>";
-        
-    }
-    
     
     /**
     * Sort all of the classes in the compiler - first by container name, then by
@@ -787,75 +715,48 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
     
     @Override
     public void finish(File standardLibrary, File documentation) {
-        File css = new File(standardLibrary.getParentFile().getAbsolutePath() + "/style.css");
-        File destination = new File(documentation.getAbsolutePath() + "/style.css");
+        QuorumJarGenerator gen = new QuorumJarGenerator();
+
+        this.renderFile(gen, standardLibrary, documentation, "admin_feedback.php");
+        this.renderFile(gen, standardLibrary, documentation, "control_panel.php");
+        this.renderFile(gen, standardLibrary, documentation, "curriculum.php");
+        this.renderFile(gen, standardLibrary, documentation, "control_panel.php");
+        this.renderFile(gen, standardLibrary, documentation, "download.php");
+        this.renderFile(gen, standardLibrary, documentation, "embedded-ide.php");
+        this.renderFile(gen, standardLibrary, documentation, "forgot_password.php");
+        this.renderFile(gen, standardLibrary, documentation, "ide.php");
+        this.renderFile(gen, standardLibrary, documentation, "index.php");
+        this.renderFile(gen, standardLibrary, documentation, "reset_password.php");
+        this.renderFile(gen, standardLibrary, documentation, "reviewer_feedback.php");
+        this.renderFile(gen, standardLibrary, documentation, "search.php");
+        this.renderFile(gen, standardLibrary, documentation, "submit_library.php");
+        this.renderFile(gen, standardLibrary, documentation, "submitted_library.php");
+        this.renderFile(gen, standardLibrary, documentation, "submitted_library_index.php");
+        this.renderFile(gen, standardLibrary, documentation, "submitted_reviewer_feedback.php");
+        this.renderFile(gen, standardLibrary, documentation, "syntax.php");
+
+        this.renderFolder(gen, standardLibrary, documentation, "assets");
+        this.renderFolder(gen, standardLibrary, documentation, "controllers");
+        this.renderFolder(gen, standardLibrary, documentation, "documents");
+        this.renderFolder(gen, standardLibrary, documentation, "indexes");
+        this.renderFolder(gen, standardLibrary, documentation, "models");
+        this.renderFolder(gen, standardLibrary, documentation, "static");
+        this.renderFolder(gen, standardLibrary, documentation, "submissions");
+    }
+    
+    private void renderFile(QuorumJarGenerator gen, File standardLibrary, File documentation, String fileName) {
+        File source = new File(standardLibrary.getParentFile().getAbsolutePath() + "/" + fileName);
+        File destination = new File(documentation.getAbsolutePath() + "/" + fileName);
         try {
-            QuorumJarGenerator gen = new QuorumJarGenerator();
-            gen.copyFile(css, destination);
-            
-            File intro = new File(standardLibrary.getParentFile().getAbsolutePath() + "/index.php");
-            destination = new File(documentation.getAbsolutePath() + "/index.php");
-            gen.copyFile(intro, destination);
-            
-            File codeRunner = new File(standardLibrary.getParentFile().getAbsolutePath() + "/ide.php");
-            destination = new File(documentation.getAbsolutePath() + "/ide.php");
-            gen.copyFile(codeRunner, destination);
-            
-            File embeddedCodeRunner = new File(standardLibrary.getParentFile().getAbsolutePath() + "/embedded-ide.php");
-            destination = new File(documentation.getAbsolutePath() + "/embedded-ide.php");
-            gen.copyFile(embeddedCodeRunner, destination);
-            
-            File syntax = new File(standardLibrary.getParentFile().getAbsolutePath() + "/syntax.php");
-            destination = new File(documentation.getAbsolutePath() + "/syntax.php");
-            gen.copyFile(syntax, destination);
-            
-            //File libraries = new File(standardLibrary.getParentFile().getAbsolutePath() + "/libraries.php");
-            //destination = new File(documentation.getAbsolutePath() + "/libraries.php");
-            //gen.copyFile(libraries, destination);
-            
-            File search = new File(standardLibrary.getParentFile().getAbsolutePath() + "/search.php");
-            destination = new File(documentation.getAbsolutePath() + "/search.php");
-            gen.copyFile(search, destination);
-            
-            File forgotPassword = new File(standardLibrary.getParentFile().getAbsolutePath() + "/forgot_password.php");
-            destination = new File(documentation.getAbsolutePath() + "/forgot_password.php");
-            gen.copyFile(forgotPassword, destination);
-            
-            File resetPassword = new File(standardLibrary.getParentFile().getAbsolutePath() + "/reset_password.php");
-            destination = new File(documentation.getAbsolutePath() + "/reset_password.php");
-            gen.copyFile(resetPassword, destination);
-            
-            File curriculum = new File(standardLibrary.getParentFile().getAbsolutePath() + "/curriculum.php");
-            destination = new File(documentation.getAbsolutePath() + "/curriculum.php");
-            gen.copyFile(curriculum, destination);
-            
-            File downloads = new File(standardLibrary.getParentFile().getAbsolutePath() + "/download.php");
-            destination = new File(documentation.getAbsolutePath() + "/download.php");
-            gen.copyFile(downloads, destination);
-            
-            File models = new File(standardLibrary.getParentFile().getAbsolutePath() + "/models");
-            destination = new File(documentation.getAbsolutePath() + "/models");
-            gen.copyFile(models, destination);
-            
-            File documents = new File(standardLibrary.getParentFile().getAbsolutePath() + "/documents");
-            destination = new File(documentation.getAbsolutePath() + "/documents");
-            gen.copyFile(documents, destination);
-            
-            File statics = new File(standardLibrary.getParentFile().getAbsolutePath() + "/static");
-            destination = new File(documentation.getAbsolutePath() + "/static");
-            gen.copyFile(statics, destination);
-            
-            File assets = new File(standardLibrary.getParentFile().getAbsolutePath() + "/assets");
-            destination = new File(documentation.getAbsolutePath() + "/assets");
-            gen.copyFile(assets, destination);
-            
-            File controllers = new File(standardLibrary.getParentFile().getAbsolutePath() + "/controllers");
-            destination = new File(documentation.getAbsolutePath() + "/controllers");
-            gen.copyFile(controllers, destination);
-            
-        } catch (IOException ex) {
+            gen.copyFile(source, destination);   
+        }
+        catch (IOException ex) {
             Logger.getLogger(PHPDocumentationGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    private void renderFolder(QuorumJarGenerator gen, File standardLibrary, File documentation, String folder) {
+        this.renderFile(gen, standardLibrary, documentation, folder);
     }
     
     private class ParentResult {
