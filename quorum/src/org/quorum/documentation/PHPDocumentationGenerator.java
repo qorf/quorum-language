@@ -85,6 +85,10 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                 + "The standard library is expanded in each release.</p>\n";
         indexPage += "\t\t</div>\n";
         indexPage += "</div>\n";       
+        indexPage += "<div class=\"container clearfix\">\n" +
+                    "	<a href=\"/submitted_library_index.php\" class=\"btn btn-primary pull-right\" style=\"display:block;\">View User-Submitted Experimental Libraries</a>\n" +
+                    "	<?php  if (isset($_COOKIE['username'])) { echo '<a href=\"/submit_library.php\" class=\"btn btn-info pull-left\">Submit a Library to the Quorum Standard Library</a>'; } ?>\n" +
+                    "</div><br /><br />";
         indexPage += "<ul class=\"index-grid\">\n";
         
         Iterator<IndexWrapperClass> iterator = getContainersCollection().iterator();

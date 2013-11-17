@@ -72,7 +72,7 @@ function insert_to_database() {
 function email_administrators($submission) {        
     $message = "The library " . $submission->libraryName . " has been submitted by " . $submission->uploaderUsername . ". ";
     $message .= "You can see the library at http://quorumlanguage.com/submitted_library.php?id=" . $submission->libraryID;
-    $email = new Email("kerrylritter+ql@gmail.com","quorum@quorumlanguage.com","A library submisson has been submitted",$message);
+    $email = new Email("stefika+quorumlanguagedotcom@gmail.com, kerrylritter+quorumlanguagedotcom@gmail.com","quorum@quorumlanguage.com","A library submisson has been submitted",$message);
     $email->send();
 }
 
