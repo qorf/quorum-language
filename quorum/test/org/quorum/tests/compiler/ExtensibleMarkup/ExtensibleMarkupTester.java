@@ -74,11 +74,11 @@ public class ExtensibleMarkupTester {
             saxParser.parse("<?xml version=\"1.0\"?><root>test</root>", handler);
             result = handler.GetResult();
          } catch (ParserConfigurationException  e) {
-           e.printStackTrace();
+           fail();
          } catch (SAXException  e) {
-           e.printStackTrace();
+           fail();
          }catch (IOException e) {
-           e.printStackTrace();
+           fail();
          }
         
         int numLines = r.getNumberOfLines();
