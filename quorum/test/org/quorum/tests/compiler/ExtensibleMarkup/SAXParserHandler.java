@@ -8,13 +8,12 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class SAXParserHandler extends DefaultHandler {
-//    Stack<String> stack = new Stack<String>();
-//    private StringBuilder chars = new StringBuilder();
+    private StringBuilder chars = new StringBuilder();
     ArrayList<String> result = new ArrayList<String>();
     
     @Override
     public void startElement(String uri, String localName,String qName, Attributes attributes) throws SAXException {
-//        chars.setLength(0);
+        CheckForValue(); // check to see if there is a value that needs to be printed before printing a new start element
         StringBuilder start = new StringBuilder();
         start.append("Start Element: " + qName);
 
@@ -28,27 +27,28 @@ public class SAXParserHandler extends DefaultHandler {
 
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
-
+        CheckForValue(); // check to see if there is a value that needs to be printed before printing the end element
         result.add("End Element: " + qName );
     }
 
     @Override
-    public void characters(char ch[], int start, int length) throws SAXException {
-//        String temp = new String(ch, start, length);
-//        temp = temp.trim();
-//        if (!temp.isEmpty())
-//        {
-//            chars.append(temp);
-//            stack.push(chars.toString());
-//        }
-                    
-        String value = new String(ch, start, length);
-        if (!value.trim().isEmpty())
-            result.add("Value: " + value.trim());
+    public void characters(char ch[], int start, int length) throws SAXException {                    
+        String temp = new String(ch, start, length);
+        chars.append(temp); 
     }
     
-    public ArrayList<String> GetResult()
-    {
+    public ArrayList<String> GetResult() {
         return result;
+    }
+    
+    private void CheckForValue() {
+        if (chars.length() > 0)
+        {
+            String value = chars.toString();
+            if (!value.trim().isEmpty()) {
+                result.add("Value: " + value.trim());
+            }
+        }
+        chars.setLength(0);
     }
 }

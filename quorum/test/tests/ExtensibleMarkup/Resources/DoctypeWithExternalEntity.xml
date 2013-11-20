@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE note [
+  <!ELEMENT note (to,from,heading,body)>
+  <!ELEMENT to      (#PCDATA)>
+  <!ELEMENT from    (#PCDATA)>
+  <!ELEMENT heading (#PCDATA)>
+  <!ELEMENT body    (#PCDATA)>
+  <!ENTITY name SYSTEM "DoctypeWithExternalEntity.ent">
+]>
+
+<note>
+  <to>To: &name;</to>
+  <from>From: Allison</from>
+  <heading>Events of today</heading>
+  <body>I did things today!</body>
+</note>
