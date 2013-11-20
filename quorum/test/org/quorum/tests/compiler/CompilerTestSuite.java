@@ -57,6 +57,7 @@ import org.quorum.tests.compiler.other.OtherTester;
 import org.quorum.tests.compiler.publicprivate.PublicPrivateTester;
 import org.quorum.tests.compiler.templating.TemplateTester;
 import org.quorum.tests.compiler.use.UseTester;
+import org.quorum.tests.compiler.ExtensibleMarkup.ExtensibleMarkupTester;
 
 /**
  *
@@ -67,11 +68,13 @@ import org.quorum.tests.compiler.use.UseTester;
     CurriculumTester.class, ActionsTester.class, ExceptionsTester.class, ArrayTester.class, TableTester.class,
     MathTester.class, QueueTester.class, IfStatementTester.class, InheritanceTester.class, LoopsTester.class,
     NativeFunctionsTester.class, OtherTester.class, PublicPrivateTester.class, TemplateTester.class, HashTableTester.class,
-    UseTester.class, FileTester.class, ExpressionsTester.class, FileReaderTester.class, FileWriterTester.class, FileRandomAccessTester.class})
+    UseTester.class, FileTester.class, ExpressionsTester.class, FileReaderTester.class, FileWriterTester.class, FileRandomAccessTester.class,
+    ExtensibleMarkupTester.class })
 
 public class CompilerTestSuite {
     public static final String PASS = "Pass" + File.separatorChar;
     public static final String FAIL = "Fail" + File.separatorChar;
+    public static final String RESOURCES = "Resources" + File.separator;
     public static final String TYPE_CHECKER = "TypeChecker" + File.separatorChar;
     public static final String TEMPLATING = "templating" + File.separatorChar;
     public static final String CURRICULUM = "curriculum" + File.separatorChar;
@@ -102,6 +105,7 @@ public class CompilerTestSuite {
     public static final String PRIORITYQUEUE = "PriorityQueue"+File.separatorChar;
     public static final String TABLE = "Table"+File.separatorChar;
     public static final String HASHTABLE = "HashTable" + File.separatorChar;
+    public static final String EXTENSIBLE_MARKUP = "ExtensibleMarkup" + File.separator;
     private static QuorumVirtualMachine vm;
     private static File systemRoot;
     private static File pluginFolder;

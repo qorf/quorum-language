@@ -1,0 +1,13 @@
+
+use Libraries.Data.Formats.ExtensibleMarkup.all
+
+class Main
+    action main
+        text quote
+        ExtensibleMarkupReader  reader
+        AnalyticsMarkupListener listener
+        reader:SetMarkupListener(listener)
+        
+        reader:Read("<?xml version=" + quote:GetDoubleQuote() + "1.0"  + quote:GetDoubleQuote() + "?><root>test</root>")
+    end
+end
