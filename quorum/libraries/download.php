@@ -11,16 +11,16 @@
 
 <div class="content download-content">
 	<ul class="download-links">
-		<li class="links-windows"><h2><a href="https://sourceforge.net/projects/quorum/files/Quorum%202.0/Quorum%202.0.exe/download">Download Quorum 2.0 for Windows</a></h2></li>
-		<li class="links-macosx"><h2><a href="https://sourceforge.net/projects/quorum/files/Quorum%202.0/Quorum%202.0.pkg/download">Download Quorum 2.0 for Mac OS X</a></h2></li>
+		<li class="links-windows"><h2><a href="https://sourceforge.net/projects/quorum/files/Quorum%202.0/Quorum%202.1.exe/download">Download Quorum 2.1 for Windows</a></h2></li>
+		<li class="links-macosx"><h2><a href="https://sourceforge.net/projects/quorum/files/Quorum%202.0/Quorum%202.1.pkg/download">Download Quorum 2.1 for Mac OS X</a></h2></li>
 	</ul>
         <ul class="download-links">
-		<li class="links-windows"><h2><a href="https://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_0/Public/Sodbeans%204.0.1.exe/download">Download Sodbeans 4.0 for Windows</a></h2></li>
-		<li class="links-macosx"><h2><a href="http://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_0/Public/sodbeans-macosx.tgz/download">Download Sodbeans 4.0 for Mac OS X</a></h2></li>
+		<li class="links-windows"><h2><a href="https://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/Public/Sodbeans%204.5.exe/download">Download Sodbeans 4.5 for Windows</a></h2></li>
+		<li class="links-macosx"><h2><a href="http://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/Public/sodbeans-macosx.tgz/download">Download Sodbeans 4.5 for Mac OS X</a></h2></li>
 	</ul>
         <ul class="download-links">
-		<li class="links-windows"><h2><a href="http://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_0/Student/Sodbeans%204.0.1.exe/download">Download Sodbeans 4.0 for Windows (School)</a></h2></li>
-		<li class="links-macosx"><h2><a href="http://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_0/Student/sodbeans-macosx.tgz/download">Download Sodbeans 4.0 for Mac OS X (School)</a></h2></li>
+		<li class="links-windows"><h2><a href="http://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/Student/Sodbeans%204.5.exe/download">Download Sodbeans 4.5 for Windows (School)</a></h2></li>
+		<li class="links-macosx"><h2><a href="http://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/Student/sodbeans-macosx.tgz/download">Download Sodbeans 4.5 for Mac OS X (School)</a></h2></li>
 	</ul>
 
 	<h1>Getting started with Quorum</h1>
@@ -29,14 +29,14 @@
             development environment (Sodbeans). First, 
             we can run Quorum through a console (such as cmd.exe on 
             windows, or Terminal on Mac). Second, we can develop in Quorum using
-            an integrated development environment called Sodbeans 4.0. This environment
+            an integrated development environment called Sodbeans 4.5. This environment
             includes the latest  version of Quorum and a number of advanced features like code completion, 
             syntax highlighting, brace matching, a talking omniscient debugger, and many optional
             features for blind and visually impaired users. Sodbeans is a plugin
             for Oracle's NetBeans.
         </p>
         <p><strong>Note:</strong> Want to <strong><i><u>Help Science!</u></i></strong> by contributing data on how you are
-            using Quorum? Download Sodbeans 4.0 School Version! <i>We promise we won't use
+            using Quorum? Download Sodbeans 4.5 School Version! <i>We promise we won't use
         the data for world domination.</i></p>
 	<h2>Creating Hello World</h2>
 	<p>Let's build a program that prints out &quot;Hello World&quot;
