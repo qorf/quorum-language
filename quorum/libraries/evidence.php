@@ -2,14 +2,14 @@
 <div class="hero-unit">
 	<div class="hero-unit-container">
 		<h1>Evidence-Oriented Programming</h1>
-		<p>Quorum is a general purpose, object-oriented, programming
-                    language. It is the first <a href="evidence.php">evidence-oriented programming language.</a></p>
+		<p>Bringing randomized controlled trials to human factors 
+                    decisions in programming language design. You know ... science.</p>
 	</div>
 </div>
 
 <div class="content index-content">
-<h1>Programming languages should be designed with human factors as a primary concern.</h1>
-<p>
+<h4>Programming languages should be designed with human factors as a primary concern.</h4>
+<p align="justify">
     Traditional programming languages have been designed predominately with technical
     concepts and machines in mind. While such concerns are obviously critical, human beings
     ultimately use such tools in the broad development community. In evidence-oriented
@@ -19,18 +19,18 @@
     approach is better. This is true both for technical and human factors considerations.
     To our knowledge, Quorum is the first programming language to attempt this.
 </p>
-<h2>How does evidence-oriented programming work?</h2>
+<h4>How does evidence-oriented programming work?</h4>
 <ul>
     <li>Quorum's design is fixed, barring a new randomized controlled trial. Submitted claims
-    will be examined by experts in statistics and experimental study design.</li>
+    will be examined by experts in potentially a variety of fields (e.g., statistics, experimental design, psychology, computer science).</li>
     <li>Community members may submit changes to any aspect of Quorum's design</li>
     <li>For technical matters (e.g., bugs, efficiency improvements), changes are done
-    through a separate process, in order to expedite any critical changes</li>
+    through a separate process, in order to expedite any critical adjustments</li>
     <li>For tool improvements to Quorum (e.g., debugger improvements, IDE improvements), 
         rigorous evidence gathering still applies. </li>
 </ul>
-<h2>What evidence is there for Quorum already?</h2>
-<p>
+<h4>What evidence is there for Quorum already?</h4>
+<p align="justify">
     Programming language design is complicated, as is likely obvious. No amount of 
     study will fix all usability or human factors concerns, or appease everyone, but
     the general goal is to make the greatest number of humans as productive as
@@ -42,8 +42,8 @@
     are available that want more information.
 </p>
 
-<h2>What is the standard of evidence for core changes to Quorum?</h2>
-<p>Quorum requires a standard of evidence for language features that are commensurate
+<h4>What is the standard of evidence for core changes to Quorum?</h4>
+<p align="justify">Quorum requires a standard of evidence for language features that are commensurate
 with the change being requested. For example, core designs for the syntax have
 already been vetted in randomized controlled trials with human beings (e.g., see <a href="http://dl.acm.org/citation.cfm?id=2534973">Stefik and Siebert</a>)
 Thus, changes require more, or better, evidence. For core changes, we highly recommend
@@ -52,7 +52,7 @@ familiarizing yourself with the <a href="http://ies.ed.gov/ncee/wwc/pdf/referenc
     certainly be rejected. Generally, the programming language wars appear to 
     be too complex to solve with beliefs alone.
 </p>
-<h2>What is the standard of evidence for Quorum's standard library?</h2>
+<h4>What is the standard of evidence for Quorum's standard library?</h4>
 <p>Submissions to add to the standard library require less evidence.
     We ask that the submission follows the coding standard, that the library 
     actually works, and it provides some kind of useful functionality. If you want to 
@@ -61,7 +61,7 @@ that the change benefits human beings. Again, claims must be actionable and anec
 are not acceptable, unless the claim is really obvious (e.g., a submission that fixes a known bug).
 </p>
 
-<h1>Submitting a change or library to Quorum</h1>
+<h4>Submitting a change or library to Quorum</h4>
 <ul>
     <li>First, you must login, through Google or through a Quorum account</li>
     <li>Next, submit a change through our <a href="submit_library.php">Library
@@ -72,15 +72,18 @@ are not acceptable, unless the claim is really obvious (e.g., a submission that 
     <li>The change request, and any evidence submitted will go
     through a peer review process. The depth of the review depends again on 
     what was submitted. Extensive change requests may require extensive reviews.</li>
+    <li>If your change or library is accepted, you get a badge, because you are
+        awesome. Multiple and better badges can be earned, depending on your contribution
+        to the language.</li>
 </ul>
-<h2>The benefits of evidence-oriented design</h2>
-<p>
+<h4>The benefits of evidence-oriented design</h4>
+<p align="justify">
 Since Quorum is evidence based, the entire community has a buy-in toward adjusting 
 and improving the language over time. To keep the language as stable as possible, 
 core language features should be unchanged without solid empirical evidence. We
 feel this is especially important, given the long history of 
 language designers using little evidence (if any) when making human factors decisions.
-Given that evidence does require to change, from time-to-time, developers are informed
+Given that evidence does require the language to change, from time-to-time, developers are informed
 of important changes as soon as possible. This is why, for example, the Quorum
 designers started with syntax and type systems in controlled trials. The bar
 to adjust these features is, thus, extremely high. 
