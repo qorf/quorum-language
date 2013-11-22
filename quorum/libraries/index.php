@@ -2,17 +2,14 @@
 <div class="hero-unit">
 	<div class="hero-unit-container">
 		<h1>The Quorum Programming Language</h1>
-		<p>Quorum is a general purpose, object-oriented, programming
-                    language. Designed in formal 
-    empirical studies with human subjects, Quorum has been iteratively 
-    refined to make it easy to understand and use.</p>
+		<p>The world's first <a href="evidence.php">evidence-oriented programming language.</a></p>
 	</div>
 </div>
 
 <div class="content index-content">
 <h1>Introducing Quorum</h1>
 <p>
-    Quorum 2.0 (see 
+    Quorum 2.1 (see 
     the <a href="documents/release.php">Quorum release notes</a>), 
     has the following features and more:
 </p>

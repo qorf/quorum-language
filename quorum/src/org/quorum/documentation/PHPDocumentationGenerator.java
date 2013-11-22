@@ -738,6 +738,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         this.renderFile(gen, standardLibrary, documentation, "control_panel.php");
         this.renderFile(gen, standardLibrary, documentation, "curriculum.php");
         this.renderFile(gen, standardLibrary, documentation, "control_panel.php");
+        this.renderFile(gen, standardLibrary, documentation, "evidence.php");
         this.renderFile(gen, standardLibrary, documentation, "download.php");
         this.renderFile(gen, standardLibrary, documentation, "embedded-ide.php");
         this.renderFile(gen, standardLibrary, documentation, "forgot_password.php");
