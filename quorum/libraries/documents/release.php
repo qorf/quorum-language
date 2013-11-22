@@ -7,10 +7,21 @@
 	</div>
 </div>
 <div class="content index-content">
-<h2>Quorum 2.0.2 August 13th, 2013 (TBD)</h2>
-<p>This is a bug fix release for the Quorum 2.0 branch.</p>
-<ul> 
+<h2>Quorum 2.1 December 16th, 2013</h2>
+<p>This is predominately a bug fix release for the Quorum 2.0 branch.</p>
+<ul> Web changes
+    <li>Added a peer review system for Quorum's standard library.</li>
+    <li>Added a submission system for the standard library.</li>
+    <li>Added a badging system for recognizing users that contribute to Quorum.</li>
+    <li>Added an information page on the submission system and process.</li>
+    <li>Fixed a broken connection causing the accessibility libraries to not
+    properly show up in the library list.</li>
+</ul>
+<ul> Standard Library and compiler Fixes/Changes
         <li>Fixed a bug causing certain primitive types to not hash correctly.</li>
+        <li>Added new data libraries for reading XML files, CSV files.</li>
+        <li>Added a number of new additional test cases for various components.</li>
+        <li>Fixed a rare verifier error in the compiler.</li>
 </ul>
 <h2>Quorum 2.0.1 August 13th, 2013</h2>
 <p>This is a bug fix release for the Quorum 2.0 branch.</p>
