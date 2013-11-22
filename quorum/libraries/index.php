@@ -23,11 +23,13 @@
 <ul>
     <li>A language design that is heavily tested for ease of use in formal 
         <a href="http://dl.acm.org/citation.cfm?id=2534973">scientific peer-reviewed studies</a>.</li>
+    <li>A Static type system that conforms to the <a href="http://dl.acm.org/citation.cfm?id=2384616.2384666&coll=DL&dl=GUIDE&CFID=263596418&CFTOKEN=51077801">
+        latest scientific evidence on ease
+        of use</a> from the academic peer reviewed literature.</li>
+    <li>Quorum is Object-oriented, but this is hidden from beginners for initial ease of use. 
+        Experts have significant flexibility.</li>
     <li>NetBeans Integration (see the <a href="documents/releaseIDE.php">Sodbeans release notes</a>) </li>
     <li>Source code is compiled to Java bytecode</li>
-    <li>A Static type system that conforms to the latest scientific evidence on ease
-        of use from the academic peer reviewed literature.</li>
-    <li>Object-orientation</li>
     <li>A <a href="submit_library.php">Library
             Submission System</a> for users to contribute to the language or request changes.</li>
     <li>A growing <a href="libraries.php">Standard Library</a> (e.g., data structures, 
