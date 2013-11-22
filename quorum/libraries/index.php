@@ -21,17 +21,19 @@
  </div>
 
 <ul>
+    <li>A language design that is heavily tested for ease of use in formal 
+        <a href="http://dl.acm.org/citation.cfm?id=2534973">scientific peer-reviewed studies</a>.</li>
+    <li>NetBeans Integration (see the <a href="documents/releaseIDE.php">Sodbeans release notes</a>) </li>
     <li>Source code is compiled to Java bytecode</li>
-    <li>Static type checking with some type inference</li>
-    <li>Unique control structures, heavily tested to be easily understood by 
-        novices and professionals</li>
+    <li>A Static type system that conforms to the latest scientific evidence on ease
+        of use from the academic peer reviewed literature.</li>
     <li>Object-orientation</li>
+    <li>A <a href="submit_library.php">Library
+            Submission System</a> for users to contribute to the language or request changes.</li>
     <li>A growing <a href="libraries.php">Standard Library</a> (e.g., data structures, 
         music generation, text-to-speech)</li>
     <li>A <a href="documents/syntax/plugins.php">Plugin system</a> for extending Quorum with Java or C++</li>
-    
-    <li>A talking Omniscient debugger (e.g., debug backwards, analyze variable histories)</li>
-    <li>NetBeans Integration (see the <a href="documents/releaseIDE.php">Sodbeans release notes</a>) </li>
+    <li>Full Java Debugging Interface (JDI) support for Quorum in NetBeans</li>
 </ul>
 <h2>Getting Started</h2>
 <ul>
