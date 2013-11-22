@@ -39,7 +39,7 @@
     <a href="http://dl.acm.org/citation.cfm?id=2534973">syntactic choices</a> is extensive. Similarly,
     we used all known empirical studies on the design of type systems when designing Quorum's. 
     While this description barely scratches the surface, published works on the design
-    are available that want more information.
+    are available for those that want more information.
 </p>
 
 <h4>What is the standard of evidence for core changes to Quorum?</h4>
