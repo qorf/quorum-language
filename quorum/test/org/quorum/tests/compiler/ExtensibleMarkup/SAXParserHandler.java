@@ -46,7 +46,15 @@ public class SAXParserHandler extends DefaultHandler {
         {
             String value = chars.toString();
             if (!value.trim().isEmpty()) {
-                result.add("Value: " + value.trim());
+                String[] values = value.trim().split("\n");
+                for (int i = 0; i < values.length; i++)
+                {
+                    if (i == 0) {
+                        result.add("Value: " + values[i].trim());
+                    }
+                    else
+                        result.add(values[i].trim());
+                }
             }
         }
         chars.setLength(0);

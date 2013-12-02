@@ -28,6 +28,7 @@ reader:Read(xml) //read the xml file
 class ExtensibleMarkupReader 
     MarkupListener listener
     File sourceFile
+    DocumentTypeDefinition dtd
 
     /*
         This action gets the data from the given file and parses the it as an XML document.
@@ -79,7 +80,6 @@ class ExtensibleMarkupReader
         size = xml:GetSize()
         doubleQuote = xml:GetDoubleQuote()
 
-        DocumentTypeDefinition dtd
         if sourceFile:Exists()
             directory = sourceFile:GetWorkingDirectory()
             
@@ -182,7 +182,7 @@ class ExtensibleMarkupReader
                         end
                     end
                 end
-            elseif char = "&" 
+            elseif char = "&" and not inElement
                 name = ""
                 isName = true
                 j = i
@@ -347,6 +347,41 @@ class ExtensibleMarkupReader
             else 
                 if not seenFirstWhiteSpace
                     name = name + char
+                elseif char = "&" 
+                    name = ""
+                    isName = true
+                    j = i
+                    repeat while isName and (j + 1) < size
+                        j = j + 1
+                        if value:GetCharacter(j) = ";"
+                            //figure out value to replace it with
+                            if name = "lt"
+                                attributeValue = attributeValue + "<"
+                            elseif name = "gt"
+                                attributeValue = attributeValue + ">"
+                            elseif name = "amp"
+                                attributeValue = attributeValue + "&"
+                            elseif name = "apos"
+                                attributeValue = attributeValue + "'"
+                            elseif name = "quot"
+                                attributeValue = attributeValue + doubleQuote
+                            elseif name:StartsWith("#x")
+                                name = name:GetSubtext(2)
+                                unicode = HexToDecimal(name)
+                                attributeValue = attributeValue + name:GetUnicodeValue(unicode)
+                            elseif name:StartsWith("#")
+                                name = name:GetSubtext(1)
+                                unicode = name:ParseInteger()
+                                attributeValue = attributeValue + name:GetUnicodeValue(unicode)
+                            else
+                                attributeValue = attributeValue + dtd:GetEntityValue(name)
+                            end
+                            isName = false
+                        else
+                            name = name + value:GetCharacter(j)
+                        end 
+                    end
+                    i = j
                 elseif char = "="
                     inAttributeName = false
                     inAttributeValue = false

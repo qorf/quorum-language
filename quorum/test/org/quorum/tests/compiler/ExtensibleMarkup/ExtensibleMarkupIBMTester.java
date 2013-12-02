@@ -27,7 +27,7 @@ import org.xml.sax.SAXException;
 
 /**
  *
- * @author Nicole
+ * @author Nicole Blumhorst
  */
 public class ExtensibleMarkupIBMTester {
     private QuorumVirtualMachine vm;
@@ -85,7 +85,7 @@ public class ExtensibleMarkupIBMTester {
         int numLines = r.getNumberOfLines();
         for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -122,7 +122,7 @@ public class ExtensibleMarkupIBMTester {
         int numLines = r.getNumberOfLines();
         for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -159,7 +159,7 @@ public class ExtensibleMarkupIBMTester {
         int numLines = r.getNumberOfLines();
         for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }    
     
@@ -196,7 +196,7 @@ public class ExtensibleMarkupIBMTester {
         int numLines = r.getNumberOfLines();
         for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -233,7 +233,7 @@ public class ExtensibleMarkupIBMTester {
         int numLines = r.getNumberOfLines();
         for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -270,7 +270,7 @@ public class ExtensibleMarkupIBMTester {
         int numLines = r.getNumberOfLines();
         for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -307,46 +307,46 @@ public class ExtensibleMarkupIBMTester {
         int numLines = r.getNumberOfLines();
         for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
-//    @Test
-//    public void test_ibm09v05_pass_bytecode(){
-//        File[] files = new File[2];
-//        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.PASS + "IBMTests\\ibm09v05.quorum");
-//        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.PASS + "AnalyticsMarkupListener.quorum");
-//        CompilerTestSuite.build(files);
-//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//
-//        RunResult r = CompilerTestSuite.runQuorumFiles(files);
-//        if (!r.isSuccessful())
-//            fail();
-//        
-//        ArrayList<String> result = new ArrayList<String>();
-//        try {
-//            SAXParserFactory factory = SAXParserFactory.newInstance();
-//            SAXParser saxParser = factory.newSAXParser();
-//
-//            SAXParserHandler handler = new SAXParserHandler();
-//            saxParser.parse(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.RESOURCES + "IBMTests\\ibm09v05.xml"), handler);
-//            result = handler.GetResult();
-//         } catch (ParserConfigurationException  e) {
-//            fail();
-//         } catch (SAXException  e) {
-//            fail();
-//         } catch (IOException e) {
-//            fail();
-//         }
-//        
-//        int numLines = r.getNumberOfLines();
-//        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
-//        {
-//            assert(r.getLine(count).equals(result.get(count)));
-//        }
-//    }
+    @Test
+    public void test_ibm09v05_pass_bytecode(){
+        File[] files = new File[2];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.PASS + "IBMTests\\ibm09v05.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.PASS + "AnalyticsMarkupListener.quorum");
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
+        if (!r.isSuccessful())
+            fail();
+        
+        ArrayList<String> result = new ArrayList<String>();
+        try {
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser saxParser = factory.newSAXParser();
+
+            SAXParserHandler handler = new SAXParserHandler();
+            saxParser.parse(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.RESOURCES + "IBMTests\\ibm09v05.xml"), handler);
+            result = handler.GetResult();
+         } catch (ParserConfigurationException  e) {
+            fail();
+         } catch (SAXException  e) {
+            fail();
+         } catch (IOException e) {
+            fail();
+         }
+        
+        int numLines = r.getNumberOfLines();
+        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        {
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
+        }
+    }
     
     @Test
     public void test_ibm10v01_pass_bytecode(){
@@ -381,7 +381,7 @@ public class ExtensibleMarkupIBMTester {
         int numLines = r.getNumberOfLines();
         for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -418,7 +418,7 @@ public class ExtensibleMarkupIBMTester {
         int numLines = r.getNumberOfLines();
         for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -455,46 +455,48 @@ public class ExtensibleMarkupIBMTester {
         int numLines = r.getNumberOfLines();
         for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
-//    @Test
-//    public void test_ibm10v04_pass_bytecode(){
-//        File[] files = new File[2];
-//        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.PASS + "IBMTests\\ibm10v04.quorum");
-//        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.PASS + "AnalyticsMarkupListener.quorum");
-//        CompilerTestSuite.build(files);
-//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//
-//        RunResult r = CompilerTestSuite.runQuorumFiles(files);
-//        if (!r.isSuccessful())
-//            fail();
-//        
-//        ArrayList<String> result = new ArrayList<String>();
-//        try {
-//            SAXParserFactory factory = SAXParserFactory.newInstance();
-//            SAXParser saxParser = factory.newSAXParser();
-//
-//            SAXParserHandler handler = new SAXParserHandler();
-//            saxParser.parse(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.RESOURCES + "IBMTests\\ibm10v04.xml"), handler);
-//            result = handler.GetResult();
-//         } catch (ParserConfigurationException  e) {
-//            fail();
-//         } catch (SAXException  e) {
-//            fail();
-//         } catch (IOException e) {
-//            fail();
-//         }
-//        
-//        int numLines = r.getNumberOfLines();
-//        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
-//        {
-//            assert(r.getLine(count).equals(result.get(count)));
-//        }
-//    }
+    @Test
+    public void test_ibm10v04_pass_bytecode(){
+        File[] files = new File[2];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.PASS + "IBMTests\\ibm10v04.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.PASS + "AnalyticsMarkupListener.quorum");
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
+        if (!r.isSuccessful())
+            fail();
+        
+        ArrayList<String> result = new ArrayList<String>();
+        try {
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser saxParser = factory.newSAXParser();
+
+            SAXParserHandler handler = new SAXParserHandler();
+            saxParser.parse(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.RESOURCES + "IBMTests\\ibm10v04.xml"), handler);
+            result = handler.GetResult();
+         } catch (ParserConfigurationException  e) {
+            fail();
+         } catch (SAXException  e) {
+            fail();
+         } catch (IOException e) {
+            fail();
+         }
+        
+        int numLines = r.getNumberOfLines();
+        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        {
+//            System.out.println("Quorum: " + r.getLine(count));
+//            System.out.println("Java:   " + result.get(count));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
+        }
+    }
     
         @Test
     public void test_ibm10v05_pass_bytecode(){
@@ -529,7 +531,7 @@ public class ExtensibleMarkupIBMTester {
         int numLines = r.getNumberOfLines();
         for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -566,7 +568,7 @@ public class ExtensibleMarkupIBMTester {
         int numLines = r.getNumberOfLines();
         for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -603,45 +605,45 @@ public class ExtensibleMarkupIBMTester {
         int numLines = r.getNumberOfLines();
         for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
-//    @Test
-//    public void test_ibm10v08_pass_bytecode(){
-//        File[] files = new File[2];
-//        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.PASS + "IBMTests\\ibm10v08.quorum");
-//        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.PASS + "AnalyticsMarkupListener.quorum");
-//        CompilerTestSuite.build(files);
-//        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-//            fail();
-//        }
-//
-//        RunResult r = CompilerTestSuite.runQuorumFiles(files);
-//        if (!r.isSuccessful())
-//            fail();
-//        
-//        ArrayList<String> result = new ArrayList<String>();
-//        try {
-//            SAXParserFactory factory = SAXParserFactory.newInstance();
-//            SAXParser saxParser = factory.newSAXParser();
-//
-//            SAXParserHandler handler = new SAXParserHandler();
-//            saxParser.parse(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.RESOURCES + "IBMTests\\ibm10v08.xml"), handler);
-//            result = handler.GetResult();
-//         } catch (ParserConfigurationException  e) {
-//            fail();
-//         } catch (SAXException  e) {
-//            fail();
-//         } catch (IOException e) {
-//            fail();
-//         }
-//        
-//        int numLines = r.getNumberOfLines();
-//        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
-//        {
-//            assert(r.getLine(count).equals(result.get(count)));
-//        }
-//    }
+    @Test
+    public void test_ibm10v08_pass_bytecode(){
+        File[] files = new File[2];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.PASS + "IBMTests\\ibm10v08.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.PASS + "AnalyticsMarkupListener.quorum");
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
+        if (!r.isSuccessful())
+            fail();
+        
+        ArrayList<String> result = new ArrayList<String>();
+        try {
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser saxParser = factory.newSAXParser();
+
+            SAXParserHandler handler = new SAXParserHandler();
+            saxParser.parse(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.RESOURCES + "IBMTests\\ibm10v08.xml"), handler);
+            result = handler.GetResult();
+         } catch (ParserConfigurationException  e) {
+            fail();
+         } catch (SAXException  e) {
+            fail();
+         } catch (IOException e) {
+            fail();
+         }
+        
+        int numLines = r.getNumberOfLines();
+        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        {
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
+        }
+    }
     
 }
