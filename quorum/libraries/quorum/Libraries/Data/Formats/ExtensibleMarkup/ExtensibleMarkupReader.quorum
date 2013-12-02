@@ -115,7 +115,7 @@ class ExtensibleMarkupReader
 
                 if i + 1 < size
                     next = xml:GetCharacter(i + 1)
-                    if next = "?" and not inDoubleQuote and not inSingleQuote
+                    if next = "?" and not inDoubleQuote and not inSingleQuote 
                         inDirective = true
                         seenQuestionMark = false
                         i = i + 1 //skip the question mark
@@ -222,7 +222,7 @@ class ExtensibleMarkupReader
                if i + 1 < size
                     next = xml:GetCharacter(i + 1)
                     if next = ">"
-                        inDirective = false
+                        //inDirective = false
                         seenQuestionMark = false
                         elementName = ""
                         inElement = false
@@ -232,9 +232,10 @@ class ExtensibleMarkupReader
             elseif inElement and char = ">" and not inDoubleQuote and not inSingleQuote //ending the element
                 inElement = false
 
-                if inDirective and not seenQuestionMark // don't send notification for PI
+                if inDirective and seenQuestionMark // don't send notification for PI
                     elementName = elementName + char
                     inElement = true
+                    inDirective = false
                 else
                     last = xml:GetCharacter(i - 1)
                     if last = "/" // self closing element
