@@ -106,6 +106,7 @@ public class CompilerTestSuite {
     public static final String TABLE = "Table"+File.separatorChar;
     public static final String HASHTABLE = "HashTable" + File.separatorChar;
     public static final String EXTENSIBLE_MARKUP = "ExtensibleMarkup" + File.separator;
+    public static final String DECOMPRESSER = "Decompresser" + File.separator;
     private static QuorumVirtualMachine vm;
     private static File systemRoot;
     private static File pluginFolder;

@@ -43,7 +43,6 @@ public class Decompresser {
         } catch (IOException ex) {
             Logger.getLogger(Decompresser.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
     }
     
     public void DecompressZip(File$Interface input) {
@@ -110,21 +109,20 @@ public class Decompresser {
     public static void main(String[] args) {
         try {
             quorum.Libraries.System.File input = new quorum.Libraries.System.File();
-            input.SetWorkingDirectory("/Users/stefika/Desktop/ziptest");
+            input.SetWorkingDirectory("/Users/Nicole/Desktop/ziptest");
             //input.SetWorkingDirectory("/Users/stefika/Desktop/");
-            input.SetPath("test.zip");
+            input.SetPath("test.xml.gz");
             //input.SetPath("Final.pdf.gz");
+            //input.SetPath("test.zip");
             
             quorum.Libraries.System.File output = new quorum.Libraries.System.File();
-            output.SetWorkingDirectory("/Users/stefika/Desktop/");
+            output.SetWorkingDirectory("/Users/Nicole/Desktop");
             //file.SetPath("472 Fall.odt.zip");
-            output.SetPath("Test.pdf");
+            output.SetPath("Test.xml");
             // TODO code application logic here
             Decompresser decompress = new Decompresser();
-            //decompress.DecompressGZip(input, output);
-            decompress.DecompressZip(input);
-            
-            
+            decompress.DecompressGZip(input, output);          
+
         } catch (Exception ex) {
             Logger.getLogger(Decompresser.class.getName()).log(Level.SEVERE, null, ex);
         }
