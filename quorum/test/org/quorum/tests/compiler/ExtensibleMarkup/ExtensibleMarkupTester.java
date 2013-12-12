@@ -84,9 +84,10 @@ public class ExtensibleMarkupTester {
          }
         
         int numLines = r.getNumberOfLines();
-        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        assert(numLines == result.size());         
+        for (int count = 0; count < numLines; count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -121,9 +122,10 @@ public class ExtensibleMarkupTester {
          }
         
         int numLines = r.getNumberOfLines();
-        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        assert(numLines == result.size());         
+        for (int count = 0; count < numLines; count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -158,9 +160,10 @@ public class ExtensibleMarkupTester {
          }
         
         int numLines = r.getNumberOfLines();
-        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        assert(numLines == result.size());         
+        for (int count = 0; count < numLines; count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -195,9 +198,10 @@ public class ExtensibleMarkupTester {
          }
         
         int numLines = r.getNumberOfLines();
-        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        assert(numLines == result.size());         
+        for (int count = 0; count < numLines; count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -232,9 +236,10 @@ public class ExtensibleMarkupTester {
          }
         
         int numLines = r.getNumberOfLines();
-        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        assert(numLines == result.size());         
+        for (int count = 0; count < numLines; count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -269,9 +274,10 @@ public class ExtensibleMarkupTester {
          }
         
         int numLines = r.getNumberOfLines();
-        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        assert(numLines == result.size());         
+        for (int count = 0; count < numLines; count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -306,9 +312,10 @@ public class ExtensibleMarkupTester {
          }
         
         int numLines = r.getNumberOfLines();
-        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        assert(numLines == result.size());         
+        for (int count = 0; count < numLines; count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -343,9 +350,10 @@ public class ExtensibleMarkupTester {
          }
         
         int numLines = r.getNumberOfLines();
-        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        assert(numLines == result.size());         
+        for (int count = 0; count < numLines; count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -380,9 +388,10 @@ public class ExtensibleMarkupTester {
          }
         
         int numLines = r.getNumberOfLines();
-        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        assert(numLines == result.size());         
+        for (int count = 0; count < numLines; count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -417,9 +426,10 @@ public class ExtensibleMarkupTester {
          }
         
         int numLines = r.getNumberOfLines();
-        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        assert(numLines == result.size());         
+        for (int count = 0; count < numLines; count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
         
@@ -454,9 +464,10 @@ public class ExtensibleMarkupTester {
          }
         
         int numLines = r.getNumberOfLines();
-        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        assert(numLines == result.size());         
+        for (int count = 0; count < numLines; count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -491,9 +502,10 @@ public class ExtensibleMarkupTester {
          }
         
         int numLines = r.getNumberOfLines();
-        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        assert(numLines == result.size());         
+        for (int count = 0; count < numLines; count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -528,9 +540,10 @@ public class ExtensibleMarkupTester {
          }
         
         int numLines = r.getNumberOfLines();
-        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        assert(numLines == result.size());         
+        for (int count = 0; count < numLines; count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
     
@@ -565,46 +578,10 @@ public class ExtensibleMarkupTester {
          }
         
         int numLines = r.getNumberOfLines();
-        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
+        assert(numLines == result.size());         
+        for (int count = 0; count < numLines; count++)
         {
-            assert(r.getLine(count).equals(result.get(count)));
-        }
-    }
-    
-    @Test
-    public void test_ibm01v01_pass_bytecode(){
-        File[] files = new File[2];
-        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.PASS + "ibm01v01.quorum");
-        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.PASS + "AnalyticsMarkupListener.quorum");
-        CompilerTestSuite.build(files);
-        if (!vm.getCompilerErrors().isCompilationErrorFree()){
-            fail();
-        }
-
-        RunResult r = CompilerTestSuite.runQuorumFiles(files);
-        if (!r.isSuccessful())
-            fail();
-        
-        ArrayList<String> result = new ArrayList<String>();
-        try {
-            SAXParserFactory factory = SAXParserFactory.newInstance();
-            SAXParser saxParser = factory.newSAXParser();
-
-            SAXParserHandler handler = new SAXParserHandler();
-            saxParser.parse(CompilerTestSuite.getQuorumFile(CompilerTestSuite.EXTENSIBLE_MARKUP + CompilerTestSuite.RESOURCES + "ibm01v01.xml"), handler);
-            result = handler.GetResult();
-         } catch (ParserConfigurationException  e) {
-            fail();
-         } catch (SAXException  e) {
-            fail();
-         } catch (IOException e) {
-            fail();
-         }
-        
-        int numLines = r.getNumberOfLines();
-        for (int count = 0; count < (numLines - 1) && count < (result.size() - 1); count++)
-        {
-            assert(r.getLine(count).equals(result.get(count)));
+            assert(r.getLine(count).trim().equals(result.get(count).trim()));
         }
     }
 }

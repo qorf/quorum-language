@@ -240,6 +240,7 @@ class DocumentTypeDefinition
              inDefinition = true
         end 
 
+        extendDeclaration = false
         repeat while i < size
             
             next = dtd:GetCharacter(i)
@@ -288,8 +289,12 @@ class DocumentTypeDefinition
                     elseif inEntity
                         entityWhiteSpaceCount = entityWhiteSpaceCount + 1
                         if entityWhiteSpaceCount = 2
-                            currentEntity:SetName(value)
-                            value = ""                        
+                            if value:Equals("%")
+                                entityWhiteSpaceCount = entityWhiteSpaceCount - 1
+                            else
+                                currentEntity:SetName(value)
+                            end
+                            value = ""   
                         end
                     elseif not setRootElement
                         rootElement = value
@@ -311,6 +316,7 @@ class DocumentTypeDefinition
                     isFileName = true
                     isInDoubleQuotes = false
                     isInSingleQuotes = false
+                    
                     fileName = ""
                     j = i + 6
                     next = ""
@@ -337,8 +343,28 @@ class DocumentTypeDefinition
                         j = j + 1
                    end 
                    
+                   //check to see if the next non whitespace character is a "["
+                   boolean foundNonWhiteSpace = false
+                   
+                   k = j
+                   repeat while not foundNonWhiteSpace and k < size
+                        next = dtd:GetCharacter(j)
+                        nextTrimmed = next:Trim()
+                        if not nextTrimmed:IsEmpty() 
+                            foundNonWhiteSpace = true
+                            if nextTrimmed:Equals("[")
+                                extendDeclaration = true
+                            end
+                        end
+                        k = k + 1
+                   end
+
                    SetExternalFileName(fileName)
-                   dtd = GetDTDFileData()
+                   if extendDeclaration
+                        dtd = dtd:GetSubtext(j, size - 1)
+                   else
+                        dtd = GetDTDFileData() 
+                   end
                    //output dtd
                    i = -1
                    size = dtd:GetSize()
@@ -354,6 +380,41 @@ class DocumentTypeDefinition
                 inDefinition = false
             elseif inDefinition and next = "<" and not inDoubleQuote and not inSingleQuote
                 inBrackets = true
+            elseif next = "&" or ( (inDoubleQuote or inSingleQuote) and next = "%")
+                name = ""
+                isName = true
+                j = i
+                repeat while isName and (j + 1) < size
+                    j = j + 1
+                    if dtd:GetCharacter(j) = ";"
+                        //figure out value to replace it with
+                        if name = "lt"
+                            value = value + "<"
+                        elseif name = "gt"
+                            value = value + ">"
+                        elseif name = "amp"
+                            value = value + "&"
+                        elseif name = "apos"
+                            value = value + "'"
+                        elseif name = "quot"
+                            value = value + doubleQuote
+                        elseif name:StartsWith("#x")
+                            name = name:GetSubtext(2)
+                            unicode = HexToDecimal(name)
+                            value = value + name:GetUnicodeValue(unicode)
+                        elseif name:StartsWith("#")
+                            name = name:GetSubtext(1)
+                            unicode = name:ParseInteger()
+                            value = value + name:GetUnicodeValue(unicode)
+                        else
+                            value = value + GetEntityValue(name)
+                        end
+                        isName = false
+                    else
+                        name = name + dtd:GetCharacter(j)
+                    end      
+                end 
+                i = j 
             elseif inBrackets and next = "!" and not inDoubleQuote and not inSingleQuote
                 if i + 6 < size and 
                         dtd:GetCharacter(i + 1) = "E" and
@@ -435,7 +496,60 @@ class DocumentTypeDefinition
             end
 
             i = i + 1
+//            output i
+//            output i = size
+//            output extendDeclaration
+            if i = size and extendDeclaration
+                dtd = GetDTDFileData() 
+                i = 0
+                size = dtd:GetSize()
+                inDefinition = true
+                inDoubleQuote = false
+                next = ""
+                extendDeclaration = false
+            end
         end
+
+        //Print()
+
+    end
+
+   /*
+        This action parses hexadecimal value and returns the integer value it represents.
+        
+        Attribute: Parameter hex The text representing a hexadecimal number.
+    */
+    private action HexToDecimal(text hex) returns integer
+        total = 0
+        digit = ""
+        digitValue = 0
+        multiplier = 1
+
+        i = hex:GetSize() - 1
+        repeat while i >= 0 
+            digit = hex:GetCharacter(i)
+            if digit = "F"
+                digitValue = 15
+            elseif digit = "E"
+                digitValue = 14 
+            elseif digit = "D"
+                digitValue = 13  
+            elseif digit = "C"
+                digitValue = 12  
+            elseif digit = "B"
+                digitValue = 11  
+            elseif digit = "A"
+                digitValue = 10  
+            else
+                digitValue = digit:ParseInteger()
+            end
+
+            total = total + (digitValue * multiplier)
+            multiplier = multiplier * 16
+            i = i - 1
+        end
+
+        return total
     end
 
     /*

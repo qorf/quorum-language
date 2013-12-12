@@ -1,0 +1,16 @@
+use Libraries.System.File
+use Libraries.Data.Formats.ExtensibleMarkup.all
+
+class Main
+    action main
+        //setup the file
+        File xml
+        xml:SetPath("test/tests/ExtensibleMarkup/Resources/IBMTests/ibm22v03.xml")
+
+        //setup and run the reader
+        ExtensibleMarkupReader  reader
+        AnalyticsMarkupListener listener
+        reader:SetMarkupListener(listener)
+        reader:Read(xml)
+    end
+end
