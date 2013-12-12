@@ -70,13 +70,23 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
     action GetValue(Key key) returns Value
         integer index = ComputeIndex(key)
         HashNode<Key, Value> node = array:Get(index)
-        if node = undefined
+        if node = undefined or key = undefined
             return undefined
-        elseif key:Equals(node:key)
+        end 
+
+        if key:Equals(node:key)
             return node:value
-        else
-            return undefined
         end
+
+        HashNode<Key, Value> temp = node:next
+        repeat while temp not= undefined
+            if key:Equals(temp:key)
+                return temp:value
+            end
+            temp = node:next
+        end
+
+        return undefined
     end
 
     /*
@@ -465,13 +475,23 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
     action HasKey(Key key) returns boolean
         integer index = ComputeIndex(key)
         HashNode<Key, Value> node = array:Get(index)
-        if node = undefined
+        if node = undefined or key = undefined
             return false
-        elseif key:Equals(node:key)
+        end 
+
+        if key:Equals(node:key)
             return true
-        else 
-            return false
         end
+
+        HashNode<Key, Value> temp = node:next
+        repeat while temp not= undefined
+            if key:Equals(temp:key)
+                return true
+            end
+            temp = node:next
+        end
+
+        return false
     end
 
     /*
