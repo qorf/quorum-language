@@ -210,6 +210,25 @@ public class InheritanceTester {
     }
     
     @Test
+    public void test_pass_DerivedCall_bytecode(){
+        File[] files = new File[3];
+        files[0] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "DerivedCall.quorum");
+        files[1] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "Test.quorum");
+        files[2] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "Kid.quorum");
+    
+        CompilerTestSuite.build(files);
+        if (!vm.getCompilerErrors().isCompilationErrorFree()){
+            fail();
+        }
+        
+        RunResult r = CompilerTestSuite.runQuorumFiles(files);
+        if (!r.isSuccessful())
+            fail();
+    
+        assert(r.getLine(0).equals("This is We Win."));
+    }
+    
+    @Test
     public void test_call_inherited_action_bytecode(){
         File[] files = new File[4];
         files[3] = CompilerTestSuite.getQuorumFile(CompilerTestSuite.INHERITANCE + CompilerTestSuite.PASS + "A.quorum");
