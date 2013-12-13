@@ -1,10 +1,25 @@
 use Libraries.Accessibility.all
 use Libraries.System.File
-use Libraries.Data.Formats.ExtensibleMarkup.all
+use Libraries.Data.Formats.all
 use Libraries.Data.Compression.Decompresser
 
 class main
     action main
+
+        SeparatedValue csvReader
+        File csv
+        csv:SetWorkingDirectory("test/tests/SeparatedValue/Resources")
+        csv:SetPath ("BarSeparator.csv")
+        output csv:GetAbsolutePath()
+
+        csvReader:Read(csv)
+
+        output "Rows: " + csvReader:GetNumberOfRows() 
+        output "Columns: " + csvReader:GetNumberOfColumns()
+        output "IsConsistent: " + csvReader:IsConsistent()
+        output "Seperator: " + csvReader:GetSeparator()
+
+/*
         // GZip Decompression Test
         File inputFile
         inputFile:SetWorkingDirectory("test/tests/Decompresser/Resources")
@@ -15,12 +30,11 @@ class main
         outputFile:SetPath("gzipfile.txt")
 
         Decompresser decompress
-        //decompress:DecompressGZip(inputFile, outputFile)
-        Text out = decompress:Unzip("C:\Users\Nicole\Desktop\git\quorum-language\quorum\test\tests\Decompresser\Resources\test.xml.gz")
+        decompress:DecompressGZip(inputFile, outputFile)
 
         //output out
 
-/*
+
         // Decompression Test
         File inputFile
         inputFile:SetWorkingDirectory("/Users/Nicole/Desktop/ziptest")

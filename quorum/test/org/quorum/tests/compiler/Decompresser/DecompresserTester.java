@@ -6,13 +6,7 @@
 
 package org.quorum.tests.compiler.Decompresser;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.fail;
@@ -21,10 +15,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.quorum.execution.RunResult;
 import org.quorum.tests.compiler.CompilerTestSuite;
-import org.quorum.tests.compiler.ExtensibleMarkup.SAXParserHandler;
 import org.quorum.vm.implementation.QuorumVirtualMachine;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 /**
  *
