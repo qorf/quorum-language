@@ -10,17 +10,18 @@
 <div class="content index-content">
     <h2>Sodbeans 4.5 December 16th, 2013</h2>
     <ul> 
-        <li>The Quorum debugger is now substantially faster than in previous
-        versions.</li>
+        <li>The Quorum debugger has been rewritten completely from scratch.</li>
+        <li>The new debugger is an order of magnitude faster than the original
+        and should now be usable for commercial scale applications.</li>
         <li>The debugger now works on the standard Java Debugging Interface, making
         it at least possible that talking accessible debuggers could be included in the
         future in other JVM languages.</li>
         <li>One downside of the new debugger is that the new auditory cues the debugger
         uses are just slightly not as good as in previous versions. We are aware of the 
         problem and hope to improve in future releases, hopefully in a way that will
-        work for multiple Java Virtual Machine languages, depending on funding.</li>
+        work for multiple Java Virtual Machine languages, depending on community support.</li>
         <li>Updated Sodbeans to the NetBeans 7.4 branch.</li>
-        <li>Fixed a number of small bugs.</li>
+        <li>Fixed a number of small bugs in various systems.</li>
     </ul>
     
     <h2>Sodbeans 4.0.2 August 13th, 2013</h2>
