@@ -56,8 +56,17 @@
 
             $accepted_messsage = ($this->badge_type == "type-accepted") ? "been accepted and has " : "";
 
-            $message = "Your library, " . $submission->libraryName . ", has " . $accepted_message . "earned you the " . $englishified_badge_name;
-            $message .= " badge. Congratulations, and thank you for your contributions to the Quorum Language!";            
+            $message = "Thanks, " . $user->$username . "!\n";
+            $message .= "Your library, " . $submission->libraryName . ", has " . $accepted_message . "earned you the " . $englishified_badge_name;
+            $message .= " badge.";
+            
+            $message .= "Quorum is a complex project and we greatly appreciate your "
+                    . "help. Making a vibrant and helpful community is not possible"
+                    . " without people like you.\n\n";
+            
+            $message .= "Congratulations again on the new badge and thanks for helping science!.\n\n";
+            
+            $message .= "The Quorum Team";
 
             $email = new Email($user->email,"quorum@quorumlanguage.com","You have recieved a badge on QuorumLanguage.com!",$message);
             $email->send();

@@ -164,9 +164,45 @@ if ($errors == false) { // Successful submission
 ?>
 
 <div class="library-submission-wizard-container container">
-	<h1 class="container">Submit a Library to Quorum</h1>
-    <h2>Your submission has been received!</h2>
-    <p>Some text here about what happens with submission.</p>
+	<h1 class="container">Thank you for your submission!</h1>
+    <h2>What is the process from here?</h2>
+    <p>Now that you have submitted, someone on the team
+        will take a look at what you sent us and check it out. 
+        Our basic steps include:</p>
+    <ol> 
+        <li>Check if it's a valid submission (e.g., not spam or junk).</li>
+        <li>If you submitted something new to the standard library, your library will go
+        through peer review.</li>
+        <li>If you are submitting an upgrade to an existing part of the standard 
+        library (any file that already exists), we will review and provide 
+        feedback on a case-by-case basis. Depending on the change, we may 
+        require evidence that the change you have provided is helpful to humans.</li>
+        <li>If you submitted a request to change the core Quorum language (e.g., 
+            add a language feature), you 
+            <strong>must</strong> have included, along with your submission, a 
+        formal randomized controlled trial. Submissions without this component will
+        be rejected.</li>
+        <li>If you submitted something else, we will take a look and get back to you.</li>
+        <li>Your submission will either be accepted, accepted conditionally, 
+        we will request more information, or we will reject it, using a procedure
+        similar to those of academic journals.</li>
+        <li>If your library is accepted, you may earn a badge of awesomeness on
+            your account!</li>
+    </ol>
+    <h2>What do I need to do in the meantime?</h2>
+    <p>For now, just relax. Peer review can take time, depending on how complex it 
+    will be to review what you sent us. Simple libraries may be reviewed quickly, 
+    depending on the interest level of the community and availability of reviewers.
+    Complex submissions (e.g., an empirical study on a potential new language feature) 
+    may require we send your submission to outside experts
+    for formal academic peer review.</p>
+    
+    <h2>Why bother with all this anyway?</h2>
+    <p>The point of this system is to ensure that 
+    the standard library in Quorum, and the language itself, not only grows, but also 
+    improves over time. A review process helps us keep the language stable for 
+    current users, with an evidence standard for making changes that could
+    potentially help the community in the long run.</p>
 </div>
     
 <?php    
