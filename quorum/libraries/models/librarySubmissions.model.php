@@ -20,7 +20,6 @@
             $this->order_by = ($order_by != null) ? $order_by : $this->order_by;
             $this->ascending_or_descending = ($ascending_or_descending != null) ? $ascending_or_descending : $this->ascending_or_descending;
             $this->search_query = ($search_query != null) ? $search_query : $this->search_query;
-            //$this->page = ($page != null) ? $page : $this->page;
         }
 
         public function getPageOfResults($page, $submissions) {

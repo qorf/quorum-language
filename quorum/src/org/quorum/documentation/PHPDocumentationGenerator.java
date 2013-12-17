@@ -73,7 +73,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
     
     @Override
     public void finishIndex() {    
-        indexPage += "<?php include('static/templates/pageheader.template.php'); ?>\n";
+        indexPage += "<?php $classPageTitle = 'The Quorum Standard Library'; include('static/templates/pageheader.template.php'); ?>\n";
         indexPage += "\t\t<div class=\"hero-unit\">\n";
         indexPage += "\t\t\t<div class=\"hero-unit-container\">\n";
         indexPage += "\t\t\t\t<h1>The Quorum Standard Library</h1>\n";
@@ -87,7 +87,7 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         indexPage += "</div>\n";       
         indexPage += "<div class=\"container clearfix\">\n" +
                     "	<a href=\"/submitted_library_index.php\" class=\"btn btn-primary pull-right\" style=\"display:block;\">View User-Submitted Experimental Libraries</a>\n" +
-                    "	<?php  if (isset($_COOKIE['username'])) { echo '<a href=\"/submit_library.php\" class=\"btn btn-info pull-left\">Submit a Library to the Quorum Standard Library</a>'; } ?>\n" +
+                    "	<a href=\"/submit_library.php\" class=\"btn btn-info pull-left\">Submit a Library to the Quorum Standard Library</a>\n" +
                     "</div><br /><br />";
         indexPage += "<ul class=\"index-grid\">\n";
         

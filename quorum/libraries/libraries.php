@@ -1,4 +1,6 @@
-<?php include('static/templates/pageheader.template.php'); ?>
+<?php
+$classPageTitle = 'The Quorum Standard Library';
+include('static/templates/pageheader.template.php'); ?>
 		<div class="hero-unit">
 			<div class="hero-unit-container">
 				<h1>The Quorum Standard Library</h1>

@@ -1,6 +1,5 @@
 <?php
 	require_once("data.model.php");
-	require_once("../config.php");
 	/**
 	* 
 	*/

@@ -1,4 +1,5 @@
 <?php 
+$classPageTitle = "Experimental Quorum Libraries";
 require_once("static/templates/pageheader.template.php"); 
 ?>
 	<div class="hero-unit">

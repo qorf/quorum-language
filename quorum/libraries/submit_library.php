@@ -1,6 +1,7 @@
-<?php require_once("static/templates/pageheader.template.php"); ?>
+<?php 
+$classPageTitle = "Submit a Library to Quorum";
 
-<?php
+require_once("static/templates/pageheader.template.php");
 require_once("models/librarySubmission.model.php");
 require_once("models/librarySubmissions.model.php");
 require_once("models/user.model.php");
@@ -53,8 +54,8 @@ function insert_to_database() {
     $library_exists = !($check_for_id_existence->getSubmissionByID());
     
     if ($library_exists) {    
-        $submissionURL = "/submissions/" . $_FILES["library-files"]["name"];
-        $supplementaryFilesURL = isset($_FILES["library-supplements"]) ? "/submissions/supplements/" . $_FILES["library-supplements"]["name"] : "";
+        $submissionURL = "/submissions/" . $_COOKIE['username'] . "-" . $_FILES["library-files"]["name"];
+        $supplementaryFilesURL = isset($_FILES["library-supplements"]) ? "/submissions/supplements/" . $_COOKIE['username'] . "-" . $_FILES["library-supplements"]["name"] : "";
     
         $submission = new LibrarySubmission($library_slug, $_POST['library-name'], $_COOKIE['username'], $_POST['author-name'], $_POST['library-description'], $_POST['library-usage'], $submissionURL, $supplementaryFilesURL, 1, "pending-reviewer", date("Y-m-d H:i:s"));
         try {
@@ -76,15 +77,27 @@ function email_administrators($submission) {
     $email->send();
 }
 
+
+function email_user($submission) {
+    $user = new User(null, $submission->uploaderUsername, null, null, null, null);
+    $user->getDataFromUsername();
+
+    $message = "Thank you for  submitting the library " . $submission->libraryName . ". ";
+    $message .= "You can see the library at http://quorumlanguage.com/submitted_library.php?id=" . $submission->libraryID;
+    $email = new Email($user->email,"quorum@quorumlanguage.com","Thank you for your library submission",$message);
+
+    $email->send();
+}
+
 function upload_files() {
     try {
-        $submissions_save_location = "/home/stefika/public_html/test/submissions/" . $_FILES["library-files"]["name"];
+        $submissions_save_location = "/home/stefika/public_html/test/submissions/"  . $_COOKIE['username'] . "-" . $_FILES["library-files"]["name"];
         $tmp_name =  $_FILES["library-files"]["tmp_name"];
         $result = move_uploaded_file( $tmp_name, $submissions_save_location );
     
         if (isset($_FILES["library-supplements"])) {
             $tmp_name =  $_FILES["library-supplements"]["tmp_name"];
-            $supplements_save_location = "/home/stefika/public_html/test/submissions/supplements/" . $_FILES["library-supplements"]["name"];
+            $supplements_save_location = "/home/stefika/public_html/test/submissions/supplements/" . $_COOKIE['username'] . "-" . $_FILES["library-supplements"]["name"];
             move_uploaded_file( $tmp_name, $supplements_save_location );
         }
         return true;
@@ -141,6 +154,7 @@ function process_post() {
         if ($submission != false) {
             if (upload_files()) {
                 email_administrators($submission);
+                email_user($submission);
                 award_badge($submission);
             }
             else {

@@ -1,4 +1,5 @@
 <?php 
+$classPageTitle = 'Control Panel';
 if (!isset($_COOKIE['username'])) {
     header( 'Location: /' );
 }

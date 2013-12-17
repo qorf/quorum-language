@@ -56,7 +56,7 @@
 
             $accepted_messsage = ($this->badge_type == "type-accepted") ? "been accepted and has " : "";
 
-            $message = "Thanks, " . $user->$username . "!\n";
+            $message = "Thanks, " . $user->username . "!\n";
             $message .= "Your library, " . $submission->libraryName . ", has " . $accepted_message . "earned you the " . $englishified_badge_name;
             $message .= " badge.";
             

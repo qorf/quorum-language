@@ -1,5 +1,5 @@
 <?php
-	require("../models/codeSample.model.php");
+	require_once("../models/codeSample.model.php");
 	$code = $_POST['code'];
 	$codeSample = new CodeSample($code);
 	$returned = $codeSample->fetchOutput();

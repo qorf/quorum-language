@@ -114,6 +114,30 @@ require_once("models/badge.model.php");
             }
         }
 
+        function send_user_email($library) {
+            $user = new User(null, $library->uploaderUsername, null, null);
+            $user->getDataFromUsername();
+
+            $message = "Thank you for your submission to the Quorum Standard Library. Your submission has been reviewed and given feedback. ";
+
+            $decision = $_POST['decision'];
+
+            switch ($decision) {
+                case "reject": $message .= "We are sorry to inform you that your library has been rejected."; break;
+                case "request-more-information": $message .= "In order to give a final decision, the Quorum Team needs more information about your library. Please see your library's feedback for more details."; break;
+                case "accept-with-revisions": $message .= "Your library has been accepted. Congratulations! However, the Quorum Team requests that some modifications be made. Please see your library's feedback for more details."; break;
+                case "accept": $message .= "Your library has been accepted. Congratulations!"; break;
+            }
+
+            $library_url = "http://www.quorumlanguage.com/submitted_library.php?id=" . $_GET['id'];
+            $message .= "<br /><br />To see feedback, <a href=\"" . $library_url . "\">click here</a> or copy this URL into your browser: " . $library_url;
+            $message .= "<br />If you do not see feedback on the library, make sure you are logged in.";
+
+            $email = new Email($user->email,"quorum@quorumlanguage.com","Your library submission has been given feedback",$message);
+            $email->send();
+
+        }
+
         if (isset($_POST['decision'])) {
             require('models/librarySubmissionReview.model.php');
             $technical = ord($_POST['technical']) - 96;
@@ -130,6 +154,8 @@ require_once("models/badge.model.php");
             if($_POST['decision'] == "accept") {
                 award_badge($library);
             }
+
+            send_user_email($library);
     ?>
    
     <div class="container documents-content">
