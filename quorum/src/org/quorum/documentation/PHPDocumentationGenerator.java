@@ -137,6 +137,9 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
         
         HashMap<String, IndexWrapperClass> containers = new HashMap<String, IndexWrapperClass>();
         for(int i = 0; i < classes.size(); i++) {
+            if(i == 51) {
+                i = i;
+            }
             ClassDescriptor clazz = classes.get(i);
             String newContainer = clazz.getContainer().getContainer();
             
@@ -157,6 +160,14 @@ public class PHPDocumentationGenerator implements DocumentationGenerator{
                 String name = split[0] + "." + split[1];
                 
                 IndexWrapperClass wrapped = containers.get(name);
+                if(wrapped == null) { //there are no classes in it, but there
+                                      //are subpackages
+                    IndexWrapperClass newWrapped = new IndexWrapperClass();
+                    newWrapped.containerName = name;
+                    containers.put(name, newWrapped);
+                    wrapped = newWrapped;
+                    
+                }
                 if(!wrapped.subcontainers.containsKey(newContainer)) {
                     wrapped.subcontainers.put(newContainer, newContainer);
                 }
