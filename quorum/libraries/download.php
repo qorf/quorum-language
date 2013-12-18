@@ -2,7 +2,7 @@
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>The Quorum Download page</h1>
+		<h1>The Quorum/Sodbeans Download page</h1>
 		<p>Quorum can be downloaded on its own as a console compiler or
                     as part of our integrated development 
                     environment: <i><strong>Sodbeans</strong></i>.</p>
@@ -23,8 +23,9 @@
 		<li class="links-macosx"><h2><a href="https://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/sodbeans%204.5%20Mac%20OS%20X%20Student.zip/download">Download Sodbeans 4.5 for Mac OS X (School)</a></h2></li>
 	</ul>
     <p>*Note: For Linux, use the <a href="https://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/sodbeans%204.5.zip/download">
-            Sodbeans Binaries</a> or the <a href="">Quorum Binaries</a>. The latest version of the <a href="https://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/sodbeans%204.5%20source.zip/download"> 
-                Sodbeans Source Code</a> and the <a href="">Quorum Source Code </a>
+            Sodbeans Binaries</a> or the <a href="https://sourceforge.net/projects/quorum/files/Quorum%202.1/Quorum%202.1.zip/download">Quorum Binaries</a>. 
+            The latest version of the <a href="https://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/sodbeans%204.5%20source.zip/download"> 
+                Sodbeans Source Code</a> and the <a href="https://sourceforge.net/projects/quorum/files/Quorum%202.0/Quorum%202.0%20source.zip/download">Quorum Source Code </a>
                 is also available. If you want to get the very latest source code,
                 the development branch is now on <a href="https://bitbucket.org/stefika/quorum-language">Quorum Bitbucket page</a>
                 and the <a href="https://bitbucket.org/stefika/sodbeans">Sodbeans Bitbucket page</a>.</p>
