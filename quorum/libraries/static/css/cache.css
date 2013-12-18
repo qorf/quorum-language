@@ -1,3 +1,7 @@
+.ie9,
+.lt-ie9 {
+  margin-top: 66px;
+}
 .index-content {
   padding-top: 0;
   position: relative;
@@ -880,6 +884,9 @@ ul {
   background-position: top center;
   background-repeat: no-repeat;
 }
+.index-grid .grid-item.grid-item-libraries-accessibility i {
+  background-image: url(../img/gridicons/accessibility.png);
+}
 .index-grid .grid-item.grid-item-libraries-compute i {
   background-image: url(../img/gridicons/compute.png);
 }
@@ -905,14 +912,13 @@ ul {
   margin-top: 95px;
 }
 #library-submission-wizard-container .errors {
-  margin: 20px auto;
+  margin: 10px 20px;
   position: relative;
   left: 20px;
   list-style-type: disc;
 }
 #library-submission-wizard-container .errors li {
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 16px;
   letter-spacing: 1px;
   margin-bottom: 10px;
 }
@@ -979,15 +985,15 @@ ul {
   background: #EEEEEE;
 }
 .library-submissions th span {
-  height: 25px;
+  height: 40px;
   display: inline-block;
-  position: relative;
-  top: -6px;
+  float: left;
 }
 .library-submissions th .sort-by-icon {
   position: relative;
-  top: 2px;
-  margin-left: 8px;
+  top: -1px;
+  margin-left: -40px;
+  float: right;
 }
 .library-submissions .library-row-description {
   max-width: 280px;
@@ -1051,13 +1057,73 @@ div#library-info table.library-info td.label-row {
 .control-panel-container button {
   width: 400px;
 }
-#edit-profile legend {
+.control-panel-container legend {
   margin: 0;
   font-weight: bold;
 }
-#edit-profile label {
+.control-panel-container label {
   font-weight: bold;
 }
-#edit-profile input {
-  padding: 15px 5px;
+.control-panel-container input {
+  height: 35px;
+  padding: 0 5px;
+}
+.admin-dropdown-tabs {
+  margin-bottom: 0;
+}
+.admin-controls {
+  min-height: 450px;
+}
+.admin-controls select,
+.admin-controls input {
+  display: block;
+  margin: 0 20px 10px;
+}
+.admin-controls .well {
+  width: 400px;
+}
+.admin-controls .well select,
+.admin-controls .well input {
+  margin: 0 0 10px;
+}
+.admin-controls .admin-dropdown-container {
+  display: none;
+  background: #E9E9E9;
+  margin-bottom: 20px;
+  padding: 10px 0;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+.admin-controls .admin-dropdown-container select,
+.admin-controls .admin-dropdown-container input {
+  margin: 0 auto;
+}
+.badges-list {
+  margin-bottom: 20px;
+}
+.badges-list .quorum-badge {
+  display: inline-block;
+  height: 64px;
+  width: 64px;
+  position: relative;
+}
+.badges-list .quorum-badge img {
+  height: 100%;
+  width: 100%;
+}
+.badges-list .quorum-badge span.title {
+  z-index: 9999;
+  display: none;
+  position: absolute;
+  top: 60px;
+  left: -50px;
+  width: 150px;
+  text-align: center;
+  padding: 5px;
+  color: #FFFFFF;
+  background: #333333;
+  font-size: 12px;
+}
+.badges-list .quorum-badge:hover span.title {
+  display: block;
 }
