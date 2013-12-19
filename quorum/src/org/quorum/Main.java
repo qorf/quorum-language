@@ -295,6 +295,13 @@ public class Main {
     private static File root = null;
     
     /**
+     * The current version of the Quorum compiler.
+     */
+    private static final String COMPILER_VERSION = "2.1";
+    
+    private static final String VERSION = "-version";
+    
+    /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
@@ -544,6 +551,10 @@ public class Main {
         }
     }
     
+    private static void outputVersion() {
+        System.out.println("Quorum version " + COMPILER_VERSION);
+        System.exit(0); // exit the system
+    }
     /**
      * Output help to the user. Note that this will cause Quorum to exit.
      */
@@ -667,6 +678,8 @@ public class Main {
             if(!arg.startsWith("-")) {
                 argumentIndex = index;
                 return;
+            } else if(arg.compareTo(VERSION) == 0){
+                outputVersion();
             }
             else if(arg.compareTo(HELP) == 0){
                 outputHelp();
@@ -842,38 +855,5 @@ public class Main {
         exec.setVirtualMachine(vm);
         exec.setPluginFolder(pluginFolder);
         exec.start();
-        
-        //for testing
-//        for(int i = 0; i < 10; i++) {
-//            exec.sendTestMessage(
-//                "output \"Hello" + ", world!"+ i +"\"");
-//        }
-//        
-//        exec.sendTestMessage(
-//                "repeat while true output \"Testing loop\" end");
-//        
-//        for(int i = 0; i < 10; i++) {
-//            exec.sendTestMessage(
-//                "output \"Hello" + ", world!"+ i +"\"");
-//        }
-//        exec.sendTestMessage(
-//                "output \"Hello" + ", world!\"");
-//        
-//        exec.sendTestMessage(
-//                "i = 0 "
-//                + "repeat 10 times "
-//                    + "output i "
-//                    + "i = i + 1  "
-//                + "end");
-//        
-//        exec.sendTestMessage(
-//            "use Libraries.Sound.Music\n" +
-//            "Music muse\n" +
-//            "integer i = 0\n" +
-//            "repeat 12 times\n" +
-//            "   muse:Play(60 + i,0.1)\n" +
-//            "   i = i + 1\n" +
-//            "end");
-        
     }
 }
