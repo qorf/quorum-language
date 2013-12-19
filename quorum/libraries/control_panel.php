@@ -56,7 +56,7 @@ function render_badges() {
     $badges_model = new Badge($user->username, null, null);
     $badges = $badges_model->getBadgesForUser();
 
-    if (count($badges) > 0) {
+    if (is_array($badges) && count($badges) > 0) {
         echo '<h3>Your Earned Badges</h3>';
         echo '<ul class="badges-list unstyled">';
         foreach ($badges as $badge) {
@@ -66,6 +66,11 @@ function render_badges() {
             echo ' <span class="title">' . $englishified_badge_name . '</span>';
             echo '</li>';
         }
+        echo '</ul>';
+    } else {
+        echo '<h3>Your Earned Badges</h3>';
+        echo '<ul class="badges-list unstyled">';
+        echo '<li>You have no badges. You have no stinking badges!</li>';
         echo '</ul>';
     }
 }

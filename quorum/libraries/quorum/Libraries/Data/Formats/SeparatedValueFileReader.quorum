@@ -4,6 +4,10 @@ use Libraries.Containers.Blueprints.Indexed
 use Libraries.Containers.Array
 use Libraries.System.FileReader
 
+/*
+The SeparatedValueFileReader class handles file input for the separated value
+class. Generally, it is not necessary to use this class.
+*/
 class SeparatedValueFileReader is FileReader
     boolean isSetup = false
     text total = ""
