@@ -83,7 +83,7 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
             if key:Equals(temp:key)
                 return temp:value
             end
-            temp = node:next
+            temp = temp:next
         end
 
         return undefined
@@ -488,7 +488,7 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
             if key:Equals(temp:key)
                 return true
             end
-            temp = node:next
+            temp = temp:next
         end
 
         return false
