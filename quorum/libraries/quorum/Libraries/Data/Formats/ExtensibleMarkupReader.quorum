@@ -18,7 +18,7 @@ occurs.
 Attribute: Example
 
 use Libraries.System.File
-use Libraries.Data.Formats
+use Libraries.Data.Formats.ExtensibleMarkup
 
 ExtensibleMarkupReader reader //first create the reader
 File xml //then create a file
@@ -27,7 +27,6 @@ reader:Read(xml) //read the xml file
 */
 class ExtensibleMarkupReader 
     MarkupListener listener
-    File sourceFile
     DocumentTypeDefinition dtd
 
     /*
@@ -37,29 +36,23 @@ class ExtensibleMarkupReader
 
         Attribute: Example
         use Libraries.System.File
-        use Libraries.Data.Formats
+        use Libraries.Data.Formats.ExtensibleMarkup
         
         ExtensibleMarkupReader reader 
+        //This file should be in the same folder as the executable for this script.
         File xml 
         xml:SetPath("Data.xml")
         reader:Read(xml)
     */
     action Read(File file)
-        //it's a bit slow, but for now, just read in the entire file
-        //and start parsing it
-        text fileName = file:GetAbsolutePath()
-        i = fileName:GetSize() - 1
-        boolean done = false
-        repeat while not done
-            if fileName:GetCharacter(i) = "\"
-                done = true   
-            else
-                i = i -1
-            end            
+        if file = undefined 
+            alert("The file " + file:GetAbsolutePath() + ", could not be found.")
         end
-        fileName = fileName:GetSubtext(0, i)
 
-        sourceFile:SetWorkingDirectory(fileName)
+        if not file:Exists()
+            alert("The file " + file:GetAbsolutePath() + ", does not exist.")
+        end
+        
         text result = file:Read()
         Read(result)
     end
@@ -71,7 +64,7 @@ class ExtensibleMarkupReader
 
         Attribute: Example
         use Libraries.System.File
-        use Libraries.Data.Formats
+        use Libraries.Data.Formats.ExtensibleMarkup
         
         DocumentTypeDefinition MyDocumentTypeDefinition
         MyDocumentTypeDefinition:Read("<root></root>")
@@ -79,12 +72,6 @@ class ExtensibleMarkupReader
     action Read(text xml)
         size = xml:GetSize()
         doubleQuote = xml:GetDoubleQuote()
-
-        if sourceFile:Exists()
-            directory = sourceFile:GetWorkingDirectory()
-            
-            dtd:SetSourceDirectory(directory)
-        end
         inElement = false
         inDirective = false
         seenQuestionMark = false
@@ -436,7 +423,7 @@ class ExtensibleMarkupReader
         Attribute: Returns The MarkupListener used durring parsing.
         
         Attribute: Example
-        use Libraries.Data.Formats
+        use Libraries.Data.Formats.ExtensibleMarkup
 
         class main
             action main
@@ -468,7 +455,7 @@ class ExtensibleMarkupReader
         Attribute: Returns The MarkupListener to be used durring parsing.
         
         Attribute: Example
-        use Libraries.Data.Formats
+        use Libraries.Data.Formats.ExtensibleMarkup
 
         class main
             action main
