@@ -8,6 +8,21 @@
     </div>
 </div>
 <div class="content index-content">
+    <h2>Sodbeans 4.5.1 February 1st, 2014</h2>
+    <ul> 
+        <li>Added a new view for arrays to the debugger.</li>
+        <li>Added a new view for lists to the debugger.</li>
+        <li>Added a new view for hash tables to the debugger.</li>
+        <li>Fixed several stability issues in the debugger.</li>
+        <li>Conducted some profiling and improved debugger efficiency. The new 
+            new debugger should now be reasonable scalable, even for
+            commercial or large grade applications.</li>
+        <li>Fixed a bug causing the website to not allow logins from
+        new accounts.</li>
+        <li>Fixed a bug causing Sodbeans to be unable to create new accounts.</li>
+        <li>Improved security on the web server.</li>
+        <li>Fixed some broken links on the website.</li>
+    </ul>
     <h2>Sodbeans 4.5 December 16th, 2013</h2>
     <ul> 
         <li>The Quorum debugger has been rewritten completely from scratch.</li>

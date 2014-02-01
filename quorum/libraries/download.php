@@ -15,12 +15,12 @@
 		<li class="links-macosx"><h2><a href="https://sourceforge.net/projects/quorum/files/Quorum%202.1/Quorum%202.1.zip/download">Download Quorum 2.1 for Mac OS X and Linux</a></h2></li>
 	</ul>
         <ul class="download-links">
-		<li class="links-windows"><h2><a href="https://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/Sodbeans%204.5%20Windows.exe/download">Download Sodbeans 4.5 for Windows</a></h2></li>
-		<li class="links-macosx"><h2><a href="https://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/Sodbeans%204.5%20Mac%20OS%20X.zip/download">Download Sodbeans 4.5 for Mac OS X</a></h2></li>
+		<li class="links-windows"><h2><a href="http://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/Sodbeans%204.5%20Windows.exe/download">Download Sodbeans 4.5 for Windows</a></h2></li>
+		<li class="links-macosx"><h2><a href="http://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/sodbeans%204.5%20Mac%20OS%20X.zip/download">Download Sodbeans 4.5 for Mac OS X</a></h2></li>
 	</ul>
         <ul class="download-links">
-		<li class="links-windows"><h2><a href="https://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/Sodbeans%204.5%20Windows%20Student.exe/download">Download Sodbeans 4.5 for Windows (School)</a></h2></li>
-		<li class="links-macosx"><h2><a href="https://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/sodbeans%204.5%20Mac%20OS%20X%20Student.zip/download">Download Sodbeans 4.5 for Mac OS X (School)</a></h2></li>
+		<li class="links-windows"><h2><a href="http://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/Sodbeans%204.5%20Windows%20student.exe/download">Download Sodbeans 4.5 for Windows (School)</a></h2></li>
+		<li class="links-macosx"><h2><a href="http://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/sodbeans%204.5%20Mac%20OS%20X%20student.zip/download">Download Sodbeans 4.5 for Mac OS X (School)</a></h2></li>
 	</ul>
     <p>*Note: For Linux, use the <a href="https://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/sodbeans%204.5.zip/download">
             Sodbeans Binaries</a>. The latest version of the <a href="https://sourceforge.net/projects/sodbeans/files/Sodbeans/Sodbeans_4_5/sodbeans%204.5%20source.zip/download"> 

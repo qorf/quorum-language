@@ -22,7 +22,8 @@
 
 <ul>
     <li>A language design that is heavily tested for ease of use in formal 
-        <a href="http://dl.acm.org/citation.cfm?id=2534973">scientific peer-reviewed studies</a>.</li>
+        <a href="http://dl.acm.org/citation.cfm?id=2534973">scientific peer-reviewed studies</a>. 
+        For details, listen to a recent <a href="http://goo.gl/DB2RtQ">podcast</a>.</li>
     <li>A Static type system that conforms to the <a href="http://dl.acm.org/citation.cfm?id=2384616.2384666&coll=DL&dl=GUIDE&CFID=263596418&CFTOKEN=51077801">
         latest scientific evidence on ease
         of use</a> from the academic peer reviewed literature.</li>
