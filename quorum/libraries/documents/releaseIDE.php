@@ -22,6 +22,7 @@
         <li>Fixed a bug causing Sodbeans to be unable to create new accounts.</li>
         <li>Improved security on the web server.</li>
         <li>Fixed some broken links on the website.</li>
+        <li>Fixed a bug with the Hangman Sample Project.</li>
     </ul>
     <h2>Sodbeans 4.5 December 16th, 2013</h2>
     <ul> 
