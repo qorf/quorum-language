@@ -397,8 +397,7 @@ public class Main {
         // Now we will process remaining flags.
         if (isWeb) {
             if(isWebCompile) {
-                //generate a .war file here.
-                System.exit(0);
+                vm.setGenerateWar(true);
             } else if (args.length >= 1) {
                 startWebServer(args[1]);
             } else {
@@ -766,6 +765,7 @@ public class Main {
                     String next = args[index + 1];
                     if(next.compareTo(WEB_COMPILE) == 0) {
                         isWebCompile = true;
+                        argumentIndex = index + 2;
                     }
                 }
                 flagsFinished = true;

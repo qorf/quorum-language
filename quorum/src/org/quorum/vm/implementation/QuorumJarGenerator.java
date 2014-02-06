@@ -40,6 +40,12 @@ public class QuorumJarGenerator {
     private Collection<Dependency> dependencies;
     private final String DEPENDENCIES_FOLDER = "libraries";
     
+    /**
+     * Set this flag to true if the generator should create .war files instead
+     * of .jar files.
+     */
+    private boolean generateWar = false;
+    
     public QuorumJarGenerator() {
         files = new ArrayList<File>();
     }
@@ -264,5 +270,40 @@ public class QuorumJarGenerator {
      */
     public void setMain(String main) {
         this.main = main;
+    }
+
+    /**
+     * Returns the file extension appropriate for this jar generator, either
+     * .jar for desktop applications or .war for web applications.
+     * 
+     * @return 
+     */
+    public String getFileExtension() {
+        if(isGenerateWar()) {
+            return ".war";
+        } else {
+            return ".jar";
+        }
+    }
+    /**
+     * 
+     * Returns true if a .war file will be generated instead of a .jar file.
+     * 
+     * @return the generateWar
+     */
+    public boolean isGenerateWar() {
+        return generateWar;
+    }
+
+    /**
+     * 
+     * Set this to true if the Jar generator should generate .war files instead.
+     * This is useful if you want Quorum to output files that can be uploaded
+     * to a Tomcat server.
+     * 
+     * @param generateWar the generateWar to set
+     */
+    public void setGenerateWar(boolean generateWar) {
+        this.generateWar = generateWar;
     }
 }

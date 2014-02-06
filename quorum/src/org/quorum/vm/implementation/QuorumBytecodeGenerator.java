@@ -57,6 +57,12 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     private boolean foundMain = false;
     
     /**
+     * Set this flag to true if the generator should create .war files instead
+     * of .jar files.
+     */
+    private boolean generateWar = false;
+    
+    /**
      * This method generates java bytecode for all classes on the system.
      * 
      */
@@ -163,6 +169,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         
         //prepare jar file for output
         QuorumJarGenerator jar = new QuorumJarGenerator();
+        jar.setGenerateWar(this.isGenerateWar());
         
         Iterator<QuorumBytecode> iterator = classHash.values().iterator();
         while(iterator.hasNext()) {
@@ -182,7 +189,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
             //say where to write the jar
             this.distributionFolder.mkdirs();
             String jarName = this.distributionFolder.getAbsolutePath();
-            jarName = jarName + "/" + this.distributionName + ".jar";
+            jarName = jarName + "/" + this.distributionName + jar.getFileExtension();
             File loc = new File(jarName);
             jar.setWriteLocation(loc);
             
@@ -420,5 +427,28 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
                 return bytecode.getOutput();
         else
             return null;
+    }
+    
+    
+    /**
+     * 
+     * Returns true if a .war file will be generated instead of a .jar file.
+     * 
+     * @return the generateWar
+     */
+    public boolean isGenerateWar() {
+        return generateWar;
+    }
+
+    /**
+     * 
+     * Set this to true if the Jar generator should generate .war files instead.
+     * This is useful if you want Quorum to output files that can be uploaded
+     * to a Tomcat server.
+     * 
+     * @param generateWar the generateWar to set
+     */
+    public void setGenerateWar(boolean generateWar) {
+        this.generateWar = generateWar;
     }
 }
