@@ -314,12 +314,12 @@ public class Main {
     /**
      * The current version of the Quorum compiler.
      */
-    private static final String COMPILER_VERSION = "2.2";
+    public static final String COMPILER_VERSION = "2.2";
     
     /**
      * This flag is used to output the version of the Quorum compiler.
      */
-    public static final String VERSION = "-version";
+    private static final String VERSION = "-version";
     
     /**
      * @param args the command line arguments

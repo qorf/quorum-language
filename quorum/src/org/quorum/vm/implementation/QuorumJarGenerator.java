@@ -35,7 +35,7 @@ public class QuorumJarGenerator {
     private File writeLocation;
     private JarOutputStream jar;
     private String main;
-    private final String CREATED_BY = Main.VERSION;
+    private final String CREATED_BY = "Quorum " + Main.COMPILER_VERSION;
     public ArrayList<File> files;
     public File buildDirectory;
     private File servletFolder;
