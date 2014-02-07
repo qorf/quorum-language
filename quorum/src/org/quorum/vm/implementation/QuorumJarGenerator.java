@@ -69,6 +69,7 @@ public class QuorumJarGenerator {
                 add("META-INF/context.xml", new File(this.servletFolder.getAbsolutePath() + "/context.xml"), target);
                 add("WEB-INF/web.xml", new File(this.servletFolder.getAbsolutePath() + "/web.xml"), target);
                 add("WEB-INF/classes/web/servlet/Processor.class", new File(this.servletFolder.getAbsolutePath() + "/Processor.class"), target);
+                writeDependenciesWar(target);
             }
         } catch (Exception ex) {
             Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
@@ -87,6 +88,12 @@ public class QuorumJarGenerator {
             
         }
         
+        if(!this.isGenerateWar()) {
+            writeDependenciesJar();
+        }
+    }
+    
+    private void writeDependenciesJar() {
         //now write dependencies to disk
         File dependencyFolder = new File(buildDirectory + "/" + DEPENDENCIES_FOLDER);
         if(!dependencyFolder.isDirectory()) {
@@ -112,6 +119,21 @@ public class QuorumJarGenerator {
         }
     }
     
+    private void writeDependenciesWar(JarOutputStream target) {
+        try {
+            Iterator<Dependency> it = dependencies.iterator();
+            while(it.hasNext()) {
+                Dependency next = it.next();
+                File file = next.getFile();
+                if(file.isFile()) {
+                    add("WEB-INF/lib/" + file.getName(), file, target);
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }
     public void copyFile(File file, File to) throws IOException {
         if(file.isFile()) { //copy it to the libraries folder
             if (!to.exists()) {
@@ -264,31 +286,32 @@ public class QuorumJarGenerator {
         String version = Attributes.Name.MANIFEST_VERSION + ": 1.0\n";
         String created = "Created-By: " + CREATED_BY + "\n";
         String mainClass = Attributes.Name.MAIN_CLASS + ": " + getMain() + "\n";
-        
         String libs = "";
-        if(dependencies != null) {
-            Iterator<Dependency> iterator = dependencies.iterator();
-            
-            //check to see if we have more than one dependency
-            //if so, add them appropriately
-            boolean first = true;
-            while(iterator.hasNext()) {
-                Dependency next = iterator.next();
-                File file = next.getFile();
-                if(file.isFile() && next.isExecutionDependency()) {
-                    if(first) {
-                        libs += Attributes.Name.CLASS_PATH + ": " + DEPENDENCIES_FOLDER + 
-                            "/" + file.getName();
-                    } else {
-                        libs += " " + DEPENDENCIES_FOLDER + 
-                            "/" + file.getName();
+        if(!this.isGenerateWar()) {
+            if(dependencies != null) {
+                Iterator<Dependency> iterator = dependencies.iterator();
+
+                //check to see if we have more than one dependency
+                //if so, add them appropriately
+                boolean first = true;
+                while(iterator.hasNext()) {
+                    Dependency next = iterator.next();
+                    File file = next.getFile();
+                    if(file.isFile() && next.isExecutionDependency()) {
+                        if(first) {
+                            libs += Attributes.Name.CLASS_PATH + ": " + DEPENDENCIES_FOLDER + 
+                                "/" + file.getName();
+                        } else {
+                            libs += " " + DEPENDENCIES_FOLDER + 
+                                "/" + file.getName();
+                        }
+                        first = false;
                     }
-                    first = false;
                 }
             }
+            libs += "\n";
         }
         
-        libs += "\n";
         String total = version + created + libs + mainClass + "\n";
         try {
             InputStream stream = new ByteArrayInputStream(total.getBytes(ENCODING));
