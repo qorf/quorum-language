@@ -39,6 +39,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     private HashMap<String, QuorumBytecode> classHash = new HashMap<String, QuorumBytecode>();
     private File buildFolder;
     private File distributionFolder;
+    private File servletFolder;
     private String distributionName = "Default";
     private File mainFile;
     private String manifestMain = "";
@@ -170,6 +171,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         //prepare jar file for output
         QuorumJarGenerator jar = new QuorumJarGenerator();
         jar.setGenerateWar(this.isGenerateWar());
+        jar.setServletFolder(this.getServletFolder());
         
         Iterator<QuorumBytecode> iterator = classHash.values().iterator();
         while(iterator.hasNext()) {
@@ -450,5 +452,25 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
      */
     public void setGenerateWar(boolean generateWar) {
         this.generateWar = generateWar;
+    }
+    
+    /**
+     * Retrieves a folder with all of the information for finding servlet data.
+     * 
+     * @return 
+     */
+    @Override
+    public File getServletFolder() {
+        return servletFolder;
+    }
+    
+    /**
+     * Sets the folder where servlet information can be found.
+     * 
+     * @param folder 
+     */
+    @Override
+    public void setServletFolder(File folder) {
+        servletFolder = folder;
     }
 }

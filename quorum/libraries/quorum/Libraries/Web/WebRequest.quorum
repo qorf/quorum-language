@@ -1,0 +1,12 @@
+package Libraries.Web
+
+class WebRequest 
+    text path = ""
+    action GetPath() returns text 
+        return path
+    end
+
+    action SetPath(text path) 
+        me:path = path
+    end
+end

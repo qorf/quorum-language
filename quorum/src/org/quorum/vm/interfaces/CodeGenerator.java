@@ -202,4 +202,17 @@ public interface CodeGenerator {
      */
     public void setGenerateWar(boolean generateWar);
     
+    /**
+     * Retrieves a folder with all of the information for finding servlet data.
+     * 
+     * @return 
+     */
+    public File getServletFolder();
+    
+    /**
+     * Sets the folder where servlet information can be found.
+     * 
+     * @param folder 
+     */
+    public void setServletFolder(File folder);
 }

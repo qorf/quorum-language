@@ -319,7 +319,7 @@ public class Main {
     /**
      * This flag is used to output the version of the Quorum compiler.
      */
-    private static final String VERSION = "-version";
+    public static final String VERSION = "-version";
     
     /**
      * @param args the command line arguments
@@ -360,6 +360,10 @@ public class Main {
         File build = new File("./" + BUILD_DIRECTORY);
         
         File distribution = new File("./" + DISTRIBUTE_DIRECTORY);
+        
+        //the folder with all of the servlet information.
+        File servlet = new File(root.getAbsolutePath() +
+                "/servlet");
         
         File dependencies = new File(root.getAbsolutePath() +
                 "/lib");
@@ -431,6 +435,7 @@ public class Main {
             vm.setDistributionFolder(distribution);
             vm.addDependency(phonemic);
             vm.addDependency(phonemicJNI);
+            vm.getCodeGenerator().setServletFolder(servlet);
             
             if(hasJars) { //add additional jars the user specified
                 Iterator<String> myJars = jars.values().iterator();

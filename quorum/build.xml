@@ -15,6 +15,10 @@
             <fileset dir="libraries"/>
         </copy>
         
+        <copy todir="dist/servlet">
+            <fileset dir="servlet"/>
+        </copy>
+        
         <copy todir="dist/lib/jni">
             <fileset dir="dependencies/jni"/>
         </copy>
@@ -29,6 +33,10 @@
     <target name="-post-compile">
         <copy todir="build/classes/libraries">
             <fileset dir="libraries"/>
+        </copy>
+        
+        <copy todir="build/classes/servlet">
+            <fileset dir="servlet"/>
         </copy>
         
         <copy todir="build/classes/libraries/plugins">

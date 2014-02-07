@@ -21,6 +21,7 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.quorum.Main;
 import org.quorum.vm.interfaces.Dependency;
 
 /**
@@ -34,11 +35,14 @@ public class QuorumJarGenerator {
     private File writeLocation;
     private JarOutputStream jar;
     private String main;
-    private final String CREATED_BY = "Quorum 2.0";
+    private final String CREATED_BY = Main.VERSION;
     public ArrayList<File> files;
     public File buildDirectory;
+    private File servletFolder;
     private Collection<Dependency> dependencies;
     private final String DEPENDENCIES_FOLDER = "libraries";
+    private final String WAR_CLASS_DIRECTORY = "WEB-INF/classes";
+    private final String ENCODING = "UTF-8";
     
     /**
      * Set this flag to true if the generator should create .war files instead
@@ -60,6 +64,12 @@ public class QuorumJarGenerator {
             target = new JarOutputStream(stream, manifest);
             add(new File(directory.getAbsolutePath() + "/quorum"), target);
             add(new File(directory.getAbsolutePath() + "/plugins"), target);
+            
+            if(this.isGenerateWar()) {
+                add("META-INF/context.xml", new File(this.servletFolder.getAbsolutePath() + "/context.xml"), target);
+                add("WEB-INF/web.xml", new File(this.servletFolder.getAbsolutePath() + "/web.xml"), target);
+                add("WEB-INF/classes/web/servlet/Processor.class", new File(this.servletFolder.getAbsolutePath() + "/Processor.class"), target);
+            }
         } catch (Exception ex) {
             Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -136,6 +146,60 @@ public class QuorumJarGenerator {
         }
     }
     
+    /**
+     * This method creates a new file with String text and puts it into the 
+     * target output stream.
+     * 
+     * @param location
+     * @param text
+     * @param target
+     * @throws IOException 
+     */
+    private void add(String location, String text, JarOutputStream target) throws IOException {
+        InputStream in = new ByteArrayInputStream(text.getBytes(ENCODING));
+        
+        JarEntry entry = new JarEntry(location);
+        entry.setTime(System.currentTimeMillis());
+        target.putNextEntry(entry);
+
+        byte[] buffer = new byte[1024];
+        while (true) {
+            int count = in.read(buffer);
+            if (count == -1) {
+                break;
+            }
+            target.write(buffer, 0, count);
+        }
+        target.closeEntry();
+    }
+    
+    /**
+     * This method creates a new file with String text and puts it into the 
+     * target output stream.
+     * 
+     * @param location
+     * @param text
+     * @param target
+     * @throws IOException 
+     */
+    private void add(String location, File file, JarOutputStream target) throws IOException {
+        BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
+        
+        JarEntry entry = new JarEntry(location);
+        entry.setTime(System.currentTimeMillis());
+        target.putNextEntry(entry);
+
+        byte[] buffer = new byte[1024];
+        while (true) {
+            int count = in.read(buffer);
+            if (count == -1) {
+                break;
+            }
+            target.write(buffer, 0, count);
+        }
+        target.closeEntry();
+    }
+    
     private void add(File source, JarOutputStream target) throws IOException {
         //taken in part from http://stackoverflow.com/questions/1281229/how-to-use-jaroutputstream-to-create-a-jar-file
         BufferedInputStream in = null;
@@ -156,6 +220,10 @@ public class QuorumJarGenerator {
                         if (!name.endsWith("/")) {
                             name += "/";
                         }
+                        
+                        if(this.isGenerateWar()) {
+                            name = WAR_CLASS_DIRECTORY + "/" + name;
+                        }
                         JarEntry entry = new JarEntry(name);
                         entry.setTime(source.lastModified());
                         target.putNextEntry(entry);
@@ -167,6 +235,9 @@ public class QuorumJarGenerator {
                     return;
                 }
 
+                if(this.isGenerateWar()) {
+                    name = WAR_CLASS_DIRECTORY + "/" + name;
+                }
                 JarEntry entry = new JarEntry(name);
                 entry.setTime(source.lastModified());
                 target.putNextEntry(entry);
@@ -190,7 +261,6 @@ public class QuorumJarGenerator {
     }
 
     public void createNewManifest() {
-        final String ENCODING = "UTF-8";
         String version = Attributes.Name.MANIFEST_VERSION + ": 1.0\n";
         String created = "Created-By: " + CREATED_BY + "\n";
         String mainClass = Attributes.Name.MAIN_CLASS + ": " + getMain() + "\n";
@@ -305,5 +375,23 @@ public class QuorumJarGenerator {
      */
     public void setGenerateWar(boolean generateWar) {
         this.generateWar = generateWar;
+    }
+    
+    /**
+     * Retrieves a folder with all of the information for finding servlet data.
+     * 
+     * @return 
+     */
+    public File getServletFolder() {
+        return servletFolder;
+    }
+    
+    /**
+     * Sets the folder where servlet information can be found.
+     * 
+     * @param folder 
+     */
+    public void setServletFolder(File folder) {
+        servletFolder = folder;
     }
 }
