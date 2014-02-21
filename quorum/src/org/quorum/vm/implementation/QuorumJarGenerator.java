@@ -68,6 +68,7 @@ public class QuorumJarGenerator {
             if(this.isGenerateWar()) {
                 add("META-INF/context.xml", new File(this.servletFolder.getAbsolutePath() + "/context.xml"), target);
                 add("WEB-INF/web.xml", new File(this.servletFolder.getAbsolutePath() + "/web.xml"), target);
+                add("WEB-INF/glassfish-web.xml", new File(this.servletFolder.getAbsolutePath() + "/glassfish-web.xml"), target);
                 add("WEB-INF/classes/web/servlet/Processor.class", new File(this.servletFolder.getAbsolutePath() + "/Processor.class"), target);
                 writeDependenciesWar(target);
             }
