@@ -3,6 +3,7 @@
 	<div class="hero-unit-container">
 		<h1>The Quorum Programming Language</h1>
 		<p>The world's first <a href="evidence.php">evidence-oriented programming language.</a></p>
+                <p>Want to learn about Quorum? Come to the <a href="Epiq.php">Experience Programming in Quorum Workshop!</a></p>
 	</div>
 </div>
 
@@ -48,7 +49,11 @@
     <li>If you are taking a class on Quorum, <a href="curriculum.php">labs, 
             programming assignments, and curriculum</a> is available.</li>
     <li>If you want a quick reference for Quorum's console arguments, go
-        to the <a href="documents/console.php">command line reference page</a>.
+        to the <a href="documents/console.php">command line reference page</a>. </li>
+    <li>Get help on the 
+        <a href="https://groups.google.com/forum/#!forum/quorum-language">Quorum Google Group</a> 
+        or post about it on the 
+        <a href="https://www.facebook.com/quorumlanguage">Quorum Facebook page</a></li>
 
 </ul>
 <h2>Example Code in Quorum</h2>
