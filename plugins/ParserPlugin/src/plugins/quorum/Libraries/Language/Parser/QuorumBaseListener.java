@@ -1,5 +1,5 @@
-// Generated from /Users/stefika/Repositories/quorum-language/plugins/ParserPlugin/src/quorum/Libraries/Language/Parser/Quorum.g4 by ANTLR 4.1
-package plugins.quorum.Libraries.Language.Parser;;
+// Generated from /Users/stefika/Repositories/quorum-language/plugins/ParserPlugin/src/plugins/quorum/Libraries/Language/Parser/Quorum.g4 by ANTLR 4.1
+package plugins.quorum.Libraries.Language.Parser;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -37,19 +37,6 @@ public class QuorumBaseListener implements QuorumListener {
 	 * The default implementation does nothing.
 	 */
 	@Override public void exitSelector(@NotNull QuorumParser.SelectorContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void enterAtom(@NotNull QuorumParser.AtomContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void exitAtom(@NotNull QuorumParser.AtomContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -121,19 +108,6 @@ public class QuorumBaseListener implements QuorumListener {
 	 * <p/>
 	 * The default implementation does nothing.
 	 */
-	@Override public void enterAdd(@NotNull QuorumParser.AddContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void exitAdd(@NotNull QuorumParser.AddContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
 	@Override public void enterLoop_statement(@NotNull QuorumParser.Loop_statementContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -180,19 +154,6 @@ public class QuorumBaseListener implements QuorumListener {
 	 * The default implementation does nothing.
 	 */
 	@Override public void exitRoot_expression(@NotNull QuorumParser.Root_expressionContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void enterEquality(@NotNull QuorumParser.EqualityContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void exitEquality(@NotNull QuorumParser.EqualityContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -290,19 +251,6 @@ public class QuorumBaseListener implements QuorumListener {
 	 * <p/>
 	 * The default implementation does nothing.
 	 */
-	@Override public void enterOr(@NotNull QuorumParser.OrContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void exitOr(@NotNull QuorumParser.OrContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
 	@Override public void enterSolo_method_call(@NotNull QuorumParser.Solo_method_callContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -316,19 +264,6 @@ public class QuorumBaseListener implements QuorumListener {
 	 * <p/>
 	 * The default implementation does nothing.
 	 */
-	@Override public void enterMultiply(@NotNull QuorumParser.MultiplyContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void exitMultiply(@NotNull QuorumParser.MultiplyContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
 	@Override public void enterAssignment_statement(@NotNull QuorumParser.Assignment_statementContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -336,19 +271,6 @@ public class QuorumBaseListener implements QuorumListener {
 	 * The default implementation does nothing.
 	 */
 	@Override public void exitAssignment_statement(@NotNull QuorumParser.Assignment_statementContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void enterComparison(@NotNull QuorumParser.ComparisonContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void exitComparison(@NotNull QuorumParser.ComparisonContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -375,19 +297,6 @@ public class QuorumBaseListener implements QuorumListener {
 	 * The default implementation does nothing.
 	 */
 	@Override public void exitAlert_statement(@NotNull QuorumParser.Alert_statementContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void enterAnd(@NotNull QuorumParser.AndContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void exitAnd(@NotNull QuorumParser.AndContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -433,19 +342,6 @@ public class QuorumBaseListener implements QuorumListener {
 	 * <p/>
 	 * The default implementation does nothing.
 	 */
-	@Override public void enterIsa_operation(@NotNull QuorumParser.Isa_operationContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void exitIsa_operation(@NotNull QuorumParser.Isa_operationContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
 	@Override public void enterStart(@NotNull QuorumParser.StartContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -466,19 +362,6 @@ public class QuorumBaseListener implements QuorumListener {
 	 * The default implementation does nothing.
 	 */
 	@Override public void exitGeneric_declaration(@NotNull QuorumParser.Generic_declarationContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void enterCombo_expression(@NotNull QuorumParser.Combo_expressionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void exitCombo_expression(@NotNull QuorumParser.Combo_expressionContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

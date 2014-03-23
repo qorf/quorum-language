@@ -1,5 +1,5 @@
-// Generated from /Users/stefika/Repositories/quorum-language/plugins/ParserPlugin/src/quorum/Libraries/Language/Parser/Quorum.g4 by ANTLR 4.1
-package plugins.quorum.Libraries.Language.Parser;;
+// Generated from /Users/stefika/Repositories/quorum-language/plugins/ParserPlugin/src/plugins/quorum/Libraries/Language/Parser/Quorum.g4 by ANTLR 4.1
+package plugins.quorum.Libraries.Language.Parser;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -29,17 +29,6 @@ public interface QuorumListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSelector(@NotNull QuorumParser.SelectorContext ctx);
-
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#atom}.
-	 * @param ctx the parse tree
-	 */
-	void enterAtom(@NotNull QuorumParser.AtomContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#atom}.
-	 * @param ctx the parse tree
-	 */
-	void exitAtom(@NotNull QuorumParser.AtomContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link QuorumParser#assign_right_hand_side}.
@@ -97,17 +86,6 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitClass_stmnts(@NotNull QuorumParser.Class_stmntsContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link QuorumParser#add}.
-	 * @param ctx the parse tree
-	 */
-	void enterAdd(@NotNull QuorumParser.AddContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#add}.
-	 * @param ctx the parse tree
-	 */
-	void exitAdd(@NotNull QuorumParser.AddContext ctx);
-
-	/**
 	 * Enter a parse tree produced by {@link QuorumParser#loop_statement}.
 	 * @param ctx the parse tree
 	 */
@@ -150,17 +128,6 @@ public interface QuorumListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitRoot_expression(@NotNull QuorumParser.Root_expressionContext ctx);
-
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#equality}.
-	 * @param ctx the parse tree
-	 */
-	void enterEquality(@NotNull QuorumParser.EqualityContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#equality}.
-	 * @param ctx the parse tree
-	 */
-	void exitEquality(@NotNull QuorumParser.EqualityContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link QuorumParser#inherit_stmnts}.
@@ -240,17 +207,6 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitClass_declaration(@NotNull QuorumParser.Class_declarationContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link QuorumParser#or}.
-	 * @param ctx the parse tree
-	 */
-	void enterOr(@NotNull QuorumParser.OrContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#or}.
-	 * @param ctx the parse tree
-	 */
-	void exitOr(@NotNull QuorumParser.OrContext ctx);
-
-	/**
 	 * Enter a parse tree produced by {@link QuorumParser#solo_method_call}.
 	 * @param ctx the parse tree
 	 */
@@ -262,17 +218,6 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitSolo_method_call(@NotNull QuorumParser.Solo_method_callContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link QuorumParser#multiply}.
-	 * @param ctx the parse tree
-	 */
-	void enterMultiply(@NotNull QuorumParser.MultiplyContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#multiply}.
-	 * @param ctx the parse tree
-	 */
-	void exitMultiply(@NotNull QuorumParser.MultiplyContext ctx);
-
-	/**
 	 * Enter a parse tree produced by {@link QuorumParser#assignment_statement}.
 	 * @param ctx the parse tree
 	 */
@@ -282,17 +227,6 @@ public interface QuorumListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitAssignment_statement(@NotNull QuorumParser.Assignment_statementContext ctx);
-
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#comparison}.
-	 * @param ctx the parse tree
-	 */
-	void enterComparison(@NotNull QuorumParser.ComparisonContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#comparison}.
-	 * @param ctx the parse tree
-	 */
-	void exitComparison(@NotNull QuorumParser.ComparisonContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link QuorumParser#reference}.
@@ -315,17 +249,6 @@ public interface QuorumListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitAlert_statement(@NotNull QuorumParser.Alert_statementContext ctx);
-
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#and}.
-	 * @param ctx the parse tree
-	 */
-	void enterAnd(@NotNull QuorumParser.AndContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#and}.
-	 * @param ctx the parse tree
-	 */
-	void exitAnd(@NotNull QuorumParser.AndContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link QuorumParser#formal_parameter}.
@@ -361,17 +284,6 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitFunction_expression_list(@NotNull QuorumParser.Function_expression_listContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link QuorumParser#isa_operation}.
-	 * @param ctx the parse tree
-	 */
-	void enterIsa_operation(@NotNull QuorumParser.Isa_operationContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#isa_operation}.
-	 * @param ctx the parse tree
-	 */
-	void exitIsa_operation(@NotNull QuorumParser.Isa_operationContext ctx);
-
-	/**
 	 * Enter a parse tree produced by {@link QuorumParser#start}.
 	 * @param ctx the parse tree
 	 */
@@ -392,17 +304,6 @@ public interface QuorumListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitGeneric_declaration(@NotNull QuorumParser.Generic_declarationContext ctx);
-
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#combo_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterCombo_expression(@NotNull QuorumParser.Combo_expressionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#combo_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitCombo_expression(@NotNull QuorumParser.Combo_expressionContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link QuorumParser#method_declaration}.

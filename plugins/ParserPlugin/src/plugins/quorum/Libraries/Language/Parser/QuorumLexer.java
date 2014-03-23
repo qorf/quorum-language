@@ -1,5 +1,5 @@
-// Generated from /Users/stefika/Repositories/quorum-language/plugins/ParserPlugin/src/quorum/Libraries/Language/Parser/Quorum.g4 by ANTLR 4.1
-package plugins.quorum.Libraries.Language.Parser;;
+// Generated from /Users/stefika/Repositories/quorum-language/plugins/ParserPlugin/src/plugins/quorum/Libraries/Language/Parser/Quorum.g4 by ANTLR 4.1
+package plugins.quorum.Libraries.Language.Parser;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;
