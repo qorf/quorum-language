@@ -147,19 +147,6 @@ public class QuorumBaseListener implements QuorumListener {
 	 * <p/>
 	 * The default implementation does nothing.
 	 */
-	@Override public void enterRoot_expression(@NotNull QuorumParser.Root_expressionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void exitRoot_expression(@NotNull QuorumParser.Root_expressionContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
 	@Override public void enterInherit_stmnts(@NotNull QuorumParser.Inherit_stmntsContext ctx) { }
 	/**
 	 * {@inheritDoc}

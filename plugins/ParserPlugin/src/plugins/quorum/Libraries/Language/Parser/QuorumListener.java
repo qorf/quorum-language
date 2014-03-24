@@ -119,17 +119,6 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitAssignment_declaration(@NotNull QuorumParser.Assignment_declarationContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link QuorumParser#root_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterRoot_expression(@NotNull QuorumParser.Root_expressionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#root_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitRoot_expression(@NotNull QuorumParser.Root_expressionContext ctx);
-
-	/**
 	 * Enter a parse tree produced by {@link QuorumParser#inherit_stmnts}.
 	 * @param ctx the parse tree
 	 */

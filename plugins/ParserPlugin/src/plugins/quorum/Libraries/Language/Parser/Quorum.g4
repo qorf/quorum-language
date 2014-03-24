@@ -91,7 +91,7 @@ solo_method_call
 	;
 	
 alert_statement 
-	:	ALERT LEFT_PAREN root_expression  RIGHT_PAREN
+	:	ALERT LEFT_PAREN expression RIGHT_PAREN
 	;
 	
 check_statement
@@ -111,15 +111,15 @@ detect_parameter
 	: 	ID (INHERITS  qualified_name(OR qualified_name)*)?
 	;
 print_statement 
-	:	OUTPUT root_expression
+	:	OUTPUT expression
 	;
 
 speak_statement 
-	:	SAY root_expression
+	:	SAY expression
 	;
 
 return_statement
-	:	RETURN ( root_expression | NOW)
+	:	RETURN ( expression | NOW)
 	;
 	
 generic_declaration
@@ -151,16 +151,16 @@ assignment_statement
 	;
 assign_right_hand_side
 	:	
-		(EQUALITY root_expression)
+		(EQUALITY expression)
 	;
 
 	
 if_statement
 	:
-	IF root_expression 
+	IF expression 
 	block
 	(ELSE_IF
-	root_expression
+	expression
 	block
 	)*  //else if blocks
 	(ELSE
@@ -172,17 +172,13 @@ if_statement
 loop_statement
     :
     REPEAT (
-            (root_expression TIMES)
-    |	((WHILE | UNTIL) root_expression)
+            (expression TIMES)
+    |	((WHILE | UNTIL) expression)
             )  block END
     ;
 selector
 	:	PARENT COLON
 	|	ME
-	;
-
-root_expression
-	:	expression
 	;
 
 expression : 
