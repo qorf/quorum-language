@@ -182,30 +182,30 @@ selector
 	;
 
 expression : 
-        qualified_name (COLON ID)?
-    |	qualified_name COLON PARENT COLON qualified_name COLON ID
-    |	qualified_name (COLON ID)? LEFT_PAREN function_expression_list RIGHT_PAREN
-    |	selector COLON qualified_name
-    |	PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN
-    |	ME COLON qualified_name (COLON ID)? LEFT_PAREN function_expression_list RIGHT_PAREN
-    |   MINUS expression
-    |   NOT expression
-    |   CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN
-    |   expression (MULTIPLY | DIVIDE |MODULO) expression
-    |   expression (PLUS | MINUS) expression
-    |   expression (GREATER | GREATER_EQUAL | LESS | LESS_EQUAL) expression
-    |   expression INHERITS class_type
-    |   expression (EQUALITY | NOTEQUALS) expression
-    |   expression (AND) expression
-    |   expression (OR) expression
-    |   INT
-    |   BOOLEAN
-    |   DECIMAL 
-    |   STRING
-    |   NULL
-    |   ME
-    |   INPUT LEFT_PAREN expression RIGHT_PAREN
-    |   LEFT_PAREN expression RIGHT_PAREN
+        qualified_name (COLON ID)?                                                              #VariableOrFieldAccess
+    |	qualified_name COLON PARENT COLON qualified_name COLON ID                               #ParentFieldAccess
+    |	qualified_name (COLON ID)? LEFT_PAREN function_expression_list RIGHT_PAREN              #ObjectFunctionCall
+    |	selector COLON qualified_name                                                           #FieldAccess
+    |	PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN    #ParentFunctionCall
+    |	ME COLON qualified_name (COLON ID)? LEFT_PAREN function_expression_list RIGHT_PAREN     #MeFunctionCall
+    |   MINUS expression                                                                        #Minus
+    |   NOT expression                                                                          #Not
+    |   CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN                     #Cast
+    |   expression (MULTIPLY | DIVIDE |MODULO) expression                                       #Multiplication
+    |   expression (PLUS | MINUS) expression                                                    #Addition
+    |   expression (GREATER | GREATER_EQUAL | LESS | LESS_EQUAL) expression                     #Greater
+    |   expression INHERITS class_type                                                          #Inherits
+    |   expression (EQUALITY | NOTEQUALS) expression                                            #Equals
+    |   expression (AND) expression                                                             #And
+    |   expression (OR) expression                                                              #Or
+    |   INT                                                                                     #Integer
+    |   BOOLEAN                                                                                 #Boolean
+    |   DECIMAL                                                                                 #Decimal
+    |   STRING                                                                                  #String
+    |   NULL                                                                                    #Null
+    |   ME                                                                                      #Me
+    |   INPUT LEFT_PAREN expression RIGHT_PAREN                                                 #Input
+    |   LEFT_PAREN expression RIGHT_PAREN                                                       #ParenthesisExpression
     ;
 
 
