@@ -1,11 +1,14 @@
-package Libraries.Language.Compilation
+package Libraries.Language.Compile
+
+use Libraries.System.File
 
 class Compiler 
     Parser parser
 
-    on create
-        ConnectToAntlr()
+    action Parse(File file, QuorumSourceListener listener)
+
     end
 
-    private system action ConnectToAntlr
+    private system action ParseNative(File file, QuorumSourceListener listener)
+
 end
