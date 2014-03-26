@@ -1,0 +1,61 @@
+package Libraries.Language.Compile
+
+use Libraries.System.File
+
+class Location 
+    integer startLine = 0
+    integer endLine = 0
+    integer startColumn = 0
+    integer endColumn = 0
+    integer startIndex = 0
+    integer endIndex = 0
+    File file = undefined
+    
+    action GetStartLine returns integer
+        return startLine
+    end
+
+    action SetStartLine(integer line)
+        startLine = line
+    end
+
+    action GetEndLine returns integer
+        return startLine
+    end
+
+    action SetEndLine(integer line)
+        endLine = line
+    end
+
+    action GetStartColumn returns integer
+        return startColumn
+    end
+
+    action SetStartColumn(integer column)
+        startColumn = column
+    end
+
+    action GetEndColumn returns integer
+        return startColumn
+    end
+
+    action SetEndColumn(integer column)
+        endColumn = column
+    end
+
+    action GetStartIndex returns integer
+        return startIndex
+    end
+
+    action SetStartIndex(integer index)
+        startIndex = index
+    end
+
+    action GetFile returns File
+        return file
+    end
+
+    action SetFile(File file)
+        me:file = file
+    end
+end
