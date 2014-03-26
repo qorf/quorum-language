@@ -3,12 +3,12 @@ package Libraries.Language.Compile
 use Libraries.System.File
 
 class Compiler 
-    Parser parser
+    //Parser parser
 
     action Parse(File file, QuorumSourceListener listener)
-
+        ParseNative(file, listener)
     end
 
-    private system action ParseNative(File file, QuorumSourceListener listener)
+    system action ParseNative(File file, QuorumSourceListener listener)
 
 end

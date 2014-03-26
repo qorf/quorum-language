@@ -1,14 +1,20 @@
 package Libraries.Language.Compile
 
 use Libraries.Language.Compile.Parser
+use Libraries.System.File
 
 class Main
     action Main
         output "Hi, from Quorum 3"
 
-
-
+        Compiler compiler
+        File file
+        file:SetPath("Test/Expression.quorum")
         Parser parser
+
+        compiler:Parse(file, parser)
+
+        
         
     end
 end

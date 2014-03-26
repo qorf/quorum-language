@@ -1,5 +1,19 @@
 package Libraries.Language.Compile
 
 class Parser is QuorumSourceListener
-    
+    action EnterInteger
+        output "Enter Integer"
+    end
+    action ExitInteger 
+        output "Exit Integer"
+    end
+
+    action EnterAssignmentStatement output "Enter Assignment" end
+    action ExitAssignmentStatement output "Exit Assignment" end
+
+    action EnterMultiplication output "*" end
+    action ExitMultiplication output "* end" end
+
+    action EnterAddition output "+" end
+    action ExitAddition output "+ end" end
 end
