@@ -1,5 +1,5 @@
 // Generated from /Users/stefika/Repositories/quorum-language/plugins/ParserPlugin/src/plugins/quorum/Libraries/Language/Parser/Quorum.g4 by ANTLR 4.1
-package plugins.quorum.Libraries.Language.Compilation;;
+package plugins.quorum.Libraries.Language.Compile;;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 

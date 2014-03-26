@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package plugins.quorum.Libraries.Language.Compilation;
+package plugins.quorum.Libraries.Language.Compile;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
