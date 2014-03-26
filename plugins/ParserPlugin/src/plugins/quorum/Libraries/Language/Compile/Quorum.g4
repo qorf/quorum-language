@@ -50,17 +50,14 @@ class_stmnts
 	|	access_modifier?
 	 method_declaration
 	;
+
 method_declaration
-	:	ACTION ID (LEFT_PAREN (formal_parameter (COMMA formal_parameter)*)? RIGHT_PAREN)?
-	(RETURNS return_type = assignment_declaration )? block END 
-	|	BLUEPRINT ACTION ID 
-	(LEFT_PAREN (formal_parameter (COMMA formal_parameter)*)? RIGHT_PAREN)?
-	(RETURNS return_type = assignment_declaration)?
-	|	NATIVE ACTION ID 
-	(LEFT_PAREN (formal_parameter (COMMA formal_parameter)*)? RIGHT_PAREN)?
-	(RETURNS assignment_declaration)?
+	:	ACTION ID (LEFT_PAREN (formal_parameter (COMMA formal_parameter)*)? RIGHT_PAREN)? (RETURNS return_type = assignment_declaration )? block END 
+	|	BLUEPRINT ACTION ID (LEFT_PAREN (formal_parameter (COMMA formal_parameter)*)? RIGHT_PAREN)? (RETURNS return_type = assignment_declaration)?
+	|	NATIVE ACTION ID (LEFT_PAREN (formal_parameter (COMMA formal_parameter)*)? RIGHT_PAREN)? (RETURNS assignment_declaration)?
 	| ON CREATE block END
 	;
+
 formal_parameter
 	:	assignment_declaration ID
 	;
@@ -132,9 +129,11 @@ generic_statement
 	(COMMA assignment_declaration
 	)* GREATER
 	;
+
 class_type
 	:	qualified_name
 	;
+
 assignment_declaration
 	:	qualified_name generic_statement?
 	|	INTEGER_KEYWORD
@@ -142,13 +141,14 @@ assignment_declaration
 	|	TEXT
 	|	BOOLEAN_KEYWORD
         ;
+
 assignment_statement
 	:	
 		(sel = selector COLON)? ID rhs = assign_right_hand_side
 	|	obj=qualified_name (COLON PARENT COLON parent=qualified_name)? COLON ID rhs=assign_right_hand_side
-	|	modifier = access_modifier?
-	CONSTANT? type = assignment_declaration name = ID rhs = assign_right_hand_side?				
+	|	modifier = access_modifier? CONSTANT? type = assignment_declaration name = ID rhs = assign_right_hand_side?		
 	;
+
 assign_right_hand_side
 	:	
 		(EQUALITY expression)
@@ -162,7 +162,7 @@ if_statement
 	(ELSE_IF
 	expression
 	block
-	)*  //else if blocks
+	)*
 	(ELSE
 	block
 	)? 
