@@ -390,12 +390,16 @@ public class JavaToQuorumListener implements QuorumListener{
 
     @Override
     public void enterAddition(QuorumParser.AdditionContext ctx) {
-        listener.EnterAddition();
+        quorum.Libraries.Language.Compile.Context.Addition addition = new 
+                quorum.Libraries.Language.Compile.Context.Addition();
+        listener.EnterAddition(addition);
     }
 
     @Override
     public void exitAddition(QuorumParser.AdditionContext ctx) {
-        listener.ExitAddition();
+        quorum.Libraries.Language.Compile.Context.Addition addition = new 
+                quorum.Libraries.Language.Compile.Context.Addition();
+        listener.ExitAddition(addition);
     }
 
     @Override
@@ -540,12 +544,12 @@ public class JavaToQuorumListener implements QuorumListener{
 
     @Override
     public void enterInteger(QuorumParser.IntegerContext ctx) {
-        listener.EnterInteger();
+        listener.EnterInteger(Integer.parseInt(ctx.INT().getText()));
     }
 
     @Override
     public void exitInteger(QuorumParser.IntegerContext ctx) {
-        listener.ExitInteger();
+        listener.ExitInteger(Integer.parseInt(ctx.INT().getText()));
     }
 
     @Override

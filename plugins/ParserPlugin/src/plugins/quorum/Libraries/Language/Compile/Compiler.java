@@ -43,4 +43,13 @@ public class Compiler {
             Logger.getLogger(Compiler.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    public static void main(String[] args) {
+        Compiler compiler = new Compiler();
+        quorum.Libraries.System.File file = new quorum.Libraries.System.File();
+        file.SetWorkingDirectory("/Users/stefika/Repositories/quorum-language/Quorum3/Test/");
+        
+        file.SetPath("Expression.quorum");
+        compiler.ParseNative(file, new quorum.Libraries.Language.Compile.Parser());
+    }
 }
