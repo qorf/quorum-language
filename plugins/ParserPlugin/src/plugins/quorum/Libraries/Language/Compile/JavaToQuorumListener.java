@@ -6,6 +6,7 @@
 
 package plugins.quorum.Libraries.Language.Compile;
 
+import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -554,11 +555,15 @@ public class JavaToQuorumListener implements QuorumListener{
 
     @Override
     public void enterPackage_rule(QuorumParser.Package_ruleContext ctx) {
+        
         listener.EnterPackageRule();
     }
 
     @Override
     public void exitPackage_rule(QuorumParser.Package_ruleContext ctx) {
+        String full = ctx.getText();
+        QuorumParser.Qualified_nameContext name = ctx.name;
+        List<TerminalNode> ID = name.ID();
         listener.ExitPackageRule();
     }
 

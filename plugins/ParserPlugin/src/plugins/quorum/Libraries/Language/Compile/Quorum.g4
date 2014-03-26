@@ -10,7 +10,7 @@ start	:
 	;
 	
 package_rule :	
-    PACKAGE_NAME qualified_name
+    PACKAGE_NAME name=qualified_name
     ;
 	
 reference 

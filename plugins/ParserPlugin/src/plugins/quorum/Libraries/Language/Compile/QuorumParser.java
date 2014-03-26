@@ -1,5 +1,5 @@
-// Generated from /Users/stefika/Repositories/quorum-language/plugins/ParserPlugin/src/plugins/quorum/Libraries/Language/Parser/Quorum.g4 by ANTLR 4.1
-package plugins.quorum.Libraries.Language.Compile;;
+// Generated from /Users/stefika/Repositories/quorum-language/plugins/ParserPlugin/src/plugins/quorum/Libraries/Language/Compile/Quorum.g4 by ANTLR 4.1
+package plugins.quorum.Libraries.Language.Compile;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -190,6 +190,7 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Package_ruleContext extends ParserRuleContext {
+		public Qualified_nameContext name;
 		public Qualified_nameContext qualified_name() {
 			return getRuleContext(Qualified_nameContext.class,0);
 		}
@@ -215,7 +216,7 @@ public class QuorumParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(87); match(PACKAGE_NAME);
-			setState(88); qualified_name();
+			setState(88); ((Package_ruleContext)_localctx).name = qualified_name();
 			}
 		}
 		catch (RecognitionException re) {
