@@ -1,19 +1,45 @@
 package Libraries.Language.Compile
 
+use Libraries.Language.Compile.Context.all
+use Libraries.Containers.Stack
+
 class Parser is QuorumSourceListener
-    action EnterInteger
-        output "Enter Integer"
+    Stack<Expression> stack
+    Stack<integer> intStack
+    action EnterInteger(integer int)
+        
     end
-    action ExitInteger 
-        output "Exit Integer"
+    action ExitInteger(integer int)
+        Expression e
+        stack:Push(e)
+        intStack:Push(int)
+        output "pushed " + int
     end
 
     action EnterAssignmentStatement output "Enter Assignment" end
     action ExitAssignmentStatement output "Exit Assignment" end
 
-    action EnterMultiplication output "*" end
-    action ExitMultiplication output "* end" end
+    action EnterMultiplication 
+         
+    end
+    action ExitMultiplication 
+        integer right = intStack:Pop()
+        integer left = intStack:Pop()
+        intStack:Push(left * right)
 
-    action EnterAddition output "+" end
-    action ExitAddition output "+ end" end
+        output "* = " + (right * left)
+    end
+
+    action EnterAddition(Addition addition) 
+        
+    end
+
+
+    action ExitAddition(Addition addition) 
+        integer right = intStack:Pop()
+        integer left = intStack:Pop()
+        intStack:Push(left + right)
+
+        output "+ = " + (right + left)  
+    end
 end

@@ -1,5 +1,23 @@
 package Libraries.Language.Compile
 
 class Expression 
+    Type type = undefined
+    boolean isConstant = false
+
+    action GetType returns Type
+        return type
+    end
+
+    action SetType(Type type) 
+        me:type = type
+    end
+
+    action IsConstant returns boolean
+        return isConstant
+    end
+
+    action SetIsConstant(boolean const)
+        me:isConstant = const
+    end
     
 end
