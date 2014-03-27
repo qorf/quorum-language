@@ -3,14 +3,32 @@ package Libraries.Language.Compile
 use Libraries.System.File
 
 class CompilerError 
-    integer line = 0
-    integer column = 0
-    File file = undefined
-    
+    Location location = undefined
+    text message = ""
+    CompilerErrorType errorType = undefined
+
+    action GetLocation returns Location
+        return location
+    end
+
+    action SetLocation(Location value) 
+        location = value
+    end
+
+    action GetErrorMessage returns text
+        return message
+    end
+
+    action SetErrorMessage(text value) 
+        message = value
+    end
 
     action GetAbsolutePath returns text
-        if file not= undefined
-            return file:GetAbsolutePath()
+        if location not= undefined
+            File file = location:GetFile()
+            if file not= undefined
+                return file:GetAbsolutePath()
+            end
         end
 
         text value = undefined
