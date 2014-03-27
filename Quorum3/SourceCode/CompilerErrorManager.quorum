@@ -1,5 +1,61 @@
 package Libraries.Language.Compile
 
+use Libraries.Containers.HashTable
+use Libraries.Containers.List
+use Libraries.System.File
+
 class CompilerErrorManager
+     integer numberOfErrors = 0
     
+    /*
+     * Records the errorsPerFile using the full path of the file as
+     * the key and the list for that file as the value.
+     */
+    HashTable<text, List<CompilerError>> errorsPerFile
+    File currentFile = undefined
+    //text errorKey = ""
+    text fileNameKey = ""
+
+    action AddError(CompilerError error) 
+        if error not= undefined
+            Location location = error:GetLocation()
+            if location:GetLineNumber() <= 0
+                location:SetLineNumber(1)
+            end
+        end
+
+        numberOfErrors = numberOfErrors + 1
+        if  true//if the string is not empty
+            //check if there is already a list
+            errorsPerFile:GetValue(error:GetStaticKey())
+            List<CompilerError> l// = errorsPerFile:
+            if(l not= undefined) 
+                l:Add(error)
+            else 
+                List<CompilerError> l2
+                l = l2
+                l:Add(error)
+                errorsPerFile:Add(error:GetStaticKey(), l)
+            end
+        end
+    end
+
+     action RemoveErrorsAtKey(text key) 
+        if errorsPerFile:HasKey(key)
+            List<CompilerError> list = errorsPerFile:RemoveKey(key)
+            numberOfErrors = numberOfErrors - list:GetSize()
+        end
+    end
+
+    action IsCompilationErrorFree returns boolean
+        return numberOfErrors = 0
+    end
+    
+    /*
+     * Empties the list of compiler errorsPerFile
+     */
+    action Empty
+        numberOfErrors = 0
+        errorsPerFile:Empty()
+    end
 end
