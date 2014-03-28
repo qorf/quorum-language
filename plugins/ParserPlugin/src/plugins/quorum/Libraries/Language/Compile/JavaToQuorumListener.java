@@ -10,7 +10,10 @@ import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import quorum.Libraries.Language.Compile.Context.IntegerContext;
+import quorum.Libraries.Language.Compile.Location;
 import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
+import quorum.Libraries.System.File$Interface;
 
 /**
  *
@@ -18,6 +21,7 @@ import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
  */
 public class JavaToQuorumListener implements QuorumListener{
     private QuorumSourceListener$Interface listener;
+    private File$Interface file;
     
     @Override
     public void enterSelector(QuorumParser.SelectorContext ctx) {
@@ -545,12 +549,32 @@ public class JavaToQuorumListener implements QuorumListener{
 
     @Override
     public void enterInteger(QuorumParser.IntegerContext ctx) {
-        listener.EnterInteger(Integer.parseInt(ctx.INT().getText()));
+        int val = Integer.parseInt(ctx.INT().getText());
+        IntegerContext context = new IntegerContext();
+        context.Set$Libraries$Language$Compile$Context$IntegerContext$value(val);
+        setLocation(ctx, context);
+        listener.EnterInteger(context);
+    }
+    
+    private void setLocation(ParserRuleContext context, 
+            quorum.Libraries.Language.Compile.Context.ParseContext$Interface quorumContext) {
+        quorum.Libraries.Language.Compile.Location$Interface location = quorumContext.GetLocation();
+        location.SetLineNumber(context.getStart().getLine());
+        location.SetLineNumberEnd(context.getStop().getLine());
+        location.SetColumnNumber(context.getStart().getCharPositionInLine());
+        location.SetColumnNumberEnd(context.getStop().getCharPositionInLine());
+        location.SetIndex(context.getStart().getStartIndex());
+        location.SetIndex(context.getStop().getStartIndex());
+        location.SetFile(file);
     }
 
     @Override
     public void exitInteger(QuorumParser.IntegerContext ctx) {
-        listener.ExitInteger(Integer.parseInt(ctx.INT().getText()));
+        int val = Integer.parseInt(ctx.INT().getText());
+        IntegerContext context = new IntegerContext();
+        context.Set$Libraries$Language$Compile$Context$IntegerContext$value(val);
+        setLocation(ctx, context);
+        listener.ExitInteger(context);
     }
 
     @Override
@@ -599,6 +623,20 @@ public class JavaToQuorumListener implements QuorumListener{
      */
     public void setListener(QuorumSourceListener$Interface listener) {
         this.listener = listener;
+    }
+
+    /**
+     * @return the file
+     */
+    public File$Interface getFile() {
+        return file;
+    }
+
+    /**
+     * @param file the file to set
+     */
+    public void setFile(File$Interface file) {
+        this.file = file;
     }
     
 }

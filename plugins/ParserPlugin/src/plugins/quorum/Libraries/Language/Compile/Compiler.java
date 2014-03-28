@@ -36,6 +36,7 @@ public class Compiler {
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             QuorumParser parser = new QuorumParser(tokens);
             ParseTree tree = parser.start();
+            javaToQuorumListener.setFile(file);
             javaToQuorumListener.setListener(listener);
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.walk(javaToQuorumListener, tree);
