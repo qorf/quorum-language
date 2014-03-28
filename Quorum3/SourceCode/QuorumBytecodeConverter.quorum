@@ -1,0 +1,22 @@
+package Libraries.Language.Compile.Translate
+
+class QuorumBytecodeConverter 
+
+    /*
+     * Converts a static key for a class into a full class name.
+     * @param key
+     * @return 
+     */
+    action ConvertStaticKeyToBytecodePath(text key) returns text
+        if key:GetCharacter(0) = "."
+            key = key:GetSubtext(1)
+        end
+
+        text result = "quorum/" + key:Replace(".", "/")
+        return result
+    end
+
+    action ConvertClassNameToInterfaceName(text name) returns text
+        return name + "$Interface"
+    end
+end

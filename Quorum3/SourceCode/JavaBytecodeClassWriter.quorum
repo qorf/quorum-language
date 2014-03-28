@@ -1,0 +1,10 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Containers.Array
+
+
+class JavaBytecodeClassWriter
+    system action Visit(integer javaVersion, integer access, text className, text signature, text superClassName, Array<text> interfaces)
+    system action VisitSource(text name)
+    system action VisitEnd()
+end

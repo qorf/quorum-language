@@ -91,15 +91,13 @@ class QuorumSourceListener
 	 */
 	action ExitParentFieldAccess end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#class_declaration}.
-	 * @param ctx the parse tree
-	 */
+        action EnterFullClassDeclaration(FullClassDeclarationContext ctx) end
+        action ExitFullClassDeclaration(FullClassDeclarationContext ctx) end
+
+        action EnterNoClassDeclaration(NoClassDeclarationContext ctx) end
+        action ExitNoClassDeclaration(NoClassDeclarationContext ctx)  end
+
 	action EnterClassDeclaration end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#class_declaration}.
-	 * @param ctx the parse tree
-	 */
 	action ExitClassDeclaration end
 
 	/**
