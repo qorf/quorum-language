@@ -19,35 +19,43 @@ class Location
         startLine = line
     end
 
-    action GetEndLine returns integer
+    action GetLineNumberEnd returns integer
         return startLine
     end
 
-    action SetEndLine(integer line)
+    action SetLineNumberEnd(integer line)
         endLine = line
     end
 
-    action GetStartColumn returns integer
+    action GetColumnNumber returns integer
         return startColumn
     end
 
-    action SetStartColumn(integer column)
+    action SetColumnNumber(integer column)
         startColumn = column
     end
 
-    action GetEndColumn returns integer
+    action GetColumnNumberEnd returns integer
         return startColumn
     end
 
-    action SetEndColumn(integer column)
+    action SetColumnNumberEnd(integer column)
         endColumn = column
     end
 
-    action GetStartIndex returns integer
+    action GetIndex returns integer
         return startIndex
     end
 
-    action SetStartIndex(integer index)
+    action SetIndex(integer index)
+        startIndex = index
+    end
+
+    action GetIndexEnd returns integer
+        return endIndex
+    end
+
+    action SetIndexEnd(integer index)
         startIndex = index
     end
 

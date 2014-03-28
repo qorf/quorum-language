@@ -6,14 +6,14 @@ use Libraries.Containers.Stack
 class Parser is QuorumSourceListener
     Stack<Expression> stack
     Stack<integer> intStack
-    action EnterInteger(integer int)
+    action EnterInteger(IntegerContext int)
         
     end
-    action ExitInteger(integer int)
+    action ExitInteger(IntegerContext int)
         Expression e
         stack:Push(e)
-        intStack:Push(int)
-        output "pushed " + int
+        intStack:Push(int:value)
+        output "pushed " + int:value
     end
 
     action EnterAssignmentStatement output "Enter Assignment" end
