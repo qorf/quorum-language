@@ -18,12 +18,12 @@ class QuorumSourceListener
 	 * Enter a parse tree produced by {@link QuorumParser#Decimal}.
 	 * @param ctx the parse tree
 	 */
-	action EnterDecimal end
+	action EnterNumber(NumberContext context) end
 	/**
 	 * Exit a parse tree produced by {@link QuorumParser#Decimal}.
 	 * @param ctx the parse tree
 	 */
-	action ExitDecimal end
+	action ExitNumber(NumberContext context) end
 
 	/**
 	 * Enter a parse tree produced by {@link QuorumParser#ParenthesisExpression}.
@@ -179,16 +179,8 @@ class QuorumSourceListener
 	 */
 	action ExitStart end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#String}.
-	 * @param ctx the parse tree
-	 */
-	action EnterString end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#String}.
-	 * @param ctx the parse tree
-	 */
-	action ExitString end
+	action EnterText(TextContext context) end
+	action ExitText(TextContext context) end
 
 	/**
 	 * Enter a parse tree produced by {@link QuorumParser#Or}.
@@ -431,8 +423,8 @@ class QuorumSourceListener
 	action EnterAssignmentStatement end
 	action ExitAssignmentStatement end
 
-	action EnterBoolean end
-	action ExitBoolean end
+	action EnterBoolean(BooleanContext context) end
+	action ExitBoolean(BooleanContext context) end
 
 	action EnterAlertStatement end
 	action ExitAlertStatement end
