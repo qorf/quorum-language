@@ -1,10 +1,12 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.Containers.Array
-
+use Libraries.System.File
+use Libraries.Language.Errors.InputOutputError
 
 class JavaBytecodeClassWriter
     system action Visit(integer javaVersion, integer access, text className, text signature, text superClassName, Array<text> interfaces)
     system action VisitSource(text name)
     system action VisitEnd()
+    system action Write(File file)
 end

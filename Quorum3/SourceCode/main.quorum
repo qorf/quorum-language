@@ -12,9 +12,13 @@ class Main
         file:SetPath("Test/Expression.quorum")
         Parser parser
 
+        output "Parsing"
         compiler:Parse(file, parser)
 
+        output "Writing bytecode"
+        QuorumBytecodeListener bytecode
+        compiler:Parse(file, bytecode)
         
-        
+        output "Finished."
     end
 end

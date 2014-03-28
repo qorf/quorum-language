@@ -6,7 +6,7 @@ use Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter
 use Libraries.Language.Compile.Translate.QuorumBytecodeConverter
 use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
 use Libraries.Containers.Array
-
+use Libraries.System.File
 
 class QuorumBytecodeListener is QuorumSourceListener 
     JavaBytecodeClassWriter classWriter = undefined
@@ -19,6 +19,12 @@ class QuorumBytecodeListener is QuorumSourceListener
     constant text QUORUM_ERROR = "quorum/Libraries/Language/Errors/Error"
 
     action EnterFullClassDeclaration(FullClassDeclarationContext context) 
+        JavaBytecodeClassWriter newClassWriter
+        JavaBytecodeClassWriter newIinterfaceWriter
+
+        classWriter = newClassWriter
+        interfaceWriter = newIinterfaceWriter
+
         text name = context:className
         text staticKey = "quorum.Expressions" //fix this to be the real static key
 
@@ -38,5 +44,9 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action ExitFullClassDeclaration(FullClassDeclarationContext context) 
         classWriter:VisitEnd()
+        File file
+        file:SetPath("Run/Expressions.class")
+        output file:GetAbsolutePath()
+        classWriter:Write(file)
     end
 end

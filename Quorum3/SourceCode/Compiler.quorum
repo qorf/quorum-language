@@ -6,6 +6,7 @@ class Compiler
     //Parser parser
 
     action Parse(File file, QuorumSourceListener listener)
+        listener:SetFile(file)
         ParseNative(file, listener)
     end
 

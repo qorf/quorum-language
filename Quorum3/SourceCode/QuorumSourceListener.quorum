@@ -1,453 +1,464 @@
 package Libraries.Language.Compile
 
 use Libraries.Language.Compile.Context.all
+use Libraries.System.File
 
 class QuorumSourceListener
+
+    File file = undefined
+    action GetFile returns File
+        return file
+    end
+
+    action SetFile(File file)
+        me:file = file
+    end
+    
+   /**
+    * Enter a parse tree produced by {@link QuorumParser#selector}.
+    * @param ctx the parse tree
+    */
+    action EnterSelector end
     /**
-	 * Enter a parse tree produced by {@link QuorumParser#selector}.
-	 * @param ctx the parse tree
-	 */
-	action EnterSelector end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#selector}.
-	 * @param ctx the parse tree
-	 */
-	action ExitSelector end
+    * Exit a parse tree produced by {@link QuorumParser#selector}.
+    * @param ctx the parse tree
+    */
+    action ExitSelector end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#Decimal}.
-	 * @param ctx the parse tree
-	 */
-	action EnterNumber(NumberContext context) end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#Decimal}.
-	 * @param ctx the parse tree
-	 */
-	action ExitNumber(NumberContext context) end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#Decimal}.
+    * @param ctx the parse tree
+    */
+    action EnterNumber(NumberContext context) end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#Decimal}.
+    * @param ctx the parse tree
+    */
+    action ExitNumber(NumberContext context) end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#ParenthesisExpression}.
-	 * @param ctx the parse tree
-	 */
-	action EnterParenthesisExpression end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#ParenthesisExpression}.
-	 * @param ctx the parse tree
-	 */
-	action ExitParenthesisExpression end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#ParenthesisExpression}.
+    * @param ctx the parse tree
+    */
+    action EnterParenthesisExpression end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#ParenthesisExpression}.
+    * @param ctx the parse tree
+    */
+    action ExitParenthesisExpression end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#Cast}.
-	 * @param ctx the parse tree
-	 */
-	action EnterCast end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#Cast}.
-	 * @param ctx the parse tree
-	 */
-	action ExitCast end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#Cast}.
+    * @param ctx the parse tree
+    */
+    action EnterCast end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#Cast}.
+    * @param ctx the parse tree
+    */
+    action ExitCast end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#speak_statement}.
-	 * @param ctx the parse tree
-	 */
-	action EnterSpeakStatement end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#speak_statement}.
-	 * @param ctx the parse tree
-	 */
-	action ExitSpeakStatement end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#speak_statement}.
+    * @param ctx the parse tree
+    */
+    action EnterSpeakStatement end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#speak_statement}.
+    * @param ctx the parse tree
+    */
+    action ExitSpeakStatement end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#ParentFunctionCall}.
-	 * @param ctx the parse tree
-	 */
-	action EnterParentFunctionCall end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#ParentFunctionCall}.
-	 * @param ctx the parse tree
-	 */
-	action ExitParentFunctionCall end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#ParentFunctionCall}.
+    * @param ctx the parse tree
+    */
+    action EnterParentFunctionCall end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#ParentFunctionCall}.
+    * @param ctx the parse tree
+    */
+    action ExitParentFunctionCall end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#check_statement}.
-	 * @param ctx the parse tree
-	 */
-	action EnterCheckStatement end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#check_statement}.
-	 * @param ctx the parse tree
-	 */
-	action ExitCheckStatement end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#check_statement}.
+    * @param ctx the parse tree
+    */
+    action EnterCheckStatement end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#check_statement}.
+    * @param ctx the parse tree
+    */
+    action ExitCheckStatement end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#ParentFieldAccess}.
-	 * @param ctx the parse tree
-	 */
-	action EnterParentFieldAccess end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#ParentFieldAccess}.
-	 * @param ctx the parse tree
-	 */
-	action ExitParentFieldAccess end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#ParentFieldAccess}.
+    * @param ctx the parse tree
+    */
+    action EnterParentFieldAccess end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#ParentFieldAccess}.
+    * @param ctx the parse tree
+    */
+    action ExitParentFieldAccess end
 
-        action EnterFullClassDeclaration(FullClassDeclarationContext ctx) end
-        action ExitFullClassDeclaration(FullClassDeclarationContext ctx) end
+    action EnterFullClassDeclaration(FullClassDeclarationContext ctx) end
+    action ExitFullClassDeclaration(FullClassDeclarationContext ctx) end
 
-        action EnterNoClassDeclaration(NoClassDeclarationContext ctx) end
-        action ExitNoClassDeclaration(NoClassDeclarationContext ctx)  end
+    action EnterNoClassDeclaration(NoClassDeclarationContext ctx) end
+    action ExitNoClassDeclaration(NoClassDeclarationContext ctx)  end
 
-	action EnterClassDeclaration end
-	action ExitClassDeclaration end
+    action EnterClassDeclaration end
+    action ExitClassDeclaration end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#ObjectFunctionCall}.
-	 * @param ctx the parse tree
-	 */
-	action EnterObjectFunctionCall end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#ObjectFunctionCall}.
-	 * @param ctx the parse tree
-	 */
-	action ExitObjectFunctionCall end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#ObjectFunctionCall}.
+    * @param ctx the parse tree
+    */
+    action EnterObjectFunctionCall end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#ObjectFunctionCall}.
+    * @param ctx the parse tree
+    */
+    action ExitObjectFunctionCall end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#solo_method_call}.
-	 * @param ctx the parse tree
-	 */
-	action EnterSoloMethodCall end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#solo_method_call}.
-	 * @param ctx the parse tree
-	 */
-	action ExitSoloMethodCall end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#solo_method_call}.
+    * @param ctx the parse tree
+    */
+    action EnterSoloMethodCall end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#solo_method_call}.
+    * @param ctx the parse tree
+    */
+    action ExitSoloMethodCall end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#formal_parameter}.
-	 * @param ctx the parse tree
-	 */
-	action EnterFormalParameter end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#formal_parameter}.
-	 * @param ctx the parse tree
-	 */
-	action ExitFormalParameter end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#formal_parameter}.
+    * @param ctx the parse tree
+    */
+    action EnterFormalParameter end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#formal_parameter}.
+    * @param ctx the parse tree
+    */
+    action ExitFormalParameter end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#statement}.
-	 * @param ctx the parse tree
-	 */
-	action EnterStatement end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#statement}.
-	 * @param ctx the parse tree
-	 */
-	action ExitStatement end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#statement}.
+    * @param ctx the parse tree
+    */
+    action EnterStatement end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#statement}.
+    * @param ctx the parse tree
+    */
+    action ExitStatement end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#Me}.
-	 * @param ctx the parse tree
-	 */
-	action EnterMe end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#Me}.
-	 * @param ctx the parse tree
-	 */
-	action ExitMe end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#Me}.
+    * @param ctx the parse tree
+    */
+    action EnterMe end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#Me}.
+    * @param ctx the parse tree
+    */
+    action ExitMe end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#function_expression_list}.
-	 * @param ctx the parse tree
-	 */
-	action EnterFunctionExpressionList end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#function_expression_list}.
-	 * @param ctx the parse tree
-	 */
-	action ExitFunctionExpressionList end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#function_expression_list}.
+    * @param ctx the parse tree
+    */
+    action EnterFunctionExpressionList end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#function_expression_list}.
+    * @param ctx the parse tree
+    */
+    action ExitFunctionExpressionList end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#start}.
-	 * @param ctx the parse tree
-	 */
-	action EnterStart end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#start}.
-	 * @param ctx the parse tree
-	 */
-	action ExitStart end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#start}.
+    * @param ctx the parse tree
+    */
+    action EnterStart end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#start}.
+    * @param ctx the parse tree
+    */
+    action ExitStart end
 
-	action EnterText(TextContext context) end
-	action ExitText(TextContext context) end
+    action EnterText(TextContext context) end
+    action ExitText(TextContext context) end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#Or}.
-	 * @param ctx the parse tree
-	 */
-	action EnterOr end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#Or}.
-	 * @param ctx the parse tree
-	 */
-	action ExitOr end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#Or}.
+    * @param ctx the parse tree
+    */
+    action EnterOr end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#Or}.
+    * @param ctx the parse tree
+    */
+    action ExitOr end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#print_statement}.
-	 * @param ctx the parse tree
-	 */
-	action EnterPrintStatement end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#print_statement}.
-	 * @param ctx the parse tree
-	 */
-	action ExitPrintStatement end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#print_statement}.
+    * @param ctx the parse tree
+    */
+    action EnterPrintStatement end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#print_statement}.
+    * @param ctx the parse tree
+    */
+    action ExitPrintStatement end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#method_declaration}.
-	 * @param ctx the parse tree
-	 */
-	action EnterMethodDeclaration end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#method_declaration}.
-	 * @param ctx the parse tree
-	 */
-	action ExitMethodDeclaration end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#method_declaration}.
+    * @param ctx the parse tree
+    */
+    action EnterMethodDeclaration end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#method_declaration}.
+    * @param ctx the parse tree
+    */
+    action ExitMethodDeclaration end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#generic_statement}.
-	 * @param ctx the parse tree
-	 */
-	action EnterGenericStatement end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#generic_statement}.
-	 * @param ctx the parse tree
-	 */
-	action ExitGenericStatement end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#generic_statement}.
+    * @param ctx the parse tree
+    */
+    action EnterGenericStatement end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#generic_statement}.
+    * @param ctx the parse tree
+    */
+    action ExitGenericStatement end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#And}.
-	 * @param ctx the parse tree
-	 */
-	action EnterAnd end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#And}.
-	 * @param ctx the parse tree
-	 */
-	action ExitAnd end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#And}.
+    * @param ctx the parse tree
+    */
+    action EnterAnd end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#And}.
+    * @param ctx the parse tree
+    */
+    action ExitAnd end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#Null}.
-	 * @param ctx the parse tree
-	 */
-	action EnterNull end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#Null}.
-	 * @param ctx the parse tree
-	 */
-	action ExitNull end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#Null}.
+    * @param ctx the parse tree
+    */
+    action EnterNull end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#Null}.
+    * @param ctx the parse tree
+    */
+    action ExitNull end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#Inherits}.
-	 * @param ctx the parse tree
-	 */
-	action EnterInherits end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#Inherits}.
-	 * @param ctx the parse tree
-	 */
-	action ExitInherits end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#Inherits}.
+    * @param ctx the parse tree
+    */
+    action EnterInherits end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#Inherits}.
+    * @param ctx the parse tree
+    */
+    action ExitInherits end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#VariableOrFieldAccess}.
-	 * @param ctx the parse tree
-	 */
-	action EnterVariableOrFieldAccess end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#VariableOrFieldAccess}.
-	 * @param ctx the parse tree
-	 */
-	action ExitVariableOrFieldAccess end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#VariableOrFieldAccess}.
+    * @param ctx the parse tree
+    */
+    action EnterVariableOrFieldAccess end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#VariableOrFieldAccess}.
+    * @param ctx the parse tree
+    */
+    action ExitVariableOrFieldAccess end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#MeFunctionCall}.
-	 * @param ctx the parse tree
-	 */
-	action EnterMeFunctionCall end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#MeFunctionCall}.
-	 * @param ctx the parse tree
-	 */
-	action ExitMeFunctionCall end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#MeFunctionCall}.
+    * @param ctx the parse tree
+    */
+    action EnterMeFunctionCall end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#MeFunctionCall}.
+    * @param ctx the parse tree
+    */
+    action ExitMeFunctionCall end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#assign_right_hand_side}.
-	 * @param ctx the parse tree
-	 */
-	action EnterAssignRightHandSide end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#assign_right_hand_side}.
-	 * @param ctx the parse tree
-	 */
-	action ExitAssignRightHandSide end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#assign_right_hand_side}.
+    * @param ctx the parse tree
+    */
+    action EnterAssignRightHandSide end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#assign_right_hand_side}.
+    * @param ctx the parse tree
+    */
+    action ExitAssignRightHandSide end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#if_statement}.
-	 * @param ctx the parse tree
-	 */
-	action EnterIfStatement end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#if_statement}.
-	 * @param ctx the parse tree
-	 */
-	action ExitIfStatement end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#if_statement}.
+    * @param ctx the parse tree
+    */
+    action EnterIfStatement end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#if_statement}.
+    * @param ctx the parse tree
+    */
+    action ExitIfStatement end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#access_modifier}.
-	 * @param ctx the parse tree
-	 */
-	action EnterAccessModifier end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#access_modifier}.
-	 * @param ctx the parse tree
-	 */
-	action ExitAccessModifier end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#access_modifier}.
+    * @param ctx the parse tree
+    */
+    action EnterAccessModifier end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#access_modifier}.
+    * @param ctx the parse tree
+    */
+    action ExitAccessModifier end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#block}.
-	 * @param ctx the parse tree
-	 */
-	action EnterBlock end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#block}.
-	 * @param ctx the parse tree
-	 */
-	action ExitBlock end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#block}.
+    * @param ctx the parse tree
+    */
+    action EnterBlock end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#block}.
+    * @param ctx the parse tree
+    */
+    action ExitBlock end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#class_stmnts}.
-	 * @param ctx the parse tree
-	 */
-	action EnterClassStatements end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#class_stmnts}.
-	 * @param ctx the parse tree
-	 */
-	action ExitClassStatements end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#class_stmnts}.
+    * @param ctx the parse tree
+    */
+    action EnterClassStatements end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#class_stmnts}.
+    * @param ctx the parse tree
+    */
+    action ExitClassStatements end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#qualified_name}.
-	 * @param ctx the parse tree
-	 */
-	action EnterQualifiedName end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#qualified_name}.
-	 * @param ctx the parse tree
-	 */
-	action ExitQualifiedName end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#qualified_name}.
+    * @param ctx the parse tree
+    */
+    action EnterQualifiedName end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#qualified_name}.
+    * @param ctx the parse tree
+    */
+    action ExitQualifiedName end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#loop_statement}.
-	 * @param ctx the parse tree
-	 */
-	action EnterLoopStatement end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#loop_statement}.
-	 * @param ctx the parse tree
-	 */
-	action ExitLoopStatement end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#loop_statement}.
+    * @param ctx the parse tree
+    */
+    action EnterLoopStatement end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#loop_statement}.
+    * @param ctx the parse tree
+    */
+    action ExitLoopStatement end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#assignment_declaration}.
-	 * @param ctx the parse tree
-	 */
-	action EnterAssignmentDeclaration end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#assignment_declaration}.
-	 * @param ctx the parse tree
-	 */
-	action ExitAssignmentDeclaration end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#assignment_declaration}.
+    * @param ctx the parse tree
+    */
+    action EnterAssignmentDeclaration end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#assignment_declaration}.
+    * @param ctx the parse tree
+    */
+    action ExitAssignmentDeclaration end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#FieldAccess}.
-	 * @param ctx the parse tree
-	 */
-	action EnterFieldAccess end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#FieldAccess}.
-	 * @param ctx the parse tree
-	 */
-	action ExitFieldAccess end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#FieldAccess}.
+    * @param ctx the parse tree
+    */
+    action EnterFieldAccess end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#FieldAccess}.
+    * @param ctx the parse tree
+    */
+    action ExitFieldAccess end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#inherit_stmnts}.
-	 * @param ctx the parse tree
-	 */
-	action EnterInheritStatements end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#inherit_stmnts}.
-	 * @param ctx the parse tree
-	 */
-	action ExitInheritStatements end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#inherit_stmnts}.
+    * @param ctx the parse tree
+    */
+    action EnterInheritStatements end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#inherit_stmnts}.
+    * @param ctx the parse tree
+    */
+    action ExitInheritStatements end
 
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#detect_parameter}.
-	 * @param ctx the parse tree
-	 */
-	action EnterDetectParameter end
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#detect_parameter}.
-	 * @param ctx the parse tree
-	 */
-	action ExitDetectParameter end
+    /**
+    * Enter a parse tree produced by {@link QuorumParser#detect_parameter}.
+    * @param ctx the parse tree
+    */
+    action EnterDetectParameter end
+    /**
+    * Exit a parse tree produced by {@link QuorumParser#detect_parameter}.
+    * @param ctx the parse tree
+    */
+    action ExitDetectParameter end
 
-	action EnterAddition(Addition addition) end
-	action ExitAddition(Addition addition) end
+    action EnterAddition(Addition addition) end
+    action ExitAddition(Addition addition) end
 
-	action EnterNoClassStatements end
-	action ExitNoClassStatements end
+    action EnterNoClassStatements end
+    action ExitNoClassStatements end
 
-	action EnterReturnStatement end
-	action ExitReturnStatement end
+    action EnterReturnStatement end
+    action ExitReturnStatement end
 
-	action EnterInput end
-	action ExitInput end
+    action EnterInput end
+    action ExitInput end
 
-	action EnterMultiplication end
-	action ExitMultiplication end
+    action EnterMultiplication end
+    action ExitMultiplication end
 
-	action EnterMinus end
-	action ExitMinus end
+    action EnterMinus end
+    action ExitMinus end
 
-	action EnterAssignmentStatement end
-	action ExitAssignmentStatement end
+    action EnterAssignmentStatement end
+    action ExitAssignmentStatement end
 
-	action EnterBoolean(BooleanContext context) end
-	action ExitBoolean(BooleanContext context) end
+    action EnterBoolean(BooleanContext context) end
+    action ExitBoolean(BooleanContext context) end
 
-	action EnterAlertStatement end
-	action ExitAlertStatement end
+    action EnterAlertStatement end
+    action ExitAlertStatement end
 
-	action EnterReference end
-	action ExitReference end
+    action EnterReference end
+    action ExitReference end
 
-	action EnterNot end
-	action ExitNot end
+    action EnterNot end
+    action ExitNot end
 
-	action EnterGenericDeclaration end
-	action ExitGenericDeclaration end
+    action EnterGenericDeclaration end
+    action ExitGenericDeclaration end
 
-	action EnterClassType end
-	action ExitClassType end
+    action EnterClassType end
+    action ExitClassType end
 
-	action EnterEquals end
-	action ExitEquals end
+    action EnterEquals end
+    action ExitEquals end
 
-	action EnterGreater end
-	action ExitGreater end
+    action EnterGreater end
+    action ExitGreater end
 
-	action EnterInteger(IntegerContext int) end
-	action ExitInteger(IntegerContext int) end
+    action EnterInteger(IntegerContext int) end
+    action ExitInteger(IntegerContext int) end
 
-	action EnterPackageRule end
-	action ExitPackageRule end
+    action EnterPackageRule end
+    action ExitPackageRule end
 end
