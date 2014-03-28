@@ -8,12 +8,10 @@ package plugins.quorum.Libraries.Language.Compile;
 
 import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import quorum.Libraries.Language.Compile.Context.BooleanContext;
-import quorum.Libraries.Language.Compile.Context.IntegerContext;
-import quorum.Libraries.Language.Compile.Context.NumberContext;
-import quorum.Libraries.Language.Compile.Context.TextContext;
+import quorum.Libraries.Language.Compile.Context.*;
 import quorum.Libraries.Language.Compile.Location;
 import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
 import quorum.Libraries.System.File$Interface;
@@ -113,15 +111,35 @@ public class JavaToQuorumListener implements QuorumListener{
     public void exitParentFieldAccess(QuorumParser.ParentFieldAccessContext ctx) {
         listener.ExitParentFieldAccess();
     }
-
+    
     @Override
-    public void enterClass_declaration(QuorumParser.Class_declarationContext ctx) {
-        listener.EnterClassDeclaration();
+    public void enterFullClassDeclaration(@NotNull QuorumParser.FullClassDeclarationContext ctx) { 
+        FullClassDeclarationContext context = new FullClassDeclarationContext();
+        context.className = ctx.ID().getText();
+        setLocation(ctx, context);
+        listener.EnterFullClassDeclaration(context);
     }
 
     @Override
-    public void exitClass_declaration(QuorumParser.Class_declarationContext ctx) {
-        listener.ExitClassDeclaration();
+    public void exitFullClassDeclaration(@NotNull QuorumParser.FullClassDeclarationContext ctx) {
+        FullClassDeclarationContext context = new FullClassDeclarationContext();
+        context.className = ctx.ID().getText();
+        setLocation(ctx, context);
+        listener.EnterFullClassDeclaration(context);
+    }
+    
+    @Override
+    public void enterNoClassDeclaration(@NotNull QuorumParser.NoClassDeclarationContext ctx) {
+        NoClassDeclarationContext context = new NoClassDeclarationContext();
+        setLocation(ctx, context);
+        listener.EnterNoClassDeclaration(context);
+    }
+    
+    @Override
+    public void exitNoClassDeclaration(@NotNull QuorumParser.NoClassDeclarationContext ctx) {
+        NoClassDeclarationContext context = new NoClassDeclarationContext();
+        setLocation(ctx, context);
+        listener.EnterNoClassDeclaration(context);
     }
 
     @Override

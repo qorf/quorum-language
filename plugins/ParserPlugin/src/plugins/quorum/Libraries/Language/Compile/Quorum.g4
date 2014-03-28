@@ -26,10 +26,9 @@ class_declaration
             generic_declaration?
             inherit_stmnts?       
             class_stmnts*
-	END
-	)
-	|
-	no_class_stmnts
+	END                         
+	)                           #FullClassDeclaration
+	|   no_class_stmnts         #NoClassDeclaration
 	;
 no_class_stmnts
         :

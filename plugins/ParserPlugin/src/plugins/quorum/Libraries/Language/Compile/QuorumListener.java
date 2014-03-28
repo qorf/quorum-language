@@ -97,17 +97,6 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitParentFieldAccess(@NotNull QuorumParser.ParentFieldAccessContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link QuorumParser#class_declaration}.
-	 * @param ctx the parse tree
-	 */
-	void enterClass_declaration(@NotNull QuorumParser.Class_declarationContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#class_declaration}.
-	 * @param ctx the parse tree
-	 */
-	void exitClass_declaration(@NotNull QuorumParser.Class_declarationContext ctx);
-
-	/**
 	 * Enter a parse tree produced by {@link QuorumParser#ObjectFunctionCall}.
 	 * @param ctx the parse tree
 	 */
@@ -227,6 +216,17 @@ public interface QuorumListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitMethod_declaration(@NotNull QuorumParser.Method_declarationContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link QuorumParser#FullClassDeclaration}.
+	 * @param ctx the parse tree
+	 */
+	void enterFullClassDeclaration(@NotNull QuorumParser.FullClassDeclarationContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuorumParser#FullClassDeclaration}.
+	 * @param ctx the parse tree
+	 */
+	void exitFullClassDeclaration(@NotNull QuorumParser.FullClassDeclarationContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link QuorumParser#generic_statement}.
@@ -392,6 +392,17 @@ public interface QuorumListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFieldAccess(@NotNull QuorumParser.FieldAccessContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link QuorumParser#NoClassDeclaration}.
+	 * @param ctx the parse tree
+	 */
+	void enterNoClassDeclaration(@NotNull QuorumParser.NoClassDeclarationContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuorumParser#NoClassDeclaration}.
+	 * @param ctx the parse tree
+	 */
+	void exitNoClassDeclaration(@NotNull QuorumParser.NoClassDeclarationContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link QuorumParser#inherit_stmnts}.

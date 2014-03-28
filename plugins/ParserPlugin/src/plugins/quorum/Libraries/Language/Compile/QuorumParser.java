@@ -271,9 +271,31 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Class_declarationContext extends ParserRuleContext {
+		public Class_declarationContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_class_declaration; }
+	 
+		public Class_declarationContext() { }
+		public void copyFrom(Class_declarationContext ctx) {
+			super.copyFrom(ctx);
+		}
+	}
+	public static class NoClassDeclarationContext extends Class_declarationContext {
 		public No_class_stmntsContext no_class_stmnts() {
 			return getRuleContext(No_class_stmntsContext.class,0);
 		}
+		public NoClassDeclarationContext(Class_declarationContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNoClassDeclaration(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNoClassDeclaration(this);
+		}
+	}
+	public static class FullClassDeclarationContext extends Class_declarationContext {
 		public Class_stmntsContext class_stmnts(int i) {
 			return getRuleContext(Class_stmntsContext.class,i);
 		}
@@ -289,17 +311,14 @@ public class QuorumParser extends Parser {
 		}
 		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
 		public TerminalNode CLASS() { return getToken(QuorumParser.CLASS, 0); }
-		public Class_declarationContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_class_declaration; }
+		public FullClassDeclarationContext(Class_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterClass_declaration(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterFullClassDeclaration(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitClass_declaration(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitFullClassDeclaration(this);
 		}
 	}
 
@@ -311,6 +330,7 @@ public class QuorumParser extends Parser {
 			setState(109);
 			switch (_input.LA(1)) {
 			case CLASS:
+				_localctx = new FullClassDeclarationContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				{
@@ -370,6 +390,7 @@ public class QuorumParser extends Parser {
 			case BOOLEAN_KEYWORD:
 			case IF:
 			case ID:
+				_localctx = new NoClassDeclarationContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(108); no_class_stmnts();
