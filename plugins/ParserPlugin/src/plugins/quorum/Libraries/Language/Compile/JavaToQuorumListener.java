@@ -125,7 +125,7 @@ public class JavaToQuorumListener implements QuorumListener{
         FullClassDeclarationContext context = new FullClassDeclarationContext();
         context.className = ctx.ID().getText();
         setLocation(ctx, context);
-        listener.EnterFullClassDeclaration(context);
+        listener.ExitFullClassDeclaration(context);
     }
     
     @Override

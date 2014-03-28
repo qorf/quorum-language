@@ -6,9 +6,13 @@
 
 package plugins.quorum.Libraries.Language.Compile.Translate;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
-
+import quorum.Libraries.Language.Errors.InputOutputError;
+import quorum.Libraries.System.File$Interface;
+        
 /**
  *
  * @author stefika
@@ -47,6 +51,25 @@ public class JavaBytecodeClassWriter implements Opcodes{
     
     public void VisitEnd() {
         classWriter.visitEnd();
+    }
+    
+    public void Write(File$Interface file) throws quorum.Libraries.Language.Errors.InputOutputError{
+        String path = file.GetAbsolutePath();
+        System.out.println("sdlfksldfjsdf");
+        java.io.File javaFile = new java.io.File(path);
+        byte[] bites = classWriter.toByteArray();
+        try {
+            FileOutputStream stream = new FileOutputStream(javaFile);
+            System.out.println("sdlfksldfjsdf");
+            stream.write(bites);
+            stream.flush();
+        } catch(IOException e) {
+            System.out.println("sdlfksldfjsdf");
+            InputOutputError io = new quorum.Libraries.Language.Errors.InputOutputError();
+            io.SetErrorMessage("Could not write class to disk");
+            throw io;
+            
+        }
     }
     
 }
