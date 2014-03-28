@@ -10,7 +10,10 @@ import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import quorum.Libraries.Language.Compile.Context.BooleanContext;
 import quorum.Libraries.Language.Compile.Context.IntegerContext;
+import quorum.Libraries.Language.Compile.Context.NumberContext;
+import quorum.Libraries.Language.Compile.Context.TextContext;
 import quorum.Libraries.Language.Compile.Location;
 import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
 import quorum.Libraries.System.File$Interface;
@@ -35,12 +38,20 @@ public class JavaToQuorumListener implements QuorumListener{
 
     @Override
     public void enterDecimal(QuorumParser.DecimalContext ctx) {
-        listener.EnterDecimal();
+        double val = Double.parseDouble(ctx.DECIMAL().getText());
+        NumberContext context = new NumberContext();
+        context.Set$Libraries$Language$Compile$Context$NumberContext$value(val);
+        setLocation(ctx, context);
+        listener.EnterNumber(context);
     }
 
     @Override
     public void exitDecimal(QuorumParser.DecimalContext ctx) {
-        listener.ExitDecimal();
+        double val = Double.parseDouble(ctx.DECIMAL().getText());
+        NumberContext context = new NumberContext();
+        context.Set$Libraries$Language$Compile$Context$NumberContext$value(val);
+        setLocation(ctx, context);
+        listener.ExitNumber(context);
     }
 
     @Override
@@ -185,12 +196,20 @@ public class JavaToQuorumListener implements QuorumListener{
 
     @Override
     public void enterString(QuorumParser.StringContext ctx) {
-        listener.EnterString();
+        String val = ctx.STRING().getText();
+        TextContext context = new TextContext();
+        context.Set$Libraries$Language$Compile$Context$TextContext$value(val);
+        setLocation(ctx, context);
+        listener.EnterText(context);
     }
 
     @Override
     public void exitString(QuorumParser.StringContext ctx) {
-        listener.ExitString();
+        String val = ctx.STRING().getText();
+        TextContext context = new TextContext();
+        context.Set$Libraries$Language$Compile$Context$TextContext$value(val);
+        setLocation(ctx, context);
+        listener.ExitText(context);
     }
 
     @Override
@@ -469,12 +488,20 @@ public class JavaToQuorumListener implements QuorumListener{
 
     @Override
     public void enterBoolean(QuorumParser.BooleanContext ctx) {
-        listener.EnterBoolean();
+        boolean val = Boolean.parseBoolean(ctx.BOOLEAN().getText());
+        BooleanContext context = new BooleanContext();
+        context.Set$Libraries$Language$Compile$Context$BooleanContext$value(val);
+        setLocation(ctx, context);
+        listener.EnterBoolean(context);
     }
 
     @Override
     public void exitBoolean(QuorumParser.BooleanContext ctx) {
-        listener.ExitBoolean();
+        boolean val = Boolean.parseBoolean(ctx.BOOLEAN().getText());
+        BooleanContext context = new BooleanContext();
+        context.Set$Libraries$Language$Compile$Context$BooleanContext$value(val);
+        setLocation(ctx, context);
+        listener.ExitBoolean(context);
     }
 
     @Override
