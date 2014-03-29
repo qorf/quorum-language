@@ -624,16 +624,26 @@ public class JavaToQuorumListener implements QuorumListener{
 
     @Override
     public void enterPackage_rule(QuorumParser.Package_ruleContext ctx) {
-        
-        listener.EnterPackageRule();
+        PackageContext context = new PackageContext();
+        QuorumParser.Qualified_nameContext name = ctx.name;
+        List<TerminalNode> ID = name.ID();
+        for(int i = 0; i < ID.size(); i++) {
+            context.name.Add(ID.get(i).getText());
+        }
+        setLocation(ctx, context);
+        listener.EnterPackageRule(context);
     }
 
     @Override
     public void exitPackage_rule(QuorumParser.Package_ruleContext ctx) {
-        String full = ctx.getText();
+        PackageContext context = new PackageContext();
         QuorumParser.Qualified_nameContext name = ctx.name;
         List<TerminalNode> ID = name.ID();
-        listener.ExitPackageRule();
+        for(int i = 0; i < ID.size(); i++) {
+            context.name.Add(ID.get(i).getText());
+        }
+        setLocation(ctx, context);
+        listener.EnterPackageRule(context);
     }
 
     @Override
