@@ -1,0 +1,34 @@
+package Libraries.Language.Compile
+
+use Libraries.Containers.List
+
+class QualifiedName 
+    List<text> names
+
+    action Add(text name)
+        names:Add(name)
+    end
+
+    action GetSize returns integer
+        return names:GetSize()
+    end
+
+    action GetStaticKey returns text
+        key = ""
+        i = 0
+        repeat GetSize() times
+            key = key + names:Get(i)
+
+            if i < GetSize() - 1
+                key = key + "."
+            end
+            i = i + 1
+        end
+
+        return key
+    end
+
+    action Empty
+        names:Empty()
+    end
+end

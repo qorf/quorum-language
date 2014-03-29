@@ -108,9 +108,6 @@ class QuorumSourceListener
     action EnterNoClassDeclaration(NoClassDeclarationContext ctx) end
     action ExitNoClassDeclaration(NoClassDeclarationContext ctx)  end
 
-    action EnterClassDeclaration end
-    action ExitClassDeclaration end
-
     /**
     * Enter a parse tree produced by {@link QuorumParser#ObjectFunctionCall}.
     * @param ctx the parse tree
@@ -459,6 +456,6 @@ class QuorumSourceListener
     action EnterInteger(IntegerContext int) end
     action ExitInteger(IntegerContext int) end
 
-    action EnterPackageRule end
-    action ExitPackageRule end
+    action EnterPackageRule(PackageContext context) end
+    action ExitPackageRule(PackageContext context) end
 end
