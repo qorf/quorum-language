@@ -2,10 +2,29 @@ package Libraries.Language.Compile
 
 use Libraries.Language.Compile.Context.all
 use Libraries.System.File
+use Libraries.Language.Compile.Symbol.SymbolTable
 
 class QuorumSourceListener
-
+    SymbolTable symbolTable = undefined
     File file = undefined
+    CompilerErrorManager compilerErrorManager = undefined
+
+    action GetCompilerErrorManager returns CompilerErrorManager
+        return compilerErrorManager
+    end
+
+    action SetCompilerErrorManager(CompilerErrorManager errors)
+        compilerErrorManager = errors
+    end
+
+    action GetSymbolTable returns SymbolTable
+        return symbolTable
+    end
+
+    action SetSymbolTable(SymbolTable table)
+        symbolTable = table
+    end
+    
     action GetFile returns File
         return file
     end

@@ -1,4 +1,19 @@
 package Libraries.Language.Compile.Symbol
 
+use Libraries.Language.Compile.QualifiedName
+
 class Class is Symbol
+    QualifiedName packageName
+
+    action GetStaticKey returns text
+        return packageName:GetStaticKey() + "." + me:GetName()
+    end
+
+    action GetPackage returns QualifiedName
+        return packageName:Copy()
+    end
+
+    action SetPackage(QualifiedName pack)
+        packageName = pack:Copy()
+    end
 end

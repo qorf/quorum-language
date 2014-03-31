@@ -1,11 +1,15 @@
 package Libraries.Language.Compile
 
 use Libraries.System.File
+use Libraries.Language.Compile.Symbol.all
 
-class Compiler 
-    //Parser parser
+class Compiler
+    SymbolTable symbolTable
+    CompilerErrorManager compilerErrorManager
 
     action Parse(File file, QuorumSourceListener listener)
+        listener:SetSymbolTable(symbolTable)
+        listener:SetCompilerErrorManager(compilerErrorManager)
         listener:SetFile(file)
         ParseNative(file, listener)
     end

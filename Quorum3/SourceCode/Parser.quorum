@@ -2,6 +2,8 @@ package Libraries.Language.Compile
 
 use Libraries.Language.Compile.Context.all
 use Libraries.Containers.Stack
+use Libraries.Language.Compile.Symbol.all
+
 
 class Parser is QuorumSourceListener
     Stack<Expression> stack
@@ -13,7 +15,16 @@ class Parser is QuorumSourceListener
     end
 
     action EnterFullClassDeclaration(FullClassDeclarationContext context)
-        
+        text name = context:className
+        text key = packageValue:GetStaticKey() + "." + name
+        Class clazz
+        clazz:SetName(name)
+        SymbolTable table = me:GetSymbolTable()
+        CompilerError error = table:Add(clazz)
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:AddError(error)
+        end
     end
 
     action ExitFullClassDeclaration(FullClassDeclarationContext context) 

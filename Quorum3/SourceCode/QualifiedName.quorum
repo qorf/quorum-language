@@ -1,6 +1,7 @@
 package Libraries.Language.Compile
 
 use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
 
 class QualifiedName 
     List<text> names
@@ -30,5 +31,15 @@ class QualifiedName
 
     action Empty
         names:Empty()
+    end
+
+    action Copy returns QualifiedName
+        QualifiedName new
+        Iterator<text> it = names:GetIterator()
+        repeat while it:HasNext()
+            text value = it:Next()
+            new:Add(value)
+        end
+        return new
     end
 end

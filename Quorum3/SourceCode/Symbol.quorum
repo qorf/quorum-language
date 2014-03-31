@@ -5,7 +5,6 @@ use Libraries.Language.Compile.Location
 
 class Symbol 
     text name = ""
-    text staticKey = ""
     Location location
     Documentation documentation
 
@@ -21,13 +20,7 @@ class Symbol
         me:name = name
     end
 
-    action GetStaticKey returns text
-        return staticKey
-    end
-
-    action SetStaticKey(text key)
-        staticKey = key
-    end
+    blueprint action GetStaticKey returns text
 
     action GetLocation returns Location
         return location

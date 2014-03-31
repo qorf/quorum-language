@@ -1,4 +1,26 @@
 package Libraries.Language.Compile.Symbol
 
+use Libraries.Language.Compile.CompilerError
+
 class SymbolTable 
+
+    action Add(Class clazz) returns CompilerError
+        return undefined
+    end
+
+    action Add(Action act) returns CompilerError
+        return undefined
+    end
+
+    action Add(Block block) returns CompilerError
+        return undefined
+    end
+
+    action EnterClass(text key)
+
+    end
+
+    action GetClass(text key) returns Class
+        return undefined
+    end
 end
