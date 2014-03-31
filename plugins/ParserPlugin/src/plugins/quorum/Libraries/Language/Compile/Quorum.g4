@@ -51,11 +51,16 @@ class_stmnts
 	;
 
 method_declaration
-	:	ACTION ID (LEFT_PAREN (formal_parameter (COMMA formal_parameter)*)? RIGHT_PAREN)? (RETURNS return_type = assignment_declaration )? block END 
-	|	BLUEPRINT ACTION ID (LEFT_PAREN (formal_parameter (COMMA formal_parameter)*)? RIGHT_PAREN)? (RETURNS return_type = assignment_declaration)?
-	|	NATIVE ACTION ID (LEFT_PAREN (formal_parameter (COMMA formal_parameter)*)? RIGHT_PAREN)? (RETURNS assignment_declaration)?
-	| ON CREATE block END
+	:	method_shared block END     #Action
+	|	BLUEPRINT method_shared     #BlueprintAction
+	|	NATIVE method_shared        #NativeAction
+	| ON CREATE block END               #Constructor
 	;
+
+method_shared
+        :
+        ACTION ID (LEFT_PAREN (formal_parameter (COMMA formal_parameter)*)? RIGHT_PAREN)? (RETURNS return_type = assignment_declaration )?
+        ;
 
 formal_parameter
 	:	assignment_declaration ID
