@@ -204,12 +204,14 @@ public class JavaToQuorumListener implements QuorumListener{
 
     @Override
     public void enterStart(QuorumParser.StartContext ctx) {
-        listener.EnterStart();
+        StartContext context = new StartContext();
+        listener.EnterStart(context);
     }
 
     @Override
     public void exitStart(QuorumParser.StartContext ctx) {
-        listener.ExitStart();
+        StartContext context = new StartContext();
+        listener.ExitStart(context);
     }
 
     @Override
@@ -643,7 +645,7 @@ public class JavaToQuorumListener implements QuorumListener{
             context.name.Add(ID.get(i).getText());
         }
         setLocation(ctx, context);
-        listener.EnterPackageRule(context);
+        listener.ExitPackageRule(context);
     }
 
     @Override
