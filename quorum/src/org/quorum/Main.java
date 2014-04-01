@@ -365,6 +365,11 @@ public class Main {
         File servlet = new File(root.getAbsolutePath() +
                 "/servlet");
         
+        //This folder conains all dependencies that 
+        //have class files to be embedded into the executable.
+        File classDependencies = new File(root.getAbsolutePath() +
+                "/libraries/dependencies/org");
+        
         File dependencies = new File(root.getAbsolutePath() +
                 "/lib");
         
@@ -435,6 +440,7 @@ public class Main {
             vm.setDistributionFolder(distribution);
             vm.addDependency(phonemic);
             vm.addDependency(phonemicJNI);
+            vm.getCodeGenerator().setWovenDependenciesFolder(classDependencies);
             vm.getCodeGenerator().setServletFolder(servlet);
             
             if(hasJars) { //add additional jars the user specified

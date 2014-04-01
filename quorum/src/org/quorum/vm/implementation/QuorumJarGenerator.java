@@ -64,6 +64,7 @@ public class QuorumJarGenerator {
             target = new JarOutputStream(stream, manifest);
             add(new File(directory.getAbsolutePath() + "/quorum"), target);
             add(new File(directory.getAbsolutePath() + "/plugins"), target);
+            add(new File(directory.getAbsolutePath() + "/org"), target);
             
             if(this.isGenerateWar()) {
                 add("META-INF/context.xml", new File(this.servletFolder.getAbsolutePath() + "/context.xml"), target);

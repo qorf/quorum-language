@@ -40,6 +40,7 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     private File buildFolder;
     private File distributionFolder;
     private File servletFolder;
+    private File wovenDependenciesFolder;
     private String distributionName = "Default";
     private File mainFile;
     private String manifestMain = "";
@@ -185,6 +186,9 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         //File buildParent = this.buildFolder.getParentFile();
         File pluginWrite = new File(buildFolder.getPath() + "/plugins");
         jar.copyFile(this.pluginFolder, pluginWrite);
+        
+        File dependencyWrite = new File(buildFolder.getPath() + "/org");
+        jar.copyFile(this.wovenDependenciesFolder, dependencyWrite);
         
         //if there's a place to write the jar, write it
         if(this.distributionFolder != null) {
@@ -472,5 +476,26 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
     @Override
     public void setServletFolder(File folder) {
         servletFolder = folder;
+    }
+    
+    /**
+     * Sets a special folder where any files in the folder will be
+     * woven into the final executable.
+     * 
+     * @param folder 
+     */
+    @Override
+    public void setWovenDependenciesFolder(File folder) {
+        wovenDependenciesFolder = folder;
+    }
+    
+    /**
+     * Gets the folder where dependencies into the jar are woven from.
+     * 
+     * @return 
+     */
+    @Override
+    public File getWovenDependenciesFolder() {
+        return wovenDependenciesFolder;
     }
 }

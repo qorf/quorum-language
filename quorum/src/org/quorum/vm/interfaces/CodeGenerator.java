@@ -215,4 +215,19 @@ public interface CodeGenerator {
      * @param folder 
      */
     public void setServletFolder(File folder);
+    
+    /**
+     * Sets a special folder where any files in the folder will be
+     * woven into the final executable.
+     * 
+     * @param folder 
+     */
+    public void setWovenDependenciesFolder(File folder);
+    
+    /**
+     * Gets the folder where dependencies into the jar are woven from.
+     * 
+     * @return 
+     */
+    public File getWovenDependenciesFolder();
 }
