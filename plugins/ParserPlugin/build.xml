@@ -12,23 +12,17 @@
     <import file="nbproject/build-impl.xml"/>
     
     <target name="-post-compile">
-        <copy todir="../../Quorum3/Build/plugins/quorum/Libraries/Language/Compile">
+        <copy todir="../../quorum/plugins/quorum/Libraries/Language/Compile">
             <fileset dir="build/classes/plugins/quorum/Libraries/Language/Compile">
               <include name="*"/>
             </fileset>
         </copy>
         
-        <copy todir="../../Quorum3/Build">
-            <fileset dir="library">
-              <include name="**"/>
+        <copy todir="../../quorum/plugins/quorum/Libraries/Language/Compile/Translate">
+            <fileset dir="build/classes/plugins/quorum/Libraries/Language/Compile/Translate">
+              <include name="*"/>
             </fileset>
         </copy>
-        
-        <jar destfile="../../Quorum3/Run/Default.jar" basedir="library" update="yes">
-        </jar>
-        
-        <jar destfile="../../Quorum3/Run/Default.jar" basedir="build/classes" update="yes">
-        </jar>
      </target>
     <!--
 
