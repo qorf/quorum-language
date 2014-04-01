@@ -9,7 +9,7 @@ class Source is Symbol
 
     action Add(Class clazz)
         if not classes:HasKey(clazz:GetStaticKey()) 
-            classes:Add(clazz:GetStaticKey())
+            classes:Add(clazz:GetStaticKey(), clazz)
         end
     end
     
