@@ -9,6 +9,13 @@ class Parser is QuorumSourceListener
     Stack<Expression> stack
     Stack<integer> intStack
     QualifiedName packageValue = undefined
+    Source source
+    SymbolTable symbolTable = undefined
+
+    action EnterStart(StartContext context) 
+        source:SetFile(me:GetFile())
+        symbolTable = me:GetSymbolTable()
+    end
 
     action ExitPackageRule(PackageContext context) 
         packageValue = context:name
@@ -19,8 +26,7 @@ class Parser is QuorumSourceListener
         text key = packageValue:GetStaticKey() + "." + name
         Class clazz
         clazz:SetName(name)
-        SymbolTable table = me:GetSymbolTable()
-        CompilerError error = table:Add(clazz)
+        CompilerError error = symbolTable:Add(clazz)
         if error not= undefined
             CompilerErrorManager manager = GetCompilerErrorManager()
             manager:AddError(error)

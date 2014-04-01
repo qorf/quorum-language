@@ -1,10 +1,22 @@
 package Libraries.Language.Compile.Symbol
 
 use Libraries.Language.Compile.CompilerError
+use Libraries.Containers.HashTable
+use Libraries.Language.Compile.Location
 
 class SymbolTable 
+    HashTable<text, Source> files
+    HashTable<text, Class> classes
 
     action Add(Class clazz) returns CompilerError
+        if classes:HasKey(clazz:GetStaticKey())
+            CompilerError error
+            Location location = error:GetLocation()
+            location:SetLineNumber(clazz:GetLineNumber())
+            location:SetFile(clazz:GetFile())
+            error:SetErrorMessage("Class " + clazz:GetStaticKey() + " is already defined.")
+        end //otherwise just add it
+        classes:Add(clazz:GetStaticKey(), clazz)
         return undefined
     end
 

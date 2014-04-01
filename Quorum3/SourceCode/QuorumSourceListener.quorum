@@ -193,16 +193,8 @@ class QuorumSourceListener
     */
     action ExitFunctionExpressionList end
 
-    /**
-    * Enter a parse tree produced by {@link QuorumParser#start}.
-    * @param ctx the parse tree
-    */
-    action EnterStart end
-    /**
-    * Exit a parse tree produced by {@link QuorumParser#start}.
-    * @param ctx the parse tree
-    */
-    action ExitStart end
+    action EnterStart(StartContext context) end
+    action ExitStart(StartContext context) end
 
     action EnterText(TextContext context) end
     action ExitText(TextContext context) end
