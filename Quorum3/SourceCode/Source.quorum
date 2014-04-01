@@ -1,4 +1,27 @@
 package Libraries.Language.Compile.Symbol
 
+use Libraries.Containers.HashTable
+use Libraries.System.File
+
 class Source is Symbol
+    HashTable<text, Class> classes
+    File file = undefined
+
+    action Add(Class clazz)
+        if not classes:HasKey(clazz:GetStaticKey()) 
+            classes:Add(clazz:GetStaticKey())
+        end
+    end
+    
+    action GetFile returns File
+        return file
+    end
+
+    action SetFile(File file)
+        me:file = file
+    end
+
+    action GetStaticKey returns text
+        return file:GetAbsolutePath()
+    end
 end
