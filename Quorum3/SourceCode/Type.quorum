@@ -1,5 +1,56 @@
 package Libraries.Language.Compile.Symbol
 
 class Type 
+    boolean isInteger = false
+    boolean isText = false
+    boolean isNumber = false
+    boolean isBoolean = false
+    boolean isPrimitive = false
+    boolean isConstant = false
+
+
+    action IsInteger returns boolean
+        return isInteger
+    end
+
+    action IsBoolean returns boolean
+        return isBoolean
+    end
+
+    action IsNumber returns boolean
+        return isNumber
+    end
+
+    action IsText returns boolean
+        return isText
+    end
+
+    action SetToInteger
+        isInteger = true
+        isText = false
+        isNumber = false
+        isBoolean = false
+    end
+
+    action SetToBoolean
+        isInteger = false
+        isText = false
+        isNumber = false
+        isBoolean = true
+    end
+
+    action SetToNumber
+        isInteger = false
+        isText = false
+        isNumber = true
+        isBoolean = false
+    end
+
+    action SetToText
+        isInteger = false
+        isText = true
+        isNumber = false
+        isBoolean = false
+    end
     
 end

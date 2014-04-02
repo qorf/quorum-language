@@ -153,12 +153,12 @@ class QuorumSourceListener
     * Enter a parse tree produced by {@link QuorumParser#formal_parameter}.
     * @param ctx the parse tree
     */
-    action EnterFormalParameter end
+    action EnterFormalParameter(FormalParameterContext context) end
     /**
     * Exit a parse tree produced by {@link QuorumParser#formal_parameter}.
     * @param ctx the parse tree
     */
-    action ExitFormalParameter end
+    action ExitFormalParameter(FormalParameterContext context) end
 
     /**
     * Enter a parse tree produced by {@link QuorumParser#statement}.
@@ -221,16 +221,25 @@ class QuorumSourceListener
     */
     action ExitPrintStatement end
 
-    /**
-    * Enter a parse tree produced by {@link QuorumParser#method_declaration}.
-    * @param ctx the parse tree
-    */
-    action EnterMethodDeclaration end
-    /**
-    * Exit a parse tree produced by {@link QuorumParser#method_declaration}.
-    * @param ctx the parse tree
-    */
-    action ExitMethodDeclaration end
+    action EnterSystemAction end
+    action ExitSystemAction end
+
+    action EnterConstructor end
+    action ExitConstructor end
+
+    action EnterBlueprintAction end
+    action ExitBlueprintAction end
+
+    action EnterActionHeader end
+    action ExitActionHeader end
+
+    action EnterAction(ActionContext context) end
+
+    action ExitAction(ActionContext context) 
+        a = 5
+    end
+
+    
 
     /**
     * Enter a parse tree produced by {@link QuorumParser#generic_statement}.
@@ -375,16 +384,8 @@ class QuorumSourceListener
     */
     action ExitLoopStatement end
 
-    /**
-    * Enter a parse tree produced by {@link QuorumParser#assignment_declaration}.
-    * @param ctx the parse tree
-    */
-    action EnterAssignmentDeclaration end
-    /**
-    * Exit a parse tree produced by {@link QuorumParser#assignment_declaration}.
-    * @param ctx the parse tree
-    */
-    action ExitAssignmentDeclaration end
+    action EnterAssignmentDeclaration(AssignmentDeclaractionContext context) end
+    action ExitAssignmentDeclaration(AssignmentDeclaractionContext context) end
 
     /**
     * Enter a parse tree produced by {@link QuorumParser#FieldAccess}.

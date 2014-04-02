@@ -60,6 +60,9 @@ class Parser is QuorumSourceListener
     action EnterAssignmentStatement output "Enter Assignment" end
     action ExitAssignmentStatement output "Exit Assignment" end
 
+    action EnterAssignmentDeclaration(AssignmentDeclaractionContext context) end
+    action ExitAssignmentDeclaration(AssignmentDeclaractionContext context) end
+
     action ExitMultiplication 
         integer right = intStack:Pop()
         integer left = intStack:Pop()
