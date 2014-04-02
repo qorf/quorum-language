@@ -164,12 +164,18 @@ public class JavaToQuorumListener implements QuorumListener{
 
     @Override
     public void enterFormal_parameter(QuorumParser.Formal_parameterContext ctx) {
-        listener.EnterFormalParameter();
+        FormalParameterContext context = new FormalParameterContext();
+        setLocation(ctx, context);
+        context.name = ctx.ID().getText();
+        listener.EnterFormalParameter(context);
     }
 
     @Override
     public void exitFormal_parameter(QuorumParser.Formal_parameterContext ctx) {
-        listener.ExitFormalParameter();
+        FormalParameterContext context = new FormalParameterContext();
+        setLocation(ctx, context);
+        context.name = ctx.ID().getText();
+        listener.ExitFormalParameter(context);
     }
 
     @Override
@@ -250,16 +256,6 @@ public class JavaToQuorumListener implements QuorumListener{
     @Override
     public void exitPrint_statement(QuorumParser.Print_statementContext ctx) {
         listener.ExitPrintStatement();
-    }
-
-    @Override
-    public void enterMethod_declaration(QuorumParser.Method_declarationContext ctx) {
-        listener.EnterMethodDeclaration();
-    }
-
-    @Override
-    public void exitMethod_declaration(QuorumParser.Method_declarationContext ctx) {
-        listener.ExitMethodDeclaration();
     }
 
     @Override
@@ -390,16 +386,6 @@ public class JavaToQuorumListener implements QuorumListener{
     @Override
     public void exitLoop_statement(QuorumParser.Loop_statementContext ctx) {
         listener.ExitLoopStatement();
-    }
-
-    @Override
-    public void enterAssignment_declaration(QuorumParser.Assignment_declarationContext ctx) {
-        listener.EnterAssignmentDeclaration();
-    }
-
-    @Override
-    public void exitAssignment_declaration(QuorumParser.Assignment_declarationContext ctx) {
-        listener.ExitAssignmentDeclaration();
     }
 
     @Override
@@ -695,5 +681,111 @@ public class JavaToQuorumListener implements QuorumListener{
     public void setFile(File$Interface file) {
         this.file = file;
     }
-    
+
+    @Override
+    public void enterMethod_shared(QuorumParser.Method_sharedContext ctx) {
+         ActionContext context = new ActionContext();
+         setLocation(ctx, context);
+         listener.EnterAction(context);
+    }
+
+    @Override
+    public void exitMethod_shared(QuorumParser.Method_sharedContext ctx) {
+         ActionContext context = new ActionContext();
+         setLocation(ctx, context);
+         listener.ExitAction(context);
+    }
+
+    @Override
+    public void enterNativeAction(QuorumParser.NativeActionContext ctx) {
+         listener.EnterSystemAction();
+    }
+
+    @Override
+    public void exitNativeAction(QuorumParser.NativeActionContext ctx) {
+         listener.ExitSystemAction();
+    }
+
+    @Override
+    public void enterAction(QuorumParser.ActionContext ctx) {
+         listener.EnterActionHeader();
+    }
+
+    @Override
+    public void exitAction(QuorumParser.ActionContext ctx) {
+         listener.ExitActionHeader();
+    }
+
+    @Override
+    public void enterBlueprintAction(QuorumParser.BlueprintActionContext ctx) {
+         listener.EnterBlueprintAction();
+    }
+
+    @Override
+    public void exitBlueprintAction(QuorumParser.BlueprintActionContext ctx) {
+         listener.ExitBlueprintAction();
+    }
+
+    @Override
+    public void enterConstructor(QuorumParser.ConstructorContext ctx) {
+         listener.EnterConstructor();
+    }
+
+    @Override
+    public void exitConstructor(QuorumParser.ConstructorContext ctx) {
+         listener.ExitConstructor();
+    }
+
+    @Override
+    public void enterNumberAssignmentDeclaration(QuorumParser.NumberAssignmentDeclarationContext ctx) {
+         AssignmentDeclaractionContext context = new AssignmentDeclaractionContext();
+         quorum.Libraries.Language.Compile.Symbol.Type type = new quorum.Libraries.Language.Compile.Symbol.Type();
+         setLocation(ctx, context);
+         
+    }
+
+    @Override
+    public void exitNumberAssignmentDeclaration(QuorumParser.NumberAssignmentDeclarationContext ctx) {
+         
+    }
+
+    @Override
+    public void enterIntegerAssignmentDeclaration(QuorumParser.IntegerAssignmentDeclarationContext ctx) {
+         
+    }
+
+    @Override
+    public void exitIntegerAssignmentDeclaration(QuorumParser.IntegerAssignmentDeclarationContext ctx) {
+         
+    }
+
+    @Override
+    public void enterBooleanAssignmentDeclaration(QuorumParser.BooleanAssignmentDeclarationContext ctx) {
+         
+    }
+
+    @Override
+    public void exitBooleanAssignmentDeclaration(QuorumParser.BooleanAssignmentDeclarationContext ctx) {
+         
+    }
+
+    @Override
+    public void enterGenericAssignmentDeclaration(QuorumParser.GenericAssignmentDeclarationContext ctx) {
+         
+    }
+
+    @Override
+    public void exitGenericAssignmentDeclaration(QuorumParser.GenericAssignmentDeclarationContext ctx) {
+         
+    }
+
+    @Override
+    public void enterTextAssignmentDeclaration(QuorumParser.TextAssignmentDeclarationContext ctx) {
+         
+    }
+
+    @Override
+    public void exitTextAssignmentDeclaration(QuorumParser.TextAssignmentDeclarationContext ctx) {
+         
+    }
 }
