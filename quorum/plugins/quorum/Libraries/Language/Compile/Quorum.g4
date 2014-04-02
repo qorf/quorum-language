@@ -139,11 +139,11 @@ class_type
 	;
 
 assignment_declaration
-	:	qualified_name generic_statement?
-	|	INTEGER_KEYWORD
-	|	NUMBER_KEYWORD
-	|	TEXT
-	|	BOOLEAN_KEYWORD
+	:	qualified_name generic_statement?   #GenericAssignmentDeclaration
+	|	INTEGER_KEYWORD                     #IntegerAssignmentDeclaration
+	|	NUMBER_KEYWORD                      #NumberAssignmentDeclaration
+	|	TEXT                                #TextAssignmentDeclaration
+	|	BOOLEAN_KEYWORD                     #BooleanAssignmentDeclaration
         ;
 
 assignment_statement
