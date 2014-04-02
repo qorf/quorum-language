@@ -139,7 +139,7 @@ public class JavaToQuorumListener implements QuorumListener{
     public void exitNoClassDeclaration(@NotNull QuorumParser.NoClassDeclarationContext ctx) {
         NoClassDeclarationContext context = new NoClassDeclarationContext();
         setLocation(ctx, context);
-        listener.EnterNoClassDeclaration(context);
+        listener.ExitNoClassDeclaration(context);
     }
 
     @Override
