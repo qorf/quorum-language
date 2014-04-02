@@ -3,7 +3,7 @@ package Libraries.Language.Compile
 use Libraries.Language.Compile.Context.all
 use Libraries.Containers.Stack
 use Libraries.Language.Compile.Symbol.all
-
+use Libraries.System.File
 
 class Parser is QuorumSourceListener
     Stack<Expression> stack
@@ -23,6 +23,12 @@ class Parser is QuorumSourceListener
 
     action EnterFullClassDeclaration(FullClassDeclarationContext context)
         text name = context:className
+        AddClass(name)
+    end
+
+    action ExitFullClassDeclaration(FullClassDeclarationContext context) end
+
+    action AddClass(text name)
         text key = packageValue:GetStaticKey() + "." + name
         Class clazz
         clazz:SetName(name)
@@ -33,11 +39,15 @@ class Parser is QuorumSourceListener
         end
     end
 
-    action ExitFullClassDeclaration(FullClassDeclarationContext context) 
-        
+    action EnterNoClassDeclaration(NoClassDeclarationContext context) 
+        File file = me:GetFile()
+        text name = file:GetFileName()
+        text extension = file:GetFileExtension()
+        length = extension:GetSize()
+        name = name:GetSubtext(0, name:GetSize() - length - 1)
+        AddClass(name)
     end
 
-    action EnterNoClassDeclaration(NoClassDeclarationContext context) end
     action ExitNoClassDeclaration(NoClassDeclarationContext context)  end
 
     action ExitInteger(IntegerContext int)
