@@ -51,6 +51,6 @@ public class Compiler {
         file.SetWorkingDirectory("/Users/stefika/Repositories/quorum-language/Quorum3/Test/");
         
         file.SetPath("Expression.quorum");
-        compiler.ParseNative(file, new quorum.Libraries.Language.Compile.Parser());
+        compiler.ParseNative(file, new quorum.Libraries.Language.Compile.QuorumSourceListener());
     }
 }

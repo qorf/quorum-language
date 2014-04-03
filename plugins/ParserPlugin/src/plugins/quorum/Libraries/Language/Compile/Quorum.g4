@@ -57,7 +57,7 @@ method_declaration
 	| ON CREATE block END               #Constructor
 	;
 
-method_shared
+method_shared returns [quorum.Libraries.Language.Compile.Context.ActionContext actionContext]
         :
         ACTION ID (LEFT_PAREN (formal_parameter (COMMA formal_parameter)*)? RIGHT_PAREN)? (RETURNS return_type = assignment_declaration )?
         ;
@@ -138,7 +138,7 @@ class_type
 	:	qualified_name
 	;
 
-assignment_declaration
+assignment_declaration returns [quorum.Libraries.Language.Compile.Symbol.Type type]
 	:	qualified_name generic_statement?   #GenericAssignmentDeclaration
 	|	INTEGER_KEYWORD                     #IntegerAssignmentDeclaration
 	|	NUMBER_KEYWORD                      #NumberAssignmentDeclaration
@@ -185,7 +185,8 @@ selector
 	|	ME
 	;
 
-expression : 
+expression returns [quorum.Libraries.Language.Compile.Symbol.Type type]
+    : 
         qualified_name (COLON ID)?                                                              #VariableOrFieldAccess
     |	qualified_name COLON PARENT COLON qualified_name COLON ID                               #ParentFieldAccess
     |	qualified_name (COLON ID)? LEFT_PAREN function_expression_list RIGHT_PAREN              #ObjectFunctionCall

@@ -836,6 +836,7 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Method_sharedContext extends ParserRuleContext {
+		public quorum.Libraries.Language.Compile.Context.ActionContext actionContext;
 		public Assignment_declarationContext return_type;
 		public Assignment_declarationContext assignment_declaration() {
 			return getRuleContext(Assignment_declarationContext.class,0);
@@ -1906,6 +1907,7 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Assignment_declarationContext extends ParserRuleContext {
+		public quorum.Libraries.Language.Compile.Symbol.Type type;
 		public Assignment_declarationContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -1914,6 +1916,7 @@ public class QuorumParser extends Parser {
 		public Assignment_declarationContext() { }
 		public void copyFrom(Assignment_declarationContext ctx) {
 			super.copyFrom(ctx);
+			this.type = ctx.type;
 		}
 	}
 	public static class GenericAssignmentDeclarationContext extends Assignment_declarationContext {
@@ -2449,6 +2452,7 @@ public class QuorumParser extends Parser {
 
 	public static class ExpressionContext extends ParserRuleContext {
 		public int _p;
+		public quorum.Libraries.Language.Compile.Symbol.Type type;
 		public ExpressionContext(ParserRuleContext parent, int invokingState) { super(parent, invokingState); }
 		public ExpressionContext(ParserRuleContext parent, int invokingState, int _p) {
 			super(parent, invokingState);
@@ -2460,6 +2464,7 @@ public class QuorumParser extends Parser {
 		public void copyFrom(ExpressionContext ctx) {
 			super.copyFrom(ctx);
 			this._p = ctx._p;
+			this.type = ctx.type;
 		}
 	}
 	public static class ParentFieldAccessContext extends ExpressionContext {

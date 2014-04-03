@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package plugins.quorum.Libraries.Language.Compile;
 
 import java.util.List;
@@ -14,16 +13,19 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import quorum.Libraries.Language.Compile.Context.*;
 import quorum.Libraries.Language.Compile.Location;
 import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
+import quorum.Libraries.Language.Compile.Symbol.Type;
+import quorum.Libraries.Language.Compile.Symbol.Variable;
 import quorum.Libraries.System.File$Interface;
 
 /**
  *
  * @author stefika
  */
-public class JavaToQuorumListener implements QuorumListener{
+public class JavaToQuorumListener implements QuorumListener {
+
     private QuorumSourceListener$Interface listener;
     private File$Interface file;
-    
+
     @Override
     public void enterSelector(QuorumParser.SelectorContext ctx) {
         listener.EnterSelector();
@@ -111,9 +113,9 @@ public class JavaToQuorumListener implements QuorumListener{
     public void exitParentFieldAccess(QuorumParser.ParentFieldAccessContext ctx) {
         listener.ExitParentFieldAccess();
     }
-    
+
     @Override
-    public void enterFullClassDeclaration(@NotNull QuorumParser.FullClassDeclarationContext ctx) { 
+    public void enterFullClassDeclaration(@NotNull QuorumParser.FullClassDeclarationContext ctx) {
         FullClassDeclarationContext context = new FullClassDeclarationContext();
         context.className = ctx.ID().getText();
         setLocation(ctx, context);
@@ -127,14 +129,14 @@ public class JavaToQuorumListener implements QuorumListener{
         setLocation(ctx, context);
         listener.ExitFullClassDeclaration(context);
     }
-    
+
     @Override
     public void enterNoClassDeclaration(@NotNull QuorumParser.NoClassDeclarationContext ctx) {
         NoClassDeclarationContext context = new NoClassDeclarationContext();
         setLocation(ctx, context);
         listener.EnterNoClassDeclaration(context);
     }
-    
+
     @Override
     public void exitNoClassDeclaration(@NotNull QuorumParser.NoClassDeclarationContext ctx) {
         NoClassDeclarationContext context = new NoClassDeclarationContext();
@@ -175,6 +177,8 @@ public class JavaToQuorumListener implements QuorumListener{
         FormalParameterContext context = new FormalParameterContext();
         setLocation(ctx, context);
         context.name = ctx.ID().getText();
+        context.type = ctx.assignment_declaration().type;
+
         listener.ExitFormalParameter(context);
     }
 
@@ -420,15 +424,13 @@ public class JavaToQuorumListener implements QuorumListener{
 
     @Override
     public void enterAddition(QuorumParser.AdditionContext ctx) {
-        quorum.Libraries.Language.Compile.Context.Addition addition = new 
-                quorum.Libraries.Language.Compile.Context.Addition();
+        quorum.Libraries.Language.Compile.Context.Addition addition = new quorum.Libraries.Language.Compile.Context.Addition();
         listener.EnterAddition(addition);
     }
 
     @Override
     public void exitAddition(QuorumParser.AdditionContext ctx) {
-        quorum.Libraries.Language.Compile.Context.Addition addition = new 
-                quorum.Libraries.Language.Compile.Context.Addition();
+        quorum.Libraries.Language.Compile.Context.Addition addition = new quorum.Libraries.Language.Compile.Context.Addition();
         listener.ExitAddition(addition);
     }
 
@@ -588,8 +590,8 @@ public class JavaToQuorumListener implements QuorumListener{
         setLocation(ctx, context);
         listener.EnterInteger(context);
     }
-    
-    private void setLocation(ParserRuleContext context, 
+
+    private void setLocation(ParserRuleContext context,
             quorum.Libraries.Language.Compile.Context.ParseContext$Interface quorumContext) {
         quorum.Libraries.Language.Compile.Location$Interface location = quorumContext.GetLocation();
         location.SetLineNumber(context.getStart().getLine());
@@ -615,7 +617,7 @@ public class JavaToQuorumListener implements QuorumListener{
         PackageContext context = new PackageContext();
         QuorumParser.Qualified_nameContext name = ctx.name;
         List<TerminalNode> ID = name.ID();
-        for(int i = 0; i < ID.size(); i++) {
+        for (int i = 0; i < ID.size(); i++) {
             context.name.Add(ID.get(i).getText());
         }
         setLocation(ctx, context);
@@ -627,7 +629,7 @@ public class JavaToQuorumListener implements QuorumListener{
         PackageContext context = new PackageContext();
         QuorumParser.Qualified_nameContext name = ctx.name;
         List<TerminalNode> ID = name.ID();
-        for(int i = 0; i < ID.size(); i++) {
+        for (int i = 0; i < ID.size(); i++) {
             context.name.Add(ID.get(i).getText());
         }
         setLocation(ctx, context);
@@ -636,22 +638,22 @@ public class JavaToQuorumListener implements QuorumListener{
 
     @Override
     public void visitTerminal(TerminalNode tn) {
-    
+
     }
 
     @Override
     public void visitErrorNode(ErrorNode en) {
-        
+
     }
 
     @Override
     public void enterEveryRule(ParserRuleContext prc) {
-        
+
     }
 
     @Override
     public void exitEveryRule(ParserRuleContext prc) {
-        
+
     }
 
     /**
@@ -684,108 +686,154 @@ public class JavaToQuorumListener implements QuorumListener{
 
     @Override
     public void enterMethod_shared(QuorumParser.Method_sharedContext ctx) {
-         ActionContext context = new ActionContext();
-         setLocation(ctx, context);
-         listener.EnterAction(context);
+        ActionContext context = new ActionContext();
+        setLocation(ctx, context);
+        listener.ExitAction(context);
+        List<QuorumParser.Formal_parameterContext> params = ctx.formal_parameter();
+
+        for (int i = 0; i < params.size(); i++) {
+            QuorumParser.Formal_parameterContext c = params.get(i);
+            Type type = c.assignment_declaration().type;
+            Variable variable = new Variable();
+            variable.SetName(c.getText());
+            variable.SetType(type);
+            context.parameters.Add(variable);
+        }
+        context.actionName = ctx.ID().getText();
+        context.returnType = ctx.return_type.type;
+        ctx.actionContext = context;
+        listener.EnterActionHeader(context);
     }
 
     @Override
     public void exitMethod_shared(QuorumParser.Method_sharedContext ctx) {
-         ActionContext context = new ActionContext();
-         setLocation(ctx, context);
-         listener.ExitAction(context);
+        ActionContext context = new ActionContext();
+        setLocation(ctx, context);
+        listener.ExitAction(context);
+        List<QuorumParser.Formal_parameterContext> params = ctx.formal_parameter();
+
+        for (int i = 0; i < params.size(); i++) {
+            QuorumParser.Formal_parameterContext c = params.get(i);
+            Type type = c.assignment_declaration().type;
+            Variable variable = new Variable();
+            variable.SetName(c.getText());
+            variable.SetType(type);
+            context.parameters.Add(variable);
+        }
+        context.actionName = ctx.ID().getText();
+        context.returnType = ctx.return_type.type;
+        ctx.actionContext = context;
+        listener.ExitActionHeader(context);
     }
 
     @Override
     public void enterNativeAction(QuorumParser.NativeActionContext ctx) {
-         listener.EnterSystemAction();
+        listener.EnterSystemAction(ctx.method_shared().actionContext);
     }
 
     @Override
     public void exitNativeAction(QuorumParser.NativeActionContext ctx) {
-         listener.ExitSystemAction();
+        listener.ExitSystemAction(ctx.method_shared().actionContext);
     }
 
     @Override
     public void enterAction(QuorumParser.ActionContext ctx) {
-         listener.EnterActionHeader();
+        listener.EnterAction(ctx.method_shared().actionContext);
     }
 
     @Override
     public void exitAction(QuorumParser.ActionContext ctx) {
-         listener.ExitActionHeader();
+        listener.ExitAction(ctx.method_shared().actionContext);
     }
 
     @Override
     public void enterBlueprintAction(QuorumParser.BlueprintActionContext ctx) {
-         listener.EnterBlueprintAction();
+        listener.EnterBlueprintAction(ctx.method_shared().actionContext);
     }
 
     @Override
     public void exitBlueprintAction(QuorumParser.BlueprintActionContext ctx) {
-         listener.ExitBlueprintAction();
+        listener.ExitBlueprintAction(ctx.method_shared().actionContext);
     }
 
     @Override
     public void enterConstructor(QuorumParser.ConstructorContext ctx) {
-         listener.EnterConstructor();
+        listener.EnterConstructor();
     }
 
     @Override
     public void exitConstructor(QuorumParser.ConstructorContext ctx) {
-         listener.ExitConstructor();
+        listener.ExitConstructor();
     }
 
     @Override
     public void enterNumberAssignmentDeclaration(QuorumParser.NumberAssignmentDeclarationContext ctx) {
-         AssignmentDeclaractionContext context = new AssignmentDeclaractionContext();
-         quorum.Libraries.Language.Compile.Symbol.Type type = new quorum.Libraries.Language.Compile.Symbol.Type();
-         setLocation(ctx, context);
-         
+        AssignmentDeclaractionContext context = new AssignmentDeclaractionContext();
+        setLocation(ctx, context);
+        Type type = new Type();
+        type.SetToNumber();
+        ctx.type = type;
     }
 
     @Override
     public void exitNumberAssignmentDeclaration(QuorumParser.NumberAssignmentDeclarationContext ctx) {
-         
+        Type type = new Type();
+        type.SetToNumber();
+        ctx.type = type;
     }
 
     @Override
     public void enterIntegerAssignmentDeclaration(QuorumParser.IntegerAssignmentDeclarationContext ctx) {
-         
+        Type type = new Type();
+        type.SetToInteger();
+        ctx.type = type;
     }
 
     @Override
     public void exitIntegerAssignmentDeclaration(QuorumParser.IntegerAssignmentDeclarationContext ctx) {
-         
+        Type type = new Type();
+        type.SetToInteger();
+        ctx.type = type;
     }
 
     @Override
     public void enterBooleanAssignmentDeclaration(QuorumParser.BooleanAssignmentDeclarationContext ctx) {
-         
+        Type type = new Type();
+        type.SetToBoolean();
+        ctx.type = type;
     }
 
     @Override
     public void exitBooleanAssignmentDeclaration(QuorumParser.BooleanAssignmentDeclarationContext ctx) {
-         
+        Type type = new Type();
+        type.SetToBoolean();
+        ctx.type = type;
     }
 
     @Override
     public void enterGenericAssignmentDeclaration(QuorumParser.GenericAssignmentDeclarationContext ctx) {
-         
+        Type type = new Type();
+
+        ctx.type = type;
     }
 
     @Override
     public void exitGenericAssignmentDeclaration(QuorumParser.GenericAssignmentDeclarationContext ctx) {
-         
+        Type type = new Type();
+        ctx.type = type;
     }
 
     @Override
     public void enterTextAssignmentDeclaration(QuorumParser.TextAssignmentDeclarationContext ctx) {
-         
+        Type type = new Type();
+        type.SetToText();
+        ctx.type = type;
     }
 
     @Override
     public void exitTextAssignmentDeclaration(QuorumParser.TextAssignmentDeclarationContext ctx) {
-         
+        Type type = new Type();
+        type.SetToText();
+        ctx.type = type;
     }
 }
