@@ -2,7 +2,10 @@ package Test.Monkey
 
 class Expression 
     action Main
-        a = 58 * 6 + 7
-        output a
+        output "Hello, from Test.Monkey.Expression."
+    end
+
+    action Add(integer a, integer b) returns integer
+        return a + b
     end
 end

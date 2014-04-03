@@ -1,4 +1,22 @@
 package Libraries.Language.Compile.Symbol
 
 class Variable is Symbol
+    boolean isParameter = false
+    Type type = undefined
+
+    action IsParameter returns boolean
+        return isParameter
+    end
+
+    action SetIsParameter(boolean isParameter)
+        me:isParameter = isParameter
+    end
+
+    action GetType returns Type
+        return type
+    end
+
+    action SetType(Type type)
+        me:type = type
+    end
 end

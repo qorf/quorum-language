@@ -7,7 +7,64 @@ class Type
     boolean isBoolean = false
     boolean isPrimitive = false
     boolean isConstant = false
+    boolean isGeneric = false
 
+    /* This is the value of the boolean if it happens to be a constant. */
+    boolean booleanConstant = false
+    /* This is the value of the integer if it happens to be a constant. */
+    integer integerConstant = 0
+    /* This is the value of the number if it happens to be a constant. */
+    number numberConstant = 0.0
+    /* This is the value of the text if it happens to be a constant. */
+    text textConstant = ""
+    
+    /* This action returns a constant value representing a known constant
+       for this type. If this type is not declared as a constant, this
+       action is invalid.
+    */
+    action GetBooleanConstant returns boolean
+        return booleanConstant
+    end
+
+    /* This action returns a constant value representing a known constant
+       for this type. If this type is not declared as a constant, this
+       action is invalid.
+    */
+    action GetIntegerConstant returns integer
+        return integerConstant
+    end
+
+    /* This action returns a constant value representing a known constant
+       for this type. If this type is not declared as a constant, this
+       action is invalid.
+    */
+    action GetNumberConstant returns number
+        return numberConstant
+    end
+
+    action GetTextConstant returns text
+        return textConstant
+    end
+
+    /* This action returns a constant value representing a known constant
+       for this type. If this type is not declared as a constant, this
+       action is invalid.
+    */
+    action isConstant returns boolean
+        return isConstant
+    end
+
+    action SetIsConstant(boolean final) 
+        isConstant = final
+    end
+
+    action isGeneric returns boolean
+        return isGeneric
+    end
+
+    action SetisGeneric(boolean generic) 
+        isGeneric = generic
+    end
 
     action IsInteger returns boolean
         return isInteger

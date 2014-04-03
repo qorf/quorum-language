@@ -149,15 +149,7 @@ class QuorumSourceListener
     */
     action ExitSoloMethodCall end
 
-    /**
-    * Enter a parse tree produced by {@link QuorumParser#formal_parameter}.
-    * @param ctx the parse tree
-    */
     action EnterFormalParameter(FormalParameterContext context) end
-    /**
-    * Exit a parse tree produced by {@link QuorumParser#formal_parameter}.
-    * @param ctx the parse tree
-    */
     action ExitFormalParameter(FormalParameterContext context) end
 
     /**
@@ -221,23 +213,20 @@ class QuorumSourceListener
     */
     action ExitPrintStatement end
 
-    action EnterSystemAction end
-    action ExitSystemAction end
+    action EnterSystemAction(ActionContext context) end
+    action ExitSystemAction(ActionContext context) end
 
     action EnterConstructor end
     action ExitConstructor end
 
-    action EnterBlueprintAction end
-    action ExitBlueprintAction end
+    action EnterBlueprintAction(ActionContext context) end
+    action ExitBlueprintAction(ActionContext context) end
 
-    action EnterActionHeader end
-    action ExitActionHeader end
+    action EnterActionHeader(ActionContext context) end
+    action ExitActionHeader(ActionContext context) end
 
     action EnterAction(ActionContext context) end
-
-    action ExitAction(ActionContext context) 
-        a = 5
-    end
+    action ExitAction(ActionContext context) end
 
     
 

@@ -1,4 +1,11 @@
 package Libraries.Language.Compile.Context
 
+use Libraries.Containers.List
+use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Language.Compile.Symbol.Type
+
 class ActionContext is ParseContext
+    public List<Variable> parameters
+    public text actionName = ""
+    public Type returnType = undefined
 end

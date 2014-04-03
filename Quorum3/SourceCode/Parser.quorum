@@ -6,8 +6,6 @@ use Libraries.Language.Compile.Symbol.all
 use Libraries.System.File
 
 class Parser is QuorumSourceListener
-    Stack<Expression> stack
-    Stack<integer> intStack
     QualifiedName packageValue = undefined
     Source source
     SymbolTable symbolTable = undefined
@@ -50,32 +48,40 @@ class Parser is QuorumSourceListener
 
     action ExitNoClassDeclaration(NoClassDeclarationContext context)  end
 
-    action ExitInteger(IntegerContext int)
-        Expression e
-        stack:Push(e)
-        intStack:Push(int:value)
-        output "pushed " + int:value
+    action EnterSystemAction(ActionContext context) end
+    action ExitSystemAction(ActionContext context) end
+
+    action EnterConstructor end
+    action ExitConstructor end
+
+    action EnterBlueprintAction(ActionContext context) 
+        a = 5 
+    end
+    action ExitBlueprintAction(ActionContext context) 
+        a = 5 
     end
 
-    action EnterAssignmentStatement output "Enter Assignment" end
-    action ExitAssignmentStatement output "Exit Assignment" end
-
-    action EnterAssignmentDeclaration(AssignmentDeclaractionContext context) end
-    action ExitAssignmentDeclaration(AssignmentDeclaractionContext context) end
-
-    action ExitMultiplication 
-        integer right = intStack:Pop()
-        integer left = intStack:Pop()
-        intStack:Push(left * right)
-
-        output "* = " + (right * left)
+    action EnterActionHeader(ActionContext context) 
+        a = 5
     end
 
-    action ExitAddition(Addition addition) 
-        integer right = intStack:Pop()
-        integer left = intStack:Pop()
-        intStack:Push(left + right)
+    action ExitActionHeader(ActionContext context) 
+        a = 5
+    end
 
-        output "+ = " + (right + left)  
+    action EnterAction(ActionContext context) 
+        integer a = 0
+    end
+
+    action ExitAction(ActionContext context) 
+        integer a = 4
+    end
+
+    action EnterFormalParameter(FormalParameterContext context) 
+        integer a = 5
+    end
+    action ExitFormalParameter(FormalParameterContext context) 
+
+        a = 5
     end
 end

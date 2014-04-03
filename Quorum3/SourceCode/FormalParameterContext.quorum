@@ -1,5 +1,8 @@
 package Libraries.Language.Compile.Context
 
+use Libraries.Language.Compile.Symbol.Type
+
 class FormalParameterContext is ParseContext
-    text name = undefined
+    public text name = undefined
+    public Type type = undefined
 end
