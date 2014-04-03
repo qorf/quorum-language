@@ -700,7 +700,13 @@ public class JavaToQuorumListener implements QuorumListener {
             context.parameters.Add(variable);
         }
         context.actionName = ctx.ID().getText();
-        context.returnType = ctx.return_type.type;
+        if(ctx.RETURNS() != null) {
+            context.returnType = ctx.return_type.type;
+        } else {
+            Type type = new Type();
+            type.SetToVoid();
+            context.returnType = type;
+        }
         ctx.actionContext = context;
         listener.EnterActionHeader(context);
     }
@@ -721,7 +727,13 @@ public class JavaToQuorumListener implements QuorumListener {
             context.parameters.Add(variable);
         }
         context.actionName = ctx.ID().getText();
-        context.returnType = ctx.return_type.type;
+        if(ctx.RETURNS() != null) {
+            context.returnType = ctx.return_type.type;
+        } else {
+            Type type = new Type();
+            type.SetToVoid();
+            context.returnType = type;
+        }
         ctx.actionContext = context;
         listener.ExitActionHeader(context);
     }

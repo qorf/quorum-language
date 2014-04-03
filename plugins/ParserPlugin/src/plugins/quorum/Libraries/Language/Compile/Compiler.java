@@ -15,6 +15,7 @@ import org.antlr.v4.runtime.ANTLRFileStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import quorum.Libraries.Language.Compile.QuorumSourceListener;
 
 
 /**
@@ -46,11 +47,14 @@ public class Compiler {
     }
     
     public static void main(String[] args) {
-        Compiler compiler = new Compiler();
+        plugins.quorum.Libraries.Language.Compile.Compiler compiler = new plugins.quorum.Libraries.Language.Compile.Compiler();
         quorum.Libraries.System.File file = new quorum.Libraries.System.File();
         file.SetWorkingDirectory("/Users/stefika/Repositories/quorum-language/Quorum3/Test/");
+        QuorumSourceListener listener = new quorum.Libraries.Language.Compile.QuorumSourceListener();
+        listener.SetSymbolTable(new quorum.Libraries.Language.Compile.Symbol.SymbolTable());
+        
         
         file.SetPath("Expression.quorum");
-        compiler.ParseNative(file, new quorum.Libraries.Language.Compile.QuorumSourceListener());
+        compiler.ParseNative(file, listener);
     }
 }
