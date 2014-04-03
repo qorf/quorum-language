@@ -1,12 +1,51 @@
 package Libraries.Language.Compile.Symbol
 
 use Libraries.Language.Compile.QualifiedName
+use Libraries.Language.Compile.CompilerError
+use Libraries.Containers.HashTable
+use Libraries.Language.Compile.Location
 
 class Class is Symbol
     QualifiedName packageName
+    HashTable<text, Action> actions
+    Action constructor = undefined
+
+    action Add(Action method) returns CompilerError
+        if not IsDefined(method)
+            
+        end
+
+        CompilerError error
+        Location location = error:GetLocation()
+        location:SetLineNumber(method:GetLineNumber())
+        location:SetFile(method:GetFile())
+        //error:SetErrorMessage("Action " + method 
+
+        return error
+    end
+
+    private action IsDefined(Action method) returns boolean
+        return actions:HasKey(method:GetStaticKey())
+    end
+
+    action HasConstructor returns boolean
+        return constructor not= undefined
+    end
+
+    action GetConstructor returns Action
+        return constructor
+    end
+
+    action SetConstructor(Action method) 
+        constructor = method
+    end
 
     action GetStaticKey returns text
         return packageName:GetStaticKey() + "." + me:GetName()
+    end
+
+    action GetDisplayName returns text
+        return GetStaticKey()
     end
 
     action GetPackage returns QualifiedName

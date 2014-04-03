@@ -5,9 +5,25 @@ class Type
     boolean isText = false
     boolean isNumber = false
     boolean isBoolean = false
+    boolean isVoid = false
     boolean isPrimitive = false
     boolean isConstant = false
     boolean isGeneric = false
+    text staticKey = ""
+
+    constant text INTEGER_PRIMITIVE_KEY = "integer"
+    constant text BOOLEAN_PRIMITIVE_KEY = "integer"
+    constant text NUMBER_PRIMITIVE_KEY = "integer"
+    constant text TEXT_PRIMITIVE_KEY = "integer"
+    constant text VOID_KEY = "void"
+
+    action GetStaticKey returns text
+        return staticKey
+    end
+
+    action GetDisplayName returns text
+        return staticKey
+    end
 
     /* This is the value of the boolean if it happens to be a constant. */
     boolean booleanConstant = false
@@ -66,6 +82,10 @@ class Type
         isGeneric = generic
     end
 
+    action IsVoid returns boolean
+        return isVoid
+    end
+
     action IsInteger returns boolean
         return isInteger
     end
@@ -82,11 +102,22 @@ class Type
         return isText
     end
 
+    action SetToVoid
+        isInteger = false
+        isText = false
+        isNumber = false
+        isBoolean = false
+        isVoid = true
+        staticKey = VOID_KEY
+    end
+
     action SetToInteger
         isInteger = true
         isText = false
         isNumber = false
         isBoolean = false
+        isVoid = false
+        staticKey = INTEGER_PRIMITIVE_KEY
     end
 
     action SetToBoolean
@@ -94,6 +125,8 @@ class Type
         isText = false
         isNumber = false
         isBoolean = true
+        isVoid = false
+        staticKey = BOOLEAN_PRIMITIVE_KEY
     end
 
     action SetToNumber
@@ -101,6 +134,8 @@ class Type
         isText = false
         isNumber = true
         isBoolean = false
+        isVoid = false
+        staticKey = NUMBER_PRIMITIVE_KEY
     end
 
     action SetToText
@@ -108,6 +143,8 @@ class Type
         isText = true
         isNumber = false
         isBoolean = false
+        isVoid = false
+        staticKey = TEXT_PRIMITIVE_KEY
     end
     
 end

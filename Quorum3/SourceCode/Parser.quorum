@@ -4,11 +4,15 @@ use Libraries.Language.Compile.Context.all
 use Libraries.Containers.Stack
 use Libraries.Language.Compile.Symbol.all
 use Libraries.System.File
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
 
 class Parser is QuorumSourceListener
     QualifiedName packageValue = undefined
     Source source
     SymbolTable symbolTable = undefined
+    Action currentAction = undefined
+    Action currentClass = undefined
 
     action EnterStart(StartContext context) 
         source:SetFile(me:GetFile())
@@ -48,33 +52,46 @@ class Parser is QuorumSourceListener
 
     action ExitNoClassDeclaration(NoClassDeclarationContext context)  end
 
-    action EnterSystemAction(ActionContext context) end
-    action ExitSystemAction(ActionContext context) end
+    action EnterSystemAction(ActionContext context) 
+        Action act
+        currentAction = act
+        currentAction:SetIsSystem(true)
+    end
+
+    action ExitSystemAction(ActionContext context) 
+    end
 
     action EnterConstructor end
     action ExitConstructor end
 
     action EnterBlueprintAction(ActionContext context) 
-        a = 5 
-    end
-    action ExitBlueprintAction(ActionContext context) 
-        a = 5 
-    end
-
-    action EnterActionHeader(ActionContext context) 
-        a = 5
+        Action act
+        currentAction = act
+        currentAction:SetIsBluePrint(true)
     end
 
-    action ExitActionHeader(ActionContext context) 
-        a = 5
+    action ExitBlueprintAction(ActionContext context)
+    end
+
+    action ExitActionHeader(ActionContext context)
+        List<Variable> params = context:parameters
+        Iterator<Variable> it = params:GetIterator()
+        repeat while it:HasNext()
+            Variable param = it:Next()
+            params:Add(param)
+        end
+
+        currentAction:SetReturnType(context:returnType)
+        currentAction:SetName(context:actionName)
     end
 
     action EnterAction(ActionContext context) 
-        integer a = 0
+        Action act
+        currentAction = act
     end
 
     action ExitAction(ActionContext context) 
-        integer a = 4
+        currentAction = undefined
     end
 
     action EnterFormalParameter(FormalParameterContext context) 

@@ -1,4 +1,83 @@
 package Libraries.Language.Compile.Symbol
 
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
+
 class Action is Symbol
+    List<Variable> parameters
+    boolean isBlueprint = false
+    boolean isSystem = false
+    Type returnType = undefined
+
+    action AddParameter(Variable parameter)
+        parameters:Add(parameter)
+    end
+
+    action GetParametersSize returns integer
+        return parameters:GetSize()
+    end
+
+    /*
+        This Iterator returns the parameters in the action in the order
+        in which they are declared.
+    */
+    action GetParameterIterator returns Iterator<Variable>
+        return parameters:GetIterator()
+    end
+
+    action IsBlueprint returns boolean
+        return isBlueprint
+    end
+
+    action SetIsBluePrint(boolean isBlueprint)
+        me:isBlueprint = isBlueprint
+    end
+
+    action IsSystem returns boolean
+        return isSystem
+    end
+
+    action SetIsSystem(boolean isSystem)
+        me:isSystem = isSystem
+    end
+
+    action GetStaticKey returns text
+        text key = me:GetName()
+        if parameters not= undefined
+            Iterator<Variable> params = parameters:GetIterator()
+            repeat while params:HasNext()
+                Variable variable = params:Next()
+                Type varType = variable:GetType()
+                key = key + ":" + varType:GetStaticKey()
+            end
+        end
+        return key
+    end
+
+    action GetDisplayName returns text
+        text key = me:GetName() + "("
+        if parameters not= undefined
+            Iterator<Variable> params = parameters:GetIterator()
+            repeat while params:HasNext()
+                Variable variable = params:Next()
+                Type varType = variable:GetType()
+                key = key + ", " + varType:GetDisplayName()
+            end
+        end
+        
+        key = key + ")"
+
+        if not returnType:IsVoid()
+            key = " returns " + returnType:GetDisplayName()
+        end
+        return key
+    end
+
+    action GetReturnType returns Type
+        return returnType
+    end
+
+    action SetReturnType(Type type)
+        returnType = type
+    end
 end

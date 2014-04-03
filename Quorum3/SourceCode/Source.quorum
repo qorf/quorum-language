@@ -24,4 +24,8 @@ class Source is Symbol
     action GetStaticKey returns text
         return file:GetAbsolutePath()
     end
+
+    action GetDisplayName returns text
+        return GetStaticKey()
+    end
 end

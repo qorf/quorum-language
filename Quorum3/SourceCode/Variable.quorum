@@ -19,4 +19,12 @@ class Variable is Symbol
     action SetType(Type type)
         me:type = type
     end
+
+    action GetStaticKey returns text
+        return me:GetName()
+    end
+
+    action GetDisplayName returns text
+        return GetStaticKey()
+    end
 end
