@@ -5,6 +5,7 @@
  */
 package plugins.quorum.Libraries.Language.Compile;
 
+import java.util.Iterator;
 import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -686,19 +687,22 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterMethod_shared(QuorumParser.Method_sharedContext ctx) {
-        ActionContext context = new ActionContext();
+       ActionContext context = new ActionContext();
         setLocation(ctx, context);
         listener.ExitAction(context);
         List<QuorumParser.Formal_parameterContext> params = ctx.formal_parameter();
 
-        for (int i = 0; i < params.size(); i++) {
-            QuorumParser.Formal_parameterContext c = params.get(i);
-            Type type = c.assignment_declaration().type;
+        Iterator<QuorumParser.Formal_parameterContext> it = params.iterator();
+        while(it.hasNext()) {
+            QuorumParser.Formal_parameterContext next = it.next();
+            Type type = next.assignment_declaration().type;
             Variable variable = new Variable();
-            variable.SetName(c.getText());
+            variable.SetName(next.ID().getText());
             variable.SetType(type);
+            variable.SetIsParameter(true);
             context.parameters.Add(variable);
         }
+        
         context.actionName = ctx.ID().getText();
         if(ctx.RETURNS() != null) {
             context.returnType = ctx.return_type.type;
@@ -708,7 +712,7 @@ public class JavaToQuorumListener implements QuorumListener {
             context.returnType = type;
         }
         ctx.actionContext = context;
-        listener.EnterActionHeader(context);
+        listener.ExitActionHeader(context);
     }
 
     @Override
@@ -718,14 +722,17 @@ public class JavaToQuorumListener implements QuorumListener {
         listener.ExitAction(context);
         List<QuorumParser.Formal_parameterContext> params = ctx.formal_parameter();
 
-        for (int i = 0; i < params.size(); i++) {
-            QuorumParser.Formal_parameterContext c = params.get(i);
-            Type type = c.assignment_declaration().type;
+        Iterator<QuorumParser.Formal_parameterContext> it = params.iterator();
+        while(it.hasNext()) {
+            QuorumParser.Formal_parameterContext next = it.next();
+            Type type = next.assignment_declaration().type;
             Variable variable = new Variable();
-            variable.SetName(c.getText());
+            variable.SetName(next.ID().getText());
             variable.SetType(type);
+            variable.SetIsParameter(true);
             context.parameters.Add(variable);
         }
+        
         context.actionName = ctx.ID().getText();
         if(ctx.RETURNS() != null) {
             context.returnType = ctx.return_type.type;
