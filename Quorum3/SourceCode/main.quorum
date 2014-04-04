@@ -19,6 +19,8 @@ class Main
         QuorumBytecodeListener bytecode
         compiler:Parse(file, bytecode)
         
+        CompilerErrorManager manager = parser:GetCompilerErrorManager()
+        
         output "Finished."
     end
 end

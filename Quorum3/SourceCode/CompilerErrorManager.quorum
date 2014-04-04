@@ -3,6 +3,7 @@ package Libraries.Language.Compile
 use Libraries.Containers.HashTable
 use Libraries.Containers.List
 use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
 
 class CompilerErrorManager
      integer numberOfErrors = 0
@@ -51,6 +52,9 @@ class CompilerErrorManager
         return numberOfErrors = 0
     end
     
+    action GetIterator returns Iterator<CompilerError>
+        return undefined
+    end
     /*
      * Empties the list of compiler errorsPerFile
      */

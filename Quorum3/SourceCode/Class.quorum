@@ -12,14 +12,15 @@ class Class is Symbol
 
     action Add(Action method) returns CompilerError
         if not IsDefined(method)
-            
+            actions:Add(method:GetStaticKey(), method)
+            return undefined
         end
 
         CompilerError error
         Location location = error:GetLocation()
         location:SetLineNumber(method:GetLineNumber())
         location:SetFile(method:GetFile())
-        //error:SetErrorMessage("Action " + method 
+        error:SetErrorMessage("Action " + method:GetDisplayName() + " has already been defined.")
 
         return error
     end

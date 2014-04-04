@@ -12,7 +12,7 @@ class Parser is QuorumSourceListener
     Source source
     SymbolTable symbolTable = undefined
     Action currentAction = undefined
-    Action currentClass = undefined
+    Class currentClass = undefined
 
     action EnterStart(StartContext context) 
         source:SetFile(me:GetFile())
@@ -83,6 +83,11 @@ class Parser is QuorumSourceListener
 
         currentAction:SetReturnType(context:returnType)
         currentAction:SetName(context:actionName)
+        Location location = currentAction:GetLocation()
+        location:SetFile(me:source:GetFile())
+
+        //add it to the class
+        currentClass:Add(currentAction)
     end
 
     action EnterAction(ActionContext context) 
@@ -92,13 +97,5 @@ class Parser is QuorumSourceListener
 
     action ExitAction(ActionContext context) 
         currentAction = undefined
-    end
-
-    action EnterFormalParameter(FormalParameterContext context) 
-        integer a = 5
-    end
-    action ExitFormalParameter(FormalParameterContext context) 
-
-        a = 5
     end
 end
