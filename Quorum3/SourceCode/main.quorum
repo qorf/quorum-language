@@ -2,6 +2,7 @@ package Libraries.Language.Compile
 
 use Libraries.Language.Compile.Parser
 use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
 
 class Main
     action Main
@@ -20,7 +21,13 @@ class Main
         compiler:Parse(file, bytecode)
         
         CompilerErrorManager manager = parser:GetCompilerErrorManager()
-        
+        Iterator<CompilerError> errors = manager:GetIterator()
+
+        repeat while errors:HasNext()
+            CompilerError error = errors:Next()
+            text t = error:GetDisplayName()
+            output t
+        end
         output "Finished."
     end
 end

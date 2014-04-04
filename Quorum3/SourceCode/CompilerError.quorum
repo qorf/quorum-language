@@ -3,7 +3,7 @@ package Libraries.Language.Compile
 use Libraries.System.File
 
 class CompilerError 
-    Location location = undefined
+    Location location
     text message = ""
     CompilerErrorType errorType = undefined
 
@@ -17,6 +17,14 @@ class CompilerError
 
     action GetErrorMessage returns text
         return message
+    end
+
+    action GetDisplayName returns text
+        File file = location:GetFile()
+        text path = file:GetAbsolutePath()
+        text line = "" + location:GetLineNumber()
+        text column = "" + location:GetColumnNumber()
+        return path + ", Line " + line + ", Column " + column + ": " + message
     end
 
     action SetErrorMessage(text value) 

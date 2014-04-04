@@ -17,7 +17,7 @@ class CompilerErrorManager
     //text errorKey = ""
     text fileNameKey = ""
 
-    action AddError(CompilerError error) 
+    action Add(CompilerError error) 
         if error not= undefined
             Location location = error:GetLocation()
             if location:GetLineNumber() <= 0
@@ -53,8 +53,11 @@ class CompilerErrorManager
     end
     
     action GetIterator returns Iterator<CompilerError>
-        return undefined
+        CompilerErrorIterator iterator
+        iterator:SetErrors(me:errorsPerFile)
+        return iterator
     end
+
     /*
      * Empties the list of compiler errorsPerFile
      */

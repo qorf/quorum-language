@@ -12,18 +12,10 @@ class Type
     text staticKey = ""
 
     constant text INTEGER_PRIMITIVE_KEY = "integer"
-    constant text BOOLEAN_PRIMITIVE_KEY = "integer"
-    constant text NUMBER_PRIMITIVE_KEY = "integer"
-    constant text TEXT_PRIMITIVE_KEY = "integer"
+    constant text BOOLEAN_PRIMITIVE_KEY = "boolean"
+    constant text NUMBER_PRIMITIVE_KEY = "number"
+    constant text TEXT_PRIMITIVE_KEY = "text"
     constant text VOID_KEY = "void"
-
-    action GetStaticKey returns text
-        return staticKey
-    end
-
-    action GetDisplayName returns text
-        return staticKey
-    end
 
     /* This is the value of the boolean if it happens to be a constant. */
     boolean booleanConstant = false
@@ -33,6 +25,14 @@ class Type
     number numberConstant = 0.0
     /* This is the value of the text if it happens to be a constant. */
     text textConstant = ""
+
+    action GetStaticKey returns text
+        return staticKey
+    end
+
+    action GetDisplayName returns text
+        return staticKey
+    end
     
     /* This action returns a constant value representing a known constant
        for this type. If this type is not declared as a constant, this
@@ -146,5 +146,4 @@ class Type
         isVoid = false
         staticKey = TEXT_PRIMITIVE_KEY
     end
-    
 end

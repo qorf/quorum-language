@@ -67,7 +67,7 @@ class Action is Symbol
         
         key = key + ")"
 
-        if not returnType:IsVoid()
+       if not returnType:IsVoid()
             key = " returns " + returnType:GetDisplayName()
         end
         return key

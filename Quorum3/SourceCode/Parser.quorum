@@ -37,7 +37,9 @@ class Parser is QuorumSourceListener
         CompilerError error = symbolTable:Add(clazz)
         if error not= undefined
             CompilerErrorManager manager = GetCompilerErrorManager()
-            manager:AddError(error)
+            manager:Add(error)
+        else 
+            currentClass = clazz
         end
     end
 
@@ -74,8 +76,9 @@ class Parser is QuorumSourceListener
     end
 
     action ExitActionHeader(ActionContext context)
-        List<Variable> params = context:parameters
-        Iterator<Variable> it = params:GetIterator()
+        List<Variable> headerParams = context:parameters
+        List<Variable> params
+        Iterator<Variable> it = headerParams:GetIterator()
         repeat while it:HasNext()
             Variable param = it:Next()
             params:Add(param)
@@ -87,7 +90,11 @@ class Parser is QuorumSourceListener
         location:SetFile(me:source:GetFile())
 
         //add it to the class
-        currentClass:Add(currentAction)
+        CompilerError error = currentClass:Add(currentAction)
+        if error not= undefined
+            CompilerErrorManager manager = me:GetCompilerErrorManager()
+            manager:Add(error)
+        end
     end
 
     action EnterAction(ActionContext context) 
@@ -96,6 +103,5 @@ class Parser is QuorumSourceListener
     end
 
     action ExitAction(ActionContext context) 
-        currentAction = undefined
     end
 end
