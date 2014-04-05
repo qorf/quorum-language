@@ -4,7 +4,7 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.Containers.HashTable
 use Libraries.Containers.List
 
-class CompilerErrorIterator is Iterator<CompilerError>
+class CompilerErrorIterator<T> is Iterator<T>
     HashTable<text, List<CompilerError>> errorsPerFile
     Iterator<List<CompilerError>> files = undefined
     Iterator<CompilerError> currentFile = undefined
@@ -42,7 +42,7 @@ class CompilerErrorIterator is Iterator<CompilerError>
         return false
     end
 
-    action Next returns CompilerError
+    action Next returns T
         if files = undefined or currentFile = undefined
             return undefined
         end
@@ -66,7 +66,7 @@ class CompilerErrorIterator is Iterator<CompilerError>
         return undefined
     end
 
-    action GetCurrent returns CompilerError
+    action GetCurrent returns T
         if error = undefined
             return Next()
         else 

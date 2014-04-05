@@ -20,16 +20,8 @@ class CompilerErrorManager
     action Add(CompilerError error) 
         if error not= undefined
             Location location = error:GetLocation()
-            if location:GetLineNumber() <= 0
-                location:SetLineNumber(1)
-            end
-        end
-
-        numberOfErrors = numberOfErrors + 1
-        if  true//if the string is not empty
-            //check if there is already a list
-            errorsPerFile:GetValue(error:GetStaticKey())
-            List<CompilerError> l// = errorsPerFile:
+            numberOfErrors = numberOfErrors + 1
+            List<CompilerError> l = errorsPerFile:GetValue(error:GetStaticKey())
             if(l not= undefined) 
                 l:Add(error)
             else 
@@ -53,7 +45,7 @@ class CompilerErrorManager
     end
     
     action GetIterator returns Iterator<CompilerError>
-        CompilerErrorIterator iterator
+        CompilerErrorIterator<CompilerError> iterator
         iterator:SetErrors(me:errorsPerFile)
         return iterator
     end
