@@ -712,7 +712,7 @@ public class JavaToQuorumListener implements QuorumListener {
             context.returnType = type;
         }
         ctx.actionContext = context;
-        listener.ExitActionHeader(context);
+        listener.EnterActionHeader(context);
     }
 
     @Override
