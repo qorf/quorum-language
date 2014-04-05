@@ -86,8 +86,7 @@ class Parser is QuorumSourceListener
 
         currentAction:SetReturnType(context:returnType)
         currentAction:SetName(context:actionName)
-        Location location = currentAction:GetLocation()
-        location:SetFile(me:source:GetFile())
+        currentAction:SetLocation(context:GetLocation())
 
         //add it to the class
         CompilerError error = currentClass:Add(currentAction)

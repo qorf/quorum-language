@@ -21,13 +21,17 @@ class Main
         compiler:Parse(file, bytecode)
         
         CompilerErrorManager manager = parser:GetCompilerErrorManager()
-        Iterator<CompilerError> errors = manager:GetIterator()
 
-        repeat while errors:HasNext()
-            CompilerError error = errors:Next()
-            text t = error:GetDisplayName()
-            output t
+        if manager:IsCompilationErrorFree()
+            output "Build completed successfully"
+        else 
+            output "The code did not build correctly. Here is a list of errors:"
+            Iterator<CompilerError> errors = manager:GetIterator()
+            repeat while errors:HasNext()
+                CompilerError error = errors:Next()
+                text t = error:GetDisplayName()
+                output t
+            end
         end
-        output "Finished."
     end
 end
