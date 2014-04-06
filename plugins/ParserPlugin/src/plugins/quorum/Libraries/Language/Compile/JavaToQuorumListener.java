@@ -26,17 +26,7 @@ public class JavaToQuorumListener implements QuorumListener {
 
     private QuorumSourceListener$Interface listener;
     private File$Interface file;
-
-    @Override
-    public void enterSelector(QuorumParser.SelectorContext ctx) {
-        listener.EnterSelector();
-    }
-
-    @Override
-    public void exitSelector(QuorumParser.SelectorContext ctx) {
-        listener.ExitSelector();
-    }
-
+    
     @Override
     public void enterDecimal(QuorumParser.DecimalContext ctx) {
         double val = Double.parseDouble(ctx.DECIMAL().getText());
@@ -324,16 +314,6 @@ public class JavaToQuorumListener implements QuorumListener {
     }
 
     @Override
-    public void enterAssign_right_hand_side(QuorumParser.Assign_right_hand_sideContext ctx) {
-        listener.EnterAssignRightHandSide();
-    }
-
-    @Override
-    public void exitAssign_right_hand_side(QuorumParser.Assign_right_hand_sideContext ctx) {
-        listener.ExitAssignRightHandSide();
-    }
-
-    @Override
     public void enterIf_statement(QuorumParser.If_statementContext ctx) {
         listener.EnterIfStatement();
     }
@@ -391,16 +371,6 @@ public class JavaToQuorumListener implements QuorumListener {
     @Override
     public void exitLoop_statement(QuorumParser.Loop_statementContext ctx) {
         listener.ExitLoopStatement();
-    }
-
-    @Override
-    public void enterFieldAccess(QuorumParser.FieldAccessContext ctx) {
-        listener.EnterFieldAccess();
-    }
-
-    @Override
-    public void exitFieldAccess(QuorumParser.FieldAccessContext ctx) {
-        listener.ExitFieldAccess();
     }
 
     @Override
@@ -483,16 +453,6 @@ public class JavaToQuorumListener implements QuorumListener {
     @Override
     public void exitMinus(QuorumParser.MinusContext ctx) {
         listener.ExitMinus();
-    }
-
-    @Override
-    public void enterAssignment_statement(QuorumParser.Assignment_statementContext ctx) {
-        listener.EnterAssignmentStatement();
-    }
-
-    @Override
-    public void exitAssignment_statement(QuorumParser.Assignment_statementContext ctx) {
-        listener.ExitAssignmentStatement();
     }
 
     @Override
@@ -854,5 +814,75 @@ public class JavaToQuorumListener implements QuorumListener {
         Type type = new Type();
         type.SetToText();
         ctx.type = type;
+    }
+
+    @Override
+    public void enterNormalAssignment(QuorumParser.NormalAssignmentContext ctx) {
+        NormalAssignmentContext context = new NormalAssignmentContext();
+        setLocation(ctx, context);
+        listener.EnterNormalAssignment(context);
+    }
+
+    @Override
+    public void exitNormalAssignment(QuorumParser.NormalAssignmentContext ctx) {
+        NormalAssignmentContext context = new NormalAssignmentContext();
+        setLocation(ctx, context);
+        listener.ExitNormalAssignment(context);
+    }
+
+    @Override
+    public void enterParentAssignment(QuorumParser.ParentAssignmentContext ctx) {
+        ParentAssignmentContext context = new ParentAssignmentContext();
+        setLocation(ctx, context);
+        listener.EnterParentAssignment(context);
+    }
+
+    @Override
+    public void exitParentAssignment(QuorumParser.ParentAssignmentContext ctx) {
+        ParentAssignmentContext context = new ParentAssignmentContext();
+        setLocation(ctx, context);
+        listener.ExitParentAssignment(context);
+    }
+
+    @Override
+    public void enterObjectAssignment(QuorumParser.ObjectAssignmentContext ctx) {
+        ObjectAssignmentContext context = new ObjectAssignmentContext();
+        setLocation(ctx, context);
+        listener.EnterObjectAssignment(context);
+    }
+
+    @Override
+    public void exitObjectAssignment(QuorumParser.ObjectAssignmentContext ctx) {
+        ObjectAssignmentContext context = new ObjectAssignmentContext();
+        setLocation(ctx, context);
+        listener.ExitObjectAssignment(context);
+    }
+
+    @Override
+    public void enterNoTypeAssignment(QuorumParser.NoTypeAssignmentContext ctx) {
+        NoTypeAssignmentContext context = new NoTypeAssignmentContext();
+        setLocation(ctx, context);
+        listener.EnterNoTypeAssignment(context);
+    }
+
+    @Override
+    public void exitNoTypeAssignment(QuorumParser.NoTypeAssignmentContext ctx) {
+        NoTypeAssignmentContext context = new NoTypeAssignmentContext();
+        setLocation(ctx, context);
+        listener.ExitNoTypeAssignment(context);
+    }
+
+    @Override
+    public void enterMeVariableAccess(QuorumParser.MeVariableAccessContext ctx) {
+        MeVariableAccessContext context = new MeVariableAccessContext();
+        setLocation(ctx, context);
+        listener.EnterMeVariableAccess(context);
+    }
+
+    @Override
+    public void exitMeVariableAccess(QuorumParser.MeVariableAccessContext ctx) {
+        MeVariableAccessContext context = new MeVariableAccessContext();
+        setLocation(ctx, context);
+        listener.ExitMeVariableAccess(context);
     }
 }

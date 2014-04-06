@@ -148,16 +148,11 @@ assignment_declaration returns [quorum.Libraries.Language.Compile.Symbol.Type ty
 
 assignment_statement
 	:	
-		(sel = selector COLON)? ID rhs = assign_right_hand_side
-	|	obj=qualified_name (COLON PARENT COLON parent=qualified_name)? COLON ID rhs=assign_right_hand_side
-	|	modifier = access_modifier? CONSTANT? type = assignment_declaration name = ID rhs = assign_right_hand_side?		
+            (ME COLON)? ID EQUALITY expression  #NoTypeAssignment
+        |   (PARENT COLON parent=qualified_name)? COLON ID EQUALITY expression #ParentAssignment
+	|   obj=qualified_name (COLON PARENT COLON parent=qualified_name)? COLON ID EQUALITY expression #ObjectAssignment
+	|   modifier = access_modifier? CONSTANT? type = assignment_declaration name = ID (EQUALITY expression)? #NormalAssignment	
 	;
-
-assign_right_hand_side
-	:	
-		(EQUALITY expression)
-	;
-
 	
 if_statement
 	:
@@ -180,18 +175,14 @@ loop_statement
     |	((WHILE | UNTIL) expression)
             )  block END
     ;
-selector
-	:	PARENT COLON
-	|	ME
-	;
 
 expression returns [quorum.Libraries.Language.Compile.Symbol.Type type]
     : 
         qualified_name (COLON ID)?                                                              #VariableOrFieldAccess
     |	qualified_name COLON PARENT COLON qualified_name COLON ID                               #ParentFieldAccess
     |	qualified_name (COLON ID)? LEFT_PAREN function_expression_list RIGHT_PAREN              #ObjectFunctionCall
-    |	selector COLON qualified_name                                                           #FieldAccess
     |	PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN    #ParentFunctionCall
+    |	ME COLON qualified_name                                                                 #MeVariableAccess
     |	ME COLON qualified_name (COLON ID)? LEFT_PAREN function_expression_list RIGHT_PAREN     #MeFunctionCall
     |   MINUS expression                                                                        #Minus
     |   NOT expression                                                                          #Not
