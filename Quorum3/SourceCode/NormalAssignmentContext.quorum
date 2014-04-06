@@ -1,0 +1,13 @@
+package Libraries.Language.Compile.Context
+
+use Libraries.Language.Compile.Symbol.Type
+
+class NormalAssignmentContext is ParseContext
+    public boolean isField = false
+    public boolean isPublic = false
+    public boolean isPrivate = true
+    public boolean isConstant = false
+    public Type leftHandSide = undefined
+    public text name = ""
+    public Type rightHandSide = undefined
+end

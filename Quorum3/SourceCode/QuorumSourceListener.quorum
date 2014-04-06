@@ -33,16 +33,6 @@ class QuorumSourceListener
         me:file = file
     end
     
-   /**
-    * Enter a parse tree produced by {@link QuorumParser#selector}.
-    * @param ctx the parse tree
-    */
-    action EnterSelector end
-    /**
-    * Exit a parse tree produced by {@link QuorumParser#selector}.
-    * @param ctx the parse tree
-    */
-    action ExitSelector end
 
     /**
     * Enter a parse tree produced by {@link QuorumParser#Decimal}.
@@ -297,17 +287,6 @@ class QuorumSourceListener
     action ExitMeFunctionCall end
 
     /**
-    * Enter a parse tree produced by {@link QuorumParser#assign_right_hand_side}.
-    * @param ctx the parse tree
-    */
-    action EnterAssignRightHandSide end
-    /**
-    * Exit a parse tree produced by {@link QuorumParser#assign_right_hand_side}.
-    * @param ctx the parse tree
-    */
-    action ExitAssignRightHandSide end
-
-    /**
     * Enter a parse tree produced by {@link QuorumParser#if_statement}.
     * @param ctx the parse tree
     */
@@ -369,17 +348,6 @@ class QuorumSourceListener
     action ExitAssignmentDeclaration(AssignmentDeclaractionContext context) end
 
     /**
-    * Enter a parse tree produced by {@link QuorumParser#FieldAccess}.
-    * @param ctx the parse tree
-    */
-    action EnterFieldAccess end
-    /**
-    * Exit a parse tree produced by {@link QuorumParser#FieldAccess}.
-    * @param ctx the parse tree
-    */
-    action ExitFieldAccess end
-
-    /**
     * Enter a parse tree produced by {@link QuorumParser#inherit_stmnts}.
     * @param ctx the parse tree
     */
@@ -419,9 +387,6 @@ class QuorumSourceListener
     action EnterMinus end
     action ExitMinus end
 
-    action EnterAssignmentStatement end
-    action ExitAssignmentStatement end
-
     action EnterBoolean(BooleanContext context) end
     action ExitBoolean(BooleanContext context) end
 
@@ -451,4 +416,19 @@ class QuorumSourceListener
 
     action EnterPackageRule(PackageContext context) end
     action ExitPackageRule(PackageContext context) end
+
+    action EnterNormalAssignment(NormalAssignmentContext context) end
+    action ExitNormalAssignment(NormalAssignmentContext context) end
+
+    action EnterParentAssignment(ParentAssignmentContext context) end
+    action ExitParentAssignment(ParentAssignmentContext context) end
+
+    action EnterObjectAssignment(ObjectAssignmentContext context) end
+    action ExitObjectAssignment(ObjectAssignmentContext context) end
+
+    action EnterNoTypeAssignment(NoTypeAssignmentContext context) end
+    action ExitNoTypeAssignment(NoTypeAssignmentContext context) end
+
+    action EnterMeVariableAccess(MeVariableAccessContext context) end
+    action ExitMeVariableAccess(MeVariableAccessContext context) end
 end
