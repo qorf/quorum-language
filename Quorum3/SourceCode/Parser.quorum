@@ -13,6 +13,8 @@ class Parser is QuorumSourceListener
     SymbolTable symbolTable = undefined
     Action currentAction = undefined
     Class currentClass = undefined
+    Block currentBlock = undefined
+    Stack<Block> blocks
 
     action EnterStart(StartContext context) 
         source:SetFile(me:GetFile())
@@ -60,6 +62,25 @@ class Parser is QuorumSourceListener
         currentAction:SetIsSystem(true)
     end
 
+    action EnterBlock 
+        Block block
+        blocks:Push(block)
+        currentBlock = block
+    end
+    
+    action ExitBlock
+        if not blocks:IsEmpty()
+            blocks:Pop()
+        end
+
+        if not blocks:IsEmpty()
+            currentBlock = blocks:Peek()
+        else 
+            currentBlock = undefined
+        end
+    end
+
+
     action ExitSystemAction(ActionContext context) 
     end
 
@@ -77,13 +98,13 @@ class Parser is QuorumSourceListener
 
     action ExitActionHeader(ActionContext context)
         List<Variable> headerParams = context:parameters
-        List<Variable> params
         Iterator<Variable> it = headerParams:GetIterator()
         repeat while it:HasNext()
             Variable param = it:Next()
-            params:Add(param)
+            currentAction:AddParameter(param)
         end
 
+        
         currentAction:SetReturnType(context:returnType)
         currentAction:SetName(context:actionName)
         currentAction:SetLocation(context:GetLocation())

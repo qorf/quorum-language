@@ -1,4 +1,49 @@
 package Libraries.Language.Compile.Symbol
 
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.CompilerError
+use Libraries.Containers.HashTable
+use Libraries.Language.Compile.Location
+
 class Block
+    HashTable<text, Variable> variables
+    Array<Block> blocks
+    integer currentBlock = 0
+    Block parentBlock = undefined
+    Class parentClass = undefined
+
+    action Add(Variable variable) returns CompilerError
+        if variables:HasKey(variable:GetStaticKey())
+            CompilerError error
+            Location location = error:GetLocation()
+            location:SetLineNumber(variable:GetLineNumber())
+            location:SetFile(variable:GetFile())
+            error:SetErrorMessage("Action " + variable:GetDisplayName() + " has already been defined.")
+            return error
+        end
+
+        variables:Add(variable:GetStaticKey(), variable)
+        return undefined
+    end
+
+    action Add(Block block)
+        blocks:Add(block)
+    end
+
+    action GetParentBlock returns Block
+        return parentBlock
+    end
+
+    action SetParentBlock(Block block)
+        me:parentBlock = block
+    end
+
+    action GetParentClass returns Class
+        return parentClass
+    end
+
+    action SetParentClass(Class clazz)
+        me:parentClass = clazz
+    end
 end

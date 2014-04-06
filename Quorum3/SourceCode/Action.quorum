@@ -8,6 +8,15 @@ class Action is Symbol
     boolean isBlueprint = false
     boolean isSystem = false
     Type returnType = undefined
+    Block block = undefined
+
+    action GetBlock returns Block
+        return block
+    end
+
+    action SetBlock(Block block)
+        me:block = block
+    end
 
     action AddParameter(Variable parameter)
         parameters:Add(parameter)
