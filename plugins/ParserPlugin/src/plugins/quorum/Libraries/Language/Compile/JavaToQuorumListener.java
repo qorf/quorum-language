@@ -15,6 +15,7 @@ import quorum.Libraries.Language.Compile.Context.*;
 import quorum.Libraries.Language.Compile.Location;
 import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
 import quorum.Libraries.Language.Compile.Symbol.Type;
+import quorum.Libraries.Language.Compile.Symbol.Type$Interface;
 import quorum.Libraries.Language.Compile.Symbol.Variable;
 import quorum.Libraries.System.File$Interface;
 
@@ -820,6 +821,7 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterNormalAssignment(QuorumParser.NormalAssignmentContext ctx) {
         NormalAssignmentContext context = new NormalAssignmentContext();
         setLocation(ctx, context);
+        context.name = ctx.name.getText();
         listener.EnterNormalAssignment(context);
     }
 
@@ -827,6 +829,26 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitNormalAssignment(QuorumParser.NormalAssignmentContext ctx) {
         NormalAssignmentContext context = new NormalAssignmentContext();
         setLocation(ctx, context);
+        TerminalNode constant = ctx.CONSTANT();
+        if(constant != null) {
+            context.isConstant = true;
+        }
+        
+        context.name = ctx.name.getText();
+        if(ctx.modifier != null) {
+            TerminalNode PUBLIC = ctx.modifier.PUBLIC();
+            if(PUBLIC != null) {
+                context.isPublic = true;
+                context.isPrivate = false;
+            }
+        }
+        if(ctx.assignment_declaration() != null) {
+            context.leftHandSide = ctx.assignment_declaration().type;
+        }
+        
+        if(ctx.expression() != null) {
+            context.rightHandSide = ctx.expression().type;
+        }
         listener.ExitNormalAssignment(context);
     }
 
