@@ -19,7 +19,7 @@ class Block
             Location location = error:GetLocation()
             location:SetLineNumber(variable:GetLineNumber())
             location:SetFile(variable:GetFile())
-            error:SetErrorMessage("Action " + variable:GetDisplayName() + " has already been defined.")
+            error:SetErrorMessage("Variable " + variable:GetDisplayName() + " has already been defined.")
             return error
         end
 

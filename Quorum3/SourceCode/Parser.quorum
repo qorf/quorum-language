@@ -124,4 +124,21 @@ class Parser is QuorumSourceListener
 
     action ExitAction(ActionContext context) 
     end
+
+    action ExitNormalAssignment(NormalAssignmentContext context)
+        Variable variable
+        variable:SetLocation(context:GetLocation())
+        variable:SetName(context:name)
+        variable:SetIsParameter(false)
+        variable:SetType(context:leftHandSide) //guaranteed to exist for this rule
+        //the right hand side is not guaranteed to exist for this
+        //particular rule. If it is there, we don't care about it in the 
+        //parser anyway, because we can't type check in the first pass
+        if currentBlock = undefined //we're in a field initiatlization block
+            
+        else //we're in the block of an action
+            currentBlock:Add(variable)
+        end
+
+    end
 end
