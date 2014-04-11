@@ -8,7 +8,11 @@ package plugins.quorum.Libraries.Language.Compile.Translate;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import quorum.Libraries.Language.Errors.InputOutputError;
 import quorum.Libraries.System.File$Interface;
@@ -47,6 +51,39 @@ public class JavaBytecodeClassWriter implements Opcodes{
         }
         
         classWriter.visit(javaVersion, access, className, signature, superClassName, values);
+    }
+    
+    /**
+     *
+     * @param access
+     * @param actionName
+     * @param description
+     * @param generics
+     * @param errors
+     * @return
+     */
+    public quorum.Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter$Interface 
+        VisitMethod(int access, String actionName, String description, 
+                String generics, quorum.Libraries.Containers.Array$Interface errors) {
+        quorum.Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter methodWriter = new quorum.Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter();
+        String[] values = null;
+        if(errors != null) {
+            values = new String[errors.GetSize()];
+            for(int i = 0; i < errors.GetSize(); i++) {
+                quorum.Libraries.Language.Types.Text$Interface text = (quorum.Libraries.Language.Types.Text$Interface) errors.Get(i);
+                values[i] = text.Get$Libraries$Language$Types$Text$value();
+            }
+        }
+        MethodVisitor visitor = classWriter.visitMethod(access, actionName, description, generics, values);
+        try {
+            //get the plugin from the passed class
+            Field field = methodWriter.getClass().getField("<plugin>");
+            JavaBytecodeMethodWriter get = (JavaBytecodeMethodWriter) field.get(methodWriter);
+            get.setMethodVisitor(visitor);
+        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
+            Logger.getLogger(JavaBytecodeClassWriter.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return methodWriter;
     }
     
     public void VisitEnd() {
