@@ -25,6 +25,14 @@ class Class is Symbol
         return error
     end
 
+    action GetAction(text key) returns Action
+        return actions:GetValue(key)
+    end
+
+    action HasAction(text key) returns boolean
+        return actions:HasKey(key)
+    end
+
     private action IsDefined(Action method) returns boolean
         return actions:HasKey(method:GetStaticKey())
     end

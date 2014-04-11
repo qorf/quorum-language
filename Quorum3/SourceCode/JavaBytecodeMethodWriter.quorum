@@ -1,5 +1,12 @@
 package Libraries.Language.Compile.Translate
 
 class JavaBytecodeMethodWriter 
-    system action Visit
+    system action VisitCode
+    system action VisitEnd
+    system action VisitField(integer opcode, text owner, text name, text description)
+    system action VisitInstruction(integer opcode)
+    system action VisitMaxSize(integer stack, integer locals)
+    system action VisitMethodInvoke(integer opcode, text owner, text name, text description, boolean isInterface)
+    system action VisitType(integer opcode, text className)
+    system action VisitVariable(integer opcode, integer variable)
 end

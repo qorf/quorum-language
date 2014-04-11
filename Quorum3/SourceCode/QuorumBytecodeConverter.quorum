@@ -1,5 +1,7 @@
 package Libraries.Language.Compile.Translate
 
+use Libraries.Language.Compile.Symbol.all
+
 class QuorumBytecodeConverter 
 
     /*
@@ -18,5 +20,9 @@ class QuorumBytecodeConverter
 
     action ConvertClassNameToInterfaceName(text name) returns text
         return name + "$Interface"
+    end
+
+    action ConvertActionToBytecodeSignature(Action method) returns text
+        return ""
     end
 end

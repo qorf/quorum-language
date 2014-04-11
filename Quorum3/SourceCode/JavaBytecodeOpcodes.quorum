@@ -229,6 +229,45 @@ class JavaBytecodeOpcodes
     constant integer IFNULL = 198
     constant integer IFNONNULL = 199
 
+    action GetReturn returns integer
+        return RETURN
+    end
+
+    action GetStoreObject returns integer
+        return ASTORE
+    end
+
+    action GetLoadObject returns integer
+        return ALOAD
+    end
+    action GetInvokeVirtual returns integer
+        return INVOKEVIRTUAL
+    end
+
+    action GetInvokeSpecial returns integer
+        return INVOKESPECIAL
+    end
+
+    action GetInvokeStatic returns integer
+        return INVOKESTATIC
+    end
+
+    action GetInvokeInterface returns integer
+        return INVOKEINTERFACE
+    end
+
+    action GetInvokeDynamic returns integer
+        return INVOKEDYNAMIC
+    end
+
+
+    action GetNew returns integer
+        return NEW
+    end
+
+    action GetDuplicate returns integer
+        return DUP
+    end
 
     action GetJavaVersion(integer version) returns integer
         if version = 1

@@ -3,9 +3,24 @@ package Libraries.Language.Compile.Context
 use Libraries.Containers.List
 use Libraries.Language.Compile.Symbol.Variable
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Containers.Blueprints.Iterator
 
 class ActionContext is ParseContext
     public List<Variable> parameters
     public text actionName = ""
     public Type returnType = undefined
+
+    action GetStaticKey returns text
+        text key = ""
+        key = key + actionName
+        Iterator<Variable> it = parameters:GetIterator()
+        repeat while it:HasNext()
+            //https://quorum.atlassian.net/browse/QUOR-99
+            Variable var = cast(Variable, it:Next()) //workaround to Bug #99
+            Type type = var:GetType()
+            key = key + ":" + type:GetStaticKey()
+        end
+
+        return key
+    end
 end

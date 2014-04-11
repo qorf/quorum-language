@@ -27,6 +27,39 @@ class Action is Symbol
     end
 
     /*
+        This action returns true if this is a Main action and false otherwise.
+        The rules for determinining this are that 1) it may not be a blueprint
+        action, 2) it may not be a system action, 3) it must be named either
+        main or Main. 
+
+        Attribute: Returns whether or not the action is a main action.
+
+        Attribute: Example
+        use Libraries.Language.Compile.Symbol.Action
+
+        Action act
+        boolean test = act:IsMain() //would be false by default
+    */
+    action IsMain returns boolean
+        if isBlueprint
+            return false
+        end
+
+        if isSystem
+            return false
+        end
+
+        if not parameters:IsEmpty()
+            return false
+        end
+
+        if me:GetName() = "Main" or  me:GetName() = "main"
+            return true
+        end
+
+        return false
+    end
+    /*
         This Iterator returns the parameters in the action in the order
         in which they are declared.
     */
