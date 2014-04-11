@@ -194,6 +194,10 @@ public class QuorumFile {
     public boolean CreateDirectory() {
         return file.mkdir();
     }
+    
+    public boolean CreateDirectories() {
+        return file.mkdirs();
+    }
 
     public boolean Move(String newPath) {
         File newFile = new File(newPath);

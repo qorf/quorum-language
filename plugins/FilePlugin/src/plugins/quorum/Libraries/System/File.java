@@ -109,6 +109,10 @@ public class File {
         return inst.CreateDirectory();
     }
     
+    public boolean CreateDirectories() {
+        return inst.CreateDirectories();
+    }
+    
     public boolean Move(String newPath) {
         return inst.Move(newPath);
     }
