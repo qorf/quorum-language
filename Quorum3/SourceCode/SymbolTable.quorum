@@ -33,6 +33,6 @@ class SymbolTable
     end
 
     action GetClass(text key) returns Class
-        return undefined
+        return classes:GetValue(key)
     end
 end

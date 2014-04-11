@@ -5,18 +5,28 @@ use Libraries.Language.Compile.Translate.JavaBytecodeClassWriter
 use Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter
 use Libraries.Language.Compile.Translate.QuorumBytecodeConverter
 use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
+use Libraries.Language.Compile.Symbol.all
+
 use Libraries.Containers.Array
 use Libraries.System.File
 
 class QuorumBytecodeListener is QuorumSourceListener 
+    QualifiedName packageValue = undefined
     JavaBytecodeClassWriter classWriter = undefined
     JavaBytecodeClassWriter interfaceWriter = undefined
     QuorumBytecodeConverter converter
     JavaBytecodeOpcodes opcodes
+    Class currentClass = undefined
+    constant text BUILD = "Build"
+    constant text RUN = "Run"
 
     constant text JAVA_THROWABLE = "java/lang/Throwable"
     constant text JAVA_OBJECT = "java/lang/Object"
     constant text QUORUM_ERROR = "quorum/Libraries/Language/Errors/Error"
+
+    action ExitPackageRule(PackageContext context) 
+        packageValue = context:name
+    end
 
     action EnterFullClassDeclaration(FullClassDeclarationContext context) 
         JavaBytecodeClassWriter newClassWriter
@@ -26,7 +36,11 @@ class QuorumBytecodeListener is QuorumSourceListener
         interfaceWriter = newIinterfaceWriter
 
         text name = context:className
-        text staticKey = "quorum.Expressions" //fix this to be the real static key
+        SymbolTable table = me:GetSymbolTable()
+        
+        text staticKey = packageValue:GetStaticKey() + "." + name
+        currentClass = table:GetClass(staticKey)
+
 
         integer version = opcodes:GetJavaVersion(8)
         integer access = opcodes:GetPublic() + opcodes:GetSuper()
@@ -40,9 +54,35 @@ class QuorumBytecodeListener is QuorumSourceListener
 
 
     action ExitFullClassDeclaration(FullClassDeclarationContext context) 
-        classWriter:VisitEnd()
-        File file
-        file:SetPath("Run/Expressions.class")
-        classWriter:Write(file)
+        if currentClass not= undefined
+            classWriter:VisitEnd()
+            File classFile
+            text path = BUILD + "/quorum/" + packageValue:GetPath() 
+            classFile:SetPath(path)
+            classFile:CreateDirectories()
+            classFile:SetPath(path + "/" + currentClass:GetName() + ".class")
+            classWriter:Write(classFile)
+
+            interfaceWriter:VisitEnd()
+            File interfaceFile
+            path = BUILD + "/quorum/" + packageValue:GetPath()
+            
+            interfaceFile:SetPath(path + "/" + currentClass:GetName() + "$Interface.class")
+            interfaceWriter:Write(interfaceFile)
+        end
+    end
+
+    action ExitActionHeader(ActionContext context)
+    end
+
+    action EnterAction(ActionContext context) 
+        
+        text stuff = undefined
+        JavaBytecodeMethodWriter method = classWriter:VisitMethod(opcodes:GetPublic() + opcodes:GetStatic(), "main", "([Ljava/lang/String;)V", stuff, undefined)
+        
+        a = 5
+    end
+
+    action ExitAction(ActionContext context) 
     end
 end

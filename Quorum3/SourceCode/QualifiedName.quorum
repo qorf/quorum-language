@@ -29,6 +29,21 @@ class QualifiedName
         return key
     end
 
+    action GetPath returns text
+        key = ""
+        i = 0
+        repeat GetSize() times
+            key = key + names:Get(i)
+
+            if i < GetSize() - 1
+                key = key + "/"
+            end
+            i = i + 1
+        end
+
+        return key
+    end
+
     action Empty
         names:Empty()
     end

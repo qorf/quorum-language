@@ -35,6 +35,7 @@ class Parser is QuorumSourceListener
     action AddClass(text name)
         text key = packageValue:GetStaticKey() + "." + name
         Class clazz
+        clazz:SetPackage(packageValue)
         clazz:SetName(name)
         CompilerError error = symbolTable:Add(clazz)
         if error not= undefined
