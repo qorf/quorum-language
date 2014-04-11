@@ -634,6 +634,27 @@ class File
     system action CreateDirectory returns boolean
 
     /*
+        Create the directory specified in the path by this File object. This can 
+        be used to create a single directory and all parents. As an example, 
+        if the path "C:\blah\bb" does not already exist under "C:\", this method
+        creates all three in this path:
+
+        C:\blah\bb\foo
+
+        Attribute: Returns True if directory creation succeeds; false otherwise.
+
+        Attribute: Example
+        use Libraries.System.File
+
+        // Create a directory in /Users/jeff called "oldMusic".
+        File oldMusicDir
+        oldMusicDir:SetWorkingDirectory("/Users/jeff")
+        oldMusicDir:SetPath("oldMusic")
+        oldMusicDir:CreateDirectories()
+     */ 
+    system action CreateDirectories returns boolean
+
+    /*
         Move the file (or directory) specified to the new path specified.
         The behavior of this action is highly dependent on the platform
         and file system; always check the return value to ensure success.
