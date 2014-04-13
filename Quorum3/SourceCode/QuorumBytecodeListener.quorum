@@ -138,6 +138,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), bytecode,
             method:GetName(), converter:ConvertActionToBytecodeSignature(method), false)
 
+        //close out the main method
         methodWriter:VisitInstruction(opcodes:GetReturn())
         methodWriter:VisitMaxSize(2,2)
         methodWriter:VisitEnd()
