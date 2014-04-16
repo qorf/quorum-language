@@ -229,8 +229,57 @@ class JavaBytecodeOpcodes
     constant integer IFNULL = 198
     constant integer IFNONNULL = 199
 
+    action GetStaticField returns integer
+        return GETSTATIC
+    end
+
+    action PutStaticField returns integer
+        return PUTSTATIC
+    end
+
+    action GetField returns integer
+        return GETFIELD
+    end
+
+    action PutField returns integer
+        return PUTFIELD
+    end
+
+    action GetIntegerAdd returns integer
+        return IADD
+    end
+
     action GetReturn returns integer
         return RETURN
+    end
+
+    action GetLongIntegerReturn returns integer
+        return LRETURN
+    end
+
+    action GetIntegerReturn returns integer
+        return IRETURN
+    end
+
+    /*
+        This method actually returns an IRETURN opcode, but is placed here
+        for convenience. This is because Java Bytecode does not have
+        an explicit boolean type.
+    */
+    action GetBooleanReturn returns integer
+        return IRETURN
+    end
+
+    action GetObjectReturn returns integer
+        return ARETURN
+    end
+
+    action GetFloatReturn returns integer
+        return FRETURN
+    end
+
+    action GetDoubleReturn returns integer
+        return DRETURN
     end
 
     action GetStoreObject returns integer

@@ -9,4 +9,9 @@ class JavaBytecodeMethodWriter
     system action VisitMethodInvoke(integer opcode, text owner, text name, text description, boolean isInterface)
     system action VisitType(integer opcode, text className)
     system action VisitVariable(integer opcode, integer variable)
+    system action VisitConstant(text value)
+    system action VisitConstant(integer value)
+    system action VisitConstant(boolean value)
+    system action VisitConstant(number value)
+    system action VisitUndefinedConstant
 end
