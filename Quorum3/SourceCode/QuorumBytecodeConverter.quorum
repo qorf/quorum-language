@@ -35,11 +35,11 @@ class QuorumBytecodeConverter
         elseif type:IsVoid()
             return "V"
         else //it is an object, so return its interface type
-            return ""
+            return "L" + ConvertStaticKeyToBytecodePath(type:GetStaticKey()) + "$Interface;"
         end
     end
 
-    action ConvertActionToBytecodeSignature(Action method) returns text
+    action ConvertActionToBytecodeParameterSignature(Action method) returns text
         text parameters = "("
         Iterator<Variable> it = method:GetParameterIterator()
         repeat while it:HasNext()
