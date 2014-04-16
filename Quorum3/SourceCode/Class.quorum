@@ -37,6 +37,11 @@ class Class is Symbol
         return actions:HasKey(method:GetStaticKey())
     end
 
+    /*
+        This action returns whether or not the class has an explicity constructor
+        defined. If it returns true, the user has defined a constructor. If
+        it returns false, they have not.
+    */
     action HasConstructor returns boolean
         return constructor not= undefined
     end

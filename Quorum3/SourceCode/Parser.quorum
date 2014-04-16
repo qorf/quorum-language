@@ -32,6 +32,8 @@ class Parser is QuorumSourceListener
 
     action ExitFullClassDeclaration(FullClassDeclarationContext context) end
 
+    
+
     action AddClass(text name)
         
         text key = name
@@ -95,8 +97,17 @@ class Parser is QuorumSourceListener
     action ExitSystemAction(ActionContext context) 
     end
 
-    action EnterConstructor end
-    action ExitConstructor end
+    action EnterConstructor 
+        if currentClass not= undefined
+            Action constructor
+            currentAction = constructor
+            currentClass:SetConstructor(constructor)
+        end
+    end
+
+    action ExitConstructor 
+        currentAction = undefined
+    end
 
     action EnterBlueprintAction(ActionContext context) 
         Action act

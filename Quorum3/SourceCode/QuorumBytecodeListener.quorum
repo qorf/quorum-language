@@ -18,6 +18,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     QuorumBytecodeConverter converter
     JavaBytecodeOpcodes opcodes
     Class currentClass = undefined
+    constant integer ME = 0
     constant text BUILD = "TestBuild"
     constant text RUN = "TestRun"
     constant text QUORUM = "quorum"
@@ -89,6 +90,8 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action ExitFullClassDeclaration(FullClassDeclarationContext context) 
         if currentClass not= undefined
+            ComputeConstructor(true)
+            ComputeConstructor(false)
             classWriter:VisitEnd()
             File classFile
             text path = BUILD + "/" + QUORUM + "/" + packageValue:GetPath() 
@@ -104,6 +107,35 @@ class QuorumBytecodeListener is QuorumSourceListener
             interfaceFile:SetPath(path + "/" + currentClass:GetName() + "$Interface.class")
             interfaceWriter:Write(interfaceFile)
         end
+    end
+
+    action ComputeConstructor(boolean isParent)
+        
+        //integer numSystem = currentClass:getNumberSystemActions()
+        text staticKey = currentClass:GetStaticKey()
+        text name = converter:ConvertStaticKeyToBytecodePath(staticKey)
+
+        text signature = ""
+        if isParent
+            signature = "()V"
+        else
+            signature = "(Z)V"
+        end
+
+
+        //call the class's initialization function
+        text null = undefined
+        methodWriter = classWriter:VisitMethod(opcodes:GetPublic(), "<init>", signature, null, undefined)
+        methodWriter:VisitCode()
+        methodWriter:VisitVariable(opcodes:GetLoadObject(), ME)
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), "java/lang/Object", "<init>", "()V", false)
+
+
+
+
+        methodWriter:VisitInstruction(opcodes:GetReturn())
+        methodWriter:VisitMaxSize(1, 1)
+        methodWriter:VisitEnd()
     end
 
     action ExitActionHeader(ActionContext context)
