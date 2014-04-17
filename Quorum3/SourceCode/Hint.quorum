@@ -1,0 +1,33 @@
+package Libraries.Language.Compile
+
+use Libraries.System.File
+
+class Hint is Location
+    text message = ""
+
+    action GetHintMessage returns text
+        return message
+    end
+
+    action GetDisplayName returns text
+        return message
+    end
+
+    action SetErrorMessage(text value) 
+        message = value
+    end
+
+    action GetAbsolutePath returns text
+        File file = GetFile()
+        if file not= undefined
+            return file:GetAbsolutePath()
+        end
+
+        text value = undefined //Workaround for bug.
+        return value
+    end
+
+    action GetStaticKey returns text
+        return GetAbsolutePath()
+    end
+end

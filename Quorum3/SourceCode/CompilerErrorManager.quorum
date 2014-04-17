@@ -45,8 +45,8 @@ class CompilerErrorManager
     end
     
     action GetIterator returns Iterator<CompilerError>
-        CompilerErrorIterator<CompilerError> iterator
-        iterator:SetErrors(me:errorsPerFile)
+        HashListIterator<CompilerError> iterator
+        iterator:SetHash(me:errorsPerFile)
         return iterator
     end
 

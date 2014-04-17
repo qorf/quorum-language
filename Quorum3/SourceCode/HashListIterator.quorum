@@ -4,21 +4,19 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.Containers.HashTable
 use Libraries.Containers.List
 
-class CompilerErrorIterator<T> is Iterator<T>
-    HashTable<text, List<CompilerError>> errorsPerFile
-    Iterator<List<CompilerError>> files = undefined
-    Iterator<CompilerError> currentFile = undefined
-    CompilerError error = undefined
+class HashListIterator<T> is Iterator<T>
+    HashTable<text, List<T>> errorsPerFile
+    Iterator<List<T>> files = undefined
+    Iterator<T> currentFile = undefined
+    T error = undefined
 
-    action GetErrors returns HashTable<text, List<CompilerError>>
+    action GetHash returns HashTable<text, List<T>>
         return me:errorsPerFile
     end
 
-    action SetErrors(HashTable<text, List<CompilerError>> errors)
+    action SetHash(HashTable<text, List<T>> errors)
         me:errorsPerFile = errors
-
         Rewind()
-        
     end
 
     action HasNext returns boolean
@@ -32,7 +30,7 @@ class CompilerErrorIterator<T> is Iterator<T>
             if not files:HasNext()
                 return false
             end
-            List<CompilerError> list = files:Next()
+            List<T> list = files:Next()
             currentFile = list:GetIterator()
             if currentFile:HasNext()
                 return true
@@ -53,7 +51,7 @@ class CompilerErrorIterator<T> is Iterator<T>
                 return error
             else //the current file is done. is there another file?
                 if files:HasNext()
-                    List<CompilerError> list = files:Next()
+                    List<T> list = files:Next()
                     currentFile = list:GetIterator()
                     error = currentFile:Next()
                     return error
@@ -78,7 +76,7 @@ class CompilerErrorIterator<T> is Iterator<T>
         files = errorsPerFile:GetValueIterator()
         if files not= undefined
             if files:HasNext()
-                List<CompilerError> errors = files:Next()
+                List<T> errors = files:Next()
                 if errors not= undefined
                     currentFile = errors:GetIterator()
                 end
