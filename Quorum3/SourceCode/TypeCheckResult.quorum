@@ -1,0 +1,11 @@
+package Libraries.Language.Compile.Symbol
+
+use Libraries.Language.Compile.CompilerErrorType
+
+class TypeCheckResult 
+    public Type result
+    public TypeConversionConstants conversion
+    public TypeConversionPoints points
+    public text errorMessage = ""
+    CompilerErrorType errorType = undefined
+end
