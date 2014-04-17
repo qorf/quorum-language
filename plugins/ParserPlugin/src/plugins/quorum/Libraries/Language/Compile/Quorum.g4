@@ -66,7 +66,7 @@ formal_parameter
 	:	assignment_declaration ID
 	;
 	
-qualified_name
+qualified_name returns [quorum.Libraries.Language.Compile.QualifiedName qualifiedName]
 	:	ids+=ID (PERIOD ids+=ID)* 
 	;
 block 	:	statement*
@@ -148,10 +148,10 @@ assignment_declaration returns [quorum.Libraries.Language.Compile.Symbol.Type ty
 
 assignment_statement
 	:	
-            (ME COLON)? ID EQUALITY expression  #NoTypeAssignment
-        |   (PARENT COLON parent=qualified_name)? COLON ID EQUALITY expression #ParentAssignment
-	|   obj=qualified_name (COLON PARENT COLON parent=qualified_name)? COLON ID EQUALITY expression #ObjectAssignment
-	|   modifier = access_modifier? CONSTANT? type = assignment_declaration name = ID (EQUALITY expression)? #NormalAssignment	
+            (ME COLON)? name = ID EQUALITY rhs = expression  #NoTypeAssignment
+        |   PARENT COLON parent=qualified_name COLON name = ID EQUALITY rhs = expression #ParentAssignment
+	|   object=ID (COLON PARENT COLON parent=qualified_name)? COLON name = ID EQUALITY rhs = expression #ObjectAssignment
+	|   modifier = access_modifier? CONSTANT? type = assignment_declaration name = ID (EQUALITY rhs = expression)? #NormalAssignment	
 	;
 	
 if_statement

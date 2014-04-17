@@ -840,6 +840,11 @@ public class JavaToQuorumListener implements QuorumListener {
             if(PUBLIC != null) {
                 context.isPublic = true;
                 context.isPrivate = false;
+                context.hasModifier = true;
+            }
+            TerminalNode PRIVATE = ctx.modifier.PRIVATE();
+            if(PRIVATE != null) {
+                context.hasModifier = true;
             }
         }
         if(ctx.assignment_declaration() != null) {
@@ -856,6 +861,11 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterParentAssignment(QuorumParser.ParentAssignmentContext ctx) {
         ParentAssignmentContext context = new ParentAssignmentContext();
         setLocation(ctx, context);
+        context.parentName = ctx.parent.qualifiedName;
+        context.name = ctx.name.getText();
+        if(ctx.expression() != null) {
+            context.rightHandSide = ctx.expression().type;
+        }
         listener.EnterParentAssignment(context);
     }
 
@@ -863,6 +873,11 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitParentAssignment(QuorumParser.ParentAssignmentContext ctx) {
         ParentAssignmentContext context = new ParentAssignmentContext();
         setLocation(ctx, context);
+        context.parentName = ctx.parent.qualifiedName;
+        context.name = ctx.name.getText();
+        if(ctx.expression() != null) {
+            context.rightHandSide = ctx.expression().type;
+        }
         listener.ExitParentAssignment(context);
     }
 
@@ -870,6 +885,12 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterObjectAssignment(QuorumParser.ObjectAssignmentContext ctx) {
         ObjectAssignmentContext context = new ObjectAssignmentContext();
         setLocation(ctx, context);
+        context.object = ctx.object.getText();
+        context.parentName = ctx.parent.qualifiedName;
+        context.name = ctx.name.getText();
+        if(ctx.expression() != null) {
+            context.rightHandSide = ctx.expression().type;
+        }
         listener.EnterObjectAssignment(context);
     }
 
@@ -877,6 +898,12 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitObjectAssignment(QuorumParser.ObjectAssignmentContext ctx) {
         ObjectAssignmentContext context = new ObjectAssignmentContext();
         setLocation(ctx, context);
+        context.object = ctx.object.getText();
+        context.parentName = ctx.parent.qualifiedName;
+        context.name = ctx.name.getText();
+        if(ctx.expression() != null) {
+            context.rightHandSide = ctx.expression().type;
+        }
         listener.ExitObjectAssignment(context);
     }
 
@@ -884,6 +911,10 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterNoTypeAssignment(QuorumParser.NoTypeAssignmentContext ctx) {
         NoTypeAssignmentContext context = new NoTypeAssignmentContext();
         setLocation(ctx, context);
+        context.name = ctx.name.getText();
+        if(ctx.expression() != null) {
+            context.rightHandSide = ctx.expression().type;
+        }
         listener.EnterNoTypeAssignment(context);
     }
 
@@ -891,6 +922,14 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitNoTypeAssignment(QuorumParser.NoTypeAssignmentContext ctx) {
         NoTypeAssignmentContext context = new NoTypeAssignmentContext();
         setLocation(ctx, context);
+        context.name = ctx.name.getText();
+        if(ctx.ME() != null) {
+            context.isField = true;
+            context.hasMe = true;
+        }
+        if(ctx.expression() != null) {
+            context.rightHandSide = ctx.expression().type;
+        }
         listener.ExitNoTypeAssignment(context);
     }
 
