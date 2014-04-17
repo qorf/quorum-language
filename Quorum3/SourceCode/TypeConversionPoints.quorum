@@ -1,0 +1,22 @@
+package Libraries.Language.Compile.Symbol
+
+class TypeConversionPoints 
+    public constant integer exactMatch = 0
+    public constant integer super = 1
+    public constant integer exactAutoBox = 2
+    public constant integer losslessConvert = 3
+    public constant integer parentAutoBox = 4
+
+    integer points = exactMatch
+
+    action GetPoints returns integer
+        return points
+    end
+
+    action SetPoints(integer value)
+        if value < exactMatch or value > parentAutoBox
+            alert("Compiler Bug: Invalid number of points in type conversion")
+        end
+        points = value
+    end
+end
