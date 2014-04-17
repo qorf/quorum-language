@@ -3,6 +3,9 @@ package Libraries.Language.Compile.Symbol
 class Variable is Symbol
     boolean isParameter = false
     Type type = undefined
+    boolean isPrivate = true
+    boolean isPublic = false
+    boolean hasModifier = false
 
     action IsParameter returns boolean
         return isParameter
@@ -26,5 +29,31 @@ class Variable is Symbol
 
     action GetDisplayName returns text
         return GetStaticKey()
+    end
+
+    action IsPublic returns boolean
+        return isPublic
+    end
+
+    action SetPublic
+        isPublic = true
+        isPrivate = false
+    end
+
+    action IsPrivate returns boolean
+        return isPublic
+    end
+
+    action SetPrivate
+        isPublic = false
+        isPrivate = true
+    end
+
+    action HasExplicitModifier returns boolean
+        return hasModifier
+    end
+
+    action SetHasExplicitModifier(boolean hasModifier)
+        me:hasModifier = hasModifier
     end
 end

@@ -12,6 +12,7 @@ class Block
     integer currentBlock = 0
     Block parentBlock = undefined
     Class parentClass = undefined
+    Action parentAction = undefined
 
     action Add(Variable variable) returns CompilerError
         if variables:HasKey(variable:GetStaticKey())
@@ -28,6 +29,7 @@ class Block
     end
 
     action Add(Block block)
+        block:SetParentBlock(me)
         blocks:Add(block)
     end
 
@@ -45,5 +47,13 @@ class Block
 
     action SetParentClass(Class clazz)
         me:parentClass = clazz
+    end
+
+    action GetParentAction returns Action
+        return parentAction
+    end
+
+    action SetParentAction(Action method)
+        me:parentAction = method
     end
 end

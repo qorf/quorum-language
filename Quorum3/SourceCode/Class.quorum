@@ -8,6 +8,7 @@ use Libraries.Language.Compile.Location
 class Class is Symbol
     QualifiedName packageName
     HashTable<text, Action> actions
+    HashTable<text, Variable> fields
     Action constructor = undefined
 
     action Add(Action method) returns CompilerError
@@ -23,6 +24,20 @@ class Class is Symbol
         error:SetErrorMessage("Action " + method:GetDisplayName() + " has already been defined.")
 
         return error
+    end
+
+    action Add(Variable variable) returns CompilerError
+        if fields:HasKey(variable:GetStaticKey())
+            CompilerError error
+            Location location = error:GetLocation()
+            location:SetLineNumber(variable:GetLineNumber())
+            location:SetFile(variable:GetFile())
+            error:SetErrorMessage("Variable " + variable:GetDisplayName() + " has already been defined in class " + me:GetDisplayName())
+            return error
+        end
+
+        fields:Add(variable:GetStaticKey(), variable)
+        return undefined
     end
 
     action GetAction(text key) returns Action

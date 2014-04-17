@@ -1,3 +1,11 @@
 package Libraries.Language.Compile.Context
+
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.QualifiedName
+
 class ParentAssignmentContext is ParseContext
+    public boolean isField = false
+    public QualifiedName parentName = undefined
+    public text name = ""
+    public Type rightHandSide = undefined
 end

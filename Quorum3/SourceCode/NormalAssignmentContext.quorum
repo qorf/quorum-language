@@ -6,6 +6,11 @@ class NormalAssignmentContext is ParseContext
     public boolean isField = false
     public boolean isPublic = false
     public boolean isPrivate = true
+    /*
+        If the HasModifier flag is true, then this variable has an explicit
+        modifier specified by the user.
+    */
+    public boolean hasModifier = false
     public boolean isConstant = false
     public Type leftHandSide = undefined
     public text name = ""

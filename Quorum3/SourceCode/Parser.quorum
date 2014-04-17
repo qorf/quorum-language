@@ -77,7 +77,9 @@ class Parser is QuorumSourceListener
 
     action EnterBlock 
         Block block
-        blocks:Push(block)
+        if currentAction not= undefined
+            currentAction:AddBlock(block)
+        end
         currentBlock = block
     end
     
@@ -142,6 +144,7 @@ class Parser is QuorumSourceListener
     action EnterAction(ActionContext context) 
         Action act
         currentAction = act
+        act:SetParentClass(currentClass)
     end
 
     action ExitAction(ActionContext context) 
@@ -150,17 +153,54 @@ class Parser is QuorumSourceListener
     action ExitNormalAssignment(NormalAssignmentContext context)
         Variable variable
         variable:SetLocation(context:GetLocation())
+        if context:isPublic
+            variable:SetPublic()
+        end
+
+        variable:SetHasExplicitModifier(context:hasModifier)
         variable:SetName(context:name)
         variable:SetIsParameter(false)
         variable:SetType(context:leftHandSide) //guaranteed to exist for this rule
         //the right hand side is not guaranteed to exist for this
         //particular rule. If it is there, we don't care about it in the 
         //parser anyway, because we can't type check in the first pass
+        CompilerError error = undefined
         if currentBlock = undefined //we're in a field initiatlization block
-            
+            error = currentClass:Add(variable)
         else //we're in the block of an action
-            currentBlock:Add(variable)
+            error = currentBlock:Add(variable)
         end
 
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+        end
+    end
+
+    action EnterParentAssignment(ParentAssignmentContext context) end
+    action ExitParentAssignment(ParentAssignmentContext context) end
+
+    action EnterObjectAssignment(ObjectAssignmentContext context) end
+    action ExitObjectAssignment(ObjectAssignmentContext context) end
+
+    action EnterNoTypeAssignment(NoTypeAssignmentContext context) end
+    action ExitNoTypeAssignment(NoTypeAssignmentContext context) 
+        Variable variable
+        variable:SetLocation(context:GetLocation())
+        variable:SetName(context:name)
+        variable:SetIsParameter(false)
+
+
+        CompilerError error = undefined
+        if currentBlock = undefined //we're in a field initiatlization block
+            error = currentClass:Add(variable)
+        else //we're in the block of an action
+            error = currentBlock:Add(variable)
+        end
+
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+        end
     end
 end

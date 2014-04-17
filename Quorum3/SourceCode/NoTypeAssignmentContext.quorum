@@ -1,3 +1,19 @@
 package Libraries.Language.Compile.Context
+
+use Libraries.Language.Compile.Symbol.Type
+
 class NoTypeAssignmentContext is ParseContext
+    public boolean isField = false
+    public text name = ""
+    public Type rightHandSide = undefined
+    
+    /*
+        This variable is true if the me: is placed before the name field,
+        indicating that this is in reference to a field. It is here to distinguish
+        between a case where you have a field reference, and an overriden field
+        reference
+        someField = 5
+        me:SomeOtherField = 10
+    */ 
+    public boolean hasMe = false
 end

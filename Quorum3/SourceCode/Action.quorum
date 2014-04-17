@@ -9,13 +9,20 @@ class Action is Symbol
     boolean isSystem = false
     Type returnType = undefined
     Block block = undefined
+    Class parentClass = undefined
 
     action GetBlock returns Block
         return block
     end
 
-    action SetBlock(Block block)
-        me:block = block
+    action AddBlock(Block block)
+        block:SetParentAction(me)
+        block:SetParentClass(GetParentClass())
+        if me:block = undefined
+            me:block = block
+        else 
+            block:Add(block)
+        end
     end
 
     action AddParameter(Variable parameter)
@@ -24,6 +31,14 @@ class Action is Symbol
 
     action GetParametersSize returns integer
         return parameters:GetSize()
+    end
+
+    action GetParentClass returns Class
+        return parentClass
+    end
+
+    action SetParentClass(Class clazz)
+        parentClass = clazz
     end
 
     /*
