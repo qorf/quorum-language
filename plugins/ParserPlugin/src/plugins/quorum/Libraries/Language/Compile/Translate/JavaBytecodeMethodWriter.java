@@ -7,6 +7,16 @@
 package plugins.quorum.Libraries.Language.Compile.Translate;
 
 import org.objectweb.asm.MethodVisitor;
+import static org.objectweb.asm.Opcodes.ACONST_NULL;
+import static org.objectweb.asm.Opcodes.BIPUSH;
+import static org.objectweb.asm.Opcodes.ICONST_0;
+import static org.objectweb.asm.Opcodes.ICONST_1;
+import static org.objectweb.asm.Opcodes.ICONST_2;
+import static org.objectweb.asm.Opcodes.ICONST_3;
+import static org.objectweb.asm.Opcodes.ICONST_4;
+import static org.objectweb.asm.Opcodes.ICONST_5;
+import static org.objectweb.asm.Opcodes.ICONST_M1;
+import static org.objectweb.asm.Opcodes.SIPUSH;
 
 /**
  *
@@ -53,5 +63,61 @@ public class JavaBytecodeMethodWriter {
     }
     public void VisitVariable(int opcode, int variable) {
         methodVisitor.visitVarInsn(opcode, variable);
+    }
+    
+    public void VisitConstant(String value) {
+        Object v = value;
+        methodVisitor.visitLdcInsn(v);
+    }
+    
+    public void VisitConstant(int value) {
+        if ((value >= -1 && value <= 5)) {
+            switch (value) {
+                case -1:
+                    methodVisitor.visitInsn(ICONST_M1);
+                    break;
+                case 0:
+                    methodVisitor.visitInsn(ICONST_0);
+                    break;
+                case 1:
+                    methodVisitor.visitInsn(ICONST_1);
+                    break;
+                case 2:
+                    methodVisitor.visitInsn(ICONST_2);
+                    break;
+                case 3:
+                    methodVisitor.visitInsn(ICONST_3);
+                    break;
+                case 4:
+                    methodVisitor.visitInsn(ICONST_4);
+                    break;
+                case 5:
+                    methodVisitor.visitInsn(ICONST_5);
+                    break;
+            }
+        } else if ((value >= -128 && value <= 127)) {
+            methodVisitor.visitIntInsn(BIPUSH, value);
+        } else if ((value >= -32768 && value <= 32767)) {
+            methodVisitor.visitIntInsn(SIPUSH, value);
+        } else {
+            methodVisitor.visitLdcInsn(value);
+        }
+    }
+    
+    public void VisitConstant(boolean value) {
+        if (value) {
+            methodVisitor.visitInsn(ICONST_1);
+        } else {
+            methodVisitor.visitInsn(ICONST_0);
+        }
+    }
+    
+    public void VisitConstant(double value) {
+        Object v = value;
+        methodVisitor.visitLdcInsn(v);
+    }
+    
+    public void VisitUndefinedConstant() {
+        methodVisitor.visitInsn(ACONST_NULL);
     }
 }
