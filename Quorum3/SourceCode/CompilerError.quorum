@@ -2,28 +2,19 @@ package Libraries.Language.Compile
 
 use Libraries.System.File
 
-class CompilerError 
-    Location location
+class CompilerError is Location
     text message = ""
     CompilerErrorType errorType = undefined
-
-    action GetLocation returns Location
-        return location
-    end
-
-    action SetLocation(Location value) 
-        location = value
-    end
 
     action GetErrorMessage returns text
         return message
     end
 
     action GetDisplayName returns text
-        File file = location:GetFile()
+        File file = GetFile()
         text path = file:GetAbsolutePath()
-        text line = "" + location:GetLineNumber()
-        text column = "" + location:GetColumnNumber()
+        text line = "" + GetLineNumber()
+        text column = "" + GetColumnNumber()
         return path + ", Line " + line + ", Column " + column + ": " + message
     end
 
@@ -32,11 +23,9 @@ class CompilerError
     end
 
     action GetAbsolutePath returns text
-        if location not= undefined
-            File file = location:GetFile()
-            if file not= undefined
-                return file:GetAbsolutePath()
-            end
+        File file = GetFile()
+        if file not= undefined
+            return file:GetAbsolutePath()
         end
 
         text value = undefined

@@ -19,7 +19,6 @@ class CompilerErrorManager
 
     action Add(CompilerError error) 
         if error not= undefined
-            Location location = error:GetLocation()
             numberOfErrors = numberOfErrors + 1
             List<CompilerError> l = errorsPerFile:GetValue(error:GetStaticKey())
             if(l not= undefined) 

@@ -17,9 +17,8 @@ class Block
     action Add(Variable variable) returns CompilerError
         if variables:HasKey(variable:GetStaticKey())
             CompilerError error
-            Location location = error:GetLocation()
-            location:SetLineNumber(variable:GetLineNumber())
-            location:SetFile(variable:GetFile())
+            error:SetLineNumber(variable:GetLineNumber())
+            error:SetFile(variable:GetFile())
             error:SetErrorMessage("Variable " + variable:GetDisplayName() + " has already been defined.")
             return error
         end
@@ -27,6 +26,37 @@ class Block
         variables:Add(variable:GetStaticKey(), variable)
         return undefined
     end
+
+    action GetVariableThisBlock(text key) returns Variable
+        Variable variable = variables:GetValue(key)
+        return variable
+    end
+
+    action GetVariable(text key) returns Variable
+        Variable variable = variables:GetValue(key)
+        if variable not= undefined
+            return variable
+        end
+        //if undefined, check the parents
+        Block parentBlock = GetParentBlock()
+        repeat while parentBlock not= undefined
+            //check for the variable
+            variable = parentBlock:GetVariableThisBlock(key)
+            if variable not= undefined
+                return variable
+            end
+            parentBlock = parentBlock:GetParentBlock()
+        end //it isn't in any of the parent blocks, check the action and class
+
+        variable = parentAction:GetParameter(key)
+        if variable not= undefined
+            return variable
+        end
+
+        //not a parameter either, so check the class's fields
+        variable = parentClass:GetVariable(key)
+        return variable
+    end 
 
     action Add(Block block)
         block:SetParentBlock(me)

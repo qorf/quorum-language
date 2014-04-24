@@ -1,0 +1,141 @@
+package Libraries.Language.Compile
+
+use Libraries.Language.Compile.Context.all
+use Libraries.Containers.Stack
+use Libraries.Language.Compile.Symbol.all
+use Libraries.System.File
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
+
+class TypeCheckListener is QuorumSourceListener
+    QualifiedName packageValue = undefined
+    Action currentAction = undefined
+    Class currentClass = undefined
+    Block currentBlock = undefined
+    Stack<Block> blocks
+    Stack<Type> expressionStack
+
+    action ExitPackageRule(PackageContext context) 
+        packageValue = context:name
+    end
+
+    action EnterFullClassDeclaration(FullClassDeclarationContext context) 
+        text name = context:className
+        SymbolTable table = me:GetSymbolTable()
+        
+        text staticKey = ""
+        if packageValue = undefined
+            QualifiedName default
+            packageValue = default
+        end
+        staticKey = packageValue:GetStaticKey() + "." + name
+        currentClass = table:GetClass(staticKey)
+
+        if currentClass = undefined //throw an error
+            Location location = context:GetLocation()
+            CompilerError error
+            error:SetLineNumber(location:GetLineNumber())
+            error:SetFile(location:GetFile())
+            error:SetErrorMessage("Class " + context:className + " could not be found.")
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+        end
+    end
+
+    action ExitActionHeader(ActionContext context)
+        if currentClass not= undefined
+            //get the method name
+            text key = context:GetStaticKey()
+            Action method = currentClass:GetAction(key)
+            currentAction = method
+
+            if currentAction = undefined //throw an error
+                Location location = context:GetLocation()
+                CompilerError error
+                error:SetLineNumber(location:GetLineNumber())
+                error:SetFile(location:GetFile())
+                error:SetErrorMessage("Action " + key + " could not be found.")
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(error)
+            end
+        end
+    end
+
+    action EnterBlock
+        if currentBlock = undefined
+            currentBlock = currentAction:GetBlock()
+        end
+        blocks:Push(currentBlock)
+    end
+    
+    action ExitBlock
+        if not blocks:IsEmpty()
+            currentBlock = blocks:Pop()
+        else 
+            currentBlock = undefined
+        end
+    end
+
+    action ExitAction(ActionContext context) 
+        currentAction = undefined
+    end
+
+
+    action ExitNoTypeAssignment(NoTypeAssignmentContext context) 
+        text name = context:name
+        Variable variable = undefined
+
+        if context:hasMe or context:isField
+            variable = currentClass:GetVariable(name)
+        else 
+            variable = currentBlock:GetVariable(name)
+        end
+        
+        if variable = undefined
+            Location location = context:GetLocation()
+            CompilerError error
+            error:SetLineNumber(location:GetLineNumber())
+            error:SetFile(location:GetFile())
+            error:SetErrorMessage("Variable " + context:name + " could not be found.")
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+        end
+        Type type = expressionStack:Pop()
+        
+        if variable:IsDefined() //this is another assignment, not the initial one
+            //ask the type checker if this assignment is legal
+        else //this is an implicit cast, so make sure if follows the rules
+            
+        end
+
+        a = 5
+    end
+
+    action ExitInteger(IntegerContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetIntegerConstant(context:value)
+        expressionStack:Push(type)
+    end
+    
+    action ExitText(TextContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetTextConstant(context:value)
+        expressionStack:Push(type)
+    end
+
+    action ExitBoolean(BooleanContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetBooleanConstant(context:value)
+        expressionStack:Push(type)
+    end
+
+    action ExitNumber(NumberContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetNumberConstant(context:value)
+        expressionStack:Push(type)
+    end
+end

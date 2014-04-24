@@ -6,6 +6,15 @@ class Variable is Symbol
     boolean isPrivate = true
     boolean isPublic = false
     boolean hasModifier = false
+    boolean isDefined = false
+
+    action IsDefined returns boolean
+        return isDefined
+    end
+
+    action SetIsDefined(boolean defined) 
+        isDefined = defined
+    end
 
     action IsParameter returns boolean
         return isParameter

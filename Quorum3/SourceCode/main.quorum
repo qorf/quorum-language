@@ -16,6 +16,10 @@ class Main
         output "Parsing"
         compiler:Parse(file, parser)
 
+        output "Typechecking"
+        TypeCheckListener checker
+        compiler:Parse(file, checker)
+
         output "Writing bytecode"
         QuorumBytecodeListener bytecode
         compiler:Parse(file, bytecode)

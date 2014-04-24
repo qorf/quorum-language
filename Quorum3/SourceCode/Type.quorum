@@ -62,6 +62,26 @@ class Type
         return textConstant
     end
 
+    action SetBooleanConstant(boolean value)
+        booleanConstant = value
+        SetToBoolean()
+    end
+
+    action SetIntegerConstant(integer value)
+        integerConstant = value
+        SetToInteger()
+    end
+
+    action SetNumberConstant(number value)
+        numberConstant = value
+        SetToNumber()
+    end
+
+    action SetTextConstant(text value) 
+        textConstant = value
+        SetToText()
+    end
+
     /* This action returns a constant value representing a known constant
        for this type. If this type is not declared as a constant, this
        action is invalid.

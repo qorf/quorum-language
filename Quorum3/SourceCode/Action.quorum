@@ -2,9 +2,11 @@ package Libraries.Language.Compile.Symbol
 
 use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.HashTable
 
 class Action is Symbol
     List<Variable> parameters
+    HashTable<text, Variable> parameterHash
     boolean isBlueprint = false
     boolean isSystem = false
     Type returnType = undefined
@@ -27,6 +29,11 @@ class Action is Symbol
 
     action AddParameter(Variable parameter)
         parameters:Add(parameter)
+        parameterHash:Add(parameter:GetStaticKey(), parameter)
+    end
+
+    action GetParameter(text key) returns Variable
+        return parameterHash:GetValue(key)
     end
 
     action GetParametersSize returns integer

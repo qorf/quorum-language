@@ -1,4 +1,23 @@
 package Libraries.Language.Compile.Symbol
 
+use Libraries.Containers.HashTable
+
 class TypeChecker
+    HashTable<text, TypeCheckResult> results
+
+    on create
+        GenerateTypeCheckingTable()
+    end
+
+    action GenerateTypeCheckingTable
+
+    end
+    
+    action Check(Type left, Type right, Operation op, boolean assignment, boolean local) returns TypeCheckResult
+        return undefined
+    end
+
+    action Check(Type left, Operation op) returns TypeCheckResult
+        return undefined
+    end
 end

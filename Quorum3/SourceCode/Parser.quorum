@@ -81,15 +81,12 @@ class Parser is QuorumSourceListener
             currentAction:AddBlock(block)
         end
         currentBlock = block
+        blocks:Push(block)
     end
     
     action ExitBlock
         if not blocks:IsEmpty()
-            blocks:Pop()
-        end
-
-        if not blocks:IsEmpty()
-            currentBlock = blocks:Peek()
+            currentBlock = blocks:Pop()
         else 
             currentBlock = undefined
         end
