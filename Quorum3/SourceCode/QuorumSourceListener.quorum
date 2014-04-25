@@ -1,11 +1,13 @@
 package Libraries.Language.Compile
 
 use Libraries.Language.Compile.Context.all
+use Libraries.Language.Compile.Symbol.TypeChecker
 use Libraries.System.File
 use Libraries.Language.Compile.Symbol.SymbolTable
 
 class QuorumSourceListener
     SymbolTable symbolTable = undefined
+    TypeChecker typeChecker = undefined
     File file = undefined
     CompilerErrorManager compilerErrorManager = undefined
 
@@ -15,6 +17,14 @@ class QuorumSourceListener
 
     action SetCompilerErrorManager(CompilerErrorManager errors)
         compilerErrorManager = errors
+    end
+
+    action GetTypeChecker returns TypeChecker
+        return typeChecker
+    end
+
+    action SetTypeChecker(TypeChecker checker)
+        typeChecker = checker
     end
 
     action GetSymbolTable returns SymbolTable

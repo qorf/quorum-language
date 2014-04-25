@@ -138,6 +138,16 @@ class CompilerErrorType
     end
 
     action SetCurrentType(integer type)
+        if type < MISSING_VARIABLE or type > INITIALIZED_OUT_OF_BOUNDS
+            alert("Compiler bug: Invalid CompilerErrorType")
+        end
+
         currentType = type
+    end
+
+    action Copy returns CompilerErrorType
+        CompilerErrorType type
+        type:SetCurrentType(currentType)
+        return type
     end
 end

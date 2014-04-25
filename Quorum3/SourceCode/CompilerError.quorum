@@ -6,6 +6,21 @@ class CompilerError is Location
     text message = ""
     CompilerErrorType errorType = undefined
 
+    action GetCompilerErrorType returns CompilerErrorType
+        if errorType not= undefined
+            return errorType:Copy()
+        end
+        return undefined
+    end
+
+    action SetCompilerErrorType(CompilerErrorType type)
+        if type not= undefined
+            errorType = type:Copy()
+        else 
+            errorType = undefined
+        end
+    end
+
     action GetErrorMessage returns text
         return message
     end

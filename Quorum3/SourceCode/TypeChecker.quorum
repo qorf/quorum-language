@@ -1,6 +1,7 @@
 package Libraries.Language.Compile.Symbol
 
 use Libraries.Containers.HashTable
+use Libraries.Language.Compile.CompilerErrorType
 
 class TypeChecker
     HashTable<text, TypeCheckResult> results
@@ -140,8 +141,54 @@ class TypeChecker
         end
     end
     
+    action Check(Type left, Type right, Operation op) returns TypeCheckResult
+        return Check(left, right, op, false, false)
+    end
+
+    action Check(Type left, Type right, Operation op, boolean assignment) returns TypeCheckResult
+        return Check(left, right, op, assignment, false)
+    end
+
     action Check(Type left, Type right, Operation op, boolean assignment, boolean local) returns TypeCheckResult
-        return undefined
+        text leftKey = ""
+        text rightKey = ""
+
+        if left not= undefined
+            leftKey = left:GetStaticKey()
+        end
+
+        if right not= undefined
+            rightKey = right:GetStaticKey()
+        end
+
+        text key = GenerateTypeCheckKey(leftKey, rightKey, op, assignment, local)
+        TypeCheckResult result = results:GetValue(key)
+
+        if result = undefined
+            TypeCheckResult newResult
+            CompilerErrorType error
+            result = newResult
+
+            TypeConversionConstants convert = result:conversion
+            convert:SetConversion(convert:incompatible)
+            text quote = leftKey:GetDoubleQuote()
+            if assignment
+                //leftKey = "" //account for generics later
+                //rightKey = "" //account for generics later
+
+                result:errorMessage = "Cannot assign a value of type " + quote + 
+                    rightKey + quote + "" + " to a variable of type " + quote + leftKey + quote + "."
+                error:SetCurrentType(error:INVALID_OPERATOR)
+                result:errorType = error
+            else 
+                result:errorMessage = "The operation " + quote + leftKey + quote + " " + op:GetText()
+                    + " " + quote + rightKey + quote + ", is not allowed."
+                error:SetCurrentType(error:INCOMPATIBLE_TYPES)
+                result:errorType = error
+            end
+        end
+        
+        return result
     end
 
     action Check(Type left, Operation op) returns TypeCheckResult

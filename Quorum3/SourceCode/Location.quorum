@@ -66,4 +66,17 @@ class Location
     action SetFile(File file)
         me:file = file
     end
+
+    /*
+        This action uses the location and resets the current error's data.
+    */
+    action SetLocation(Location location) 
+        me:startLine = location:GetLineNumber()
+        me:endLine = location:GetLineNumberEnd()
+        me:startColumn = location:GetColumnNumber()
+        me:endColumn = location:GetColumnNumberEnd()
+        me:startIndex = location:GetIndex()
+        me:endIndex = location:GetIndexEnd()
+        me:file = location:GetFile()
+    end
 end

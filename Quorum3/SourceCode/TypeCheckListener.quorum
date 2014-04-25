@@ -111,6 +111,21 @@ class TypeCheckListener is QuorumSourceListener
         a = 5
     end
 
+    action ExitAddition(Addition addition) 
+        TypeChecker checker = GetTypeChecker()
+        Type right = expressionStack:Pop()
+        Type left = expressionStack:Pop()
+        Operation add
+        add:SetOperation(add:PLUS)
+        
+        TypeCheckResult result = checker:Check(left, right, add) 
+        CompilerError error = result:GetCompilerError(addition:GetLocation())
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+        end
+    end
+
     action ExitInteger(IntegerContext context) 
         Type type
         type:SetIsConstant(true)

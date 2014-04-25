@@ -6,14 +6,16 @@ use Libraries.Language.Compile.Symbol.all
 class Compiler
     SymbolTable symbolTable
     CompilerErrorManager compilerErrorManager
+    TypeChecker checker
 
     action Parse(File file, QuorumSourceListener listener)
         listener:SetSymbolTable(symbolTable)
         listener:SetCompilerErrorManager(compilerErrorManager)
         listener:SetFile(file)
+        listener:SetTypeChecker(checker)
         ParseNative(file, listener)
     end
 
-    system action ParseNative(File file, QuorumSourceListener listener)
+    private system action ParseNative(File file, QuorumSourceListener listener)
 
 end
