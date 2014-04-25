@@ -30,6 +30,13 @@ class Type
         return staticKey
     end
 
+    action GetBytecodeSize returns integer
+        if me:IsNumber()
+            return 2
+        end
+        return 1
+    end
+
     action GetDisplayName returns text
         return staticKey
     end

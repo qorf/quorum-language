@@ -13,6 +13,7 @@ class Block
     Block parentBlock = undefined
     Class parentClass = undefined
     Action parentAction = undefined
+    integer bytecodeLocation = 0
 
     action Add(Variable variable) returns CompilerError
         if variables:HasKey(variable:GetStaticKey())
@@ -22,9 +23,26 @@ class Block
             error:SetErrorMessage("Variable " + variable:GetDisplayName() + " has already been defined.")
             return error
         end
-
         variables:Add(variable:GetStaticKey(), variable)
         return undefined
+    end
+
+    action SetByteCodeLocation(Variable variable)
+        Type type = variable:GetType()
+        integer size = type:GetBytecodeSize()
+        integer parentLoc = GetBytecodeLocation()
+        variable:SetBytecodeLocation(parentLoc)
+        bytecodeLocation = bytecodeLocation + size
+    end
+
+    action GetBytecodeLocation returns integer
+        integer size = 0
+        if parentBlock not= undefined
+            size = parentBlock:GetBytecodeLocation()
+        else 
+            size = parentAction:GetBytecodeLocation()
+        end
+        return size + bytecodeLocation
     end
 
     action GetVariableThisBlock(text key) returns Variable

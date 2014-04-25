@@ -1,0 +1,30 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
+
+class JavaOpcodeWriter 
+    List<integer> list
+
+    action AddOpcode(integer op)
+        list:Add(op)
+    end
+
+    /*
+        returns the number of opcodes that will be written.
+    */ 
+    action GetSize returns integer
+        return list:GetSize()
+    end
+
+    action Write(JavaBytecodeMethodWriter writer) 
+        Iterator<integer> it = list:GetIterator()
+        repeat while it:HasNext()
+            integer opcode = it:Next()
+            writer:VisitInstruction(opcode)
+        end
+    end
+
+    action Write(JavaBytecodeClassWriter writer)
+    end
+end

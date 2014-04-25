@@ -6,9 +6,11 @@ use Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter
 use Libraries.Language.Compile.Translate.QuorumBytecodeConverter
 use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
 use Libraries.Language.Compile.Symbol.all
+use Libraries.Language.Compile.Translate.JavaOpcodeWriter
 
 use Libraries.Containers.Array
 use Libraries.System.File
+use Libraries.Containers.Stack
 
 class QuorumBytecodeListener is QuorumSourceListener 
     QualifiedName packageValue = undefined
@@ -17,7 +19,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     JavaBytecodeMethodWriter methodWriter = undefined
     QuorumBytecodeConverter converter
     JavaBytecodeOpcodes opcodes
+    Action currentAction = undefined
     Class currentClass = undefined
+    Block currentBlock = undefined
     constant integer ME = 0
     constant text BUILD = "TestBuild"
     constant text RUN = "TestRun"
@@ -29,6 +33,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     boolean isNormalAction = false
     boolean isSystemAction = false
     boolean isBluePrintAction = false
+    Stack<Type> expressionStack
 
     private action SetNormalAction 
         isNormalAction = true
@@ -143,6 +148,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             //get the method name
             text key = context:GetStaticKey()
             Action method = currentClass:GetAction(key)
+            currentAction = method
             boolean isMain = method:IsMain()
 
             if isMain
@@ -233,18 +239,89 @@ class QuorumBytecodeListener is QuorumSourceListener
                 "(" + "Ljava/lang/String;" + ")V", false)
     end
 
-    //Expression Parsing here
-
-    action ExitAddition(Addition addition) 
-        //for now just handle integers
-        methodWriter:VisitInstruction(opcodes:GetIntegerAdd())
+    action EnterBlock
+        if currentBlock = undefined
+            currentBlock = currentAction:GetBlock()
+        end
+    end
+    
+    action ExitBlock
+        if currentBlock not= undefined
+            currentBlock = currentBlock:GetParentBlock() //may be undefined
+        end
     end
 
-    action ExitInteger(IntegerContext int) 
-        methodWriter:VisitConstant(int:value)
+    //Expression Parsing here
+    action EnterNoTypeAssignment(NoTypeAssignmentContext context) 
+
+    end
+
+
+    action ExitNoTypeAssignment(NoTypeAssignmentContext context) 
+
+        text name = context:name
+        Variable variable = undefined
+
+        if context:hasMe or context:isField
+            variable = currentClass:GetVariable(name)
+            //write the field
+
+
+        else 
+            variable = currentBlock:GetVariable(name)
+            //write the local variable, guaranteed at this stage not be null
+            integer location = variable:GetBytecodeLocation()
+            //temporary --- replace with actual opcode output
+            methodWriter:VisitVariable(opcodes:GetIntegerStore(),location)
+            
+        end
+        //methodVisitor.visitVarInsn(QuorumConverter.getStoreOpcode(valueType), mappedVariableNumber);
+    end
+
+
+
+    action ExitAddition(Addition addition) 
+
+        TypeChecker checker = GetTypeChecker()
+        Type right = expressionStack:Pop()
+        Type left = expressionStack:Pop()
+        Operation add
+        add:SetOperation(add:PLUS)
+        
+        TypeCheckResult result = checker:Check(left, right, add) 
+        JavaOpcodeWriter opcodeWriter = result:writer
+        opcodeWriter:Write(methodWriter)
+    end
+
+    action ExitInteger(IntegerContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetIntegerConstant(context:value)
+        expressionStack:Push(type)
+        methodWriter:VisitConstant(context:value)
     end
     
     action ExitText(TextContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetTextConstant(context:value)
+        expressionStack:Push(type)
+        methodWriter:VisitConstant(context:value)
+    end
+
+    action ExitBoolean(BooleanContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetBooleanConstant(context:value)
+        expressionStack:Push(type)
+        methodWriter:VisitConstant(context:value)
+    end
+
+    action ExitNumber(NumberContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetNumberConstant(context:value)
+        expressionStack:Push(type)
         methodWriter:VisitConstant(context:value)
     end
 end

@@ -99,13 +99,20 @@ class TypeCheckListener is QuorumSourceListener
             error:SetErrorMessage("Variable " + context:name + " could not be found.")
             CompilerErrorManager manager = GetCompilerErrorManager()
             manager:Add(error)
+            return now
         end
+
         Type type = expressionStack:Pop()
-        
+        integer bytecodeSize = type:GetBytecodeSize()
         if variable:IsDefined() //this is another assignment, not the initial one
             //ask the type checker if this assignment is legal
         else //this is an implicit cast, so make sure if follows the rules
-            
+            if variable:GetType() = undefined //implicit cast. If it follows the rules, allow it
+                variable:SetType(type)
+            end
+            if not context:hasMe and not context:isField
+                currentBlock:SetByteCodeLocation(variable)
+            end
         end
 
         a = 5
@@ -123,7 +130,10 @@ class TypeCheckListener is QuorumSourceListener
         if error not= undefined
             CompilerErrorManager manager = GetCompilerErrorManager()
             manager:Add(error)
+            return now
         end
+
+        expressionStack:Push(result:result)
     end
 
     action ExitInteger(IntegerContext context) 

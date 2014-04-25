@@ -2,10 +2,13 @@ package Libraries.Language.Compile.Symbol
 
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.CompilerErrorType
+use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
+use Libraries.Language.Compile.Translate.JavaOpcodeWriter
 
 class TypeChecker
     HashTable<text, TypeCheckResult> results
     Type constants
+    JavaBytecodeOpcodes opcodes
     on create
         GenerateTypeCheckingTable()
     end
@@ -14,7 +17,7 @@ class TypeChecker
         TypeCheckResult result = undefined
         Type type = undefined
         Operation opConstant
-
+        JavaOpcodeWriter opcodeWriter = undefined
         ////////////////////////////////////////////////////////////////////////
         //INTEGER INTEGER
         ////////////////////////////////////////////////////////////////////////
@@ -22,6 +25,8 @@ class TypeChecker
         text key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
                 constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:AddOpcode(opcodes:GetIntegerAdd())
         type = result:result
         type:SetToInteger()
         results:Add(key, result)
@@ -30,6 +35,8 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
             constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:AddOpcode(opcodes:GetIntegerSubtract())
         type = result:result
         type:SetToInteger()
         results:Add(key, result)
@@ -38,6 +45,8 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
             constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:AddOpcode(opcodes:GetIntegerMultiply())
         type = result:result
         type:SetToInteger()
         results:Add(key, result)
@@ -46,6 +55,8 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
             constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:AddOpcode(opcodes:GetIntegerDivide())
         type = result:result
         type:SetToInteger()
         results:Add(key, result)
@@ -54,6 +65,8 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
             constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:AddOpcode(opcodes:GetIntegerModulus())
         type = result:result
         type:SetToInteger()
         results:Add(key, result)
@@ -117,7 +130,7 @@ class TypeChecker
         TypeCheckResult result
         
         TypeConversionConstants c = result:conversion
-        c:SetConversion(c:none)
+        c:SetConversion(c:NONE)
         result:errorMessage = ""
         return result
     end
@@ -170,7 +183,7 @@ class TypeChecker
             result = newResult
 
             TypeConversionConstants convert = result:conversion
-            convert:SetConversion(convert:incompatible)
+            convert:SetConversion(convert:INCOMPATIBLE)
             text quote = leftKey:GetDoubleQuote()
             if assignment
                 //leftKey = "" //account for generics later

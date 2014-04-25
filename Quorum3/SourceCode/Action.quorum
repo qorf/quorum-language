@@ -12,6 +12,7 @@ class Action is Symbol
     Type returnType = undefined
     Block block = undefined
     Class parentClass = undefined
+    integer bytecodeLocation = 1 //always start skipping "this"
 
     action GetBlock returns Block
         return block
@@ -28,8 +29,17 @@ class Action is Symbol
     end
 
     action AddParameter(Variable parameter)
+        Type type = parameter:GetType()
+        integer size = type:GetBytecodeSize()
+        parameter:SetBytecodeLocation(bytecodeLocation)
+        bytecodeLocation = bytecodeLocation + size
+
         parameters:Add(parameter)
         parameterHash:Add(parameter:GetStaticKey(), parameter)
+    end
+
+    action GetBytecodeLocation returns integer
+        return bytecodeLocation
     end
 
     action GetParameter(text key) returns Variable

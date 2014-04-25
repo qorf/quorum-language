@@ -3,6 +3,7 @@ package Libraries.Language.Compile.Symbol
 use Libraries.Language.Compile.CompilerErrorType
 use Libraries.Language.Compile.CompilerError
 use Libraries.Language.Compile.Location
+use Libraries.Language.Compile.Translate.JavaOpcodeWriter
 
 class TypeCheckResult 
     public Type result
@@ -10,6 +11,7 @@ class TypeCheckResult
     public TypeConversionPoints points
     public text errorMessage = ""
     public CompilerErrorType errorType = undefined
+    public JavaOpcodeWriter writer
 
     action GetCompilerError(Location location) returns CompilerError
         if errorType not= undefined

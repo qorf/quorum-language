@@ -1,21 +1,21 @@
 package Libraries.Language.Compile.Symbol
 
 class TypeConversionConstants 
-    public constant integer widening = 0
-    public constant integer narrowing = 1
-    public constant integer none = 2
-    public constant integer incompatible = 3
-    public constant integer subclassWidening = 4
-    public constant integer subclassNarrowing = 5
+    public constant integer WIDENING = 0
+    public constant integer NARROWING = 1
+    public constant integer NONE = 2
+    public constant integer INCOMPATIBLE = 3
+    public constant integer SUBCLASS_WIDENING = 4
+    public constant integer SUBCLASS_NARROWING = 5
 
-    integer currentValue = none
+    integer currentValue = NONE
 
     action GetConversion returns integer
         return currentValue
     end
 
     action SetConversion(integer value)
-        if value < widening or value > subclassNarrowing
+        if value < WIDENING or value > SUBCLASS_NARROWING
             alert("Compiler Bug: Invalid type conversion")
         end
         currentValue = value

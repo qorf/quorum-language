@@ -251,6 +251,22 @@ class JavaBytecodeOpcodes
         return IADD
     end
 
+    action GetIntegerSubtract returns integer
+        return ISUB
+    end
+
+    action GetIntegerMultiply returns integer
+        return IMUL
+    end
+
+    action GetIntegerDivide returns integer
+        return IDIV
+    end
+
+    action GetIntegerModulus returns integer
+        return IREM
+    end
+
     action GetReturn returns integer
         return RETURN
     end
@@ -286,6 +302,10 @@ class JavaBytecodeOpcodes
 
     action GetStoreObject returns integer
         return ASTORE
+    end
+
+    action GetIntegerStore returns integer
+        return ISTORE
     end
 
     action GetLoadObject returns integer
