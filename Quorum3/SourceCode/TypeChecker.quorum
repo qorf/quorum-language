@@ -4,13 +4,140 @@ use Libraries.Containers.HashTable
 
 class TypeChecker
     HashTable<text, TypeCheckResult> results
-
+    Type constants
     on create
         GenerateTypeCheckingTable()
     end
 
     action GenerateTypeCheckingTable
+        TypeCheckResult result = undefined
+        Type type = undefined
+        Operation opConstant
 
+        ////////////////////////////////////////////////////////////////////////
+        //INTEGER INTEGER
+        ////////////////////////////////////////////////////////////////////////
+        Operation op = GetOperation(opConstant:PLUS)
+        text key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
+                constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:MINUS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
+            constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:TIMES)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
+            constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:DIVIDE)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
+            constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:MODULUS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
+            constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:EQUALS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
+            constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:NOT_EQUALS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
+            constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:GREATER_EQUALS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
+            constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:GREATER)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
+            constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:LESS_EQUALS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
+            constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:LESS_EQUALS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
+            constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+    end
+
+    action GetOperation(integer value) returns Operation
+        Operation op
+        op:SetOperation(value)
+        return op
+    end
+
+    action GetNoConvertResult returns TypeCheckResult
+        TypeCheckResult result
+        
+        TypeConversionConstants c = result:conversion
+        c:SetConversion(c:none)
+        result:errorMessage = ""
+        return result
+    end
+
+    action GenerateTypeCheckKey(text left, text right,
+            Operation op, boolean assignment) returns text
+        return GenerateTypeCheckKey(left, right, op, assignment, false)
+    end
+
+    action GenerateTypeCheckKey(text left, text right,
+            Operation op, boolean assignment, boolean local) returns text
+        text a = "f"
+        if assignment 
+            a = "t"
+        end
+
+        if op not= undefined 
+            return left  + "$" + right + "$" + op:GetText() + "$" + a + "$" + local
+        else
+            return left  + "$" + right + "$" + a + "$" + local
+        end
     end
     
     action Check(Type left, Type right, Operation op, boolean assignment, boolean local) returns TypeCheckResult
