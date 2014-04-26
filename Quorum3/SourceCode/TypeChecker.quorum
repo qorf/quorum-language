@@ -118,6 +118,19 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         results:Add(key, result)
+
+        ////////////////////////////////////////////////////////////////////////
+        //Assignment Operations
+        ////////////////////////////////////////////////////////////////////////
+        //Integer integer
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
+            constants:INTEGER_PRIMITIVE_KEY, undefined, true, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToInteger()
+        opcodeWriter = result:writer
+        opcodeWriter:AddOpcode(opcodes:GetIntegerStore())
+        results:Add(key, result)
     end
 
     action GetOperation(integer value) returns Operation

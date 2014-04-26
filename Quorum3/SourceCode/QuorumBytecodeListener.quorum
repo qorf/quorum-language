@@ -269,10 +269,21 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         else 
             variable = currentBlock:GetVariable(name)
+            Type left = variable:GetType()
+            Type right = expressionStack:Pop()
+
+            Operation assign
+            assign:SetOperation(assign:EQUALS)
+
+            TypeChecker checker = GetTypeChecker()
+            TypeCheckResult result = checker:Check(left, right, assign, true, true) 
+
             //write the local variable, guaranteed at this stage not be null
             integer location = variable:GetBytecodeLocation()
             //temporary --- replace with actual opcode output
-            methodWriter:VisitVariable(opcodes:GetIntegerStore(),location)
+            JavaOpcodeWriter writer = result:writer
+            writer:Write(methodWriter, location)
+            //methodWriter:VisitVariable(opcodes:GetIntegerStore(),location)
             
         end
         //methodVisitor.visitVarInsn(QuorumConverter.getStoreOpcode(valueType), mappedVariableNumber);

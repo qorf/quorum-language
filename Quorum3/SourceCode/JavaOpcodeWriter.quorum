@@ -17,11 +17,26 @@ class JavaOpcodeWriter
         return list:GetSize()
     end
 
+    /*
+        This version of the Write method uses the VisitInstruction method.
+    */
     action Write(JavaBytecodeMethodWriter writer) 
         Iterator<integer> it = list:GetIterator()
         repeat while it:HasNext()
             integer opcode = it:Next()
             writer:VisitInstruction(opcode)
+        end
+    end
+
+    /*
+        This version of the Write method calls a store using the
+        VisitVariable method
+    */
+    action Write(JavaBytecodeMethodWriter writer, integer location) 
+        Iterator<integer> it = list:GetIterator()
+        repeat while it:HasNext()
+            integer opcode = it:Next()
+            writer:VisitVariable(opcode, location)
         end
     end
 
