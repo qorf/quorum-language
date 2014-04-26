@@ -5,8 +5,9 @@ use Libraries.System.File
 use Libraries.Containers.Blueprints.Iterator
 
 class Main
+    public constant number VERSION = 3.0
     action Main
-        output "Hi, from Quorum 3"
+        output "Hi, from Quorum " + VERSION
 
         Compiler compiler
         File file

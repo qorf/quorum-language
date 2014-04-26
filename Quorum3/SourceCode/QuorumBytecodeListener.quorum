@@ -235,8 +235,10 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     end
     action ExitPrintStatement 
+
+        Type type = expressionStack:Pop()
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), "java/io/PrintStream", "println",
-                "(" + "Ljava/lang/String;" + ")V", false)
+                "(" + converter:ConvertTypeToBytecodeSignature(type) + ")V", false)
     end
 
     action EnterBlock
