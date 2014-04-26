@@ -176,14 +176,18 @@ loop_statement
             )  block END
     ;
 
-expression returns [quorum.Libraries.Language.Compile.Symbol.Type type]
-    : 
-        qualified_name (COLON ID)?                                                              #VariableOrFieldAccess
-    |	qualified_name COLON PARENT COLON qualified_name COLON ID                               #ParentFieldAccess
-    |	qualified_name (COLON ID)? LEFT_PAREN function_expression_list RIGHT_PAREN              #ObjectFunctionCall
-    |	PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN    #ParentFunctionCall
-    |	ME COLON qualified_name                                                                 #MeVariableAccess
-    |	ME COLON qualified_name (COLON ID)? LEFT_PAREN function_expression_list RIGHT_PAREN     #MeFunctionCall
+action_call
+    :   var=ID (LEFT_PAREN function_expression_list RIGHT_PAREN)?
+    ;
+
+parent_call
+    :   PARENT COLON parent=qualified_name (COLON action_call)+ 
+    ;
+
+expression
+    :  
+        (ME COLON)? name=ID (COLON (parent_call | (action_call)*))?                             #VariableFunctionCall
+    |   (ME COLON)? parent_call (COLON action_call)+                                            #ParentVariableFunctionCall
     |   MINUS expression                                                                        #Minus
     |   NOT expression                                                                          #Not
     |   CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN                     #Cast

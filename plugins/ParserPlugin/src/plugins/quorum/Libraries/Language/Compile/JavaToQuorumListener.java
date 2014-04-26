@@ -77,16 +77,6 @@ public class JavaToQuorumListener implements QuorumListener {
     }
 
     @Override
-    public void enterParentFunctionCall(QuorumParser.ParentFunctionCallContext ctx) {
-        listener.EnterParentFunctionCall();
-    }
-
-    @Override
-    public void exitParentFunctionCall(QuorumParser.ParentFunctionCallContext ctx) {
-        listener.ExitParentFunctionCall();
-    }
-
-    @Override
     public void enterCheck_statement(QuorumParser.Check_statementContext ctx) {
         listener.EnterCheckStatement();
     }
@@ -94,16 +84,6 @@ public class JavaToQuorumListener implements QuorumListener {
     @Override
     public void exitCheck_statement(QuorumParser.Check_statementContext ctx) {
         listener.ExitCheckStatement();
-    }
-
-    @Override
-    public void enterParentFieldAccess(QuorumParser.ParentFieldAccessContext ctx) {
-        listener.EnterParentFieldAccess();
-    }
-
-    @Override
-    public void exitParentFieldAccess(QuorumParser.ParentFieldAccessContext ctx) {
-        listener.ExitParentFieldAccess();
     }
 
     @Override
@@ -134,16 +114,6 @@ public class JavaToQuorumListener implements QuorumListener {
         NoClassDeclarationContext context = new NoClassDeclarationContext();
         setLocation(ctx, context);
         listener.ExitNoClassDeclaration(context);
-    }
-
-    @Override
-    public void enterObjectFunctionCall(QuorumParser.ObjectFunctionCallContext ctx) {
-        listener.EnterObjectFunctionCall();
-    }
-
-    @Override
-    public void exitObjectFunctionCall(QuorumParser.ObjectFunctionCallContext ctx) {
-        listener.ExitObjectFunctionCall();
     }
 
     @Override
@@ -294,26 +264,6 @@ public class JavaToQuorumListener implements QuorumListener {
     @Override
     public void exitInherits(QuorumParser.InheritsContext ctx) {
         listener.ExitInherits();
-    }
-
-    @Override
-    public void enterVariableOrFieldAccess(QuorumParser.VariableOrFieldAccessContext ctx) {
-        listener.EnterVariableOrFieldAccess();
-    }
-
-    @Override
-    public void exitVariableOrFieldAccess(QuorumParser.VariableOrFieldAccessContext ctx) {
-        listener.ExitVariableOrFieldAccess();
-    }
-
-    @Override
-    public void enterMeFunctionCall(QuorumParser.MeFunctionCallContext ctx) {
-        listener.EnterMeFunctionCall();
-    }
-
-    @Override
-    public void exitMeFunctionCall(QuorumParser.MeFunctionCallContext ctx) {
-        listener.ExitMeFunctionCall();
     }
 
     @Override
@@ -854,10 +804,6 @@ public class JavaToQuorumListener implements QuorumListener {
         if(ctx.assignment_declaration() != null) {
             context.leftHandSide = ctx.assignment_declaration().type;
         }
-        
-        if(ctx.expression() != null) {
-            context.rightHandSide = ctx.expression().type;
-        }
         listener.ExitNormalAssignment(context);
     }
 
@@ -867,9 +813,6 @@ public class JavaToQuorumListener implements QuorumListener {
         setLocation(ctx, context);
         context.parentName = ctx.parent.qualifiedName;
         context.name = ctx.name.getText();
-        if(ctx.expression() != null) {
-            context.rightHandSide = ctx.expression().type;
-        }
         listener.EnterParentAssignment(context);
     }
 
@@ -879,9 +822,6 @@ public class JavaToQuorumListener implements QuorumListener {
         setLocation(ctx, context);
         context.parentName = ctx.parent.qualifiedName;
         context.name = ctx.name.getText();
-        if(ctx.expression() != null) {
-            context.rightHandSide = ctx.expression().type;
-        }
         listener.ExitParentAssignment(context);
     }
 
@@ -892,9 +832,6 @@ public class JavaToQuorumListener implements QuorumListener {
         context.object = ctx.object.getText();
         context.parentName = ctx.parent.qualifiedName;
         context.name = ctx.name.getText();
-        if(ctx.expression() != null) {
-            context.rightHandSide = ctx.expression().type;
-        }
         listener.EnterObjectAssignment(context);
     }
 
@@ -905,9 +842,6 @@ public class JavaToQuorumListener implements QuorumListener {
         context.object = ctx.object.getText();
         context.parentName = ctx.parent.qualifiedName;
         context.name = ctx.name.getText();
-        if(ctx.expression() != null) {
-            context.rightHandSide = ctx.expression().type;
-        }
         listener.ExitObjectAssignment(context);
     }
 
@@ -916,9 +850,6 @@ public class JavaToQuorumListener implements QuorumListener {
         NoTypeAssignmentContext context = new NoTypeAssignmentContext();
         setLocation(ctx, context);
         context.name = ctx.name.getText();
-        if(ctx.expression() != null) {
-            context.rightHandSide = ctx.expression().type;
-        }
         listener.EnterNoTypeAssignment(context);
     }
 
@@ -931,23 +862,63 @@ public class JavaToQuorumListener implements QuorumListener {
             context.isField = true;
             context.hasMe = true;
         }
-        if(ctx.expression() != null) {
-            context.rightHandSide = ctx.expression().type;
-        }
         listener.ExitNoTypeAssignment(context);
     }
 
     @Override
-    public void enterMeVariableAccess(QuorumParser.MeVariableAccessContext ctx) {
-        MeVariableAccessContext context = new MeVariableAccessContext();
+    public void enterVariableFunctionCall(QuorumParser.VariableFunctionCallContext ctx) {
+        VariableFunctionCallContext context = new VariableFunctionCallContext();
         setLocation(ctx, context);
-        listener.EnterMeVariableAccess(context);
+        
+        listener.EnterVariableFunctionCall(context);
     }
 
     @Override
-    public void exitMeVariableAccess(QuorumParser.MeVariableAccessContext ctx) {
-        MeVariableAccessContext context = new MeVariableAccessContext();
+    public void exitVariableFunctionCall(QuorumParser.VariableFunctionCallContext ctx) {
+        VariableFunctionCallContext context = new VariableFunctionCallContext();
         setLocation(ctx, context);
-        listener.ExitMeVariableAccess(context);
+        listener.ExitVariableFunctionCall(context);
+    }
+
+    @Override
+    public void enterParentVariableFunctionCall(QuorumParser.ParentVariableFunctionCallContext ctx) {
+        ParentVariableFunctionCallContext context = new ParentVariableFunctionCallContext();
+        setLocation(ctx, context);
+        listener.EnterParentVariableFunctionCall(context);
+    }
+
+    @Override
+    public void exitParentVariableFunctionCall(QuorumParser.ParentVariableFunctionCallContext ctx) {
+        ParentVariableFunctionCallContext context = new ParentVariableFunctionCallContext();
+        setLocation(ctx, context);
+        listener.ExitParentVariableFunctionCall(context);
+    }
+
+    @Override
+    public void enterAction_call(QuorumParser.Action_callContext ctx) {
+        ActionCallContext context = new ActionCallContext();
+        setLocation(ctx, context);
+        listener.EnterActionCall(context);
+    }
+
+    @Override
+    public void exitAction_call(QuorumParser.Action_callContext ctx) {
+        ActionCallContext context = new ActionCallContext();
+        setLocation(ctx, context);
+        listener.ExitActionCall(context);
+    }
+
+    @Override
+    public void enterParent_call(QuorumParser.Parent_callContext ctx) {
+        ParentCallContext context = new ParentCallContext();
+        setLocation(ctx, context);
+        listener.EnterParentCall(context);
+    }
+
+    @Override
+    public void exitParent_call(QuorumParser.Parent_callContext ctx) {
+        ParentCallContext context = new ParentCallContext();
+        setLocation(ctx, context);
+        listener.ExitParentCall(context);
     }
 }
