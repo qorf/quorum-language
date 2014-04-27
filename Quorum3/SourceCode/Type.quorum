@@ -26,6 +26,27 @@ class Type
     /* This is the value of the text if it happens to be a constant. */
     text textConstant = ""
 
+    action Copy returns Type //TODO: does not yet handle objects or generics
+        Type type
+        if IsInteger()
+            type:SetToInteger()
+            type:SetIntegerConstant(type:GetIntegerConstant())
+        elseif IsBoolean()
+            type:SetToBoolean()
+            type:SetBooleanConstant(booleanConstant)
+        elseif IsNumber()
+            type:SetToNumber()
+            type:SetNumberConstant(numberConstant)
+        elseif IsText()
+            type:SetToText()
+            type:SetTextConstant(textConstant)
+        elseif IsVoid()
+            type:SetToVoid()
+        end
+        type:SetIsConstant(isConstant)
+        return type
+    end
+
     action GetStaticKey returns text
         return staticKey
     end
@@ -101,11 +122,11 @@ class Type
         isConstant = final
     end
 
-    action isGeneric returns boolean
+    action IsGeneric returns boolean
         return isGeneric
     end
 
-    action SetisGeneric(boolean generic) 
+    action SetIsGeneric(boolean generic) 
         isGeneric = generic
     end
 

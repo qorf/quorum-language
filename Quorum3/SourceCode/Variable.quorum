@@ -7,15 +7,24 @@ class Variable is Symbol
     boolean isPublic = false
     boolean hasModifier = false
     boolean isDefined = false
+    boolean isField = false
     integer bytecodeLocation = -1
     integer parameterLocation = -1
-
+    
     action IsDefined returns boolean
         return isDefined
     end
 
     action SetIsDefined(boolean defined) 
         isDefined = defined
+    end
+
+    action IsField returns boolean
+        return isField
+    end
+
+    action SetIsField(boolean field)
+        isField = field
     end
 
     action IsParameter returns boolean

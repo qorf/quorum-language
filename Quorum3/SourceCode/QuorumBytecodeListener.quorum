@@ -33,6 +33,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     boolean isNormalAction = false
     boolean isSystemAction = false
     boolean isBluePrintAction = false
+    boolean isNextVariableReferenceMe = false
     Stack<Type> expressionStack
 
     private action SetNormalAction 
@@ -278,7 +279,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             assign:SetOperation(assign:EQUALS)
 
             TypeChecker checker = GetTypeChecker()
-            TypeCheckResult result = checker:Check(left, right, assign, true, true) 
+            TypeCheckResult result = checker:Check(left, right, undefined, true) 
 
             //write the local variable, guaranteed at this stage not be null
             integer location = variable:GetBytecodeLocation()
@@ -291,10 +292,61 @@ class QuorumBytecodeListener is QuorumSourceListener
         //methodVisitor.visitVarInsn(QuorumConverter.getStoreOpcode(valueType), mappedVariableNumber);
     end
 
+    
+    action EnterVariableFunctionCall(VariableFunctionCallContext context) 
+        isNextVariableReferenceMe = context:hasMe
+    end
+    action ExitVariableFunctionCall(VariableFunctionCallContext context) 
+        isNextVariableReferenceMe = false
+    end
 
+    action EnterParentVariableFunctionCall(ParentVariableFunctionCallContext context)
+        a =5
+    end
+    action ExitParentVariableFunctionCall(ParentVariableFunctionCallContext context)
+        a =5
+    end
+
+    action EnterActionCall(ActionCallContext context)
+        if context:isActionCall //push the "this" pointer
+            PushThis()
+        else //push the variable
+            name = context:name
+            Variable variable = undefined
+            
+            if isNextVariableReferenceMe
+                variable = currentClass:GetVariable(name)
+            else 
+                variable = currentBlock:GetVariable(name)
+                isNextVariableReferenceMe = false
+            end
+
+            Type type = variable:GetType()
+            if variable:IsField()
+
+            else //it's a local
+                methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(type), variable:GetBytecodeLocation())
+            end
+            expressionStack:Push(type:Copy())
+        end
+    end
+
+    action ExitActionCall(ActionCallContext context)
+        a =5
+    end
+
+    action EnterParentCall(ParentCallContext context)
+        a =5
+    end
+    action ExitParentCall(ParentCallContext context)
+        a =5
+    end
+
+    action PushThis
+
+    end
 
     action ExitAddition(Addition addition) 
-
         TypeChecker checker = GetTypeChecker()
         Type right = expressionStack:Pop()
         Type left = expressionStack:Pop()
@@ -304,6 +356,8 @@ class QuorumBytecodeListener is QuorumSourceListener
         TypeCheckResult result = checker:Check(left, right, add) 
         JavaOpcodeWriter opcodeWriter = result:writer
         opcodeWriter:Write(methodWriter)
+        Type value = result:result
+        expressionStack:Push(value:Copy())
     end
 
     action ExitInteger(IntegerContext context) 

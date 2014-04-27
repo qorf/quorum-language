@@ -33,7 +33,7 @@ class Class is Symbol
             error:SetErrorMessage("Variable " + variable:GetDisplayName() + " has already been defined in class " + me:GetDisplayName())
             return error
         end
-
+        variable:SetIsField(true)
         fields:Add(variable:GetStaticKey(), variable)
         return undefined
     end

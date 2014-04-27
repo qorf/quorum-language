@@ -1,5 +1,7 @@
 package Libraries.Language.Compile.Translate
 
+use Libraries.Language.Compile.Symbol.all
+
 /*
     This class represents raw bytecode constants taken from the ASM 5 java
     bytecode library. What little documentation exists for them can be found
@@ -306,6 +308,38 @@ class JavaBytecodeOpcodes
 
     action GetIntegerStore returns integer
         return ISTORE
+    end
+
+    action GetIntegerLoad returns integer
+        return ILOAD
+    end
+
+    action ConvertTypeToBytecodeLoadOpcode(Type type) returns integer
+        if type:IsBoolean()
+            return ILOAD
+        elseif type:IsText()
+            return ALOAD
+        elseif type:IsNumber()
+            return DLOAD
+        elseif type:IsInteger()
+            return ILOAD
+        else 
+            return ALOAD
+        end
+    end
+
+    action ConvertTypeToBytecodeStoreOpcode(Type type) returns integer
+        if type:IsBoolean()
+            return ISTORE
+        elseif type:IsText()
+            return ASTORE
+        elseif type:IsNumber()
+            return DSTORE
+        elseif type:IsInteger()
+            return ISTORE
+        else 
+            return ASTORE
+        end
     end
 
     action GetLoadObject returns integer
