@@ -2648,14 +2648,12 @@ public class QuorumParser extends Parser {
 		}
 	}
 	public static class VariableFunctionCallContext extends ExpressionContext {
-		public Token name;
-		public List<Action_callContext> action_call() {
-			return getRuleContexts(Action_callContext.class);
-		}
 		public Parent_callContext parent_call() {
 			return getRuleContext(Parent_callContext.class,0);
 		}
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public List<Action_callContext> action_call() {
+			return getRuleContexts(Action_callContext.class);
+		}
 		public TerminalNode COLON(int i) {
 			return getToken(QuorumParser.COLON, i);
 		}
@@ -2990,7 +2988,7 @@ public class QuorumParser extends Parser {
 					}
 				}
 
-				setState(449); ((VariableFunctionCallContext)_localctx).name = match(ID);
+				setState(449); action_call();
 				setState(460);
 				switch ( getInterpreter().adaptivePredict(_input,58,_ctx) ) {
 				case 1:
@@ -3551,7 +3549,7 @@ public class QuorumParser extends Parser {
 		"=\3\2\2\2\u01ba\u01bb\b \1\2\u01bb\u01bc\7\63\2\2\u01bc\u01f2\5> \24\u01bd"+
 		"\u01be\7)\2\2\u01be\u01f2\5> \23\u01bf\u01c0\7\b\2\2\u01c0\u01c2\7#\2"+
 		"\2\u01c1\u01bf\3\2\2\2\u01c1\u01c2\3\2\2\2\u01c2\u01c3\3\2\2\2\u01c3\u01ce"+
-		"\7B\2\2\u01c4\u01cc\7#\2\2\u01c5\u01cd\5<\37\2\u01c6\u01c8\5:\36\2\u01c7"+
+		"\5:\36\2\u01c4\u01cc\7#\2\2\u01c5\u01cd\5<\37\2\u01c6\u01c8\5:\36\2\u01c7"+
 		"\u01c6\3\2\2\2\u01c8\u01cb\3\2\2\2\u01c9\u01c7\3\2\2\2\u01c9\u01ca\3\2"+
 		"\2\2\u01ca\u01cd\3\2\2\2\u01cb\u01c9\3\2\2\2\u01cc\u01c5\3\2\2\2\u01cc"+
 		"\u01c9\3\2\2\2\u01cd\u01cf\3\2\2\2\u01ce\u01c4\3\2\2\2\u01ce\u01cf\3\2"+

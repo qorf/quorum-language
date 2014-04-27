@@ -869,7 +869,22 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterVariableFunctionCall(QuorumParser.VariableFunctionCallContext ctx) {
         VariableFunctionCallContext context = new VariableFunctionCallContext();
         setLocation(ctx, context);
-        
+        boolean hasMe = ctx.ME() != null;
+        context.hasMe = hasMe;
+//        List<QuorumParser.Action_callContext> calls = ctx.action_call();
+//        if(calls != null) {
+//            if(calls.size() == 1) {
+//                QuorumParser.Action_callContext ctx2 = calls.get(0);
+//                context.name = ctx2.ID().getText();
+//                if(ctx2.LEFT_PAREN() != null) {
+//                    context.isActionCall = true;
+//                }
+//            }
+//        }
+//        QuorumParser.Parent_callContext parent = ctx.parent_call();
+//        if(parent != null) {
+//            context.isParentCall = true;
+//        }
         listener.EnterVariableFunctionCall(context);
     }
 
@@ -898,6 +913,11 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterAction_call(QuorumParser.Action_callContext ctx) {
         ActionCallContext context = new ActionCallContext();
         setLocation(ctx, context);
+        String name = ctx.var.getText();
+        boolean isActionCall = ctx.LEFT_PAREN() != null;
+        context.name = name;
+        context.isActionCall = isActionCall;
+        
         listener.EnterActionCall(context);
     }
 
@@ -905,6 +925,11 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitAction_call(QuorumParser.Action_callContext ctx) {
         ActionCallContext context = new ActionCallContext();
         setLocation(ctx, context);
+        String name = ctx.var.getText();
+        boolean isActionCall = ctx.LEFT_PAREN() != null;
+        context.name = name;
+        context.isActionCall = isActionCall;
+        
         listener.ExitActionCall(context);
     }
 
