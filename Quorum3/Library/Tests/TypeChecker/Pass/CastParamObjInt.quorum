@@ -1,0 +1,13 @@
+class Main
+    action Main
+        Integer i
+        i:SetValue(5)
+        integer t = pass(i)
+        output t
+    end
+
+    action pass(Object o) returns integer
+        Integer i = cast(Integer, o)
+        return i:GetValue()
+    end
+end
