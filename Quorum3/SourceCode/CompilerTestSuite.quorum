@@ -1,17 +1,23 @@
+package Libraries.Language.Compile.Test
+
 use Libraries.Language.Compile.all
 use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
 
 class CompilerTestSuite 
-    Compiler compiler
-    HashTable<text, TestResult> passing
+    //Compiler compiler
+    //HashTable<text, TestResult> passing
     integer total = 0
     integer passed = 0
     integer failed = 0
 
     action Main
-        output "Starting Quorum Test Suite, version  " + compiler:VERSION + "."
-
-
+        output "Starting Quorum Test Suite, version  " //+ compiler:VERSION + "."
+        Test1()
+        
         output ""
         output "Finished Testing:"
         output "Tests Passed: " + passed
@@ -19,7 +25,30 @@ class CompilerTestSuite
         output "Total Percentage: "
     end
 
-    action Test1 returns TestResult
-        return undefined
+    action Test1
+        Compiler compiler
+        File file
+        file:SetPath("Library/Tests/Expressions/Pass/AddIntInt.quorum")
+        Parser parser
+        compiler:Parse(file, parser)
+        TypeCheckListener checker
+        compiler:Parse(file, checker)
+        QuorumBytecodeListener bytecode
+        compiler:Parse(file, bytecode)
+        
+        CompilerErrorManager manager = parser:GetCompilerErrorManager()
+
+        if manager:IsCompilationErrorFree() //run the program
+            File runMe = bytecode:GetBuildFile()
+
+
+            CompilerTestResult result = RunClassFile(file)
+            a = 5
+        else 
+            CompilerTestResult result
+            result:passed = false
+        end
     end
+
+    system action RunClassFile(File file) returns CompilerTestResult
 end

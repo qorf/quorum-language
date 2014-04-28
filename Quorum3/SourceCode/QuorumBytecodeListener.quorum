@@ -23,8 +23,8 @@ class QuorumBytecodeListener is QuorumSourceListener
     Class currentClass = undefined
     Block currentBlock = undefined
     constant integer ME = 0
-    constant text BUILD = "TestBuild"
-    constant text RUN = "TestRun"
+    text build = "TestBuild"
+    text run = "TestRun"
     constant text QUORUM = "quorum"
 
     constant text JAVA_THROWABLE = "java/lang/Throwable"
@@ -35,7 +35,17 @@ class QuorumBytecodeListener is QuorumSourceListener
     boolean isBluePrintAction = false
     boolean isNextVariableReferenceMe = false
     Stack<Type> expressionStack
+    File buildFile = undefined
+    File buildInterfaceFile = undefined
 
+    action GetBuildFile returns File
+        return buildFile
+    end
+
+    action GetBuildInterfaceFile returns File
+        return buildInterfaceFile
+    end
+    
     private action SetNormalAction 
         isNormalAction = true
         isSystemAction = false
@@ -100,18 +110,22 @@ class QuorumBytecodeListener is QuorumSourceListener
             ComputeConstructor(false)
             classWriter:VisitEnd()
             File classFile
-            text path = BUILD + "/" + QUORUM + "/" + packageValue:GetPath() 
+            text path = build + "/" + QUORUM + "/" + packageValue:GetPath() 
             classFile:SetPath(path)
             classFile:CreateDirectories()
             classFile:SetPath(path + "/" + currentClass:GetName() + ".class")
             classWriter:Write(classFile)
 
+            buildFile = classFile
+
             interfaceWriter:VisitEnd()
             File interfaceFile
-            path = BUILD + "/" + QUORUM + "/" + packageValue:GetPath()
+            path = build + "/" + QUORUM + "/" + packageValue:GetPath()
             
             interfaceFile:SetPath(path + "/" + currentClass:GetName() + "$Interface.class")
             interfaceWriter:Write(interfaceFile)
+
+            buildInterfaceFile = interfaceFile
         end
     end
 

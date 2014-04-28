@@ -1,0 +1,12 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Containers.Array
+use Libraries.System.File
+
+class CompilerTestResult 
+    public text name = ""
+    public File file = undefined
+    public boolean passed = false
+    public integer returnCode = 0
+    Array<text> lines
+end
