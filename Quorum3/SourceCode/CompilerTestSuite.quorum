@@ -1,0 +1,25 @@
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+
+class CompilerTestSuite 
+    Compiler compiler
+    HashTable<text, TestResult> passing
+    integer total = 0
+    integer passed = 0
+    integer failed = 0
+
+    action Main
+        output "Starting Quorum Test Suite, version  " + compiler:VERSION + "."
+
+
+        output ""
+        output "Finished Testing:"
+        output "Tests Passed: " + passed
+        output "Tests Failed: " + failed
+        output "Total Percentage: "
+    end
+
+    action Test1 returns TestResult
+        return undefined
+    end
+end

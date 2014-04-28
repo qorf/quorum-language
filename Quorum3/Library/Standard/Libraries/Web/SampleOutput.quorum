@@ -1,0 +1,37 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+
+/*
+The SampleOutput class represents HTML's (Hypertext Markup Language) samp tag which is
+used to show sample output of a computer program.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_samp.asp">The samp attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      SampleOutput sample
+      sample:SetDescription("sample output text")
+
+      page:AddToBody(sample)
+      output page:Generate()
+    end
+end
+*/
+class SampleOutput is WebTag
+    action Generate returns text
+        text result = "<samp " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</samp>"
+        return result
+    end
+end

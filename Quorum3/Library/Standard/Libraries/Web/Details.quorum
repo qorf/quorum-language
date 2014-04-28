@@ -1,0 +1,91 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attribute
+use Libraries.Web.Attributes
+/*
+The Details class represents HTML's (Hypertext Markup Language) details tag which is
+used to show or hide additional details about an item with a collapsible view. 
+
+The Summary class can be used to add a title to Details.
+Details can be set to be open by default using SetOpen. 
+It is set to be closed otherwise.
+
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_details.asp">The details attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      Details details
+      details:SetOpen("The URL(web address) you are citing")
+      quote:SetDescription("Insert your quotation here")
+
+      page:AddToBody(quote)
+      output page:Generate()
+    end
+end
+*/
+class Details is WebTag
+    constant text open = "open"
+
+    /*
+        This action sets the open field. When open is true the detail is visible
+        to the user.
+        
+        Attribute: Parameter value True for visible and false for invisible to the user.
+
+        Attribute: Example
+        use Libraries.Web.Details
+        use Libraries.Web.Attribute
+
+        Details detail
+        detail:SetOpen(true)
+        
+    */
+    action SetOpen(boolean value)
+        if value
+            AddAttribute(open, open)
+        else
+            RemoveAttribute(open)
+        end
+    end
+
+    /*
+        This action gets the open value. If true the detail is visible to the user.
+        
+
+        Attribute: Returns True if visible and false if not visible.
+
+        Attribute: Example
+        use Libraries.Web.Details
+        use Libraries.Web.Attribute
+
+        Details details
+        details:SetOpen(true)
+        boolean isOpen = details:GetOpen()
+        
+    */
+    action GetOpen returns boolean
+        Attribute result = GetAttribute(open)
+        if result = undefined
+            return false
+        else
+            return true
+        end
+    end
+
+    action Generate returns text
+        text result = "<aside " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</aside>"
+        return result
+    end
+end

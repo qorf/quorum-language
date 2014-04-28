@@ -1,0 +1,88 @@
+package Libraries.Robots
+use Libraries.Robots.Connectable
+/*
+The Digital Sensor class represents a physical digital sensor. Each senor has a 
+designation, an integer, that says which port it is connected to(e.g., 8 to 15). 
+Once the sensor is connected to the port, we can get the value read by the digital 
+sensor and we can also output a value to the sensor. Digital Sensors are yypically 
+used for bumpers or limit switches.
+
+Attribute: Author Sahana Tambi Sathyanarayana
+
+Attribute: Example
+
+use Libraries.Robots.DigitalSensor
+
+// Declaraing a digital sensor    
+DigitalSensor digital
+// Set connection with the analog sensor connected to port 4
+digital:SetPort(9)
+integer open = digital:GetValue()
+if open = 0
+    output "Digital Sensor swtich is closed"
+else
+    output "Digital Sensor swtich is open"
+end
+  
+*/
+
+class DigitalSensor is Connectable
+    /*
+        This action connects the sensor to the specified digital port. The sensor 
+        can read values only after it is connected to the port.
+        
+        Attribute: Parameter port to which we intend to connect the sensor to
+        Port values vary from 8 to 15.
+
+        Attribute: Example
+        
+        DigitalSensor digital
+        digital:SetPort(10)
+        //sensor is connected to digital port 10
+    */
+    system action SetPort(integer port)
+    /*
+        This action returns the port to which the sensor is connected to.
+
+        Attribute: Returns the port to which the sensor is connected to
+
+        Attribute: Example
+        
+        AnalogSensor digital
+        digital:SetPort(6)
+        integer port = digital:GetPort()
+    */
+    system action GetPort() returns integer
+    /*
+        This action returns the digital value of the sensor, which is either 0 
+        or 1. This value represents if the sensor switch is open or closed. If 
+        the switch is open, it is represented by 1. If the switch is closed, it 
+        is represented by 0. 
+
+        Attribute: Returns an integer 0 or 1. If the digital sensor switch is 
+        closed 0 is returned, otherwise 1 is returned.
+
+        Attribute: Example
+        
+        DigitalSensor digital
+        digital:SetPort(13)
+        integer digitalValue = digital:GetValue()
+        //returns the current value of the sensor connected to port 13
+    */
+    system action GetValue() returns integer
+    
+    /*
+        This action sets the output value for the digital sensor. The output 
+        value can be either 0 or 1.
+
+        Attribute: Parameter value can either be 1 or 0.
+
+        Attribute: Example
+        
+        DigitalSensor digital
+        digital:SetPort(11)
+        digital:SetOutputValue(0)
+        //Sets the output of the digital sensor connected to port 11 as 0
+    */
+    system action SetOutput(integer value)
+end

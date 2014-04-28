@@ -4,6 +4,8 @@ use Libraries.System.File
 use Libraries.Language.Compile.Symbol.all
 
 class Compiler
+    public constant number VERSION = 3.0
+    
     SymbolTable symbolTable
     CompilerErrorManager compilerErrorManager
     TypeChecker checker

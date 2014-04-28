@@ -1,0 +1,42 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+/*
+The Definition class represents HTML's (Hypertext Markup Language) dd tag which is
+used to make an indented definition for an item in a DefinitionList class.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_dd.asp">The dd attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      DefinitionList defList
+      DefinitionListTerm defTerm
+      Definition definition
+      
+      defTerm:SetDescription("Apple")
+      definition:SetDescription("A fruit from a tree, with a thin skin and crisp inside.")
+      defList:Add(defTerm)
+      defList:Add(definition)
+
+      page:AddToBody(defList)
+      output page:Generate()
+    end
+end
+*/
+class Definition is WebTag
+    action Generate returns text
+        text result = "<dd " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</dd>"
+        return result
+    end
+end

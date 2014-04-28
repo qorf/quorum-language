@@ -1,0 +1,38 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+
+/*
+The Header class represents HTML's (Hypertext Markup Language) header tag which 
+contains the header information for a section or document. 
+You can find more information about this tag at: 
+    <a href="http://www.w3schools.com/tags/tag_header.asp">The header attribute</a>.
+
+Attribute: Example
+use Libraries.Web.All
+class Main
+   action main
+      WebPage page
+      
+      Header header
+      header:SetDescription("Header information")
+
+      page:AddToBody(header)
+      output page:Generate()
+   end
+end
+*/
+class Header is WebTag
+    text description = ""
+
+    action Generate returns text
+        text result = "<header " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</header>"
+        return result
+    end
+end

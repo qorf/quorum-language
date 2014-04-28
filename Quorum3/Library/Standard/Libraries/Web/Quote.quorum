@@ -1,0 +1,76 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attribute
+use Libraries.Web.Attributes
+
+/*
+The Quote class represents HTML's (Hypertext Markup Language) q tag which is
+used to add a short quote. The quotation marks will be added to the text.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_q.asp">The q attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      Quote q
+      quote:SetCitationAddress("The URL(web address) you are citing")
+      quote:SetDescription("Insert your quotation here")
+
+      page:AddToBody(q)
+      output page:Generate()
+    end
+end
+*/
+class Quote is WebTag
+    constant text cite = "cite"
+
+    /*
+        This action sets the citation URL or web address.
+        
+        Attribute: Parameter value The citation URL or web address.
+
+        Attribute: Example
+        use Libraries.Web.Quote
+
+        Quote q
+        q:SetCitation("www.w3schools.com/tags/tag_blockquote.asp")
+        
+    */
+    action SetCitation(text value)
+        AddAttribute(cite, value)
+    end
+
+    /*
+        This action gets the citation URL or web address.
+        
+
+        Attribute: Returns The citation address.
+
+        Attribute: Example
+        use Libraries.Web.Quote
+        use Libraries.Web.Attribute
+
+        Quote q
+        q:SetCitation("www.w3schools.com/tags/tag_blockquote.asp")
+        Attribute address = q:GetCitation()
+        
+    */
+    action GetCitation returns Attribute
+        return me:GetAttribute(cite)
+    end
+
+    action Generate returns text
+        text result = "<q " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</q>"
+        return result
+    end
+end

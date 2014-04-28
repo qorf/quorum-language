@@ -1,0 +1,46 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+
+/*
+The BiDirectionalIsolation class represents HTML's (Hypertext Markup Language) 
+bdi tag which is used to isloate text a piece of text that may be formatted in
+a different direction than the rest of the text.
+
+You can find more information about this tag at: 
+.<a href="http://www.w3schools.com/tags/tag_bdi.asp">The bdi attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+      Paragraph p
+
+      BiDirectionalIsolation bdi
+      bdi:SetDescription("BiDirectionalIsolation")
+      
+      BiDirectionalOverride bdo
+      bdo:SetDirection(bdo:rightToLeft)
+      bdo:SetDescription("This will have the "+ bdi:Generate() +" going right to left on it")
+      p:Add(bdo)
+      
+      page:AddToBody(p)
+      output page:Generate()
+    end
+end
+*/
+class BiDirectionalIsolation is WebTag
+
+    action Generate returns text
+        text result = "<bdi " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</bdi>"
+        return result
+    end
+end

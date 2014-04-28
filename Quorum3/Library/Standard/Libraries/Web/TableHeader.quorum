@@ -1,0 +1,43 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+
+/*
+The TableHeader class represents HTML's (Hypertext Markup Language) thead tag which is
+used to group the TableHeaderCells of a table. This will be displayed before the 
+TableBody.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_thead.asp">The thead attribute</a>.
+
+Attribute: Example
+use Libraries.Web.All
+class Main
+   action main
+      //make a web page
+      WebPage page
+
+      WebTable table
+      TableHeader thead
+
+      //add a TableRow to the header
+      TableRow row
+      thead:Add(row)
+
+      table:Add(thead)
+
+      page:AddToBody(table)
+   end
+end
+*/
+class TableHeader is WebTag
+    action Generate returns text
+        text result = "<thead " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</thead>"
+        return result
+    end
+end

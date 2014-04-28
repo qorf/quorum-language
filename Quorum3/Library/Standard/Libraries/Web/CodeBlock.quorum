@@ -1,0 +1,38 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+/*
+The CodeBlock class represents HTML's (Hypertext Markup Language) code tag which is
+used to define code. It is recommended that CodeBlock be used in PreformattedText 
+to keep the current formatting of the code.
+
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_phrase_elements.asp">The code attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      CodeBlock code
+      code:SetDescription("integer a = 5")
+
+      page:AddToBody(code)
+      output page:Generate()
+    end
+end
+*/
+class CodeBlock is WebTag
+    action Generate returns text
+        text result = "<code " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</code>"
+        return result
+    end
+end

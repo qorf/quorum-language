@@ -1,0 +1,38 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+/*
+The Footer class represents HTML's (Hypertext Markup Language) footer tag which is
+used to add information like the author or copyright to the end of the page.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_footer.asp">The footer attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      Footer footer
+      Paragraph p
+      p:SetDescription("This is my footer text")
+      footer:Add(p)
+
+      page:AddToBody(footer)
+      output page:Generate()
+    end
+end
+*/
+class Footer is WebTag
+    action Generate returns text
+        text result = "<footer " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</footer>"
+        return result
+    end
+end

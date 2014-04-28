@@ -1,0 +1,41 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+/*
+The Figure class represents HTML's (Hypertext Markup Language) figure tag which is
+used to define self contained content like an image or diagram that can be used 
+for reference.
+Use the FigureCaption to add a description to the Figure.
+
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_figure.asp">The figure attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      Figure fig
+      Image image
+      image:SetAddress("myImage.jpg")
+      fig:Add(img)
+
+      page:AddToBody(fig)
+      output page:Generate()
+    end
+end
+*/
+class Figure is WebTag
+    action Generate returns text
+        text result = "<figure " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</figure>"
+        return result
+    end
+end

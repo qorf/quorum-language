@@ -1,0 +1,39 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+/*
+The Italic class represents HTML's (Hypertext Markup Language) i tag which 
+italisizes a webpages text group. 
+You can find more information about this tag at: 
+    <a href="http://www.w3schools.com/tags/tag_i.asp">The i attribute</a>.
+
+
+Attribute: Example
+use Libraries.Web.All
+class Main
+   action main
+      WebPage page
+      
+      Italic i
+      i:SetDescription("my text")
+
+      page:AddToBody(i)
+      output page:Generate()
+   end
+end
+*/
+class Italic is WebTag
+
+    action Generate returns text
+        text result = "<i " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</i>"
+        return result
+    end
+
+
+end

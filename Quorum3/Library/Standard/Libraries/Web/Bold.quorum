@@ -1,0 +1,29 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+
+/*
+The Bold class represents HTML's (Hypertext Markup Language) b tag which 
+specifies bold text and should only be used as a last resort. A better approach 
+would be to use CSS's "font-weight".
+You can find more information about this tag at: 
+    <a href="http://www.w3schools.com/tags/tag_b.asp">The b attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+      Bold bold
+      bold:SetDescription("Bolded Text")
+      page:AddToBody(bold)
+      output page:Generate()
+    end
+end
+*/
+class Bold is WebTag
+    action Generate returns text
+        return "<b>" + GenerateNestedTags() + "</b>"
+    end
+end

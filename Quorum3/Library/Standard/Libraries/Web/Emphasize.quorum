@@ -1,0 +1,36 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+/*
+The Emphasize class represents HTML's (Hypertext Markup Language) em tag which is
+used to emphasize/ittalcize text.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_phrase_elements.asp">The em attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      Emphasize emphasize
+      emphasize:SetDescription("emphasize this text")
+
+      page:AddToBody(emphasize)
+      output page:Generate()
+    end
+end
+*/
+class Emphasize is WebTag
+    action Generate returns text
+        text result = "<em " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</em>"
+        return result
+    end
+end

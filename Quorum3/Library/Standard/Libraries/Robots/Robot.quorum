@@ -1,0 +1,677 @@
+package Libraries.Robots
+
+/*
+The Robot class represents a physical iRobot Create. iRobot Create is a primitive
+robot or we can say it is a complete robot development kit that allows you to 
+program some fundamental robot behaviors.
+When a Robot object is instantiated, it is automatically connected to the controller
+in the safe mode i.e with the safety features turned on.
+After which we can make the robot perform different actions like moving the robot 
+front, back and in a circle. The robot has two bumpers, left bumper and right 
+bumper namely. The robot has three wheels, left wheel, right wheel and center wheel. 
+It also has four cliff sensors namely, left cliff sensor, left front cliff sensor, 
+right cliff sensor, and right front cliff sensor. The cliff sensors are nothing 
+but the IR sensors. The speed with which the robot moves has to be mentioned. 
+Speed is always mentioned in terms of percentage. The maximum speed with which 
+the robot can move is at 0.5 meters/second. Speed range for all commands is 
++/-4 percent to +/- 100 percent. 
+Lag values less than 0.05 should be avoided and larger times should be used for 
+the angle and distance functions.
+
+You can attach and control other hardware and electronic devices to iRobot Create;
+Such as a robotic arm, light display, or a ranging sensor. It can also become a 
+musical instrument! By using some of the song commands. We can write and save up 
+to 16 songs in iRobot Create.
+
+
+Attribute: Author Sahana Tambi Sathyanarayana
+
+Attribute: Example
+
+use Libraries.Robots.Robot
+
+// Declaraing the Robot
+Robot robot
+// Move the robot straight, at 100% speed (0.5 meters per second)
+robot:MoveStraight(100)
+// The Robot wheels are stopped
+robot:StopWheels()
+// Connection between the robot and the controller is severed
+robot:Disconnect()
+*/
+
+class Robot 
+    on create
+        Connect()
+    end
+    /*
+        The robot can be only controlled using the the controller. Inorder to do 
+        so we need to first set a connection between the robot and the controller. 
+        This action sets a connection between the robot and the controller. Once
+        the connection is made, robot can now be controlled by the controller.
+        
+        Attribute: Example
+        
+        Robot robot
+        // Set connection between the robot and the controller
+        robot:Connect()
+    */
+    system action Connect()
+    
+    /*
+        This action breaks the connection between the robot and the controller. 
+        Once the connection between the robot and the controller is severed, we 
+        can no longer control the robot. Inorder to control the robot again we 
+        have to make a connection between the robot and the controller again.
+        
+        Attribute: Example
+        
+        Robot robot
+        robot:MoveStraight(90)
+        //break the connection between the robot and the controller
+        robot:Disconnect()
+    */
+
+    system action Disconnect()
+
+    /*
+        This action halts/stops the wheels of the Robot without making any 
+        further movement.
+        
+        Attribute: Example
+        
+        Robot robot
+        robot:MoveStraight(100)
+        //Robot wheels are halted. 
+        robot:StopWheels()
+    */
+    system action StopWheels()
+
+    /*
+        This action moves the Robot front in a straight line at the specified speed.
+        
+        Attribute: Parameter speed is in percentage, speed with 
+        which the robot will move
+
+        Attribute: Example
+        
+        Robot robot
+        // drives the robot straight, at 100% speed which is 0.5 meters/second
+        robot:MoveStraight(100)
+        robot:StopWheels()
+    */
+    system action MoveStraight(number speed)
+
+    /*
+        This action moves the Robot in a straight line at the specified speed,
+        for a specified distance.
+        
+        Attribute: Parameter speed is in percentage, distance in 
+        meters
+
+        Attribute: Example
+        
+        Robot robot
+        // drives the robot straight, at 50% speed which is 0.25 meters/second 
+        // for 0.5 meters
+        robot:MoveStraight(50, 0.5)
+        robot:StopWheels()
+    */
+    system action MoveStraight(number speed, number distance)
+
+    /*
+        This action moves the Robot with different speeds for each wheel. The 
+        left wheel and right wheel speeds of the robot are specified. Giving 
+        different values for left and right wheel makes the robot move in a zig 
+        zag manner. Giving same values for left and right wheel makes the robot 
+        move in a striaght line. Giving negative values for the left wheel and
+        positive values for the right wheel makes the robot turn left. Giving 
+        negative values for the right wheel and positive values for the left 
+        wheel makes the robot turn right. Giving negative values for both the 
+        left and right wheel, makes the robot move backwards.
+        
+        Attribute: Parameter rightWheelspeed is the speed of the right wheel in 
+        percentage, leftWheelspeed is the speed of the left wheel in 
+        percentage.
+
+        Attribute: Example
+        
+        Robot robot
+        // drives the robot front with left wheel at 20% speed which is 
+        // 0.1 meters/second and right wheel at 60% speed which is 
+        // 0.3 meters/second
+        robot:MoveWithRightLeftSpeed(20, 60)
+        robot:StopWheels()
+    */
+    system action MoveWheels(number rightWheelspeed, number leftWheelspeed)
+
+    /*
+        This action moves the Robot in a circle whose radius is specified.
+        
+        Attribute: Parameter speed is in percentage, radius is in 
+        meters per second. Radius is the radius of the circle, along which 
+        the robot moves.
+
+        Attribute: Example
+        
+        Robot robot
+        Button button
+        repeat while button:IsBlackButtonPressed = false
+            // drives the robot in an arc at 20% speed, 
+            // circle radius is 0.25 meters
+            // until black button is pressed.
+            robot:MoveInCirle(20, 0.25)
+        end
+        robot:StopWheels()
+    */
+    system action MoveInCirle(number speed, number radius)
+    /*
+        This action turns the Robot left with the specified amount of turn and speed.
+        One turn is considered as 360 degrees. So if we need to turn the robot 
+        left by 90 degrees(quater turn), we need to say robot:TurnLeft(0.25 ,20) 
+        or robot:TurnLeft(90.0/360.0 ,20). However robot:TurnLeft(90/360 ,20)
+        does not work.
+        The degrees turned left might not be very precise here, it is 
+        approximately +/-5 degrees.
+        
+        Attribute: Parameter turn is number of turns, where one turn is 360 degrees, 
+                   speed is in percentage.
+
+        Attribute: Example
+        
+        Robot robot
+        // robot makes 2 complete left turns at 50% speed (0.25 meters/second)
+        robot:TurnLeft(720.0/360.0 ,50)
+        robot:StopWheels()
+
+        Attribute: Example
+        
+        Robot robot
+        // robot does not make any turn, as 90/360 = 0
+        // use 90.0/360.0 to make the robot turn left by 90 degrees
+        robot:TurnLeft(90/360,50)
+        robot:StopWheels()
+    */
+    system action TurnLeft(number turn, number speed) 
+    /*
+        This action turns the Robot right with the specified amount of turn and speed.
+        One turn is considered as 360 degrees. So if we need to turn the robot 
+        right by 90 degrees(quater turn), we need to say robot:TurnRight(0.25 ,50) 
+        or robot:TurnRight(90.0/360.0 ,50). However robot:TurnRight(90/360 ,50)
+        does not work.
+        The degrees turned right might not be very precise here, it is 
+        approximately +/-5 degrees.
+        
+        Attribute: Parameter turn is number of turns, where one turn is 360 degrees, 
+                   speed is in percentage.
+
+        Attribute: Example
+        
+        Robot robot
+        // robot makes 2 complete right turns at 50% speed (0.25 meters/second)
+        robot:TurnRight(720.0/360.0,50)
+        robot:StopWheels()
+
+        Attribute: Example
+        
+        Robot robot
+        // robot does not make any turn, as 90/360 = 0
+        // use 90.0/360.0 to make the robot turn right by 90 degrees
+        robot:TurnRight(90/360,50)
+        robot:StopWheels()
+    */
+    system action TurnRight(number turn, number speed) 
+
+    /*
+        This action tells if the left bumper of the Robot is currently being 
+        pressed or not.
+        
+        Attribute: Parameter lag is in seconds, is the time lag with in which
+        the bumper is checked to see if it is pressed or not.
+
+        Attribute : Returns true if left bumper is pressed, otherwise returns
+        false
+
+        Attribute: Example
+        
+        Robot robot
+        // turns the robot right by 90 degrees at 100% speed, if 
+        // left bumper is pressed.
+        if robot:IsLeftBumperpressed(0.1)
+            robot:TurnRight(90.0/360.0, 100)
+        end
+        robot:StopWheels()
+    */
+    system action IsLeftBumperTriggered(number lag) returns boolean
+    /*
+        This action tells if the right bumper of the Robot is currently being 
+        pressed or not.
+        
+        Attribute: Parameter lag is in seconds, is the time lag with in which
+        the bumper is checked to see if it is pressed or not.
+
+        Attribute : Returns true if right bumper is pressed, otherwise returns
+        false
+
+        Attribute: Example
+        
+        Robot robot
+        // turns the robot left by 90 degrees at 100% speed, if 
+        // right bumper is pressed.
+        if robot:IsRightBumperpressed(0.1)
+            robot:TurnLeft(0.25, 100)
+        end
+        robot:StopWheels()
+    */
+
+    system action IsRightBumperTriggered(number lag) returns boolean
+
+    /*
+        This action checks if the center wheel of the robot is dropped or is 
+        standing safe on land.
+        
+        Attribute: Parameter lag is in seconds, is the time lag with in which
+        the center wheel is checked to see if it is dropped or not.
+
+        Attribute : Returns true if center wheel is drooped, otherwise returns
+        false
+
+        Attribute: Example
+        
+        Robot robot
+        // if center wheel of the robot is dropped, the robot is stopped
+        if robot:IsCenterWheelDropped(0.1)
+            robot:StopWheels()
+            output "Center wheel is dropped."
+        end
+        robot:StopWheels()
+        robot:Disconnect()
+    */
+    system action IsCenterWheelTriggered(number lag) returns boolean
+
+    /*
+        This action checks if the left wheel of the robot is dropped or is 
+        standing safe on land.
+        
+        Attribute: Parameter lag is in seconds, is the time lag with in which
+        the left wheel is checked to see if it is dropped or not.
+
+        Attribute : Returns true if left wheel is drooped, otherwise returns
+        false
+
+        Attribute: Example
+        
+        Robot robot
+        if robot:IsLeftWheelDropped(0.1)
+            robot:StopWheels()
+            output "Left wheel is dropped."
+        end
+        robot:StopWheels()
+        robot:Disconnect()
+    */
+
+    system action IsLeftWheelTriggered(number lag) returns boolean
+    
+    /*
+        This action checks if the right wheel of the robot is dropped or is 
+        standing safe on land.
+        
+        Attribute: Parameter lag is in seconds, is the time lag with in which
+        the right wheel is checked to see if it is dropped or not.
+
+        Attribute : Returns true if right wheel is drooped, otherwise returns
+        false
+
+        Attribute: Example
+        
+        Robot robot
+        if robot:IsRightWheelDropped(0.1)
+            robot:StopWheels()
+            output "Right wheel is dropped."
+        end
+        robot:StopWheels()
+        robot:Disconnect()
+    */
+    system action IsRightWheelTriggered(number lag) returns boolean
+    
+    /*
+        This action makes the robot to spin/rotate in the Clockwise direction at
+        the specified speed continuously.
+        Angle is irrelevant here.
+        
+        Attribute: Parameter speed in percentage.
+
+        Attribute: Example
+        
+        Robot robot
+        Button button
+        // robot turns in clockwise direction continuously until button A is pressed
+        // at the speed of 0.1 meters/second  
+        repeat while() button:IsAButtonPressed()
+            robot:TurnClockwise(20)
+        end
+        robot:StopWheels()
+        robot:Disconnect()
+    */
+    system action TurnClockwise(number speed)
+    
+    /*
+        This action makes the robot to spin/rotate in the counter Clockwise direction at
+        the specified speed continuously.
+        Angle is irrelevant here.
+        
+        Attribute: Parameter speed in percentage.
+
+        Attribute: Example
+        
+        Robot robot
+        Button button
+        robot:SetConnection()
+        // robot turns in counter clockwise direction continuously until 
+        // button B is pressed at 100% speed.
+        repeat while button:IsBButtonPressed()
+            robot:TurnCounterClockwise(100)
+        end
+        robot:StopWheels()
+        robot:Disconnect()
+    */
+    system action TurnCounterClockwise(number speed)
+
+    /*
+        This action checks if the left cliff sensor is over a cliff or over a 
+        black line. The cliff sensor is an IR sensor. For example if the robot
+        is falling from a table this sensor is triggered.
+
+        Attribute: Returns true if left cliff sensor is over a cliff or a black 
+        line, otherwise returns false.
+
+        Attribute: Example
+        
+        Robot robot
+        Button button
+        // robot turns in counter clockwise direction continuously until 
+        // left cliff sensor detects a cliff
+        repeat while rob:IsLeftSensorTriggered(0.1) = false
+            robot:TurnCounterClockwise(100)
+        end
+        robot:StopWheels()
+        robot:Disconnect()
+    */
+    system action IsLeftSensorTriggered() returns boolean
+    /*
+        This action is similar to the previous function except, it 
+        ckecks if the right cliff sensor is over a cliff or over a 
+        black line.
+       
+        Attribute: Returns true if right cliff sensor is over a cliff or a black 
+        line, otherwise returns false.
+    */
+    system action IsRightSensorTriggered() returns boolean
+
+    /*
+        This action is similar to the previous function except, it 
+        ckecks if the left front cliff sensor is over a cliff or over a 
+        black line.
+        
+
+        Attribute: Returns true if left front cliff sensor is over a cliff or a 
+        black line, otherwise returns false.
+    */
+    system action IsLeftFrontSensorTriggered() returns boolean
+    
+    /*
+        This action is similar to the previous function except, it 
+        ckecks if the right front cliff sensor is over a cliff or over a 
+        black line.
+
+        Attribute: Returns true if right front cliff sensor is over a cliff or a 
+        black line, otherwise returns false.
+    */
+    system action IsRightFrontSensorTriggered() returns boolean
+    
+    /*
+        This action returns the total accumulated angle the robot has turned 
+        since it was turned on or the robot angle was set. 
+        Turning left(or Counter Clockwise) direction increases this value, 
+        while turning right(or Clockwise) direction decreases this value.
+        
+        Attribute: Returns the total accumulated angle in degrees.
+
+        Attribute: Example
+        Robot robot
+        robot:TurnRight(90.0/360.0, 100)
+        robot:TurnLeft(180.0/360.0, 100)
+        // the value of angle is -90+180 = +90 degrees
+        // -90 degrees for turning right, +180 degrees for turning left
+        integer angle = robot:GetTotalAngle()
+        robot:StopWheels()
+    */
+    system action GetTotalAngle() returns integer
+    
+    /*
+        This action sets the total accumulated angle of the robot to the specified  
+        degrees.
+        
+        Attribute: Parameter angle is in degrees.
+
+        Attribute: Example
+        Robot robot
+        robot:TurnRight(90.0/360.0, 100)
+        robot:TurnLeft(180.0/360.0, 100)
+        // the total accumulated angle is +90 degrees.
+        // the below command sets the total accumulated angle to 0 degrees.
+        integer angle = robot:SetTotalAngle(0)
+        robot:StopWheels()
+    */
+    //system action SetTotalAngle(integer angle)
+    
+    /*
+        This action returns the total accumulated distance the robot has moved 
+        since it was turned on or the robot distance was set. 
+        Moving forward increases this value, while moving backwards decreases 
+        this value. The distance returned by this action is not very precise,
+        it is approximately +/- few millimeters of the actual distance.
+        
+        Attribute: Returns the total accumulated distance in meters.
+
+        Attribute: Example
+        Robot robot
+        // robot moves forward for 0.5 meters at the 100% speed (0.5 meter/second)
+        repeate while robot:GetTotalDistance() < 0.5
+            robot:MoveStraight(100)
+        robot:StopWheels()
+    */
+    system action GetTotalDistance() returns number
+    
+    /*
+        This action sets the total accumulated distance of the robot to the specified  
+        meters.
+        
+        Attribute: Parameter distance is in meters.
+
+        Attribute: Example
+        Robot robot
+        repeate while robot:GetTotalDistance() < 0.5
+            robot:MoveStraight(100)
+        // the total accumulated distance of the robot is set to 0 meters.
+        robot:SetTotalDistance(0)
+        robot:StopWheels()
+    */
+    //system action SetTotalDistance(number distance)
+    
+    /*
+        This action turns off the robot, which means that the robot does not perfom 
+        any activity. However the connection between the robot and the controller
+        still exsits. 
+        
+        Attribute: Example
+        Robot robot
+        // robot is turned off
+        robot:TurnOff()
+    */
+    system action TurnOff()
+
+    /*
+        This action either turns on or off the safety features for the robot.
+        By default the robot is connected with the safe features turned on.
+        With the safety features turned on we can control robot using all commands. 
+        However if the robot detects a cliff, or if any of the wheel is dropped, 
+        or if the robot charger is plugged in, the robot stops all motors. 
+        With the safety features turned off, we still have complete control over 
+        the robot. We can make the robot move in any way we wish to, even if its 
+        a bad move. For example, the robot will not stop and disconnect, even if 
+        it is picked up(wheel dropped) or if the cliff sensors are triggered.
+
+        Attribute: Example
+        Robot robot
+        // safety features of the robot is turned on. 
+        robot:TurnSafety(true)
+    */
+    system action TurnSafety(boolean enabled)
+    
+    /*
+        This action starts running a built-in demo. There are 9 built-in demos.
+        Please refer the documentation for more details about the demo.
+
+        Attribute: Parameter demo is an integer; demo can have a value: -1, 0 to 9.
+
+        Attribute: Example
+        Robot robot
+        // demo 4 is a Drive Figure Eight, robot continuously moves in a figure 
+        // 8 pattern
+        robot:RunDemo(4)
+    */
+    system action RunDemo(integer demo)
+
+    /*
+        This action returns the maximum speed with which the robot can move, which
+        is 0.5 meters/second.
+
+        Attribute: Returns maximum speed which is in meters/second.
+
+        Attribute: Example
+        Robot robot
+        // maximum speed of the robot is returned, which is 0.5 meters/second
+        number MaximumSpeed = robot:GetMaximumSpeed()
+    */
+    system action GetMaximumSpeed() returns number
+ 
+    system action IsWallDetected(number lag) returns boolean
+    
+    /*
+        This action returns the speed with which the robot was asked to move.
+
+        Attribute: Parameter lag is in seconds, is the time lag with in which
+        the speed of the robot is gathered.
+
+        Attribute: Returns speed which is in percentage. 
+
+        Attribute: Example
+        Robot robot
+        // speed of the robot is returned
+        number Speed = robot:GetSpeed(0.1)
+    */
+    system action GetSpeed(number lag) returns number
+
+    /*
+        This action returns the left wheel speed of the robot.
+
+        Attribute: Parameter lag is in seconds, is the time lag with in which
+        the left wheel speed of the robot is gathered.
+
+        Attribute: Returns speed of the left wheel, which is in percentage. 
+
+        Attribute: Example
+        Robot robot
+        // left wheel speed of the robot is returned
+        number LeftWheelSpeed = robot:GetLeftWheelSpeed(0.1)
+    */
+    system action GetLeftWheelSpeed(number lag) returns number
+    
+    /*
+        This action returns the right wheel speed of the robot.
+
+        Attribute: Parameter lag is in seconds, is the time lag with in which
+        the right wheel speed of the robot is gathered.
+
+        Attribute: Returns speed of the right wheel, which is in percentage. 
+    
+        Attribute: Example
+        Robot robot
+        // left wheel speed of the robot is returned
+        number RightWheelSpeed = robot:GetRightWheelSpeed(0.1)
+    */
+    system action GetRightWheelSpeed(number lag) returns number
+    /*
+        This action returns 12 bit analog value from right cliff sensor. This 
+        value represents the radiation intensity measured by the cliff sensor.
+        Data has been gathered within 0.1 seconds. 
+
+        Attribute: Returns 12 bit analog value from right cliff sensor, which is 
+                   an integer.
+    
+        Attribute: Example
+        Robot robot
+        integer amount
+        if robot:IsRightSensorTriggered() = true
+            amount = robot:GetRightSensorValue()
+            output "RightSensorTriggered" + amount
+        end
+    */
+    system action GetRightSensorValue() returns integer
+    /*
+        This action returns 12 bit analog value from right front cliff sensor. This 
+        value represents the radiation intensity measured by the cliff sensor.
+        Data has been gathered within 0.1 seconds. 
+
+        Attribute: Returns 12 bit analog value from right front cliff sensor,   
+                   which is an integer.
+    
+        Attribute: Example
+        Robot robot
+        integer amount
+        if robot:IsRightFrontSensorTriggered() = true
+            amount = robot:GetRightFrontSensorValue()
+            output "RightFrontSensorTriggered" + amount
+        end
+    */
+    system action GetRightFrontSensorValue() returns integer
+    /*
+        This action returns 12 bit analog value from left cliff sensor. This 
+        value represents the radiation intensity measured by the cliff sensor.
+        Data has been gathered within 0.1 seconds. 
+
+        Attribute: Returns 12 bit analog value from left cliff sensor,   
+                   which is an integer.
+    
+        Attribute: Example
+        Robot robot
+        integer amount
+        if robot:IsLeftSensorTriggered() = true
+            amount = robot:GetLeftSensorValue()
+            output "LeftSensorTriggered" + amount
+        end
+    */
+    system action GetLeftSensorValue() returns integer
+    /*
+        This action returns 12 bit analog value from left front cliff sensor. This 
+        value represents the radiation intensity measured by the cliff sensor.
+        Data has been gathered within 0.1 seconds. 
+
+        Attribute: Returns 12 bit analog value from left front cliff sensor,   
+                   which is an integer.
+    
+        Attribute: Example
+        Robot robot
+        integer amount
+        if robot:IsLeftFrontSensorTriggered() = true
+            amount = robot:GetLeftFrontSensorValue()
+            output "LeftFrontSensorTriggered" + amount
+        end
+    */
+    system action GetLeftFrontSensorValue() returns integer
+    
+    //This action was developed for testing purpose. 
+    system action GetMode() returns integer
+end
+

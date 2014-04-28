@@ -1,0 +1,51 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+
+/*
+The TableCaption must be added as the first thing in a WebTable. 
+WebTable can only have one caption per table.
+
+The TableCaption class represents HTML's (Hypertext Markup Language) caption tag 
+which is used to give a title above a table. 
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_caption.asp">The caption attribute</a>.
+
+Attribute: Example
+use Libraries.Web.All
+class Main
+   action main
+      //make a web page
+      WebPage page
+
+      WebTable table
+      TableCaption caption
+      TableHeader thead
+
+      caption:SetDescription("this is the caption")
+
+      //add a TableRow to the header
+      TableRow row
+      thead:Add(row)
+
+      table:Add(caption)
+      table:Add(thead)
+
+      page:AddToBody(table)
+   end
+end
+*/
+class TableCaption is WebTag
+
+    action Generate returns text
+        text result = "<caption " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</caption>"
+        return result
+    end
+
+end

@@ -1,0 +1,50 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+
+/*
+The NoRuby class represents HTML's (Hypertext Markup Language) rp tag which is
+used to show different content if browser does not support the Ruby annotations.
+You can find more information about this tag at: 
+        <a href="http://www.w3schools.com/tags/tag_rp.asp">The rp attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+
+class Main
+    action main
+      WebPage page
+
+      Ruby ruby
+      ruby:SetDescription("?")
+      RubyContext rt
+
+      NoRuby rp1
+      rp1:SetDescription("(")
+      rt:Add(rp1)
+
+      rt:SetDescription(" ??? ")
+
+      NoRuby rp2
+      rp2:SetDescription(")")
+      rt:Add(rp2)
+
+      ruby:Add(rt)
+      page:AddToBody(ruby)
+
+      output page:Generate()
+    end
+end
+*/
+class NoRuby is WebTag
+    action Generate returns text
+        text result = "<rp " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</rp>"
+        return result
+    end
+end

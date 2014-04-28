@@ -1,0 +1,41 @@
+package Libraries.Web
+
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Web.WebTag
+use Libraries.Web.Attributes
+/*
+The Division class represents HTML's (Hypertext Markup Language) div tag which 
+contains a section in the body of the webpage. It is a way to divide the component of
+your webpage into parts or sections.
+You can find more information about this tag at: 
+    <a href="http://www.w3schools.com/tags/tag_div.asp">The div attribute</a>.
+
+Attribute: Example
+use Libraries.Web.all
+class Main
+   action main
+      WebPage page
+      
+      Paragraph p
+      p:SetDescription("Some text that will be turned blue by being in the division")
+
+      Division division
+      division:SetStyle("color:#0000FF")
+      division:Add(p)
+      
+      page:AddToBody(division)
+      output page:Generate()
+   end
+end
+*/
+class Division is WebTag
+    action Generate returns text
+        text result = "<div "
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</div>"
+        return result
+    end
+end

@@ -1,0 +1,495 @@
+package Libraries.Web
+
+use Libraries.Web.WebTag
+use Libraries.Web.Attribute
+use Libraries.Web.Attributes
+
+/*
+The TextArea class represents HTML's (Hypertext Markup Language) textarea tag 
+which is a multi-line text input box that is capable of containing 
+an unlimited number of caracters. 
+You can find more information about this tag at:
+<a href="http://www.w3schools.com/tags/tag_textarea.asp">The textarea attribute</a>.
+
+Attribute: Example
+
+use Libraries.Web.All
+class Main
+   action main
+      //make a web page
+      WebPage page
+      //add a TextArea
+      TextArea myTextArea
+      page:AddToBody(myTextArea)
+   end
+end
+*/
+class TextArea is WebTag
+    constant text autofocus = "autofocus"
+    constant text width = "cols"
+    constant text disabled = "disabled"
+    constant text formName = "form"
+    constant text maxLength = "maxlength"
+    constant text name = "name"
+    constant text placeHolder = "placeholder"
+    constant text readOnly = "readonly"
+    constant text required = "required"
+    constant text height = "rows"
+    constant text textWrap = "wrap"
+    
+    /*
+        This action gets the autofocus Attribute. The autofocus attribute 
+        tells the TextArea whether or not it will get focus when a webPage is
+        loaded.
+
+        Attribute: Returns True if autofocus is enabled or false if it is disabled. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        boolean isAutofocusOn = myTextArea:GetAutofocus()
+        
+    */
+    action GetAutofocus returns boolean
+        Attribute autofocus = GetAttribute(me:autofocus)
+        return autofocus:GetValue() = me:autofocus
+    end
+
+    /*
+        This action sets the autofocus Attribute. The autofocus attribute 
+        tells the TextArea whether or not it will get focus when a webPage is
+        loaded.
+
+        Attribute: Parameter value The autofocus is enable with a value of true or is not enabled with a value of false. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        myTextArea:SetAutofocus(true)
+        
+    */
+    action SetAutofocus(boolean value)
+        if value
+            AddAttribute(autofocus, autofocus)
+        else
+            RemoveAttribute(autofocus)
+        end
+    end
+    
+    /*
+        This action gets the width of the textarea. The width attribute 
+        defines the width of the TextArea in columns. It corresponds to the
+        following html attribute: <textarea cols="10"> and defaults to a value 
+        of 20.
+
+        Attribute: Returns The width of the text area. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        integer width = myTextArea:GetWidth()
+        
+    */
+    action GetWidth returns integer
+        Attribute width = GetAttribute(me:width)
+        if width = undefined
+            return 20
+        else
+            return cast(integer, width:GetValue())
+        end
+    end
+
+    /*
+        This action sets the width Attribute. The width is the width of the
+        TextArea and it is defaulted to a value of 20.
+
+        Attribute: Parameter value The width of the textarea. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        myTextArea:SetWidth(25)
+        
+    */
+    action SetWidth(integer value)
+        AddAttribute(me:width, value)
+    end
+
+    /*
+        This action gets the disabled attribute of the textarea. If false is
+        returned the textarea is enabled and if true is returned it is disabled.
+
+        Attribute: Returns True if the textarea is disabled and false if it not. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        boolean disabled = myTextArea:GetDisabled()
+        
+    */
+    action GetDisabled returns boolean
+        Attribute disable = GetAttribute(me:disabled)
+        if disable = undefined
+            return false
+        else
+            return disable:GetValue() = me:disabled
+        end
+    end
+    
+    /*
+        This action sets the disabled attribute of the textarea. The value of true
+        will disable the textarea and false will enable the textarea.
+
+        Attribute: Parameter value True if the textarea is disabled and false if it not. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        myTextArea:SetDisabled(true)
+        
+    */
+    action SetDisabled (boolean value)
+        if value
+            AddAttribute(disabled, disabled)
+        else
+            RemoveAttribute(disabled)
+        end
+    end
+ 
+    /*
+        This action gets the formName attribute of the TextArea. The name of the 
+        formName is stored as the value in the attribute.
+
+        Attribute: Returns The formName attribute. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        Attribute formName = myTextArea:GetFormName()            
+    */
+    action GetFormName returns Attribute
+        return me:GetAttribute(formName)
+    end
+
+    /*
+        This action sets the form attribute of the textarea. The value of formName 
+        attribute should map to a defined form name.
+
+        Attribute: Parameter value Name of the form. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        myTextArea:SetFormName("myForm")
+        
+    */
+    action SetFormName(text value)
+        AddAttribute(formName,value)
+    end
+    
+    /*
+        This action gets the max length attribute of the textarea. The max 
+        length of the form the text area is stored as the value in the attribute.
+
+        Attribute: Returns The max length of the characters in the text area. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        Attribute max = myTextArea:GetMaxLength()
+            
+    */
+    action GetMaxLength returns Attribute
+        return me:GetAttribute(maxLength)
+    end
+
+    /*
+        This action sets the max length attribute of the textarea. The max length
+        is the max number of characters that the text area will hold.
+
+        Attribute: Parameter value The max length of characters in the text area. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        myTextArea:SetMaxLength(150)
+        
+    */
+    action SetMaxLength(integer value)
+        AddAttribute(maxLength,value)
+    end
+    
+    /*
+        This action gets the name attribute of the textarea. The name of the 
+        the text area is stored as the value in the attribute.
+
+        Attribute: Returns The name attribute. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        Attribute textAreaName = myTextArea:GetName()            
+    */
+    action GetName returns Attribute
+        return me:GetAttribute(name)
+    end
+
+    /*
+        This action sets the name attribute of the textarea. The name variable
+        sets the name of the textarea.
+
+        Attribute: Parameter value The name of the text area. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        myTextArea:SetName("myTextArea")
+        
+    */
+    action SetName(text value)
+        AddAttribute(name,value)
+    end
+    
+    /*
+        This action gets the placeholder attribute of the textarea. The placeholder
+        is the description of what should be placed in the text area. This placeholder
+        text is displayed in the text area.
+
+        Attribute: Returns The placeholder attribute. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        Attribute placeHolder = myTextArea:GetPlaceHolder()
+    */
+    action GetPlaceHolder returns Attribute
+        return me:GetAttribute(placeHolder)
+    end
+
+    /*
+        This action sets the placeholder attribute of the textarea. The placeholder
+        is the description of what should be placed in the text area. This placeholder
+        text is displayed in the text area.
+
+        Attribute: Parameter value The placeholder text in the text area. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        myTextArea:SetPlaceHolder("Enter your full name...")
+        
+    */
+    action SetPlaceHolder(text value)
+        AddAttribute(placeHolder,value)
+    end
+    
+    /*
+        This action gets the read-only attribute of the textarea. If the textarea
+        is readonly then the textarea does not allow text to be written to the 
+        textarea.
+
+        Attribute: Returns True if the textarea is read-only and false if it is not. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        boolean readOnly = myTextArea:GetReadOnly()
+            
+    */
+    action GetReadOnly returns boolean
+        Attribute readOnly = GetAttribute(me:readOnly)
+        if readOnly = undefined
+            return false
+        else
+            return true
+        end
+    end
+
+    /*
+        This action sets the read-only attribute of the textarea. If the textarea
+        is readonly then the textarea does not allow text to be written to the 
+        textarea.
+
+        Attribute: Parameter value True if the textarea is read-only and false if it is not. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        myTextArea:SetReadOnly(true)
+        
+    */
+    action SetReadOnly(boolean value)
+        if value
+            AddAttribute(readOnly, readOnly)
+        else
+            RemoveAttribute(readOnly)
+        end
+    end
+    
+    /*
+        This action gets the require attribute of the textarea. If the textarea
+        is required the value true will be returned and false if it is not required.
+        Required means the textarea must be filled out.
+
+        Attribute: Returns True if the textarea is required and false if it is not. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        boolean required = myTextArea:GetRequired()
+            
+    */
+    action GetRequired returns boolean
+        Attribute required = GetAttribute(me:required)
+        if required = undefined
+            return false
+        else
+            return required:GetValue() = me:required
+        end
+    end
+
+    /*
+        This action sets the required attribute of the textarea. If the textarea
+        is required (true) then the textarea must be filled out.
+
+        Attribute: Parameter value True if the textarea is required and false if it is not. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        myTextArea:SetRequired(true)
+        
+    */
+    action SetRequired(boolean value)
+        if value
+            AddAttribute(required,required)
+        else
+            RemoveAttribute(required)
+        end
+    end
+    
+    /*
+        This action gets the height attribute of the textarea. This attribute
+        specifies the height in lines of the textarea. The default value is 2
+        lines.
+
+        Attribute: Returns The height of the textarea. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        Attribute height = myTextArea:GetHeight()
+    */
+    action GetHeight returns Attribute
+        return me:GetAttribute(height)
+    end
+
+    /*
+        This action sets the required attribute of the textarea. This attribute
+        specifies the height in lines of the textarea. The default value is 2
+        lines.
+
+        Attribute: Parameter value The height in lines of the text area. 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        myTextArea:SetHeight(5)
+        
+    */
+    action SetHeight(integer value)
+        AddAttribute(height,value)
+    end
+    
+     /*
+        This action gets the text wrap attribute of the textarea. There are two
+        types of text wrap that can be specified, "hard" or "soft". A soft wrap
+        means the text is not wrapped in the text area(this is the default). A
+        hard wrap means the text will be wrapped (contains newlines) and a width
+        must be specifed in this case.
+
+        Attribute: Parameter value Hard or soft wrap (default:soft). 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        Attribute wrap = myTextArea:GetTextWrap()
+        
+    */
+    action GetTextWrap returns Attribute
+        return me:GetAttribute(textWrap)
+    end
+
+    /*
+        This action sets the text wrap attribute of the textarea. There are two
+        types of text wrap that can be specified, "hard" or "soft". A soft wrap
+        means the text is not wrapped in the text area(this is the default). A
+        hard wrap means the text will be wrapped (contains newlines) and a width
+        must be specifed in this case.
+
+        Attribute: Parameter value Hard or soft wrap (default:soft). 
+
+        Attribute: Example
+        use Libraries.Web.TextArea
+        use Libraries.Web.Attribute
+
+        TextArea myTextArea
+        myTextArea:SetTextWrap(true)
+        
+    */
+    action SetTextWrap(text value)
+        AddAttribute(textWrap,value)
+    end
+
+    action Generate returns text
+        text result = "<textarea " 
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + GetDescription() + "</textarea>"
+        return result
+    end
+end
