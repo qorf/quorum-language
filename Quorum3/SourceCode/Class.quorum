@@ -72,7 +72,11 @@ class Class is Symbol
     end
 
     action GetStaticKey returns text
-        return packageName:GetStaticKey() + "." + me:GetName()
+        text pack = packageName:GetStaticKey()
+        if pack:IsEmpty()
+            return me:GetName()
+        end
+        return pack + "." + me:GetName()
     end
 
     action GetDisplayName returns text

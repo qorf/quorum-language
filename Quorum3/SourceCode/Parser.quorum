@@ -49,6 +49,7 @@ class Parser is QuorumSourceListener
         
         
         clazz:SetName(name)
+        clazz:SetFile(GetFile())
         CompilerError error = symbolTable:Add(clazz)
         if error not= undefined
             CompilerErrorManager manager = GetCompilerErrorManager()

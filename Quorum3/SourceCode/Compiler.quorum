@@ -2,13 +2,45 @@ package Libraries.Language.Compile
 
 use Libraries.System.File
 use Libraries.Language.Compile.Symbol.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Blueprints.Iterator
 
 class Compiler
     public constant number VERSION = 3.0
-    
+    File main = undefined
+    constant text DEFAULT_BUILD_FOLDER = "TestBuild"
+    constant text DEFAULT_RUN_FOLDER = "TestRun"
+    constant text DEFAULT_STANDARD_LIBRARY_FOLDER = "Library"
+    File buildFolder = undefined
+    File runFolder = undefined
+    File standardLibraryFolder = undefined
+    HashTable<text, Dependency> dependencies
+
+    boolean isWebApplication = false
+    text name = "Default"
+
+    //Support classes
     SymbolTable symbolTable
     CompilerErrorManager compilerErrorManager
     TypeChecker checker
+
+    on create //load default dependencies
+        LoadDependency("/quorum", "/quorum")
+        //LoadDependency("/plugins", "/plugins")
+        //LoadDependency("/antlr", "/antlr")
+        //LoadDependency("/asm", "/asm")
+    end
+
+    action LoadDependency(text from, text to)
+        Dependency dep
+        dep:from = from
+        dep:to = to
+        dependencies:Add(from, dep)
+    end
+
+    action GetDependencies returns Iterator<Dependency>
+        return dependencies:GetValueIterator()
+    end
 
     action Parse(File file, QuorumSourceListener listener)
         listener:SetSymbolTable(symbolTable)
@@ -20,4 +52,96 @@ class Compiler
 
     private system action ParseNative(File file, QuorumSourceListener listener)
 
+    action GetName returns text
+        return name
+    end
+
+    action GetNameWithExtension returns text
+        return name + GetFileExtension()
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetFileExtension returns text
+        if IsWebApplication()
+            return ".war"
+        else
+            return ".jar"
+        end
+    end
+
+    action GetMain returns File
+        return main
+    end
+
+    action GetMainClass returns Class
+        Class c = symbolTable:GetClassInFile(main:GetAbsolutePath())
+        return c
+    end
+
+    action SetMain(File file)
+        main = file
+    end
+
+    action GetVersion returns text
+        return "Quorum " + VERSION
+    end
+
+    action GetBuildFolder returns File
+        if buildFolder = undefined
+            File build
+            build:SetPath(DEFAULT_BUILD_FOLDER)
+            buildFolder = build
+        end
+        return buildFolder
+    end
+
+    action GetStandardLibraryFolder returns File
+        if standardLibraryFolder = undefined
+            File build
+            build:SetPath(DEFAULT_STANDARD_LIBRARY_FOLDER)
+            standardLibraryFolder = build
+        end
+        return standardLibraryFolder
+    end
+
+    action SetStandardLibraryFolder(File file)
+        standardLibraryFolder = file
+    end
+
+    action GetDistributionFile returns File
+        File run = GetRunFolder()
+        text path = run:GetPath() + "/"
+        File newRun
+        
+        newRun:SetPath(path + GetNameWithExtension())
+        return newRun
+    end
+
+    action SetBuildFolder(File file)
+        buildFolder = file
+    end
+
+    action GetRunFolder returns File
+        if runFolder = undefined
+            File run
+            run:SetPath(DEFAULT_RUN_FOLDER)
+            runFolder = run
+        end
+        return runFolder
+    end
+
+    action SetRunFolder(File file)
+        runFolder = file
+    end
+
+    action IsWebApplication returns boolean
+        return isWebApplication
+    end
+
+    action SetIsWebApplication(boolean web)
+        isWebApplication = web
+    end
 end

@@ -3,7 +3,7 @@ package Libraries.Language.Compile.Symbol
 use Libraries.System.File
 use Libraries.Language.Compile.Location
 
-class Symbol 
+class Symbol is Location
     text name = ""
     Location location
     Documentation documentation
@@ -23,40 +23,4 @@ class Symbol
     blueprint action GetDisplayName returns text
 
     blueprint action GetStaticKey returns text
-
-    action GetLocation returns Location
-        return location
-    end
-
-    action SetLocation(Location location) 
-        me:location = location
-    end
-
-    action GetLineNumber returns integer
-        return location:GetLineNumber()
-    end
-
-    action GetLineNumberEnd returns integer
-        return location:GetLineNumberEnd()
-    end
-
-    action GetColumnNumber returns integer
-        return location:GetColumnNumber()
-    end
-
-    action GetColumnNumberEnd returns integer
-        return location:GetColumnNumberEnd()
-    end
-
-    action GetIndex returns integer
-        return location:GetIndex()
-    end
-
-    action GetIndexEnd returns integer
-        return location:GetIndexEnd()
-    end
-
-    action GetFile returns File
-        return location:GetFile()
-    end
 end

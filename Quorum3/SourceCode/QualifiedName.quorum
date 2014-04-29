@@ -48,6 +48,19 @@ class QualifiedName
         names:Empty()
     end
 
+    /*
+        This action returns the full static key what a class would
+        be given this qualified name and a name text field.
+    */
+    action GetClassStaticKey(text name) returns text
+        text pack = me:GetStaticKey()
+        if pack:IsEmpty()
+            return name
+        end
+        return pack + "." + name
+    end
+
+
     action Copy returns QualifiedName
         QualifiedName new
         Iterator<text> it = names:GetIterator()

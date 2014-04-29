@@ -3,6 +3,7 @@ package Libraries.Language.Compile.Symbol
 use Libraries.Language.Compile.CompilerError
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Location
+use Libraries.System.File
 
 class SymbolTable 
     HashTable<text, Source> files
@@ -16,6 +17,19 @@ class SymbolTable
             error:SetErrorMessage("Class " + clazz:GetStaticKey() + " is already defined.")
         end //otherwise just add it
         classes:Add(clazz:GetStaticKey(), clazz)
+
+        File file = clazz:GetFile()
+        text path = file:GetAbsolutePath()
+        if files:HasKey(path)
+            Source source = files:GetValue(path)
+            source:Add(clazz)
+        else 
+            Source source
+            source:Add(clazz)
+            source:SetFile(file)
+            files:Add(source:GetStaticKey(), source)
+        end
+
         return undefined
     end
 
@@ -33,5 +47,18 @@ class SymbolTable
 
     action GetClass(text key) returns Class
         return classes:GetValue(key)
+    end
+
+    /*
+        This action returns the first class in the file
+        with the designated key.
+    */
+    action GetClassInFile(text fileKey) returns Class
+        Source source = files:GetValue(fileKey)
+        if source not= undefined
+            return source:GetFirstClass()
+        end
+
+        return undefined
     end
 end

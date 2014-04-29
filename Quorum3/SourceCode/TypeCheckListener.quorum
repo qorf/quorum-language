@@ -28,7 +28,7 @@ class TypeCheckListener is QuorumSourceListener
             QualifiedName default
             packageValue = default
         end
-        staticKey = packageValue:GetStaticKey() + "." + name
+        staticKey = packageValue:GetClassStaticKey(name)
         currentClass = table:GetClass(staticKey)
 
         if currentClass = undefined //throw an error
