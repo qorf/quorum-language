@@ -29,8 +29,7 @@ class CompilerTestSuite
     action Test1
         Compiler compiler
         File file
-        //file:SetPath("Test/Expression.quorum")
-        file:SetPath("Library/Tests/Expressions/Pass/AddIntInt.quorum")
+        file:SetPath("Test/Expression.quorum")
         compiler:SetMain(file)
 
         Parser parser
@@ -45,18 +44,21 @@ class CompilerTestSuite
         if manager:IsCompilationErrorFree() //run the program
             QuorumJarGenerator generator
 
-            File f = compiler:GetDistributionFile()
+            File jar = compiler:GetDistributionFile()
             generator:SetCompiler(compiler)
             generator:Write()
-
-//            File runMe = bytecode:GetBuildFile()
-
-
-  //          CompilerTestResult result = RunClassFile(file)
-            a = 5
+            CompilerTestResult result = RunClassFile(jar)
+            
+            Array<text> results = result:lines
+            if not results:IsEmpty()
+                line = results:Get(0)
+                if line = "15" //we passed!
+                    result:passed = true
+                end
+            end
         else 
             CompilerTestResult result
-            result:passed = false
+            result:ranWithoutError = false
         end
     end
 
