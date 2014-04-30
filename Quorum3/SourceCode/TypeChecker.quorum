@@ -120,9 +120,194 @@ class TypeChecker
         results:Add(key, result)
 
         ////////////////////////////////////////////////////////////////////////
+        //NUMBER NUMBER
+        ////////////////////////////////////////////////////////////////////////
+        op = GetOperation(opConstant:PLUS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:MINUS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:TIMES)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:DIVIDE)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:MODULUS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:EQUALS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:NOT_EQUALS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:GREATER_EQUALS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:GREATER)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:LESS_EQUALS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:LESS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        ////////////////////////////////////////////////////////////////////////
+        //Boolean Boolean
+        ////////////////////////////////////////////////////////////////////////
+        op = GetOperation(opConstant:AND)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY,
+            constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:OR)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY,
+            constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:EQUALS)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY,
+            constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:NOT_EQUALS)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY,
+            constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        ////////////////////////////////////////////////////////////////////////
+        //TEXT TEXT
+        ////////////////////////////////////////////////////////////////////////
+        op = GetOperation(opConstant:PLUS)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:EQUALS)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:NOT_EQUALS)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:GREATER_EQUALS)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:GREATER)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:LESS_EQUALS)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:LESS)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        ////////////////////////////////////////////////////////////////////////
         //Assignment Operations
         ////////////////////////////////////////////////////////////////////////
-        //Integer integer
+        //Assign Integer integer
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
             constants:INTEGER_PRIMITIVE_KEY, undefined, true, false)
         result = GetNoConvertResult()
@@ -130,6 +315,107 @@ class TypeChecker
         type:SetToInteger()
         opcodeWriter = result:writer
         opcodeWriter:AddOpcode(opcodes:GetIntegerStore())
+        results:Add(key, result)
+
+        //Assign Text Text
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:TEXT_PRIMITIVE_KEY, undefined, true, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToText()
+        opcodeWriter = result:writer
+        opcodeWriter:AddOpcode(opcodes:GetObjectStore())
+        results:Add(key, result)
+
+        //Assign Text Text
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:UNDEFINED_KEY, undefined, true, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        //Assign Text undefined
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:UNDEFINED_KEY, undefined, true, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        //Assign Number Number
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            constants:NUMBER_PRIMITIVE_KEY, undefined, true, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        //Assign Number Integer
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            constants:INTEGER_PRIMITIVE_KEY, undefined, true, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        //Assign Boolean Boolean
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY,
+            constants:BOOLEAN_PRIMITIVE_KEY, undefined, true, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        ////////////////////////////////////////////////////////////////////////
+        //Unary Operations
+        ////////////////////////////////////////////////////////////////////////
+        text null = undefined
+        op = GetOperation(opConstant:NOT)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY,
+            null, op, true, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        ////////////////////////////////////////////////////////////////////////
+        //Return types
+        ////////////////////////////////////////////////////////////////////////
+        //integer integer
+        op = GetOperation(opConstant:RETURN)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
+            constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        //text text
+        op = GetOperation(opConstant:RETURN)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        //text undefined
+        op = GetOperation(opConstant:RETURN)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:UNDEFINED_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        //number number
+        op = GetOperation(opConstant:RETURN)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToNumber()
         results:Add(key, result)
     end
 
@@ -141,9 +427,16 @@ class TypeChecker
 
     action GetNoConvertResult returns TypeCheckResult
         TypeCheckResult result
-        
         TypeConversionConstants c = result:conversion
         c:SetConversion(c:NONE)
+        result:errorMessage = ""
+        return result
+    end
+
+    action GetWideningConvertResult returns TypeCheckResult
+        TypeCheckResult result
+        TypeConversionConstants c = result:conversion
+        c:SetConversion(c:WIDENING)
         result:errorMessage = ""
         return result
     end

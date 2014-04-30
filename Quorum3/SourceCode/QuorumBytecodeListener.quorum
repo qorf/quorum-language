@@ -147,7 +147,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         text null = undefined
         methodWriter = classWriter:VisitMethod(opcodes:GetPublic(), "<init>", signature, null, undefined)
         methodWriter:VisitCode()
-        methodWriter:VisitVariable(opcodes:GetLoadObject(), ME)
+        methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), "java/lang/Object", "<init>", "()V", false)
 
 
@@ -196,8 +196,8 @@ class QuorumBytecodeListener is QuorumSourceListener
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), bytecode, "<init>", "()V", false)
 
         //store it in a variable and load it back on the stack
-        methodWriter:VisitVariable(opcodes:GetStoreObject(), 1)
-        methodWriter:VisitVariable(opcodes:GetLoadObject(), 1)
+        methodWriter:VisitVariable(opcodes:GetObjectStore(), 1)
+        methodWriter:VisitVariable(opcodes:GetObjectLoad(), 1)
 
         //call a method on the object, its non-static main
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), bytecode,

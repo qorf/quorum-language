@@ -10,10 +10,6 @@ class QuorumBytecodeConverter
      * @return 
      */
     action ConvertStaticKeyToBytecodePath(text key) returns text
-        if key:GetCharacter(0) = "."
-            key = key:GetSubtext(1)
-        end
-
         text result = "quorum/" + key:Replace(".", "/")
         return result
     end

@@ -302,7 +302,7 @@ class JavaBytecodeOpcodes
         return DRETURN
     end
 
-    action GetStoreObject returns integer
+    action GetObjectStore returns integer
         return ASTORE
     end
 
@@ -342,7 +342,7 @@ class JavaBytecodeOpcodes
         end
     end
 
-    action GetLoadObject returns integer
+    action GetObjectLoad returns integer
         return ALOAD
     end
     action GetInvokeVirtual returns integer
