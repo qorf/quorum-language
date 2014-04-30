@@ -72,46 +72,6 @@ class CompilerTestSuite
         Add(result)
     end
 
-//    action Test1
-//        CompilerTestResult result = undefined
-//        Compiler compiler
-//        File file
-//        file:SetPath("Library/Tests/Expressions/Pass/Expression.quorum")
-//        compiler:SetMain(file)
-//
-//        Parser parser
-//        compiler:Parse(file, parser)
-//        TypeCheckListener checker
-//        compiler:Parse(file, checker)
-//        QuorumBytecodeListener bytecode
-//        compiler:Parse(file, bytecode)
-//        
-//        CompilerErrorManager manager = parser:GetCompilerErrorManager()
-//
-//        if manager:IsCompilationErrorFree() //run the program
-//            QuorumJarGenerator generator
-//
-//            File jar = compiler:GetDistributionFile()
-//            generator:SetCompiler(compiler)
-//            generator:Write()
-//            result = RunClassFile(jar)
-//            
-//            Array<text> results = result:lines
-//            if not results:IsEmpty()
-//                line = results:Get(0)
-//                if line = "15" //we passed!
-//                    result:passed = true
-//                end
-//            end
-//        else
-//            CompilerTestResult result2
-//            result = result2
-//        end
-//
-//        result:name = "Expression.quorum"
-//        Add(result)
-//    end
-
     action Add(CompilerTestResult result)
         if result = undefined
             failed = failed + 1
