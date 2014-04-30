@@ -16,20 +16,22 @@ class CompilerTestSuite
     integer failed = 0
 
     action Main
-        output "Starting Quorum Test Suite, version  " //+ compiler:VERSION + "."
+        output "Starting Quorum 3.0 Test Suite" //+ compiler:VERSION + "."
+        output ""
+        output "List of Tests:"
         Test1()
         
         output ""
-        output "Finished Testing:"
-        output "Tests Passed: " + passed
-        output "Tests Failed: " + failed
-        output "Total Percentage: "
+        output "Finished Testing."
+        output "Tests Passed: " + passed + " out of " + total
+        output "Total Percentage: " + (passed  * 100.0) / (total * 1.0)
     end
 
     action Test1
+        CompilerTestResult result = undefined
         Compiler compiler
         File file
-        file:SetPath("Test/Expression.quorum")
+        file:SetPath("Library/Tests/Expressions/Pass/Expression.quorum")
         compiler:SetMain(file)
 
         Parser parser
@@ -47,7 +49,7 @@ class CompilerTestSuite
             File jar = compiler:GetDistributionFile()
             generator:SetCompiler(compiler)
             generator:Write()
-            CompilerTestResult result = RunClassFile(jar)
+            result = RunClassFile(jar)
             
             Array<text> results = result:lines
             if not results:IsEmpty()
@@ -56,10 +58,26 @@ class CompilerTestSuite
                     result:passed = true
                 end
             end
-        else 
-            CompilerTestResult result
-            result:ranWithoutError = false
+        else
+            CompilerTestResult result2
+            result = result2
         end
+
+        result:name = "Expression.quorum"
+        Add(result)
+    end
+
+    action Add(CompilerTestResult result)
+        if result = undefined
+            failed = failed + 1
+        elseif result:passed
+            passed = passed + 1
+        else
+            failed = failed + 1
+        end
+        total = total + 1
+        text value = result:name + " ... " + result:passed
+        output value
     end
 
     system action RunClassFile(File file) returns CompilerTestResult
