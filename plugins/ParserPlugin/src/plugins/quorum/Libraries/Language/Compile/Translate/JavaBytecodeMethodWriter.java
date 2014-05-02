@@ -44,6 +44,11 @@ public class JavaBytecodeMethodWriter {
         this.methodVisitor = methodVisitor;
     }
     
+    public void VisitJump(int opcode, quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface label) {
+        Label l = getLabel((quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel)label);
+        methodVisitor.visitJumpInsn(opcode, l);
+    }
+            
     public void VisitCode() {
         methodVisitor.visitCode();
     }
@@ -125,14 +130,20 @@ public class JavaBytecodeMethodWriter {
         methodVisitor.visitInsn(ACONST_NULL);
     }
     
-    public void VisitLabel(quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel label) {
+    public void VisitLabel(quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface label) {
+        Label l = getLabel((quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel)label);
+        methodVisitor.visitLabel(l);
+    }
+    
+    public Label getLabel(quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel label) {
         try {
             //get the plugin from the passed class
             Field field = label.getClass().getField("<plugin>");
             JavaBytecodeLabel get = (JavaBytecodeLabel) field.get(label);
-            methodVisitor.visitLabel(get.getLabel());
+            return get.getLabel();
         } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
             Logger.getLogger(JavaBytecodeClassWriter.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return null;
     }
 }

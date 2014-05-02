@@ -14,7 +14,7 @@ import org.objectweb.asm.Label;
  */
 public class JavaBytecodeLabel {
     public java.lang.Object $me = null;
-    private Label label;
+    private Label label = new Label();
     public String GetName() {
         return "";
     }
