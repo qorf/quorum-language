@@ -480,12 +480,16 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterEquals(QuorumParser.EqualsContext ctx) {
-        listener.EnterEquals();
+        quorum.Libraries.Language.Compile.Context.EqualsContext context = new quorum.Libraries.Language.Compile.Context.EqualsContext();
+        setLocation(ctx, context);
+        listener.EnterEquals(context);
     }
 
     @Override
     public void exitEquals(QuorumParser.EqualsContext ctx) {
-        listener.ExitEquals();
+        quorum.Libraries.Language.Compile.Context.EqualsContext context = new quorum.Libraries.Language.Compile.Context.EqualsContext();
+        setLocation(ctx, context);
+        listener.ExitEquals(context);
     }
 
     @Override
