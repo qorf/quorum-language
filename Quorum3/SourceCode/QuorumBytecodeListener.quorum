@@ -268,11 +268,31 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
     end
 
-    //Expression Parsing here
-    action EnterNoTypeAssignment(NoTypeAssignmentContext context) 
+    action ExitNormalAssignment(NormalAssignmentContext context) 
+        text name = context:name
+        Variable variable = undefined
+        if context:isField
+            variable = currentClass:GetVariable(name)
+            //write the field
 
+
+        else 
+            variable = currentBlock:GetVariable(name)
+            Type left = variable:GetType()
+            Type right = expressionStack:Pop()
+
+            Operation assign
+            assign:SetOperation(assign:EQUALS)
+
+            TypeChecker checker = GetTypeChecker()
+            TypeCheckResult result = checker:Check(left, right, undefined, true) 
+
+            //write the local variable, which is guaranteed at this stage not null
+            integer location = variable:GetBytecodeLocation()
+            JavaOpcodeWriter writer = result:writer
+            writer:Write(methodWriter, location)
+        end
     end
-
 
     action ExitNoTypeAssignment(NoTypeAssignmentContext context) 
 
@@ -360,7 +380,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     end
 
-    action ExitEquals 
+    action ExitEquals (EqualsContext context)
         TypeChecker checker = GetTypeChecker()
         Type right = expressionStack:Pop()
         Type left = expressionStack:Pop()

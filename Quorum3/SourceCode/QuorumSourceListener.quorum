@@ -184,8 +184,8 @@ class QuorumSourceListener
     action EnterClassType end
     action ExitClassType end
 
-    action EnterEquals end
-    action ExitEquals end
+    action EnterEquals(EqualsContext context) end
+    action ExitEquals(EqualsContext context) end
 
     action EnterGreater end
     action ExitGreater end

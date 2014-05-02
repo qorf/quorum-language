@@ -80,6 +80,45 @@ class TypeCheckListener is QuorumSourceListener
         currentAction = undefined
     end
 
+    action ExitNormalAssignment(NormalAssignmentContext context) 
+        text name = context:name
+        Variable variable = undefined
+
+        if context:isField
+            variable = currentClass:GetVariable(name)
+        else 
+            variable = currentBlock:GetVariable(name)
+        end
+        
+        if variable = undefined
+            Location location = context:GetLocation()
+            CompilerError error
+            error:SetLineNumber(location:GetLineNumber())
+            error:SetFile(location:GetFile())
+            error:SetErrorMessage("Variable " + context:name + " could not be found.")
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
+        Type right = expressionStack:Pop()
+        integer bytecodeSize = right:GetBytecodeSize()
+
+        if not context:isField
+            currentBlock:SetByteCodeLocation(variable)
+        end
+
+        TypeChecker checker = GetTypeChecker()
+        TypeCheckResult result = checker:Check(variable:GetType(), right, undefined, true) 
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
+        expressionStack:Push(result:result)
+    end
 
     action ExitNoTypeAssignment(NoTypeAssignmentContext context) 
         text name = context:name
@@ -114,11 +153,29 @@ class TypeCheckListener is QuorumSourceListener
                 currentBlock:SetByteCodeLocation(variable)
             end
         end
-
-        a = 5
     end
 
-    action ExitAddition(Addition addition) 
+    action ExitEquals(EqualsContext context)
+        TypeChecker checker = GetTypeChecker()
+        Type right = expressionStack:Pop()
+        Type left = expressionStack:Pop()
+        Operation add
+        add:SetOperation(add:EQUALS)
+        
+        TypeCheckResult result = checker:Check(left, right, add)
+
+//        CompilerError error = result:GetCompilerError(addition:GetLocation())
+//        if error not= undefined
+//            CompilerErrorManager manager = GetCompilerErrorManager()
+//            manager:Add(error)
+//            return now
+//        end
+
+        Type value = result:result
+        expressionStack:Push(value:Copy())
+    end
+
+    action ExitAddition(Addition context) 
         TypeChecker checker = GetTypeChecker()
         Type right = expressionStack:Pop()
         Type left = expressionStack:Pop()
@@ -126,7 +183,7 @@ class TypeCheckListener is QuorumSourceListener
         add:SetOperation(add:PLUS)
         
         TypeCheckResult result = checker:Check(left, right, add) 
-        CompilerError error = result:GetCompilerError(addition:GetLocation())
+        CompilerError error = result:GetCompilerError(context:GetLocation())
         if error not= undefined
             CompilerErrorManager manager = GetCompilerErrorManager()
             manager:Add(error)
