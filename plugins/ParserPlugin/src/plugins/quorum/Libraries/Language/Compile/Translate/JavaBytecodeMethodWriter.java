@@ -6,6 +6,10 @@
 
 package plugins.quorum.Libraries.Language.Compile.Translate;
 
+import java.lang.reflect.Field;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import static org.objectweb.asm.Opcodes.ACONST_NULL;
 import static org.objectweb.asm.Opcodes.BIPUSH;
@@ -119,5 +123,16 @@ public class JavaBytecodeMethodWriter {
     
     public void VisitUndefinedConstant() {
         methodVisitor.visitInsn(ACONST_NULL);
+    }
+    
+    public void VisitLabel(quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel label) {
+        try {
+            //get the plugin from the passed class
+            Field field = label.getClass().getField("<plugin>");
+            JavaBytecodeLabel get = (JavaBytecodeLabel) field.get(label);
+            methodVisitor.visitLabel(get.getLabel());
+        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
+            Logger.getLogger(JavaBytecodeClassWriter.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }
