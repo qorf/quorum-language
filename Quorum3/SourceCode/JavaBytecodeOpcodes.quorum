@@ -231,7 +231,57 @@ class JavaBytecodeOpcodes
     constant integer IFNULL = 198
     constant integer IFNONNULL = 199
 
-    
+    action GetIfEquals returns integer
+        return IFEQ
+    end
+
+    action GetIfNotEquals returns integer
+        return IFNE
+    end
+
+    action GetIfLessThan returns integer
+        return IFLT
+    end
+
+    action GetIfGreaterThanEquals returns integer
+        return IFGE
+    end
+
+    action GetIfGreaterThan returns integer
+        return IFGT
+    end
+
+    action GetIfLessThanEquals returns integer
+        return IFLE
+    end
+
+    action GetIfIntegerEquals returns integer
+        return IF_ICMPEQ
+    end
+
+    action GetIfIntegerNotEquals returns integer
+        return IF_ICMPNE
+    end
+
+    action GetIfIntegerLessThan returns integer
+        return IF_ICMPLT
+    end
+
+    action GetIfIntegerGreaterThanEquals returns integer
+        return IF_ICMPGE
+    end
+
+    action GetIfIntegerGreaterThan returns integer
+        return IF_ICMPGT
+    end
+
+    action GetIfIntegerLessThanEquals returns integer
+        return IF_ICMPLE
+    end
+
+    action GetGoto returns integer
+        return GOTO
+    end
 
     action GetStaticField returns integer
         return GETSTATIC

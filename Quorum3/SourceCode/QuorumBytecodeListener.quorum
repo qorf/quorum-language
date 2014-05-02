@@ -360,6 +360,22 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     end
 
+    action ExitEquals 
+        TypeChecker checker = GetTypeChecker()
+        Type right = expressionStack:Pop()
+        Type left = expressionStack:Pop()
+        Operation add
+        add:SetOperation(add:EQUALS)
+        
+        TypeCheckResult result = checker:Check(left, right, add) 
+        JavaOpcodeWriter opcodeWriter = result:writer
+        opcodeWriter:WriteComparison(methodWriter)
+        Type value = result:result
+        expressionStack:Push(value:Copy())
+
+    end
+
+
     action ExitAddition(Addition addition) 
         TypeChecker checker = GetTypeChecker()
         Type right = expressionStack:Pop()

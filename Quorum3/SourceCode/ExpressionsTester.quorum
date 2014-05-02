@@ -1,0 +1,78 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.QuorumJarGenerator
+use Libraries.System.StackTraceItem
+
+class ExpressionsTester 
+    CompilerTestSuite suite = undefined
+    action Test
+        BasicExpression()
+        AddBooleanText()
+        EqualIntInt()
+    end
+
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+    action BasicExpression
+        suite:RunTest("Library/Tests/Expressions/Pass/Expression.quorum", "15")
+    end
+
+
+    action AddBooleanText
+        CompilerTestResult result
+        result:name = "Library/Tests/Expressions/Pass/AddBooleanText.quorum"
+        check
+            result = suite:RunTest(result:name)
+            if result:ranWithoutError
+                Array<text> lines = result:lines
+                if lines:GetSize() = 2
+                    if lines:Get(0) = "true text" and 
+                       lines:Get(1) = "false text"
+                       result:passed = true
+                    end
+                end
+            end
+            
+        detect e
+            text message = e:GetErrorMessage()
+            result:errorMessage = message
+            result:stackTrace = e:GetStackTrace()
+        end
+        suite:Add(result)
+    end
+
+    action EqualIntInt
+        CompilerTestResult result
+        result:name = "Library/Tests/Expressions/Pass/EqualIntInt.quorum"
+        check
+            result = suite:RunTest(result:name)
+            if result:ranWithoutError
+                Array<text> lines = result:lines
+                if lines:GetSize() = 2
+                    if lines:Get(0) = "false" and 
+                       lines:Get(1) = "true"
+                       result:passed = true
+                    end
+                end
+            end
+            
+        detect e
+            text message = e:GetErrorMessage()
+            result:errorMessage = message
+            result:stackTrace = e:GetStackTrace()
+        end
+        suite:Add(result)
+    end
+end

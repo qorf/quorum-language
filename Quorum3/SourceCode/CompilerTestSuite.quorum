@@ -9,50 +9,26 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.Language.Compile.Translate.QuorumJarGenerator
 use Libraries.System.StackTraceItem
 
-class CompilerTestSuite 
-    //Compiler compiler
-    //HashTable<text, TestResult> passing
+class CompilerTestSuite
     integer total = 0
     integer passed = 0
     integer failed = 0
+
+    ExpressionsTester expressions
+
+    on create
+        expressions:SetCompilerTestSuite(me)
+    end
 
     action Main
         output "Starting Quorum 3.0 Test Suite" //+ compiler:VERSION + "."
         output ""
         output "List of Tests:"
-        BasicExpression()
-        AddBooleanText()
+        expressions:Test()
         output ""
         output "Finished Testing."
         output "Tests Passed: " + passed + " out of " + total
         output "Total Percentage: " + (passed  * 100.0) / (total * 1.0)
-    end
-
-    action BasicExpression
-        RunTest("Library/Tests/Expressions/Pass/Expression.quorum", "15")
-    end
-
-    action AddBooleanText
-        CompilerTestResult result
-        result:name = "Library/Tests/Expressions/Pass/AddBooleanText.quorum"
-        check
-            result = RunTest(result:name)
-            if result:ranWithoutError
-                Array<text> lines = result:lines
-                if lines:GetSize() = 2
-                    if lines:Get(0) = "true text" and 
-                       lines:Get(1) = "false text"
-                       result:passed = true
-                    end
-                end
-            end
-            
-        detect e
-            text message = e:GetErrorMessage()
-            result:errorMessage = message
-            result:stackTrace = e:GetStackTrace()
-        end
-        Add(result)
     end
 
     action RunTest(text source) returns CompilerTestResult
@@ -144,9 +120,11 @@ class CompilerTestSuite
             text error = result:errorMessage
             value = result:name + " ... " + "failed: exception thrown with message: " + error
             Array<StackTraceItem> stack = result:stackTrace
-            if not stack:IsEmpty()
-                StackTraceItem item = stack:Get(0)
-                value = value + ", " + item:GetClassName() + ":" + item:GetMethodName() + ":" + item:GetLineNumber()
+            if stack not= undefined
+                if not stack:IsEmpty()
+                    StackTraceItem item = stack:Get(0)
+                    value = value + ", " + item:GetClassName() + ":" + item:GetMethodName() + ":" + item:GetLineNumber()
+                end
             end
         else
             value = result:name + " ... " + "passed"

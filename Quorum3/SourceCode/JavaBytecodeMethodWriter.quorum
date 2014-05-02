@@ -14,4 +14,6 @@ class JavaBytecodeMethodWriter
     system action VisitConstant(boolean value)
     system action VisitConstant(number value)
     system action VisitUndefinedConstant
+    system action VisitLabel(JavaBytecodeLabel label)
+    system action VisitJump(integer opcode, JavaBytecodeLabel label)
 end

@@ -75,6 +75,9 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
             constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:AddOpcode(opcodes:GetIfIntegerNotEquals())
+        opcodeWriter:isEquals = true
         type = result:result
         type:SetToBoolean()
         results:Add(key, result)
@@ -83,6 +86,9 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
             constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:AddOpcode(opcodes:GetIfIntegerNotEquals())
+        opcodeWriter:isEquals = false
         type = result:result
         type:SetToBoolean()
         results:Add(key, result)
@@ -448,6 +454,10 @@ class TypeChecker
 
     action GenerateTypeCheckKey(text left, text right,
             Operation op, boolean assignment, boolean local) returns text
+
+        if right = undefined
+            right = "|nullType|"
+        end
         text a = "f"
         if assignment 
             a = "t"

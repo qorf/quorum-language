@@ -1,11 +1,12 @@
 package Libraries.Language.Compile.Translate
 
-use Libraries.Containers.List
+use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
 
 class JavaOpcodeWriter 
-    List<integer> list
-
+    Array<integer> list
+    JavaBytecodeOpcodes opcodes
+    public boolean isEquals = false
     action AddOpcode(integer op)
         list:Add(op)
     end
@@ -38,6 +39,18 @@ class JavaOpcodeWriter
             integer opcode = it:Next()
             writer:VisitVariable(opcode, location)
         end
+    end
+
+    action WriteComparison(JavaBytecodeMethodWriter writer)
+        JavaBytecodeLabel jumpNotEqual
+        JavaBytecodeLabel jumpPastLabel
+        
+        writer:VisitJump(list:Get(0), jumpNotEqual)
+        writer:VisitConstant(1)
+        writer:VisitJump(opcodes:GetGoto(), jumpPastLabel)
+        writer:VisitLabel(jumpNotEqual)
+        writer:VisitConstant(0)
+        writer:VisitLabel(jumpPastLabel)
     end
 
     action Write(JavaBytecodeClassWriter writer)
