@@ -3,6 +3,7 @@ package Libraries.Language.Compile
 use Libraries.Language.Compile.Parser
 use Libraries.System.File
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.QuorumJarGenerator
 
 class Main
     public constant number VERSION = 3.0
@@ -14,6 +15,7 @@ class Main
         Compiler compiler
         File file
         file:SetPath("Library/Tests/Expressions/Pass/EqualIntInt.quorum")
+        compiler:SetMain(file)
         Parser parser
 
         output "Parsing"
@@ -30,6 +32,11 @@ class Main
         CompilerErrorManager manager = parser:GetCompilerErrorManager()
 
         if manager:IsCompilationErrorFree()
+            QuorumJarGenerator generator
+
+            File jar = compiler:GetDistributionFile()
+            generator:SetCompiler(compiler)
+            generator:Write()
             output "Build completed successfully"
         else 
             output "The code did not build correctly. Here is a list of errors:"

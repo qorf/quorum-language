@@ -371,6 +371,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToBoolean()
+        opcodeWriter = result:writer
+        opcodeWriter:AddOpcode(opcodes:GetIntegerStore())
         results:Add(key, result)
 
         ////////////////////////////////////////////////////////////////////////

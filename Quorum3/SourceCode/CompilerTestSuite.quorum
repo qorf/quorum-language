@@ -8,12 +8,13 @@ use Libraries.System.File
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Language.Compile.Translate.QuorumJarGenerator
 use Libraries.System.StackTraceItem
+use Libraries.Compute.Math
 
 class CompilerTestSuite
     integer total = 0
     integer passed = 0
     integer failed = 0
-
+    Math math
     ExpressionsTester expressions
 
     on create
@@ -24,11 +25,14 @@ class CompilerTestSuite
         output "Starting Quorum 3.0 Test Suite" //+ compiler:VERSION + "."
         output ""
         output "List of Tests:"
+        output expressions:GetName()
         expressions:Test()
         output ""
         output "Finished Testing."
         output "Tests Passed: " + passed + " out of " + total
-        output "Total Percentage: " + (passed  * 100.0) / (total * 1.0)
+
+        number percent = math:Round((passed  * 100.0) / (total * 1.0), 3) //known bug workaround. This value should be 2, not three
+        output "Total Percentage: " + percent + "%"
     end
 
     action RunTest(text source) returns CompilerTestResult
@@ -58,6 +62,7 @@ class CompilerTestSuite
             CompilerTestResult result2
             result = result2
         end
+        result:name = source
         return result
     end
 

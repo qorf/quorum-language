@@ -17,6 +17,10 @@ class ExpressionsTester
         EqualIntInt()
     end
 
+    action GetName returns text
+        return "Expressions Tests"
+    end
+
     action GetCompilerTestSuite returns CompilerTestSuite
         return suite
     end

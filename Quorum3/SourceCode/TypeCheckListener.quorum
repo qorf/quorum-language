@@ -101,23 +101,25 @@ class TypeCheckListener is QuorumSourceListener
             return now
         end
 
-        Type right = expressionStack:Pop()
-        integer bytecodeSize = right:GetBytecodeSize()
+        if not expressionStack:IsEmpty() //ignore the operation, a compiler should have already been issued
+            Type right = expressionStack:Pop()
+            integer bytecodeSize = right:GetBytecodeSize()
 
-        if not context:isField
-            currentBlock:SetByteCodeLocation(variable)
+            if not context:isField
+                currentBlock:SetByteCodeLocation(variable)
+            end
+
+            TypeChecker checker = GetTypeChecker()
+            TypeCheckResult result = checker:Check(variable:GetType(), right, undefined, true) 
+            CompilerError error = result:GetCompilerError(context:GetLocation())
+            if error not= undefined
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(error)
+                return now
+            end
+
+            expressionStack:Push(result:result)
         end
-
-        TypeChecker checker = GetTypeChecker()
-        TypeCheckResult result = checker:Check(variable:GetType(), right, undefined, true) 
-        CompilerError error = result:GetCompilerError(context:GetLocation())
-        if error not= undefined
-            CompilerErrorManager manager = GetCompilerErrorManager()
-            manager:Add(error)
-            return now
-        end
-
-        expressionStack:Push(result:result)
     end
 
     action ExitNoTypeAssignment(NoTypeAssignmentContext context) 
