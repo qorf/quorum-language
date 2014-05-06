@@ -425,6 +425,59 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         results:Add(key, result)
+
+        //boolean boolean
+        op = GetOperation(opConstant:RETURN)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY,
+            constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        //number integer
+        op = GetOperation(opConstant:RETURN)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        TypeConversionPoints points = result:points
+        points:SetPoints(points:LOSSLESS_CONVERT)
+        results:Add(key, result)
+
+        //integer text
+        op = GetOperation(opConstant:RETURN)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
+        points = result:points
+        points:SetPoints(points:LOSSLESS_CONVERT)
+        results:Add(key, result)
+
+        //number text
+        op = GetOperation(opConstant:RETURN)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
+        points = result:points
+        points:SetPoints(points:LOSSLESS_CONVERT)
+        results:Add(key, result)
+
+        //number text
+        op = GetOperation(opConstant:RETURN)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
+        points = result:points
+        points:SetPoints(points:LOSSLESS_CONVERT)
+        results:Add(key, result)
     end
 
     action GetOperation(integer value) returns Operation
