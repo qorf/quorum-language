@@ -5,16 +5,25 @@ class Type
     boolean isText = false
     boolean isNumber = false
     boolean isBoolean = false
+    boolean isIntegerObject = false
+    boolean isTextObject = false
+    boolean isNumberObject = false
+    boolean isBooleanObject = false
     boolean isVoid = false
     boolean isPrimitive = false
     boolean isConstant = false
     boolean isGeneric = false
     text staticKey = ""
 
+    public constant text OBJECT_KEY = "Libraries.Language.Object"
     public constant text INTEGER_PRIMITIVE_KEY = "integer"
     public constant text BOOLEAN_PRIMITIVE_KEY = "boolean"
     public constant text NUMBER_PRIMITIVE_KEY = "number"
     public constant text TEXT_PRIMITIVE_KEY = "text"
+    public constant text INTEGER_OBJECT_KEY = "Libraries.Language.Types.Integer"
+    public constant text BOOLEAN_OBJECT_KEY = "Libraries.Language.Types.Boolean"
+    public constant text NUMBER_OBJECT_KEY = "Libraries.Language.Types.Number"
+    public constant text TEXT_OBJECT_KEY = "Libraries.Language.Types.Text"
     public constant text UNDEFINED_KEY = "undefined"
     public constant text VOID_KEY = "void"
 
@@ -151,6 +160,22 @@ class Type
         return isText
     end
 
+    action IsIntegerObject returns boolean
+        return isIntegerObject
+    end
+
+    action IsBooleanObject returns boolean
+        return isBooleanObject
+    end
+
+    action IsNumberObject returns boolean
+        return isNumberObject
+    end
+
+    action IsTextObject returns boolean
+        return isTextObject
+    end
+
     action SetToVoid
         isInteger = false
         isText = false
@@ -166,6 +191,10 @@ class Type
         isNumber = false
         isBoolean = false
         isVoid = false
+        isIntegerObject = false
+        isTextObject = false
+        isNumberObject = false
+        isBooleanObject = false
         staticKey = INTEGER_PRIMITIVE_KEY
     end
 
@@ -175,6 +204,10 @@ class Type
         isNumber = false
         isBoolean = true
         isVoid = false
+        isIntegerObject = false
+        isTextObject = false
+        isNumberObject = false
+        isBooleanObject = false
         staticKey = BOOLEAN_PRIMITIVE_KEY
     end
 
@@ -184,6 +217,10 @@ class Type
         isNumber = true
         isBoolean = false
         isVoid = false
+        isIntegerObject = false
+        isTextObject = false
+        isNumberObject = false
+        isBooleanObject = false
         staticKey = NUMBER_PRIMITIVE_KEY
     end
 
@@ -193,6 +230,62 @@ class Type
         isNumber = false
         isBoolean = false
         isVoid = false
+        isIntegerObject = false
+        isTextObject = false
+        isNumberObject = false
+        isBooleanObject = false
         staticKey = TEXT_PRIMITIVE_KEY
+    end
+
+    action SetToIntegerObject
+        isInteger = false
+        isText = false
+        isNumber = false
+        isBoolean = false
+        isVoid = false
+        isIntegerObject = true
+        isTextObject = false
+        isNumberObject = false
+        isBooleanObject = false
+        staticKey = INTEGER_OBJECT_KEY
+    end
+
+    action SetToBooleanObject
+        isInteger = false
+        isText = false
+        isNumber = false
+        isBoolean = false
+        isVoid = false
+        isIntegerObject = false
+        isTextObject = false
+        isNumberObject = false
+        isBooleanObject = true
+        staticKey = BOOLEAN_OBJECT_KEY
+    end
+
+    action SetToNumberObject
+        isInteger = false
+        isText = false
+        isNumber = false
+        isBoolean = false
+        isVoid = false
+        isIntegerObject = false
+        isTextObject = false
+        isNumberObject = true
+        isBooleanObject = false
+        staticKey = NUMBER_OBJECT_KEY
+    end
+
+    action SetToTextObject
+        isInteger = false
+        isText = false
+        isNumber = false
+        isBoolean = false
+        isVoid = false
+        isIntegerObject = false
+        isTextObject = true
+        isNumberObject = false
+        isBooleanObject = false
+        staticKey = TEXT_OBJECT_KEY
     end
 end

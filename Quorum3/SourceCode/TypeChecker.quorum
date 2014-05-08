@@ -871,6 +871,288 @@ class TypeChecker
         type = result:result
         type:SetToText()
         results:Add(key, result)
+
+        AddAutoBoxedTypes()
+    end
+
+    action AddAutoBoxedTypes
+        TypeCheckResult result = undefined
+        Type type = undefined
+        Operation opConstant
+        JavaOpcodeWriter opcodeWriter = undefined
+        TypeConversionPoints points = undefined
+
+        //implicit cast from integer to object
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:OBJECT_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetSubclassWideningConvertResult()
+        type = result:result
+        type:SetToIntegerObject()
+        points = result:points
+        points:SetPoints(points:EXACT_AUTOBOX)
+        results:Add(key, result)
+
+        //implicit cast integer to Integer
+        op = GetOperation(opConstant:AUTOBOX_CAST)
+        key = GenerateTypeCheckKey(constants:INTEGER_OBJECT_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetSubclassWideningConvertResult()
+        type = result:result
+        type:SetToIntegerObject()
+        points = result:points
+        points:SetPoints(points:EXACT_AUTOBOX)
+        results:Add(key, result)
+
+        //implicit cast from Integer to integer
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:INTEGER_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToIntegerObject()
+        points = result:points
+        points:SetPoints(points:EXACT_AUTOBOX)
+        results:Add(key, result)
+
+        //implicit cast from Integer to text
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:INTEGER_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        //implicit cast from Integer to boolean
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:INTEGER_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        //Assign Integer object to integer
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:INTEGER_OBJECT_KEY, undefined, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        //Assign integer object to primitive number
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_OBJECT_KEY, undefined, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        //explicit cast from Integer to integer
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:INTEGER_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        //explicit cast from Integer to number
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        //explicit cast from Integer to text
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:INTEGER_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        //explicit cast from Integer to boolean
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:INTEGER_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        //explicit cast from Integer to boolean 1739
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:OBJECT_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToNumberObject()
+        points = result:points
+        points:SetPoints(points:PARENT_AUTOBOX)
+        results:Add(key, result)
+
+        //explicit cast from Integer to boolean 1749
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:NUMBER_OBJECT_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToNumberObject()
+        points = result:points
+        points:SetPoints(points:EXACT_AUTOBOX)
+        results:Add(key, result)
+
+        //Implicit cast from number object to number: 1760
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:NUMBER_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToNumber()
+        points = result:points
+        points:SetPoints(points:EXACT_AUTOBOX)
+        results:Add(key, result)
+
+        //Implicit cast from number object to number: 1778
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:NUMBER_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        //Implicit cast from number object to boolean: 1787
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:NUMBER_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        //Assgin number object to number: 1797
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:NUMBER_OBJECT_KEY, undefined, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        //Cast number object to integer: 1823
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:NUMBER_OBJECT_KEY, undefined, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        //Cast number object to text: 1832
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:NUMBER_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        //Cast number object to boolean: 1840
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:NUMBER_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        //Cast text to object: 1850
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:OBJECT_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetSubclassWideningConvertResult()
+        type = result:result
+        type:SetToTextObject()
+        points = result:points
+        points:SetPoints(points:PARENT_AUTOBOX)
+        results:Add(key, result)
+
+        //Cast text to text object: 1860
+        op = GetOperation(opConstant:AUTOBOX_CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_OBJECT_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetSubclassWideningConvertResult()
+        type = result:result
+        type:SetToTextObject()
+        points = result:points
+        points:SetPoints(points:EXACT_AUTOBOX)
+        results:Add(key, result)
+
+        //Cast text object to text: 1870
+        op = GetOperation(opConstant:AUTOBOX_CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:TEXT_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToText()
+        points = result:points
+        points:SetPoints(points:EXACT_AUTOBOX)
+        results:Add(key, result)
+
+        //Cast text object to integer: 1880
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:TEXT_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        //Cast text object to number: 1889
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:TEXT_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        //Cast text object to boolean: 1898
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:TEXT_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        //assign: 1907
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:TEXT_OBJECT_KEY, undefined, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        //assign: 1923
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:TEXT_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        //assign: 1932
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:TEXT_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        //assign: 1942
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:TEXT_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        //assign: 1951
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:TEXT_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        //assign: 1960
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:OBJECT_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetSubclassWideningConvertResult()
+        type = result:result
+        type:SetToBooleanObject()
+        points = result:points
+        points:SetPoints(points:PARENT_AUTOBOX)
+        results:Add(key, result)
     end
 
     action GetOperation(integer value) returns Operation
@@ -891,6 +1173,22 @@ class TypeChecker
         TypeCheckResult result
         TypeConversionConstants c = result:conversion
         c:SetConversion(c:WIDENING)
+        result:errorMessage = ""
+        return result
+    end
+
+    action GetSubclassWideningConvertResult returns TypeCheckResult
+        TypeCheckResult result
+        TypeConversionConstants c = result:conversion
+        c:SetConversion(c:SUBCLASS_WIDENING)
+        result:errorMessage = ""
+        return result
+    end
+
+    action GetSubclassNarrowingConvertResult returns TypeCheckResult
+        TypeCheckResult result
+        TypeConversionConstants c = result:conversion
+        c:SetConversion(c:SUBCLASS_NARROWING)
         result:errorMessage = ""
         return result
     end
