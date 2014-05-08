@@ -468,7 +468,7 @@ class TypeChecker
         points:SetPoints(points:LOSSLESS_CONVERT)
         results:Add(key, result)
 
-        //number text
+        //boolean text
         op = GetOperation(opConstant:RETURN)
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
             constants:BOOLEAN_PRIMITIVE_KEY, op, false)
@@ -477,6 +477,399 @@ class TypeChecker
         type:SetToText()
         points = result:points
         points:SetPoints(points:LOSSLESS_CONVERT)
+        results:Add(key, result)
+
+        ////////////////////////////////////////////////////////////////////////
+        //INTEGER NUMBER
+        ////////////////////////////////////////////////////////////////////////
+        //+
+        op = GetOperation(opConstant:PLUS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:PLUS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        //-
+        op = GetOperation(opConstant:MINUS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:MINUS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        //+
+        op = GetOperation(opConstant:TIMES)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:TIMES)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        // divide
+        op = GetOperation(opConstant:DIVIDE)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:DIVIDE)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        //mod
+        op = GetOperation(opConstant:MODULUS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:MODULUS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        // >=
+        op = GetOperation(opConstant:GREATER_EQUALS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:GREATER_EQUALS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        // >
+        op = GetOperation(opConstant:GREATER)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:GREATER)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        // =
+        op = GetOperation(opConstant:EQUALS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:EQUALS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+         // not=
+        op = GetOperation(opConstant:NOT_EQUALS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:NOT_EQUALS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        // <=
+        op = GetOperation(opConstant:LESS_EQUALS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:LESS_EQUALS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        // <
+        op = GetOperation(opConstant:LESS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:LESS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+        
+        ////////////////////////////////////////////////////////////////////////
+        //Text Conversion
+        ////////////////////////////////////////////////////////////////////////
+        op = GetOperation(opConstant:PLUS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:PLUS)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:PLUS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:PLUS)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:PLUS)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:PLUS)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        ////////////////////////////////////////////////////////////////////////
+        //TYPE CASTING - EXPLICIT
+        ////////////////////////////////////////////////////////////////////////
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        //text to integer and back again
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetNarrowingConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        //text to number and back again
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetNarrowingConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        //number to integer and back again
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNarrowingConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetNarrowingConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        //number to boolean and back again
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNarrowingConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        //integer to boolean and back again
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetNarrowingConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        //text to boolean and back again
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetNarrowingConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        ////////////////////////////////////////////////////////////////////////
+        //TYPE CASTING - IMPLICIT
+        ////////////////////////////////////////////////////////////////////////
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+        
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToText()
         results:Add(key, result)
     end
 
@@ -498,6 +891,14 @@ class TypeChecker
         TypeCheckResult result
         TypeConversionConstants c = result:conversion
         c:SetConversion(c:WIDENING)
+        result:errorMessage = ""
+        return result
+    end
+
+    action GetNarrowingConvertResult returns TypeCheckResult
+        TypeCheckResult result
+        TypeConversionConstants c = result:conversion
+        c:SetConversion(c:NARROWING)
         result:errorMessage = ""
         return result
     end
