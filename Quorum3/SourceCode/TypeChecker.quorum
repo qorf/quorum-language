@@ -1153,6 +1153,90 @@ class TypeChecker
         points = result:points
         points:SetPoints(points:PARENT_AUTOBOX)
         results:Add(key, result)
+
+        //assign: 1970
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_OBJECT_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetSubclassWideningConvertResult()
+        type = result:result
+        type:SetToBooleanObject()
+        points = result:points
+        points:SetPoints(points:EXACT_AUTOBOX)
+        results:Add(key, result)
+
+        //assign: 1980
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:BOOLEAN_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        points = result:points
+        points:SetPoints(points:EXACT_AUTOBOX)
+        results:Add(key, result)
+
+        //assign: 1990
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:BOOLEAN_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        //assign: 1999
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:BOOLEAN_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        //assign: 2008
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:BOOLEAN_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        //assign: 2016
+        op = undefined
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:BOOLEAN_OBJECT_KEY, op, false)
+        result = GetWideningConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        //assign: 2033
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:BOOLEAN_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        results:Add(key, result)
+
+        //assign: 2042
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:BOOLEAN_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToInteger()
+        results:Add(key, result)
+
+        //assign: 2051
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:BOOLEAN_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToNumber()
+        results:Add(key, result)
+
+        //assign: 2060
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:BOOLEAN_OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
     end
 
     action GetOperation(integer value) returns Operation
