@@ -191,6 +191,7 @@ public class JavaToQuorumListener implements QuorumListener {
     @Override
     public void enterString(QuorumParser.StringContext ctx) {
         String val = ctx.STRING().getText();
+        val = val.substring(1, val.length() - 1);
         TextContext context = new TextContext();
         context.Set$Libraries$Language$Compile$Context$TextContext$value(val);
         setLocation(ctx, context);
@@ -200,6 +201,7 @@ public class JavaToQuorumListener implements QuorumListener {
     @Override
     public void exitString(QuorumParser.StringContext ctx) {
         String val = ctx.STRING().getText();
+        val = val.substring(1, val.length() - 1);
         TextContext context = new TextContext();
         context.Set$Libraries$Language$Compile$Context$TextContext$value(val);
         setLocation(ctx, context);
