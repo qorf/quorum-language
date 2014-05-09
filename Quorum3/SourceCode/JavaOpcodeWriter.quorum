@@ -2,13 +2,49 @@ package Libraries.Language.Compile.Translate
 
 use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Symbol.Type
 
 class JavaOpcodeWriter 
+    Type constants
     Array<integer> list
     JavaBytecodeOpcodes opcodes
     public boolean isEquals = false
+    public boolean isConcatenation = false
+    public boolean mustSwap = false
+    boolean requiresTypeConvertToText = false
+    text concatenationClass = ""
+    text concatenationConvertMethod = ""
+
+    action SetConvertStringForConcatenation(text type) 
+        if constants:BOOLEAN_PRIMITIVE_KEY = type
+            requiresTypeConvertToText = true
+            concatenationClass = "java/lang/Boolean"
+            concatenationConvertMethod = "(Z)Ljava/lang/String;"
+        elseif constants:INTEGER_PRIMITIVE_KEY = type
+            requiresTypeConvertToText = true
+            concatenationClass = "java/lang/Integer"
+            concatenationConvertMethod = "(I)Ljava/lang/String;"
+        elseif constants:NUMBER_PRIMITIVE_KEY = type
+            requiresTypeConvertToText = true
+            concatenationClass = "java/lang/Double"
+            concatenationConvertMethod = "(D)Ljava/lang/String;"
+        elseif constants:TEXT_PRIMITIVE_KEY = type
+            requiresTypeConvertToText = false
+        else 
+            alert ("Cannot setup a string concatenation with an incorrect type")
+        end
+    end
+
     action AddOpcode(integer op)
         list:Add(op)
+    end
+
+    action AddOpcodes(Array<integer> ops)
+        Iterator<integer> it = ops:GetIterator()
+        repeat while it:HasNext()
+            integer opcode = it:Next()
+            list:Add(opcode)
+        end
     end
 
     /*
@@ -21,7 +57,35 @@ class JavaOpcodeWriter
     /*
         This version of the Write method uses the VisitInstruction method.
     */
-    action Write(JavaBytecodeMethodWriter writer) 
+    action Write(JavaBytecodeMethodWriter writer)
+        if not isConcatenation
+            LoopThroughOpcodes(writer)
+        else 
+            if mustSwap
+                LoopThroughOpcodes(writer)
+                WriteConvertToTextOpcodes(writer)
+                LoopThroughOpcodes(writer)
+                WriteConcatenate(writer)
+            else 
+                WriteConvertToTextOpcodes(writer)
+                WriteConcatenate(writer)
+            end
+        end
+    end
+
+    private action WriteConcatenate(JavaBytecodeMethodWriter writer)
+        writer:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
+            "java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;", false)
+    end
+
+    private action WriteConvertToTextOpcodes(JavaBytecodeMethodWriter writer)
+        if requiresTypeConvertToText
+            writer:VisitMethodInvoke(opcodes:GetInvokeStatic(), 
+                concatenationClass, "toString", concatenationConvertMethod, false)
+        end
+    end
+    
+    private action LoopThroughOpcodes(JavaBytecodeMethodWriter writer)
         Iterator<integer> it = list:GetIterator()
         repeat while it:HasNext()
             integer opcode = it:Next()

@@ -420,9 +420,7 @@ class JavaBytecodeOpcodes
         return NEW
     end
 
-    action GetDuplicate returns integer
-        return DUP
-    end
+    
 
     action GetJavaVersion(integer version) returns integer
         if version = 1
@@ -468,5 +466,41 @@ class JavaBytecodeOpcodes
 
     action GetSuper returns integer
         return ACC_SUPER
+    end
+
+    action GetPop returns integer
+        return POP
+    end
+
+    action GetPopDouble returns integer
+        return POP2
+    end
+
+    action GetDuplicate returns integer
+        return DUP
+    end
+
+    action GetDuplicateUp1 returns integer
+        return DUP_X1
+    end
+
+    action GetDuplicateUp2 returns integer
+        return DUP_X2
+    end
+
+    action GetDuplicateDouble returns integer
+        return DUP2
+    end
+
+    action GetDuplicateDoubleUp1 returns integer
+        return DUP2_X1
+    end
+
+    action GetDuplicateDoubleUp2 returns integer
+        return DUP2_X2
+    end
+
+    action GetSwap returns integer
+        return SWAP
     end
 end

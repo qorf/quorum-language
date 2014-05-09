@@ -4,6 +4,7 @@ use Libraries.Containers.HashTable
 use Libraries.Language.Compile.CompilerErrorType
 use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
 use Libraries.Language.Compile.Translate.JavaOpcodeWriter
+use Libraries.Containers.Array
 
 class TypeChecker
     HashTable<text, TypeCheckResult> results
@@ -683,6 +684,11 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToText()
+        opcodeWriter = result:writer
+        opcodeWriter:AddOpcodes(GetSwapOpcodes(constants:BOOLEAN_PRIMITIVE_KEY, constants:TEXT_PRIMITIVE_KEY))
+        opcodeWriter:isConcatenation = true
+        opcodeWriter:mustSwap = true
+        opcodeWriter:SetConvertStringForConcatenation(constants:BOOLEAN_PRIMITIVE_KEY)
         results:Add(key, result)
 
         op = GetOperation(opConstant:PLUS)
@@ -1237,6 +1243,24 @@ class TypeChecker
         type = result:result
         type:SetToText()
         results:Add(key, result)
+    end
+
+    private action GetSwapOpcodes(text top, text second) returns Array<integer>
+        Array<integer> array
+        text num = constants:NUMBER_PRIMITIVE_KEY
+        if top not= num and second not= num
+            array:Add(opcodes:GetSwap())
+        elseif top = num and second = num
+            array:Add(opcodes:GetDuplicateDoubleUp2())
+            array:Add(opcodes:GetPopDouble())
+        elseif top = num
+            array:Add(opcodes:GetDuplicateDoubleUp1())
+            array:Add(opcodes:GetPopDouble())
+        else
+            array:Add(opcodes:GetDuplicateUp2())
+            array:Add(opcodes:GetPop())
+        end
+        return array
     end
 
     action GetOperation(integer value) returns Operation
