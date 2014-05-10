@@ -342,14 +342,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToText()
-        results:Add(key, result)
-
-        //Assign Text undefined
-        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
-            constants:UNDEFINED_KEY, undefined, true, false)
-        result = GetNoConvertResult()
-        type = result:result
-        type:SetToText()
+        opcodeWriter = result:writer
+        opcodeWriter:AddOpcode(opcodes:GetObjectStore())
         results:Add(key, result)
 
         //Assign Number Number
@@ -366,6 +360,9 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
             constants:INTEGER_PRIMITIVE_KEY, undefined, true, false)
         result = GetWideningConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:AddOpcode(opcodes:GetIntegerToDouble())
+        opcodeWriter:AddOpcode(opcodes:GetDoubleStore())
         type = result:result
         type:SetToNumber()
         results:Add(key, result)

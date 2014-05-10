@@ -12,10 +12,31 @@ use Libraries.System.StackTraceItem
 class ExpressionsTester 
     CompilerTestSuite suite = undefined
     action Test
-        BasicExpression()
         AddBooleanText()
-        EqualIntInt()
         AddDoubleDouble()
+        AddDoubleInt()
+        AddDoubleText()
+        AddIntDouble()
+        AddIntInt()
+        AddIntText()
+        AddTextBoolean()
+        AddTextDouble()
+        AddTextInt()
+        AddTextText()
+        AndBooleanBoolean()
+//        CompareTextTextField()
+//        DivDoubleDouble()
+//        DivDoubleInt()
+//        DivIntDouble()
+//        DivIntInt()
+//        EqualBooleanBoolean()
+//        EqualCustomCustom()
+//        EqualDoubleDouble()
+//        EqualDoubleInt()
+//        EqualIntDouble()
+        EqualIntInt()
+        EqualTextText()
+        Expression()
     end
 
     action GetName returns text
@@ -38,13 +59,96 @@ class ExpressionsTester
         suite:RunTest("Library/Tests/Expressions/Pass/AddDoubleDouble.quorum", "7.1", "7.1")
     end
 
-    action BasicExpression
-        suite:RunTest("Library/Tests/Expressions/Pass/Expression.quorum", "15")
+    action AddDoubleInt
+        suite:RunTest("Library/Tests/Expressions/Pass/AddDoubleInt.quorum", "7.2", "7.2")
     end
 
-    
+    action AddDoubleText
+        suite:RunTest("Library/Tests/Expressions/Pass/AddDoubleText.quorum", "3.2 is a number.", "3.6 is a number.")
+    end
+
+    action AddIntDouble
+        suite:RunTest("Library/Tests/Expressions/Pass/AddIntDouble.quorum", "13.5", "13.6")
+    end
+
+    action AddIntInt
+        suite:RunTest("Library/Tests/Expressions/Pass/AddIntInt.quorum", "6")
+    end
+
+    action AddIntText
+        suite:RunTest("Library/Tests/Expressions/Pass/AddIntText.quorum","1 is an integer.", "2 is an integer.")
+    end
+
+    action AddTextBoolean
+        suite:RunTest("Library/Tests/Expressions/Pass/AddTextBoolean.quorum","boolean is true", "boolean is false")
+    end
+
+    action AddTextDouble
+        suite:RunTest("Library/Tests/Expressions/Pass/AddTextDouble.quorum","number is 1.0", "number is 2.0")
+    end
+
+    action AddTextInt
+        suite:RunTest("Library/Tests/Expressions/Pass/AddTextInt.quorum","int is 1", "int is 2")
+    end
+
+    action AddTextText
+        suite:RunTest("Library/Tests/Expressions/Pass/AddTextText.quorum","hello world", "world hello")
+    end
+
+    action AndBooleanBoolean
+        suite:RunTest("Library/Tests/Expressions/Pass/AndBooleanBoolean.quorum",
+            "true", "false", "false", "false")
+    end
+
+    action CompareTextTextField
+        suite:RunTest("Library/Tests/Expressions/Pass/CompareTextTextField.quorum", "1")
+    end
+
+    action DivDoubleDouble
+        suite:RunTest("Library/Tests/Expressions/Pass/DivDoubleDouble.quorum", "2.0", "2.0")
+    end
+
+    action DivDoubleInt
+        suite:RunTest("Library/Tests/Expressions/Pass/DivDoubleInt.quorum", "2.0", "2.0")
+    end
+
+    action DivIntDouble
+        suite:RunTest("Library/Tests/Expressions/Pass/DivIntDouble.quorum", "2.0", "2.0")
+    end
+
+    action DivIntInt
+        suite:RunTest("Library/Tests/Expressions/Pass/DivIntInt.quorum", "2", "2")
+    end
+
+    action EqualBooleanBoolean
+        suite:RunTest("Library/Tests/Expressions/Pass/EqualBooleanBoolean.quorum", "false", "true")
+    end
+
+    action EqualCustomCustom
+        suite:RunTest("Library/Tests/Expressions/Pass/EqualCustomCustom.quorum", "false", "true")
+    end
+
+    action EqualDoubleDouble
+        suite:RunTest("Library/Tests/Expressions/Pass/EqualDoubleDouble.quorum", "false", "true")
+    end
+
+    action EqualDoubleInt
+        suite:RunTest("Library/Tests/Expressions/Pass/EqualDoubleInt.quorum", "false", "true")
+    end
+
+    action EqualIntDouble
+        suite:RunTest("Library/Tests/Expressions/Pass/EqualIntDouble.quorum", "false", "true")
+    end
 
     action EqualIntInt
         suite:RunTest("Library/Tests/Expressions/Pass/EqualIntInt.quorum", "false", "true")
+    end
+
+    action EqualTextText
+        suite:RunTest("Library/Tests/Expressions/Pass/EqualTextText.quorum", "false", "true")
+    end
+
+    action Expression
+        suite:RunTest("Library/Tests/Expressions/Pass/Expression.quorum", "15")
     end
 end

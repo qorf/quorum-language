@@ -9,6 +9,7 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.Language.Compile.Translate.QuorumJarGenerator
 use Libraries.System.StackTraceItem
 use Libraries.Compute.Math
+use Libraries.System.DateTime
 
 class CompilerTestSuite
     integer total = 0
@@ -22,17 +23,25 @@ class CompilerTestSuite
     end
 
     action Main
+        DateTime date
+        start = date:GetEpochTime()
         output "Starting Quorum 3.0 Test Suite" //+ compiler:VERSION + "."
         output ""
         output "List of Tests:"
         output expressions:GetName()
         expressions:Test()
         output ""
-        output "Finished Testing."
+
+        DateTime date2
+        finish = date2:GetEpochTime()
+        number totalTime = finish - start
+        totalTime = totalTime / 1000.0
+        output "Finished Testing in " + totalTime + " seconds."
         output "Tests Passed: " + passed + " out of " + total
 
         number percent = math:Round((passed  * 100.0) / (total * 1.0), 3) //known bug workaround. This value should be 2, not three
         output "Total Percentage: " + percent + "%"
+
     end
 
     action RunTest(text source) returns CompilerTestResult
@@ -116,6 +125,55 @@ class CompilerTestSuite
                 if lines:GetSize() = 2
                     if lines:Get(0) = reply1 and 
                        lines:Get(1) = reply2
+                       result:passed = true
+                    end
+                end
+            end
+            
+        detect e
+            text message = e:GetErrorMessage()
+            result:errorMessage = message
+            result:stackTrace = e:GetStackTrace()
+        end
+        Add(result)
+    end
+
+    action RunTest(text source, text reply1, text reply2, text reply3)
+        CompilerTestResult result
+        result:name = source
+        check
+            result = RunTest(result:name)
+            if result:ranWithoutError
+                Array<text> lines = result:lines
+                if lines:GetSize() = 3
+                    if lines:Get(0) = reply1 and 
+                       lines:Get(1) = reply2 and
+                       lines:Get(2) = reply3
+                       result:passed = true
+                    end
+                end
+            end
+            
+        detect e
+            text message = e:GetErrorMessage()
+            result:errorMessage = message
+            result:stackTrace = e:GetStackTrace()
+        end
+        Add(result)
+    end
+
+    action RunTest(text source, text reply1, text reply2, text reply3, text reply4)
+        CompilerTestResult result
+        result:name = source
+        check
+            result = RunTest(result:name)
+            if result:ranWithoutError
+                Array<text> lines = result:lines
+                if lines:GetSize() = 2
+                    if lines:Get(0) = reply1 and 
+                       lines:Get(1) = reply2 and
+                       lines:Get(2) = reply3 and
+                       lines:Get(3) = reply4
                        result:passed = true
                     end
                 end

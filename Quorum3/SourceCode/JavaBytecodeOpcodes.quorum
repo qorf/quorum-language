@@ -351,6 +351,10 @@ class JavaBytecodeOpcodes
         return IRETURN
     end
 
+    action GetIntegerToDouble returns integer
+        return I2D
+    end
+
     /*
         This method actually returns an IRETURN opcode, but is placed here
         for convenience. This is because Java Bytecode does not have
