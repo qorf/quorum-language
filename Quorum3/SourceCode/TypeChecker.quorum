@@ -133,6 +133,8 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
             constants:NUMBER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:AddOpcode(opcodes:GetDoubleAdd())
         type = result:result
         type:SetToNumber()
         results:Add(key, result)
@@ -354,6 +356,8 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
             constants:NUMBER_PRIMITIVE_KEY, undefined, true, false)
         result = GetNoConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:AddOpcode(opcodes:GetDoubleStore())
         type = result:result
         type:SetToNumber()
         results:Add(key, result)

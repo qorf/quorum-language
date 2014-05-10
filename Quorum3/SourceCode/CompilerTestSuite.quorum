@@ -106,7 +106,29 @@ class CompilerTestSuite
         Add(result)
     end
 
-    
+    action RunTest(text source, text reply1, text reply2)
+        CompilerTestResult result
+        result:name = source
+        check
+            result = RunTest(result:name)
+            if result:ranWithoutError
+                Array<text> lines = result:lines
+                if lines:GetSize() = 2
+                    if lines:Get(0) = reply1 and 
+                       lines:Get(1) = reply2
+                       result:passed = true
+                    end
+                end
+            end
+            
+        detect e
+            text message = e:GetErrorMessage()
+            result:errorMessage = message
+            result:stackTrace = e:GetStackTrace()
+        end
+        Add(result)
+    end
+
     action Add(CompilerTestResult result)
         if result = undefined
             failed = failed + 1

@@ -319,6 +319,26 @@ class JavaBytecodeOpcodes
         return IREM
     end
 
+    action GetDoubleAdd returns integer
+        return DADD
+    end
+
+    action GetDoubleSubtract returns integer
+        return DSUB
+    end
+
+    action GetDoubleMultiply returns integer
+        return DMUL
+    end
+
+    action GetDoubleDivide returns integer
+        return DDIV
+    end
+
+    action GetDoubleModulus returns integer
+        return DREM
+    end
+
     action GetReturn returns integer
         return RETURN
     end
@@ -362,6 +382,14 @@ class JavaBytecodeOpcodes
 
     action GetIntegerLoad returns integer
         return ILOAD
+    end
+
+    action GetDoubleStore returns integer
+        return DSTORE
+    end
+
+    action GetDoubleLoad returns integer
+        return DLOAD
     end
 
     action ConvertTypeToBytecodeLoadOpcode(Type type) returns integer
