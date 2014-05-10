@@ -488,6 +488,9 @@ class TypeChecker
         op = GetOperation(opConstant:PLUS)
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:AddLeftOpcode(opcodes:GetIntegerToDouble())
+        opcodeWriter:AddOpcode(opcodes:GetDoubleAdd())
         type = result:result
         type:SetToNumber()
         results:Add(key, result)
@@ -495,6 +498,9 @@ class TypeChecker
         op = GetOperation(opConstant:PLUS)
         key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:AddRightOpcode(opcodes:GetIntegerToDouble())
+        opcodeWriter:AddOpcode(opcodes:GetDoubleAdd())
         type = result:result
         type:SetToNumber()
         results:Add(key, result)

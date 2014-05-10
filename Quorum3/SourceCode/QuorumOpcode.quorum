@@ -1,0 +1,16 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+
+class QuorumOpcode 
+    Type type = undefined
+    blueprint action Write
+
+    action GetType returns Type
+        return type
+    end
+
+    action SetType(Type type)
+        me:type = type
+    end
+end

@@ -7,6 +7,8 @@ use Libraries.Language.Compile.Symbol.Type
 class JavaOpcodeWriter 
     Type constants
     Array<integer> list
+    Array<integer> leftOpcodes
+    Array<integer> rightOpcodes
     JavaBytecodeOpcodes opcodes
     public boolean isEquals = false
     public boolean isConcatenation = false
@@ -47,6 +49,14 @@ class JavaOpcodeWriter
         end
     end
 
+    action AddLeftOpcode(integer op)
+        leftOpcodes:Add(op)
+    end
+
+    action AddRightOpcode(integer op)
+        rightOpcodes:Add(op)
+    end
+
     /*
         returns the number of opcodes that will be written.
     */ 
@@ -73,6 +83,14 @@ class JavaOpcodeWriter
         end
     end
 
+    action WriteLeft(JavaBytecodeMethodWriter writer)
+        LoopThroughOpcodes(leftOpcodes, writer)
+    end
+
+    action WriteRight(JavaBytecodeMethodWriter writer)
+        LoopThroughOpcodes(rightOpcodes, writer)
+    end
+
     private action WriteConcatenate(JavaBytecodeMethodWriter writer)
         writer:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
             "java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;", false)
@@ -87,6 +105,14 @@ class JavaOpcodeWriter
     
     private action LoopThroughOpcodes(JavaBytecodeMethodWriter writer)
         Iterator<integer> it = list:GetIterator()
+        repeat while it:HasNext()
+            integer opcode = it:Next()
+            writer:VisitInstruction(opcode)
+        end
+    end
+
+    private action LoopThroughOpcodes(Array<integer> ops, JavaBytecodeMethodWriter writer)
+        Iterator<integer> it = ops:GetIterator()
         repeat while it:HasNext()
             integer opcode = it:Next()
             writer:VisitInstruction(opcode)

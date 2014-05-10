@@ -6,7 +6,7 @@ use Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter
 use Libraries.Language.Compile.Translate.QuorumBytecodeConverter
 use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
 use Libraries.Language.Compile.Symbol.all
-use Libraries.Language.Compile.Translate.JavaOpcodeWriter
+use Libraries.Language.Compile.Translate.all
 
 use Libraries.Containers.Array
 use Libraries.System.File
@@ -34,7 +34,8 @@ class QuorumBytecodeListener is QuorumSourceListener
     boolean isSystemAction = false
     boolean isBluePrintAction = false
     boolean isNextVariableReferenceMe = false
-    Stack<Type> expressionStack
+    //Stack<QuorumOpcode> expressionStack
+    Stack<QuorumOpcode> opcodeStack
     File buildFile = undefined
     File buildInterfaceFile = undefined
 
@@ -247,11 +248,12 @@ class QuorumBytecodeListener is QuorumSourceListener
     //output
     action EnterPrintStatement 
         methodWriter:VisitField(opcodes:GetStaticField(), "java/lang/System", "out", "Ljava/io/PrintStream;")
-
     end
-    action ExitPrintStatement 
 
-        Type type = expressionStack:Pop()
+    action ExitPrintStatement 
+        QuorumOpcode op = opcodeStack:Pop()
+        Type type = op:GetType()
+        op:Write()
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), "java/io/PrintStream", "println",
                 "(" + converter:ConvertTypeToBytecodeSignature(type) + ")V", false)
     end
@@ -279,14 +281,15 @@ class QuorumBytecodeListener is QuorumSourceListener
         else 
             variable = currentBlock:GetVariable(name)
             Type left = variable:GetType()
-            Type right = expressionStack:Pop()
+            QuorumOpcode right = opcodeStack:Pop()
 
             Operation assign
             assign:SetOperation(assign:EQUALS)
 
             TypeChecker checker = GetTypeChecker()
-            TypeCheckResult result = checker:Check(left, right, undefined, true) 
+            TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
 
+            right:Write()
             //write the local variable, which is guaranteed at this stage not null
             integer location = variable:GetBytecodeLocation()
             JavaOpcodeWriter writer = result:writer
@@ -307,13 +310,13 @@ class QuorumBytecodeListener is QuorumSourceListener
         else 
             variable = currentBlock:GetVariable(name)
             Type left = variable:GetType()
-            Type right = expressionStack:Pop()
+            QuorumOpcode right = opcodeStack:Pop()
 
             Operation assign
             assign:SetOperation(assign:EQUALS)
 
             TypeChecker checker = GetTypeChecker()
-            TypeCheckResult result = checker:Check(left, right, undefined, true) 
+            TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
 
             //write the local variable, guaranteed at this stage not be null
             integer location = variable:GetBytecodeLocation()
@@ -361,7 +364,10 @@ class QuorumBytecodeListener is QuorumSourceListener
             else //it's a local
                 methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(type), variable:GetBytecodeLocation())
             end
-            expressionStack:Push(type:Copy())
+            BlankOpcode op
+            op:SetType(type:Copy())
+            opcodeStack:Push(op)
+            //expressionStack:Push(type:Copy())
         end
     end
 
@@ -381,64 +387,102 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitEquals (EqualsContext context)
-        TypeChecker checker = GetTypeChecker()
-        Type right = expressionStack:Pop()
-        Type left = expressionStack:Pop()
-        Operation add
-        add:SetOperation(add:EQUALS)
-        
-        TypeCheckResult result = checker:Check(left, right, add) 
-        JavaOpcodeWriter opcodeWriter = result:writer
-        opcodeWriter:WriteComparison(methodWriter)
-        Type value = result:result
-        expressionStack:Push(value:Copy())
+//        TypeChecker checker = GetTypeChecker()
+//        Type right = expressionStack:Pop()
+//        Type left = expressionStack:Pop()
+//        Operation add
+//        add:SetOperation(add:EQUALS)
+//        
+//        TypeCheckResult result = checker:Check(left, right, add) 
+//        JavaOpcodeWriter opcodeWriter = result:writer
+//        opcodeWriter:WriteComparison(methodWriter)
+//        Type value = result:result
+//        expressionStack:Push(value:Copy())
 
     end
 
 
     action ExitAddition(Addition addition) 
         TypeChecker checker = GetTypeChecker()
-        Type right = expressionStack:Pop()
-        Type left = expressionStack:Pop()
+        QuorumOpcode right = opcodeStack:Pop()
+        QuorumOpcode left = opcodeStack:Pop()
         Operation add
         add:SetOperation(add:PLUS)
         
-        TypeCheckResult result = checker:Check(left, right, add) 
+        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add) 
         JavaOpcodeWriter opcodeWriter = result:writer
-        opcodeWriter:Write(methodWriter)
+
+//        left:Write()
+//        opcodeWriter:WriteLeft(methodWriter)
+//        right:Write()
+//        opcodeWriter:WriteRight(methodWriter)
+//        opcodeWriter:Write(methodWriter)
+
         Type value = result:result
-        expressionStack:Push(value:Copy())
+        BinaryOpcode binary
+        binary:methodWriter = methodWriter
+        binary:SetType(value)
+        binary:left = left
+        binary:right = right
+        binary:opcodeWriter = opcodeWriter
+        opcodeStack:Push(binary)
+        //expressionStack:Push(value:Copy())
     end
 
     action ExitInteger(IntegerContext context) 
         Type type
         type:SetIsConstant(true)
         type:SetIntegerConstant(context:value)
-        expressionStack:Push(type)
-        methodWriter:VisitConstant(context:value)
+        //expressionStack:Push(type)
+
+        QuorumConstant const
+        const:methodWriter = methodWriter
+        const:SetType(type)
+        const:integerValue = context:value
+        opcodeStack:Push(const)
+        //methodWriter:VisitConstant(context:value)
     end
     
     action ExitText(TextContext context) 
         Type type
         type:SetIsConstant(true)
         type:SetTextConstant(context:value)
-        expressionStack:Push(type)
-        methodWriter:VisitConstant(context:value)
+        //expressionStack:Push(type)
+
+        QuorumConstant const
+        const:methodWriter = methodWriter
+        const:SetType(type)
+        const:textValue = context:value
+        opcodeStack:Push(const)
+        //methodWriter:VisitConstant(context:value)
     end
 
     action ExitBoolean(BooleanContext context) 
         Type type
         type:SetIsConstant(true)
         type:SetBooleanConstant(context:value)
-        expressionStack:Push(type)
-        methodWriter:VisitConstant(context:value)
+        //expressionStack:Push(type)
+
+        QuorumConstant const
+        const:methodWriter = methodWriter
+        const:SetType(type)
+        const:booleanValue = context:value
+        opcodeStack:Push(const)
+        //methodWriter:VisitConstant(context:value)
     end
 
     action ExitNumber(NumberContext context) 
         Type type
         type:SetIsConstant(true)
         type:SetNumberConstant(context:value)
-        expressionStack:Push(type)
-        methodWriter:VisitConstant(context:value)
+        //expressionStack:Push(type)
+
+        QuorumConstant const
+        const:methodWriter = methodWriter
+        const:SetType(type)
+        const:numberValue = context:value
+        opcodeStack:Push(const)
+
+       // methodWriter:VisitConstant(context:value)
     end
 end

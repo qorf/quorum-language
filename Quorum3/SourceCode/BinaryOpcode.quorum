@@ -1,0 +1,18 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+
+class BinaryOpcode is QuorumOpcode
+    public QuorumOpcode left = undefined
+    public QuorumOpcode right = undefined
+    public JavaBytecodeMethodWriter methodWriter = undefined
+    public JavaOpcodeWriter opcodeWriter = undefined
+
+    action Write
+        left:Write()
+        opcodeWriter:WriteLeft(methodWriter)
+        right:Write()
+        opcodeWriter:WriteRight(methodWriter)
+        opcodeWriter:Write(methodWriter)
+    end
+end
