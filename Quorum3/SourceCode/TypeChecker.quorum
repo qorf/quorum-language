@@ -226,6 +226,7 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY,
             constants:BOOLEAN_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
+        //opcodeWriter:AddOpcode(opcodes)
         type = result:result
         type:SetToBoolean()
         results:Add(key, result)

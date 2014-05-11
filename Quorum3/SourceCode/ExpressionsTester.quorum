@@ -37,6 +37,10 @@ class ExpressionsTester
         EqualIntInt()
         EqualTextText()
         Expression()
+
+
+        OrAndBooleanBoolean()
+        OrBooleanBoolean()
     end
 
     action GetName returns text
@@ -150,5 +154,13 @@ class ExpressionsTester
 
     action Expression
         suite:RunTest("Library/Tests/Expressions/Pass/Expression.quorum", "15")
+    end
+
+    action OrAndBooleanBoolean
+        suite:RunTest("Library/Tests/Expressions/Pass/OrAndBooleanBoolean.quorum", "false")
+    end
+
+    action OrBooleanBoolean
+        suite:RunTest("Library/Tests/Expressions/Pass/OrBooleanBoolean.quorum", "true", "true", "true", "false")
     end
 end

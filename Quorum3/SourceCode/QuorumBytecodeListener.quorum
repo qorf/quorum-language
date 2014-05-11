@@ -401,6 +401,43 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     end
 
+    action EnterAnd end
+    action ExitAnd 
+        TypeChecker checker = GetTypeChecker()
+        QuorumOpcode right = opcodeStack:Pop()
+        QuorumOpcode left = opcodeStack:Pop()
+        Operation op
+        op:SetOperation(op:AND)
+        
+        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), op) 
+        JavaOpcodeWriter opcodeWriter = result:writer
+        Type value = result:result
+        BinaryAndOrOpcode binary
+        binary:methodWriter = methodWriter
+        binary:SetType(value)
+        binary:left = left
+        binary:right = right
+        binary:opcodeWriter = opcodeWriter
+
+        if left is BinaryAndOrOpcode
+            BinaryAndOrOpcode theAnd = cast(BinaryAndOrOpcode, left)
+            theAnd:hasRightAndOr = true
+            theAnd:SetFalseLabel(binary:GetFalseLabel())
+            theAnd:SetFinalLabel(binary:GetFinalLabel())
+        end
+
+        if right is BinaryAndOrOpcode
+            BinaryAndOrOpcode theAnd = cast(BinaryAndOrOpcode, right)
+            theAnd:hasRightAndOr = true
+            theAnd:SetFalseLabel(binary:GetFalseLabel())
+            theAnd:SetFinalLabel(binary:GetFinalLabel())
+        end
+
+        opcodeStack:Push(binary)
+    end
+
+    action EnterOr end
+    action ExitOr end
 
     action ExitAddition(Addition addition) 
         TypeChecker checker = GetTypeChecker()
@@ -412,12 +449,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add) 
         JavaOpcodeWriter opcodeWriter = result:writer
 
-//        left:Write()
-//        opcodeWriter:WriteLeft(methodWriter)
-//        right:Write()
-//        opcodeWriter:WriteRight(methodWriter)
-//        opcodeWriter:Write(methodWriter)
-
         Type value = result:result
         BinaryOpcode binary
         binary:methodWriter = methodWriter
@@ -426,7 +457,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         binary:right = right
         binary:opcodeWriter = opcodeWriter
         opcodeStack:Push(binary)
-        //expressionStack:Push(value:Copy())
     end
 
     action ExitInteger(IntegerContext context) 

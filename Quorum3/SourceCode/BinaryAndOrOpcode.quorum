@@ -1,0 +1,57 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+
+class BinaryAndOrOpcode is QuorumOpcode
+    public boolean isAnd = true
+    public QuorumOpcode left = undefined
+    public QuorumOpcode right = undefined
+    public JavaBytecodeMethodWriter methodWriter = undefined
+    public JavaOpcodeWriter opcodeWriter = undefined
+    JavaBytecodeLabel falseLabel = undefined
+    JavaBytecodeLabel finalLabel = undefined
+    JavaBytecodeOpcodes opcodes
+    
+    public boolean hasRightAndOr = false
+
+    action Write
+        JavaBytecodeLabel falseLabel = GetFalseLabel()
+        JavaBytecodeLabel finalLabel = GetFinalLabel()
+        left:Write()
+        methodWriter:VisitJump(opcodes:GetIfEquals(), falseLabel)
+        right:Write()
+
+        if not hasRightAndOr
+            methodWriter:VisitJump(opcodes:GetIfEquals(), falseLabel)
+            methodWriter:VisitConstant(1)
+            methodWriter:VisitJump(opcodes:GetGoto(), finalLabel)
+            methodWriter:VisitLabel(falseLabel)
+            methodWriter:VisitConstant(0)
+            methodWriter:VisitLabel(finalLabel)
+        end
+    end
+
+    action GetFinalLabel returns JavaBytecodeLabel
+        if finalLabel = undefined
+            JavaBytecodeLabel f
+            finalLabel = f
+        end
+        return finalLabel
+    end
+
+    action GetFalseLabel returns JavaBytecodeLabel
+        if finalLabel = undefined
+            JavaBytecodeLabel f
+            falseLabel = f
+        end
+        return falseLabel
+    end
+
+    action SetFinalLabel(JavaBytecodeLabel label)
+        finalLabel = label
+    end
+
+    action SetFalseLabel(JavaBytecodeLabel label)
+        falseLabel = label
+    end
+end

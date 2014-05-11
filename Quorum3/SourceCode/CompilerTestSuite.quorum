@@ -169,7 +169,7 @@ class CompilerTestSuite
             result = RunTest(result:name)
             if result:ranWithoutError
                 Array<text> lines = result:lines
-                if lines:GetSize() = 2
+                if lines:GetSize() = 4
                     if lines:Get(0) = reply1 and 
                        lines:Get(1) = reply2 and
                        lines:Get(2) = reply3 and
@@ -200,8 +200,8 @@ class CompilerTestSuite
 
         if result:exceptionThrown
             value = result:name + " ... " + "failed"
-        elseif not result:exceptionThrown and result:passed = false
-
+        elseif result:exceptionThrown and result:passed = false
+            
             text error = result:errorMessage
             value = result:name + " ... " + "failed: exception thrown with message: " + error
             Array<StackTraceItem> stack = result:stackTrace
@@ -211,6 +211,8 @@ class CompilerTestSuite
                     value = value + ", " + item:GetClassName() + ":" + item:GetMethodName() + ":" + item:GetLineNumber()
                 end
             end
+        elseif not result:exceptionThrown and result:passed = false
+            value = result:name + "... fail: Incorrect output."
         else
             value = result:name + " ... " + "passed"
         end
