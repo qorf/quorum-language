@@ -10,6 +10,8 @@ class JavaOpcodeWriter
     Array<integer> leftOpcodes
     Array<integer> rightOpcodes
     JavaBytecodeOpcodes opcodes
+    public boolean convertLeftToText = false
+    public boolean convertRightToText = false
     public boolean isEquals = false
     public boolean isConcatenation = false
     public boolean mustSwap = false
@@ -71,24 +73,24 @@ class JavaOpcodeWriter
         if not isConcatenation
             LoopThroughOpcodes(writer)
         else 
-            if mustSwap
-                LoopThroughOpcodes(writer)
-                WriteConvertToTextOpcodes(writer)
-                LoopThroughOpcodes(writer)
-                WriteConcatenate(writer)
-            else 
-                WriteConvertToTextOpcodes(writer)
-                WriteConcatenate(writer)
-            end
+            WriteConcatenate(writer)
         end
     end
 
     action WriteLeft(JavaBytecodeMethodWriter writer)
-        LoopThroughOpcodes(leftOpcodes, writer)
+        if not isConcatenation
+            LoopThroughOpcodes(leftOpcodes, writer)
+        elseif isConcatenation and convertLeftToText
+            WriteConvertToTextOpcodes(writer)
+        end
     end
 
     action WriteRight(JavaBytecodeMethodWriter writer)
-        LoopThroughOpcodes(rightOpcodes, writer)
+        if not isConcatenation
+            LoopThroughOpcodes(rightOpcodes, writer)
+        elseif isConcatenation and convertRightToText
+            WriteConvertToTextOpcodes(writer)
+        end
     end
 
     private action WriteConcatenate(JavaBytecodeMethodWriter writer)

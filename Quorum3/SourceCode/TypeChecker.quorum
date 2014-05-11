@@ -261,6 +261,8 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
             constants:TEXT_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:isConcatenation = true
         type = result:result
         type:SetToText()
         results:Add(key, result)
@@ -661,6 +663,10 @@ class TypeChecker
         op = GetOperation(opConstant:PLUS)
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:isConcatenation = true
+        opcodeWriter:convertLeftToText = true
+        opcodeWriter:SetConvertStringForConcatenation(constants:INTEGER_PRIMITIVE_KEY)
         type = result:result
         type:SetToText()
         results:Add(key, result)
@@ -668,6 +674,10 @@ class TypeChecker
         op = GetOperation(opConstant:PLUS)
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:isConcatenation = true
+        opcodeWriter:convertRightToText = true
+        opcodeWriter:SetConvertStringForConcatenation(constants:INTEGER_PRIMITIVE_KEY)
         type = result:result
         type:SetToText()
         results:Add(key, result)
@@ -675,6 +685,10 @@ class TypeChecker
         op = GetOperation(opConstant:PLUS)
         key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:isConcatenation = true
+        opcodeWriter:convertLeftToText = true
+        opcodeWriter:SetConvertStringForConcatenation(constants:NUMBER_PRIMITIVE_KEY)
         type = result:result
         type:SetToText()
         results:Add(key, result)
@@ -682,6 +696,10 @@ class TypeChecker
         op = GetOperation(opConstant:PLUS)
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:isConcatenation = true
+        opcodeWriter:convertRightToText = true
+        opcodeWriter:SetConvertStringForConcatenation(constants:NUMBER_PRIMITIVE_KEY)
         type = result:result
         type:SetToText()
         results:Add(key, result)
@@ -692,15 +710,18 @@ class TypeChecker
         type = result:result
         type:SetToText()
         opcodeWriter = result:writer
-        opcodeWriter:AddOpcodes(GetSwapOpcodes(constants:BOOLEAN_PRIMITIVE_KEY, constants:TEXT_PRIMITIVE_KEY))
         opcodeWriter:isConcatenation = true
-        opcodeWriter:mustSwap = true
+        opcodeWriter:convertLeftToText = true
         opcodeWriter:SetConvertStringForConcatenation(constants:BOOLEAN_PRIMITIVE_KEY)
         results:Add(key, result)
 
         op = GetOperation(opConstant:PLUS)
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
+        opcodeWriter = result:writer
+        opcodeWriter:isConcatenation = true
+        opcodeWriter:convertRightToText = true
+        opcodeWriter:SetConvertStringForConcatenation(constants:BOOLEAN_PRIMITIVE_KEY)
         type = result:result
         type:SetToText()
         results:Add(key, result)
