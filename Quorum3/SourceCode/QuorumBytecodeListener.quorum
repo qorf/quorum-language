@@ -403,21 +403,29 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action EnterAnd end
     action ExitAnd 
+        DoAndOr(true)
+    end
+
+    action DoAndOr(boolean isAnd)
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Pop()
         QuorumOpcode left = opcodeStack:Pop()
         Operation op
-        op:SetOperation(op:AND)
-        
+        if isAnd
+            op:SetOperation(op:AND)
+        else 
+            op:SetOperation(op:OR)
+        end
+
         TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), op) 
         JavaOpcodeWriter opcodeWriter = result:writer
         Type value = result:result
         BinaryAndOrOpcode binary
+        binary:isAnd = isAnd
         binary:methodWriter = methodWriter
         binary:SetType(value)
         binary:left = left
         binary:right = right
-        binary:opcodeWriter = opcodeWriter
 
         if left is BinaryAndOrOpcode
             BinaryAndOrOpcode theAnd = cast(BinaryAndOrOpcode, left)
@@ -432,12 +440,13 @@ class QuorumBytecodeListener is QuorumSourceListener
             theAnd:SetFalseLabel(binary:GetFalseLabel())
             theAnd:SetFinalLabel(binary:GetFinalLabel())
         end
-
         opcodeStack:Push(binary)
     end
 
     action EnterOr end
-    action ExitOr end
+    action ExitOr
+        DoAndOr(false)
+    end
 
     action ExitAddition(Addition addition) 
         TypeChecker checker = GetTypeChecker()

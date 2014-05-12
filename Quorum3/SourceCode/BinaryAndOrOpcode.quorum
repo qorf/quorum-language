@@ -7,22 +7,27 @@ class BinaryAndOrOpcode is QuorumOpcode
     public QuorumOpcode left = undefined
     public QuorumOpcode right = undefined
     public JavaBytecodeMethodWriter methodWriter = undefined
-    public JavaOpcodeWriter opcodeWriter = undefined
+    JavaBytecodeLabel trueLabel = undefined
     JavaBytecodeLabel falseLabel = undefined
     JavaBytecodeLabel finalLabel = undefined
     JavaBytecodeOpcodes opcodes
-    
     public boolean hasRightAndOr = false
 
     action Write
+        JavaBytecodeLabel trueLabel = GetTrueLabel()
         JavaBytecodeLabel falseLabel = GetFalseLabel()
         JavaBytecodeLabel finalLabel = GetFinalLabel()
         left:Write()
-        methodWriter:VisitJump(opcodes:GetIfEquals(), falseLabel)
+        if isAnd
+            methodWriter:VisitJump(opcodes:GetIfEquals(), falseLabel)
+        else
+            methodWriter:VisitJump(opcodes:GetIfNotEquals(), trueLabel)
+        end
         right:Write()
 
         if not hasRightAndOr
             methodWriter:VisitJump(opcodes:GetIfEquals(), falseLabel)
+            methodWriter:VisitLabel(trueLabel)
             methodWriter:VisitConstant(1)
             methodWriter:VisitJump(opcodes:GetGoto(), finalLabel)
             methodWriter:VisitLabel(falseLabel)
@@ -45,6 +50,14 @@ class BinaryAndOrOpcode is QuorumOpcode
             falseLabel = f
         end
         return falseLabel
+    end
+
+    action GetTrueLabel returns JavaBytecodeLabel
+        if trueLabel = undefined
+            JavaBytecodeLabel f
+            trueLabel = f
+        end
+        return trueLabel
     end
 
     action SetFinalLabel(JavaBytecodeLabel label)
