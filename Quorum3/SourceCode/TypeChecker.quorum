@@ -79,9 +79,6 @@ class TypeChecker
         ComparisonOpcode intIntEqualOpcode
         intIntEqualOpcode:opcode = opcodes:GetIfIntegerNotEquals()
         result:SetQuorumOpcode(intIntEqualOpcode)
-
-        //opcodeWriter:AddOpcode(opcodes:GetIfIntegerNotEquals())
-        //opcodeWriter:isEquals = true
         type = result:result
         type:SetToBoolean()
         results:Add(key, result)
@@ -275,8 +272,12 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
             constants:TEXT_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
+        ComparisonOpcode textTextEqualOpcode
+        textTextEqualOpcode:isTextCompare = true
+        textTextEqualOpcode:opcode = opcodes:GetIfNotEquals()
+        result:SetQuorumOpcode(textTextEqualOpcode)
         type = result:result
-        type:SetToText()
+        type:SetToBoolean()
         results:Add(key, result)
 
         op = GetOperation(opConstant:NOT_EQUALS)
