@@ -10,22 +10,59 @@ class BinaryAndOrOpcode is QuorumOpcode
     JavaBytecodeLabel trueLabel = undefined
     JavaBytecodeLabel falseLabel = undefined
     JavaBytecodeLabel finalLabel = undefined
+    JavaBytecodeLabel leftHandSideLabel = undefined
+    JavaBytecodeLabel rightHandSideLabel = undefined
+    JavaBytecodeLabel jumpLabel = undefined
     JavaBytecodeOpcodes opcodes
-    public boolean hasRightAndOr = false
+    public boolean hasParent = false
+    public boolean isOnLeft = false
+    public BinaryAndOrOpcode opcodeParent = undefined
+
 
     action Write
-        JavaBytecodeLabel trueLabel = GetTrueLabel()
-        JavaBytecodeLabel falseLabel = GetFalseLabel()
-        JavaBytecodeLabel finalLabel = GetFinalLabel()
-        left:Write()
-        if isAnd
-            methodWriter:VisitJump(opcodes:GetIfEquals(), falseLabel)
-        else
-            methodWriter:VisitJump(opcodes:GetIfNotEquals(), trueLabel)
+        leftHandSideLabel = GetLeftHandSideLabel()
+        rightHandSideLabel = GetRightHandSideLabel()
+        if not hasParent
+            trueLabel = GetTrueLabel()
+            falseLabel = GetFalseLabel()
+            finalLabel = GetFinalLabel()
+            SetChildLabels(trueLabel, falseLabel)
         end
+
+        //Set the position that the opcode will jump to.
+        if isAnd
+            if hasParent
+                if opcodeParent:isAnd
+                    jumpLabel = falseLabel
+                else 
+                    if isOnLeft
+                        jumpLabel = opcodeParent:GetRightHandSideLabel()
+                    else 
+                        jumpLabel = falseLabel
+                    end
+                end
+            else
+                jumpLabel = falseLabel
+            end
+        else
+            jumpLabel = trueLabel
+        end
+
+        //visit the left hand side
+        methodWriter:VisitLabel(leftHandSideLabel)
+        left:Write()
+
+        //visit the opcode to jump past any unnecessary code.
+        if isAnd
+            methodWriter:VisitJump(opcodes:GetIfEquals(), jumpLabel)
+        else
+            methodWriter:VisitJump(opcodes:GetIfNotEquals(), jumpLabel)
+        end
+        methodWriter:VisitLabel(rightHandSideLabel)
         right:Write()
 
-        if not hasRightAndOr
+        //if there is no parent, write the end of the jumping routine.
+        if not hasParent
             methodWriter:VisitJump(opcodes:GetIfEquals(), falseLabel)
             methodWriter:VisitLabel(trueLabel)
             methodWriter:VisitConstant(1)
@@ -33,6 +70,20 @@ class BinaryAndOrOpcode is QuorumOpcode
             methodWriter:VisitLabel(falseLabel)
             methodWriter:VisitConstant(0)
             methodWriter:VisitLabel(finalLabel)
+        end
+    end
+
+    action SetChildLabels(JavaBytecodeLabel trueLabel, JavaBytecodeLabel falseLabel)
+        me:trueLabel = trueLabel
+        me:falseLabel = falseLabel
+        if left is BinaryAndOrOpcode
+            BinaryAndOrOpcode leftOp = cast(BinaryAndOrOpcode, left)
+            leftOp:SetChildLabels(me:trueLabel, me:falseLabel)
+        end
+
+        if right is BinaryAndOrOpcode
+            BinaryAndOrOpcode rightOp = cast(BinaryAndOrOpcode, right)
+            rightOp:SetChildLabels(me:trueLabel, me:falseLabel)
         end
     end
 
@@ -45,7 +96,7 @@ class BinaryAndOrOpcode is QuorumOpcode
     end
 
     action GetFalseLabel returns JavaBytecodeLabel
-        if finalLabel = undefined
+        if falseLabel = undefined
             JavaBytecodeLabel f
             falseLabel = f
         end
@@ -60,11 +111,19 @@ class BinaryAndOrOpcode is QuorumOpcode
         return trueLabel
     end
 
-    action SetFinalLabel(JavaBytecodeLabel label)
-        finalLabel = label
+    action GetRightHandSideLabel returns JavaBytecodeLabel
+        if rightHandSideLabel = undefined
+            JavaBytecodeLabel f
+            rightHandSideLabel = f
+        end
+        return rightHandSideLabel
     end
 
-    action SetFalseLabel(JavaBytecodeLabel label)
-        falseLabel = label
+    action GetLeftHandSideLabel returns JavaBytecodeLabel
+        if leftHandSideLabel = undefined
+            JavaBytecodeLabel f
+            leftHandSideLabel = f
+        end
+        return leftHandSideLabel
     end
 end

@@ -429,16 +429,16 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         if left is BinaryAndOrOpcode
             BinaryAndOrOpcode theAnd = cast(BinaryAndOrOpcode, left)
-            theAnd:hasRightAndOr = true
-            theAnd:SetFalseLabel(binary:GetFalseLabel())
-            theAnd:SetFinalLabel(binary:GetFinalLabel())
+            theAnd:hasParent = true
+            theAnd:opcodeParent = binary
+            theAnd:isOnLeft = true
         end
 
         if right is BinaryAndOrOpcode
             BinaryAndOrOpcode theAnd = cast(BinaryAndOrOpcode, right)
-            theAnd:hasRightAndOr = true
-            theAnd:SetFalseLabel(binary:GetFalseLabel())
-            theAnd:SetFinalLabel(binary:GetFinalLabel())
+            theAnd:hasParent = true
+            theAnd:opcodeParent = binary
+            theAnd:isOnLeft = false
         end
         opcodeStack:Push(binary)
     end
