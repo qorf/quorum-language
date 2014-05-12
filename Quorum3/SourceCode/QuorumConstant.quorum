@@ -21,4 +21,15 @@ class QuorumConstant is QuorumOpcode
             methodWriter:VisitConstant(textValue)
         end
     end
+
+    action GetTemplateCopy returns QuorumOpcode
+        QuorumConstant con
+        con:integerValue = integerValue
+        con:numberValue = numberValue
+        con:booleanValue = booleanValue
+        con:textValue = textValue
+        Type t = GetType()
+        me:SetType(t:Copy())
+        return con
+    end
 end

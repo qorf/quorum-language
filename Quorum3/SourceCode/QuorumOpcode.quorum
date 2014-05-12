@@ -13,4 +13,13 @@ class QuorumOpcode
     action SetType(Type type)
         me:type = type
     end
+
+    /*
+        This action copies only that information provided by the type
+        checker. It guarantees that the object is of the same type,
+        but opcode lists are not copied, nor is any class particular information.
+        For example, a plus opcode would be copied, as this is static 
+        information, but what it is adding would not.
+    */
+    blueprint action GetTemplateCopy returns QuorumOpcode
 end

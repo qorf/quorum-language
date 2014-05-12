@@ -2,8 +2,7 @@ package Libraries.Language.Compile.Symbol
 
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.CompilerErrorType
-use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
-use Libraries.Language.Compile.Translate.JavaOpcodeWriter
+use Libraries.Language.Compile.Translate.all
 use Libraries.Containers.Array
 
 class TypeChecker
@@ -77,8 +76,12 @@ class TypeChecker
             constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
         opcodeWriter = result:writer
-        opcodeWriter:AddOpcode(opcodes:GetIfIntegerNotEquals())
-        opcodeWriter:isEquals = true
+        ComparisonOpcode intIntEqualOpcode
+        intIntEqualOpcode:opcode = opcodes:GetIfIntegerNotEquals()
+        result:SetQuorumOpcode(intIntEqualOpcode)
+
+        //opcodeWriter:AddOpcode(opcodes:GetIfIntegerNotEquals())
+        //opcodeWriter:isEquals = true
         type = result:result
         type:SetToBoolean()
         results:Add(key, result)

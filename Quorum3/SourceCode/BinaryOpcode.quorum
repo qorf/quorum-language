@@ -15,4 +15,11 @@ class BinaryOpcode is QuorumOpcode
         opcodeWriter:WriteRight(methodWriter)
         opcodeWriter:Write(methodWriter)
     end
+
+    action GetTemplateCopy returns QuorumOpcode
+        BinaryOpcode opcode
+        Type t = GetType()
+        me:SetType(t:Copy())
+        return opcode
+    end
 end

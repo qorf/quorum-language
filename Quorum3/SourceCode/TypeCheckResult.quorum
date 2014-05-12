@@ -4,6 +4,7 @@ use Libraries.Language.Compile.CompilerErrorType
 use Libraries.Language.Compile.CompilerError
 use Libraries.Language.Compile.Location
 use Libraries.Language.Compile.Translate.JavaOpcodeWriter
+use Libraries.Language.Compile.Translate.QuorumOpcode
 
 class TypeCheckResult 
     public Type result
@@ -12,6 +13,15 @@ class TypeCheckResult
     public text errorMessage = ""
     public CompilerErrorType errorType = undefined
     public JavaOpcodeWriter writer
+    QuorumOpcode opcode = undefined
+
+    action GetQuorumOpcode returns QuorumOpcode
+        return opcode:GetTemplateCopy()
+    end
+
+    action SetQuorumOpcode(QuorumOpcode op)
+        opcode = op
+    end
 
     action GetCompilerError(Location location) returns CompilerError
         if errorType not= undefined

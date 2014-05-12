@@ -126,4 +126,11 @@ class BinaryAndOrOpcode is QuorumOpcode
         end
         return leftHandSideLabel
     end
+
+    action GetTemplateCopy returns QuorumOpcode
+        BinaryAndOrOpcode opcode
+        Type t = GetType()
+        me:SetType(t:Copy())
+        return opcode
+    end
 end

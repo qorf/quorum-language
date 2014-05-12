@@ -1,0 +1,46 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
+
+class ComparisonOpcode is QuorumOpcode 
+    public QuorumOpcode left = undefined
+    public QuorumOpcode right = undefined
+    public integer opcode = -1
+    public JavaBytecodeMethodWriter methodWriter = undefined
+    JavaBytecodeOpcodes opcodes
+
+    action Write
+        JavaBytecodeLabel jumpNotEqual
+        JavaBytecodeLabel jumpPastLabel
+        
+        left:Write()
+        WriteLeft()
+        right:Write()
+        WriteRight()
+
+        methodWriter:VisitJump(opcode, jumpNotEqual)
+        methodWriter:VisitConstant(1)
+        methodWriter:VisitJump(opcodes:GetGoto(), jumpPastLabel)
+        methodWriter:VisitLabel(jumpNotEqual)
+        methodWriter:VisitConstant(0)
+        methodWriter:VisitLabel(jumpPastLabel)
+
+        
+    end
+
+    action WriteLeft
+
+    end
+
+    action WriteRight
+
+    end
+    
+    action GetTemplateCopy returns QuorumOpcode
+        ComparisonOpcode op
+        op:opcode = opcode
+
+        return op
+    end
+end

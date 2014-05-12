@@ -318,6 +318,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             TypeChecker checker = GetTypeChecker()
             TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
 
+            right:Write()
             //write the local variable, guaranteed at this stage not be null
             integer location = variable:GetBytecodeLocation()
             //temporary --- replace with actual opcode output
@@ -387,18 +388,21 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitEquals (EqualsContext context)
-//        TypeChecker checker = GetTypeChecker()
-//        Type right = expressionStack:Pop()
-//        Type left = expressionStack:Pop()
-//        Operation add
-//        add:SetOperation(add:EQUALS)
-//        
-//        TypeCheckResult result = checker:Check(left, right, add) 
-//        JavaOpcodeWriter opcodeWriter = result:writer
-//        opcodeWriter:WriteComparison(methodWriter)
-//        Type value = result:result
-//        expressionStack:Push(value:Copy())
-
+        TypeChecker checker = GetTypeChecker()
+        QuorumOpcode right = opcodeStack:Pop()
+        QuorumOpcode left = opcodeStack:Pop()
+        Operation add
+        add:SetOperation(add:EQUALS)
+        
+        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add) 
+        JavaOpcodeWriter opcodeWriter = result:writer
+        Type value = result:result
+        ComparisonOpcode compare = cast(ComparisonOpcode, result:GetQuorumOpcode())
+        compare:methodWriter = methodWriter
+        compare:SetType(value)
+        compare:left = left
+        compare:right = right
+        opcodeStack:Push(compare)
     end
 
     action EnterAnd end
@@ -472,56 +476,47 @@ class QuorumBytecodeListener is QuorumSourceListener
         Type type
         type:SetIsConstant(true)
         type:SetIntegerConstant(context:value)
-        //expressionStack:Push(type)
 
         QuorumConstant const
         const:methodWriter = methodWriter
         const:SetType(type)
         const:integerValue = context:value
         opcodeStack:Push(const)
-        //methodWriter:VisitConstant(context:value)
     end
     
     action ExitText(TextContext context) 
         Type type
         type:SetIsConstant(true)
         type:SetTextConstant(context:value)
-        //expressionStack:Push(type)
 
         QuorumConstant const
         const:methodWriter = methodWriter
         const:SetType(type)
         const:textValue = context:value
         opcodeStack:Push(const)
-        //methodWriter:VisitConstant(context:value)
     end
 
     action ExitBoolean(BooleanContext context) 
         Type type
         type:SetIsConstant(true)
         type:SetBooleanConstant(context:value)
-        //expressionStack:Push(type)
 
         QuorumConstant const
         const:methodWriter = methodWriter
         const:SetType(type)
         const:booleanValue = context:value
         opcodeStack:Push(const)
-        //methodWriter:VisitConstant(context:value)
     end
 
     action ExitNumber(NumberContext context) 
         Type type
         type:SetIsConstant(true)
         type:SetNumberConstant(context:value)
-        //expressionStack:Push(type)
 
         QuorumConstant const
         const:methodWriter = methodWriter
         const:SetType(type)
         const:numberValue = context:value
         opcodeStack:Push(const)
-
-       // methodWriter:VisitConstant(context:value)
     end
 end

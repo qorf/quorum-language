@@ -4,4 +4,9 @@ use Libraries.Language.Compile.Symbol.Type
 
 class BlankOpcode is QuorumOpcode
     action Write end
+
+    action GetTemplateCopy returns QuorumOpcode
+        //cheat the system because it doens't matter for NOP commands
+        return me
+    end
 end
