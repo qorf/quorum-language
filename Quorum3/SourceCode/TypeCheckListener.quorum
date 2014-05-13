@@ -61,14 +61,14 @@ class TypeCheckListener is QuorumSourceListener
         end
     end
 
-    action EnterBlock
+    action EnterBlock(BlockContext context)
         if currentBlock = undefined
             currentBlock = currentAction:GetBlock()
         end
         blocks:Push(currentBlock)
     end
     
-    action ExitBlock
+    action ExitBlock(BlockContext context)
         if not blocks:IsEmpty()
             currentBlock = blocks:Pop()
         else 

@@ -246,11 +246,11 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
     
     //output
-    action EnterPrintStatement 
+    action EnterOutputStatement(OutputContext context)
         methodWriter:VisitField(opcodes:GetStaticField(), "java/lang/System", "out", "Ljava/io/PrintStream;")
     end
 
-    action ExitPrintStatement 
+    action ExitOutputStatement(OutputContext context)
         QuorumOpcode op = opcodeStack:Pop()
         Type type = op:GetType()
         op:Write()
@@ -258,13 +258,13 @@ class QuorumBytecodeListener is QuorumSourceListener
                 "(" + converter:ConvertTypeToBytecodeSignature(type) + ")V", false)
     end
 
-    action EnterBlock
+    action EnterBlock(BlockContext context)
         if currentBlock = undefined
             currentBlock = currentAction:GetBlock()
         end
     end
     
-    action ExitBlock
+    action ExitBlock(BlockContext context)
         if currentBlock not= undefined
             currentBlock = currentBlock:GetParentBlock() //may be undefined
         end

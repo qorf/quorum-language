@@ -76,7 +76,7 @@ class Parser is QuorumSourceListener
         currentAction:SetIsSystem(true)
     end
 
-    action EnterBlock 
+    action EnterBlock(BlockContext context) 
         Block block
         if currentAction not= undefined
             currentAction:AddBlock(block)
@@ -85,7 +85,7 @@ class Parser is QuorumSourceListener
         blocks:Push(block)
     end
     
-    action ExitBlock
+    action ExitBlock(BlockContext context)
         if not blocks:IsEmpty()
             currentBlock = blocks:Pop()
         else 

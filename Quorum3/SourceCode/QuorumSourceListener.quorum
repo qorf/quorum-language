@@ -46,20 +46,20 @@ class QuorumSourceListener
     action EnterNumber(NumberContext context) end
     action ExitNumber(NumberContext context) end
 
-    action EnterParenthesisExpression end
-    action ExitParenthesisExpression end
+    action EnterParenthesisExpression(ParenthesisContext context) end
+    action ExitParenthesisExpression(ParenthesisContext context) end
 
-    action EnterCast end
-    action ExitCast end
+    action EnterCast(CastContext context) end
+    action ExitCast(CastContext context) end
 
-    action EnterSpeakStatement end
-    action ExitSpeakStatement end
+    action EnterSayStatement(SayContext context) end
+    action ExitSayStatement(SayContext context) end
 
-    action EnterCheckStatement end
-    action ExitCheckStatement end
+    action EnterCheckStatement(CheckContext context) end
+    action ExitCheckStatement(CheckContext context) end
 
-    action EnterParentFieldAccess end
-    action ExitParentFieldAccess end
+    action EnterParentFieldAccess(ParentFieldAccessContext context) end
+    action ExitParentFieldAccess(ParentFieldAccessContext context) end
 
     action EnterFullClassDeclaration(FullClassDeclarationContext ctx) end
     action ExitFullClassDeclaration(FullClassDeclarationContext ctx) end
@@ -67,20 +67,20 @@ class QuorumSourceListener
     action EnterNoClassDeclaration(NoClassDeclarationContext ctx) end
     action ExitNoClassDeclaration(NoClassDeclarationContext ctx)  end
 
-    action EnterSoloMethodCall end
-    action ExitSoloMethodCall end
+    action EnterSoloActionCall(ActionCallContext context) end
+    action ExitSoloActionCall(ActionCallContext context) end
 
     action EnterFormalParameter(FormalParameterContext context) end
     action ExitFormalParameter(FormalParameterContext context) end
 
-    action EnterStatement end
-    action ExitStatement end
+    action EnterStatement(StatementContext context) end
+    action ExitStatement(StatementContext context) end
 
-    action EnterMe end
-    action ExitMe end
+    action EnterMe(MeContext context) end
+    action ExitMe(MeContext context) end
 
-    action EnterFunctionExpressionList end
-    action ExitFunctionExpressionList end
+    action EnterActionExpressionList(ActionExpressionListContext context) end
+    action ExitActionExpressionList(ActionExpressionListContext context) end
 
     action EnterStart(StartContext context) end
     action ExitStart(StartContext context) end
@@ -91,14 +91,14 @@ class QuorumSourceListener
     action EnterOr(AndOrContext context) end
     action ExitOr(AndOrContext context) end
 
-    action EnterPrintStatement end
-    action ExitPrintStatement end
+    action EnterOutputStatement(OutputContext context) end
+    action ExitOutputStatement(OutputContext context) end
 
     action EnterSystemAction(ActionContext context) end
     action ExitSystemAction(ActionContext context) end
 
-    action EnterConstructor end
-    action ExitConstructor end
+    action EnterConstructor(ConstructorContext context) end
+    action ExitConstructor(ConstructorContext context) end
 
     action EnterBlueprintAction(ActionContext context) end
     action ExitBlueprintAction(ActionContext context) end
@@ -109,56 +109,56 @@ class QuorumSourceListener
     action EnterAction(ActionContext context) end
     action ExitAction(ActionContext context) end
 
-    action EnterGenericStatement end
-    action ExitGenericStatement end
+    action EnterGenericStatement(GenericContext context) end
+    action ExitGenericStatement(GenericContext context) end
 
     action EnterAnd(AndOrContext context) end
     action ExitAnd(AndOrContext context) end
 
-    action EnterNull end
-    action ExitNull end
+    action EnterUndefined(UndefinedContext context) end
+    action ExitUndefined(UndefinedContext context) end
 
-    action EnterInherits end
-    action ExitInherits end
+    action EnterIs(IsContext context) end
+    action ExitIs(IsContext context) end
 
-    action EnterIfStatement end
-    action ExitIfStatement end
+    action EnterIfStatement(IfContext context) end
+    action ExitIfStatement(IfContext context) end
 
-    action EnterAccessModifier end
-    action ExitAccessModifier end
+    action EnterAccessModifier(AccessModifierContext context) end
+    action ExitAccessModifier(AccessModifierContext context) end
 
-    action EnterBlock end
-    action ExitBlock end
+    action EnterBlock(BlockContext context) end
+    action ExitBlock(BlockContext context) end
 
-    action EnterClassStatements end
-    action ExitClassStatements end
+    action EnterClassStatements(ClassStatementsContext context) end
+    action ExitClassStatements(ClassStatementsContext context) end
 
-    action EnterQualifiedName end
-    action ExitQualifiedName end
+    action EnterQualifiedName(QualifiedNameContext context) end
+    action ExitQualifiedName(QualifiedNameContext context) end
 
-    action EnterLoopStatement end
-    action ExitLoopStatement end
+    action EnterLoopStatement(LoopContext context) end
+    action ExitLoopStatement(LoopContext context) end
 
     action EnterAssignmentDeclaration(AssignmentDeclaractionContext context) end
     action ExitAssignmentDeclaration(AssignmentDeclaractionContext context) end
 
-    action EnterInheritStatements end
-    action ExitInheritStatements end
+    action EnterInheritStatements(InheritStatementContext context) end
+    action ExitInheritStatements(InheritStatementContext context) end
 
-    action EnterDetectParameter end
-    action ExitDetectParameter end
+    action EnterDetectParameter(DetectParameterContext context) end
+    action ExitDetectParameter(DetectParameterContext context) end
 
     action EnterAddition(AdditionContext addition) end
     action ExitAddition(AdditionContext addition) end
 
-    action EnterNoClassStatements end
-    action ExitNoClassStatements end
+    action EnterNoClassStatements(NoClassStatementsContext context) end
+    action ExitNoClassStatements(NoClassStatementsContext context) end
 
-    action EnterReturnStatement end
-    action ExitReturnStatement end
+    action EnterReturnStatement(ReturnContext context) end
+    action ExitReturnStatement(ReturnContext context) end
 
-    action EnterInput end
-    action ExitInput end
+    action EnterInput(InputContext context) end
+    action ExitInput(InputContext context) end
 
     action EnterMultiplication(MultiplicationContext context) end
     action ExitMultiplication(MultiplicationContext context) end
@@ -169,26 +169,26 @@ class QuorumSourceListener
     action EnterBoolean(BooleanContext context) end
     action ExitBoolean(BooleanContext context) end
 
-    action EnterAlertStatement end
-    action ExitAlertStatement end
+    action EnterAlertStatement(AlertContext context) end
+    action ExitAlertStatement(AlertContext context) end
 
-    action EnterReference end
-    action ExitReference end
+    action EnterUse(UseContext context) end
+    action ExitUse(UseContext context) end
 
-    action EnterNot end
-    action ExitNot end
+    action EnterNot(NotContext context) end
+    action ExitNot(NotContext context) end
 
-    action EnterGenericDeclaration end
-    action ExitGenericDeclaration end
+    action EnterGenericDeclaration(GenericDeclarationContext context) end
+    action ExitGenericDeclaration(GenericDeclarationContext context) end
 
-    action EnterClassType end
-    action ExitClassType end
+    action EnterClassType(ClassTypeContext context) end
+    action ExitClassType(ClassTypeContext context) end
 
     action EnterEquals(EqualsContext context) end
     action ExitEquals(EqualsContext context) end
 
-    action EnterGreater end
-    action ExitGreater end
+    action EnterInequality(InequalityContext context) end
+    action ExitInequality(InequalityContext context) end
 
     action EnterInteger(IntegerContext int) end
     action ExitInteger(IntegerContext int) end
