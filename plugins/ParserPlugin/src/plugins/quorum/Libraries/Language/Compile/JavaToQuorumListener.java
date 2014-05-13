@@ -210,12 +210,20 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterOr(QuorumParser.OrContext ctx) {
-        listener.EnterOr();
+        quorum.Libraries.Language.Compile.Context.AndOrContext context = 
+                new quorum.Libraries.Language.Compile.Context.AndOrContext();
+        setLocation(ctx, context);
+        context.isAnd = false;
+        listener.EnterOr(context);
     }
 
     @Override
     public void exitOr(QuorumParser.OrContext ctx) {
-        listener.ExitOr();
+        quorum.Libraries.Language.Compile.Context.AndOrContext context = 
+                new quorum.Libraries.Language.Compile.Context.AndOrContext();
+        setLocation(ctx, context);
+        context.isAnd = false;
+        listener.ExitOr(context);
     }
 
     @Override
@@ -240,12 +248,20 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterAnd(QuorumParser.AndContext ctx) {
-        listener.EnterAnd();
+        quorum.Libraries.Language.Compile.Context.AndOrContext context = 
+                new quorum.Libraries.Language.Compile.Context.AndOrContext();
+        setLocation(ctx, context);
+        context.isAnd = true;
+        listener.EnterAnd(context);
     }
 
     @Override
     public void exitAnd(QuorumParser.AndContext ctx) {
-        listener.ExitAnd();
+        quorum.Libraries.Language.Compile.Context.AndOrContext context = 
+                new quorum.Libraries.Language.Compile.Context.AndOrContext();
+        setLocation(ctx, context);
+        context.isAnd = true;
+        listener.ExitAnd(context);
     }
 
     @Override
@@ -350,15 +366,25 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterAddition(QuorumParser.AdditionContext ctx) {
-        quorum.Libraries.Language.Compile.Context.Addition context = new quorum.Libraries.Language.Compile.Context.Addition();
+        quorum.Libraries.Language.Compile.Context.AdditionContext context = new quorum.Libraries.Language.Compile.Context.AdditionContext();
         setLocation(ctx, context);
+        if(ctx.PLUS() != null) {
+            context.isPlus = true;
+        } else {
+            context.isPlus = false;
+        }
         listener.EnterAddition(context);
     }
 
     @Override
     public void exitAddition(QuorumParser.AdditionContext ctx) {
-        quorum.Libraries.Language.Compile.Context.Addition context = new quorum.Libraries.Language.Compile.Context.Addition();
+        quorum.Libraries.Language.Compile.Context.AdditionContext context = new quorum.Libraries.Language.Compile.Context.AdditionContext();
         setLocation(ctx, context);
+        if(ctx.PLUS() != null) {
+            context.isPlus = true;
+        } else {
+            context.isPlus = false;
+        }
         listener.ExitAddition(context);
     }
 
@@ -394,22 +420,48 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterMultiplication(QuorumParser.MultiplicationContext ctx) {
-        listener.EnterMultiplication();
+        quorum.Libraries.Language.Compile.Context.MultiplicationContext context = 
+                new quorum.Libraries.Language.Compile.Context.MultiplicationContext();
+        setLocation(ctx, context);
+        if(ctx.MULTIPLY()!= null) {
+            context.isMultiply = true;
+        } else if (ctx.DIVIDE() != null){
+            context.isDivide = true;
+        } else {
+            context.isModulus = true;
+        }
+        listener.EnterMultiplication(context);
     }
 
     @Override
     public void exitMultiplication(QuorumParser.MultiplicationContext ctx) {
-        listener.ExitMultiplication();
+        quorum.Libraries.Language.Compile.Context.MultiplicationContext context = 
+                new quorum.Libraries.Language.Compile.Context.MultiplicationContext();
+        setLocation(ctx, context);
+        if(ctx.MULTIPLY()!= null) {
+            context.isMultiply = true;
+        } else if (ctx.DIVIDE() != null){
+            context.isDivide = true;
+        } else {
+            context.isModulus = true;
+        }
+        listener.ExitMultiplication(context);
     }
 
     @Override
     public void enterMinus(QuorumParser.MinusContext ctx) {
-        listener.EnterMinus();
+        quorum.Libraries.Language.Compile.Context.UnaryMinusContext context = 
+                new quorum.Libraries.Language.Compile.Context.UnaryMinusContext();
+        setLocation(ctx, context);
+        listener.EnterMinus(context);
     }
 
     @Override
     public void exitMinus(QuorumParser.MinusContext ctx) {
-        listener.ExitMinus();
+        quorum.Libraries.Language.Compile.Context.UnaryMinusContext context = 
+                new quorum.Libraries.Language.Compile.Context.UnaryMinusContext();
+        setLocation(ctx, context);
+        listener.ExitMinus(context);
     }
 
     @Override
