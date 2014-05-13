@@ -48,42 +48,66 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterParenthesisExpression(QuorumParser.ParenthesisExpressionContext ctx) {
-        listener.EnterParenthesisExpression();
+        quorum.Libraries.Language.Compile.Context.ParenthesisContext context = 
+                new quorum.Libraries.Language.Compile.Context.ParenthesisContext();
+        setLocation(ctx, context);
+        listener.EnterParenthesisExpression(context);
     }
 
     @Override
     public void exitParenthesisExpression(QuorumParser.ParenthesisExpressionContext ctx) {
-        listener.ExitParenthesisExpression();
+        quorum.Libraries.Language.Compile.Context.ParenthesisContext context = 
+                new quorum.Libraries.Language.Compile.Context.ParenthesisContext();
+        setLocation(ctx, context);
+        listener.ExitParenthesisExpression(context);
     }
 
     @Override
     public void enterCast(QuorumParser.CastContext ctx) {
-        listener.EnterCast();
+        quorum.Libraries.Language.Compile.Context.CastContext context = 
+                new quorum.Libraries.Language.Compile.Context.CastContext();
+        setLocation(ctx, context);
+        listener.EnterCast(context);
     }
 
     @Override
     public void exitCast(QuorumParser.CastContext ctx) {
-        listener.ExitCast();
+        quorum.Libraries.Language.Compile.Context.CastContext context = 
+                new quorum.Libraries.Language.Compile.Context.CastContext();
+        setLocation(ctx, context);
+        listener.ExitCast(context);
     }
 
     @Override
     public void enterSpeak_statement(QuorumParser.Speak_statementContext ctx) {
-        listener.EnterSpeakStatement();
+        quorum.Libraries.Language.Compile.Context.SayContext context = 
+                new quorum.Libraries.Language.Compile.Context.SayContext();
+        setLocation(ctx, context);
+        listener.EnterSayStatement(context);
     }
 
     @Override
     public void exitSpeak_statement(QuorumParser.Speak_statementContext ctx) {
-        listener.ExitSpeakStatement();
+        quorum.Libraries.Language.Compile.Context.SayContext context = 
+                new quorum.Libraries.Language.Compile.Context.SayContext();
+        setLocation(ctx, context);
+        listener.ExitSayStatement(context);
     }
 
     @Override
     public void enterCheck_statement(QuorumParser.Check_statementContext ctx) {
-        listener.EnterCheckStatement();
+        quorum.Libraries.Language.Compile.Context.CheckContext context = 
+                new quorum.Libraries.Language.Compile.Context.CheckContext();
+        setLocation(ctx, context);
+        listener.EnterCheckStatement(context);
     }
 
     @Override
     public void exitCheck_statement(QuorumParser.Check_statementContext ctx) {
-        listener.ExitCheckStatement();
+        quorum.Libraries.Language.Compile.Context.CheckContext context = 
+                new quorum.Libraries.Language.Compile.Context.CheckContext();
+        setLocation(ctx, context);
+        listener.ExitCheckStatement(context);
     }
 
     @Override
@@ -118,12 +142,20 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterSolo_method_call(QuorumParser.Solo_method_callContext ctx) {
-        listener.EnterSoloMethodCall();
+        quorum.Libraries.Language.Compile.Context.ActionCallContext context = 
+                new quorum.Libraries.Language.Compile.Context.ActionCallContext();
+        setLocation(ctx, context);
+        context.isSolo = true;
+        listener.EnterSoloActionCall(context);
     }
 
     @Override
     public void exitSolo_method_call(QuorumParser.Solo_method_callContext ctx) {
-        listener.ExitSoloMethodCall();
+        quorum.Libraries.Language.Compile.Context.ActionCallContext context = 
+                new quorum.Libraries.Language.Compile.Context.ActionCallContext();
+        setLocation(ctx, context);
+        context.isSolo = true;
+        listener.ExitSoloActionCall(context);
     }
 
     @Override
@@ -146,32 +178,50 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterStatement(QuorumParser.StatementContext ctx) {
-        listener.EnterStatement();
+        quorum.Libraries.Language.Compile.Context.StatementContext context = 
+                new quorum.Libraries.Language.Compile.Context.StatementContext();
+        setLocation(ctx, context);
+        listener.EnterStatement(context);
     }
 
     @Override
     public void exitStatement(QuorumParser.StatementContext ctx) {
-        listener.ExitStatement();
+        quorum.Libraries.Language.Compile.Context.StatementContext context = 
+                new quorum.Libraries.Language.Compile.Context.StatementContext();
+        setLocation(ctx, context);
+        listener.ExitStatement(context);
     }
 
     @Override
     public void enterMe(QuorumParser.MeContext ctx) {
-        listener.EnterMe();
+        quorum.Libraries.Language.Compile.Context.MeContext context = 
+                new quorum.Libraries.Language.Compile.Context.MeContext();
+        setLocation(ctx, context);
+        listener.EnterMe(context);
     }
 
     @Override
     public void exitMe(QuorumParser.MeContext ctx) {
-        listener.ExitMe();
+        quorum.Libraries.Language.Compile.Context.MeContext context = 
+                new quorum.Libraries.Language.Compile.Context.MeContext();
+        setLocation(ctx, context);
+        listener.ExitMe(context);
     }
 
     @Override
     public void enterFunction_expression_list(QuorumParser.Function_expression_listContext ctx) {
-        listener.EnterFunctionExpressionList();
+        quorum.Libraries.Language.Compile.Context.ActionExpressionListContext context = 
+                new quorum.Libraries.Language.Compile.Context.ActionExpressionListContext();
+        setLocation(ctx, context);
+        listener.EnterActionExpressionList(context);
     }
 
     @Override
     public void exitFunction_expression_list(QuorumParser.Function_expression_listContext ctx) {
-        listener.ExitFunctionExpressionList();
+        quorum.Libraries.Language.Compile.Context.ActionExpressionListContext context = 
+                new quorum.Libraries.Language.Compile.Context.ActionExpressionListContext();
+        setLocation(ctx, context);
+        listener.ExitActionExpressionList(context);
     }
 
     @Override
@@ -228,22 +278,34 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterPrint_statement(QuorumParser.Print_statementContext ctx) {
-        listener.EnterPrintStatement();
+        quorum.Libraries.Language.Compile.Context.OutputContext context = 
+                new quorum.Libraries.Language.Compile.Context.OutputContext();
+        setLocation(ctx, context);
+        listener.EnterOutputStatement(context);
     }
 
     @Override
     public void exitPrint_statement(QuorumParser.Print_statementContext ctx) {
-        listener.ExitPrintStatement();
+        quorum.Libraries.Language.Compile.Context.OutputContext context = 
+                new quorum.Libraries.Language.Compile.Context.OutputContext();
+        setLocation(ctx, context);
+        listener.ExitOutputStatement(context);
     }
 
     @Override
     public void enterGeneric_statement(QuorumParser.Generic_statementContext ctx) {
-        listener.EnterGenericStatement();
+        quorum.Libraries.Language.Compile.Context.GenericContext context = 
+                new quorum.Libraries.Language.Compile.Context.GenericContext();
+        setLocation(ctx, context);
+        listener.EnterGenericStatement(context);
     }
 
     @Override
     public void exitGeneric_statement(QuorumParser.Generic_statementContext ctx) {
-        listener.ExitGenericStatement();
+        quorum.Libraries.Language.Compile.Context.GenericContext context = 
+                new quorum.Libraries.Language.Compile.Context.GenericContext();
+        setLocation(ctx, context);
+        listener.ExitGenericStatement(context);
     }
 
     @Override
@@ -266,102 +328,162 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterNull(QuorumParser.NullContext ctx) {
-        listener.EnterNull();
+        quorum.Libraries.Language.Compile.Context.UndefinedContext context = 
+                new quorum.Libraries.Language.Compile.Context.UndefinedContext();
+        setLocation(ctx, context);
+        listener.EnterUndefined(context);
     }
 
     @Override
     public void exitNull(QuorumParser.NullContext ctx) {
-        listener.ExitNull();
+        quorum.Libraries.Language.Compile.Context.UndefinedContext context = 
+                new quorum.Libraries.Language.Compile.Context.UndefinedContext();
+        setLocation(ctx, context);
+        listener.ExitUndefined(context);
     }
 
     @Override
     public void enterInherits(QuorumParser.InheritsContext ctx) {
-        listener.EnterInherits();
+        quorum.Libraries.Language.Compile.Context.IsContext context = 
+                new quorum.Libraries.Language.Compile.Context.IsContext();
+        setLocation(ctx, context);
+        listener.EnterIs(context);
     }
 
     @Override
     public void exitInherits(QuorumParser.InheritsContext ctx) {
-        listener.ExitInherits();
+        quorum.Libraries.Language.Compile.Context.IsContext context = 
+                new quorum.Libraries.Language.Compile.Context.IsContext();
+        setLocation(ctx, context);
+        listener.ExitIs(context);
     }
 
     @Override
     public void enterIf_statement(QuorumParser.If_statementContext ctx) {
-        listener.EnterIfStatement();
+        quorum.Libraries.Language.Compile.Context.IfContext context = 
+                new quorum.Libraries.Language.Compile.Context.IfContext();
+        setLocation(ctx, context);
+        listener.EnterIfStatement(context);
     }
 
     @Override
     public void exitIf_statement(QuorumParser.If_statementContext ctx) {
-        listener.ExitIfStatement();
+        quorum.Libraries.Language.Compile.Context.IfContext context = 
+                new quorum.Libraries.Language.Compile.Context.IfContext();
+        setLocation(ctx, context);
+        listener.ExitIfStatement(context);
     }
 
     @Override
     public void enterAccess_modifier(QuorumParser.Access_modifierContext ctx) {
-        listener.EnterAccessModifier();
+        quorum.Libraries.Language.Compile.Context.AccessModifierContext context = 
+                new quorum.Libraries.Language.Compile.Context.AccessModifierContext();
+        setLocation(ctx, context);
+        listener.EnterAccessModifier(context);
     }
 
     @Override
     public void exitAccess_modifier(QuorumParser.Access_modifierContext ctx) {
-        listener.ExitAccessModifier();
+        quorum.Libraries.Language.Compile.Context.AccessModifierContext context = 
+                new quorum.Libraries.Language.Compile.Context.AccessModifierContext();
+        setLocation(ctx, context);
+        listener.ExitAccessModifier(context);
     }
 
     @Override
     public void enterBlock(QuorumParser.BlockContext ctx) {
-        listener.EnterBlock();
+        quorum.Libraries.Language.Compile.Context.BlockContext context = 
+                new quorum.Libraries.Language.Compile.Context.BlockContext();
+        setLocation(ctx, context);
+        listener.EnterBlock(context);
     }
 
     @Override
     public void exitBlock(QuorumParser.BlockContext ctx) {
-        listener.ExitBlock();
+        quorum.Libraries.Language.Compile.Context.BlockContext context = 
+                new quorum.Libraries.Language.Compile.Context.BlockContext();
+        setLocation(ctx, context);
+        listener.ExitBlock(context);
     }
 
     @Override
     public void enterClass_stmnts(QuorumParser.Class_stmntsContext ctx) {
-        listener.EnterClassStatements();
+        quorum.Libraries.Language.Compile.Context.ClassStatementsContext context = 
+                new quorum.Libraries.Language.Compile.Context.ClassStatementsContext();
+        setLocation(ctx, context);
+        listener.EnterClassStatements(context);
     }
 
     @Override
     public void exitClass_stmnts(QuorumParser.Class_stmntsContext ctx) {
-        listener.ExitClassStatements();
+        quorum.Libraries.Language.Compile.Context.ClassStatementsContext context = 
+                new quorum.Libraries.Language.Compile.Context.ClassStatementsContext();
+        setLocation(ctx, context);
+        listener.ExitClassStatements(context);
     }
 
     @Override
     public void enterQualified_name(QuorumParser.Qualified_nameContext ctx) {
-        listener.EnterQualifiedName();
+        quorum.Libraries.Language.Compile.Context.QualifiedNameContext context = 
+                new quorum.Libraries.Language.Compile.Context.QualifiedNameContext();
+        setLocation(ctx, context);
+        listener.EnterQualifiedName(context);
     }
 
     @Override
     public void exitQualified_name(QuorumParser.Qualified_nameContext ctx) {
-        listener.ExitQualifiedName();
+        quorum.Libraries.Language.Compile.Context.QualifiedNameContext context = 
+                new quorum.Libraries.Language.Compile.Context.QualifiedNameContext();
+        setLocation(ctx, context);
+        listener.ExitQualifiedName(context);
     }
 
     @Override
     public void enterLoop_statement(QuorumParser.Loop_statementContext ctx) {
-        listener.EnterLoopStatement();
+        quorum.Libraries.Language.Compile.Context.LoopContext context = 
+                new quorum.Libraries.Language.Compile.Context.LoopContext();
+        setLocation(ctx, context);
+        listener.EnterLoopStatement(context);
     }
 
     @Override
     public void exitLoop_statement(QuorumParser.Loop_statementContext ctx) {
-        listener.ExitLoopStatement();
+        quorum.Libraries.Language.Compile.Context.LoopContext context = 
+                new quorum.Libraries.Language.Compile.Context.LoopContext();
+        setLocation(ctx, context);
+        listener.ExitLoopStatement(context);
     }
 
     @Override
     public void enterInherit_stmnts(QuorumParser.Inherit_stmntsContext ctx) {
-        listener.EnterInheritStatements();
+        quorum.Libraries.Language.Compile.Context.InheritStatementContext context = 
+                new quorum.Libraries.Language.Compile.Context.InheritStatementContext();
+        setLocation(ctx, context);
+        listener.EnterInheritStatements(context);
     }
 
     @Override
     public void exitInherit_stmnts(QuorumParser.Inherit_stmntsContext ctx) {
-        listener.ExitInheritStatements();
+        quorum.Libraries.Language.Compile.Context.InheritStatementContext context = 
+                new quorum.Libraries.Language.Compile.Context.InheritStatementContext();
+        setLocation(ctx, context);
+        listener.ExitInheritStatements(context);
     }
 
     @Override
     public void enterDetect_parameter(QuorumParser.Detect_parameterContext ctx) {
-        listener.EnterDetectParameter();
+        quorum.Libraries.Language.Compile.Context.DetectParameterContext context = 
+                new quorum.Libraries.Language.Compile.Context.DetectParameterContext();
+        setLocation(ctx, context);
+        listener.EnterDetectParameter(context);
     }
 
     @Override
     public void exitDetect_parameter(QuorumParser.Detect_parameterContext ctx) {
-        listener.ExitDetectParameter();
+        quorum.Libraries.Language.Compile.Context.DetectParameterContext context = 
+                new quorum.Libraries.Language.Compile.Context.DetectParameterContext();
+        setLocation(ctx, context);
+        listener.ExitDetectParameter(context);
     }
 
     @Override
@@ -390,32 +512,50 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterNo_class_stmnts(QuorumParser.No_class_stmntsContext ctx) {
-        listener.EnterNoClassStatements();
+        quorum.Libraries.Language.Compile.Context.NoClassStatementsContext context = 
+                new quorum.Libraries.Language.Compile.Context.NoClassStatementsContext();
+        setLocation(ctx, context);
+        listener.EnterNoClassStatements(context);
     }
 
     @Override
     public void exitNo_class_stmnts(QuorumParser.No_class_stmntsContext ctx) {
-        listener.ExitNoClassStatements();
+        quorum.Libraries.Language.Compile.Context.NoClassStatementsContext context = 
+                new quorum.Libraries.Language.Compile.Context.NoClassStatementsContext();
+        setLocation(ctx, context);
+        listener.ExitNoClassStatements(context);
     }
 
     @Override
     public void enterReturn_statement(QuorumParser.Return_statementContext ctx) {
-        listener.EnterReturnStatement();
+        quorum.Libraries.Language.Compile.Context.ReturnContext context = 
+                new quorum.Libraries.Language.Compile.Context.ReturnContext();
+        setLocation(ctx, context);
+        listener.EnterReturnStatement(context);
     }
 
     @Override
     public void exitReturn_statement(QuorumParser.Return_statementContext ctx) {
-        listener.ExitReturnStatement();
+        quorum.Libraries.Language.Compile.Context.ReturnContext context = 
+                new quorum.Libraries.Language.Compile.Context.ReturnContext();
+        setLocation(ctx, context);
+        listener.ExitReturnStatement(context);
     }
 
     @Override
     public void enterInput(QuorumParser.InputContext ctx) {
-        listener.EnterInput();
+        quorum.Libraries.Language.Compile.Context.InputContext context = 
+                new quorum.Libraries.Language.Compile.Context.InputContext();
+        setLocation(ctx, context);
+        listener.EnterInput(context);
     }
 
     @Override
     public void exitInput(QuorumParser.InputContext ctx) {
-        listener.ExitInput();
+        quorum.Libraries.Language.Compile.Context.InputContext context = 
+                new quorum.Libraries.Language.Compile.Context.InputContext();
+        setLocation(ctx, context);
+        listener.ExitInput(context);
     }
 
     @Override
@@ -484,52 +624,82 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterAlert_statement(QuorumParser.Alert_statementContext ctx) {
-        listener.EnterAlertStatement();
+        quorum.Libraries.Language.Compile.Context.AlertContext context = 
+                new quorum.Libraries.Language.Compile.Context.AlertContext();
+        setLocation(ctx, context);
+        listener.EnterAlertStatement(context);
     }
 
     @Override
     public void exitAlert_statement(QuorumParser.Alert_statementContext ctx) {
-        listener.ExitAlertStatement();
+        quorum.Libraries.Language.Compile.Context.AlertContext context = 
+                new quorum.Libraries.Language.Compile.Context.AlertContext();
+        setLocation(ctx, context);
+        listener.ExitAlertStatement(context);
     }
 
     @Override
     public void enterReference(QuorumParser.ReferenceContext ctx) {
-        listener.EnterReference();
+        quorum.Libraries.Language.Compile.Context.UseContext context = 
+                new quorum.Libraries.Language.Compile.Context.UseContext();
+        setLocation(ctx, context);
+        listener.EnterUse(context);
     }
 
     @Override
     public void exitReference(QuorumParser.ReferenceContext ctx) {
-        listener.ExitReference();
+        quorum.Libraries.Language.Compile.Context.UseContext context = 
+                new quorum.Libraries.Language.Compile.Context.UseContext();
+        setLocation(ctx, context);
+        listener.ExitUse(context);
     }
 
     @Override
     public void enterNot(QuorumParser.NotContext ctx) {
-        listener.EnterNot();
+        quorum.Libraries.Language.Compile.Context.NotContext context = 
+                new quorum.Libraries.Language.Compile.Context.NotContext();
+        setLocation(ctx, context);
+        listener.EnterNot(context);
     }
 
     @Override
     public void exitNot(QuorumParser.NotContext ctx) {
-        listener.ExitNot();
+        quorum.Libraries.Language.Compile.Context.NotContext context = 
+                new quorum.Libraries.Language.Compile.Context.NotContext();
+        setLocation(ctx, context);
+        listener.ExitNot(context);
     }
 
     @Override
     public void enterGeneric_declaration(QuorumParser.Generic_declarationContext ctx) {
-        listener.EnterGenericDeclaration();
+        quorum.Libraries.Language.Compile.Context.GenericDeclarationContext context = 
+                new quorum.Libraries.Language.Compile.Context.GenericDeclarationContext();
+        setLocation(ctx, context);
+        listener.EnterGenericDeclaration(context);
     }
 
     @Override
     public void exitGeneric_declaration(QuorumParser.Generic_declarationContext ctx) {
-        listener.ExitGenericDeclaration();
+        quorum.Libraries.Language.Compile.Context.GenericDeclarationContext context = 
+                new quorum.Libraries.Language.Compile.Context.GenericDeclarationContext();
+        setLocation(ctx, context);
+        listener.ExitGenericDeclaration(context);
     }
 
     @Override
     public void enterClass_type(QuorumParser.Class_typeContext ctx) {
-        listener.EnterClassType();
+        quorum.Libraries.Language.Compile.Context.ClassTypeContext context = 
+                new quorum.Libraries.Language.Compile.Context.ClassTypeContext();
+        setLocation(ctx, context);
+        listener.EnterClassType(context);
     }
 
     @Override
     public void exitClass_type(QuorumParser.Class_typeContext ctx) {
-        listener.ExitClassType();
+        quorum.Libraries.Language.Compile.Context.ClassTypeContext context = 
+                new quorum.Libraries.Language.Compile.Context.ClassTypeContext();
+        setLocation(ctx, context);
+        listener.ExitClassType(context);
     }
 
     @Override
@@ -548,12 +718,18 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterGreater(QuorumParser.GreaterContext ctx) {
-        listener.EnterGreater();
+        quorum.Libraries.Language.Compile.Context.InequalityContext context = 
+                new quorum.Libraries.Language.Compile.Context.InequalityContext();
+        setLocation(ctx, context);
+        listener.EnterInequality(context);
     }
 
     @Override
     public void exitGreater(QuorumParser.GreaterContext ctx) {
-        listener.ExitGreater();
+        quorum.Libraries.Language.Compile.Context.InequalityContext context = 
+                new quorum.Libraries.Language.Compile.Context.InequalityContext();
+        setLocation(ctx, context);
+        listener.ExitInequality(context);
     }
 
     @Override
@@ -750,12 +926,18 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterConstructor(QuorumParser.ConstructorContext ctx) {
-        listener.EnterConstructor();
+        quorum.Libraries.Language.Compile.Context.ConstructorContext context = 
+                new quorum.Libraries.Language.Compile.Context.ConstructorContext();
+        setLocation(ctx, context);
+        listener.EnterConstructor(context);
     }
 
     @Override
     public void exitConstructor(QuorumParser.ConstructorContext ctx) {
-        listener.ExitConstructor();
+        quorum.Libraries.Language.Compile.Context.ConstructorContext context = 
+                new quorum.Libraries.Language.Compile.Context.ConstructorContext();
+        setLocation(ctx, context);
+        listener.ExitConstructor(context);
     }
 
     @Override
