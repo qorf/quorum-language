@@ -25,50 +25,57 @@ class TypeChecker
         text key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
                 constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
-        opcodeWriter = result:writer
-        opcodeWriter:AddOpcode(opcodes:GetIntegerAdd())
         type = result:result
         type:SetToInteger()
+        BinaryOpcode intIntPlus
+        intIntPlus:opcode = opcodes:GetIntegerAdd()
+        result:SetQuorumOpcode(intIntPlus)
+        intIntPlus:SetType(type)
         results:Add(key, result)
 
         op = GetOperation(opConstant:MINUS)
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
             constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
-        opcodeWriter = result:writer
-        opcodeWriter:AddOpcode(opcodes:GetIntegerSubtract())
         type = result:result
         type:SetToInteger()
+        BinaryOpcode intIntMinus
+        intIntMinus:opcode = opcodes:GetIntegerSubtract()
+        result:SetQuorumOpcode(intIntMinus)
+        intIntMinus:SetType(type)
         results:Add(key, result)
 
         op = GetOperation(opConstant:TIMES)
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
             constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
-        opcodeWriter = result:writer
-        opcodeWriter:AddOpcode(opcodes:GetIntegerMultiply())
         type = result:result
         type:SetToInteger()
+        BinaryOpcode intIntTimes
+        intIntTimes:opcode = opcodes:GetIntegerMultiply()
+        result:SetQuorumOpcode(intIntTimes)
         results:Add(key, result)
 
         op = GetOperation(opConstant:DIVIDE)
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
             constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
-        opcodeWriter = result:writer
-        opcodeWriter:AddOpcode(opcodes:GetIntegerDivide())
         type = result:result
         type:SetToInteger()
+        BinaryOpcode intIntDivide
+        intIntDivide:opcode = opcodes:GetIntegerDivide()
+        result:SetQuorumOpcode(intIntDivide)
         results:Add(key, result)
 
         op = GetOperation(opConstant:MODULUS)
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
             constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
-        opcodeWriter = result:writer
-        opcodeWriter:AddOpcode(opcodes:GetIntegerModulus())
         type = result:result
         type:SetToInteger()
+        BinaryOpcode intIntMod
+        intIntMod:opcode = opcodes:GetIntegerModulus()
+        result:SetQuorumOpcode(intIntMod)
         results:Add(key, result)
 
         op = GetOperation(opConstant:EQUALS)

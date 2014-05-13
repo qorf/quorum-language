@@ -41,6 +41,8 @@ class ExpressionsTester
 
         OrAndBooleanBoolean()
         OrBooleanBoolean()
+
+        SubIntInt()
     end
 
     action GetName returns text
@@ -162,5 +164,10 @@ class ExpressionsTester
 
     action OrBooleanBoolean
         suite:RunTest("Library/Tests/Expressions/Pass/OrBooleanBoolean.quorum", "true", "true", "true", "false")
+    end
+
+
+    action SubIntInt
+        suite:RunTest("Library/Tests/Expressions/Pass/SubIntInt.quorum", "0", "0")
     end
 end

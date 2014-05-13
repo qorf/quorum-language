@@ -76,42 +76,23 @@ class CompilerTestSuite
     end
 
     action RunTest(text source, text reply)
-        CompilerTestResult result = undefined
-        Compiler compiler
-        File file
-        file:SetPath(source)
-        compiler:SetMain(file)
-
-        Parser parser
-        compiler:Parse(file, parser)
-        TypeCheckListener checker
-        compiler:Parse(file, checker)
-        QuorumBytecodeListener bytecode
-        compiler:Parse(file, bytecode)
-        
-        CompilerErrorManager manager = parser:GetCompilerErrorManager()
-
-        if manager:IsCompilationErrorFree() //run the program
-            QuorumJarGenerator generator
-
-            File jar = compiler:GetDistributionFile()
-            generator:SetCompiler(compiler)
-            generator:Write()
-            result = RunClassFile(jar)
-            
-            Array<text> results = result:lines
-            if not results:IsEmpty()
-                line = results:Get(0)
-                if line = reply //we passed!
-                    result:passed = true
+        CompilerTestResult result
+        result:name = source
+        check
+            result = RunTest(result:name)
+            if result:ranWithoutError
+                Array<text> lines = result:lines
+                if lines:GetSize() = 1
+                    if lines:Get(0) = reply
+                       result:passed = true
+                    end
                 end
             end
-        else
-            CompilerTestResult result2
-            result = result2
+        detect e
+            text message = e:GetErrorMessage()
+            result:errorMessage = message
+            result:stackTrace = e:GetStackTrace()
         end
-
-        result:name = source
         Add(result)
     end
 

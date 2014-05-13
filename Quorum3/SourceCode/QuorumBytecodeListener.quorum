@@ -407,17 +407,17 @@ class QuorumBytecodeListener is QuorumSourceListener
         opcodeStack:Push(compare)
     end
 
-    action EnterAnd end
-    action ExitAnd 
-        DoAndOr(true)
+    action EnterAnd(AndOrContext context) end
+    action ExitAnd(AndOrContext context) 
+        DoAndOr(context)
     end
 
-    action DoAndOr(boolean isAnd)
+    action DoAndOr(AndOrContext context)
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Pop()
         QuorumOpcode left = opcodeStack:Pop()
         Operation op
-        if isAnd
+        if context:isAnd
             op:SetOperation(op:AND)
         else 
             op:SetOperation(op:OR)
@@ -427,7 +427,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         JavaOpcodeWriter opcodeWriter = result:writer
         Type value = result:result
         BinaryAndOrOpcode binary
-        binary:isAnd = isAnd
+        binary:isAnd = context:isAnd
         binary:methodWriter = methodWriter
         binary:SetType(value)
         binary:left = left
@@ -449,23 +449,26 @@ class QuorumBytecodeListener is QuorumSourceListener
         opcodeStack:Push(binary)
     end
 
-    action EnterOr end
-    action ExitOr
-        DoAndOr(false)
+    action EnterOr(AndOrContext context) end
+    action ExitOr(AndOrContext context)
+        DoAndOr(context)
     end
 
-    action ExitAddition(Addition addition) 
+    action ExitAddition(AdditionContext addition) 
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Pop()
         QuorumOpcode left = opcodeStack:Pop()
         Operation add
-        add:SetOperation(add:PLUS)
-        
+        if addition:isPlus
+            add:SetOperation(add:PLUS)
+        else
+            add:SetOperation(add:MINUS)
+        end
+
         TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add) 
         JavaOpcodeWriter opcodeWriter = result:writer
-
         Type value = result:result
-        BinaryOpcode binary
+        BinaryOpcode binary = cast(BinaryOpcode, result:GetQuorumOpcode())
         binary:methodWriter = methodWriter
         binary:SetType(value)
         binary:left = left

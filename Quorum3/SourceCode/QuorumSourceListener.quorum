@@ -88,8 +88,8 @@ class QuorumSourceListener
     action EnterText(TextContext context) end
     action ExitText(TextContext context) end
 
-    action EnterOr end
-    action ExitOr end
+    action EnterOr(AndOrContext context) end
+    action ExitOr(AndOrContext context) end
 
     action EnterPrintStatement end
     action ExitPrintStatement end
@@ -112,8 +112,8 @@ class QuorumSourceListener
     action EnterGenericStatement end
     action ExitGenericStatement end
 
-    action EnterAnd end
-    action ExitAnd end
+    action EnterAnd(AndOrContext context) end
+    action ExitAnd(AndOrContext context) end
 
     action EnterNull end
     action ExitNull end
@@ -148,8 +148,8 @@ class QuorumSourceListener
     action EnterDetectParameter end
     action ExitDetectParameter end
 
-    action EnterAddition(Addition addition) end
-    action ExitAddition(Addition addition) end
+    action EnterAddition(AdditionContext addition) end
+    action ExitAddition(AdditionContext addition) end
 
     action EnterNoClassStatements end
     action ExitNoClassStatements end
@@ -160,11 +160,11 @@ class QuorumSourceListener
     action EnterInput end
     action ExitInput end
 
-    action EnterMultiplication end
-    action ExitMultiplication end
+    action EnterMultiplication(MultiplicationContext context) end
+    action ExitMultiplication(MultiplicationContext context) end
 
-    action EnterMinus end
-    action ExitMinus end
+    action EnterMinus(UnaryMinusContext context) end
+    action ExitMinus(UnaryMinusContext context) end
 
     action EnterBoolean(BooleanContext context) end
     action ExitBoolean(BooleanContext context) end

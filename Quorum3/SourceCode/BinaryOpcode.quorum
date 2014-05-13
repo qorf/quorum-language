@@ -8,18 +8,43 @@ class BinaryOpcode is QuorumOpcode
     public JavaBytecodeMethodWriter methodWriter = undefined
     public JavaOpcodeWriter opcodeWriter = undefined
 
+    public integer opcode = -1
+    public integer leftOpcode = -1
+    public integer rightOpcode = -1
+
     action Write
         left:Write()
-        opcodeWriter:WriteLeft(methodWriter)
+        WriteLeft()
+        //opcodeWriter:WriteLeft(methodWriter)
         right:Write()
-        opcodeWriter:WriteRight(methodWriter)
-        opcodeWriter:Write(methodWriter)
+        WriteRight()
+        //opcodeWriter:WriteRight(methodWriter)
+        //opcodeWriter:Write(methodWriter)
+
+        if opcode not= -1
+            methodWriter:VisitInstruction(opcode)
+        end
+    end
+
+    action WriteLeft
+        if leftOpcode not= -1
+            methodWriter:VisitInstruction(leftOpcode)
+        end
+    end
+
+    action WriteRight
+        if rightOpcode not= -1
+            methodWriter:VisitInstruction(rightOpcode)
+        end
     end
 
     action GetTemplateCopy returns QuorumOpcode
-        BinaryOpcode opcode
+        BinaryOpcode op
         Type t = GetType()
         me:SetType(t:Copy())
-        return opcode
+        op:opcode = opcode
+        op:leftOpcode = leftOpcode
+        op:rightOpcode = rightOpcode
+        return op
     end
 end

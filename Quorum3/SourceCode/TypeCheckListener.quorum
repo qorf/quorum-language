@@ -177,7 +177,7 @@ class TypeCheckListener is QuorumSourceListener
         expressionStack:Push(value:Copy())
     end
 
-    action ExitAddition(Addition context) 
+    action ExitAddition(AdditionContext context) 
         TypeChecker checker = GetTypeChecker()
         Type right = expressionStack:Pop()
         Type left = expressionStack:Pop()
