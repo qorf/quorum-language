@@ -1,4 +1,43 @@
 package Libraries.Language.Compile
 
+use Libraries.Language.Compile.Context.all
+use Libraries.Containers.Stack
+use Libraries.Language.Compile.Symbol.all
+use Libraries.System.File
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Symbol.all
+use Libraries.Language.Compile.Translate.all
+
+
 class QuorumJavascriptListener is QuorumSourceListener
+    Stack<QuorumOpcode> opcodeStack
+    text convertedSource = ""
+
+    action GetConvertedSource returns text
+        return convertedSource
+    end
+
+    action ExitOutputStatement(OutputContext context)
+        QuorumOpcode op = opcodeStack:Pop()
+        Type type = op:GetType()
+        text quote = ""
+        quote = quote:GetDoubleQuote()
+
+        text print = "print(" + quote
+        print = print + type:GetTextConstant() + quote + ");"
+
+        convertedSource = convertedSource + print
+    end
+
+    action ExitText(TextContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetTextConstant(context:value)
+
+        QuorumConstant const
+        const:SetType(type)
+        const:textValue = context:value
+        opcodeStack:Push(const)
+    end
 end

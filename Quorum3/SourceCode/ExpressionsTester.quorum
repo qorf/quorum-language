@@ -24,20 +24,20 @@ class ExpressionsTester
         AddTextInt()
         AddTextText()
         AndBooleanBoolean()
-//        CompareTextTextField()
-//        DivDoubleDouble()
-//        DivDoubleInt()
-//        DivIntDouble()
-//        DivIntInt()
-//        EqualBooleanBoolean()
-//        EqualCustomCustom()
-//        EqualDoubleDouble()
-//        EqualDoubleInt()
-//        EqualIntDouble()
+        CompareTextTextField()
+        DivDoubleDouble()
+        DivDoubleInt()
+        DivIntDouble()
+        DivIntInt()
+        EqualBooleanBoolean()
+        EqualCustomCustom()
+        EqualDoubleDouble()
+        EqualDoubleInt()
+        EqualIntDouble()
         EqualIntInt()
         EqualTextText()
         Expression()
-
+        HelloWorld()
 
         OrAndBooleanBoolean()
         OrBooleanBoolean()
@@ -156,6 +156,11 @@ class ExpressionsTester
 
     action Expression
         suite:RunTest("Library/Tests/Expressions/Pass/Expression.quorum", "15")
+    end
+
+    action HelloWorld
+        suite:RunTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
     end
 
     action OrAndBooleanBoolean
