@@ -140,10 +140,12 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
             constants:NUMBER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
-        opcodeWriter = result:writer
-        opcodeWriter:AddOpcode(opcodes:GetDoubleAdd())
         type = result:result
         type:SetToNumber()
+        BinaryOpcode doubledoublePlus
+        doubledoublePlus:opcode = opcodes:GetDoubleAdd()
+        result:SetQuorumOpcode(doubledoublePlus)
+        doubledoublePlus:SetType(type)
         results:Add(key, result)
 
         op = GetOperation(opConstant:MINUS)
@@ -512,9 +514,11 @@ class TypeChecker
         op = GetOperation(opConstant:PLUS)
         key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
-        opcodeWriter = result:writer
-        opcodeWriter:AddRightOpcode(opcodes:GetIntegerToDouble())
-        opcodeWriter:AddOpcode(opcodes:GetDoubleAdd())
+        BinaryOpcode doubleIntPlus
+        doubleIntPlus:opcode = opcodes:GetDoubleAdd()
+        doubleIntPlus:rightOpcode = opcodes:GetIntegerToDouble()
+        result:SetQuorumOpcode(doubleIntPlus)
+        doubleIntPlus:SetType(type)
         type = result:result
         type:SetToNumber()
         results:Add(key, result)
