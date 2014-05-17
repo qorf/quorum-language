@@ -1,0 +1,74 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+
+class ConcatenateOpcode is BinaryOpcode
+    public boolean convertRightToText = false
+    public boolean convertLeftToText = false
+    text concatenationClass = ""
+    text concatenationConvertMethod = ""
+    Type constants
+    JavaBytecodeOpcodes opcodes
+
+    action Write
+        QuorumOpcode left = GetLeftOpcode()
+        left:Write()
+        WriteLeft()
+        QuorumOpcode right = GetRightOpcode()
+        right:Write()
+        WriteRight()
+
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
+            "java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;", false)
+    end
+
+    action WriteLeft
+        if convertLeftToText
+            WriteConvertToTextOpcodes()
+        end
+    end
+
+    action WriteRight
+        if convertRightToText
+            WriteConvertToTextOpcodes()
+        end
+    end
+
+    private action WriteConvertToTextOpcodes
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), 
+            concatenationClass, "toString", concatenationConvertMethod, false)
+    end
+
+    action SetConvertStringForConcatenation(text type) 
+        if constants:BOOLEAN_PRIMITIVE_KEY = type
+            requiresTypeConvertToText = true
+            concatenationClass = "java/lang/Boolean"
+            concatenationConvertMethod = "(Z)Ljava/lang/String;"
+        elseif constants:INTEGER_PRIMITIVE_KEY = type
+            requiresTypeConvertToText = true
+            concatenationClass = "java/lang/Integer"
+            concatenationConvertMethod = "(I)Ljava/lang/String;"
+        elseif constants:NUMBER_PRIMITIVE_KEY = type
+            requiresTypeConvertToText = true
+            concatenationClass = "java/lang/Double"
+            concatenationConvertMethod = "(D)Ljava/lang/String;"
+        elseif constants:TEXT_PRIMITIVE_KEY = type
+            requiresTypeConvertToText = false
+        else 
+            alert ("Cannot setup a string concatenation with an incorrect type")
+        end
+    end
+
+    action GetTemplateCopy returns QuorumOpcode
+        ConcatenateOpcode op
+        Type t = GetType()
+        me:SetType(t:Copy())
+        op:convertLeftToText = convertLeftToText
+        op:convertRightToText = convertRightToText
+        op:concatenationClass = concatenationClass
+        op:concatenationConvertMethod = concatenationConvertMethod
+        return op
+    end
+end

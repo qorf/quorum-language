@@ -27,10 +27,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToInteger()
-        BinaryOpcode intIntPlus
-        intIntPlus:opcode = opcodes:GetIntegerAdd()
-        result:SetQuorumOpcode(intIntPlus)
-        intIntPlus:SetType(type)
+        BinaryOpcode binary = GetBinaryOpcode(opcodes:GetIntegerAdd(), -1, -1, type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         op = GetOperation(opConstant:MINUS)
@@ -39,10 +37,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToInteger()
-        BinaryOpcode intIntMinus
-        intIntMinus:opcode = opcodes:GetIntegerSubtract()
-        result:SetQuorumOpcode(intIntMinus)
-        intIntMinus:SetType(type)
+        binary = GetBinaryOpcode(opcodes:GetIntegerSubtract(), -1, -1, type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         op = GetOperation(opConstant:TIMES)
@@ -51,9 +47,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToInteger()
-        BinaryOpcode intIntTimes
-        intIntTimes:opcode = opcodes:GetIntegerMultiply()
-        result:SetQuorumOpcode(intIntTimes)
+        binary = GetBinaryOpcode(opcodes:GetIntegerMultiply(), -1, -1, type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         op = GetOperation(opConstant:DIVIDE)
@@ -62,9 +57,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToInteger()
-        BinaryOpcode intIntDivide
-        intIntDivide:opcode = opcodes:GetIntegerDivide()
-        result:SetQuorumOpcode(intIntDivide)
+        binary = GetBinaryOpcode(opcodes:GetIntegerDivide(), -1, -1, type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         op = GetOperation(opConstant:MODULUS)
@@ -73,9 +67,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToInteger()
-        BinaryOpcode intIntMod
-        intIntMod:opcode = opcodes:GetIntegerModulus()
-        result:SetQuorumOpcode(intIntMod)
+        binary = GetBinaryOpcode(opcodes:GetIntegerModulus(), -1, -1, type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         op = GetOperation(opConstant:EQUALS)
@@ -142,10 +135,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToNumber()
-        BinaryOpcode doubledoublePlus
-        doubledoublePlus:opcode = opcodes:GetDoubleAdd()
-        result:SetQuorumOpcode(doubledoublePlus)
-        doubledoublePlus:SetType(type)
+        binary = GetBinaryOpcode(opcodes:GetDoubleAdd(), -1, -1, type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         op = GetOperation(opConstant:MINUS)
@@ -154,6 +145,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToNumber()
+        binary = GetBinaryOpcode(opcodes:GetDoubleSubtract(), -1, -1, type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         op = GetOperation(opConstant:TIMES)
@@ -162,6 +155,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToNumber()
+        binary = GetBinaryOpcode(opcodes:GetDoubleMultiply(), -1, -1, type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         op = GetOperation(opConstant:DIVIDE)
@@ -170,6 +165,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToNumber()
+        binary = GetBinaryOpcode(opcodes:GetDoubleDivide(), -1, -1, type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         op = GetOperation(opConstant:MODULUS)
@@ -178,6 +175,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToNumber()
+        binary = GetBinaryOpcode(opcodes:GetDoubleModulus(), -1, -1, type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         op = GetOperation(opConstant:EQUALS)
@@ -271,10 +270,10 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
             constants:TEXT_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
-        opcodeWriter = result:writer
-        opcodeWriter:isConcatenation = true
         type = result:result
         type:SetToText()
+        ConcatenateOpcode textConcat = GetConcatenateOpcode(false, false, constants:TEXT_PRIMITIVE_KEY, type)
+        result:SetQuorumOpcode(textConcat)
         results:Add(key, result)
 
         op = GetOperation(opConstant:EQUALS)
@@ -504,23 +503,19 @@ class TypeChecker
         op = GetOperation(opConstant:PLUS)
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
-        opcodeWriter = result:writer
-        opcodeWriter:AddLeftOpcode(opcodes:GetIntegerToDouble())
-        opcodeWriter:AddOpcode(opcodes:GetDoubleAdd())
         type = result:result
         type:SetToNumber()
+        binary = GetBinaryOpcode(opcodes:GetDoubleAdd(), opcodes:GetIntegerToDouble(), -1, type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         op = GetOperation(opConstant:PLUS)
         key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
-        BinaryOpcode doubleIntPlus
-        doubleIntPlus:opcode = opcodes:GetDoubleAdd()
-        doubleIntPlus:rightOpcode = opcodes:GetIntegerToDouble()
-        result:SetQuorumOpcode(doubleIntPlus)
-        doubleIntPlus:SetType(type)
         type = result:result
         type:SetToNumber()
+        binary = GetBinaryOpcode(opcodes:GetDoubleAdd(), -1, opcodes:GetIntegerToDouble(), type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         //-
@@ -679,45 +674,37 @@ class TypeChecker
         op = GetOperation(opConstant:PLUS)
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
-        opcodeWriter = result:writer
-        opcodeWriter:isConcatenation = true
-        opcodeWriter:convertLeftToText = true
-        opcodeWriter:SetConvertStringForConcatenation(constants:INTEGER_PRIMITIVE_KEY)
         type = result:result
         type:SetToText()
+        ConcatenateOpcode concat = GetConcatenateOpcode(true, false, constants:INTEGER_PRIMITIVE_KEY, type)
+        result:SetQuorumOpcode(concat)
         results:Add(key, result)
 
         op = GetOperation(opConstant:PLUS)
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
-        opcodeWriter = result:writer
-        opcodeWriter:isConcatenation = true
-        opcodeWriter:convertRightToText = true
-        opcodeWriter:SetConvertStringForConcatenation(constants:INTEGER_PRIMITIVE_KEY)
         type = result:result
         type:SetToText()
+        concat = GetConcatenateOpcode(false, true, constants:INTEGER_PRIMITIVE_KEY, type)
+        result:SetQuorumOpcode(concat)
         results:Add(key, result)
 
         op = GetOperation(opConstant:PLUS)
         key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
-        opcodeWriter = result:writer
-        opcodeWriter:isConcatenation = true
-        opcodeWriter:convertLeftToText = true
-        opcodeWriter:SetConvertStringForConcatenation(constants:NUMBER_PRIMITIVE_KEY)
         type = result:result
         type:SetToText()
+        concat = GetConcatenateOpcode(true, false, constants:NUMBER_PRIMITIVE_KEY, type)
+        result:SetQuorumOpcode(concat)
         results:Add(key, result)
 
         op = GetOperation(opConstant:PLUS)
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
-        opcodeWriter = result:writer
-        opcodeWriter:isConcatenation = true
-        opcodeWriter:convertRightToText = true
-        opcodeWriter:SetConvertStringForConcatenation(constants:NUMBER_PRIMITIVE_KEY)
         type = result:result
         type:SetToText()
+        concat = GetConcatenateOpcode(false, true, constants:NUMBER_PRIMITIVE_KEY, type)
+        result:SetQuorumOpcode(concat)
         results:Add(key, result)
 
         op = GetOperation(opConstant:PLUS)
@@ -725,21 +712,17 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToText()
-        opcodeWriter = result:writer
-        opcodeWriter:isConcatenation = true
-        opcodeWriter:convertLeftToText = true
-        opcodeWriter:SetConvertStringForConcatenation(constants:BOOLEAN_PRIMITIVE_KEY)
+        concat = GetConcatenateOpcode(true, false, constants:BOOLEAN_PRIMITIVE_KEY, type)
+        result:SetQuorumOpcode(concat)
         results:Add(key, result)
 
         op = GetOperation(opConstant:PLUS)
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
-        opcodeWriter = result:writer
-        opcodeWriter:isConcatenation = true
-        opcodeWriter:convertRightToText = true
-        opcodeWriter:SetConvertStringForConcatenation(constants:BOOLEAN_PRIMITIVE_KEY)
         type = result:result
         type:SetToText()
+        concat = GetConcatenateOpcode(false, true, constants:BOOLEAN_PRIMITIVE_KEY, type)
+        result:SetQuorumOpcode(concat)
         results:Add(key, result)
 
         ////////////////////////////////////////////////////////////////////////
@@ -1287,6 +1270,26 @@ class TypeChecker
         type = result:result
         type:SetToText()
         results:Add(key, result)
+    end
+
+    private action GetBinaryOpcode(integer opcode, integer leftOpcode, 
+        integer rightOpcode, Type type) returns BinaryOpcode
+        BinaryOpcode op
+        op:opcode = opcode
+        op:leftOpcode = leftOpcode
+        op:rightOpcode = rightOpcode
+        op:SetType(type)
+        return op
+    end
+
+    private action GetConcatenateOpcode(boolean left, boolean right, 
+        text convertText, Type type) returns ConcatenateOpcode
+        ConcatenateOpcode op
+        op:convertLeftToText = left
+        op:convertRightToText = right
+        op:SetConvertStringForConcatenation(convertText)
+        op:SetType(type)
+        return op
     end
 
     private action GetSwapOpcodes(text top, text second) returns Array<integer>

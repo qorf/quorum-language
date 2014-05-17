@@ -469,11 +469,10 @@ class QuorumBytecodeListener is QuorumSourceListener
         JavaOpcodeWriter opcodeWriter = result:writer
         Type value = result:result
         BinaryOpcode binary = cast(BinaryOpcode, result:GetQuorumOpcode())
-        binary:methodWriter = methodWriter
+        binary:SetMethodWriter(methodWriter)
         binary:SetType(value)
-        binary:left = left
-        binary:right = right
-        binary:opcodeWriter = opcodeWriter
+        binary:SetLeftOpcode(left)
+        binary:SetRightOpcode(right)
         opcodeStack:Push(binary)
     end
 
