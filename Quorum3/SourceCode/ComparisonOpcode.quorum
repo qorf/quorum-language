@@ -3,11 +3,8 @@ package Libraries.Language.Compile.Translate
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
 
-class ComparisonOpcode is QuorumOpcode 
-    public QuorumOpcode left = undefined
-    public QuorumOpcode right = undefined
-    public integer opcode = -1
-    public JavaBytecodeMethodWriter methodWriter = undefined
+class ComparisonOpcode is BinaryOpcode 
+    //public integer opcode = -1
     JavaBytecodeOpcodes opcodes
     public boolean isTextCompare = false
     public integer textCompareValue = -2
@@ -16,16 +13,20 @@ class ComparisonOpcode is QuorumOpcode
         JavaBytecodeLabel jumpNotEqual
         JavaBytecodeLabel jumpPastLabel
         
+        QuorumOpcode left = me:GetLeftOpcode()
         left:Write()
         WriteLeft()
+
+        QuorumOpcode right = me:GetRightOpcode()
         right:Write()
         WriteRight()
 
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         if isTextCompare
             methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), "java/lang/String", "compareTo", "(Ljava/lang/String;)I", false)
         end
         
-        methodWriter:VisitJump(opcode, jumpNotEqual)
+        methodWriter:VisitJump(GetJavaOpcode(), jumpNotEqual)
         methodWriter:VisitConstant(1)
         methodWriter:VisitJump(opcodes:GetGoto(), jumpPastLabel)
         methodWriter:VisitLabel(jumpNotEqual)
@@ -42,7 +43,9 @@ class ComparisonOpcode is QuorumOpcode
     
     action GetTemplateCopy returns QuorumOpcode
         ComparisonOpcode op
-        op:opcode = opcode
+        op:SetJavaOpcode(GetJavaOpcode())
+        op:SetJavaLeftOpcode(GetJavaLeftOpcode())
+        op:SetJavaRightOpcode(GetJavaRightOpcode())
         op:isTextCompare = isTextCompare
         op:textCompareValue = textCompareValue
         return op

@@ -29,7 +29,7 @@ class ExpressionsTester
         DivDoubleInt()
         DivIntDouble()
         DivIntInt()
-//        EqualBooleanBoolean()
+        EqualBooleanBoolean()
 //        EqualCustomCustom()
 //        EqualDoubleDouble()
 //        EqualDoubleInt()
@@ -39,6 +39,7 @@ class ExpressionsTester
         Expression()
         HelloWorld()
 
+        NotEqualBooleanBoolean()
         OrAndBooleanBoolean()
         OrBooleanBoolean()
 
@@ -171,6 +172,9 @@ class ExpressionsTester
         suite:RunTest("Library/Tests/Expressions/Pass/OrBooleanBoolean.quorum", "true", "true", "true", "false")
     end
 
+    action NotEqualBooleanBoolean
+        suite:RunTest("Library/Tests/Expressions/Pass/NotEqualBooleanBoolean.quorum", "false", "true")
+    end
 
     action SubIntInt
         suite:RunTest("Library/Tests/Expressions/Pass/SubIntInt.quorum", "0", "0")

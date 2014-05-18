@@ -394,16 +394,20 @@ class QuorumBytecodeListener is QuorumSourceListener
         QuorumOpcode right = opcodeStack:Pop()
         QuorumOpcode left = opcodeStack:Pop()
         Operation add
-        add:SetOperation(add:EQUALS)
+        if context:equalsTo
+            add:SetOperation(add:EQUALS)
+        else
+            add:SetOperation(add:NOT_EQUALS)
+        end
         
         TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add) 
         JavaOpcodeWriter opcodeWriter = result:writer
         Type value = result:result
         ComparisonOpcode compare = cast(ComparisonOpcode, result:GetQuorumOpcode())
-        compare:methodWriter = methodWriter
+        compare:SetMethodWriter(methodWriter)
         compare:SetType(value)
-        compare:left = left
-        compare:right = right
+        compare:SetLeftOpcode(left)
+        compare:SetRightOpcode(right)
         opcodeStack:Push(compare)
     end
 

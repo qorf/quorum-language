@@ -76,11 +76,10 @@ class TypeChecker
             constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
         opcodeWriter = result:writer
-        ComparisonOpcode intIntEqualOpcode
-        intIntEqualOpcode:opcode = opcodes:GetIfIntegerNotEquals()
-        result:SetQuorumOpcode(intIntEqualOpcode)
         type = result:result
         type:SetToBoolean()
+        ComparisonOpcode compare = GetBinaryComparisonOpcode(opcodes:GetIfIntegerNotEquals(), -1, -1, type)
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         op = GetOperation(opConstant:NOT_EQUALS)
@@ -253,6 +252,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfIntegerNotEquals(), -1, -1, type)
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         op = GetOperation(opConstant:NOT_EQUALS)
@@ -261,6 +262,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfIntegerEquals(), -1, -1, type)
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         ////////////////////////////////////////////////////////////////////////
@@ -280,12 +283,11 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
             constants:TEXT_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
-        ComparisonOpcode textTextEqualOpcode
-        textTextEqualOpcode:isTextCompare = true
-        textTextEqualOpcode:opcode = opcodes:GetIfNotEquals()
-        result:SetQuorumOpcode(textTextEqualOpcode)
         type = result:result
         type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfNotEquals(), -1, -1, type)
+        compare:isTextCompare = true
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         op = GetOperation(opConstant:NOT_EQUALS)
@@ -1288,12 +1290,22 @@ class TypeChecker
         results:Add(key, result)
     end
 
+    private action GetBinaryComparisonOpcode(integer opcode, integer leftOpcode,
+        integer rightOpcode, Type type) returns ComparisonOpcode
+        ComparisonOpcode op
+        op:SetJavaOpcode(opcode)
+        op:SetJavaLeftOpcode(leftOpcode)
+        op:SetJavaRightOpcode(rightOpcode)
+        op:SetType(type)
+        return op
+    end
+
     private action GetBinaryOpcode(integer opcode, integer leftOpcode, 
         integer rightOpcode, Type type) returns BinaryOpcode
         BinaryOpcode op
-        op:opcode = opcode
-        op:leftOpcode = leftOpcode
-        op:rightOpcode = rightOpcode
+        op:SetJavaOpcode(opcode)
+        op:SetJavaLeftOpcode(leftOpcode)
+        op:SetJavaRightOpcode(rightOpcode)
         op:SetType(type)
         return op
     end

@@ -7,9 +7,33 @@ class BinaryOpcode is QuorumOpcode
     QuorumOpcode right = undefined
     JavaBytecodeMethodWriter methodWriter = undefined
 
-    public integer opcode = -1
-    public integer leftOpcode = -1
-    public integer rightOpcode = -1
+    integer opcode = -1
+    integer leftOpcode = -1
+    integer rightOpcode = -1
+
+    action GetJavaOpcode returns integer
+        return opcode
+    end
+
+    action GetJavaLeftOpcode returns integer
+        return leftOpcode
+    end
+
+    action GetJavaRightOpcode returns integer
+        return rightOpcode
+    end
+
+    action SetJavaOpcode(integer op)
+        opcode = op
+    end
+
+    action SetJavaLeftOpcode(integer op)
+        leftOpcode = op
+    end
+
+    action SetJavaRightOpcode(integer op)
+        rightOpcode = op
+    end
 
     action GetMethodWriter returns JavaBytecodeMethodWriter
         return methodWriter
