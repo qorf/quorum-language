@@ -706,6 +706,11 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterEquals(QuorumParser.EqualsContext ctx) {
         quorum.Libraries.Language.Compile.Context.EqualsContext context = new quorum.Libraries.Language.Compile.Context.EqualsContext();
         setLocation(ctx, context);
+        if(ctx.EQUALITY() != null) {
+            context.equalsTo = true;
+        } else {
+            context.equalsTo = false;
+        }
         listener.EnterEquals(context);
     }
 
@@ -713,6 +718,11 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitEquals(QuorumParser.EqualsContext ctx) {
         quorum.Libraries.Language.Compile.Context.EqualsContext context = new quorum.Libraries.Language.Compile.Context.EqualsContext();
         setLocation(ctx, context);
+        if(ctx.EQUALITY() != null) {
+            context.equalsTo = true;
+        } else {
+            context.equalsTo = false;
+        }
         listener.ExitEquals(context);
     }
 
