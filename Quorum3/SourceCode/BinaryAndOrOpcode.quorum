@@ -38,7 +38,19 @@ class BinaryAndOrOpcode is QuorumOpcode
                     if isOnLeft
                         jumpLabel = opcodeParent:GetRightHandSideLabel()
                     else 
-                        jumpLabel = falseLabel
+                        //does the parent have a parent, cause we're on the RHS
+                        hasParentParent = opcodeParent:hasParent
+                        if hasParentParent
+                            QuorumOpcode parentParent = opcodeParent:opcodeParent
+                            if parentParent is BinaryAndOrOpcode
+                                BinaryAndOrOpcode bop = cast(BinaryAndOrOpcode, opcodeParent:opcodeParent)
+                                jumpLabel = bop:GetRightHandSideLabel()
+                            else
+                                jumpLabel = falseLabel
+                            end
+                        else
+                            jumpLabel = falseLabel
+                        end
                     end
                 end
             else

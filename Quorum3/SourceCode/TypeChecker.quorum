@@ -524,6 +524,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToNumber()
+        binary = GetBinaryOpcode(opcodes:GetDoubleSubtract(), opcodes:GetIntegerToDouble(), -1, type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         op = GetOperation(opConstant:MINUS)
@@ -531,6 +533,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToNumber()
+        binary = GetBinaryOpcode(opcodes:GetDoubleSubtract(), -1, opcodes:GetIntegerToDouble(), type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         //+
@@ -539,6 +543,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToNumber()
+        binary = GetBinaryOpcode(opcodes:GetDoubleMultiply(), opcodes:GetIntegerToDouble(), -1, type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         op = GetOperation(opConstant:TIMES)
@@ -546,6 +552,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToNumber()
+        binary = GetBinaryOpcode(opcodes:GetDoubleMultiply(), -1, opcodes:GetIntegerToDouble(), type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         // divide
@@ -554,6 +562,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToNumber()
+        binary = GetBinaryOpcode(opcodes:GetDoubleDivide(), opcodes:GetIntegerToDouble(), -1, type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         op = GetOperation(opConstant:DIVIDE)
@@ -561,6 +571,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToNumber()
+        binary = GetBinaryOpcode(opcodes:GetDoubleDivide(), -1, opcodes:GetIntegerToDouble(), type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         //mod
@@ -569,6 +581,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToNumber()
+        binary = GetBinaryOpcode(opcodes:GetDoubleModulus(), opcodes:GetIntegerToDouble(), -1, type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         op = GetOperation(opConstant:MODULUS)
@@ -576,6 +590,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToNumber()
+        binary = GetBinaryOpcode(opcodes:GetDoubleModulus(), -1, opcodes:GetIntegerToDouble(), type)
+        result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
         // >=
