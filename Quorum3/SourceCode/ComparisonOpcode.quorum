@@ -36,9 +36,19 @@ class ComparisonOpcode is BinaryOpcode
     end
 
     action WriteLeft
+        integer op = GetJavaLeftOpcode()
+        if op not= -1
+            JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+            methodWriter:VisitInstruction(op)
+        end
     end
 
     action WriteRight
+        integer op = GetJavaRightOpcode()
+        if op not= -1
+            JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+            methodWriter:VisitInstruction(op)
+        end
     end
     
     action GetTemplateCopy returns QuorumOpcode

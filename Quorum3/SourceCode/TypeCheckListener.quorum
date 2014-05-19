@@ -162,19 +162,47 @@ class TypeCheckListener is QuorumSourceListener
         Type right = expressionStack:Pop()
         Type left = expressionStack:Pop()
         Operation add
-        add:SetOperation(add:EQUALS)
+        if context:equalsTo
+            add:SetOperation(add:EQUALS)
+        else
+            add:SetOperation(add:NOT_EQUALS)
+        end
         
         TypeCheckResult result = checker:Check(left, right, add)
-
-//        CompilerError error = result:GetCompilerError(addition:GetLocation())
-//        if error not= undefined
-//            CompilerErrorManager manager = GetCompilerErrorManager()
-//            manager:Add(error)
-//            return now
-//        end
-
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
         Type value = result:result
         expressionStack:Push(value:Copy())
+    end
+
+    action ExitInequality(InequalityContext context) 
+        TypeChecker checker = GetTypeChecker()
+        Type right = expressionStack:Pop()
+        Type left = expressionStack:Pop()
+        Operation add
+        if context:isGreater
+            add:SetOperation(add:GREATER)
+        elseif context:isGreaterEquals
+            add:SetOperation(add:GREATER_EQUALS)
+        elseif context:isLess
+            add:SetOperation(add:LESS)
+        elseif context:isLessEquals
+            add:SetOperation(add:LESS_EQUALS)
+        end
+        
+        TypeCheckResult result = checker:Check(left, right, add)
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
+        expressionStack:Push(result:result)
     end
 
     action ExitAddition(AdditionContext context) 
@@ -182,7 +210,11 @@ class TypeCheckListener is QuorumSourceListener
         Type right = expressionStack:Pop()
         Type left = expressionStack:Pop()
         Operation add
-        add:SetOperation(add:PLUS)
+        if context:isPlus
+            add:SetOperation(add:PLUS)
+        else
+            add:SetOperation(add:MINUS)
+        end
         
         TypeCheckResult result = checker:Check(left, right, add) 
         CompilerError error = result:GetCompilerError(context:GetLocation())

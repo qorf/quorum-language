@@ -389,6 +389,32 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     end
 
+    action ExitInequality(InequalityContext context) 
+        TypeChecker checker = GetTypeChecker()
+        QuorumOpcode right = opcodeStack:Pop()
+        QuorumOpcode left = opcodeStack:Pop()
+        Operation add
+        if context:isGreater
+            add:SetOperation(add:GREATER)
+        elseif context:isGreaterEquals
+            add:SetOperation(add:GREATER_EQUALS)
+        elseif context:isLess
+            add:SetOperation(add:LESS)
+        elseif context:isLessEquals
+            add:SetOperation(add:LESS_EQUALS)
+        end
+        
+        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add) 
+        JavaOpcodeWriter opcodeWriter = result:writer
+        Type value = result:result
+        ComparisonOpcode compare = cast(ComparisonOpcode, result:GetQuorumOpcode())
+        compare:SetMethodWriter(methodWriter)
+        compare:SetType(value)
+        compare:SetLeftOpcode(left)
+        compare:SetRightOpcode(right)
+        opcodeStack:Push(compare)
+    end
+
     action ExitEquals (EqualsContext context)
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Pop()

@@ -31,12 +31,15 @@ class ExpressionsTester
         DivIntInt()
         EqualBooleanBoolean()
 //        EqualCustomCustom()
-//        EqualDoubleDouble()
+        EqualDoubleDouble()
 //        EqualDoubleInt()
 //        EqualIntDouble()
-//        EqualIntInt()
-//        EqualTextText()
+        EqualIntInt()
+        EqualTextText()
         Expression()
+
+        GTEIntInt()
+        
         HelloWorld()
 
         NotEqualBooleanBoolean()
@@ -162,6 +165,10 @@ class ExpressionsTester
     action HelloWorld
         suite:RunTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
         suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
+    end
+
+    action GTEIntInt
+        suite:RunTest("Library/Tests/Expressions/Pass/GTEIntInt.quorum", "false", "true")
     end
 
     action OrAndBooleanBoolean
