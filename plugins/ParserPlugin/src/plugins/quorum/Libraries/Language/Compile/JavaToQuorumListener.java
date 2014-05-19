@@ -731,6 +731,15 @@ public class JavaToQuorumListener implements QuorumListener {
         quorum.Libraries.Language.Compile.Context.InequalityContext context = 
                 new quorum.Libraries.Language.Compile.Context.InequalityContext();
         setLocation(ctx, context);
+        if(ctx.GREATER() != null) {
+            context.isGreater = true;
+        } else if (ctx.GREATER_EQUAL() != null) {
+            context.isGreaterEquals = true;
+        } else if (ctx.LESS() != null) {
+            context.isLess = true;
+        } else {
+            context.isLessEquals = true;
+        }
         listener.EnterInequality(context);
     }
 
@@ -739,6 +748,15 @@ public class JavaToQuorumListener implements QuorumListener {
         quorum.Libraries.Language.Compile.Context.InequalityContext context = 
                 new quorum.Libraries.Language.Compile.Context.InequalityContext();
         setLocation(ctx, context);
+        if(ctx.GREATER() != null) {
+            context.isGreater = true;
+        } else if (ctx.GREATER_EQUAL() != null) {
+            context.isGreaterEquals = true;
+        } else if (ctx.LESS() != null) {
+            context.isLess = true;
+        } else {
+            context.isLessEquals = true;
+        }
         listener.ExitInequality(context);
     }
 
