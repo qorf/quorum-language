@@ -442,17 +442,21 @@ var submitCodeSample = function(){
 		console.log(codeData);
 		$.ajax({
 			type: "POST",
-			url: "/controllers/IDE.controller.php",
+			url: "controllers/IDE.controller.php",
 			data: codeData,
 			success: function(result){
 				var start = 0;
 				result.indexOf("|") > 0  ? start = result.indexOf("|")+1 : start = 0;
 				var output = result.substring(start, result.length-1);
 				console.log(output);
-				$(".outputArea").text(output);
+				//$(".outputArea").text(output);
+                                //document.getElementById("myDiv").innerHTML='<script type="text/javascript" id="runscript">alert("This alert was produced from the AJAX call");<\/script>';
+                                var value = eval(output);
+                                $(".outputArea").text(value);
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
 				console.log(xhr, ajaxOptions, thrownError);
+                                $(".outputArea").text("Suck it");
 			}
 		});
 	})
