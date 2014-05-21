@@ -1,10 +1,23 @@
-<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
-    document.title = 'Lab6_5';
+    document.title = 'Lab 6.5 | Quorum Programming Language';
 </script>
 
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Learn Quorum</h1>
+		<p>These pages provide extra curricular material that can be 
+        freely used in the classroom.</p>
+	</div>
+</div>
+
+
+    <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
+
+
+
           <h1>Lab 6.5: Making a Screen Reader that Identifies a Change in Focus</h1>
-<h2">Objectives</h2>
+<h2>Objectives</h2>
 <p>
   The goal of this lab is to understand the following concepts:
 </p>

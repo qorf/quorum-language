@@ -1,7 +1,19 @@
-<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
-    document.title = 'Chapter 8';
+    document.title = 'Chapter 8 | Quorum Programming Language';
 </script>
+
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Learn Quorum</h1>
+		<p>These pages provide extra curricular material that can be 
+        freely used in the classroom.</p>
+	</div>
+</div>
+
+
+    <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
+
 
 <h1>Chapter 8: Input and Output</h1>
 <h2>Questions</h2>

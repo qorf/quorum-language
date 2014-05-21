@@ -28,9 +28,10 @@
             $pageTitle = $classPageTitle . " | ";
         }
         else {
-			$page = substr(getPage(),1,-4);
+			$page = ucfirst(substr(strrchr(getPage(), '/'),1,-4));
+                        
 			$pageTitle = "";
-
+                        
 			switch($page) {
 				case "index": $pageTitle = "Introduction to the Quorum Programming Language"; break;
 				case "syntax": $pageTitle = "The Syntax of the Quorum Programming Language"; break;
@@ -39,9 +40,10 @@
 				case "documents/console": $pageTitle = "Console Arguments in Quorum"; break;
 				case "control_panel": $pageTitle = "Control Panel"; break;
 				case "submit_library": $pageTitle = "Submit a Library to Quorum"; break;
-				case "submitted_library_index": $pageTitle = "Libraries Submitted to Quorum"; break; 
+				case "submitted_library_index": $pageTitle = "Libraries Submitted to Quorum"; break;
+                                case "curriculum": $pageTitle = "Learn Quorum"; break;
 				case "": 
-					default: $pageTitle = "Introduction to the Quorum Programming Language"; break;
+					default: $pageTitle = $page; break;
 			}
 
 			$pageTitle = $pageTitle == "" ? $pageTitle : $pageTitle . " | ";

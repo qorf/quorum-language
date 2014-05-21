@@ -64,7 +64,7 @@
 						<?php
 							createNavBarLink("Language","syntax.php", 1);
 							createNavBarLink("Libraries","libraries.php", 1);
-							createNavBarLink("Curriculum","curriculum.php", 1);
+							createNavBarLink("Learn","curriculum.php", 1);
 							createNavBarLink("Download","download.php", 1);
 							createNavBarLink("Blog","http://blog.quorumlanguage.com/");
 							createNavBarLink("Bugs","https://quorum.atlassian.net/");

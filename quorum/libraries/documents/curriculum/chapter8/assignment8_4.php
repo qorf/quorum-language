@@ -1,7 +1,19 @@
-<?php include("../../../static/templates/pageheader.template.php"); ?> <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
+<?php include("../../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
-    document.title = 'Assignment 8_4';
+    document.title = 'Assignment 8.4 | Quorum Programming Language';
 </script>
+
+<div class="hero-unit">
+	<div class="hero-unit-container">
+		<h1>Learn Quorum</h1>
+		<p>These pages provide extra curricular material that can be 
+        freely used in the classroom.</p>
+	</div>
+</div>
+
+
+    <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
+
 
 <h1>Challenge Assignment 8.4: Pirate Translator</h1>
 <h2>Objectives</h2>
