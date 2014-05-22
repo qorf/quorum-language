@@ -1,22 +1,19 @@
 <?php include("../../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
-    document.title = 'Chapter 5 | Quorum Programming Language';
+    document.title = 'Chapter 5: Classes | Quorum Programming Language';
 </script>
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Learn Quorum</h1>
-		<p>These pages provide extra curricular material that can be 
-        freely used in the classroom.</p>
+		<h1>Chapter 5: Classes</h1>
+		<p>This page contains questions, assignments, programs, and essays for learning about classes in Quorum.</p>
 	</div>
 </div>
-
 
     <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 
 
-
-<h1>Chapter 5: Classes</h1>
+<!--<h1>Chapter 5: Classes</h1>-->
 <h2>Questions</h2>
 <ol><li>Following Pascal naming conventions, declare a class called Animal with a Main action.
 </li><li>Explain the difference between implicit and explicit class declarations

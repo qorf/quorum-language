@@ -1,13 +1,12 @@
 <?php include("../../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
-    document.title = 'Chapter 3 | Quorum Programming Language';
+    document.title = 'Chapter 3: Control Structures | Quorum Programming Language';
 </script>
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Learn Quorum</h1>
-		<p>These pages provide extra curricular material that can be 
-        freely used in the classroom.</p>
+		<h1>Chapter 3: Control Structures</h1>
+		<p>This page contains questions, assignments, programs, and essays for learning about control structures in Quorum.</p>
 	</div>
 </div>
 
@@ -15,7 +14,7 @@
     <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 
 
-<h1>Chapter 3: Control Structures</h1>
+<!--<h1>Chapter 3: Control Structures</h1>-->
 <h2>Questions</h2>
 <ol><li>What are control structures?  List two types of control structures and explain what they do.  Give an example for each structure.
 </li><li>List three conditional clauses and explain what they are used for.

@@ -1,13 +1,12 @@
 <?php include("../../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
-    document.title = 'Assignment 8.1 | Quorum Programming Language';
+    document.title = 'Assignment 8.1: Nutrition Log | Quorum Programming Language';
 </script>
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Learn Quorum</h1>
-		<p>These pages provide extra curricular material that can be 
-        freely used in the classroom.</p>
+		<h1>Assignment 8.1</h1>
+		<p>Nutrition Log</p>
 	</div>
 </div>
 
@@ -16,7 +15,7 @@
 
 
 
-<h1>Assignment 8.1: Nutrition Log</h1>
+<!--<h1>Assignment 8.1: Nutrition Log</h1>-->
 <h2>Objectives</h2>
 <p>The goal of this assignment is to learn the following:</p>
 <ul>

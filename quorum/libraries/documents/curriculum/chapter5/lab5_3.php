@@ -1,13 +1,12 @@
 <?php include("../../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
-    document.title = 'Lab 5.3 | Quorum Programming Language';
+    document.title = 'Lab 5.3: An Introduction to Arrays | Quorum Programming Language';
 </script>
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Learn Quorum</h1>
-		<p>These pages provide extra curricular material that can be 
-        freely used in the classroom.</p>
+		<h1>Lab 5.3</h1>
+                <p>An Introduction to Arrays</p>
 	</div>
 </div>
 

@@ -1,20 +1,19 @@
 <?php include("../../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
-    document.title = 'Assignment 3.2 | Quorum Programming Language';
+    document.title = 'Assignment 3.2: Number Guessing Game | Quorum Programming Language';
 </script>
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Learn Quorum</h1>
-		<p>These pages provide extra curricular material that can be 
-        freely used in the classroom.</p>
+		<h1>Assignment 3.2</h1>
+                <p>Number Guessing Game</p>
 	</div>
 </div>
 
 
     <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 
-<h1>Short Assignment: Number Guessing Game</h1>
+<!--<h1>Short Assignment: Number Guessing Game</h1>-->
 <h2>Objectives</h2>
 <p>
 The goal of this assignment is to learn the following:

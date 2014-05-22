@@ -2,14 +2,13 @@
 <!--10/16/2012-->
 <?php include("../../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
-    document.title = 'Lab 7.3 | Quorum Programming Language';
+    document.title = 'Lab 7.3: Musical Chairs | Quorum Programming Language';
 </script>
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Learn Quorum</h1>
-		<p>These pages provide extra curricular material that can be 
-        freely used in the classroom.</p>
+		<h1>Lab 7.3</h1>
+		<p>Musical Chairs</p>
 	</div>
 </div>
 
@@ -18,9 +17,7 @@
 
 
 
-<h1>
-  Lab 7.3: Musical Chairs
-</h1>
+<!--<h1>  Lab 7.3: Musical Chairs</h1>-->
 <h2>
   Objectives
 </h2>

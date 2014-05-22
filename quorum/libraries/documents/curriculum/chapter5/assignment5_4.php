@@ -1,13 +1,12 @@
 <?php include("../../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
-    document.title = 'Assignment 5.4 | Quorum Programming Language';
+    document.title = 'Assignment 5.4: The Game of Pig | Quorum Programming Language';
 </script>
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Learn Quorum</h1>
-		<p>These pages provide extra curricular material that can be 
-        freely used in the classroom.</p>
+		<h1>Assignment 5.4</h1>
+                <p>The Game of Pig</p>
 	</div>
 </div>
 
@@ -16,7 +15,7 @@
 
 
 
-<h1>Challenge Assignment:  The Game of Pig</h1>
+<!--<h1>Challenge Assignment: The Game of Pig</h1>-->
 <h2>Objectives</h2>
 <p>
 The goal of this assignment is to learn the following:

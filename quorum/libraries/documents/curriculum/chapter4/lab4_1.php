@@ -1,13 +1,12 @@
 <?php include("../../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
-    document.title = 'Lab 4.1 | Quorum Programming Language';
+    document.title = 'Lab 4.1: An Introduction to Actions | Quorum Programming Language';
 </script>
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Learn Quorum</h1>
-		<p>These pages provide extra curricular material that can be 
-        freely used in the classroom.</p>
+		<h1>Lab 4.1</h1>
+                <p>An Introduction to Actions</p>
 	</div>
 </div>
 
@@ -15,7 +14,7 @@
     <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 
 
-<h1>Lab 4.1: An Introduction to Actions</h1>
+<!--<h1>Lab 4.1: An Introduction to Actions</h1>-->
 <h2>Objectives</h2>
 <p>
 The goal of this lab is to learn the following:

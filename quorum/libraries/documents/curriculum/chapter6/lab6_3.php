@@ -1,13 +1,12 @@
 <?php include("../../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
-    document.title = 'Lab 6.3 | Quorum Programming Language';
+    document.title = 'Lab 6.3: More Inheritance | Quorum Programming Language';
 </script>
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Learn Quorum</h1>
-		<p>These pages provide extra curricular material that can be 
-        freely used in the classroom.</p>
+		<h1>Lab 6.3</h1>
+		<p>More Inheritance</p>
 	</div>
 </div>
 
@@ -16,7 +15,7 @@
 
 
 
-          <h1>Lab 6.3: More Inheritance</h1>
+          <!--<h1>Lab 6.3: More Inheritance</h1>-->
 <h2">Objectives</h2>
 <p>
   The goal of this lab is to understand the following concepts:

@@ -1,13 +1,12 @@
 <?php include("../../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
-    document.title = 'Assignment 5.3 | Quorum Programming Language';
+    document.title = 'Assignment 5.3: Student Grades Using Arrays | Quorum Programming Language';
 </script>
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Learn Quorum</h1>
-		<p>These pages provide extra curricular material that can be 
-        freely used in the classroom.</p>
+		<h1>Assignment 5.3</h1>
+                <p>Student Grades Using Arrays</p>
 	</div>
 </div>
 
@@ -16,7 +15,7 @@
 
 
 
-<h1>Assignment: Student Grades Using Arrays</h1>
+<!--<h1>Assignment: Student Grades Using Arrays</h1>-->
 <h2>Objectives</h2>
 <p>
 The goal of this assignment is to learn the following:

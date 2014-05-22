@@ -5,9 +5,8 @@
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Learn Quorum</h1>
-		<p>These pages provide extra curricular material that can be 
-        freely used in the classroom.</p>
+		<h1>Chapter 4: Actions</h1>
+		<p>This page contains questions, assignments, programs, and essays for learning about actions in Quorum.</p>
 	</div>
 </div>
 
@@ -16,7 +15,7 @@
 
 
 
-<h1>Chapter 4: Actions</h1>
+<!--<h1>Chapter 4: Actions</h1>-->
 <h2>Questions</h2>
 <ol><li>Why is a large Main action in a project a bad programming practice? List and explain each reason. 
 </li><li>What is the purpose of an action? Give an example of what an action might do in a program.

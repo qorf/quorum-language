@@ -1,13 +1,12 @@
 <?php include("../../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
-    document.title = 'Chapter 7 | Quorum Programming Language';
+    document.title = 'Chapter 7: Errors and Data | Quorum Programming Language';
 </script>
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Learn Quorum</h1>
-		<p>These pages provide extra curricular material that can be 
-        freely used in the classroom.</p>
+		<h1>Chapter 7: Errors and Data</h1>
+		<p>This page contains questions, assignments, programs, and essays for learning about errors and data in Quorum.</p>
 	</div>
 </div>
 
@@ -16,7 +15,7 @@
 
 
 
-<h1>Chapter 7: Errors and Data</h1>
+<!--<h1>Chapter 7: Errors and Data</h1>-->
 <h2>Questions</h2>
 <ol>
     <li>

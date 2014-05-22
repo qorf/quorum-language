@@ -1,22 +1,19 @@
 <?php include("../../../static/templates/pageheader.template.php"); ?> 
 <script type="text/javascript">
-    document.title = 'Lab 4.3 | Quorum Programming Language';
+    document.title = 'Lab 4.3: Trip Calculator | Quorum Programming Language';
 </script>
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Learn Quorum</h1>
-		<p>These pages provide extra curricular material that can be 
-        freely used in the classroom.</p>
+		<h1>Lab 4.3</h1>
+                <p>Trip Calculator</p>
 	</div>
 </div>
-
 
     <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 
 
-
-<h1>Lab 4.3: Trip Calculator</h1>
+<!--<h1>Lab 4.3: Trip Calculator</h1>-->
 <h2>Objectives</h2>
 <p>
 The goal of this lab is to learn the following:

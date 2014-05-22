@@ -5,16 +5,15 @@
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Learn Quorum</h1>
-		<p>These pages provide extra curricular material that can be 
-        freely used in the classroom.</p>
+		<h1>Chapter 1: A Quick Tour</h1>
+		<p>This page contains several short lab assignments to help learn Quorum offline.</p>
 	</div>
 </div>
 
 
     <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 
-<h1>Chapter 1: A Quick Tour of Sodbeans and Quorum</h1>
+<!--<h1>Chapter 1: A Quick Tour of Sodbeans and Quorum</h1>-->
 <h2>In Class Lab Assignments</h2>
 <ul>
 <li><a href="/documents/curriculum/chapter1/lab1_1.php">Lab Manual 1.1</a></li>
