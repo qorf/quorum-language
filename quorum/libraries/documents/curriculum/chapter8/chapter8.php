@@ -170,5 +170,3 @@
         How to read/write from/to a file
     </li>
 </ul>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

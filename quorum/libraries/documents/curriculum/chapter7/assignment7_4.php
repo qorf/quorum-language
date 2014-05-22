@@ -114,5 +114,3 @@
     20
     the random integer is 2
 </pre>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

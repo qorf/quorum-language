@@ -80,5 +80,3 @@ It’s time to create a custom song!  Write a series of play statements that pla
 <p>
 When the song is finished and ready to show off, play the song for the instructor, some friends, or the class.
 </p>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

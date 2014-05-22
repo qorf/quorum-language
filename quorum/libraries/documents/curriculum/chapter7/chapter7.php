@@ -210,5 +210,3 @@
         Traversing a tree with sounds
     </li>
 </ul>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

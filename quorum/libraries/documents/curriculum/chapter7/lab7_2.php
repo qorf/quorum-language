@@ -228,5 +228,3 @@
 <p>
     When you're done, show your program to your instructor.
 </p>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

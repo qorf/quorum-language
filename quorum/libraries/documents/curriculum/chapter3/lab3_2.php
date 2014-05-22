@@ -111,5 +111,3 @@ Once you have the <code>repeat until</code> loop working, have the work checked.
 <p>
 Show your work to the instructor.
 </p>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

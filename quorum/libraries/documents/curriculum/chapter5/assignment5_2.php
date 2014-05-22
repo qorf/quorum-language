@@ -130,5 +130,3 @@ output] "Please select your station (1-4):"
     "How long do you want to play? (1-20):"
     "19"
 </pre>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

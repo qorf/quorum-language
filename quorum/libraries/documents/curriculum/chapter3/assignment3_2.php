@@ -57,5 +57,3 @@ Game over.
 <p>
 Can you think of an efficient way to guess the number every time? Describe a guessing strategy for this game.
 </p>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

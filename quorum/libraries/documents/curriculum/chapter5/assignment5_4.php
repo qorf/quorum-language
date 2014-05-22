@@ -135,5 +135,3 @@ You are the winner!
 </li><li>The input dialogs and output should look similar to the sample output.
 </li><li>You should define actions in each class (the design is up to you).
 </li></ul>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

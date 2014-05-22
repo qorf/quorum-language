@@ -131,5 +131,3 @@ The program returns true when 8.9 is greater than 4. Quorum is fun.
 <p>
 Once you have done this, you are done! Show your work to the instructor.
 </p>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

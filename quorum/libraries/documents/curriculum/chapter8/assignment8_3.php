@@ -190,5 +190,3 @@
     Enter 4 to exit this program
     Enter 5 to hear these options again
 </pre>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

@@ -112,5 +112,3 @@ The price for the order of 20 car(s) is $396000
 <p>
 The program should be functional and ready for the clients to use after solving these problems.  Show your work to the instructor.
 </p>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

@@ -322,5 +322,3 @@ number k = Divide(6, 0)
 </code></pre></p>
 <p>
 The value of <code>k</code> should be 0.0. (division by zero has occurred).
-</p>
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

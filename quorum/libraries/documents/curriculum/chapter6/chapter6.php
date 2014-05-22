@@ -114,5 +114,3 @@
 <li>Build an interactive battle simulator</li>
 <li>Use the Libraries.Sound.Audio library</li>
 <li>Use inheritance and blueprint actions</li>
-    
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

@@ -122,5 +122,3 @@ Use the existing document from the previous task to answer the following questio
 </li><li>Where are all Quorum files located inside the project?
 </li><li>When there are two or more projects in the Projects window, how do we tell Sodbeans to focus on the one project only in order to build and run a program?
 </li></ol>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

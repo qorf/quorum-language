@@ -111,5 +111,3 @@
     [output file]
     Ahoy there, mate! Can you point me ter whar I can find a buried treasure?  I be havin' to get some doubloons so I can go eat at a galley and then shop at th' market.
 </pre>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

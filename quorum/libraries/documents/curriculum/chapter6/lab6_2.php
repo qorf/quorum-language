@@ -176,5 +176,3 @@ Create six additional classes in this project.  Name  the classes <code>SuperHer
 <p>
   When finished, debug and fix any errors, then show your instructor you code.
 </p>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

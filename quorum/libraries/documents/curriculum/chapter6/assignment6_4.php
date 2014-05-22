@@ -301,5 +301,3 @@
     Your champion is the victor!!!
     *Play Victory.wav*
 </pre>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

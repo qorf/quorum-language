@@ -249,5 +249,3 @@
     The integer 245 is not present in the tree.
     Now the tree looks like 200 300 400
 </pre>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

@@ -166,6 +166,3 @@ In this assignment you will be creating a program that mimics a radio. The user 
 "How long do you want to play? (1-20):"
 "19"
 </pre>
-
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

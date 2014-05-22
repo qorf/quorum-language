@@ -208,5 +208,3 @@
 <p>
     Show your instructor your code when you're finished.
 </p>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

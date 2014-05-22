@@ -142,5 +142,3 @@ end
 <p>
   When you're done with this lab, show your instructor your code.
 </p>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

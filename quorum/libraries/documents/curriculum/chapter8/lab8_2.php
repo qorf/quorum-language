@@ -88,5 +88,3 @@
 <p>
     When finished, debug and show your instructor your program.
 </p>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

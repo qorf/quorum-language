@@ -90,5 +90,3 @@ This tells the JVM to execute your program. You should notice your Hangman progr
 <p>
 Feel free to keep playing the game.  Change the answer to something different, then run the program again or start again with another program of your own design.
 </p>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

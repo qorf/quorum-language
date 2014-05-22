@@ -100,5 +100,3 @@ john's grade is a B
 </li><li>Use appropriate variables to store and keep track of values (including class variables).
 </li><li>You should implement each action given in the assignment specification.
 </li></ul>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

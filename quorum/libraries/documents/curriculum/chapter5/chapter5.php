@@ -91,5 +91,3 @@
 <li>Build an object-oriented game of pig</li>
 <li>Use classes and class variables</li>
 <li>Design your program using object-oriented principles</li>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

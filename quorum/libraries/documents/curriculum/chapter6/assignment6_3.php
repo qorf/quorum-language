@@ -316,5 +316,3 @@
     Commission employee Brandon Spencer. Gross sales is 20 sales at 4 dollars per a sale. Total earnings for this commissioned employee is 80 dollars.
     Hourly employee Brandon Spencer. Hourly wage is 16.0 and number of hours worked is 40. Total earnings for this hourly employee is 640 dollars.
 </pre>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

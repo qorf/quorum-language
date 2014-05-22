@@ -38,4 +38,3 @@
 <li>Learn about the JVM and Java Bytecode.</li>
 <li>Use the command line.</li>
 </ul>
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

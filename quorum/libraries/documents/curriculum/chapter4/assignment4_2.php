@@ -75,5 +75,3 @@ After the user has been prompted, the application should then call an action to 
 </li></ul><p>
 In the <code>Main</code> action, you must call one of these three methods depending on the data the user has given. Note that <strong>all</strong> of these methods should be called somewhere in <code>Main</code>.
 </p>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

@@ -48,5 +48,3 @@ Modify the existing travel reservation program to make use of actions. The progr
 </li><li><code>CalculateHotelCost</code> - Calculate the total cost of the hotel, taking into account the hotel type, number of nights staying and number of rooms requested.
 </li><li><code>CalculateFlightCost</code> - Calculate the flight cost, taking into account the flight destination and number of people needing tickets.
 </li></ul></li></ul>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

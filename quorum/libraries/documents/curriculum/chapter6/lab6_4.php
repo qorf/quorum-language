@@ -148,5 +148,3 @@ Congratulations, we now the beginnings of a screen reader that talks to us!
 <p>
   When we are done, first debug, fix any errors, and then show the code to the instructor.
 </p>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

@@ -298,5 +298,3 @@
 <p>
   Output should look similiar to the output shown in the above examples.
 </p>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

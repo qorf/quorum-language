@@ -77,5 +77,3 @@ To make the changes take affect, run the program.  It is now ready to use. Switc
 <p>
 Feel free to keep playing the game.  Change the answer to something different, then run the program again.
 </p>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

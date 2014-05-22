@@ -265,5 +265,3 @@
     20
     The number of structurally unique trees that can be built from 20 nodes is 216
 </pre>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

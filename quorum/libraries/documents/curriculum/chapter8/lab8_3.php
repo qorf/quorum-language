@@ -113,5 +113,3 @@
     hello
     Your encoded message: svool
 </pre>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>

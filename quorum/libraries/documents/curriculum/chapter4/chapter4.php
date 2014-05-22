@@ -84,5 +84,3 @@
 <ul>
 <li>Modify the existing travel reservation program.</li>
 <li>Use actions to break down the travel reservation program into more logical pieces.</li>
-
- <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>  <?php include("../../../static/templates/pageheader.template.php"); ?>
