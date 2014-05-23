@@ -6,13 +6,16 @@
 
 package web.servlet;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.Enumeration;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -21,54 +24,46 @@ import quorum.Libraries.Web.WebRequest;
 import quorum.Libraries.Web.WebResponse$Interface;
 
 /**
- *
- * @author stefika
+ * This Servlet class gathers HTTP requests and sends them to a WebResponder
+ * object in Quorum.
+ * 
+ * @author Andreas Stefik
  */
 public class Processor extends HttpServlet {
     quorum.Libraries.Web.WebResponder$Interface main;
-    WebRequest quorumRequest;
     public Processor() {
-        quorumRequest = new WebRequest();
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        InputStream input = classLoader.getResourceAsStream("META-INF/MANIFEST.MF");
-        InputStreamReader isr = new InputStreamReader(input);
-        StringBuilder sb = new StringBuilder();
-        BufferedReader br = new BufferedReader(isr);
         
-        String read;
+    }
+    
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config); //To change body of generated methods, choose Tools | Templates.
+        ServletContext application = config.getServletContext();
+        InputStream inputStream = application.getResourceAsStream("/META-INF/MANIFEST.MF");
         try {
-            read = br.readLine();
-            setMainWebResponder(read);
-            
-            if(main != null) {
-                return;
-            }
-            while(read != null) {
-                sb.append(read);
-                read = br.readLine();
-                setMainWebResponder(read);
-                if(main != null) {
-                    return;
+            Manifest manifest = new Manifest(inputStream);
+            Attributes attributes = manifest.getMainAttributes();
+            if(attributes != null) {
+                String className = attributes.getValue("Main-Class");
+                String manifestVersion = attributes.getValue("Manifest-Version");
+                String createdBy = attributes.getValue("Created-by");
+                if(className != null) {
+                    setMainWebResponder(className);
                 }
             }
         } catch (IOException ex) {
             Logger.getLogger(Processor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    private void setMainWebResponder(String line) {
-        final String mainClass = "Main-Class: ";
-        if(line != null && line.startsWith(mainClass)) {
-            String className = line.substring(mainClass.length());
-            try {
-                Class<?> clazz = Class.forName(className);
-                if(clazz == null) {
-                    return;
-                }
-                main = (quorum.Libraries.Web.WebResponder$Interface) clazz.newInstance();
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException  | SecurityException | IllegalArgumentException ex) {
-                Logger.getLogger(Processor.class.getName()).log(Level.SEVERE, null, ex);
+    private void setMainWebResponder(String className) {
+        try {
+            Class<?> clazz = Class.forName(className);
+            if(clazz == null) {
+                return;
             }
+            main = (quorum.Libraries.Web.WebResponder$Interface) clazz.newInstance();
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException  | SecurityException | IllegalArgumentException ex) {
+            Logger.getLogger(Processor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     /**
@@ -84,14 +79,24 @@ public class Processor extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        quorumRequest.SetPath(request.getRequestURI());
-        WebResponse$Interface quorumResponse = main.Respond(quorumRequest);
         
-        try {
-            String text = quorumResponse.GetPageText();
-            out.println(text);
-        } finally {
-            out.close();
+        WebRequest quorumRequest = new WebRequest();
+        quorumRequest.SetPath(request.getRequestURI());
+        Enumeration<String> parameterNames = request.getParameterNames();
+        while(parameterNames.hasMoreElements()) {
+            String name = parameterNames.nextElement();
+            String value = request.getParameter(name);
+            quorumRequest.AddParameter(name, value);
+        }
+        
+        if(main != null) {
+            WebResponse$Interface quorumResponse = main.Respond(quorumRequest);
+            try {
+                String text = quorumResponse.GetPageText();
+                out.println(text);
+            } finally {
+                out.close();
+            }
         }
     }
 
