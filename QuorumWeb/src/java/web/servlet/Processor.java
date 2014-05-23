@@ -35,11 +35,10 @@ public class Processor extends HttpServlet {
         StringBuilder sb = new StringBuilder();
         BufferedReader br = new BufferedReader(isr);
         
-        String testLine = "Main-Class: quorum.Libraries.Language.Compile.Main";
         String read;
         try {
             read = br.readLine();
-            setMainWebResponder(testLine);
+            setMainWebResponder(read);
             
             if(main != null) {
                 return;
