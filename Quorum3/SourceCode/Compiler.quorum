@@ -52,6 +52,16 @@ class Compiler
 
     private system action ParseNative(File file, QuorumSourceListener listener)
 
+
+    action Parse(text source, QuorumSourceListener listener)
+        listener:SetSymbolTable(symbolTable)
+        listener:SetCompilerErrorManager(compilerErrorManager)
+        listener:SetTypeChecker(checker)
+        ParseNative(source, listener)
+    end
+
+    private system action ParseNative(text source, QuorumSourceListener listener)
+
     action GetName returns text
         return name
     end
