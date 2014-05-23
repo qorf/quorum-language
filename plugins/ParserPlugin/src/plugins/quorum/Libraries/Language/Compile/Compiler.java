@@ -48,6 +48,22 @@ public class Compiler {
         }
     }
     
+    public void ParseNative(String source, QuorumSourceListener$Interface listener) {
+        try {
+            ANTLRFileStream stream = new ANTLRFileStream(source);
+            QuorumLexer lexer = new QuorumLexer(stream);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            QuorumParser parser = new QuorumParser(tokens);
+            ParseTree tree = parser.start();
+            //javaToQuorumListener.setFile(file);
+            javaToQuorumListener.setListener(listener);
+            ParseTreeWalker walker = new ParseTreeWalker();
+            walker.walk(javaToQuorumListener, tree);
+        } catch (IOException ex) {
+            Logger.getLogger(Compiler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     public static void main(String[] args) {
         plugins.quorum.Libraries.Language.Compile.Compiler compiler = new plugins.quorum.Libraries.Language.Compile.Compiler();
         quorum.Libraries.System.File file = new quorum.Libraries.System.File();
