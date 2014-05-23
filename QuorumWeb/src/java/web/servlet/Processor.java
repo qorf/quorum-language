@@ -6,31 +6,72 @@
 
 package web.servlet;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import quorum.Libraries.Web.WebRequest;
-import quorum.Libraries.Web.WebResponse;
 import quorum.Libraries.Web.WebResponse$Interface;
-import quorum.Main;
 
 /**
  *
  * @author stefika
  */
 public class Processor extends HttpServlet {
-    Main main;
+    quorum.Libraries.Web.WebResponder$Interface main;
     WebRequest quorumRequest;
     public Processor() {
-        main = new quorum.Main();
-        //initialize 
-        main.Main();
         quorumRequest = new WebRequest();
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        InputStream input = classLoader.getResourceAsStream("META-INF/MANIFEST.MF");
+        InputStreamReader isr = new InputStreamReader(input);
+        StringBuilder sb = new StringBuilder();
+        BufferedReader br = new BufferedReader(isr);
+        
+        String testLine = "Main-Class: quorum.Libraries.Language.Compile.Main";
+        String read;
+        try {
+            read = br.readLine();
+            setMainWebResponder(testLine);
+            
+            if(main != null) {
+                return;
+            }
+            while(read != null) {
+                sb.append(read);
+                read = br.readLine();
+                setMainWebResponder(read);
+                if(main != null) {
+                    return;
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(Processor.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
+    private void setMainWebResponder(String line) {
+        final String mainClass = "Main-Class: ";
+        if(line != null && line.startsWith(mainClass)) {
+            String className = line.substring(mainClass.length());
+            try {
+                Class<?> clazz = Class.forName(className);
+                if(clazz == null) {
+                    return;
+                }
+                main = (quorum.Libraries.Web.WebResponder$Interface) clazz.newInstance();
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException  | SecurityException | IllegalArgumentException ex) {
+                Logger.getLogger(Processor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.

@@ -10,6 +10,20 @@
 <project name="QuorumWeb" default="default" basedir=".">
     <description>Builds, tests, and runs the project QuorumWeb.</description>
     <import file="nbproject/build-impl.xml"/>
+    
+    <target name="-post-compile">
+        <copy todir="../quorum/servlet">
+            <fileset dir="build/web/WEB-INF/classes/web/servlet">
+              <include name="*"/>
+            </fileset>
+        </copy>
+        
+        <copy todir="../../sodbeans/sodbeans/Quorum Standard Library/release/servlet">
+            <fileset dir="build/web/WEB-INF/classes/web/servlet">
+              <include name="*"/>
+            </fileset>
+        </copy>
+     </target>
     <!--
 
     There exist several targets which are by default empty and which can be 
