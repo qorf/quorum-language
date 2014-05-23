@@ -66,7 +66,7 @@ formal_parameter
 	:	assignment_declaration ID
 	;
 	
-qualified_name
+qualified_name returns [quorum.Libraries.Language.Compile.QualifiedName qualifiedName]
 	:	ids+=ID (PERIOD ids+=ID)* 
 	;
 block 	:	statement*
@@ -148,10 +148,10 @@ assignment_declaration returns [quorum.Libraries.Language.Compile.Symbol.Type ty
 
 assignment_statement
 	:	
-            (ME COLON)? ID EQUALITY expression  #NoTypeAssignment
-        |   (PARENT COLON parent=qualified_name)? COLON ID EQUALITY expression #ParentAssignment
-	|   obj=qualified_name (COLON PARENT COLON parent=qualified_name)? COLON ID EQUALITY expression #ObjectAssignment
-	|   modifier = access_modifier? CONSTANT? type = assignment_declaration name = ID (EQUALITY expression)? #NormalAssignment	
+            (ME COLON)? name = ID EQUALITY rhs = expression  #NoTypeAssignment
+        |   PARENT COLON parent=qualified_name COLON name = ID EQUALITY rhs = expression #ParentAssignment
+	|   object=ID (COLON PARENT COLON parent=qualified_name)? COLON name = ID EQUALITY rhs = expression #ObjectAssignment
+	|   modifier = access_modifier? CONSTANT? type = assignment_declaration name = ID (EQUALITY rhs = expression)? #NormalAssignment	
 	;
 	
 if_statement
@@ -176,14 +176,18 @@ loop_statement
             )  block END
     ;
 
-expression returns [quorum.Libraries.Language.Compile.Symbol.Type type]
-    : 
-        qualified_name (COLON ID)?                                                              #VariableOrFieldAccess
-    |	qualified_name COLON PARENT COLON qualified_name COLON ID                               #ParentFieldAccess
-    |	qualified_name (COLON ID)? LEFT_PAREN function_expression_list RIGHT_PAREN              #ObjectFunctionCall
-    |	PARENT COLON qualified_name COLON ID LEFT_PAREN function_expression_list RIGHT_PAREN    #ParentFunctionCall
-    |	ME COLON qualified_name                                                                 #MeVariableAccess
-    |	ME COLON qualified_name (COLON ID)? LEFT_PAREN function_expression_list RIGHT_PAREN     #MeFunctionCall
+action_call
+    :   var=ID (LEFT_PAREN function_expression_list RIGHT_PAREN)?
+    ;
+
+parent_call
+    :   PARENT COLON parent=qualified_name (COLON action_call)+ 
+    ;
+
+expression
+    :
+        (ME COLON)? action_call (COLON (parent_call | (action_call)*))?                         #VariableFunctionCall
+    |   (ME COLON)? parent_call (COLON action_call)+                                            #ParentVariableFunctionCall
     |   MINUS expression                                                                        #Minus
     |   NOT expression                                                                          #Not
     |   CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN                     #Cast
