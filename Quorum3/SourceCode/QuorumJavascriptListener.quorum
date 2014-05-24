@@ -12,7 +12,17 @@ use Libraries.Language.Compile.Translate.all
 
 class QuorumJavascriptListener is QuorumSourceListener
     Stack<QuorumOpcode> opcodeStack
-    text convertedSource = ""
+    constant text OUTPUT_VARIABLE = "finalOutput_______"
+    text convertedSource = "var " + OUTPUT_VARIABLE + " = "
+
+    on create
+        convertedSource = convertedSource + convertedSource:GetDoubleQuote() + 
+            convertedSource:GetDoubleQuote() + ";" + convertedSource:GetCarriageReturn() + convertedSource:GetLineFeed()
+    end
+
+    action ExitStart(StartContext context)
+        convertedSource = convertedSource + OUTPUT_VARIABLE
+    end
 
     action GetConvertedSource returns text
         return convertedSource
@@ -24,10 +34,21 @@ class QuorumJavascriptListener is QuorumSourceListener
         text quote = ""
         quote = quote:GetDoubleQuote()
 
-        text print = "print(" + quote
-        print = print + type:GetTextConstant() + quote + ");"
+        text print = OUTPUT_VARIABLE + " += " //print(" + quote
+        print = print + quote + type:GetTextConstant() + quote + ";" + quote:GetCarriageReturn() + quote:GetLineFeed()
 
         convertedSource = convertedSource + print
+    end
+
+    action ExitInteger(IntegerContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetTextConstant(context:value)
+
+        QuorumConstant const
+        const:SetType(type)
+        const:integerValue = context:value
+        opcodeStack:Push(const)
     end
 
     action ExitText(TextContext context) 

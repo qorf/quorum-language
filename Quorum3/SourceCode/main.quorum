@@ -11,6 +11,9 @@ use Libraries.Web.WebRequest
 class Main is WebResponder
     public constant number VERSION = 3.0
     action Main
+//        WebRequest request
+//        request:AddParameter("code", "output 5")
+//        Respond(request)
         output "Hi, from Quorum " + VERSION
         integer a = 5
         integer b = 10
@@ -71,10 +74,13 @@ class Main is WebResponder
         TypeCheckListener checker
         compiler:Parse(source, checker)
 
-        QuorumBytecodeListener bytecode
-        compiler:Parse(source, bytecode)
-
-        response:SetPageText(result:GetDoubleQuote() + "Hello" + result:GetDoubleQuote())
+        //QuorumBytecodeListener bytecode
+        //compiler:Parse(source, bytecode)
+        QuorumJavascriptListener javascript
+        compiler:Parse(source, javascript)
+        
+        text convertedQuorum = javascript:GetConvertedSource()
+        response:SetPageText(convertedQuorum)
         return response
     end
 end
