@@ -72,7 +72,7 @@ public class CompilerTestSuite {
             engine.getContext().setWriter(pw);
             Object eval = engine.eval(script);
             
-            String output = sw.toString();
+            String output = eval.toString();
             String lines[] = output.split("\\r?\\n");
             for(int i = 0; i < lines.length; i++) {
                 Text text = new Text();
