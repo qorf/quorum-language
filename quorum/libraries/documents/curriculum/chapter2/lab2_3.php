@@ -10,6 +10,7 @@
 	</div>
 </div>
 
+    <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <!--<h1><b>Lab 2.3: Music</b></h1>-->
 <h2>Objectives</h2>
 <p>

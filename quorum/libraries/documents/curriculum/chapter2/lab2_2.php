@@ -10,6 +10,7 @@
 	</div>
 </div>
 
+    <?php include("../../../static/templates/contentwrapperheader.template.php"); ?>
 <!--<h1>Lab 2.2: Math, Output and User Input</h1>-->
 <h2>Objectives</h2>
 <p>
