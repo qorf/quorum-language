@@ -37,7 +37,8 @@ class ExpressionsTester
         EqualIntInt()
         EqualTextText()
         Expression()
-
+        GTDoubleDouble()
+//        GTDoubleInt()
         GTEIntInt()
         
         HelloWorld()
@@ -160,6 +161,14 @@ class ExpressionsTester
 
     action Expression
         suite:RunTest("Library/Tests/Expressions/Pass/Expression.quorum", "15")
+    end
+
+    action GTDoubleDouble 
+        suite:RunTest("Library/Tests/Expressions/Pass/GTDoubleDouble.quorum", "false", "true")
+    end
+
+    action GTDoubleInt
+        suite:RunTest("Library/Tests/Expressions/Pass/GTDoubleInt.quorum", "false", "true")
     end
 
     action HelloWorld
