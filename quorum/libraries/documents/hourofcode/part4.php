@@ -2,8 +2,8 @@
 
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Hour of Code: Part 1</h1>
-                <p>Are you my mommy?</p>
+		<h1>Hour of Code: Part 4</h1>
+                <p>Trait Inheritance</p>
 	</div>
 </div>
   <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
@@ -14,7 +14,7 @@
     <h2>Try It! <span class="hour-of-code-IDE-subtitle">Enter Quorum code below and press "Run" to execute it</span></h2>
     <div id="hour-of-code-IDE-controller">
     </div>
-        <textarea id="hour-of-code-IDE-input" class="ide inputArea"></textarea>
+        <textarea id="hour-of-code-IDE-input" class="ide inputArea">output "Hello, Science!"</textarea>
         
         <pre id="hour-of-code-IDE-output" class="outputArea"></pre><div id="run-button" class="btn-group">
                 <a class="btn btn-success" href="#">Run</a>
