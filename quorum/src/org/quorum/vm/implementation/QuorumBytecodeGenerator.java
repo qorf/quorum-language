@@ -188,8 +188,9 @@ public class QuorumBytecodeGenerator implements CodeGenerator {
         jar.copyFile(this.pluginFolder, pluginWrite);
         
         File dependencyWrite = new File(buildFolder.getPath() + "/org");
-        jar.copyFile(this.wovenDependenciesFolder, dependencyWrite);
-        
+        if(wovenDependenciesFolder != null) {
+            jar.copyFile(this.wovenDependenciesFolder, dependencyWrite);
+        }
         //if there's a place to write the jar, write it
         if(this.distributionFolder != null) {
             //say where to write the jar

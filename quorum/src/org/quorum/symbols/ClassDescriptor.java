@@ -416,6 +416,10 @@ public class ClassDescriptor extends Descriptor implements Scopable {
 
                 if (virtualMethods.containsKey(method.getStaticKey())) {
                     MethodDescriptor typedMethod = resolvedTypeVirtualMethods.get(method.getStaticKey());
+                    if(typedMethod == null) {
+                            return;
+                    }
+                    
                     typedMethod = getResolvedTemplatedMethod(parent, typedMethod);
                     //check method return type incompatability
                     MethodDescriptor curMethod = virtualMethods.get(method.getStaticKey());

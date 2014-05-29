@@ -129,6 +129,7 @@ public class CompilerTestSuite {
     }
 
     public static void forceSetup() {
+        File classDependencies = null;
         if(!setup) {
             URL url = CompilerTestSuite.class.getResource("");
             systemRoot = new File(url.getPath());
