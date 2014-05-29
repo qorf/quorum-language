@@ -575,7 +575,7 @@ public class ClassDescriptor extends Descriptor implements Scopable {
                     TypeDescriptor parentType = parentTemplateValue.getType();
                     TypeDescriptor thisType = thisTemplateValue.getType();
 
-                    if(parentType != null && thisType != null){
+                    if(parentType != null && thisType != null && method != null){
 
                         String parentTemplateName = parentType.getTemplateName();
                         String thisTemplateName = thisType.getTemplateName();
