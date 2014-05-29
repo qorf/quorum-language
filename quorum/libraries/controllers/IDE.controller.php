@@ -1,8 +1,9 @@
 <?php
 //	require_once("../models/codeSample.model.php");
         $code = $_POST['code'];
-        $globalResult = "" . $code;
-        print($globalResult.'');
+//        $globalResult = "" . $code;
+        $code = stripslashes($code);
+        print($code.'');
 //	$code = $_POST['code'];
 //	$codeSample = new CodeSample($code);
 //	$returned = $codeSample->fetchOutput();

@@ -480,6 +480,7 @@ var submitCodeSample = function(){
                                 //document.getElementById("myDiv").innerHTML='<script type="text/javascript" id="runscript">alert("This alert was produced from the AJAX call");<\/script>';
                                 //alert(output);
                                 //var value = eval(result);
+                                console.log(result);
                                 eval(result);
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
