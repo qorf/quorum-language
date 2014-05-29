@@ -14,7 +14,9 @@
     <h2>Try It! <span class="hour-of-code-IDE-subtitle">Enter Quorum code below and press "Run" to execute it</span></h2>
     <div id="hour-of-code-IDE-controller">
     </div>
-        <textarea id="hour-of-code-IDE-input" class="ide inputArea"></textarea>
+        <textarea id="hour-of-code-IDE-input" class="ide inputArea">var mom = "ACGTTGCA";
+var child = "ACTGTGCA";
+AreYouMyMommy(mom, child);</textarea>
         
         <pre id="hour-of-code-IDE-output" class="outputArea"></pre><div id="run-button" class="btn-group">
                 <a class="btn btn-success" href="#">Run</a>

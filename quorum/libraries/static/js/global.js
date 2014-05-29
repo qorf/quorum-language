@@ -434,60 +434,94 @@ var expandAndCollapseLeftSideMenu = function() {
 }
 
 var submitCodeSample = function(){
-	$("#run a").on("click", function(e) {
-		e.preventDefault();
-		$(".outputArea").text("");
-		
-		var codeData = {code: $(".inputArea").val()};
-		console.log(codeData);
-		$.ajax({
-			type: "POST",
-			url: "controllers/IDE.controller.php",
-			data: codeData,
-			success: function(result){
-				var start = 0;
-				result.indexOf("|") > 0  ? start = result.indexOf("|")+1 : start = 0;
-				var output = result.substring(start, result.length-1);
-				console.log(output);
-				//$(".outputArea").text(output);
-                                //document.getElementById("myDiv").innerHTML='<script type="text/javascript" id="runscript">alert("This alert was produced from the AJAX call");<\/script>';
-                                var value = eval(output);
-                                $(".outputArea").text(value);
-			},
-			error: function (xhr, ajaxOptions, thrownError) {
-				console.log(xhr, ajaxOptions, thrownError);
-                                $(".outputArea").text("Suck it");
-			}
-		});
-	})
+//	$("#run a").on("click", function(e) {
+//		e.preventDefault();
+//		$(".outputArea").text("");
+//		
+//		var codeData = {code: $(".inputArea").val()};
+//		console.log(codeData);
+//		$.ajax({
+//			type: "POST",
+//			url: "controllers/IDE.controller.php",
+//			data: codeData,
+//			success: function(result){
+//				var start = 0;
+//				result.indexOf("|") > 0  ? start = result.indexOf("|")+1 : start = 0;
+//				var output = result.substring(start, result.length-1);
+//				console.log(output);
+//				//$(".outputArea").text(output);
+//                                //document.getElementById("myDiv").innerHTML='<script type="text/javascript" id="runscript">alert("This alert was produced from the AJAX call");<\/script>';
+//                                var value = eval(output);
+//                                $(".outputArea").text(value);
+//			},
+//			error: function (xhr, ajaxOptions, thrownError) {
+//				console.log(xhr, ajaxOptions, thrownError);
+//                                $(".outputArea").text("Error: Could not connect to server");
+//			}
+//		});
+//	})
+
         
         $("#run-button a").on("click", function(e) {
 		e.preventDefault();
 		$(".outputArea").text("");
 		
 		var codeData = {code: $(".inputArea").val()};
-		console.log(codeData);
+		//console.log(codeData);
 		$.ajax({
 			type: "POST",
-			url: "controllers/IDE.controller.php",
+			url: "../../controllers/IDE.controller.php",
 			data: codeData,
 			success: function(result){
-				var start = 0;
-				result.indexOf("|") > 0  ? start = result.indexOf("|")+1 : start = 0;
-				var output = result.substring(start, result.length-1);
-				console.log(output);
+//				var start = 0;
+//				result.indexOf("|") > 0  ? start = result.indexOf("|")+1 : start = 0;
+//				var output = result.substring(start, result.length-1);
 				//$(".outputArea").text(output);
                                 //document.getElementById("myDiv").innerHTML='<script type="text/javascript" id="runscript">alert("This alert was produced from the AJAX call");<\/script>';
-                                var value = eval(output);
-                                $(".outputArea").text(value);
+                                //alert(output);
+                                //var value = eval(result);
+                                eval(result);
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
 				console.log(xhr, ajaxOptions, thrownError);
-                                $(".outputArea").text("Suck it");
+                                $(".outputArea").text("Error: Could not connect to server");
 			}
 		});
 	})
 }
+
+var AreYouMyMommy = function(mom, child) {
+    if (mom.length == 0 || child.length == 0) {
+        if (mom.length == 0) {
+        $("#hour-of-code-IDE-output").text("Error: the variable containing the parent's DNA is empty");
+        }
+        else {
+        $("#hour-of-code-IDE-output").text("Error: the variable containing the child's DNA is empty");
+        }
+    }
+    else {
+        //TODO: check to make sure string consists of ony ACGT chars
+        
+        if (mom.length != child.length) {
+            $("#hour-of-code-IDE-output").text("Error: DNA sequences are of different sizes");
+        }
+        else {
+            var matches = 0;
+            for (var i = 0; i < mom.length; i++) {
+                if (mom.charAt(i) == child.charAt(i)) {
+                    matches++;
+                }
+            }
+            if ((matches / mom.length) < .26) {
+                $("#hour-of-code-IDE-output").text("I am not your mommy.");
+            }
+            else {
+                $("#hour-of-code-IDE-output").text("I am your mommy!");
+            }
+        }
+    }
+}
+        
 
 
 var fadeInLibraryTable = function() {

@@ -1,11 +1,8 @@
 <?php
-	require_once("../models/codeSample.model.php");
-        print('var globalResult = "Hi";'
-                . ''
-                . ''
-                . ''
-                . ''
-                . 'globalResult ');
+//	require_once("../models/codeSample.model.php");
+        $code = $_POST['code'];
+        $globalResult = "" . $code;
+        print($globalResult.'');
 //	$code = $_POST['code'];
 //	$codeSample = new CodeSample($code);
 //	$returned = $codeSample->fetchOutput();
