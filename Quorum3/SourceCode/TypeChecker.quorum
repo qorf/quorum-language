@@ -440,15 +440,29 @@ class TypeChecker
         result:SetQuorumOpcode(flipper)
         results:Add(key, result)
 
-//        op = GetOperation(opConstant:MINUS)
-//        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
-//            null, op, false, false)
-//        result = GetNoConvertResult()
-//        type = result:result
-//        type:SetToInteger()
-//        //FlipBooleanOpcode flipper
-//        //result:SetQuorumOpcode(flipper)
-//        results:Add(key, result)
+        //unary negate integer
+        op = GetOperation(opConstant:MINUS)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
+            null, op, false, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToInteger()
+        NegateUnaryOpcode negateInteger
+        negateInteger:SetJavaOpcode(opcodes:GetNegateInteger())
+        result:SetQuorumOpcode(negateInteger)
+        results:Add(key, result)
+
+        //unary negate number
+        op = GetOperation(opConstant:MINUS)
+        key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
+            null, op, false, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToNumber()
+        NegateUnaryOpcode negateNumber
+        negateNumber:SetJavaOpcode(opcodes:GetNegateDouble())
+        result:SetQuorumOpcode(negateNumber)
+        results:Add(key, result)
 
         ////////////////////////////////////////////////////////////////////////
         //Return types

@@ -530,6 +530,21 @@ class QuorumBytecodeListener is QuorumSourceListener
         opcodeStack:Push(binary)
     end
 
+    action ExitMinus(UnaryMinusContext context) 
+        TypeChecker checker = GetTypeChecker()
+        QuorumOpcode left = opcodeStack:Pop()
+
+        Operation notOp
+        notOp:SetOperation(notOp:MINUS)
+        TypeCheckResult result = checker:Check(left:GetType(), notOp) 
+        Type value = result:result
+        NegateUnaryOpcode binary = cast(NegateUnaryOpcode, result:GetQuorumOpcode())
+        binary:SetMethodWriter(methodWriter)
+        binary:SetType(value)
+        binary:SetOpcode(left)
+        opcodeStack:Push(binary)
+    end
+
     action ExitNot(NotContext context) 
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode left = opcodeStack:Pop()

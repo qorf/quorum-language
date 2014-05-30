@@ -363,6 +363,21 @@ class JavaBytecodeOpcodes
         return I2D
     end
 
+    action GetNegateInteger returns integer
+        return INEG
+    end
+
+    action GetNegateLong returns integer
+        return LNEG
+    end
+
+    action GetNegateFloat returns integer
+        return FNEG
+    end
+
+    action GetNegateDouble returns integer
+        return DNEG
+    end
     /*
         This method actually returns an IRETURN opcode, but is placed here
         for convenience. This is because Java Bytecode does not have

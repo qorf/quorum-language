@@ -63,7 +63,9 @@ class ExpressionsTester
         LTIntInt()
         LTTextText()
 //        LocalVarDecl()
-        LTIntDouble()                
+        LTIntDouble()     
+        MinusInteger()
+        MinusNumber()
         ModDoubleDouble()
         ModDoubleInt()
         ModIntDouble()
@@ -361,6 +363,16 @@ class ExpressionsTester
     action LTIntDouble
         suite:RunTest("Library/Tests/Expressions/Pass/LtIntDouble.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LtIntDouble.quorum", "false", "true")
+    end
+
+    action MinusInteger()
+        suite:RunTest("Library/Tests/Expressions/Pass/MinusInteger.quorum", "-1", "-15")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MinusInteger.quorum", "-1", "-15")
+    end
+
+    action MinusNumber()
+        suite:RunTest("Library/Tests/Expressions/Pass/MinusNumber.quorum", "-1.0", "-15.0")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MinusNumber.quorum", "-1.0", "-15.0")
     end
 
     action ModDoubleDouble
