@@ -641,6 +641,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfLessThanEquals(), opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         op = GetOperation(opConstant:GREATER)
@@ -648,6 +650,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToBoolean()
+        compare = GetBinaryTwoOpComparisonOpcode(opcodes:GetIfLessThanEquals(), -1,-1, opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         // =
@@ -656,6 +660,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfNotEquals(), opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         op = GetOperation(opConstant:EQUALS)
@@ -663,6 +669,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToBoolean()
+        compare = GetBinaryTwoOpComparisonOpcode(opcodes:GetIfNotEquals(), -1,-1, opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
          // not=
@@ -671,6 +679,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfEquals(), opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         op = GetOperation(opConstant:NOT_EQUALS)
@@ -678,6 +688,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToBoolean()
+        compare = GetBinaryTwoOpComparisonOpcode(opcodes:GetIfEquals(), -1,-1, opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         // <=
@@ -686,6 +698,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfGreaterThan(), opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         op = GetOperation(opConstant:LESS_EQUALS)
@@ -693,6 +707,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToBoolean()
+        compare = GetBinaryTwoOpComparisonOpcode(opcodes:GetIfGreaterThan(), -1,-1, opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         // <
@@ -701,6 +717,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfGreaterThanEquals(), opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         op = GetOperation(opConstant:LESS)
@@ -708,6 +726,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToBoolean()
+        compare = GetBinaryTwoOpComparisonOpcode(opcodes:GetIfGreaterThanEquals(), -1,-1, opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
         
         ////////////////////////////////////////////////////////////////////////
