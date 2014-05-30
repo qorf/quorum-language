@@ -17,9 +17,11 @@ class CompilerTestSuite
     integer failed = 0
     Math math
     ExpressionsTester expressions
+    TypeCheckTester typeChecks
 
     on create
         expressions:SetCompilerTestSuite(me)
+        typeChecks:SetCompilerTestSuite(me)
     end
 
     action Main
@@ -29,7 +31,11 @@ class CompilerTestSuite
         output ""
         output "List of Tests:"
         output expressions:GetName()
-        expressions:Test()
+        output "--intentionally skipped temporarily--"  //remove later and uncomment next line
+//        expressions:Test()
+        output ""
+        output typeChecks:GetName()
+        typeChecks:Test()
         output ""
 
         DateTime date2

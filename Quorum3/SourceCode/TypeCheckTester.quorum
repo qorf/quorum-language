@@ -1,0 +1,142 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.QuorumJarGenerator
+use Libraries.System.StackTraceItem
+
+class TypeCheckTester 
+    CompilerTestSuite suite = undefined
+    action Test
+//        A()                           //not a TEST...CORRECT???
+//        AutoBoxingAndMethodOverloading()
+//        AutoboxBoolObj()
+//        AutoboxBoolObjSemiWrapped()
+//        AutoboxBoolean()
+//        AutoboxBooleanSemiWrapped()
+//        AutoboxIntObj()
+//        AutoboxIntObjSemiWrapped()
+//        AutoboxInteger()
+//        AutoboxIntegerSemiWrapped()
+//        AutoboxNumObj()
+//        AutoboxNumObjSemiWrapped()
+//        AutoboxNumber()
+//        AutoboxNumberSemiWrapped()
+//        AutoboxTempClass()            //not a TEST...CORRECT???
+//        AutoboxText()
+//        AutoboxTextObj()
+//        AutoboxTextObjSemiWrapped()
+//        AutoboxTextSemiWrapped()
+
+    end
+
+    action GetName returns text
+        return "Type Check Tests"
+    end
+
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+    action A()
+       //not a TEST 
+    end
+
+    action AutoBoxingAndMethodOverloading()
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoBoxingAndMethodOverloading.quorum", "2")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoBoxingAndMethodOverloading.quorum", "2")
+    end
+
+    action AutoboxBoolObj()
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxBoolObj.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBoolObj.quorum", "true")
+    end
+
+    action AutoboxBoolObjSemiWrapped()
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxBoolObjSemiWrapped.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBoolObjSemiWrapped.quorum", "true")
+    end
+
+    action AutoboxBoolean()
+            suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxBoolean.quorum", "false")
+            //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBoolean.quorum", "false")
+    end
+
+    action AutoboxBooleanSemiWrapped()
+            suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxBooleanSemiWrapped.quorum", "false")
+            //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBooleanSemiWrapped.quorum", "false")
+    end
+
+    action AutoboxIntObj()
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxIntObj.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxIntObj.quorum", "5")
+    end
+
+    action AutoboxIntObjSemiWrapped()
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxIntObjSemiWrapped.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxIntObjSemiWrapped.quorum", "5")
+    end
+
+    action AutoboxInteger()
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxInteger.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxInteger.quorum", "5")
+    end
+
+    action AutoboxIntegerSemiWrapped()
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxIntegerSemiWrapped.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxIntegerSemiWrapped.quorum", "5")
+    end
+
+    action AutoboxNumObj()
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxNumObj.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumObj.quorum", "7.5")
+    end
+
+    action AutoboxNumObjSemiWrapped()
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxNumObjSemiWrapped.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumObjSemiWrapped.quorum", "7.5")
+    end
+
+    action AutoboxNumber()
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxNumber.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumber.quorum", "7.5")
+    end
+
+    action AutoboxNumberSemiWrapped()
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxNumberSemiWrapped.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumberSemiWrapped.quorum", "7.5")
+    end
+
+    action AutoboxTempClass()
+        //NOT A TEST
+    end
+
+    action AutoboxText()
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxText.quorum", "0")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxText.quorum", "0")
+    end
+
+    action AutoboxTextObj()
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxTextObj.quorum", "0")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxTextObj.quorum", "0")
+    end
+
+    action AutoboxTextObjSemiWrapped()
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxTextObjSemiWrapped.quorum", "0")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxTextObjSemiWrapped.quorum", "0")
+    end
+
+    action AutoboxTextSemiWrapped()
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxTextSemiWrapped.quorum", "0")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxTextSemiWrapped.quorum", "0")
+    end
+
+end
