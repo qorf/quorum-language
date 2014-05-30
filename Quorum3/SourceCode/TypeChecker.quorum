@@ -432,11 +432,23 @@ class TypeChecker
         text null = undefined
         op = GetOperation(opConstant:NOT)
         key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY,
-            null, op, true, false)
+            null, op, false, false)
         result = GetNoConvertResult()
         type = result:result
         type:SetToBoolean()
+        FlipBooleanOpcode flipper
+        result:SetQuorumOpcode(flipper)
         results:Add(key, result)
+
+//        op = GetOperation(opConstant:MINUS)
+//        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
+//            null, op, false, false)
+//        result = GetNoConvertResult()
+//        type = result:result
+//        type:SetToInteger()
+//        //FlipBooleanOpcode flipper
+//        //result:SetQuorumOpcode(flipper)
+//        results:Add(key, result)
 
         ////////////////////////////////////////////////////////////////////////
         //Return types
@@ -1526,6 +1538,28 @@ class TypeChecker
     end
 
     action Check(Type left, Operation op) returns TypeCheckResult
-        return undefined
+        text leftKey = ""
+        if left not= undefined
+            leftKey = left:GetStaticKey()
+        end
+
+        text value = undefined
+        text key = GenerateTypeCheckKey(leftKey, value, op, false)
+        TypeCheckResult result = results:GetValue(key)
+
+        text quote = key:GetDoubleQuote()
+        if result = undefined
+            TypeCheckResult newResult
+            CompilerErrorType error
+            result = newResult
+            TypeConversionConstants convert = result:conversion
+            convert:SetConversion(convert:INCOMPATIBLE)
+                result:errorMessage = "The unary operation " + quote + op:GetText() + 
+                    quote + " " + leftKey + " is not allowed."
+
+                error:SetCurrentType(error:INVALID_OPERATOR)
+                result:errorType = error
+        end
+        return result
     end
 end

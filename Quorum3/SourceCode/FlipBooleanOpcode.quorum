@@ -1,0 +1,27 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+
+class FlipBooleanOpcode is UnaryOpcode
+    JavaBytecodeOpcodes opcodes
+    action Write
+        JavaBytecodeLabel jumpNotEqual
+        JavaBytecodeLabel jumpPastLabel
+        //write whatever needs to onto the stack.
+        QuorumOpcode op = me:GetOpcode()
+        op:Write()
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+
+        methodWriter:VisitJump(opcodes:GetIfNotEquals(), jumpNotEqual)
+        methodWriter:VisitConstant(1)
+        methodWriter:VisitJump(opcodes:GetGoto(), jumpPastLabel)
+        methodWriter:VisitLabel(jumpNotEqual)
+        methodWriter:VisitConstant(0)
+        methodWriter:VisitLabel(jumpPastLabel)
+    end
+
+    action GetTemplateCopy returns QuorumOpcode
+        FlipBooleanOpcode opcode //nothing needed to copy, but make one just in case we add state later
+        return opcode
+    end
+end
