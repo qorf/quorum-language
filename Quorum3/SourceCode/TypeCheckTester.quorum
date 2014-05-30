@@ -31,6 +31,142 @@ class TypeCheckTester
 //        AutoboxTextObj()
 //        AutoboxTextObjSemiWrapped()
 //        AutoboxTextSemiWrapped()
+//        B()                           //not a TEST...CORRECT???                    
+//        BooleanCompare()
+//        BooleanEquals()
+//        BooleanGetText()
+//        C()                           //not a TEST...CORRECT???
+//        CastFieldIntObjDest()
+//        CastFieldIntObjSource()
+//        CastFieldIntObjSourceDest()
+//        CastFieldObjIntDest()
+//        CastFieldObjIntSource()
+//        CastFieldObjIntSourceDest()
+//        CastLocalVarIntObj()
+//        CastLocalVarObjInt()
+//        CastParamIntObj()
+//        CastParamObjInt()
+//        D()                           //not a TEST...CORRECT???
+//        ExpAssignBoolObjBoolObj()
+//        ExpAssignBooleanBoolObj()
+//        ExpAssignBooleanBoolean()
+//        ExpAssignBooleanIntObj()
+//        ExpAssignBooleanInteger()
+//        ExpAssignBooleanNumObj()
+//        ExpAssignBooleanNumber()
+//        ExpAssignBooleanText()
+//        ExpAssignBooleanTextObj()
+//        ExpAssignIntObjIntObj()
+//        ExpAssignIntegerBoolObj()
+//        ExpAssignIntegerBoolean()
+//        ExpAssignIntegerIntObj()
+//        ExpAssignIntegerInteger()
+//        ExpAssignIntegerNumObj()
+//        ExpAssignIntegerNumber()
+//        ExpAssignIntegerText()
+//        ExpAssignIntegerTextObj()
+//        ExpAssignNumObjNumObj()
+//        ExpAssignNumberBoolObj()
+//        ExpAssignNumberBoolean()
+//        ExpAssignNumberIntObj()
+//        ExpAssignNumberInteger()
+//        ExpAssignNumberNumObj()
+//        ExpAssignNumberNumber()
+//        ExpAssignNumberText()
+//        ExpAssignNumberTextObj()
+//        ExpAssignTextBoolObj()
+//        ExpAssignTextBoolean()
+//        ExpAssignTextIntObj()
+//        ExpAssignTextInteger()
+//        ExpAssignTextNumObj()
+//        ExpAssignTextNummber()
+//        ExpAssignTextObjTextObj()
+//        ExpAssignTextText()
+//        ExpAssignTextTextObj()
+//        ImpAssignBoolObjBoolObj()
+//        ImpAssignBoolObjBoolObjWrapped()
+//        ImpAssignBooleanBoolObj()
+//        ImpAssignBooleanBoolObjWrapped()
+//        ImpAssignBooleanBoolean()
+//        ImpAssignBooleanBooleanWrapped()
+//        ImpAssignIntObjIntObj()
+//        ImpAssignIntObjIntObjWrapped()
+//        ImpAssignIntegerIntObj()
+//        ImpAssignIntegerIntObjWrapped()
+//        ImpAssignIntegerInteger()
+//        ImpAssignIntegerIntegerWrapped()
+//        ImpAssignNumObjNumObj()
+//        ImpAssignNumObjNumObjWrapped()
+//        ImpAssignNumberIntObj()
+//        ImpAssignNumberIntObjWrapped()
+//        ImpAssignNumberInteger()
+//        ImpAssignNumberIntegerWrapped()
+//        ImpAssignNumberNumObj()
+//        ImpAssignNumberNumObjWrapped()
+//        ImpAssignNumberNumber()
+//        ImpAssignNumberNumberWrapped()
+//        ImpAssignTextObjTextObj()
+//        ImpAssignTextObjTextObjWrapped()
+//        ImpAssignTextText()
+//        ImpAssignTextTextWrapped()
+//        ImpAssignTextTextObj()        
+//        ImpAssignTextTextObjWrapped()       
+//        IndexOfPrefix()
+//        IndexOfPrefixIndex()
+//        InstanceTypeChildOfChild()
+//        InstanceTypeCurrent()
+//        InstanceTypeDirectChild()
+//        InstanceTypeDirectParent()
+//        InstanceTypeObject()
+//        InstanceTypeParentOfParent()
+//        IntegerBitCount()
+//        IntegerCompare()
+//        IntegerEquals()
+//        IntegerGetBinary()
+//        IntegerGetOctal()
+//        IntegerGetText()
+//        IntegerHighestOneBit()
+//        IntegerLeadingZeros()
+//        IntegerLowestOneBit()
+//        IntegerReverse()
+//        IntegerRotateLeft()
+//        IntegerRotateRight()
+//        IntegerTrailingZeros()
+//        NumberCompare()
+//        NumberEquals()
+//        NumberGetHex()
+//        NumberGetInteger()
+//        NumberGetText()
+//        NumberIsInfinite()
+//        NumberIsNotANumber()
+//        PrimitiveTextGetValue()
+//        PrimitiveTextSetValue()
+//        ReturningIntegerInPlaceOfNumber()
+//        TextAppend()
+//        TextCompare()
+//        TextContains()
+//        TextEndsWith()
+//        TextEquals()
+//        TextEqualsIgnoringCase()
+//        TextGetCharacter()
+//        TextGetLength()
+//        TextGetSubtext()
+//        TextGetSubtextWithEnd()
+//        TextIsEmpty()
+//        TextReplace()
+//        TextSetAndGetValue()
+//        TextStartsWith()
+//        TextToLowerCase()
+//        TextToUpperCase()
+//        TextTrim()
+//        TypeInferenceBoolean()
+//        TypeInferenceCast()
+//        TypeInferenceInteger()
+//        TypeInferenceLiterals()
+//        TypeInferenceNestedFunctionCalls()
+//        TypeInferenceNumber()
+//        TypeInferenceReturnTypes()
+//        TypeInferenceText()
 
     end
 
@@ -46,97 +182,777 @@ class TypeCheckTester
         me:suite = suite
     end
 
-    action A()
+    action A
        //not a TEST 
     end
 
-    action AutoBoxingAndMethodOverloading()
+    action AutoBoxingAndMethodOverloading
         suite:RunTest("Library/Tests/TypeChecker/Pass/AutoBoxingAndMethodOverloading.quorum", "2")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoBoxingAndMethodOverloading.quorum", "2")
     end
 
-    action AutoboxBoolObj()
+    action AutoboxBoolObj
         suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxBoolObj.quorum", "true")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBoolObj.quorum", "true")
     end
 
-    action AutoboxBoolObjSemiWrapped()
+    action AutoboxBoolObjSemiWrapped
         suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxBoolObjSemiWrapped.quorum", "true")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBoolObjSemiWrapped.quorum", "true")
     end
 
-    action AutoboxBoolean()
-            suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxBoolean.quorum", "false")
-            //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBoolean.quorum", "false")
+    action AutoboxBoolean
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxBoolean.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBoolean.quorum", "false")
     end
 
-    action AutoboxBooleanSemiWrapped()
-            suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxBooleanSemiWrapped.quorum", "false")
-            //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBooleanSemiWrapped.quorum", "false")
+    action AutoboxBooleanSemiWrapped
+        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxBooleanSemiWrapped.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBooleanSemiWrapped.quorum", "false")
     end
 
-    action AutoboxIntObj()
+    action AutoboxIntObj
         suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxIntObj.quorum", "5")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxIntObj.quorum", "5")
     end
 
-    action AutoboxIntObjSemiWrapped()
+    action AutoboxIntObjSemiWrapped
         suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxIntObjSemiWrapped.quorum", "5")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxIntObjSemiWrapped.quorum", "5")
     end
 
-    action AutoboxInteger()
+    action AutoboxInteger
         suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxInteger.quorum", "5")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxInteger.quorum", "5")
     end
 
-    action AutoboxIntegerSemiWrapped()
+    action AutoboxIntegerSemiWrapped
         suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxIntegerSemiWrapped.quorum", "5")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxIntegerSemiWrapped.quorum", "5")
     end
 
-    action AutoboxNumObj()
+    action AutoboxNumObj
         suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxNumObj.quorum", "7.5")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumObj.quorum", "7.5")
     end
 
-    action AutoboxNumObjSemiWrapped()
+    action AutoboxNumObjSemiWrapped
         suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxNumObjSemiWrapped.quorum", "7.5")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumObjSemiWrapped.quorum", "7.5")
     end
 
-    action AutoboxNumber()
+    action AutoboxNumber
         suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxNumber.quorum", "7.5")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumber.quorum", "7.5")
     end
 
-    action AutoboxNumberSemiWrapped()
+    action AutoboxNumberSemiWrapped
         suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxNumberSemiWrapped.quorum", "7.5")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumberSemiWrapped.quorum", "7.5")
     end
 
-    action AutoboxTempClass()
+    action AutoboxTempClass
         //NOT A TEST
     end
 
-    action AutoboxText()
+    action AutoboxText
         suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxText.quorum", "0")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxText.quorum", "0")
     end
 
-    action AutoboxTextObj()
+    action AutoboxTextObj
         suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxTextObj.quorum", "0")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxTextObj.quorum", "0")
     end
 
-    action AutoboxTextObjSemiWrapped()
+    action AutoboxTextObjSemiWrapped
         suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxTextObjSemiWrapped.quorum", "0")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxTextObjSemiWrapped.quorum", "0")
     end
 
-    action AutoboxTextSemiWrapped()
+    action AutoboxTextSemiWrapped
         suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxTextSemiWrapped.quorum", "0")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxTextSemiWrapped.quorum", "0")
     end
 
+    action B 
+            //NOT A TEST
+    end
+
+    action BooleanCompare 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/BooleanCompare.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/BooleanCompare.quorum", "false")
+    end
+
+    action BooleanEquals 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/BooleanEquals.quorum", "false", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/BooleanEquals.quorum", "false", "false")
+    end
+
+    action BooleanGetText 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/BooleanGetText.quorum", "false", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/BooleanGetText.quorum", "false", "false")
+    end
+
+    action C 
+            //NOT A TEST
+    end
+
+    action CastFieldIntObjDest 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/CastFieldIntObjDest.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastFieldIntObjDest.quorum", "5")
+    end
+
+    action CastFieldIntObjSource 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/CastFieldIntObjSource.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastFieldIntObjSource.quorum", "5")
+    end
+
+    action CastFieldIntObjSourceDest 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/CastFieldIntObjSourceDest.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastFieldIntObjSourceDest.quorum", "5")
+    end
+
+    action CastFieldObjIntDest 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/CastFieldObjIntDest.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastFieldObjIntDest.quorum", "true")
+    end
+
+    action CastFieldObjIntSource 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/CastFieldObjIntSource.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastFieldObjIntSource.quorum", "true")
+    end
+
+    action CastFieldObjIntSourceDest 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/CastFieldObjIntSourceDest.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastFieldObjIntSourceDest.quorum", "true")
+    end
+
+    action CastLocalVarIntObj 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/CastLocalVarIntObj.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastLocalVarIntObj.quorum", "5")
+    end
+
+    action CastLocalVarObjInt 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/CastLocalVarObjInt.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastLocalVarObjInt.quorum", "5")
+    end
+
+    action CastParamIntObj 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/CastParamIntObj.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastParamIntObj.quorum", "5")
+    end
+
+    action CastParamObjInt 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/CastParamObjInt.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastParamObjInt.quorum", "5")
+    end
+
+    action D 
+            //NOT A TEST
+    end
+
+    action ExpAssignBoolObjBoolObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBoolObjBoolObj.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBoolObjBoolObj.quorum", "true")
+    end
+
+    action ExpAssignBooleanBoolObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanBoolObj.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanBoolObj.quorum", "true")
+    end
+
+    action ExpAssignBooleanBoolean
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanBoolean.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanBoolean.quorum", "true")
+    end
+
+    action ExpAssignBooleanIntObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanIntObj.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanIntObj.quorum", "true")
+    end
+
+    action ExpAssignBooleanInteger
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanInteger.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanInteger.quorum", "true")
+    end
+
+    action ExpAssignBooleanNumObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanNumObj.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanNumObj.quorum", "true")
+    end
+
+    action ExpAssignBooleanNumber
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanNumber.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanNumber.quorum", "true")
+    end
+
+    action ExpAssignBooleanText
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanText.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanText.quorum", "false")
+    end
+
+    action ExpAssignBooleanTextObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanText.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanText.quorum", "false")
+    end
+
+    action ExpAssignIntObjIntObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntObjIntObj.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntObjIntObj.quorum", "5")
+    end
+
+    action ExpAssignIntegerBoolObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerBoolObj.quorum", "1")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerBoolObj.quorum", "1")
+    end
+
+    action ExpAssignIntegerBoolean
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerBoolean.quorum", "1")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerBoolean.quorum", "1")
+    end
+
+    action ExpAssignIntegerIntObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerIntObj.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerIntObj.quorum", "5")
+    end
+
+    action ExpAssignIntegerInteger
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerInteger.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerInteger.quorum", "5")
+    end
+
+    action ExpAssignIntegerNumObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerNumObj.quorum", "7")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerNumObj.quorum", "7")
+    end
+
+    action ExpAssignIntegerNumber
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerNumber.quorum", "7")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerNumber.quorum", "7")
+    end
+
+    action ExpAssignIntegerText
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerText.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerText.quorum", "5")
+    end
+
+    action ExpAssignIntegerTextObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerTextObj.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerTextObj.quorum", "5")
+    end
+
+    action ExpAssignNumObjNumObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumObjNumObj.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumObjNumObj.quorum", "7.5")
+    end
+
+    action ExpAssignNumberBoolObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberBoolObj.quorum", "1.0")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberBoolObj.quorum", "1.0")
+    end
+
+    action ExpAssignNumberBoolean
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberBoolean.quorum", "1.0")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberBoolean.quorum", "1.0")
+    end
+
+    action ExpAssignNumberIntObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberIntObj.quorum", "5.0")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberIntObj.quorum", "5.0")
+    end
+
+    action ExpAssignNumberInteger
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberInteger.quorum", "5.0")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberInteger.quorum", "5.0")
+    end
+
+    action ExpAssignNumberNumObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberNumObj.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberNumObj.quorum", "7.5")
+    end
+
+    action ExpAssignNumberNumber
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberNumber.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberNumber.quorum", "7.5")
+    end
+
+    action ExpAssignNumberText
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberText.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberText.quorum", "7.5")
+    end
+
+    action ExpAssignNumberTextObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberTextObj.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberTextObj.quorum", "7.5")
+    end
+
+    action ExpAssignTextBoolObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextBoolObj.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextBoolObj.quorum", "true")
+    end
+
+    action ExpAssignTextBoolean 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextBoolean.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextBoolean.quorum", "true")
+    end
+
+    action ExpAssignTextIntObj 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextIntObj.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextIntObj.quorum", "5")
+    end
+
+    action ExpAssignTextInteger 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextInteger.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextInteger.quorum", "5")
+    end
+
+    action ExpAssignTextNumObj 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextNumObj.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextNumObj.quorum", "7.5")
+    end
+
+    action ExpAssignTextNummber 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextNummber.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextNummber.quorum", "7.5")
+    end
+
+    action ExpAssignTextObjTextObj 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextObjTextObj.quorum", "text")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextObjTextObj.quorum", "text")
+    end
+
+    action ExpAssignTextText
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextText.quorum", "text")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextText.quorum", "text")
+    end
+
+    action ExpAssignTextTextObj 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextTextObj.quorum", "text")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextTextObj.quorum", "text")
+    end
+    
+    action ImpAssignBoolObjBoolObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignBoolObjBoolObj.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignBoolObjBoolObj.quorum", "false")
+    end
+
+    action ImpAssignBoolObjBoolObjWrapped
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignBoolObjBoolObjWrapped.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignBoolObjBoolObjWrapped.quorum", "false")
+    end
+
+    action ImpAssignBooleanBoolObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBoolObj.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBoolObj.quorum", "true")
+    end
+
+    action ImpAssignBooleanBoolObjWrapped
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBoolObjWrapped.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBoolObjWrapped.quorum", "true")
+    end
+
+    action ImpAssignBooleanBoolean
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBoolean.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBoolean.quorum", "false")
+    end
+
+    action ImpAssignBooleanBooleanWrapped
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBooleanWrapped.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBooleanWrapped.quorum", "false")
+    end
+
+    action ImpAssignIntObjIntObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignIntObjIntObj.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignIntObjIntObj.quorum", "5")
+    end
+
+    action ImpAssignIntObjIntObjWrapped
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignIntObjIntObjWrapped.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignIntObjIntObjWrapped.quorum", "5")
+    end
+
+    action ImpAssignIntegerIntObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerIntObj.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerIntObj.quorum", "5")
+    end
+
+    action ImpAssignIntegerIntObjWrapped
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerIntObjWrapped.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerIntObjWrapped.quorum", "5")
+    end
+
+    action ImpAssignIntegerInteger
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerInteger.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerInteger.quorum", "5")
+    end
+
+    action ImpAssignIntegerIntegerWrapped
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerIntegerWrapped.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerIntegerWrapped.quorum", "5")
+    end
+
+    action ImpAssignNumObjNumObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumObjNumObj.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumObjNumObj.quorum", "7.5")
+    end
+
+    action ImpAssignNumObjNumObjWrapped
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumObjNumObjWrapped.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumObjNumObjWrapped.quorum", "7.5")
+    end
+
+    action ImpAssignNumberIntObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberIntObj.quorum", "5.0")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberIntObj.quorum", "5.0")
+    end
+
+    action ImpAssignNumberIntObjWrapped
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberIntObj.quorum", "5.0")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberIntObj.quorum", "5.0")
+    end
+
+    action ImpAssignNumberInteger
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberInteger.quorum", "5.0")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberInteger.quorum", "5.0")
+    end
+
+    action ImpAssignNumberIntegerWrapped
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberIntegerWrapped.quorum", "5.0")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberIntegerWrapped.quorum", "5.0")
+    end
+
+    action ImpAssignNumberNumObj
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumObj.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumObj.quorum", "7.5")
+    end
+
+    action ImpAssignNumberNumObjWrapped
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumObjWrapped.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumObjWrapped.quorum", "7.5")
+    end
+
+    action ImpAssignNumberNumber
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumber.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumber.quorum", "7.5")
+    end
+
+    action ImpAssignNumberNumberWrapped
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumberWrapped.quorum", "7.5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumberWrapped.quorum", "7.5")
+    end
+
+    action ImpAssignTextObjTextObj 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignTextObjTextObj.quorum", "t")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignTextObjTextObj.quorum", "t")
+    end
+
+    action ImpAssignTextObjTextObjWrapped
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignTextObjTextObjWrapped.quorum", "t")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignTextObjTextObjWrapped.quorum", "t")
+    end
+
+    action ImpAssignTextText
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignTextText.quorum", "t")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignTextText.quorum", "t")
+    end
+
+    action ImpAssignTextTextWrapped
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignTextTextWrapped.quorum", "t")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignTextTextWrapped.quorum", "t")
+    end
+
+    action ImpAssignTextTextObj 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignTextTextObj.quorum", "t")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignTextTextObj.quorum", "t")
+    end
+
+    action ImpAssignTextTextObjWrapped
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignTextTextObjWrapped.quorum", "t")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignTextTextObjWrapped.quorum", "t")
+    end
+
+    action IndexOfPrefix 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/IndexOfPrefix.quorum", "2", "2")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IndexOfPrefix.quorum", "2", "2")
+    end
+
+    action IndexOfPrefixIndex 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/IndexOfPrefixIndex.quorum", "3", "3")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IndexOfPrefixIndex.quorum", "3", "3")
+    end
+
+    action InstanceTypeChildOfChild 
+        suite:RunTest("Library/Tests/TypeChecker/Pass/InstanceTypeChildOfChild.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/InstanceTypeChildOfChild.quorum", "false")
+    end
+
+    action InstanceTypeCurrent
+        suite:RunTest("Library/Tests/TypeChecker/Pass/InstanceTypeCurrent.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/InstanceTypeCurrent.quorum", "true")
+    end
+
+    action InstanceTypeDirectChild
+        suite:RunTest("Library/Tests/TypeChecker/Pass/InstanceTypeDirectChild.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/InstanceTypeDirectChild.quorum", "false")
+    end
+
+    action InstanceTypeDirectParent
+        suite:RunTest("Library/Tests/TypeChecker/Pass/InstanceTypeDirectParent.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/InstanceTypeDirectParent.quorum", "true")
+    end
+
+    action InstanceTypeObject
+        suite:RunTest("Library/Tests/TypeChecker/Pass/InstanceTypeObject.quorum", "")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/InstanceTypeObject.quorum", "")
+    end
+
+    action InstanceTypeParentOfParent
+        suite:RunTest("Library/Tests/TypeChecker/Pass/InstanceTypeParentOfParent.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/InstanceTypeParentOfParent.quorum", "true")
+    end
+
+    action IntegerBitCount
+        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerBitCount.quorum", "7", "7")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerBitCount.quorum", "7", "7")
+    end
+
+    action IntegerCompare
+        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerCompare.quorum", "a")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerCompare.quorum", "a")
+    end
+
+    action IntegerEquals
+        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerEquals.quorum", "false", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerEquals.quorum", "false", "false")
+    end
+
+    action IntegerGetBinary
+        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerGetBinary.quorum", "101111101", "101111101")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerGetBinary.quorum", "101111101", "101111101")
+    end
+
+    action IntegerGetOctal
+        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerGetOctal.quorum", "575", "575")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerGetOctal.quorum", "575", "575")
+    end
+
+    action IntegerGetText
+        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerGetText.quorum", "5", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerGetText.quorum", "5", "5")
+    end
+
+    action IntegerHighestOneBit
+        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerHighestOneBit.quorum", "256", "256")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerHighestOneBit.quorum", "256", "256")
+    end
+
+    action IntegerLeadingZeros
+        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerLeadingZeros.quorum", "23", "23")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerLeadingZeros.quorum", "23", "23")
+    end
+
+    action IntegerLowestOneBit
+        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerLowestOneBit.quorum", "1", "1")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerLowestOneBit.quorum", "1", "1")
+    end
+
+    action IntegerReverse
+        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerReverse.quorum", "-1098907648", "-1098907648")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerReverse.quorum", "-1098907648", "-1098907648")
+    end
+
+    action IntegerRotateLeft
+        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerRotateLeft.quorum", "1524", "1524")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerRotateLeft.quorum", "1524", "1524")
+    end
+
+    action IntegerRotateRight
+        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerRotateRight.quorum", "1073741919", "1073741919")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerRotateRight.quorum", "1073741919", "1073741919")
+    end
+
+    action IntegerTrailingZeros
+        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerTrailingZeros.quorum", "0", "0")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerTrailingZeros.quorum", "0", "0")
+    end
+
+    action NumberCompare
+        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberCompare.quorum", "a")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberCompare.quorum", "a")
+    end
+
+    action NumberEquals
+        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberEquals.quorum", "false", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberEquals.quorum", "false", "false")
+    end
+
+    action NumberGetHex
+        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberGetHex.quorum", "0x1.4cccccccccccdp2", "0x1.4cccccccccccdp2")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberGetHex.quorum", "0x1.4cccccccccccdp2", "0x1.4cccccccccccdp2")
+    end
+
+    action NumberGetInteger
+        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberGetInteger.quorum", "5", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberGetInteger.quorum", "5", "5")
+    end
+
+    action NumberGetText
+        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberGetText.quorum", "5.2", "5.2")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberGetText.quorum", "5.2", "5.2")
+    end
+
+    action NumberIsInfinite
+        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberIsInfinite.quorum", "false", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberIsInfinite.quorum", "false", "false")
+    end
+
+    action NumberIsNotANumber
+        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberIsNotANumber.quorum", "false", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberIsNotANumber.quorum", "false", "false")
+    end
+
+    action PrimitiveTextGetValue
+        suite:RunTest("Library/Tests/TypeChecker/Pass/PrimitiveTextGetValue.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/PrimitiveTextGetValue.quorum", "5")
+    end
+
+    action PrimitiveTextSetValue
+        //no value seems to be returned from this test...is this just a test to see if it breaks or not
+        //or should we call GetValue to see if it is 5
+        suite:RunTest("Library/Tests/TypeChecker/Pass/PrimitiveTextSetValue.quorum", "")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/PrimitiveTextSetValue.quorum", "")
+    end
+
+    action ReturningIntegerInPlaceOfNumber
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ReturningIntegerInPlaceOfNumber.quorum", "4")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ReturningIntegerInPlaceOfNumber.quorum", "4")
+    end
+
+    action TextAppend
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ReturningIntegerInPlaceOfNumber.quorum", "4")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ReturningIntegerInPlaceOfNumber.quorum", "4")
+    end
+
+    action TextCompare
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextCompare.quorum", "a")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextCompare.quorum", "a")
+    end
+
+    action TextContains
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextContains.quorum", "true", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextContains.quorum", "true", "true")
+    end
+
+    action TextEndsWith
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextEndsWith.quorum", "true", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextEndsWith.quorum", "true", "true")
+    end
+
+    action TextEquals
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextEquals.quorum", "false", "false")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextEquals.quorum", "false", "false")
+    end
+
+    action TextEqualsIgnoringCase
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextEqualsIgnoringCase.quorum", "true", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextEqualsIgnoringCase.quorum", "true", "true")
+    end
+
+    action TextGetCharacter
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextGetCharacter.quorum", "o", "o")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextGetCharacter.quorum", "o", "o")
+    end
+
+    action TextGetLength
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextGetLength.quorum", "5", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextGetLength.quorum", "5", "5")
+    end
+
+    action TextGetSubtext
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextGetSubtext.quorum", "he", "he")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextGetSubtext.quorum", "he", "he")
+    end
+
+    action TextGetSubtextWithEnd
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextGetSubtextWithEnd.quorum", "he", "he")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextGetSubtextWithEnd.quorum", "he", "he")
+    end
+
+    action TextIsEmpty
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextIsEmpty.quorum", "true", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextIsEmpty.quorum", "true", "true")
+    end
+
+    action TextReplace
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextReplace.quorum", "help", "help")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextReplace.quorum", "help", "help")
+    end
+
+    action TextSetAndGetValue
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextSetAndGetValue.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextSetAndGetValue.quorum", "5")
+    end
+
+    action TextStartsWith
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextStartsWith.quorum", "true", "true")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextStartsWith.quorum", "true", "true")
+    end
+
+    action TextToLowerCase
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextToLowerCase.quorum", "hello", "hello")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextToLowerCase.quorum", "hello", "hello")
+    end
+
+    action TextToUpperCase
+        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberIsInfinite.quorum", "HELLO", "HELLO")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberIsInfinite.quorum", "HELLO", "HELLO")
+    end
+
+    action TextTrim
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextTrim.quorum", "hello", "hello")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextTrim.quorum", "hello", "hello")
+    end
+
+    action TypeInferenceBoolean
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceBoolean.quorum", "a", "a")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceBoolean.quorum", "a", "a")
+    end
+
+    action TypeInferenceCast
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceCast.quorum", "3", "3")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceCast.quorum", "3", "3")
+    end
+
+    action TypeInferenceInteger
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceInteger.quorum", "3", "3")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceInteger.quorum", "3", "3")
+    end
+
+    action TypeInferenceLiterals
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceLiterals.quorum", "1", "1.9", "true", "hello")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceLiterals.quorum", "1", "1.9", "true", "hello")
+    end
+
+    action TypeInferenceNestedFunctionCalls
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceNestedFunctionCalls.quorum", "4")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceNestedFunctionCalls.quorum", "4")
+    end
+
+    action TypeInferenceNumber
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceNumber.quorum", "3.0")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceNumber.quorum", "3.0")
+    end
+
+    action TypeInferenceReturnTypes
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceReturnTypes.quorum", "3")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceReturnTypes.quorum", "3")
+    end
+
+    action TypeInferenceText
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceText.quorum", "hello world")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceText.quorum", "hello world")
+    end
+
 end
+
