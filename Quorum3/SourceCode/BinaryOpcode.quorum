@@ -10,6 +10,8 @@ class BinaryOpcode is QuorumOpcode
     integer opcode = -1
     integer leftOpcode = -1
     integer rightOpcode = -1
+    integer leftOpcode2 = -1
+    integer rightOpcode2 = -1
 
     action GetJavaOpcode returns integer
         return opcode
@@ -23,6 +25,14 @@ class BinaryOpcode is QuorumOpcode
         return rightOpcode
     end
 
+    action GetJavaLeftOpcode2 returns integer
+        return leftOpcode2
+    end
+
+    action GetJavaRightOpcode2 returns integer
+        return rightOpcode2
+    end
+
     action SetJavaOpcode(integer op)
         opcode = op
     end
@@ -33,6 +43,14 @@ class BinaryOpcode is QuorumOpcode
 
     action SetJavaRightOpcode(integer op)
         rightOpcode = op
+    end
+
+    action SetJavaLeftOpcode2(integer op)
+        leftOpcode2 = op
+    end
+
+    action SetJavaRightOpcode2(integer op)
+        rightOpcode2 = op
     end
 
     action GetMethodWriter returns JavaBytecodeMethodWriter

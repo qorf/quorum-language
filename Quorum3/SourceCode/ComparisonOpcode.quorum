@@ -4,7 +4,6 @@ use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
 
 class ComparisonOpcode is BinaryOpcode 
-    //public integer opcode = -1
     JavaBytecodeOpcodes opcodes
     public boolean isTextCompare = false
     public integer textCompareValue = -2
@@ -40,6 +39,11 @@ class ComparisonOpcode is BinaryOpcode
         if op not= -1
             JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
             methodWriter:VisitInstruction(op)
+            //if there is a second one, do that as well
+            integer op2 = GetJavaLeftOpcode2()
+            if op2 not= -1
+                methodWriter:VisitInstruction(op2)
+            end
         end
     end
 
@@ -48,6 +52,11 @@ class ComparisonOpcode is BinaryOpcode
         if op not= -1
             JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
             methodWriter:VisitInstruction(op)
+            //if there is a second one, do that as well
+            integer op2 = GetJavaRightOpcode2()
+            if op2 not= -1
+                methodWriter:VisitInstruction(op2)
+            end
         end
     end
     
@@ -56,6 +65,8 @@ class ComparisonOpcode is BinaryOpcode
         op:SetJavaOpcode(GetJavaOpcode())
         op:SetJavaLeftOpcode(GetJavaLeftOpcode())
         op:SetJavaRightOpcode(GetJavaRightOpcode())
+        op:SetJavaLeftOpcode2(GetJavaLeftOpcode2())
+        op:SetJavaRightOpcode2(GetJavaRightOpcode2())
         op:isTextCompare = isTextCompare
         op:textCompareValue = textCompareValue
         return op

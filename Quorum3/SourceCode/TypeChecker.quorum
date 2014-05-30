@@ -622,6 +622,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfLessThan(), opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         op = GetOperation(opConstant:GREATER_EQUALS)
@@ -629,6 +631,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToBoolean()
+        compare = GetBinaryTwoOpComparisonOpcode(opcodes:GetIfLessThan(), -1,-1, opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         // >
@@ -1316,6 +1320,18 @@ class TypeChecker
         op:SetJavaOpcode(opcode)
         op:SetJavaLeftOpcode(leftOpcode)
         op:SetJavaRightOpcode(rightOpcode)
+        op:SetType(type)
+        return op
+    end
+
+    private action GetBinaryTwoOpComparisonOpcode(integer opcode, integer leftOpcode1,
+        integer leftOpcode2, integer rightOpcode1, integer rightOpcode2, Type type) returns ComparisonOpcode
+        ComparisonOpcode op
+        op:SetJavaOpcode(opcode)
+        op:SetJavaLeftOpcode(leftOpcode1)
+        op:SetJavaLeftOpcode2(leftOpcode2)
+        op:SetJavaRightOpcode(rightOpcode1)
+        op:SetJavaRightOpcode2(rightOpcode2)
         op:SetType(type)
         return op
     end
