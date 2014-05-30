@@ -43,10 +43,10 @@ class ExpressionsTester
         GTEDoubleInt()
         GTEIntDouble()
         GTEIntInt()
-//        GTETextText()
+        GTETextText()
         GTIntDouble()
         GTIntInt()
-//        GTTextText()
+        GTTextText()
 //        GetCharacterParameterText()   //test runs but fails
 //        GetMaxParameterInteger()
 //        GetTextParameterBoolean()     //test runs but faila
@@ -59,9 +59,9 @@ class ExpressionsTester
         LTEDoubleInt()
         LTEIntDouble()
         LTEIntInt()
-//        LTETextText()
-//        LTIntInt()
-//        LTTextText()
+        LTETextText()
+        LTIntInt()
+        LTTextText()
 //        LocalVarDecl()
         LTIntDouble()                
         ModDoubleDouble()
@@ -273,8 +273,8 @@ class ExpressionsTester
     end
     
     action GTTextText
-        suite:RunTest("Library/Tests/Expressions/Pass/GTTextText.quorum", "false", "true")
-//        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GTTextText.quorum", "false", "true")
+        suite:RunTest("Library/Tests/Expressions/Pass/GTTextText.quorum", "false", "false")
+//        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GTTextText.quorum", "false", "false")
     end
     
     action GetCharacterParameterText
@@ -297,113 +297,113 @@ class ExpressionsTester
         suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
     end
 
-    action IsA()
+    action IsA
         suite:RunTest("Library/Tests/Expressions/Pass/IsA.quorum", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/IsA.quorum", "true")
     end
     
-    action IsInfiniteNumberParameter()
+    action IsInfiniteNumberParameter
         suite:RunTest("Library/Tests/Expressions/Pass/IsInfiniteNumberParameter.quorum", "false")
         //suite:RunTest("Library/Tests/Expressions/Pass/IsInfiniteNumberParameter.quorum", "false")
     end
 
-    action LTDoubleDouble()
+    action LTDoubleDouble
         suite:RunTest("Library/Tests/Expressions/Pass/LTDoubleDouble.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTDoubleDouble.quorum", "false", "true")
     end
 
-    action LTDoubleInt()
+    action LTDoubleInt
         suite:RunTest("Library/Tests/Expressions/Pass/LTDoubleInt.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTDoubleInt.quorum", "false", "true")
     end
 
-    action LTEDoubleDouble()
+    action LTEDoubleDouble
         suite:RunTest("Library/Tests/Expressions/Pass/LTEDoubleDouble.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTEDoubleDouble.quorum", "false", "true")
     end
 
-    action LTEDoubleInt()
+    action LTEDoubleInt
         suite:RunTest("Library/Tests/Expressions/Pass/LTEDoubleInt.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTEDoubleInt.quorum", "false", "true")
     end
 
-    action LTEIntDouble()
+    action LTEIntDouble
         suite:RunTest("Library/Tests/Expressions/Pass/LTEIntDouble.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTEIntDouble.quorum", "false", "true")
     end
 
-    action LTEIntInt()
+    action LTEIntInt
         suite:RunTest("Library/Tests/Expressions/Pass/LTEIntInt.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTEIntInt.quorum", "false", "true")
     end
 
-    action LTETextText()
+    action LTETextText
         suite:RunTest("Library/Tests/Expressions/Pass/LTETextText.quorum", "true", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTETextText.quorum", "true", "true")
     end
 
-    action LTIntInt()
+    action LTIntInt
         suite:RunTest("Library/Tests/Expressions/Pass/LTIntInt.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTIntInt.quorum", "false", "true")
     end
 
-    action LTTextText()
+    action LTTextText
         suite:RunTest("Library/Tests/Expressions/Pass/LTTextText.quorum", "true", "false")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTEextText.quorum", "true", "false")
     end
 
-    action LocalVarDecl()
+    action LocalVarDecl
         //note this test is not in ExpressionsTester.java
         //suite:RunTest("Library/Tests/Expressions/Pass/LocalVarDecl.quorum", "1000", "3.0", "c", "true", "false")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LocalVarDecl.quorum", "1000", "3.0", "c", "true", "false")
     end
 
-    action LTIntDouble()
+    action LTIntDouble
         suite:RunTest("Library/Tests/Expressions/Pass/LtIntDouble.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LtIntDouble.quorum", "false", "true")
     end
 
-    action ModDoubleDouble()
+    action ModDoubleDouble
         suite:RunTest("Library/Tests/Expressions/Pass/ModDoubleDouble.quorum", "1.0", "1.0")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ModDoubleDouble.quorum", "1.0", "1.0")
     end
 
-    action ModDoubleInt()
+    action ModDoubleInt
         suite:RunTest("Library/Tests/Expressions/Pass/ModDoubleInt.quorum", "1.0", "1.0")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ModDoubleInt.quorum", "1.0", "1.0")
     end
 
-    action ModIntDouble()
+    action ModIntDouble
         suite:RunTest("Library/Tests/Expressions/Pass/ModIntDouble.quorum", "1.0", "1.0")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ModIntDouble.quorum", "1.0", "1.0")
     end
 
-    action ModIntInt()
+    action ModIntInt
         suite:RunTest("Library/Tests/Expressions/Pass/ModIntInt.quorum", "1", "1")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ModIntInt.quorum", "1", "1")
     end
 
-    action MutlDoubleDouble()
+    action MutlDoubleDouble
         suite:RunTest("Library/Tests/Expressions/Pass/MultDoubleDouble.quorum", "4.0", "4.0")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MultDoubleDouble.quorum", "4.0", "4.0")
     end
 
-    action MultDoubleInt()
+    action MultDoubleInt
         suite:RunTest("Library/Tests/Expressions/Pass/MultDoubleInt.quorum", "4.0", "4.0")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MultDoubleInt.quorum", "4.0", "4.0")
     end
 
-    action MultIntDouble()
+    action MultIntDouble
         suite:RunTest("Library/Tests/Expressions/Pass/MultIntDouble.quorum", "4.0", "4.0")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MultIntDouble.quorum", "4.0", "4.0")
     end
 
-    action MultIntInt()
+    action MultIntInt
         suite:RunTest("Library/Tests/Expressions/Pass/MultIntInt.quorum", "4", "4")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MultIntInt.quorum", "4", "4")
     end
 
-    action NotBoolean()
+    action NotBoolean
         //note this test is not in ExpressionsTester.java
         suite:RunTest("Library/Tests/Expressions/Pass/NotBoolean.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotBoolean.quorum", "false", "true")
@@ -414,32 +414,32 @@ class ExpressionsTester
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotEqualBooleanBoolean.quorum", "false", "true")
     end
 
-    action NotEqualCustomCustom()
+    action NotEqualCustomCustom
         suite:RunTest("Library/Tests/Expressions/Pass/NotEqualCustomCustom.quorum", "true", "false")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotEqualCustomCustom.quorum", "true", "false")
     end
 
-    action NotEqualDoubleDouble()
+    action NotEqualDoubleDouble
         suite:RunTest("Library/Tests/Expressions/Pass/NotEqualDoubleDouble.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotEqualDoubleDouble.quorum", "false", "true")
     end
 
-    action NotEqualDoubleInt()
+    action NotEqualDoubleInt
         suite:RunTest("Library/Tests/Expressions/Pass/NotEqualDoubleInt.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotEqualDoubleInt.quorum", "false", "true")
     end
 
-    action NotEqualIntDouble()
+    action NotEqualIntDouble
         suite:RunTest("Library/Tests/Expressions/Pass/NotEqualIntDouble.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotEqualIntDouble.quorum", "false", "true")
     end
 
-    action NotEqualIntInt()
+    action NotEqualIntInt
         suite:RunTest("Library/Tests/Expressions/Pass/NotEqualIntInt.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotEqualIntInt.quorum", "false", "true")
     end
 
-    action NotEqualTextText()
+    action NotEqualTextText
         suite:RunTest("Library/Tests/Expressions/Pass/NotEqualTextText.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotEqualTextText.quorum", "false", "true")
     end
@@ -454,17 +454,17 @@ class ExpressionsTester
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OrBooleanBoolean.quorum", "true", "true", "true", "false")
     end
 
-    action SubDoubleDouble()
+    action SubDoubleDouble
         suite:RunTest("Library/Tests/Expressions/Pass/SubDoubleDouble.quorum", "0.0", "0.0")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/SubDoubleDouble.quorum", "0.0", "0.0")
     end
 
-    action SubDoubleInt()
+    action SubDoubleInt
         suite:RunTest("Library/Tests/Expressions/Pass/SubDoubleInt.quorum", "0.0", "0.0")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/SubDoubleInt.quorum", "0.0", "0.0")
     end
 
-    action SubIntDouble()
+    action SubIntDouble
         suite:RunTest("Library/Tests/Expressions/Pass/SubIntDouble.quorum", "0.0", "0.0")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/SubIntDouble.quorum", "0.0", "0.0")
     end

@@ -121,7 +121,7 @@ class TypeChecker
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
-        op = GetOperation(opConstant:LESS_EQUALS)
+        op = GetOperation(opConstant:LESS)
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY,
             constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
@@ -323,7 +323,10 @@ class TypeChecker
             constants:TEXT_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
         type = result:result
-        type:SetToText()
+        type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfLessThan(), -1, -1, type)
+        compare:isTextCompare = true
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         op = GetOperation(opConstant:GREATER)
@@ -331,7 +334,10 @@ class TypeChecker
             constants:TEXT_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
         type = result:result
-        type:SetToText()
+        type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfLessThanEquals(), -1, -1, type)
+        compare:isTextCompare = true
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         op = GetOperation(opConstant:LESS_EQUALS)
@@ -339,7 +345,10 @@ class TypeChecker
             constants:TEXT_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
         type = result:result
-        type:SetToText()
+        type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfGreaterThan(), -1, -1, type)
+        compare:isTextCompare = true
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         op = GetOperation(opConstant:LESS)
@@ -347,7 +356,10 @@ class TypeChecker
             constants:TEXT_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
         type = result:result
-        type:SetToText()
+        type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfGreaterThanEquals(), -1, -1, type)
+        compare:isTextCompare = true
+        result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
         ////////////////////////////////////////////////////////////////////////
