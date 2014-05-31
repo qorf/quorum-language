@@ -168,6 +168,137 @@ class TypeCheckTester
 //        TypeInferenceReturnTypes()
 //        TypeInferenceText()
 
+    //Tests that should fail
+//        ExpAssignBoolObjBoolean()
+//        ExpAssignBoolObjIntObj()
+//        ExpAssignBoolObjInteger()
+//        ExpAssignBoolObjNumObj()
+//        ExpAssignBoolObjNumber()
+//        ExpAssignBoolObjText()
+//        ExpAssignBoolObjTextObj()
+//        ExpAssignIntObjBoolObj()
+//        ExpAssignIntObjBoolean()
+//        ExpAssignIntObjInteger()
+//        ExpAssignIntObjNumObj()
+//        ExpAssignIntObjNumber()
+//        ExpAssignIntObjText()
+//        ExpAssignIntObjTextObj()
+//        ExpAssignNumObjBoolObj()
+//        ExpAssignNumObjBoolean()
+//        ExpAssignNumObjIntObj()
+//        ExpAssignNumObjInteger()
+//        ExpAssignNumObjNumber()
+//        ExpAssignNumObjText()
+//        ExpAssignNumObjTextObj()
+//        ExpAssignTextObjBoolObj()
+//        ExpAssignTextObjBoolean()
+//        ExpAssignTextObjIntObj()
+//        ExpAssignTextObjInteger()
+//        ExpAssignTextObjNumbObj()
+//        ExpAssignTextObjNumber()
+//        ExpAssignTextObjText()
+//        ImpAssignBoolObjBoolean()
+//        ImpAssignBoolObjBooleanWrapped()
+//        ImpAssignBoolObjIntObj()
+//        ImpAssignBoolObjIntObjWrapped()
+//        ImpAssignBoolObjInteger()
+//        ImpAssignBoolObjIntegerWrapped()
+//        ImpAssignBoolObjNumbObj()
+//        ImpAssignBoolObjNumbObjWrapped()
+//        ImpAssignBoolObjNumber()
+//        ImpAssignBoolObjNumberWrapped()
+//        ImpAssignBoolObjText()
+//        ImpAssignBoolObjTextObj()
+//        ImpAssignBoolObjTextObjWrapped()
+//        ImpAssignBoolObjTextWrapped()
+//        ImpAssignBooleanIntObj()
+//        ImpAssignBooleanIntObjWrapped()
+//        ImpAssignBooleanInteger()
+//        ImpAssignBooleanIntegerWrapped()
+//        ImpAssignBooleanNumObj()
+//        ImpAssignBooleanNumObjWrapped()
+//        ImpAssignBooleanNumber()
+//        ImpAssignBooleanNumberWrapped()
+//        ImpAssignBooleanText()
+//        ImpAssignBooleanTextObj()
+//        ImpAssignBooleanTextObjWrapped()
+//        ImpAssignBooleanTextWrapped()
+//        ImpAssignIntObjBoolObj()
+//        ImpAssignIntObjBoolObjWrapped()
+//        ImpAssignIntObjBoolean()
+//        ImpAssignIntObjBooleanWrapped()
+//        ImpAssignIntObjInteger()
+//        ImpAssignIntObjIntegerWrapped()
+//        ImpAssignIntObjNumObj()
+//        ImpAssignIntObjNumObjWrapped()
+//        ImpAssignIntObjNumber()
+//        ImpAssignIntObjNumberWrapped()
+//        ImpAssignIntObjText()
+//        ImpAssignIntObjTextObj()
+//        ImpAssignIntObjTextObjWrapped()
+//        ImpAssignIntObjTextWrapped()
+//        ImpAssignIntegerBoolObj()
+//        ImpAssignIntegerBoolObjWrapped()
+//        ImpAssignIntegerBoolean()
+//        ImpAssignIntegerBooleanWrapped()
+//        ImpAssignIntegerNumObj()
+//        ImpAssignIntegerNumObjWrapped()
+//        ImpAssignIntegerNumber()
+//        ImpAssignIntegerNumberWrapped()
+//        ImpAssignIntegerText()
+//        ImpAssignIntegerTextObj()
+//        ImpAssignIntegerTextObjWrapped()
+//        ImpAssignIntegerTextWrapped()
+//        ImpAssignNumObjBoolObj()
+//        ImpAssignNumObjBoolObjWrapped()
+//        ImpAssignNumObjBoolean()
+//        ImpAssignNumObjBooleanWrapped()
+//        ImpAssignNumObjIntObj()
+//        ImpAssignNumObjIntObjWrapped()
+//        ImpAssignNumObjInteger()
+//        ImpAssignNumObjIntegerWrapped()
+//        ImpAssignNumObjNumber()
+//        ImpAssignNumObjNumberWrapped()
+//        ImpAssignNumObjText()
+//        ImpAssignNumObjTextObj()
+//        ImpAssignNumObjTextObjWrapped()
+//        ImpAssignNumObjTextWrapped()
+//        ImpAssignNumberBoolObj()
+//        ImpAssignNumberBoolObjWrapped()
+//        ImpAssignNumberBoolean()
+//        ImpAssignNumberBooleanWrapped()
+//        ImpAssignNumberText()
+//        ImpAssignNumberTextObj()
+//        ImpAssignNumberTextObjWrapped()
+//        ImpAssignNumberTextWrapped()
+//        ImpAssignTextBoolObj()
+//        ImpAssignTextBoolObjWrapped()
+//        ImpAssignTextBoolean()
+//        ImpAssignTextBooleanWrapped()
+//        ImpAssignTextIntObj()
+//        ImpAssignTextIntObjWrapped()
+//        ImpAssignTextInteger()
+//        ImpAssignTextIntegerWrapped()
+//        ImpAssignTextNumObj()
+//        ImpAssignTextNumObjWrapped()
+//        ImpAssignTextNumber()
+//        ImpAssignTextNumberWrapped()
+//        ImpAssignTextObjBoolObj()
+//        ImpAssignTextObjBoolObjWrapped()
+//        ImpAssignTextObjBoolean()
+//        ImpAssignTextObjBooleanWrapped()
+//        ImpAssignTextObjIntObj()
+//        ImpAssignTextObjIntObjWrapped()
+//        ImpAssignTextObjInteger()
+//        ImpAssignTextObjIntegerWrapped()
+//        ImpAssignTextObjNumObj()
+//        ImpAssignTextObjNumObjWrapped()
+//        ImpAssignTextObjNumber()
+//        ImpAssignTextObjNumberWrapped()
+//        InstanceTypeUnrelatedTypes()
+//        TypeInferenceDifferentLiteralTypes()
+//        TypeInferenceDifferentReturnTypes()
+//        TypeInferenceDifferentTypes()
     end
 
     action GetName returns text
@@ -952,6 +1083,668 @@ class TypeCheckTester
     action TypeInferenceText
         suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceText.quorum", "hello world")
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceText.quorum", "hello world")
+    end
+
+    //Tests that should fail
+
+    action ExpAssignBoolObjBoolean
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjBoolean.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjBoolean.quorum")
+    end
+
+    action ExpAssignBoolObjIntObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjIntObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjIntObj.quorum")
+    end
+
+    action ExpAssignBoolObjInteger
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjInteger.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjInteger.quorum")
+    end
+
+    action ExpAssignBoolObjNumObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjNumObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjNumObj.quorum")
+    end
+
+    action ExpAssignBoolObjNumber
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjNumber.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjNumber.quorum")
+    end
+
+    action ExpAssignBoolObjText
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjText.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjText.quorum")
+    end
+
+    action ExpAssignBoolObjTextObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjTextObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjTextObj.quorum")
+    end
+
+    action ExpAssignIntObjBoolObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjBoolObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjBoolObj.quorum")
+    end
+
+    action ExpAssignIntObjBoolean
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjBoolean.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjBoolean.quorum")
+    end
+
+    action ExpAssignIntObjInteger
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjInteger.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjInteger.quorum")
+    end
+
+    action ExpAssignIntObjNumObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjNumObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjNumObj.quorum")
+    end
+
+    action ExpAssignIntObjNumber
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjNumber.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjNumber.quorum")
+    end
+
+    action ExpAssignIntObjText
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjText.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjText.quorum")
+    end
+
+    action ExpAssignIntObjTextObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjTextObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjTextObj.quorum")
+    end
+
+    action ExpAssignNumObjBoolObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjBoolObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjBoolObj.quorum")
+    end
+
+    action ExpAssignNumObjBoolean
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjBoolean.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjBoolean.quorum")
+    end
+
+    action ExpAssignNumObjIntObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjIntObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjIntObj.quorum")
+    end
+
+    action ExpAssignNumObjInteger
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjInteger.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjInteger.quorum")
+    end
+
+    action ExpAssignNumObjNumber
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjNumber.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjNumber.quorum")
+    end
+
+    action ExpAssignNumObjText
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjText.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjText.quorum")
+    end
+
+    action ExpAssignNumObjTextObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjTextObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjTextObj.quorum")
+    end
+
+    action ExpAssignTextObjBoolObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjBoolObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjBoolObj.quorum")
+    end
+
+    action ExpAssignTextObjBoolean
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjBoolean.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjBoolean.quorum")
+    end
+
+    action ExpAssignTextObjIntObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjIntObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjIntObj.quorum")
+    end
+
+    action ExpAssignTextObjInteger
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjInteger.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjInteger.quorum")
+    end
+
+    action ExpAssignTextObjNumbObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjNumbObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjNumbObj.quorum")
+    end
+
+    action ExpAssignTextObjNumber
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjNumber.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjNumber.quorum")
+    end
+
+    action ExpAssignTextObjText
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjText.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjText.quorum")
+    end
+
+    action ImpAssignBoolObjBoolean
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjBoolean.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjBoolean.quorum")
+    end
+
+    action ImpAssignBoolObjBooleanWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjBooleanWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjBooleanWrapped.quorum")
+    end
+
+    action ImpAssignBoolObjIntObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjIntObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjIntObj.quorum")
+    end
+
+    action ImpAssignBoolObjIntObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjIntObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjIntObjWrapped.quorum")
+    end
+
+    action ImpAssignBoolObjInteger
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjInteger.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjInteger.quorum")
+    end
+
+    action ImpAssignBoolObjIntegerWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjIntegerWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjIntegerWrapped.quorum")
+    end
+
+    action ImpAssignBoolObjNumbObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumbObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumbObj.quorum")
+    end
+
+    action ImpAssignBoolObjNumbObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumbObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumbObjWrapped.quorum")
+    end
+
+    action ImpAssignBoolObjNumber
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumber.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumber.quorum")
+    end
+
+    action ImpAssignBoolObjNumberWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumberWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumberWrapped.quorum")
+    end
+
+    action ImpAssignBoolObjText
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjText.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjText.quorum")
+    end
+
+    action ImpAssignBoolObjTextObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjTextObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjTextObj.quorum")
+    end
+
+    action ImpAssignBoolObjTextObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjTextObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjTextObjWrapped.quorum")
+    end
+
+    action ImpAssignBoolObjTextWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjTextWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjTextWrapped.quorum")
+    end
+
+    action ImpAssignBooleanIntObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanIntObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanIntObj.quorum")
+    end
+
+    action ImpAssignBooleanIntObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanIntObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanIntObjWrapped.quorum")
+    end
+
+    action ImpAssignBooleanInteger
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanInteger.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanInteger.quorum")
+    end
+
+    action ImpAssignBooleanIntegerWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanIntegerWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanIntegerWrapped.quorum")
+    end
+
+    action ImpAssignBooleanNumObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumObj.quorum")
+    end
+
+    action ImpAssignBooleanNumObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumObjWrapped.quorum")
+    end
+
+    action ImpAssignBooleanNumber
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumber.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumber.quorum")
+    end
+
+    action ImpAssignBooleanNumberWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumberWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumberWrapped.quorum")
+    end
+
+    action ImpAssignBooleanText
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanText.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanText.quorum")
+    end
+
+    action ImpAssignBooleanTextObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanTextObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanTextObj.quorum")
+    end
+
+    action ImpAssignBooleanTextObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanTextObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanTextObjWrapped.quorum")
+    end
+
+    action ImpAssignBooleanTextWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanTextWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanTextWrapped.quorum")
+    end
+
+    action ImpAssignIntObjBoolObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBoolObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBoolObj.quorum")
+    end
+
+    action ImpAssignIntObjBoolObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBoolObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBoolObjWrapped.quorum")
+    end
+
+    action ImpAssignIntObjBoolean
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBoolean.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBoolean.quorum")
+    end
+
+    action ImpAssignIntObjBooleanWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBooleanWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBooleanWrapped.quorum")
+    end
+
+    action ImpAssignIntObjInteger
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjInteger.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjInteger.quorum")
+    end
+
+    action ImpAssignIntObjIntegerWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjIntegerWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjIntegerWrapped.quorum")
+    end
+
+    action ImpAssignIntObjNumObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumObj.quorum")
+    end
+
+    action ImpAssignIntObjNumObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumObjWrapped.quorum")
+    end
+
+    action ImpAssignIntObjNumber
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumber.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumber.quorum")
+    end
+
+    action ImpAssignIntObjNumberWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumberWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumberWrapped.quorum")
+    end
+
+    action ImpAssignIntObjText
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjText.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjText.quorum")
+    end
+
+    action ImpAssignIntObjTextObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjTextObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjTextObj.quorum")
+    end
+
+    action ImpAssignIntObjTextObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjTextObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjTextObjWrapped.quorum")
+    end
+
+    action ImpAssignIntObjTextWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjTextWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjTextWrapped.quorum")
+    end
+
+    action ImpAssignIntegerBoolObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBoolObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBoolObj.quorum")
+    end
+
+    action ImpAssignIntegerBoolObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBoolObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBoolObjWrapped.quorum")
+    end
+
+    action ImpAssignIntegerBoolean
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBoolean.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBoolean.quorum")
+    end
+
+    action ImpAssignIntegerBooleanWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBooleanWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBooleanWrapped.quorum")
+    end
+
+    action ImpAssignIntegerNumObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumObj.quorum")
+    end
+
+    action ImpAssignIntegerNumObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumObjWrapped.quorum")
+    end
+
+    action ImpAssignIntegerNumber
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumber.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumber.quorum")
+    end
+
+    action ImpAssignIntegerNumberWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumberWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumberWrapped.quorum")
+    end
+
+    action ImpAssignIntegerText
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerText.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerText.quorum")
+    end
+
+    action ImpAssignIntegerTextObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerTextObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerTextObj.quorum")
+    end
+
+    action ImpAssignIntegerTextObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerTextObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerTextObjWrapped.quorum")
+    end
+
+    action ImpAssignIntegerTextWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerTextWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerTextWrapped.quorum")
+    end
+
+    action ImpAssignNumObjBoolObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBoolObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBoolObj.quorum")
+    end
+
+    action ImpAssignNumObjBoolObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBoolObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBoolObjWrapped.quorum")
+    end
+
+    action ImpAssignNumObjBoolean
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBoolean.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBoolean.quorum")
+    end
+
+    action ImpAssignNumObjBooleanWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBooleanWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBooleanWrapped.quorum")
+    end
+
+    action ImpAssignNumObjIntObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjIntObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjIntObj.quorum")
+    end
+
+    action ImpAssignNumObjIntObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjIntObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjIntObjWrapped.quorum")
+    end
+
+    action ImpAssignNumObjInteger
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjInteger.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjInteger.quorum")
+    end
+
+    action ImpAssignNumObjIntegerWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjIntegerWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjIntegerWrapped.quorum")
+    end
+
+    action ImpAssignNumObjNumber
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjNumber.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjNumber.quorum")
+    end
+
+    action ImpAssignNumObjNumberWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjNumberWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjNumberWrapped.quorum")
+    end
+
+    action ImpAssignNumObjText
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjText.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjText.quorum")
+    end
+
+    action ImpAssignNumObjTextObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjTextObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjTextObj.quorum")
+    end
+
+    action ImpAssignNumObjTextObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjTextObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjTextObjWrapped.quorum")
+    end
+
+    action ImpAssignNumObjTextWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjTextWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjTextWrapped.quorum")
+    end
+
+    action ImpAssignNumberBoolObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBoolObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBoolObj.quorum")
+    end
+
+    action ImpAssignNumberBoolObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBoolObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBoolObjWrapped.quorum")
+    end
+
+    action ImpAssignNumberBoolean
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBoolean.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBoolean.quorum")
+    end
+
+    action ImpAssignNumberBooleanWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBooleanWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBooleanWrapped.quorum")
+    end
+
+    action ImpAssignNumberText
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberText.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberText.quorum")
+    end
+
+    action ImpAssignNumberTextObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberTextObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberTextObj.quorum")
+    end
+
+    action ImpAssignNumberTextObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberTextObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberTextObjWrapped.quorum")
+    end
+
+    action ImpAssignNumberTextWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberTextWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberTextWrapped.quorum")
+    end
+
+    action ImpAssignTextBoolObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBoolObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBoolObj.quorum")
+    end
+
+    action ImpAssignTextBoolObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBoolObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBoolObjWrapped.quorum")
+    end
+
+    action ImpAssignTextBoolean
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBoolean.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBoolean.quorum")
+    end
+
+    action ImpAssignTextBooleanWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBooleanWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBooleanWrapped.quorum")
+    end
+
+    action ImpAssignTextIntObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextIntObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextIntObj.quorum")
+    end
+
+    action ImpAssignTextIntObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextIntObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextIntObjWrapped.quorum")
+    end
+
+    action ImpAssignTextInteger
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextInteger.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextInteger.quorum")
+    end
+
+    action ImpAssignTextIntegerWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextIntegerWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextIntegerWrapped.quorum")
+    end
+
+    action ImpAssignTextNumObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumObj.quorum")
+    end
+
+    action ImpAssignTextNumObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumObjWrapped.quorum")
+    end
+
+    action ImpAssignTextNumber
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumber.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumber.quorum")
+    end
+
+    action ImpAssignTextNumberWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumberWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumberWrapped.quorum")
+    end
+
+    action ImpAssignTextObjBoolObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBoolObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBoolObj.quorum")
+    end
+
+    action ImpAssignTextObjBoolObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBoolObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBoolObjWrapped.quorum")
+    end
+
+    action ImpAssignTextObjBoolean
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBoolean.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBoolean.quorum")
+    end
+
+    action ImpAssignTextObjBooleanWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBooleanWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBooleanWrapped.quorum")
+    end
+
+    action ImpAssignTextObjIntObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjIntObj.quorum")
+       // suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjIntObj.quorum")
+    end
+
+    action ImpAssignTextObjIntObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjIntObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjIntObjWrapped.quorum")
+    end
+
+    action ImpAssignTextObjInteger
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjInteger.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjInteger.quorum")
+    end
+
+    action ImpAssignTextObjIntegerWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjIntegerWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjIntegerWrapped.quorum")
+    end
+
+    action ImpAssignTextObjNumObj
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumObj.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumObj.quorum")
+    end
+
+    action ImpAssignTextObjNumObjWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumObjWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumObjWrapped.quorum")
+    end
+
+    action ImpAssignTextObjNumber
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumber.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumber.quorum")
+    end
+
+    action ImpAssignTextObjNumberWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumberWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumberWrapped.quorum")
+    end
+
+    action ImpAssignTextObjText
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjText.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjText.quorum")
+    end
+
+    action ImpAssignTextObjTextWrapped
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjTextWrapped.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjTextWrapped.quorum")
+    end
+
+    action InstanceTypeUnrelatedTypes
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/InstanceTypeUnrelatedTypes.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/InstanceTypeUnrelatedTypes.quorum")
+    end
+
+    action TypeInferenceDifferentLiteralTypes
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/TypeInferenceDifferentLiteralTypes.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/TypeInferenceDifferentLiteralTypes.quorum")
+    end
+
+    action TypeInferenceDifferentReturnTypes
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/TypeInferenceDifferentReturnTypes.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/TypeInferenceDifferentReturnTypes.quorum")
+    end
+
+    action TypeInferenceDifferentTypes
+        suite:RunTestFail("Library/Tests/TypeChecker/Fail/TypeInferenceDifferentTypes.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/TypeInferenceDifferentTypes.quorum")
     end
 
 end

@@ -268,6 +268,40 @@ class CompilerTestSuite
         output value
     end
 
+    action RunTestFail(text source) returns CompilerTestResult
+    //NOTE THIS MUST BE CHANGED TO REFLECT AN INTENTIONALLY FAILED TEST
+    //currently this is a copy of RunTest as a placeholder
+        CompilerTestResult result = undefined
+        Compiler compiler
+        File file
+        file:SetPath(source)
+        compiler:SetMain(file)
+
+        Parser parser
+        compiler:Parse(file, parser)
+        TypeCheckListener checker
+        compiler:Parse(file, checker)
+        QuorumBytecodeListener bytecode
+        compiler:Parse(file, bytecode)
+        
+        CompilerErrorManager manager = parser:GetCompilerErrorManager()
+
+        if manager:IsCompilationErrorFree() //run the program
+            QuorumJarGenerator generator
+
+            File jar = compiler:GetDistributionFile()
+            generator:SetCompiler(compiler)
+            generator:Write()
+            result = RunClassFile(jar)
+        else
+            CompilerTestResult result2
+            result = result2
+        end
+        result:name = source
+        return result
+    end
+
+
     system action RunClassFile(File file) returns CompilerTestResult
     system action RunJavaScript(text script) returns CompilerTestResult
 end
