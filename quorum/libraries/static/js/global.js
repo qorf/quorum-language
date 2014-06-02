@@ -481,7 +481,7 @@ var submitCodeSample = function(){
                                 //alert(output);
                                 //var value = eval(result);
                                 console.log(result);
-                                eval(result);
+                                $("#hour-of-code-IDE-output").text(eval(result));
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
 				console.log(xhr, ajaxOptions, thrownError);
@@ -494,18 +494,20 @@ var submitCodeSample = function(){
 var AreYouMyMommy = function(mom, child) {
     if (mom.length == 0 || child.length == 0) {
         if (mom.length == 0) {
-        $("#hour-of-code-IDE-output").text("Error: the variable containing the parent's DNA is empty");
+        return "Error: the variable containing the parent's DNA is empty";
         }
         else {
-        $("#hour-of-code-IDE-output").text("Error: the variable containing the child's DNA is empty");
+        return "Error: the variable containing the child's DNA is empty";
         }
     }
+    
     else {
         //TODO: check to make sure string consists of ony ACGT chars
         
         if (mom.length != child.length) {
-            $("#hour-of-code-IDE-output").text("Error: DNA sequences are of different sizes");
+            return "Error: DNA sequences are of different sizes";
         }
+        
         else {
             var matches = 0;
             for (var i = 0; i < mom.length; i++) {
@@ -514,13 +516,24 @@ var AreYouMyMommy = function(mom, child) {
                 }
             }
             if ((matches / mom.length) < .26) {
-                $("#hour-of-code-IDE-output").text("I am not your mommy.");
+                return "I am not your mommy.";
             }
             else {
-                $("#hour-of-code-IDE-output").text("I am your mommy!");
+                return "I am your mommy!";
             }
         }
     }
+}
+
+var Person = function(eyeColor, hairColor) {
+  this.eyeColor = eyeColor;
+  this.hairColor = hairColor;
+}
+
+var CreateChild = function(parent1, parent2) {
+    var parents = [parent1, parent2];
+    var child = new Person(parents[Math.floor(Math.random() + 0.5)].eyeColor, parents[Math.floor(Math.random() + 0.5)].hairColor);
+    return child;
 }
         
 

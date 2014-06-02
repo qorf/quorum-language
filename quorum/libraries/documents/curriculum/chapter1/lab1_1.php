@@ -1,4 +1,4 @@
-<?php include("../../../static/templates/pageheader.template.php"); ?> 
+<?php include("../../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Lab 1.1: Tutorials | Quorum Programming Language';
 </script>
