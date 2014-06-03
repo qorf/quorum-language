@@ -86,10 +86,8 @@ class Parser is QuorumSourceListener
     end
     
     action ExitBlock(BlockContext context)
-        if not blocks:IsEmpty()
-            currentBlock = blocks:Pop()
-        else 
-            currentBlock = undefined
+        if currentBlock not= undefined
+            currentBlock = currentBlock:GetParentBlock() //might be null, which is fine
         end
     end
 

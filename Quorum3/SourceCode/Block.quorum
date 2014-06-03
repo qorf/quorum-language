@@ -27,6 +27,13 @@ class Block
         return undefined
     end
 
+    action GetNextBlock returns Block
+        if not blocks:IsEmpty()
+            return blocks:Get(0)
+        end
+        return undefined
+    end
+
     action SetByteCodeLocation(Variable variable)
         Type type = variable:GetType()
         integer size = type:GetBytecodeSize()

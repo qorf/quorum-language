@@ -261,6 +261,8 @@ class QuorumBytecodeListener is QuorumSourceListener
     action EnterBlock(BlockContext context)
         if currentBlock = undefined
             currentBlock = currentAction:GetBlock()
+        else 
+            currentBlock = currentBlock:GetNextBlock()
         end
     end
     
@@ -270,14 +272,21 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
     end
 
+    action EnterIfStatement(IfContext context) 
+        a = 5
+    end
+    
+
+    action ExitIfStatement(IfContext context) 
+        a = 5
+    end
+
     action ExitNormalAssignment(NormalAssignmentContext context) 
         text name = context:name
         Variable variable = undefined
         if context:isField
             variable = currentClass:GetVariable(name)
             //write the field
-
-
         else 
             variable = currentBlock:GetVariable(name)
             Type left = variable:GetType()

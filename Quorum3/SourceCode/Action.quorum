@@ -24,7 +24,8 @@ class Action is Symbol
         if me:block = undefined
             me:block = block
         else 
-            block:Add(block)
+            Block actionBlock = me:block
+            actionBlock:Add(block)
         end
     end
 
