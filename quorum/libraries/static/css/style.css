@@ -38,27 +38,62 @@
     color: white !important;
 }
 
-
-
-#video-container {
+#content-box {
     display: inline-block;
     vertical-align: top;
-    width: 468px;
     box-sizing: border-box;
-    margin-left: 4px;
+    height: 370px;
+    width: 39.5%;
+    margin-left: 0.5%;
+    background-color: rgba(255,255,255,.75);
+    border: solid 1px lightgrey;
 }
 
+#content-box h5 {
+    margin: 10px 0 0 0;
+}
 
+#slide-navigation {
+    display: block;
+    background: none repeat scroll 0 0 #0088CC;
+    color: #EEEEEE;
+    margin: 0;
+    padding: 10px;
+    height: 20px;
+}
+
+.slide-navigation-button {
+    display: inline-block;
+    vertical-align: top;
+    border: solid 1px lightgrey;
+    padding: 0px 6px;
+    margin-right: 4px;
+}
+
+.slide-navigation-button:hover {
+    background-color: white;
+    color: rgb(4, 156, 219);
+    cursor: pointer;
+}
+
+.active-slide-navigation-button {
+    background-color: rgb(235, 235, 235);
+    color: rgb(4, 156, 219);
+}
+
+#slide-box {
+    padding: 0 20px 10px 20px;
+}
 
 #hour-of-code-IDE {
-    width:40%;
-    height:351px;
+    width:39.5%;
+    height:370px;
     display: inline-block;
     vertical-align: top;
     box-sizing: border-box;
     border: solid 1px lightgrey;
     background: #EEEEEE;
-    margin-left: 4px;
+    margin-left: 0.5%;
     overflow: hidden;
 }
 
@@ -87,7 +122,7 @@ span.hour-of-code-IDE-subtitle {
 #hour-of-code-IDE-input {
     display: block;
     width: 100%;
-    min-height:210px;
+    min-height:203px;
     resize:none;
     font-family: Menlo, monospace;
     text-align: left;
@@ -131,7 +166,7 @@ span.hour-of-code-IDE-subtitle {
     height: 89px;
     width: 12%;
     vertical-align: top;
-    padding-top: 4px;
+    padding-top: 5px;
     background-color: #F5F5F5;
 }
 
@@ -139,15 +174,14 @@ span.hour-of-code-IDE-subtitle {
     outline: none;
 }
 
-#hour-of-code-canvas {
+#video-container {
     display: block;
     vertical-align: top;
     box-sizing: border-box;
     min-height: 351px;
-    width: 949px;
-    margin-left:241px;
+    width: 946px;
+    margin-left:244px;
     margin-top: 4px;
     background-color: rgba(255,255,255,.75);
-    border: solid 1px lightgrey;
     margin-bottom: 10px;
 }

@@ -1,6 +1,6 @@
 <div id="sidebar-navigation">
     <ul>
-        <a href="introduction.php"><li id="sidebar-introduction" class="sidebar-link">Introduction - Hello, Science!</li></a>
+        <a href="introduction.php"><li id="sidebar-introduction" class="sidebar-link">Introduction: Hello Science!</li></a>
         <a href="part1.php"><li id="sidebar-part1" class="sidebar-link">Part 1: Are you my mommy?</li></a>
         <a href="part2.php"><li id="sidebar-part2" class="sidebar-link">Part 2: Cloning</li></a>
         <a href="part3.php"><li id="sidebar-part3" class="sidebar-link">Part 3: Mutations!</li></a>

@@ -434,6 +434,8 @@ var expandAndCollapseLeftSideMenu = function() {
 }
 
 var submitCodeSample = function(){
+    //front page IDE
+    
 //	$("#run a").on("click", function(e) {
 //		e.preventDefault();
 //		$(".outputArea").text("");
@@ -491,6 +493,7 @@ var submitCodeSample = function(){
 	})
 }
 
+
 var AreYouMyMommy = function(mom, child) {
     if (mom.length == 0 || child.length == 0) {
         if (mom.length == 0) {
@@ -525,16 +528,16 @@ var AreYouMyMommy = function(mom, child) {
     }
 }
 
-var Person = function(eyeColor, hairColor) {
-  this.eyeColor = eyeColor;
-  this.hairColor = hairColor;
-}
-
-var CreateChild = function(parent1, parent2) {
-    var parents = [parent1, parent2];
-    var child = new Person(parents[Math.floor(Math.random() + 0.5)].eyeColor, parents[Math.floor(Math.random() + 0.5)].hairColor);
-    return child;
-}
+//var Person = function(eyeColor, hairColor) {
+//  this.eyeColor = eyeColor;
+//  this.hairColor = hairColor;
+//}
+//
+//var CreateChild = function(parent1, parent2) {
+//    var parents = [parent1, parent2];
+//    var child = new Person(parents[Math.floor(Math.random() + 0.5)].eyeColor, parents[Math.floor(Math.random() + 0.5)].hairColor);
+//    return child;
+//}
         
 
 
