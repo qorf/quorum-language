@@ -7,6 +7,10 @@ class UnaryOpcode is QuorumOpcode
     QuorumOpcode opcode = undefined
     JavaBytecodeMethodWriter methodWriter = undefined
 
+    action WriteJavaScript returns text
+        return ""
+    end
+
     action GetMethodWriter returns JavaBytecodeMethodWriter
         return methodWriter
     end
