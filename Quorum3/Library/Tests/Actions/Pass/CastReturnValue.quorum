@@ -1,0 +1,14 @@
+class Main
+    action Main
+        number k = bar(foo(4))
+        output k
+    end
+
+    action foo(integer a) returns integer
+        return a
+    end
+
+    action bar(number a) returns number
+        return a
+    end
+end
