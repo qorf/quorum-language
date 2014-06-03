@@ -50,7 +50,7 @@ class ExpressionsTester
 //        GetCharacterParameterText()   //test runs but fails
 //        GetMaxParameterInteger()
 //        GetTextParameterBoolean()     //test runs but faila
-        HelloWorld()
+        //HelloWorld()
 //        IsA()
 //        IsInfiniteNumberParameter()   //test runs but fails
         LTDoubleDouble()
@@ -298,10 +298,10 @@ class ExpressionsTester
 //        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GetTextParameterBoolean.quorum", "false")
     end
 
-    action HelloWorld
-        suite:RunTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
-    end
+//    action HelloWorld
+//        suite:RunTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
+//        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
+//    end
 
     action IsA
         suite:RunTest("Library/Tests/Expressions/Pass/IsA.quorum", "true")
@@ -472,12 +472,12 @@ class ExpressionsTester
 
     action OutputBoolean
         suite:RunTest("Library/Tests/Expressions/Pass/OutputBoolean.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OutputBoolean.quorum", "true")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OutputBoolean.quorum", "true")
     end
    
     action OutputDouble
         suite:RunTest("Library/Tests/Expressions/Pass/OutputDouble.quorum", "7.5")
-        //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OutputDouble.quorum", "7.5")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OutputDouble.quorum", "7.5")
     end
 
     action OutputInt

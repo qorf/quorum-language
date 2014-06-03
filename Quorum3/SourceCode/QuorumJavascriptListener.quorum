@@ -45,14 +45,36 @@ class QuorumJavascriptListener is QuorumSourceListener
         convertedSource = convertedSource + print
     end
 
+    action ExitBoolean(BooleanContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetBooleanConstant(context:value)
+
+        QuorumConstant const
+        const:SetType(type)
+        const:booleanValue = context:value
+        opcodeStack:Push(const)
+    end
+
     action ExitInteger(IntegerContext context) 
         Type type
         type:SetIsConstant(true)
-        type:SetTextConstant(context:value)
+        type:SetIntegerConstant(context:value)
 
         QuorumConstant const
         const:SetType(type)
         const:integerValue = context:value
+        opcodeStack:Push(const)
+    end
+
+    action ExitNumber(NumberContext context) 
+        Type type
+        type:SetIsConstant(true)
+        type:SetNumberConstant(context:value)
+
+        QuorumConstant const
+        const:SetType(type)
+        const:numberValue = context:value
         opcodeStack:Push(const)
     end
 

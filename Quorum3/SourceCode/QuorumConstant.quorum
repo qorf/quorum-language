@@ -10,6 +10,16 @@ class QuorumConstant is QuorumOpcode
     public text textValue = ""
 
     action WriteJavaScript returns text
+        Type type = GetType()
+        if type:IsInteger()
+            return type:GetIntegerConstant() + ""
+        elseif type:IsNumber()
+            return type:GetNumberConstant() + ""
+        elseif type:IsBoolean()
+            return type:GetBooleanConstant() + ""
+        elseif type:IsText()
+            return type:GetTextConstant() + ""
+        end
         return ""
     end
 
