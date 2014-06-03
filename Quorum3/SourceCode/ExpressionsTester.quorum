@@ -84,6 +84,10 @@ class ExpressionsTester
         NotEqualTextText()
         OrAndBooleanBoolean()
         OrBooleanBoolean()
+        OutputBoolean()
+        OutputDouble()
+        OutputInt()
+        OutputText()
         SubDoubleDouble()
         SubDoubleInt()
         SubIntDouble()
@@ -344,6 +348,11 @@ class ExpressionsTester
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTETextText.quorum", "true", "true")
     end
 
+    action LTIntDouble
+        suite:RunTest("Library/Tests/Expressions/Pass/LTIntDouble.quorum", "false", "true")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTIntDouble.quorum", "false", "true")
+    end
+
     action LTIntInt
         suite:RunTest("Library/Tests/Expressions/Pass/LTIntInt.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTIntInt.quorum", "false", "true")
@@ -358,11 +367,6 @@ class ExpressionsTester
         //note this test is not in ExpressionsTester.java
         //suite:RunTest("Library/Tests/Expressions/Pass/LocalVarDecl.quorum", "1000", "3.0", "c", "true", "false")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LocalVarDecl.quorum", "1000", "3.0", "c", "true", "false")
-    end
-
-    action LTIntDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/LtIntDouble.quorum", "false", "true")
-        //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LtIntDouble.quorum", "false", "true")
     end
 
     action MinusInteger()
@@ -465,6 +469,27 @@ class ExpressionsTester
         suite:RunTest("Library/Tests/Expressions/Pass/OrBooleanBoolean.quorum", "true", "true", "true", "false")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OrBooleanBoolean.quorum", "true", "true", "true", "false")
     end
+
+    action OutputBoolean
+        suite:RunTest("Library/Tests/Expressions/Pass/OutputBoolean.quorum", "true")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OutputBoolean.quorum", "true")
+    end
+   
+    action OutputDouble
+        suite:RunTest("Library/Tests/Expressions/Pass/OutputDouble.quorum", "7.5")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OutputDouble.quorum", "7.5")
+    end
+
+    action OutputInt
+        suite:RunTest("Library/Tests/Expressions/Pass/OutputInt.quorum", "5")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OutputInt.quorum", "5")
+    end
+   
+    action OutputText
+        suite:RunTest("Library/Tests/Expressions/Pass/OutputText.quorum", "Hello, World!")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OutputText.quorum", "Hello, World!")
+    end
+
 
     action SubDoubleDouble
         suite:RunTest("Library/Tests/Expressions/Pass/SubDoubleDouble.quorum", "0.0", "0.0")
