@@ -28,6 +28,11 @@ class QuorumJavascriptListener is QuorumSourceListener
         return convertedSource
     end
 
+    action ExitNormalAssignment(NormalAssignmentContext context) 
+
+
+    end
+
     action ExitOutputStatement(OutputContext context)
         QuorumOpcode op = opcodeStack:Pop()
         Type type = op:GetType()
@@ -35,8 +40,8 @@ class QuorumJavascriptListener is QuorumSourceListener
         quote = quote:GetDoubleQuote()
 
         text print = OUTPUT_VARIABLE + " += " //print(" + quote
-        print = print + quote + type:GetTextConstant() + quote + ";" + quote:GetCarriageReturn() + quote:GetLineFeed()
-
+        text opcodeResult = op:WriteJavaScript()
+        print = print + quote + opcodeResult + quote + ";" + quote:GetCarriageReturn() + quote:GetLineFeed()
         convertedSource = convertedSource + print
     end
 

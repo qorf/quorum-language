@@ -9,6 +9,10 @@ class QuorumConstant is QuorumOpcode
     public boolean booleanValue = false
     public text textValue = ""
 
+    action WriteJavaScript returns text
+        return ""
+    end
+
     action Write
         Type type = GetType()
         if type:IsInteger()
