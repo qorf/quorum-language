@@ -18,6 +18,9 @@ class BinaryAndOrOpcode is QuorumOpcode
     public boolean isOnLeft = false
     public BinaryAndOrOpcode opcodeParent = undefined
 
+    action WriteJavaScript returns text
+        return ""
+    end
 
     action Write
         leftHandSideLabel = GetLeftHandSideLabel()

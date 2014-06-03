@@ -13,6 +13,10 @@ class BinaryOpcode is QuorumOpcode
     integer leftOpcode2 = -1
     integer rightOpcode2 = -1
 
+    action WriteJavaScript returns text
+        return ""
+    end
+
     action GetJavaOpcode returns integer
         return opcode
     end
