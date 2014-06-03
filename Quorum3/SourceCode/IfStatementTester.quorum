@@ -1,0 +1,155 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.QuorumJarGenerator
+use Libraries.System.StackTraceItem
+
+class IfStatementTester 
+    CompilerTestSuite suite = undefined
+    action Test
+//        IfElseIfElseMultipleConditions()
+//        IfElseIfElse_Const()
+//        IfElseIfElse_Var()
+//        IfElseIfStatement_Const()
+//        IfElseIfStatement_Var()
+//        IfNestedInElse()
+//        IfNestedInElseIf()
+//        IfNestedInIf()
+//        IfStatementCompoundBoolean()
+//        IfStatementCompoundEqual()
+//        IfStatementCompoundLTandEqual()
+//        IfStatementOneCondition_Const()
+//        IfStatementOneCondition_Equal()
+//        IfStatementOneCondition_GT()
+//        IfStatementOneCondition_GTE()
+//        IfStatementOneCondition_LT()
+//        IfStatementOneCondition_LTE()
+//        IfStatementOneCondition_NotEqual()
+//        IfStatementOneCondition_Var()
+//        IfWithElse_Const()
+//        IfWithElse_Var()
+    end
+
+    action GetName returns text
+        return "If Statement Tests"
+    end
+
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+    action IfElseIfElseMultipleConditions
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfElseIfElseMultipleConditions.quorum", "5")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfElseIfElseMultipleConditions.quorum", "5")
+    end
+
+    action IfElseIfElse_Const 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfElseIfElse_Const.quorum", "7")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfElseIfElse_Const.quorum", "7")
+    end
+
+    action IfElseIfElse_Var 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfElseIfElse_Var.quorum", "7")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfElseIfElse_Var.quorum", "7")
+    end
+
+    action IfElseIfStatement_Const 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfElseIfStatement_Const.quorum", "20")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfElseIfStatement_Const.quorum", "20")
+    end
+
+    action IfElseIfStatement_Var 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfElseIfStatement_Var.quorum", "10")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfElseIfStatement_Var.quorum", "10")
+    end
+
+    action IfNestedInElse 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfNestedInElse.quorum", "7")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfNestedInElse.quorum", "7")
+    end
+
+    action IfNestedInElseIf 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfNestedInElseIf.quorum", "7")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfNestedInElseIf.quorum", "7")
+    end
+
+    action IfNestedInIf 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfNestedInIf.quorum", "7")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfNestedInIf.quorum", "7")
+    end
+
+    action IfStatementCompoundBoolean 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementCompoundBoolean.quorum", "true")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementCompoundBoolean.quorum", "true")
+    end
+
+    action IfStatementCompoundEqual 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementCompoundEqual.quorum", "true")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementCompoundEqual.quorum", "true")
+    end
+
+    action IfStatementCompoundLTandEqual 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementCompoundLTandEqual.quorum", "true")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementCompoundLTandEqual.quorum", "true")
+    end
+
+    action IfStatementOneCondition_Const 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_Const.quorum", "false")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_Const.quorum", "false")
+    end
+
+    action IfStatementOneCondition_Equal 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_Equal.quorum", "true")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_Equal.quorum", "true")
+    end
+
+    action IfStatementOneCondition_GT 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GT.quorum", "true")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GT.quorum", "true")
+    end
+
+    action IfStatementOneCondition_GTE 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GTE.quorum", "true")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GTE.quorum", "true")
+    end
+
+    action IfStatementOneCondition_LT 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LT.quorum", "true")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LT.quorum", "true")
+    end
+
+    action IfStatementOneCondition_LTE 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LTE.quorum", "true")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LTE.quorum", "true")
+    end
+
+    action IfStatementOneCondition_NotEqual 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_NotEqual.quorum", "true")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_NotEqual.quorum", "true")
+    end
+
+    action IfStatementOneCondition_Var 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_Var.quorum", "false")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_Var.quorum", "false")
+    end
+
+    action IfWithElse_Const 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfWithElse_Const.quorum", "6")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfWithElse_Const.quorum", "6")
+    end
+
+    action IfWithElse_Var 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfWithElse_Var.quorum", "6")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfWithElse_Var.quorum", "6")
+    end
+    
+end

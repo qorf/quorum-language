@@ -18,10 +18,12 @@ class CompilerTestSuite
     Math math
     ExpressionsTester expressions
     TypeCheckTester typeChecks
+    IfStatementTester ifStatementChecks
 
     on create
         expressions:SetCompilerTestSuite(me)
         typeChecks:SetCompilerTestSuite(me)
+        ifStatementChecks:SetCompilerTestSuite(me)
     end
 
     action Main
@@ -35,6 +37,9 @@ class CompilerTestSuite
         output ""
         output typeChecks:GetName()
         typeChecks:Test()
+        output ""
+        output ifStatementChecks:GetName()
+        ifStatementChecks:Test()
         output ""
 
         DateTime date2
