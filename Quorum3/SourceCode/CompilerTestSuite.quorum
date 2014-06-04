@@ -20,12 +20,14 @@ class CompilerTestSuite
     TypeCheckTester typeChecks
     IfStatementTester ifStatementChecks
     LoopsTester loopsChecks
+    ActionsTester actionsChecks
 
     on create
         expressions:SetCompilerTestSuite(me)
         typeChecks:SetCompilerTestSuite(me)
         ifStatementChecks:SetCompilerTestSuite(me)
         loopsChecks:SetCompilerTestSuite(me)
+        actionsChecks:SetCompilerTestSuite(me)
     end
 
     action Main
@@ -45,6 +47,9 @@ class CompilerTestSuite
         output ""
         output loopsChecks:GetName()
         loopsChecks:Test()
+        output ""
+        output actionsChecks:GetName()
+        actionsChecks:Test()
         output ""
 
         DateTime date2
