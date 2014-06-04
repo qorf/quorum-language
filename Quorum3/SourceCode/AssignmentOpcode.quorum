@@ -1,0 +1,66 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+
+class AssignmentOpcode is QuorumOpcode
+    integer bytecodeLocation = -1
+    integer opcode = -1
+    integer opcode2 = -1
+    JavaBytecodeMethodWriter methodWriter = undefined
+    QuorumOpcode rightHandSide = undefined
+
+    action GetRightHandSide returns QuorumOpcode
+        return rightHandSide
+    end
+
+    action SetRightHandSide(QuorumOpcode opcode)
+        rightHandSide = opcode
+    end
+
+    action GetJavaOpcode returns integer
+        return opcode
+    end
+
+    action SetJavaOpcode(integer op)
+        opcode = op
+    end
+
+    action GetJavaOpcode2 returns integer
+        return opcode2
+    end
+
+    action SetJavaOpcode2(integer op)
+        opcode2 = op
+    end
+    
+    action GetBytecodeLocation returns integer
+        return bytecodeLocation
+    end
+
+    action SetBytecodeLocation(integer location)
+        bytecodeLocation = location
+    end
+
+    action GetMethodWriter returns JavaBytecodeMethodWriter
+        return methodWriter
+    end
+
+    action SetMethodWriter(JavaBytecodeMethodWriter writer)
+        methodWriter = writer
+    end
+
+    action Write 
+    end
+
+    action WriteJavaScript returns text 
+        return ""
+    end
+
+    action GetTemplateCopy returns QuorumOpcode
+        AssignmentOpcode op
+        Type t = GetType()
+        me:SetType(t:Copy())
+        op:opcode = opcode
+        return op
+    end
+end

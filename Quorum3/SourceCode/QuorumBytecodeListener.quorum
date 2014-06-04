@@ -281,6 +281,12 @@ class QuorumBytecodeListener is QuorumSourceListener
         a = 5
     end
 
+    action EnterElseIfStatement(IfContext context) end
+    action ExitElseIfStatement(IfContext context) end
+
+    action EnterElseStatement(IfContext context) end
+    action ExitElseStatement(IfContext context) end
+
     action ExitNormalAssignment(NormalAssignmentContext context) 
         text name = context:name
         Variable variable = undefined
@@ -301,10 +307,19 @@ class QuorumBytecodeListener is QuorumSourceListener
             right:Write()
             //write the local variable, which is guaranteed at this stage not null
             integer location = variable:GetBytecodeLocation()
-            JavaOpcodeWriter writer = result:writer
-            if writer not= undefined
-                writer:Write(methodWriter, location)
-            end
+            Type value = result:result
+            AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+            assignment:SetRightHandSide(right)
+            assignment:SetType(value)
+            assignment:SetMethodWriter(methodWriter)
+            opcodeStack:Push(assignment)
+
+
+
+//            JavaOpcodeWriter writer = result:writer
+//            if writer not= undefined
+//                writer:Write(methodWriter, location)
+//            end
         end
     end
 
@@ -329,12 +344,20 @@ class QuorumBytecodeListener is QuorumSourceListener
             TypeChecker checker = GetTypeChecker()
             TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
 
-            right:Write()
-            //write the local variable, guaranteed at this stage not be null
+            //right:Write()
             integer location = variable:GetBytecodeLocation()
-            //temporary --- replace with actual opcode output
-            JavaOpcodeWriter writer = result:writer
-            writer:Write(methodWriter, location)
+            Type value = result:result
+            AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+            assignment:SetRightHandSide(right)
+            assignment:SetType(value)
+            assignment:SetMethodWriter(methodWriter)
+            opcodeStack:Push(assignment)
+
+            //write the local variable, guaranteed at this stage not be null
+//            integer location = variable:GetBytecodeLocation()
+//            //temporary --- replace with actual opcode output
+//            JavaOpcodeWriter writer = result:writer
+//            writer:Write(methodWriter, location)
             //methodWriter:VisitVariable(opcodes:GetIntegerStore(),location)
             
         end
