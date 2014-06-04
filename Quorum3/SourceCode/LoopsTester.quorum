@@ -1,0 +1,239 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.QuorumJarGenerator
+use Libraries.System.StackTraceItem
+
+class LoopsTester 
+    CompilerTestSuite suite = undefined
+    action Test
+//        RepeatFromToConstConst()
+//        RepeatFromToConstVar()
+//        RepeatFromToNestedConstConst()
+//        RepeatFromToNestedConstVar()
+//        RepeatFromToNestedVarConst()
+//        RepeatFromToNestedVarVar()
+//        RepeatFromToVarConst()
+//        RepeatFromToVarVar()
+//        RepeatNestedFromTimesUntilWhile()
+//        RepeatNestedTimesFromUntilWhile()
+//        RepeatNestedUntilWhileTimesFrom()
+//        RepeatNestedWhileUntilTimesFrom()
+//        RepeatTimesConst()
+//        RepeatTimesNestedConstConst()
+//        RepeatTimesNestedConstVar()
+//        RepeatTimesNestedVarConst()
+//        RepeatTimesNestedVarVar()
+//        RepeatTimesVar()
+//        RepeatUntilBoolean()
+//        RepeatUntilEqual()
+//        RepeatUntilGreaterThan()
+//        RepeatUntilGreaterThanEqual()
+//        RepeatUntilLessThan()
+//        RepeatUntilLessThanEqual()
+//        RepeatUntilNotEqual()
+//        RepeatWhileAndUntilWithParenNot()
+//        RepeatWhileBoolean()
+//        RepeatWhileEqual()
+//        RepeatWhileGreaterThan()
+//        RepeatWhileGreaterThanEqual()
+//        RepeatWhileLessThan()
+//        RepeatWhileLessThanEqual()
+//        RepeatWhileNotEqual()
+//        RepeatWhileZeroTimes()
+//        SimpleRepeatWhile()
+    end
+
+    action GetName returns text
+        return "Loops Tests"
+    end
+
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+    action RepeatFromToConstConst 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatFromToConstConst.quorum", "11")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatFromToConstConst.quorum", "11")
+    end
+
+    action RepeatFromToConstVar 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatFromToConstVar.quorum", "11")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatFromToConstVar.quorum", "11")
+    end
+
+    action RepeatFromToNestedConstConst 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatFromToNestedConstConst.quorum", "101")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatFromToNestedConstConst.quorum", "101")
+    end
+
+    action RepeatFromToNestedConstVar 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatFromToNestedConstVar.quorum", "11")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatFromToNestedConstVar.quorum", "11")
+    end
+
+    action RepeatFromToNestedVarConst 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatFromToNestedVarConst.quorum", "101")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatFromToNestedVarConst.quorum", "101")
+    end
+
+    action RepeatFromToNestedVarVar 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatFromToNestedVarVar.quorum", "101")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatFromToNestedVarVar.quorum", "101")
+    end
+
+    action RepeatFromToVarConst 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatFromToVarConst.quorum", "56")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatFromToVarConst.quorum", "56")
+    end
+
+    action RepeatFromToVarVar 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatFromToVarVar.quorum", "11")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatFromToVarVar.quorum", "11")
+    end
+
+    action RepeatNestedFromTimesUntilWhile 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatNestedFromTimesUntilWhile.quorum", "82")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatNestedFromTimesUntilWhile.quorum", "82")
+    end
+
+    action RepeatNestedTimesFromUntilWhile 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatNestedTimesFromUntilWhile.quorum", "82")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatNestedTimesFromUntilWhile.quorum", "82")
+    end
+
+    action RepeatNestedUntilWhileTimesFrom 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatNestedUntilWhileTimesFrom.quorum", "82")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatNestedUntilWhileTimesFrom.quorum", "82")
+    end
+
+    action RepeatNestedWhileUntilTimesFrom 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatNestedWhileUntilTimesFrom.quorum", "82")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatNestedWhileUntilTimesFrom.quorum", "82")
+    end
+
+    action RepeatTimesConst 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatTimesConst.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatTimesConst.quorum", "5")
+    end
+
+    action RepeatTimesNestedConstConst 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatTimesNestedConstConst.quorum", "25")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatTimesNestedConstConst.quorum", "25")
+    end
+
+    action RepeatTimesNestedConstVar 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatTimesNestedConstVar.quorum", "25")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatTimesNestedConstVar.quorum", "25")
+    end
+
+    action RepeatTimesNestedVarConst 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatTimesNestedVarConst.quorum", "25")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatTimesNestedVarConst.quorum", "25")
+    end
+
+    action RepeatTimesNestedVarVar 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatTimesNestedVarVar.quorum", "25")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatTimesNestedVarVar.quorum", "25")
+    end
+
+    action RepeatTimesVar 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatTimesVar.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatTimesVar.quorum", "5")
+    end
+
+    action RepeatUntilBoolean 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatUntilBoolean.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatUntilBoolean.quorum", "5")
+    end
+
+    action RepeatUntilEqual 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatUntilEqual.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatUntilEqual.quorum", "5")
+    end
+
+    action RepeatUntilGreaterThan 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatUntilGreaterThan.quorum", "6")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatUntilGreaterThan.quorum", "6")
+    end
+
+    action RepeatUntilGreaterThanEqual 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatUntilGreaterThanEqual.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatUntilGreaterThanEqual.quorum", "5")
+    end
+
+    action RepeatUntilLessThan 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatUntilLessThan.quorum", "4")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatUntilLessThan.quorum", "4")
+    end
+
+    action RepeatUntilLessThanEqual 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatUntilLessThanEqual.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatUntilLessThanEqual.quorum", "5")
+    end
+
+    action RepeatUntilNotEqual 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatUntilNotEqual.quorum", "6")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatUntilNotEqual.quorum", "6")
+    end
+
+    action RepeatWhileAndUntilWithParenNot 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatWhileAndUntilWithParenNot.quorum", "101", "101", "false", "true", "done.")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatWhileAndUntilWithParenNot.quorum", "101", "101", "false", "true", "done.")
+    end
+
+    action RepeatWhileBoolean 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatWhileBoolean.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatWhileBoolean.quorum", "5")
+    end
+
+    action RepeatWhileEqual 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatWhileEqual.quorum", "0")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatWhileEqual.quorum", "0")
+    end
+
+    action RepeatWhileGreaterThan 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatWhileGreaterThan.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatWhileGreaterThan.quorum", "5")
+    end
+
+    action RepeatWhileGreaterThanEqual 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatWhileGreaterThanEqual.quorum", "4")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatWhileGreaterThanEqual.quorum", "4")
+    end
+
+    action RepeatWhileLessThan 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatWhileLessThan.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatWhileLessThan.quorum", "5")
+    end
+
+    action RepeatWhileLessThanEqual 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatWhileLessThanEqual.quorum", "6")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatWhileLessThanEqual.quorum", "6")
+    end
+
+    action RepeatWhileNotEqual 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatWhileNotEqual.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatWhileNotEqual.quorum", "5")
+    end
+
+    action RepeatWhileZeroTimes 
+        suite:RunTest("Library/Tests/Expressions/Loops/RepeatWhileZeroTimes.quorum", "0")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/RepeatWhileZeroTimes.quorum", "0")
+    end
+
+    action SimpleRepeatWhile 
+        suite:RunTest("Library/Tests/Expressions/Loops/SimpleRepeatWhile.quorum", "2")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Loops/SimpleRepeatWhile.quorum", "2")
+    end
+
+end
