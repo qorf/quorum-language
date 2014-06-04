@@ -11,6 +11,10 @@ use Libraries.Language.Compile.Translate.all
 
 
 class QuorumJavascriptListener is QuorumSourceListener
+    QualifiedName packageValue = undefined
+    Action currentAction = undefined
+    Class currentClass = undefined
+    Block currentBlock = undefined
     Stack<QuorumOpcode> opcodeStack
     constant text OUTPUT_VARIABLE = "finalOutput_______"
     text convertedSource = "var " + OUTPUT_VARIABLE + " = "
@@ -28,9 +32,64 @@ class QuorumJavascriptListener is QuorumSourceListener
         return convertedSource
     end
 
+    action ExitPackageRule(PackageContext context) 
+        packageValue = context:name
+    end
+
+    action EnterFullClassDeclaration(FullClassDeclarationContext context) 
+        text name = context:className
+        SymbolTable table = me:GetSymbolTable()
+        
+        text staticKey = ""
+        if packageValue = undefined
+            QualifiedName default
+            packageValue = default
+        end
+        staticKey = packageValue:GetClassStaticKey(name)
+        currentClass = table:GetClass(staticKey)
+    end
+
+    action ExitActionHeader(ActionContext context)
+        if currentClass not= undefined
+            //get the method name
+            text key = context:GetStaticKey()
+            Action method = currentClass:GetAction(key)
+            currentAction = method
+        end
+    end
+
     action ExitNormalAssignment(NormalAssignmentContext context) 
+        text name = context:name
+        Variable variable = undefined
+        
+        if context:isField
+            variable = currentClass:GetVariable(name)
+            //write the field
+        else 
+            variable = currentBlock:GetVariable(name)
+            Type left = variable:GetType()
+            QuorumOpcode right = opcodeStack:Pop()
 
+            Operation assign
+            assign:SetOperation(assign:EQUALS)
 
+            TypeChecker checker = GetTypeChecker()
+            TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
+
+            text quote = ""
+            quote = quote:GetDoubleQuote()
+
+            text print = OUTPUT_VARIABLE + " = "
+            text opcodeResult = right:WriteJavaScript()
+            print = print + quote + opcodeResult + quote + ";" + quote:GetCarriageReturn() + quote:GetLineFeed()
+            convertedSource = convertedSource + print
+            //write the local variable, which is guaranteed at this stage not null
+//            integer location = variable:GetBytecodeLocation()
+//            JavaOpcodeWriter writer = result:writer
+//            if writer not= undefined
+//                writer:Write(methodWriter, location)
+//            end
+        end
     end
 
     action ExitOutputStatement(OutputContext context)
@@ -43,6 +102,20 @@ class QuorumJavascriptListener is QuorumSourceListener
         text opcodeResult = op:WriteJavaScript()
         print = print + quote + opcodeResult + quote + ";" + quote:GetCarriageReturn() + quote:GetLineFeed()
         convertedSource = convertedSource + print
+    end
+
+    action EnterBlock(BlockContext context)
+        if currentBlock = undefined
+            currentBlock = currentAction:GetBlock()
+        else 
+            currentBlock = currentBlock:GetNextBlock()
+        end
+    end
+    
+    action ExitBlock(BlockContext context)
+        if currentBlock not= undefined
+            currentBlock = currentBlock:GetParentBlock() //may be undefined
+        end
     end
 
     action ExitBoolean(BooleanContext context) 
