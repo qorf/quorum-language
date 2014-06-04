@@ -19,11 +19,15 @@ class CompilerTestSuite
     ExpressionsTester expressions
     TypeCheckTester typeChecks
     IfStatementTester ifStatementChecks
+    LoopsTester loopsChecks
+    ActionsTester actionsChecks
 
     on create
         expressions:SetCompilerTestSuite(me)
         typeChecks:SetCompilerTestSuite(me)
         ifStatementChecks:SetCompilerTestSuite(me)
+        loopsChecks:SetCompilerTestSuite(me)
+        actionsChecks:SetCompilerTestSuite(me)
     end
 
     action Main
@@ -40,6 +44,12 @@ class CompilerTestSuite
         output ""
         output ifStatementChecks:GetName()
         ifStatementChecks:Test()
+        output ""
+        output loopsChecks:GetName()
+        loopsChecks:Test()
+        output ""
+        output actionsChecks:GetName()
+        actionsChecks:Test()
         output ""
 
         DateTime date2
@@ -92,6 +102,104 @@ class CompilerTestSuite
                 Array<text> lines = result:lines
                 if lines:GetSize() = 1
                     if lines:Get(0) = reply
+                       result:passed = true
+                    end
+                end
+            end
+        detect e
+            text message = e:GetErrorMessage()
+            result:errorMessage = message
+            result:stackTrace = e:GetStackTrace()
+        end
+        result:isJavaScriptTest = true
+        Add(result)
+    end
+
+    action RunJavaScriptTest(text source, text reply1, text reply2)
+        CompilerTestResult result
+        result:name = source
+        check
+            result = RunJavaScriptTest(result:name)
+            if result:ranWithoutError
+                Array<text> lines = result:lines
+                if lines:GetSize() = 2
+                    if lines:Get(0) = reply1 and 
+                       lines:Get(1) = reply2
+                       result:passed = true
+                    end
+                end
+            end
+        detect e
+            text message = e:GetErrorMessage()
+            result:errorMessage = message
+            result:stackTrace = e:GetStackTrace()
+        end
+        result:isJavaScriptTest = true
+        Add(result)
+    end
+
+    action RunJavaScriptTest(text source, text reply1, text reply2, text reply3)
+        CompilerTestResult result
+        result:name = source
+        check
+            result = RunJavaScriptTest(result:name)
+            if result:ranWithoutError
+                Array<text> lines = result:lines
+                if lines:GetSize() = 3
+                    if lines:Get(0) = reply1 and 
+                       lines:Get(1) = reply2 and
+                       lines:Get(2) = reply3
+                       result:passed = true
+                    end
+                end
+            end
+        detect e
+            text message = e:GetErrorMessage()
+            result:errorMessage = message
+            result:stackTrace = e:GetStackTrace()
+        end
+        result:isJavaScriptTest = true
+        Add(result)
+    end
+
+    action RunJavaScriptTest(text source, text reply1, text reply2, text reply3, text reply4)
+        CompilerTestResult result
+        result:name = source
+        check
+            result = RunJavaScriptTest(result:name)
+            if result:ranWithoutError
+                Array<text> lines = result:lines
+                if lines:GetSize() = 4
+                    if lines:Get(0) = reply1 and 
+                       lines:Get(1) = reply2 and
+                       lines:Get(2) = reply3 and
+                       lines:Get(3) = reply4
+                       result:passed = true
+                    end
+                end
+            end
+        detect e
+            text message = e:GetErrorMessage()
+            result:errorMessage = message
+            result:stackTrace = e:GetStackTrace()
+        end
+        result:isJavaScriptTest = true
+        Add(result)
+    end
+
+    action RunJavaScriptTest(text source, text reply1, text reply2, text reply3, text reply4, text reply5)
+        CompilerTestResult result
+        result:name = source
+        check
+            result = RunJavaScriptTest(result:name)
+            if result:ranWithoutError
+                Array<text> lines = result:lines
+                if lines:GetSize() = 5
+                    if lines:Get(0) = reply1 and 
+                       lines:Get(1) = reply2 and
+                       lines:Get(2) = reply3 and
+                       lines:Get(3) = reply4 and
+                       lines:Get(4) = reply5
                        result:passed = true
                     end
                 end
@@ -219,6 +327,33 @@ class CompilerTestSuite
                        lines:Get(1) = reply2 and
                        lines:Get(2) = reply3 and
                        lines:Get(3) = reply4
+                       result:passed = true
+                    end
+                end
+            end
+            
+        detect e
+            text message = e:GetErrorMessage()
+            result:errorMessage = message
+            result:stackTrace = e:GetStackTrace()
+        end
+        result:isBytecodeTest = true
+        Add(result)
+    end
+
+    action RunTest(text source, text reply1, text reply2, text reply3, text reply4, text reply5)
+        CompilerTestResult result
+        result:name = source
+        check
+            result = RunTest(result:name)
+            if result:ranWithoutError
+                Array<text> lines = result:lines
+                if lines:GetSize() = 5
+                    if lines:Get(0) = reply1 and 
+                       lines:Get(1) = reply2 and
+                       lines:Get(2) = reply3 and
+                       lines:Get(3) = reply4 and
+                       lines:Get(4) = reply5
                        result:passed = true
                     end
                 end

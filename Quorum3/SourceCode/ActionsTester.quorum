@@ -1,0 +1,234 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.QuorumJarGenerator
+use Libraries.System.StackTraceItem
+
+class ActionsTester 
+    CompilerTestSuite suite = undefined
+
+    action Test
+//        AverageOfFiveNumbers()
+//        CallObjectAction()
+//        CastLastArgument()
+//        CastMiddleArgument()
+//        CastReturn()
+//        CastReturnValue()
+//        Factorial()
+//        Fibonacci()
+//        Field()
+//        FieldCastParameter()
+//        FieldCastReturn()
+//        GCD()
+//        MultipleNestedFunctionCalls()
+//        MultipleNestedFunctionCallsDouble()
+//        MultipleNestedFunctionCallsInSoloCall()
+//        MultipleNestedFunctionCallsWithAssignments()
+//        MultipleNestedFunctionCallsWithAssignmentsDouble()
+//        NestedFunctionCall()
+//        NestedFunctionCallDouble()
+//        SimpleActionPassObject()
+//        SimpleCastArgument()
+//        SimpleNestedActions()
+//        SimpleOneActionChangeParameter()
+//        SimpleOneActionConcatenateText()
+//        SimpleOneActionInControlExpression()
+//        SimpleOneActionNoParamsNoReturn()
+//        SimpleOneActionNoParamsReturnBoolean()
+//        SimpleOneActionNoParamsReturnInt()
+//        SimpleOneActionNoParamsReturnNumber()
+//        SimpleOneActionNoParamsReturnNumberConcatenate()
+//        SimpleOneActionNoParamsReturnText()
+//        SimpleOneActionTwoParamsReturnInt()
+//        TwoActionsDifferentParameters()
+//        VTableObjectTest()
+    end
+
+    action GetName returns text
+        return "Actions Tests"
+    end
+
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+    action AverageOfFiveNumbers 
+        suite:RunTest("Library/Tests/Actions/Pass/AverageOfFiveNumbers.quorum", "337.546")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/AverageOfFiveNumbers.quorum", "337.546")
+    end
+
+    action CallObjectAction 
+        suite:RunTest("Library/Tests/Actions/Pass/CallObjectAction.quorum", "I went")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/CallObjectAction.quorum", "I went")
+    end
+
+    action CastLastArgument 
+        suite:RunTest("Library/Tests/Actions/Pass/CastLastArgument.quorum", "1.0")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/CastLastArgument.quorum", "1.0")
+    end
+
+    action CastMiddleArgument 
+        suite:RunTest("Library/Tests/Actions/Pass/CastMiddleArgument.quorum", "1.0")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/CastMiddleArgument.quorum", "1.0")
+    end
+
+    action CastReturn 
+        suite:RunTest("Library/Tests/Actions/Pass/CastReturn.quorum", "1.0")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/CastReturn.quorum", "1.0")
+    end
+
+    action CastReturnValue 
+        suite:RunTest("Library/Tests/Actions/Pass/CastReturnValue.quorum", "4.0")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/CastReturnValue.quorum", "4.0")
+    end
+
+    action Factorial 
+        suite:RunTest("Library/Tests/Actions/Pass/Factorial.quorum", "120")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/Factorial.quorum", "120")
+    end
+
+    action Fibonacci 
+        suite:RunTest("Library/Tests/Actions/Pass/Fibonacci.quorum", "55")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/Fibonacci.quorum", "55")
+    end
+
+    action Field 
+        suite:RunTest("Library/Tests/Actions/Pass/Field.quorum", "4")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/Field.quorum", "4")
+    end
+
+    action FieldCastParameter 
+        suite:RunTest("Library/Tests/Actions/Pass/FieldCastParameter.quorum", "4")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/FieldCastParameter.quorum", "4")
+    end
+
+    action FieldCastReturn 
+        suite:RunTest("Library/Tests/Actions/Pass/FieldCastReturn.quorum", "4.0")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/FieldCastReturn.quorum", "4.0")
+    end
+
+    action GCD 
+        suite:RunTest("Library/Tests/Actions/Pass/GCD.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/GCD.quorum", "5")
+    end
+
+    action MultipleNestedFunctionCalls 
+        suite:RunTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCalls.quorum", "65536")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCalls.quorum", "65536")
+    end
+
+    action MultipleNestedFunctionCallsDouble 
+        suite:RunTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsDouble.quorum", "65536.0")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsDouble.quorum", "65536.0")
+    end
+
+    action MultipleNestedFunctionCallsInSoloCall 
+        suite:RunTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsInSoloCall.quorum", "65536")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsInSoloCall.quorum", "65536")
+    end
+
+    action MultipleNestedFunctionCallsWithAssignments
+        suite:RunTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsWithAssignments.quorum", "65536")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsWithAssignments.quorum", "65536")
+    end
+
+    action MultipleNestedFunctionCallsWithAssignmentsDouble 
+        suite:RunTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsWithAssignmentsDouble.quorum", "65536.0")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsWithAssignmentsDouble.quorum", "65536.0")
+    end
+
+    action NestedFunctionCall 
+        suite:RunTest("Library/Tests/Actions/Pass/NestedFunctionCall.quorum", "300")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/NestedFunctionCall.quorum", "300")
+    end
+
+    action NestedFunctionCallDouble 
+        suite:RunTest("Library/Tests/Actions/Pass/NestedFunctionCallDouble.quorum", "300.0")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/NestedFunctionCallDouble.quorum", "300.0")
+    end
+
+    action SimpleActionPassObject 
+        suite:RunTest("Library/Tests/Actions/Pass/SimpleActionPassObject.quorum", "Hello World!")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleActionPassObject.quorum", "Hello World!")
+    end
+
+    action SimpleCastArgument 
+        suite:RunTest("Library/Tests/Actions/Pass/SimpleCastArgument.quorum", "1.0")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleCastArgument.quorum", "1.0")
+    end
+
+    action SimpleNestedActions 
+        suite:RunTest("Library/Tests/Actions/Pass/SimpleNestedActions.quorum", "125")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleNestedActions.quorum", "125")
+    end
+
+    action SimpleOneActionChangeParameter 
+        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionChangeParameter.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionChangeParameter.quorum", "5")
+    end
+
+    action SimpleOneActionConcatenateText 
+        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionConcatenateText.quorum", "hello world")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionConcatenateText.quorum", "hello world")
+    end
+
+    action SimpleOneActionInControlExpression 
+        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionInControlExpression.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionInControlExpression.quorum", "false")
+    end
+
+    action SimpleOneActionNoParamsNoReturn 
+        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsNoReturn.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsNoReturn.quorum", "5")
+    end
+
+    action SimpleOneActionNoParamsReturnBoolean 
+        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnBoolean.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnBoolean.quorum", "true")
+    end
+
+    action SimpleOneActionNoParamsReturnInt 
+        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnInt.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnInt.quorum", "5")
+    end
+
+    action SimpleOneActionNoParamsReturnNumber 
+        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnNumber.quorum", "5.0")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnNumber.quorum", "5.0")
+    end
+
+    action SimpleOneActionNoParamsReturnNumberConcatenate 
+        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnNumberConcatenate.quorum", "36.0")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnNumberConcatenate.quorum", "36.0")
+    end
+
+    action SimpleOneActionNoParamsReturnText 
+        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnText.quorum", "5.0")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnText.quorum", "5.0")
+    end
+
+    action SimpleOneActionTwoParamsReturnInt 
+        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionTwoParamsReturnInt.quorum", "15")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionTwoParamsReturnInt.quorum", "15")
+    end
+
+    action TwoActionsDifferentParameters 
+        suite:RunTest("Library/Tests/Actions/Pass/TwoActionsDifferentParameters.quorum", "true", "false")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/TwoActionsDifferentParameters.quorum", "true", "false")
+    end
+
+    action VTableObjectTest 
+        suite:RunTest("Library/Tests/Actions/Pass/VTableObjectTest.quorum", "0","1")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/VTableObjectTest.quorum", "0","1")
+    end
+
+end
