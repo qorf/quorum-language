@@ -14,7 +14,32 @@ class BinaryOpcode is QuorumOpcode
     integer rightOpcode2 = -1
 
     action WriteJavaScript returns text
+        //This isn't working yet, it's just been stubbed in
+        left:Write()
+        WriteJavaScriptLeft()
+        right:Write()
+        WriteJavaScriptRight()
+
+        if opcode not= -1
+            return "" + opcode
+        end
         return ""
+    end
+
+    action WriteJavaScriptLeft returns text
+        text returnText = ""
+        if leftOpcode not= -1
+            returnText = returnText + leftOpcode
+        end
+        return returnText
+    end
+
+    action WriteJavaScriptRight returns text
+        text returnText = ""
+        if rightOpcode not= -1
+            returnText = returnText + rightOpcode
+        end
+        return returnText
     end
 
     action GetJavaOpcode returns integer

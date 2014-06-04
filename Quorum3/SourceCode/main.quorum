@@ -7,6 +7,9 @@ use Libraries.Language.Compile.Translate.QuorumJarGenerator
 use Libraries.Web.WebResponder
 use Libraries.Web.WebResponse
 use Libraries.Web.WebRequest
+use Libraries.Language.Compile.Test.CompilerTestSuite
+use Libraries.Language.Compile.Test.CompilerTestResult
+use Libraries.Containers.Array
 
 class Main is WebResponder
     public constant number VERSION = 3.0
@@ -31,28 +34,52 @@ class Main is WebResponder
         TypeCheckListener checker
         compiler:Parse(file, checker)
 
-        output "Writing bytecode"
-        QuorumBytecodeListener bytecode
-        compiler:Parse(file, bytecode)
+        //JavaScript TESTING SECTION
+        QuorumJavascriptListener javascript
+        compiler:Parse(file, javascript)
+
+        text convertedQuorum = javascript:GetConvertedSource()
+
+        CompilerTestSuite suite
+        CompilerTestResult result = suite:RunJavaScript(convertedQuorum)
         
-        CompilerErrorManager manager = parser:GetCompilerErrorManager()
-
-        if manager:IsCompilationErrorFree()
-            QuorumJarGenerator generator
-
-            File jar = compiler:GetDistributionFile()
-            generator:SetCompiler(compiler)
-            generator:Write()
-            output "Build completed successfully"
-        else 
-            output "The code did not build correctly. Here is a list of errors:"
-            Iterator<CompilerError> errors = manager:GetIterator()
-            repeat while errors:HasNext()
-                CompilerError error = errors:Next()
-                text t = error:GetDisplayName()
-                output t
-            end
+        output ""
+        output "Converted Quorum:"
+        output convertedQuorum
+        output ""
+        output "Test Result:"
+        if result:ranWithoutError
+                Array<text> lines = result:lines
+                output lines:Get(0)
+                if lines:GetSize() = 2
+                    output lines:Get(1)
+                end
         end
+        a = 6
+
+//        //Java bytecode TESTING SECTION
+//        output "Writing bytecode"
+//        QuorumBytecodeListener bytecode
+//        compiler:Parse(file, bytecode)
+//        
+//        CompilerErrorManager manager = parser:GetCompilerErrorManager()
+//
+//        if manager:IsCompilationErrorFree()
+//            QuorumJarGenerator generator
+//
+//            File jar = compiler:GetDistributionFile()
+//            generator:SetCompiler(compiler)
+//            generator:Write()
+//            output "Build completed successfully"
+//        else 
+//            output "The code did not build correctly. Here is a list of errors:"
+//            Iterator<CompilerError> errors = manager:GetIterator()
+//            repeat while errors:HasNext()
+//                CompilerError error = errors:Next()
+//                text t = error:GetDisplayName()
+//                output t
+//            end
+//        end
     end
 
     action Respond(WebRequest request) returns WebResponse
