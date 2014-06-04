@@ -373,6 +373,38 @@ public class JavaToQuorumListener implements QuorumListener {
         setLocation(ctx, context);
         listener.ExitIfStatement(context);
     }
+    
+    @Override
+    public void enterElseif_statement(QuorumParser.Elseif_statementContext ctx) {
+        quorum.Libraries.Language.Compile.Context.IfContext context = 
+                new quorum.Libraries.Language.Compile.Context.IfContext();
+        setLocation(ctx, context);
+        listener.EnterElseIfStatement(context);
+    }
+
+    @Override
+    public void exitElseif_statement(QuorumParser.Elseif_statementContext ctx) {
+        quorum.Libraries.Language.Compile.Context.IfContext context = 
+                new quorum.Libraries.Language.Compile.Context.IfContext();
+        setLocation(ctx, context);
+        listener.ExitElseIfStatement(context);
+    }
+
+    @Override
+    public void enterElse_statement(QuorumParser.Else_statementContext ctx) {
+        quorum.Libraries.Language.Compile.Context.IfContext context = 
+                new quorum.Libraries.Language.Compile.Context.IfContext();
+        setLocation(ctx, context);
+        listener.EnterElseStatement(context);
+    }
+
+    @Override
+    public void exitElse_statement(QuorumParser.Else_statementContext ctx) {
+        quorum.Libraries.Language.Compile.Context.IfContext context = 
+                new quorum.Libraries.Language.Compile.Context.IfContext();
+        setLocation(ctx, context);
+        listener.ExitElseStatement(context);
+    }
 
     @Override
     public void enterAccess_modifier(QuorumParser.Access_modifierContext ctx) {
