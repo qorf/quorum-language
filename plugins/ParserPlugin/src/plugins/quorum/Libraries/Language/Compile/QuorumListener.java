@@ -108,6 +108,17 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitAction_call(@NotNull QuorumParser.Action_callContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link QuorumParser#elseif_statement}.
+	 * @param ctx the parse tree
+	 */
+	void enterElseif_statement(@NotNull QuorumParser.Elseif_statementContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuorumParser#elseif_statement}.
+	 * @param ctx the parse tree
+	 */
+	void exitElseif_statement(@NotNull QuorumParser.Elseif_statementContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link QuorumParser#solo_method_call}.
 	 * @param ctx the parse tree
 	 */
@@ -339,6 +350,17 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitMethod_shared(@NotNull QuorumParser.Method_sharedContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link QuorumParser#else_statement}.
+	 * @param ctx the parse tree
+	 */
+	void enterElse_statement(@NotNull QuorumParser.Else_statementContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuorumParser#else_statement}.
+	 * @param ctx the parse tree
+	 */
+	void exitElse_statement(@NotNull QuorumParser.Else_statementContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link QuorumParser#if_statement}.
 	 * @param ctx the parse tree
 	 */
@@ -559,6 +581,17 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitBoolean(@NotNull QuorumParser.BooleanContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link QuorumParser#ParentVariableFunctionCall}.
+	 * @param ctx the parse tree
+	 */
+	void enterParentVariableFunctionCall(@NotNull QuorumParser.ParentVariableFunctionCallContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuorumParser#ParentVariableFunctionCall}.
+	 * @param ctx the parse tree
+	 */
+	void exitParentVariableFunctionCall(@NotNull QuorumParser.ParentVariableFunctionCallContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link QuorumParser#alert_statement}.
 	 * @param ctx the parse tree
 	 */
@@ -581,15 +614,15 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitReference(@NotNull QuorumParser.ReferenceContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link QuorumParser#ParentVariableFunctionCall}.
+	 * Enter a parse tree produced by {@link QuorumParser#Not}.
 	 * @param ctx the parse tree
 	 */
-	void enterParentVariableFunctionCall(@NotNull QuorumParser.ParentVariableFunctionCallContext ctx);
+	void enterNot(@NotNull QuorumParser.NotContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link QuorumParser#ParentVariableFunctionCall}.
+	 * Exit a parse tree produced by {@link QuorumParser#Not}.
 	 * @param ctx the parse tree
 	 */
-	void exitParentVariableFunctionCall(@NotNull QuorumParser.ParentVariableFunctionCallContext ctx);
+	void exitNot(@NotNull QuorumParser.NotContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link QuorumParser#BlueprintAction}.
@@ -601,17 +634,6 @@ public interface QuorumListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitBlueprintAction(@NotNull QuorumParser.BlueprintActionContext ctx);
-
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#Not}.
-	 * @param ctx the parse tree
-	 */
-	void enterNot(@NotNull QuorumParser.NotContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#Not}.
-	 * @param ctx the parse tree
-	 */
-	void exitNot(@NotNull QuorumParser.NotContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link QuorumParser#generic_declaration}.

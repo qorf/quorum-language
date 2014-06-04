@@ -124,6 +124,12 @@ class QuorumSourceListener
     action EnterIfStatement(IfContext context) end
     action ExitIfStatement(IfContext context) end
 
+    action EnterElseIfStatement(IfContext context) end
+    action ExitElseIfStatement(IfContext context) end
+
+    action EnterElseStatement(IfContext context) end
+    action ExitElseStatement(IfContext context) end
+
     action EnterAccessModifier(AccessModifierContext context) end
     action ExitAccessModifier(AccessModifierContext context) end
 

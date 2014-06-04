@@ -158,15 +158,23 @@ if_statement
 	:
 	IF expression 
 	block
-	(ELSE_IF
-	expression
-	block
-	)*
-	(ELSE
-	block
+	(elseif_statement)*
+	(else_statement
 	)? 
 	END
 	;
+
+elseif_statement
+    :
+    ELSE_IF
+    expression
+    block
+    ;
+
+else_statement
+    :
+    ELSE block
+    ;
 
 loop_statement
     :
