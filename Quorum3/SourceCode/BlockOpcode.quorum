@@ -2,11 +2,17 @@ package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
 
-class BlockOpcode is QuorumOpcode, List<QuorumOpcode>
+class BlockOpcode is QuorumOpcode
+    List<QuorumOpcode> opcodes
 
     action Write
-
+        Iterator<QuorumOpcode> iterator = opcodes:GetIterator()
+        repeat while iterator:HasNext()
+            QuorumOpcode opcode = iterator:Next()
+            opcode:Write()
+        end
     end
 
     action WriteJavaScript returns text
@@ -16,5 +22,9 @@ class BlockOpcode is QuorumOpcode, List<QuorumOpcode>
     action GetTemplateCopy returns QuorumOpcode
         BlockOpcode op
         return op
+    end
+
+    action Add(QuorumOpcode opcode)
+        opcodes:Add(opcode)
     end
 end

@@ -10,10 +10,14 @@ class Class is Symbol
     HashTable<text, Action> actions
     HashTable<text, Variable> fields
     Action constructor = undefined
+    boolean hasMain = false
 
     action Add(Action method) returns CompilerError
         if not IsDefined(method)
             actions:Add(method:GetStaticKey(), method)
+            if method:IsMain()
+                hasMain = true
+            end
             return undefined
         end
 
@@ -23,6 +27,10 @@ class Class is Symbol
         error:SetErrorMessage("Action " + method:GetDisplayName() + " has already been defined.")
 
         return error
+    end
+
+    action HasMainAction returns boolean
+        return hasMain
     end
 
     action Add(Variable variable) returns CompilerError

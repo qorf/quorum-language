@@ -371,8 +371,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToInteger()
-        AssignmentOpcode assignment = GetAssignmentOpcode(opcodes:GetIntegerStore())
-        result:SetQuorumOpcode(compare)
+        AssignmentOpcode assignment = GetAssignmentOpcode(opcodes:GetIntegerStore(), type)
+        result:SetQuorumOpcode(assignment)
         results:Add(key, result)
 
         //Assign Text Text
@@ -381,8 +381,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToText()
-        assignment = GetAssignmentOpcode(opcodes:GetObjectStore())
-        result:SetQuorumOpcode(compare)
+        assignment = GetAssignmentOpcode(opcodes:GetObjectStore(), type)
+        result:SetQuorumOpcode(assignment)
         results:Add(key, result)
 
         //Assign Number Number
@@ -391,8 +391,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToNumber()
-        assignment = GetAssignmentOpcode(opcodes:GetDoubleStore())
-        result:SetQuorumOpcode(compare)
+        assignment = GetAssignmentOpcode(opcodes:GetDoubleStore(), type)
+        result:SetQuorumOpcode(assignment)
         results:Add(key, result)
 
         //Assign Number Integer
@@ -402,8 +402,8 @@ class TypeChecker
         opcodeWriter = result:writer
         type = result:result
         type:SetToNumber()
-        assignment = GetAssignmentOpcode(opcodes:GetIntegerToDouble(), opcodes:GetDoubleStore())
-        result:SetQuorumOpcode(compare)
+        assignment = GetAssignmentOpcode(opcodes:GetIntegerToDouble(), opcodes:GetDoubleStore(), type)
+        result:SetQuorumOpcode(assignment)
         results:Add(key, result)
 
         //Assign Boolean Boolean
@@ -412,8 +412,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToBoolean()
-        assignment = GetAssignmentOpcode(opcodes:GetIntegerStore())
-        result:SetQuorumOpcode(compare)
+        assignment = GetAssignmentOpcode(opcodes:GetIntegerStore(), type)
+        result:SetQuorumOpcode(assignment)
         results:Add(key, result)
 
         ////////////////////////////////////////////////////////////////////////
@@ -1362,16 +1362,15 @@ class TypeChecker
         results:Add(key, result)
     end
 
-    private action GetAssignmentOpcode(integer opcode) returns AssignmentOpcode
-        AssignmentOpcode op
-        op:SetJavaOpcode(opcode)
-        return op
+    private action GetAssignmentOpcode(integer opcode, Type type) returns AssignmentOpcode
+        return GetAssignmentOpcode(opcode, -1, type)
     end
 
-    private action GetAssignmentOpcode(integer opcode, integer secondOpcode) returns AssignmentOpcode
+    private action GetAssignmentOpcode(integer opcode, integer secondOpcode, Type type) returns AssignmentOpcode
         AssignmentOpcode op
         op:SetJavaOpcode(opcode)
         op:SetJavaOpcode2(secondOpcode)
+        op:SetType(type)
         return op
     end
 

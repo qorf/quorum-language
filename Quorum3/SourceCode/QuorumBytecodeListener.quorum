@@ -20,6 +20,10 @@ class QuorumBytecodeListener is QuorumSourceListener
     QuorumBytecodeConverter converter
     JavaBytecodeOpcodes opcodes
     Action currentAction = undefined
+    ActionOpcode currentActionOpcode = undefined
+    ClassOpcode currentClassOpcode = undefined
+
+
     Class currentClass = undefined
     Block currentBlock = undefined
     constant integer ME = 0
@@ -38,6 +42,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     Stack<QuorumOpcode> opcodeStack
     File buildFile = undefined
     File buildInterfaceFile = undefined
+    BlockOpcode currentBlockOpcode = undefined
 
     action GetBuildFile returns File
         return buildFile
@@ -81,6 +86,8 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         classWriter = newClassWriter
         interfaceWriter = newIinterfaceWriter
+        ClassOpcode classOp
+        currentClassOpcode = classOp
 
         text name = context:className
         SymbolTable table = me:GetSymbolTable()
@@ -92,72 +99,81 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
         staticKey = packageValue:GetClassStaticKey(name)
         currentClass = table:GetClass(staticKey)
+        currentClassOpcode:SetClass(currentClass)
+        currentClassOpcode:SetName(name)
+        currentClassOpcode:SetStaticKey(staticKey)
+        currentClassOpcode:SetBuildPath(build)
+        currentClassOpcode:SetRunPath(run)
+        currentClassOpcode:SetPackage(packageValue)
+        currentClassOpcode:SetClassWriter(classWriter)
+        currentClassOpcode:SetInterfaceWriter(interfaceWriter)
 
-
-        integer version = opcodes:GetJavaVersion(7)
-        integer access = opcodes:GetPublic() + opcodes:GetSuper()
-        text interfaceName = converter:ConvertClassNameToInterfaceName(name)
-        Array<text> interfaces
-        //interfaces:Add(interfaceName)
-        text null = undefined //temporary workaround for Bug#97 https://quorum.atlassian.net/browse/QUOR-97
-        //once fully integrated, check if this is a the Quorum error class or a subclass. For now, just weave in Object.
-        classWriter:Visit(version, access, converter:ConvertStaticKeyToBytecodePath(staticKey), null, JAVA_OBJECT, interfaces)
+//        integer version = opcodes:GetJavaVersion(7)
+//        integer access = opcodes:GetPublic() + opcodes:GetSuper()
+//        text interfaceName = converter:ConvertClassNameToInterfaceName(name)
+//        Array<text> interfaces
+//        //interfaces:Add(interfaceName)
+//        text null = undefined //temporary workaround for Bug#97 https://quorum.atlassian.net/browse/QUOR-97
+//        //once fully integrated, check if this is a the Quorum error class or a subclass. For now, just weave in Object.
+//        classWriter:Visit(version, access, converter:ConvertStaticKeyToBytecodePath(staticKey), null, JAVA_OBJECT, interfaces)
     end
 
 
     action ExitFullClassDeclaration(FullClassDeclarationContext context) 
         if currentClass not= undefined
-            ComputeConstructor(true)
-            ComputeConstructor(false)
-            classWriter:VisitEnd()
-            File classFile
-            text path = build + "/" + QUORUM + "/" + packageValue:GetPath() 
-            classFile:SetPath(path)
-            classFile:CreateDirectories()
-            classFile:SetPath(path + "/" + currentClass:GetName() + ".class")
-            classWriter:Write(classFile)
+//            ComputeConstructor(true)
+//            ComputeConstructor(false)
+//            classWriter:VisitEnd()
 
-            buildFile = classFile
+            currentClassOpcode:Write()
+//            File classFile
+//            text path = build + "/" + QUORUM + "/" + packageValue:GetPath() 
+//            classFile:SetPath(path)
+//            classFile:CreateDirectories()
+//            classFile:SetPath(path + "/" + currentClass:GetName() + ".class")
+//            classWriter:Write(classFile)
 
-            interfaceWriter:VisitEnd()
-            File interfaceFile
-            path = build + "/" + QUORUM + "/" + packageValue:GetPath()
-            
-            interfaceFile:SetPath(path + "/" + currentClass:GetName() + "$Interface.class")
-            interfaceWriter:Write(interfaceFile)
+            buildFile = currentClassOpcode:GetBuildFile()
 
-            buildInterfaceFile = interfaceFile
+//            interfaceWriter:VisitEnd()
+//            File interfaceFile
+//            path = build + "/" + QUORUM + "/" + packageValue:GetPath()
+//            
+//            interfaceFile:SetPath(path + "/" + currentClass:GetName() + "$Interface.class")
+//            interfaceWriter:Write(interfaceFile)
+
+            buildInterfaceFile = currentClassOpcode:GetBuildInterfaceFile()
         end
     end
 
-    action ComputeConstructor(boolean isParent)
-        
-        //integer numSystem = currentClass:getNumberSystemActions()
-        text staticKey = currentClass:GetStaticKey()
-        text name = converter:ConvertStaticKeyToBytecodePath(staticKey)
-
-        text signature = ""
-        if isParent
-            signature = "()V"
-        else
-            signature = "(Z)V"
-        end
-
-
-        //call the class's initialization function
-        text null = undefined
-        methodWriter = classWriter:VisitMethod(opcodes:GetPublic(), "<init>", signature, null, undefined)
-        methodWriter:VisitCode()
-        methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-        methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), "java/lang/Object", "<init>", "()V", false)
-
-
-
-
-        methodWriter:VisitInstruction(opcodes:GetReturn())
-        methodWriter:VisitMaxSize(1, 1)
-        methodWriter:VisitEnd()
-    end
+//    action ComputeConstructor(boolean isParent)
+//        
+//        //integer numSystem = currentClass:getNumberSystemActions()
+//        text staticKey = currentClass:GetStaticKey()
+//        text name = converter:ConvertStaticKeyToBytecodePath(staticKey)
+//
+//        text signature = ""
+//        if isParent
+//            signature = "()V"
+//        else
+//            signature = "(Z)V"
+//        end
+//
+//
+//        //call the class's initialization function
+//        text null = undefined
+//        methodWriter = classWriter:VisitMethod(opcodes:GetPublic(), "<init>", signature, null, undefined)
+//        methodWriter:VisitCode()
+//        methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+//        methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), "java/lang/Object", "<init>", "()V", false)
+//
+//
+//
+//
+//        methodWriter:VisitInstruction(opcodes:GetReturn())
+//        methodWriter:VisitMaxSize(1, 1)
+//        methodWriter:VisitEnd()
+//    end
 
     action ExitActionHeader(ActionContext context)
         if currentClass not= undefined
@@ -165,11 +181,15 @@ class QuorumBytecodeListener is QuorumSourceListener
             text key = context:GetStaticKey()
             Action method = currentClass:GetAction(key)
             currentAction = method
+            ActionOpcode actionOpcode
+            currentActionOpcode = actionOpcode
+            currentActionOpcode:SetAction(method)
+
             boolean isMain = method:IsMain()
 
-            if isMain
-                WriteMain(method)
-            end
+            //if isMain
+            //    WriteMain(method)
+            //end
             text null = undefined
             text name = context:actionName
             text params = converter:ConvertActionToBytecodeParameterSignature(method)
@@ -177,38 +197,40 @@ class QuorumBytecodeListener is QuorumSourceListener
                 classWriter:VisitMethod(opcodes:GetPublic(), 
                 name, params, null, undefined)
             //addParametersAsVariables(method.getMethodDescriptor());
-            methodWriter:VisitCode()
+            //methodWriter:VisitCode()
+            currentActionOpcode:SetMethodWriter(methodWriter)
+            currentClassOpcode:Add(currentActionOpcode)
         end
     end
 
-    action WriteMain(Action method)
-        //make a new method, if it exists. 
-        text null = undefined
-        methodWriter = 
-        classWriter:VisitMethod(opcodes:GetPublic() + opcodes:GetStatic(), 
-            "main", "([Ljava/lang/String;)V", null, undefined)
-
-        text key = currentClass:GetStaticKey()
-        text bytecode = converter:ConvertStaticKeyToBytecodePath(key)
-
-        //create the new object and place it on the stack
-        methodWriter:VisitType(opcodes:GetNew(), bytecode)
-        methodWriter:VisitInstruction(opcodes:GetDuplicate())
-        methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), bytecode, "<init>", "()V", false)
-
-        //store it in a variable and load it back on the stack
-        methodWriter:VisitVariable(opcodes:GetObjectStore(), 1)
-        methodWriter:VisitVariable(opcodes:GetObjectLoad(), 1)
-
-        //call a method on the object, its non-static main
-        methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), bytecode,
-            method:GetName(), converter:ConvertActionToBytecodeParameterSignature(method), false)
-
-        //close out the main method
-        methodWriter:VisitInstruction(opcodes:GetReturn())
-        methodWriter:VisitMaxSize(2,2)
-        methodWriter:VisitEnd()
-    end
+//    action WriteMain(Action method)
+//        //make a new method, if it exists. 
+//        text null = undefined
+//        methodWriter = 
+//        classWriter:VisitMethod(opcodes:GetPublic() + opcodes:GetStatic(), 
+//            "main", "([Ljava/lang/String;)V", null, undefined)
+//
+//        text key = currentClass:GetStaticKey()
+//        text bytecode = converter:ConvertStaticKeyToBytecodePath(key)
+//
+//        //create the new object and place it on the stack
+//        methodWriter:VisitType(opcodes:GetNew(), bytecode)
+//        methodWriter:VisitInstruction(opcodes:GetDuplicate())
+//        methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), bytecode, "<init>", "()V", false)
+//
+//        //store it in a variable and load it back on the stack
+//        methodWriter:VisitVariable(opcodes:GetObjectStore(), 1)
+//        methodWriter:VisitVariable(opcodes:GetObjectLoad(), 1)
+//
+//        //call a method on the object, its non-static main
+//        methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), bytecode,
+//            method:GetName(), converter:ConvertActionToBytecodeParameterSignature(method), false)
+//
+//        //close out the main method
+//        methodWriter:VisitInstruction(opcodes:GetReturn())
+//        methodWriter:VisitMaxSize(2,2)
+//        methodWriter:VisitEnd()
+//    end
 
     action EnterAction(ActionContext context) 
         SetNormalAction()
@@ -216,46 +238,63 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action ExitAction(ActionContext context) 
         ClearActionState()
-
-        if methodWriter not= undefined
-            if currentClass not= undefined
-                //get the method name
-                text key = context:GetStaticKey()
-                Action method = currentClass:GetAction(key)
-                Type type = method:GetReturnType()
-
-                if type:IsBoolean()
-                    methodWriter:VisitInstruction(opcodes:GetBooleanReturn())
-                elseif type:IsInteger()
-                    methodWriter:VisitInstruction(opcodes:GetIntegerReturn())
-                elseif type:IsNumber()
-                    methodWriter:VisitInstruction(opcodes:GetDoubleReturn())
-                elseif type:IsText()
-                    methodWriter:VisitInstruction(opcodes:GetObjectReturn())
-                elseif type:IsVoid()
-                    methodWriter:VisitInstruction(opcodes:GetReturn())
-                else //assume it is an object otherwise
-                    methodWriter:VisitInstruction(opcodes:GetObjectReturn())
-                end
-            end
-            
-            methodWriter:VisitMaxSize(1,1)
-            methodWriter:VisitEnd()
-            methodWriter = undefined
+        
+        if currentActionOpcode not= undefined
+            currentActionOpcode:Add(currentBlockOpcode)
         end
+
+     //   if methodWriter not= undefined
+      //      if currentClass not= undefined
+
+                
+                
+                //get the method name
+                //text key = context:GetStaticKey()
+                //Action method = currentClass:GetAction(key)
+
+                //currentActionOpcode:SetAction(method)
+               // currentActionOpcode:SetMethodWriter(methodWriter)
+
+//                Type type = method:GetReturnType()
+//
+//                if type:IsBoolean()
+//                    methodWriter:VisitInstruction(opcodes:GetBooleanReturn())
+//                elseif type:IsInteger()
+//                    methodWriter:VisitInstruction(opcodes:GetIntegerReturn())
+//                elseif type:IsNumber()
+//                    methodWriter:VisitInstruction(opcodes:GetDoubleReturn())
+//                elseif type:IsText()
+//                    methodWriter:VisitInstruction(opcodes:GetObjectReturn())
+//                elseif type:IsVoid()
+//                    methodWriter:VisitInstruction(opcodes:GetReturn())
+//                else //assume it is an object otherwise
+//                    methodWriter:VisitInstruction(opcodes:GetObjectReturn())
+//                end
+        //    end
+            
+//            methodWriter:VisitMaxSize(1,1)
+//            methodWriter:VisitEnd()
+//            methodWriter = undefined
+     //   end
     end
     
     //output
     action EnterOutputStatement(OutputContext context)
-        methodWriter:VisitField(opcodes:GetStaticField(), "java/lang/System", "out", "Ljava/io/PrintStream;")
+        //methodWriter:VisitField(opcodes:GetStaticField(), "java/lang/System", "out", "Ljava/io/PrintStream;")
     end
 
     action ExitOutputStatement(OutputContext context)
         QuorumOpcode op = opcodeStack:Pop()
-        Type type = op:GetType()
-        op:Write()
-        methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), "java/io/PrintStream", "println",
-                "(" + converter:ConvertTypeToBytecodeSignature(type) + ")V", false)
+        OutputOpcode out
+        out:SetOpcode(op)
+        out:SetMethodWriter(methodWriter)
+        currentBlockOpcode:Add(out)
+//
+//
+//        Type type = op:GetType()
+//        op:Write()
+//        methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), "java/io/PrintStream", "println",
+//                "(" + converter:ConvertTypeToBytecodeSignature(type) + ")V", false)
     end
 
     action EnterBlock(BlockContext context)
@@ -264,6 +303,8 @@ class QuorumBytecodeListener is QuorumSourceListener
         else 
             currentBlock = currentBlock:GetNextBlock()
         end
+        BlockOpcode block
+        currentBlockOpcode = block
     end
     
     action ExitBlock(BlockContext context)
@@ -304,16 +345,18 @@ class QuorumBytecodeListener is QuorumSourceListener
             TypeChecker checker = GetTypeChecker()
             TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
 
-            right:Write()
+            //right:Write()
             //write the local variable, which is guaranteed at this stage not null
             integer location = variable:GetBytecodeLocation()
             Type value = result:result
+            QuorumOpcode qop = result:GetQuorumOpcode()
             AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
             assignment:SetRightHandSide(right)
             assignment:SetType(value)
             assignment:SetMethodWriter(methodWriter)
-            opcodeStack:Push(assignment)
-
+            assignment:SetBytecodeLocation(location)
+            //opcodeStack:Push(assignment)
+            currentBlockOpcode:Add(assignment)
 
 
 //            JavaOpcodeWriter writer = result:writer
@@ -351,7 +394,9 @@ class QuorumBytecodeListener is QuorumSourceListener
             assignment:SetRightHandSide(right)
             assignment:SetType(value)
             assignment:SetMethodWriter(methodWriter)
-            opcodeStack:Push(assignment)
+            assignment:SetBytecodeLocation(location)
+            //opcodeStack:Push(assignment)
+            currentBlockOpcode:Add(assignment)
 
             //write the local variable, guaranteed at this stage not be null
 //            integer location = variable:GetBytecodeLocation()

@@ -50,6 +50,13 @@ class AssignmentOpcode is QuorumOpcode
     end
 
     action Write 
+
+        rightHandSide:Write()
+        methodWriter:VisitVariable(opcode, bytecodeLocation)
+
+        if opcode2 not= -1
+            methodWriter:VisitVariable(opcode2, bytecodeLocation)
+        end
     end
 
     action WriteJavaScript returns text 
@@ -60,6 +67,8 @@ class AssignmentOpcode is QuorumOpcode
         AssignmentOpcode op
         Type t = GetType()
         me:SetType(t:Copy())
+        op:SetJavaOpcode(me:GetJavaOpcode())
+        op:SetJavaOpcode2(me:GetJavaOpcode2())
         op:opcode = opcode
         return op
     end
