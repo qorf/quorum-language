@@ -16,16 +16,20 @@ class QuorumJavascriptListener is QuorumSourceListener
     Class currentClass = undefined
     Block currentBlock = undefined
     Stack<QuorumOpcode> opcodeStack
-    constant text OUTPUT_VARIABLE = "finalOutput_______"
-    text convertedSource = "var " + OUTPUT_VARIABLE + " = "
+//    constant text OUTPUT_VARIABLE = "finalOutput_______"
+//    text convertedSource = "var " + OUTPUT_VARIABLE + " = "
+    text convertedSource = ""
+    constant text EOL = convertedSource:GetCarriageReturn() + convertedSource:GetLineFeed()
 
     on create
-        convertedSource = convertedSource + convertedSource:GetDoubleQuote() + 
-            convertedSource:GetDoubleQuote() + ";" + convertedSource:GetCarriageReturn() + convertedSource:GetLineFeed()
+        convertedSource = convertedSource + "function Main() {" + EOL
+        //convertedSource = convertedSource + convertedSource:GetDoubleQuote() + 
+        //    convertedSource:GetDoubleQuote() + ";" + convertedSource:GetCarriageReturn() + convertedSource:GetLineFeed()
     end
 
     action ExitStart(StartContext context)
-        convertedSource = convertedSource + OUTPUT_VARIABLE
+        convertedSource = convertedSource + "}"
+        //convertedSource = convertedSource + OUTPUT_VARIABLE
     end
 
     action GetConvertedSource returns text
@@ -79,10 +83,10 @@ class QuorumJavascriptListener is QuorumSourceListener
             text quote = ""
             quote = quote:GetDoubleQuote()
 
-            text print = OUTPUT_VARIABLE + " = "
+            //text print = OUTPUT_VARIABLE + " = "
             text opcodeResult = right:WriteJavaScript()
-            print = print + quote + opcodeResult + quote + ";" + quote:GetCarriageReturn() + quote:GetLineFeed()
-            convertedSource = convertedSource + print
+            //print = print + quote + opcodeResult + quote + ";" + quote:GetCarriageReturn() + quote:GetLineFeed()
+            //convertedSource = convertedSource + print
             //write the local variable, which is guaranteed at this stage not null
 //            integer location = variable:GetBytecodeLocation()
 //            JavaOpcodeWriter writer = result:writer
@@ -95,12 +99,13 @@ class QuorumJavascriptListener is QuorumSourceListener
     action ExitOutputStatement(OutputContext context)
         QuorumOpcode op = opcodeStack:Pop()
         Type type = op:GetType()
-        text quote = ""
-        quote = quote:GetDoubleQuote()
+        //text quote = ""
+        //quote = quote:GetDoubleQuote()
 
-        text print = OUTPUT_VARIABLE + " += " //print(" + quote
+        //text print = OUTPUT_VARIABLE + " += " //print(" + quote
         text opcodeResult = op:WriteJavaScript()
-        print = print + quote + opcodeResult + quote + ";" + quote:GetCarriageReturn() + quote:GetLineFeed()
+        //print = print + quote + opcodeResult + quote + ";" + quote:GetCarriageReturn() + quote:GetLineFeed()
+        text print = "return " + opcodeResult + EOL
         convertedSource = convertedSource + print
     end
 
