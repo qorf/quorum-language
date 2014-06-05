@@ -50,7 +50,12 @@ class ConditionalOpcode is QuorumOpcode
     action Write
         expression:Write()
         endLabel = GetNewLabel()
-        methodWriter:VisitJump(opcodes:GetIfEquals(), endLabel)
+
+        if expression is BinaryOpcode
+            methodWriter:VisitJump(opcodes:GetIfIntegerEquals(), endLabel)
+        else 
+            methodWriter:VisitJump(opcodes:GetIfEquals(), endLabel)
+        end
         block:Write()
         methodWriter:VisitLabel(endLabel)
 
