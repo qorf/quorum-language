@@ -6,6 +6,7 @@ use Libraries.Containers.Blueprints.Iterator
 
 class BlockOpcode is QuorumOpcode
     List<QuorumOpcode> opcodes
+    BlockOpcode parentOpcode = undefined
 
     action Write
         Iterator<QuorumOpcode> iterator = opcodes:GetIterator()
@@ -13,6 +14,14 @@ class BlockOpcode is QuorumOpcode
             QuorumOpcode opcode = iterator:Next()
             opcode:Write()
         end
+    end
+
+    action GetParentBlock returns BlockOpcode
+        return parentOpcode
+    end
+
+    action SetParentBlock(BlockOpcode block)
+        parentOpcode = block
     end
 
     action WriteJavaScript returns text

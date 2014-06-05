@@ -1,0 +1,50 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+
+class ActionCallOpcode is QuorumOpcode
+    JavaBytecodeMethodWriter methodWriter = undefined
+    QuorumOpcode rightHandSide = undefined
+    integer bytecodeLocation = -1
+    JavaBytecodeOpcodes opcodes
+    boolean isActionCall = false
+
+    action GetMethodWriter returns JavaBytecodeMethodWriter
+        return methodWriter
+    end
+
+    action SetMethodWriter(JavaBytecodeMethodWriter writer)
+        methodWriter = writer
+    end
+
+    action IsActionCall returns boolean
+        return isActionCall
+    end
+
+    action SetIsActionCall(boolean act)
+        isActionCall = act
+    end
+
+    action GetBytecodeLocation returns integer
+        return bytecodeLocation
+    end
+
+    action SetBytecodeLocation(integer location)
+        bytecodeLocation = location
+    end
+
+    action Write //TODO: make this work for action calls and fields
+        methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetType()), bytecodeLocation)
+    end
+
+    action WriteJavaScript returns text 
+        return ""
+    end
+
+    action GetTemplateCopy returns QuorumOpcode
+        ActionCallOpcode op
+        Type t = GetType()
+        me:SetType(t:Copy())
+        return op
+    end
+end
