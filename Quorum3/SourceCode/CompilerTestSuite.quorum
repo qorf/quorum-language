@@ -441,6 +441,11 @@ class CompilerTestSuite
         return result
     end
 
+    action RunJavaScriptTestFail(text source) returns CompilerTestResult
+        CompilerTestResult result = undefined
+        //Insert fail test here
+        return result
+    end
 
     system action RunClassFile(File file) returns CompilerTestResult
     system action RunJavaScript(text script) returns CompilerTestResult

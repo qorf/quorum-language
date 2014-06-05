@@ -92,6 +92,8 @@ class ExpressionsTester
         SubDoubleInt()
         SubIntDouble()
         SubIntInt()
+// FAIL TESTS
+        MainNotCapitalized()
     end
 
     action GetName returns text
@@ -509,5 +511,10 @@ class ExpressionsTester
     action SubIntInt
         suite:RunTest("Library/Tests/Expressions/Pass/SubIntInt.quorum", "0", "0")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/SubIntInt.quorum", "0", "0")
+    end
+
+    action MainNotCapitalized
+        suite:RunTestFail("Library/Tests/Expressions/Fail/MainNotCapitalized.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/Expressions/Fail/MainNotCapitalized.quorum")
     end
 end
