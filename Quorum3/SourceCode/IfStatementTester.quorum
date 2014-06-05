@@ -12,6 +12,7 @@ use Libraries.System.StackTraceItem
 class IfStatementTester 
     CompilerTestSuite suite = undefined
     action Test
+        IfConst()
 //        IfElseIfElseMultipleConditions()
 //        IfElseIfElse_Const()
 //        IfElseIfElse_Var()
@@ -23,14 +24,14 @@ class IfStatementTester
 //        IfStatementCompoundBoolean()
 //        IfStatementCompoundEqual()
 //        IfStatementCompoundLTandEqual()
-//        IfStatementOneCondition_Const()
-//        IfStatementOneCondition_Equal()
-//        IfStatementOneCondition_GT()
-//        IfStatementOneCondition_GTE()
-//        IfStatementOneCondition_LT()
-//        IfStatementOneCondition_LTE()
-//        IfStatementOneCondition_NotEqual()
-//        IfStatementOneCondition_Var()
+        IfStatementOneCondition_Const()
+        IfStatementOneCondition_Equal()
+        IfStatementOneCondition_GT()
+        IfStatementOneCondition_GTE()
+        IfStatementOneCondition_LT()
+        IfStatementOneCondition_LTE()
+        IfStatementOneCondition_NotEqual()
+        IfStatementOneCondition_Var()
 //        IfWithElse_Const()
 //        IfWithElse_Var()
     end
@@ -45,6 +46,11 @@ class IfStatementTester
 
     action SetCompilerTestSuite(CompilerTestSuite suite)
         me:suite = suite
+    end
+
+    action IfConst
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfConst.quorum", "true")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfConst.quorum", "true")
     end
 
     action IfElseIfElseMultipleConditions

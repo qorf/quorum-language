@@ -4,8 +4,8 @@ use Libraries.Language.Compile.Symbol.Type
 
 class QuorumOpcode 
     Type type = undefined
+    boolean isIfExpression = false
     blueprint action Write
-
     blueprint action WriteJavaScript returns text
 
     action GetType returns Type
@@ -14,6 +14,14 @@ class QuorumOpcode
 
     action SetType(Type type)
         me:type = type
+    end
+
+    action GetIsIfExpression returns boolean
+        return isIfExpression
+    end
+
+    action SetIsIfExpression(boolean isInIf)
+        isIfExpression = isInIf
     end
 
     /*

@@ -204,6 +204,8 @@ class QuorumBytecodeListener is QuorumSourceListener
     action ExitIfStatement(IfContext context) 
         ConditionalOpcode conditional = ifStack:Pop()
         QuorumOpcode qop = opcodeStack:Pop()
+        //qop:SetIsIfExpression(true)
+
         conditional:SetExpression(qop)
         conditional:SetBlock(recentlyPopped)
         
