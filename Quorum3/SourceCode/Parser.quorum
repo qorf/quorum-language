@@ -186,12 +186,22 @@ class Parser is QuorumSourceListener
         variable:SetName(context:name)
         variable:SetIsParameter(false)
 
+        Variable isDefinedAlready = undefined
+        if currentBlock = undefined //we're in a field initiatlization block
+            isDefinedAlready = currentClass:GetVariable(context:name)
+        else //we're in the block of an action
+            isDefinedAlready = currentBlock:GetVariable(context:name)
+        end
 
         CompilerError error = undefined
-        if currentBlock = undefined //we're in a field initiatlization block
-            error = currentClass:Add(variable)
-        else //we're in the block of an action
-            error = currentBlock:Add(variable)
+        if isDefinedAlready = undefined
+            if currentBlock = undefined //we're in a field initiatlization block
+                error = currentClass:Add(variable)
+            else //we're in the block of an action
+                error = currentBlock:Add(variable)
+            end
+        else 
+            isDefinedAlready:AddUsage(context:GetLocation())
         end
 
         if error not= undefined

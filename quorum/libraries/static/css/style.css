@@ -30,15 +30,13 @@
     color: white;
 }
 
-#sidebar-navigation a:visited {
-}
-
 #sidebar-navigation li:hover {
     background-color: #049CDB !important;
     color: white !important;
 }
 
 #content-box {
+    position: relative;
     display: inline-block;
     vertical-align: top;
     box-sizing: border-box;
@@ -47,10 +45,6 @@
     margin-left: 0.5%;
     background-color: rgba(255,255,255,.75);
     border: solid 1px lightgrey;
-}
-
-#content-box h5 {
-    margin: 10px 0 0 0;
 }
 
 #slide-navigation {
@@ -68,6 +62,9 @@
     border: solid 1px lightgrey;
     padding: 0px 6px;
     margin-right: 4px;
+    background-color: #0088CC;
+    color: white;
+    outline: none;
 }
 
 .slide-navigation-button:hover {
@@ -79,6 +76,65 @@
 .active-slide-navigation-button {
     background-color: rgb(235, 235, 235);
     color: rgb(4, 156, 219);
+}
+
+#leftArrow {
+    position: absolute;
+    left: 5px;
+    top: 50%;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    background-color: rgba(255,255,255,0);
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
+    border-right: 25px solid #0088CC;
+    cursor: pointer;
+    opacity: 0.5;
+    box-shadow: none;
+    border-left: none;
+    outline: none;
+}
+
+#leftArrow:hover {
+  opacity: 1;
+  -webkit-transition: opacity .25s linear;
+  -moz-transition: opacity 0.25s linear;
+  -ms-transition: opacity 0.25s linear;
+  -o-transition: opacity 0.25s linear;
+  transition: opacity 0.25s linear;
+}
+
+#leftArrow:hover {
+    opacity: 1;
+}
+
+#rightArrow {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    background-color: rgba(255,255,255,0);
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
+    border-left: 25px solid #0088CC;
+    cursor: pointer;
+    opacity: 0.5;
+    border-right: none;
+    outline: none;
+}
+
+#rightArrow:hover {
+  opacity: 1;
+  -webkit-transition: opacity .25s linear;
+  -moz-transition: opacity 0.25s linear;
+  -ms-transition: opacity 0.25s linear;
+  -o-transition: opacity 0.25s linear;
+  transition: opacity 0.25s linear;
 }
 
 #slide-box {
@@ -184,4 +240,24 @@ span.hour-of-code-IDE-subtitle {
     margin-top: 4px;
     background-color: rgba(255,255,255,.75);
     margin-bottom: 10px;
+}
+
+.leftArrow-disabled {
+    border-right: 25px solid #BBB !important;
+}
+
+.leftArrow-disabled:hover {
+    border-right: 25px solid #BBB !important;
+    opacity: .5 !important;
+    cursor: default !important;
+}
+
+.rightArrow-disabled {
+    border-left: 25px solid #BBB !important;
+}
+
+.rightArrow-disabled:hover {
+    border-left: 25px solid #BBB !important;
+    opacity: .5 !important;
+    cursor: default !important;
 }

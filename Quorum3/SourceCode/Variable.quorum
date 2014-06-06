@@ -1,5 +1,9 @@
 package Libraries.Language.Compile.Symbol
 
+use Libraries.Language.Compile.Location
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
+
 class Variable is Symbol
     boolean isParameter = false
     Type type = undefined
@@ -10,7 +14,16 @@ class Variable is Symbol
     boolean isField = false
     integer bytecodeLocation = -1
     integer parameterLocation = -1
+    List<Location> locations
     
+    action AddUsage(Location location)
+        locations:Add(location)
+    end
+
+    action GetUsageLocations returns Iterator<Location>
+        return locations:GetIterator()
+    end
+
     action IsDefined returns boolean
         return isDefined
     end
