@@ -15,25 +15,30 @@ class QuorumJavascriptListener is QuorumSourceListener
     Action currentAction = undefined
     Class currentClass = undefined
     Block currentBlock = undefined
+    ActionOpcode currentActionOpcode = undefined
+    ClassOpcode currentClassOpcode = undefined
+    BlockOpcode currentBlockOpcode = undefined
+    BlockOpcode recentlyPopped = undefined
     Stack<QuorumOpcode> opcodeStack
-    //constant text OUTPUT_VARIABLE = "finalOutput_______"
-    //text convertedSource = "var " + OUTPUT_VARIABLE + " = "
-    text convertedSource = ""
+
+    text build = "TestBuild"
+    text run = "TestRun"
+    
+    public text convertedSource = ""
+    public text EOL = ""
+    public text quote = EOL:GetDoubleQuote()
     
     //QUORUM 2 BUG
     //text eol = ""
-    //eol = "Main();" + eol:GetCarriageReturn() + eol:GetLineFeed()
+    //eol = eol:GetCarriageReturn() + eol:GetLineFeed()
     
     on create
-        //convertedSource = convertedSource + convertedSource:GetDoubleQuote() + 
-        //    convertedSource:GetDoubleQuote() + ";" + convertedSource:GetCarriageReturn() + convertedSource:GetLineFeed()
-        convertedSource = "Main();" + convertedSource:GetCarriageReturn() + convertedSource:GetLineFeed()
-        convertedSource = convertedSource + "function Main() {" + convertedSource:GetCarriageReturn() + convertedSource:GetLineFeed()
+        
+        
     end
 
     action ExitStart(StartContext context)
-        //convertedSource = convertedSource + OUTPUT_VARIABLE
-        convertedSource = convertedSource + "}"
+        
     end
 
     action GetConvertedSource returns text
@@ -45,6 +50,9 @@ class QuorumJavascriptListener is QuorumSourceListener
     end
 
     action EnterFullClassDeclaration(FullClassDeclarationContext context) 
+        ClassOpcode classOp
+        currentClassOpcode = classOp
+
         text name = context:className
         SymbolTable table = me:GetSymbolTable()
         
@@ -55,6 +63,22 @@ class QuorumJavascriptListener is QuorumSourceListener
         end
         staticKey = packageValue:GetClassStaticKey(name)
         currentClass = table:GetClass(staticKey)
+        currentClassOpcode:SetClass(currentClass)
+        currentClassOpcode:SetName(name)
+        currentClassOpcode:SetStaticKey(staticKey)
+        
+        //not sure if I need this
+        //currentClassOpcode:SetBuildPath(build)
+        //currentClassOpcode:SetRunPath(run)
+        //currentClassOpcode:SetPackage(packageValue)
+    end
+
+    action ExitFullClassDeclaration(FullClassDeclarationContext context) 
+        if currentClass not= undefined
+            convertedSource = currentClassOpcode:WriteJavaScript()
+            //buildFile = currentClassOpcode:GetBuildFile()
+            //buildInterfaceFile = currentClassOpcode:GetBuildInterfaceFile()
+        end
     end
 
     action ExitActionHeader(ActionContext context)
@@ -63,55 +87,92 @@ class QuorumJavascriptListener is QuorumSourceListener
             text key = context:GetStaticKey()
             Action method = currentClass:GetAction(key)
             currentAction = method
+            ActionOpcode actionOpcode
+            currentActionOpcode = actionOpcode
+            currentActionOpcode:SetAction(method)
+
+            boolean isMain = method:IsMain()
+            text null = undefined
+            text name = context:actionName
+            currentClassOpcode:Add(currentActionOpcode)
         end
     end
 
-    action ExitNormalAssignment(NormalAssignmentContext context) 
-        text name = context:name
-        Variable variable = undefined
-        
-        if context:isField
-            variable = currentClass:GetVariable(name)
-            //write the field
-        else 
-            variable = currentBlock:GetVariable(name)
-            Type left = variable:GetType()
-            QuorumOpcode right = opcodeStack:Pop()
-
-            Operation assign
-            assign:SetOperation(assign:EQUALS)
-
-            TypeChecker checker = GetTypeChecker()
-            TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
-
-            text quote = ""
-            quote = quote:GetDoubleQuote()
-
-            //text print = OUTPUT_VARIABLE + " = "
-            text opcodeResult = right:WriteJavaScript()
-            //print = print + quote + opcodeResult + quote + ";" + quote:GetCarriageReturn() + quote:GetLineFeed()
-            //convertedSource = convertedSource + print
-            //write the local variable, which is guaranteed at this stage not null
-//            integer location = variable:GetBytecodeLocation()
-//            JavaOpcodeWriter writer = result:writer
-//            if writer not= undefined
-//                writer:Write(methodWriter, location)
-//            end
-        end
-    end
+//    action ExitNormalAssignment(NormalAssignmentContext context) 
+//        text name = context:name
+//        Variable variable = undefined
+//        
+//        if context:isField
+//            variable = currentClass:GetVariable(name)
+//            //write the field
+//        else 
+//            variable = currentBlock:GetVariable(name)
+//            Type left = variable:GetType()
+//            QuorumOpcode right = opcodeStack:Pop()
+//
+//            Operation assign
+//            assign:SetOperation(assign:EQUALS)
+//
+//            TypeChecker checker = GetTypeChecker()
+//            TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
+//
+//            text quote = ""
+//            quote = quote:GetDoubleQuote()
+//
+//            //text print = OUTPUT_VARIABLE + " = "
+//            text opcodeResult = right:WriteJavaScript()
+//            //print = print + quote + opcodeResult + quote + ";" + quote:GetCarriageReturn() + quote:GetLineFeed()
+//            //convertedSource = convertedSource + print
+//            //write the local variable, which is guaranteed at this stage not null
+////            integer location = variable:GetBytecodeLocation()
+////            JavaOpcodeWriter writer = result:writer
+////            if writer not= undefined
+////                writer:Write(methodWriter, location)
+////            end
+//        end
+//    end
 
     action ExitOutputStatement(OutputContext context)
         QuorumOpcode op = opcodeStack:Pop()
-        Type type = op:GetType()
-        //text quote = ""
-        //quote = quote:GetDoubleQuote()
+        OutputOpcode out
+        out:SetOpcode(op)
+        currentBlockOpcode:Add(out)
+    end
 
-        //text print = OUTPUT_VARIABLE + " += " //print(" + quote
-        text opcodeResult = op:WriteJavaScript()
-        //print = print + quote + opcodeResult + quote + ";" + quote:GetCarriageReturn() + quote:GetLineFeed()
-        text print = "return " + opcodeResult + ";"
-        print = print + print:GetCarriageReturn() + print:GetLineFeed()
-        convertedSource = convertedSource + print
+    private action SetNormalAction 
+        isNormalAction = true
+        isSystemAction = false
+        isBluePrintAction = false
+    end
+
+    private action SetSystemAction 
+        isNormalAction = false
+        isSystemAction = true
+        isBluePrintAction = false
+    end
+
+    private action SetBlueprintAction 
+        isNormalAction = false
+        isSystemAction = false
+        isBluePrintAction = true
+    end
+
+    private action ClearActionState
+        isNormalAction = false
+        isSystemAction = false
+        isBluePrintAction = false
+    end
+
+    action EnterAction(ActionContext context) 
+        SetNormalAction()
+    end
+
+    action ExitAction(ActionContext context) 
+        ClearActionState()
+        
+        if currentActionOpcode not= undefined and recentlyPopped not= undefined
+            currentActionOpcode:Add(recentlyPopped)
+        end
     end
 
     action EnterBlock(BlockContext context)
@@ -120,11 +181,25 @@ class QuorumJavascriptListener is QuorumSourceListener
         else 
             currentBlock = currentBlock:GetNextBlock()
         end
+
+        if currentBlockOpcode = undefined
+            BlockOpcode block
+            currentBlockOpcode = block
+        else
+            BlockOpcode block
+            block:SetParentBlock(currentBlockOpcode)
+            currentBlockOpcode = block
+        end
     end
     
     action ExitBlock(BlockContext context)
-        if currentBlock not= undefined
+       if currentBlock not= undefined
             currentBlock = currentBlock:GetParentBlock() //may be undefined
+        end
+
+        if currentBlockOpcode not= undefined
+            recentlyPopped = currentBlockOpcode
+            currentBlockOpcode = currentBlockOpcode:GetParentBlock()
         end
     end
 

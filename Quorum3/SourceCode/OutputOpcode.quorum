@@ -12,6 +12,7 @@ class OutputOpcode is QuorumOpcode
     JavaBytecodeMethodWriter methodWriter = undefined
     JavaBytecodeOpcodes opcodes
     QuorumBytecodeConverter converter
+    
 
     action GetOpcode returns QuorumOpcode
         return opcode
@@ -38,7 +39,13 @@ class OutputOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text
-        return ""
+        constant text OUTPUT_VARIABLE = "OuTpUt_$tRiNg_"
+        EOL = ""
+        quote = EOL:GetDoubleQuote()
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        opcodeResult = opcode:WriteJavaScript()
+        JSOutput = OUTPUT_VARIABLE + "+= " + opcodeResult + ";" + EOL
+        return JSOutput
     end
 
     action GetTemplateCopy returns QuorumOpcode

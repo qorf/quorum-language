@@ -40,12 +40,13 @@ class Main is WebResponder
 
         text convertedQuorum = javascript:GetConvertedSource()
 
-        CompilerTestSuite suite
-        CompilerTestResult result = suite:RunJavaScript(convertedQuorum)
-        
         output ""
         output "Converted Quorum:"
         output convertedQuorum
+
+        CompilerTestSuite suite
+        CompilerTestResult result = suite:RunJavaScript(convertedQuorum)
+        
         output ""
         output "Test Result:"
         if result:ranWithoutError

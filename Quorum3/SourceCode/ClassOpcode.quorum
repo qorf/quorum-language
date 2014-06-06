@@ -34,6 +34,8 @@ class ClassOpcode is QuorumOpcode
     File buildFile = undefined
     File buildInterfaceFile = undefined
 
+    
+
     action GetBuildFile returns File
         return buildFile
     end
@@ -229,7 +231,30 @@ class ClassOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text
-        return ""
+        constant text OUTPUT_VARIABLE = "OuTpUt_$tRiNg_"
+        EOL = ""
+        quote = EOL:GetDoubleQuote()
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        //quote = quote:GetDoubleQuote()
+        convertedSource = "Main();" + EOL + "function Main() {" + EOL
+        convertedSource = convertedSource + OUTPUT_VARIABLE + " = " + quote + quote + ";" + EOL
+
+        Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
+        repeat while fieldIterator:HasNext()
+            QuorumOpcode field = fieldIterator:Next()
+            convertedSource = convertedSource + field:WriteJavaScript()
+        end
+
+
+        Iterator<ActionOpcode> actionIterator = actions:GetIterator()
+        repeat while actionIterator:HasNext()
+            ActionOpcode act = actionIterator:Next()
+            convertedSource = convertedSource + act:WriteJavaScript()
+        end
+
+        convertedSource = convertedSource + "return " + OUTPUT_VARIABLE + ";" + EOL + "}"
+
+        return convertedSource
     end
 
     action GetTemplateCopy returns QuorumOpcode
