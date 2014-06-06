@@ -18,7 +18,7 @@ class QuorumConstant is QuorumOpcode
         elseif type:IsBoolean()
             return type:GetBooleanConstant() + ""
         elseif type:IsText()
-            return type:GetTextConstant() + ""
+            return textValue:GetDoubleQuote() + type:GetTextConstant() + textValue:GetDoubleQuote()+ ""
         end
         return ""
     end
