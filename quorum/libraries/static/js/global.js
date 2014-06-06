@@ -526,7 +526,7 @@ var AreYouMyMommy = function(mom, child) {
             }
         }
     }
-}
+};
 
 //var Person = function(eyeColor, hairColor) {
 //  this.eyeColor = eyeColor;
