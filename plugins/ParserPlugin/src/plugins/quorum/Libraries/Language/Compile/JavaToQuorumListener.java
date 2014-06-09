@@ -956,32 +956,44 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterNativeAction(QuorumParser.NativeActionContext ctx) {
-        listener.EnterSystemAction(ctx.method_shared().actionContext);
+        ActionContext context = new ActionContext();
+        setLocation(ctx, context);
+        listener.EnterSystemAction(context);
     }
 
     @Override
     public void exitNativeAction(QuorumParser.NativeActionContext ctx) {
-        listener.ExitSystemAction(ctx.method_shared().actionContext);
+        ActionContext context = new ActionContext();
+        setLocation(ctx, context);
+        listener.ExitSystemAction(context);
     }
 
     @Override
     public void enterAction(QuorumParser.ActionContext ctx) {
-        listener.EnterAction(ctx.method_shared().actionContext);
+        ActionContext context = new ActionContext();
+        setLocation(ctx, context);
+        listener.EnterAction(context);
     }
 
     @Override
     public void exitAction(QuorumParser.ActionContext ctx) {
-        listener.ExitAction(ctx.method_shared().actionContext);
+        ActionContext context = new ActionContext();
+        setLocation(ctx, context);
+        listener.ExitAction(context);
     }
 
     @Override
     public void enterBlueprintAction(QuorumParser.BlueprintActionContext ctx) {
-        listener.EnterBlueprintAction(ctx.method_shared().actionContext);
+        ActionContext context = new ActionContext();
+        setLocation(ctx, context);
+        listener.EnterBlueprintAction(context);
     }
 
     @Override
     public void exitBlueprintAction(QuorumParser.BlueprintActionContext ctx) {
-        listener.ExitBlueprintAction(ctx.method_shared().actionContext);
+        ActionContext context = new ActionContext();
+        setLocation(ctx, context);
+        listener.ExitBlueprintAction(context);
     }
 
     @Override
