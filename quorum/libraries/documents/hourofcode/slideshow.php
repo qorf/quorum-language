@@ -135,6 +135,7 @@ $( document ).ready(function() {
                 if (next == 0) { //disable arrow
                     $('#leftArrow').click(false);
                     $('#leftArrow').attr("aria-hidden", "true");
+                    $('#leftArrow').attr("aria-label", "You are on the first slide.");
                     $('#leftArrow').toggleClass("leftArrow-disabled");
                 }
                 slide(next, "right");
@@ -156,6 +157,7 @@ $( document ).ready(function() {
                 if (next == (slideArray.length - 1)) { //disable arrow
                     $('#rightArrow').click(false);
                     $('#rightArrow').attr("aria-hidden", "true");
+                    $('#leftArrow').attr("aria-label", "You are on the first slide.");
                     $('#rightArrow').toggleClass("rightArrow-disabled");
                 }
                 slide(next, "left");

@@ -467,7 +467,6 @@ var submitCodeSample = function(){
         $("#run-button a").on("click", function(e) {
 		e.preventDefault();
 		$(".outputArea").text("");
-		
 		var codeData = {code: $(".inputArea").val()};
 		//console.log(codeData);
 		$.ajax({
@@ -484,6 +483,8 @@ var submitCodeSample = function(){
                                 //var value = eval(result);
                                 console.log(result);
                                 $("#hour-of-code-IDE-output").text(eval(result));
+                                //var msg = new SpeechSynthesisUtterance('Suck it!');
+                                //window.speechSynthesis.speak(msg);
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
 				console.log(xhr, ajaxOptions, thrownError);

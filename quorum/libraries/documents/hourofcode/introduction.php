@@ -5,7 +5,7 @@
     //slide array
     var slideArray = new Array();
     slideArray[0] = "<h5 role=\"heading\">What is programming?</h5><ul><li role=\"listitem\">A gigantic headache</li></ul>";
-    slideArray[1] = "<h5 role=\"heading\">What is programming good for?</h5><ul><li role=\"listitem\">Impressing the ladies</li></ul>";
+    slideArray[1] = "<h5 role=\"heading\">What is programming good for?</h5><ul><li role=\"listitem\">Something cool, probably</li></ul>";
     slideArray[2] = "<h5 role=\"heading\">How does programming work?</h5><ul><li role=\"listitem\">Through witchcraft and wizardry</li></ul>";
     slideArray[3] = "<h5 role=\"heading\">Practical applications of programming</h5><ul><li role=\"listitem\">Saving the world from the bad guys</li></ul>";
     slideArray[4] = "<h5 role=\"heading\">But... we have to start somewhere</h5><ul><li role=\"listitem\">So let's tell the computer to say hello to our friend, science</li><li>Type <code>output \"Hello science!\"</code> into the text area and click the Run button</li><li>We can use the <code>output</code> command whenever we want the computer to talk to us</li></ul>";
