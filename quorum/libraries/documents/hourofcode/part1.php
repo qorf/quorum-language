@@ -8,7 +8,7 @@
     slideArray[1] = "<h5 role=\"heading\">Mary's Notes.</h5><ul><li role=\"listitem\">Paul created something called an action.</li><li>I think that will perform the execution of his code when I tell the computer to do so.</li><li>So the action is called IsDNA, to tell me if the action is valid or not, seems pretty neat.</li>After that I'll put the variable I want the action to use in parantheses.</li>";
     slideArray[2] = "<h5 role=\"heading\">Mary's Notes.</h5><ul><li role=\"listitem\">Hmmm. What else do I need to know?</li><li>When an action uses a variable, that variable is said to be a parameter of the action.</li><li>Alright. Once I run Paul's code it seems I will get something back.</li><li>It should give me a boolean which can only be true and false, I think.</li>";
     slideArray[3] = "<h5 role=\"heading\">Mary's Notes.</h5><ul><li role=\"listitem\">I have to put Boolean in front of my variable, I called it validDNA, so I know a valid DNA will give me true.</li><li>So I set that variable equal to the variable IsDNA to receive the result.</li><li>To check the variable I'll do that thing called an output statement to the IsDNA variable.</li>";
-    slideArray[4] = "<h5 role=\"heading\">Instruction.</h5>";
+    slideArray[4] = "<h5 role=\"heading\">Instructions.</h5>";
 </script>
 <?php include("slideshow.php"); ?>
 
