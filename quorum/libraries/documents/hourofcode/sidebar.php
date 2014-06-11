@@ -7,7 +7,7 @@
         <a href="part4.php"><li id="sidebar-part4" class="sidebar-link">Part 4: Hi... Mom?</li></a>
         <a href="part5.php"><li id="sidebar-part5" class="sidebar-link">Part 5: Breed the Mutants</li></a>
         <a href="part6.php"><li id="sidebar-part6" class="sidebar-link">Part 6: Create Superbugs</li></a>
-        <a href="part7.php"><li id="sidebar-part7" class="sidebar-link">Part 7: Take Over The World!</li></a>
+        <a href="part7.php"><li id="sidebar-part7" class="sidebar-link">Part 7: Take Over the World!</li></a>
     </ul>    
 </div><script type="text/javascript">
     

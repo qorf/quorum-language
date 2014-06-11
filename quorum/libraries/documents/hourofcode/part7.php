@@ -1,6 +1,6 @@
     <?php include("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
-    document.title = 'Hour of Code: Part 4 | Quorum Programming Language';
+    document.title = 'Hour of Code: Part 7 | Quorum Programming Language';
     
     //slide array
     var slideArray = new Array();
