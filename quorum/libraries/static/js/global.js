@@ -468,6 +468,7 @@ var submitCodeSample = function(){
 		e.preventDefault();
 		$(".outputArea").text("");
 		var codeData = {code: $(".inputArea").val()};
+                var msg = new SpeechSynthesisUtterance('');
 		//console.log(codeData);
 		$.ajax({
 			type: "POST",
@@ -483,7 +484,6 @@ var submitCodeSample = function(){
                                 //var value = eval(result);
                                 console.log(result);
                                 $("#hour-of-code-IDE-output").text(eval(result));
-                                //var msg = new SpeechSynthesisUtterance('Suck it!');
                                 //window.speechSynthesis.speak(msg);
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
