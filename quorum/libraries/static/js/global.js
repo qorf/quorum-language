@@ -468,7 +468,7 @@ var submitCodeSample = function(){
 		e.preventDefault();
 		$(".outputArea").text("");
 		var codeData = {code: $(".inputArea").val()};
-                var msg = new SpeechSynthesisUtterance('');
+                //var msg = new SpeechSynthesisUtterance('');
 		//console.log(codeData);
 		$.ajax({
 			type: "POST",
