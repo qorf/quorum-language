@@ -4,10 +4,10 @@
     
     //slide array
     var slideArray = new Array();
-    slideArray[0] = "";
-    slideArray[1] = "";
-    slideArray[2] = "";
-    slideArray[3] = "";
+    slideArray[0] = "<h5 role=\"heading\">Mary's Notes.</h5><ul><li role=\"listitem\">Today Dr. Day told me to clone DNA.</li><li>Oh yeah, I also got this awesome keychain!</li><li>Anyways, I had to clone this DNA 1000 times!</li><li>I chose to do it the shorter way with programming.</li>";
+    slideArray[1] = "<h5 role=\"heading\">Mary's Notes.</h5><ul><li role=\"listitem\">I used the Quorum programming language, kind of like you are!</li><li>So to clone the DNA 1000 times I just repeated it.</li><li>It seemed like it was working pretty well for a while.</li>";
+    slideArray[2] = "<h5 role=\"heading\">Mary's Notes.</h5><ul><li role=\"listitem\">Oh goodness!</li><li>During the DNA replication process an error had occured which caused a mutation.</li><li>A mutation is an error in the replication process that damaged the DNA.</li>";
+    slideArray[3] = "<h5 role=\"heading\">Instructions.</h5>";
     slideArray[4] = "";
 </script>
 <?php include("slideshow.php"); ?>

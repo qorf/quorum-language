@@ -15,7 +15,7 @@
 <div class="hero-unit">
 	<div class="hero-unit-container" role="banner">
 		<h1>Hour of Code: Introduction</h1>
-                <p>Hello Science!</p>
+                <p>Hi... Mom?</p>
 	</div>
 </div>
   <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
