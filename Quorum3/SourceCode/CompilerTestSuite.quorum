@@ -21,6 +21,7 @@ class CompilerTestSuite
     IfStatementTester ifStatementChecks
     LoopsTester loopsChecks
     ActionsTester actionsChecks
+    InheritanceTester inheritanceChecks
 
     on create
         expressions:SetCompilerTestSuite(me)
@@ -28,6 +29,7 @@ class CompilerTestSuite
         ifStatementChecks:SetCompilerTestSuite(me)
         loopsChecks:SetCompilerTestSuite(me)
         actionsChecks:SetCompilerTestSuite(me)
+        inheritanceChecks:SetCompilerTestSuite(me)
     end
 
     action Main
@@ -50,6 +52,9 @@ class CompilerTestSuite
         output ""
         output actionsChecks:GetName()
         actionsChecks:Test()
+        output ""
+        output inheritanceChecks:GetName()
+        inheritanceChecks:Test()
         output ""
 
         DateTime date2
