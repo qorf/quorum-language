@@ -1,0 +1,22 @@
+/*
+Expected output:
+detect
+*/
+
+use Libraries.Language.Errors.all
+
+class Main
+    action Main
+        integer k = 0
+        repeat 4 times
+            if k > 2
+                check
+                    number f = cast(number, "nope")
+                detect e
+                    output "detect"
+                end
+            end
+            k = k + 1
+        end
+    end
+end

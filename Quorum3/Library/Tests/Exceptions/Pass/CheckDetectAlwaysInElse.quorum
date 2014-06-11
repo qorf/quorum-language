@@ -1,0 +1,24 @@
+/*
+Expected output:
+detect
+always
+*/
+
+use Libraries.Language.Errors.all
+
+class Main
+    action Main
+        integer z = 2 * 2
+        if z = 5
+            output "shouldn't be here"
+        else
+            check
+                alert("detect")
+            detect e
+                output e:GetErrorMessage()
+            always
+                output "always"
+            end
+        end
+    end
+end
