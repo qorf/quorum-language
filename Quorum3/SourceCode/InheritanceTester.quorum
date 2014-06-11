@@ -1,0 +1,134 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.QuorumJarGenerator
+use Libraries.System.StackTraceItem
+
+class InheritanceTester 
+    CompilerTestSuite suite = undefined
+
+    action Test
+        //AssignToParentsVariable()
+        //CallInheritedAction()
+        //CallMethodCallingBlueprint()
+        //DerivedCall()
+        //DogMain()
+        //InheritedTemplatedMethods()
+        //MultipleInheritanceCallingAmbiguousBlueprints()
+        //ParentActionCall()
+        //ParentCallingBlueprint()
+        //ParentFullyQualified()
+        //SimpleCast()
+        //SingleInheritanceParentsHaveFoo()
+        //SingleInheritanceSimpleOneLayer()
+        //SystemActionInherit()
+        //TruckMain()
+//Tests in InheritanceTester.java that need to be implemented
+//MultipleInheritanceBlueprints
+//MultipleInheritanceCallingInheritedBlueprints
+        
+        //FAIL tests
+        //MultipleInheritanceAmbiguousMethod  
+
+    end
+
+    action GetName returns text
+        return "Inheritance Tests"
+    end
+
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+    action AssignToParentsVariable 
+        suite:RunTest("Library/Tests/Inheritance/Pass/AssignToParentsVariable.quorum", "6", "5", "117", "117")
+        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/AssignToParentsVariable.quorum", "6", "5", "117", "117")
+    end
+
+    action CallInheritedAction 
+        suite:RunTest("Library/Tests/Inheritance/Pass/CallInheritedAction.quorum", "implemented by A", "implemented by B", "implemented by B")
+        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/CallInheritedAction.quorum", "implemented by A", "implemented by B", "implemented by B")
+    end
+
+    action CallMethodCallingBlueprint
+        suite:RunTest("Library/Tests/Inheritance/Pass/CallMethodCallingBlueprint.quorum", "child")
+        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/CallMethodCallingBlueprint.quorum", "child")
+    end
+
+    action DerivedCall 
+        suite:RunTest("Library/Tests/Inheritance/Pass/DerivedCall.quorum", "This is We Win.")
+        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/DerivedCall.quorum", "This is We Win.")
+    end
+
+    action DogMain 
+        suite:RunTest("Library/Tests/Inheritance/Pass/DogMain.quorum", "true", "true")
+        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/DogMain.quorum", "true", "true")
+    end
+
+    action InheritedTemplatedMethods 
+        suite:RunTest("Library/Tests/Inheritance/Pass/InheritedTemplatedMethods.quorum", "true", "true" , "1.2", "10")
+        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/InheritedTemplatedMethods.quorum", "true", "true" , "1.2", "10")
+    end
+
+    action MultipleInheritanceCallingAmbiguousBlueprints 
+        suite:RunTest("Library/Tests/Inheritance/Pass/MultipleInheritanceCallingAmbiguousBlueprints.quorum", "grandchild")
+        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/MultipleInheritanceCallingAmbiguousBlueprints.quorum", "grandchild")
+    end
+
+    action ParentActionCall 
+       suite:RunTest("Library/Tests/Inheritance/Pass/ParentActionCall.quorum", "")
+       //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/ParentActionCall.quorum", "")
+    end
+
+    action ParentCallingBlueprint 
+       suite:RunTest("Library/Tests/Inheritance/Pass/ParentActionCall.quorum", "child")
+       //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/ParentActionCall.quorum", "child")
+    end
+
+    action ParentFullyQualified 
+       suite:RunTest("Library/Tests/Inheritance/Pass/ParentFullyQualified.quorum", "")
+       //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/ParentFullyQualified.quorum", "")
+    end
+
+    action SimpleCast 
+        suite:RunTest("Library/Tests/Inheritance/Pass/SimpleCast.quorum", "Implemented by B")
+        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/SimpleCast.quorum", "Implemented by B")
+    end
+
+    action SingleInheritanceParentsHaveFoo 
+        suite:RunTest("Library/Tests/Inheritance/Pass/SingleInheritanceParentsHaveFoo.quorum", "")
+        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/SingleInheritanceParentsHaveFoo.quorum", "")
+    end
+
+    action SingleInheritanceSimpleOneLayer 
+        suite:RunTest("Library/Tests/Inheritance/Pass/SingleInheritanceSimpleOneLayer.quorum", "")
+        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/SingleInheritanceSimpleOneLayer.quorum", "")
+    end
+
+    action SystemActionInherit 
+        suite:RunTest("Library/Tests/Inheritance/Pass/SystemActionInherit.quorum", "")
+        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/SystemActionInherit.quorum", "")
+    end
+
+    action TruckMain 
+        suite:RunTest("Library/Tests/Inheritance/Pass/TruckMain.quorum", "Number of wheels: 4", "Size of gas tank (gallons): 20")
+        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/TruckMain.quorum", "Number of wheels: 4", "Size of gas tank (gallons): 20")
+    end
+
+    //FAIL Tests
+
+    action MultipleInheritanceAmbiguousMethod 
+        suite:RunTestFail("Library/Tests/Inheritance/Fail/MultipleInheritanceAmbiguousMethod.quorum")
+        //suite:RunJavaScriptTestFail("Library/Tests/Inheritance/Fail/MultipleInheritanceAmbiguousMethod.quorum", "")
+    end
+
+end

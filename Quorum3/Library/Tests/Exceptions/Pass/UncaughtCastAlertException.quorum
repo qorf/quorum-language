@@ -1,0 +1,15 @@
+use Libraries.Language.Errors.InvalidLocationError
+use Libraries.Language.Errors.CastError
+class Main
+    action main
+        integer i = 1
+        check
+            CastError er
+            alert(er)
+        detect e is InvalidLocationError
+            i = 2
+        end
+
+        output i
+    end
+end
