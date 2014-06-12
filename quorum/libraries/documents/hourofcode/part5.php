@@ -4,7 +4,7 @@
     
     //slide array
     var slideArray = new Array();
-    slideArray[0] = "";
+    slideArray[0] = "<h5 role=\"heading\">Mystery Solved.</h5><ul><li role=\"listitem\">Dr. Day figured out what that funny smell was and I received a pay bonus!</li>";
     slideArray[1] = "";
     slideArray[2] = "";
     slideArray[3] = "";
