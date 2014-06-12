@@ -17,39 +17,46 @@ class Main is WebResponder
         output "Hi, from Quorum " + VERSION
         Compiler compiler
         File file
-        file:SetPath("Library/Tests/Expressions/Pass/LTIntInt2.quorum")
-        //file:SetPath("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LT.quorum")
+        file:SetPath("Library/Tests/Expressions/Pass/ComplexExpression.quorum")
+        //file:SetPath("Library/Tests/IfStatement/Pass/IfStatementCompoundLTandEqual.quorum")
         compiler:SetMain(file)
         Parser parser
-
+        
         output "Parsing"
         compiler:Parse(file, parser)
+        CompilerErrorManager manager = parser:GetCompilerErrorManager()
+        if not manager:IsCompilationErrorFree()
+            OutputCompilerErrors(compiler, manager)
+            return now
+        end
 
         output "Typechecking"
         TypeCheckListener checker
         compiler:Parse(file, checker)
+        if not manager:IsCompilationErrorFree()
+            OutputCompilerErrors(compiler, manager)
+            return now
+        end
 
         output "Writing bytecode"
         QuorumBytecodeListener bytecode
         compiler:Parse(file, bytecode)
-        
-        CompilerErrorManager manager = parser:GetCompilerErrorManager()
-
         if manager:IsCompilationErrorFree()
             QuorumJarGenerator generator
-
             File jar = compiler:GetDistributionFile()
             generator:SetCompiler(compiler)
             generator:Write()
             output "Build completed successfully"
-        else 
-            output "The code did not build correctly. Here is a list of errors:"
-            Iterator<CompilerError> errors = manager:GetIterator()
-            repeat while errors:HasNext()
-                CompilerError error = errors:Next()
-                text t = error:GetDisplayName()
-                output t
-            end
+        end
+    end
+
+    action OutputCompilerErrors(Compiler compiler, CompilerErrorManager manager)
+        output "The code did not build correctly. Here is a list of errors:"
+        Iterator<CompilerError> errors = manager:GetIterator()
+        repeat while errors:HasNext()
+            CompilerError error = errors:Next()
+            text t = error:GetDisplayName()
+            output t
         end
     end
 

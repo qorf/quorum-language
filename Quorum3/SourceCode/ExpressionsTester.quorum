@@ -25,6 +25,7 @@ class ExpressionsTester
         AddTextText()
         AndBooleanBoolean()
 //      CompareTextTextField()
+        //ComplexExpression()
         DivDoubleDouble()
         DivDoubleInt()
         DivIntDouble()
@@ -174,6 +175,11 @@ class ExpressionsTester
     action CompareTextTextField
         suite:RunTest("Library/Tests/Expressions/Pass/CompareTextTextField.quorum", "1")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/CompareTextTextField.quorum", "1")
+    end
+
+    action ComplexExpression
+        suite:RunTest("Library/Tests/Expressions/Pass/ComplexExpression.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTIntInt.quorum", "false", "true")
     end
 
     action DivDoubleDouble

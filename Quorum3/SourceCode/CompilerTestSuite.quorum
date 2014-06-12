@@ -80,12 +80,23 @@ class CompilerTestSuite
 
         Parser parser
         compiler:Parse(file, parser)
+        CompilerErrorManager manager = parser:GetCompilerErrorManager()
+
+        if not manager:IsCompilationErrorFree()
+            CompilerTestResult result2
+            result2:name = source
+            return result2
+        end
         TypeCheckListener checker
         compiler:Parse(file, checker)
+        if not manager:IsCompilationErrorFree()
+            CompilerTestResult result2
+            result2:name = source
+            return result2
+        end
+
         QuorumJavascriptListener javascript
         compiler:Parse(file, javascript)
-        
-        CompilerErrorManager manager = parser:GetCompilerErrorManager()
 
         if manager:IsCompilationErrorFree() //run the program
             text convertedJavaScript = javascript:GetConvertedSource()
@@ -227,13 +238,24 @@ class CompilerTestSuite
 
         Parser parser
         compiler:Parse(file, parser)
+        CompilerErrorManager manager = parser:GetCompilerErrorManager()
+        if not manager:IsCompilationErrorFree()
+            CompilerTestResult result2
+            result2:name = source
+            return result2
+        end
+
         TypeCheckListener checker
         compiler:Parse(file, checker)
+        if not manager:IsCompilationErrorFree()
+            CompilerTestResult result2
+            result2:name = source
+            return result2
+        end
+
         QuorumBytecodeListener bytecode
         compiler:Parse(file, bytecode)
         
-        CompilerErrorManager manager = parser:GetCompilerErrorManager()
-
         if manager:IsCompilationErrorFree() //run the program
             QuorumJarGenerator generator
 
