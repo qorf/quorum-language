@@ -15,12 +15,10 @@ class Main is WebResponder
 //        request:AddParameter("code", "output 5")
 //        Respond(request)
         output "Hi, from Quorum " + VERSION
-        integer a = 5
-        integer b = 10
-        boolean c = a = b
         Compiler compiler
         File file
-        file:SetPath("Library/Tests/IfStatement/Pass/IfStatementOneCondition_Equal.quorum")
+        file:SetPath("Library/Tests/Expressions/Pass/LTIntInt2.quorum")
+        //file:SetPath("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LT.quorum")
         compiler:SetMain(file)
         Parser parser
 

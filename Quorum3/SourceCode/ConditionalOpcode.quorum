@@ -52,7 +52,8 @@ class ConditionalOpcode is QuorumOpcode
         endLabel = GetNewLabel()
 
         if expression is BinaryOpcode
-            methodWriter:VisitJump(opcodes:GetIfIntegerEquals(), endLabel)
+            BinaryOpcode bop = cast(BinaryOpcode, expression)
+            methodWriter:VisitJump(bop:GetJavaOpcode(), endLabel)
         else 
             methodWriter:VisitJump(opcodes:GetIfEquals(), endLabel)
         end

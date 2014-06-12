@@ -59,6 +59,7 @@ class ExpressionsTester
         LTEDoubleInt()
         LTEIntDouble()
         LTEIntInt()
+        LTIntInt2()
         LTETextText()
         LTIntInt()
         LTTextText()
@@ -357,6 +358,11 @@ class ExpressionsTester
 
     action LTIntInt
         suite:RunTest("Library/Tests/Expressions/Pass/LTIntInt.quorum", "false", "true")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTIntInt.quorum", "false", "true")
+    end
+
+    action LTIntInt2
+        suite:RunTest("Library/Tests/Expressions/Pass/LTIntInt2.quorum", "false", "true")
         //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTIntInt.quorum", "false", "true")
     end
 

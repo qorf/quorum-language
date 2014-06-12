@@ -13,6 +13,7 @@ class IfStatementTester
     CompilerTestSuite suite = undefined
     action Test
         IfConst()
+        IfConstIn()
 //        IfElseIfElseMultipleConditions()
 //        IfElseIfElse_Const()
 //        IfElseIfElse_Var()
@@ -49,8 +50,13 @@ class IfStatementTester
     end
 
     action IfConst
-        suite:RunTest("Library/Tests/IfStatement/Pass/IfConst.quorum", "true")
-        //suite:RunTest("Library/Tests/IfStatement/Pass/IfConst.quorum", "true")
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfConst.quorum", "false")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfConst.quorum", "false")
+    end
+
+    action IfConstIn
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfConstIn.quorum", "false")
+        //suite:RunTest("Library/Tests/IfStatement/Pass/IfConstIn.quorum", "false")
     end
 
     action IfElseIfElseMultipleConditions

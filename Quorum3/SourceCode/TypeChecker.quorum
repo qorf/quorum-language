@@ -127,7 +127,7 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToBoolean()
-        compare = GetBinaryComparisonOpcode(opcodes:GetIfIntegerGreaterThan(), -1, -1, type)
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfIntegerGreaterThanEquals(), -1, -1, type)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
