@@ -17,8 +17,8 @@ class Main is WebResponder
         output "Hi, from Quorum " + VERSION
         Compiler compiler
         File file
-        file:SetPath("Library/Tests/Expressions/Pass/ComplexExpression.quorum")
-        //file:SetPath("Library/Tests/IfStatement/Pass/IfStatementCompoundLTandEqual.quorum")
+        //file:SetPath("Library/Tests/Expressions/Pass/ComplexExpression.quorum")
+        file:SetPath("Library/Tests/IfStatement/Pass/IfStatementCompoundLTandEqual.quorum")
         compiler:SetMain(file)
         Parser parser
         
