@@ -1,0 +1,60 @@
+package Libraries.Language.Compile.Translate
+
+class LoopOpcode is QuorumOpcode
+    QuorumOpcode expression = undefined
+    BlockOpcode block = undefined
+    JavaBytecodeMethodWriter methodWriter = undefined
+    JavaBytecodeOpcodes opcodes
+
+    action GetMethodWriter returns JavaBytecodeMethodWriter
+        return methodWriter
+    end
+
+    action SetMethodWriter(JavaBytecodeMethodWriter writer)
+        methodWriter = writer
+    end
+
+    action GetExpression returns QuorumOpcode
+        return expression
+    end
+
+    action SetExpression(QuorumOpcode op)
+        expression = op
+    end
+
+    action GetBlock returns BlockOpcode
+        return block
+    end
+
+    action SetBlock(BlockOpcode op)
+        block = op
+    end
+
+    action Write
+        JavaBytecodeLabel startLabel
+        JavaBytecodeLabel endLabel
+
+        methodWriter:VisitLabel(startLabel)
+        expression:Write()
+
+        if expression is BinaryOpcode
+            BinaryOpcode bop = cast(BinaryOpcode, expression)
+            methodWriter:VisitJump(bop:GetJavaOpcode(), endLabel)
+        else 
+            methodWriter:VisitJump(opcodes:GetIfEquals(), endLabel)
+        end
+        block:Write()
+        methodWriter:VisitJump(opcodes:GetGoto(), startLabel)
+        methodWriter:VisitLabel(endLabel)
+    end
+
+    action WriteJavaScript returns text
+        return ""
+    end
+
+    action GetTemplateCopy returns QuorumOpcode
+        LoopOpcode copy
+
+        return copy
+    end
+end

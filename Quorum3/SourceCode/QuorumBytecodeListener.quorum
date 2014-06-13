@@ -40,6 +40,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     boolean isNextVariableReferenceMe = false
     Stack<QuorumOpcode> opcodeStack
     Stack<ConditionalOpcode> ifStack
+    Stack<LoopOpcode> loopStack
     File buildFile = undefined
     File buildInterfaceFile = undefined
     BlockOpcode currentBlockOpcode = undefined
@@ -210,6 +211,25 @@ class QuorumBytecodeListener is QuorumSourceListener
                 currentBlockOpcode = currentBlocks:Peek()
             end
         end
+    end
+
+    action EnterLoopStatement(LoopContext context) 
+        LoopOpcode loop
+        loop:SetMethodWriter(methodWriter)
+
+        loopStack:Push(loop)
+    end
+
+    action ExitLoopStatement(LoopContext context) 
+        LoopOpcode loop = loopStack:Pop()
+        QuorumOpcode qop = opcodeStack:Pop()
+        qop:SetIsIfExpression(true)
+
+        loop:SetExpression(qop)
+        BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
+        loop:SetBlock(recentlyPopped)
+        
+        currentBlockOpcode:Add(loop)
     end
 
     action EnterIfStatement(IfContext context) 
