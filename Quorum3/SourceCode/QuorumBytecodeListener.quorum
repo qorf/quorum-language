@@ -43,7 +43,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     File buildFile = undefined
     File buildInterfaceFile = undefined
     BlockOpcode currentBlockOpcode = undefined
-    BlockOpcode recentlyPopped = undefined
+    Stack<BlockOpcode> poppedBlockOpcodes
+    Stack<BlockOpcode> currentBlocks
+    //BlockOpcode recentlyPopped = undefined
 
     integer ifCount = 0
 
@@ -150,8 +152,10 @@ class QuorumBytecodeListener is QuorumSourceListener
     action ExitAction(ActionContext context) 
         ClearActionState()
         
-        if currentActionOpcode not= undefined and recentlyPopped not= undefined
-            currentActionOpcode:Add(recentlyPopped)
+        if currentActionOpcode not= undefined
+            if not poppedBlockOpcodes:IsEmpty()
+                currentActionOpcode:Add(poppedBlockOpcodes:Pop())
+            end
         end
     end
 
@@ -173,10 +177,12 @@ class QuorumBytecodeListener is QuorumSourceListener
         if currentBlockOpcode = undefined
             BlockOpcode block
             currentBlockOpcode = block
+            currentBlocks:Push(block)
         else
             BlockOpcode block
             block:SetParentBlock(currentBlockOpcode)
             currentBlockOpcode = block
+            currentBlocks:Push(block)
         end
     end
     
@@ -186,8 +192,13 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
 
         if currentBlockOpcode not= undefined
-            recentlyPopped = currentBlockOpcode
-            currentBlockOpcode = currentBlockOpcode:GetParentBlock()
+            BlockOpcode op = currentBlocks:Pop()
+            poppedBlockOpcodes:Push(op)
+            if currentBlocks:IsEmpty()
+                currentBlockOpcode = undefined
+            else
+                currentBlockOpcode = currentBlocks:Peek()
+            end
         end
     end
 
@@ -207,17 +218,27 @@ class QuorumBytecodeListener is QuorumSourceListener
         qop:SetIsIfExpression(true)
 
         conditional:SetExpression(qop)
+        BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         conditional:SetBlock(recentlyPopped)
         
         currentBlockOpcode:Add(conditional)
-        a = 5
     end
 
     action EnterElseIfStatement(IfContext context) end
-    action ExitElseIfStatement(IfContext context) end
+    action ExitElseIfStatement(IfContext context) 
+        ConditionalOpcode conditional = ifStack:Peek()
+        QuorumOpcode qop = opcodeStack:Pop()
+        qop:SetIsIfExpression(true)
+        BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
+        conditional:AddElseIf(qop, recentlyPopped)
+    end
 
     action EnterElseStatement(IfContext context) end
-    action ExitElseStatement(IfContext context) end
+    action ExitElseStatement(IfContext context) 
+        ConditionalOpcode conditional = ifStack:Peek()
+        BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
+        conditional:SetElseBlock(recentlyPopped)
+    end
 
     action ExitNormalAssignment(NormalAssignmentContext context) 
         text name = context:name
