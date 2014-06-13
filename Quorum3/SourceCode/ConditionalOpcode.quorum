@@ -1,14 +1,33 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Containers.Array
+use Libraries.Containers.Blueprints.Iterator
 
 class ConditionalOpcode is QuorumOpcode
     QuorumOpcode expression = undefined
     BlockOpcode block = undefined
     integer whichIf = 0
+    Array<QuorumOpcode> elseIfExpressions
+    Array<BlockOpcode> elseIfBlocks
+    BlockOpcode elseBlock
+
     JavaBytecodeLabel endLabel = undefined
     JavaBytecodeMethodWriter methodWriter = undefined
     JavaBytecodeOpcodes opcodes
+
+    action AddElseIf(QuorumOpcode expression, BlockOpcode block)
+        elseIfExpressions:Add(expression)
+        elseIfBlocks:Add(block)
+    end
+
+    action GetElseBlock returns BlockOpcode
+        return elseBlock
+    end
+
+    action SetElseBlock(BlockOpcode block)
+        elseBlock = block
+    end
 
     action GetMethodWriter returns JavaBytecodeMethodWriter
         return methodWriter
@@ -48,23 +67,79 @@ class ConditionalOpcode is QuorumOpcode
     end
 
     action Write
-        expression:Write()
+        //create all the labels that we need for writing this block
+        JavaBytecodeLabel ifLabel = undefined
+        Array<JavaBytecodeLabel> labels
+        repeat elseIfExpressions:GetSize() times
+            labels:Add(GetNewLabel())
+        end
+        JavaBytecodeLabel elseLabel = undefined
+        if elseBlock not= undefined
+            elseLabel = GetNewLabel()
+        end
         endLabel = GetNewLabel()
 
+        //setup where the first if block jumps to
+        if elseIfExpressions:IsEmpty()
+            if elseBlock = undefined
+                ifLabel = endLabel
+            else
+                ifLabel = elseLabel
+            end
+        else 
+            ifLabel = labels:Get(0)
+        end
+
+        expression:Write()
         if expression is BinaryOpcode
             BinaryOpcode bop = cast(BinaryOpcode, expression)
-            methodWriter:VisitJump(bop:GetJavaOpcode(), endLabel)
+            methodWriter:VisitJump(bop:GetJavaOpcode(), ifLabel)
         else 
-            methodWriter:VisitJump(opcodes:GetIfEquals(), endLabel)
+            methodWriter:VisitJump(opcodes:GetIfEquals(), ifLabel)
         end
         block:Write()
-        methodWriter:VisitLabel(endLabel)
+        methodWriter:VisitJump(opcodes:GetGoto(), endLabel)
 
         //if there are else if statements, put them here.
+        i = 0
+        repeat elseIfExpressions:GetSize() times
+            QuorumOpcode elseIfOp = elseIfExpressions:Get(i)
+            BlockOpcode elseIfBlock = elseIfBlocks:Get(i)
 
+            methodWriter:VisitLabel(labels:Get(i))
+            JavaBytecodeLabel next = undefined
+            elseIfOp:Write()
+            if i + 1 < elseIfExpressions:GetSize()
+                next = labels:Get(i + 1)
+            else
+                if elseBlock not= undefined
+                    next = elseLabel
+                else 
+                    next = endLabel
+                end
+            end
+            WriteExpression(elseIfOp, next)
+            elseIfBlock:Write()
+            methodWriter:VisitJump(opcodes:GetGoto(), endLabel)
+            i = i + 1
+        end
 
         //if there is an else block, put it here
+        if elseBlock not= undefined
+            methodWriter:VisitLabel(elseLabel)
+            elseBlock:Write()
+        end
 
+        methodWriter:VisitLabel(endLabel)
+    end
+
+    private action WriteExpression(QuorumOpcode opcode, JavaBytecodeLabel label)
+        if opcode is BinaryOpcode
+            BinaryOpcode bop = cast(BinaryOpcode, opcode)
+            methodWriter:VisitJump(bop:GetJavaOpcode(), label)
+        else 
+            methodWriter:VisitJump(opcodes:GetIfEquals(), label)
+        end
     end
 
     action WriteJavaScript returns text
