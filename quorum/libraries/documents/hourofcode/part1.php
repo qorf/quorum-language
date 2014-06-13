@@ -26,7 +26,11 @@
     <h2>Try It! <span class="hour-of-code-IDE-subtitle">Enter Quorum code below and press "Run" to execute it</span></h2>
     <div id="hour-of-code-IDE-controller">
     </div>
-        <textarea id="hour-of-code-IDE-input" class="ide inputArea" role="textbox" aria-multiline="true"></textarea>
+        <textarea id="hour-of-code-IDE-input" class="ide inputArea" role="textbox" aria-multiline="true">var DNAStrand1 = "GATTACA";
+var DNAStrand2 = "GARRACA";
+
+var validDNA = isDNA(DNAStrand2);
+"The result of this DNA is: " + validDNA;</textarea>
         <pre id="hour-of-code-IDE-output" class="outputArea" role="log" aria-live="polite"></pre><div id="run-button" class="btn-group">
                 <a class="btn btn-success" href="#">Run</a>
         </div></div><div id="video-container">
