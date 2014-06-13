@@ -45,7 +45,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     BlockOpcode currentBlockOpcode = undefined
     Stack<BlockOpcode> poppedBlockOpcodes
     Stack<BlockOpcode> currentBlocks
-    //BlockOpcode recentlyPopped = undefined
+    Stack<integer> blockPositionStack
 
     integer ifCount = 0
 
@@ -170,8 +170,17 @@ class QuorumBytecodeListener is QuorumSourceListener
     action EnterBlock(BlockContext context)
         if currentBlock = undefined
             currentBlock = currentAction:GetBlock()
+            blockPositionStack:Push(0)
         else 
-            currentBlock = currentBlock:GetNextBlock()
+            integer value = blockPositionStack:Pop()
+            if value < currentBlock:GetSubBlockSize()
+                currentBlock = currentBlock:GetBlock(value)
+                blockPositionStack:Push(value + 1)
+                //now push on a 0 for the new block
+                blockPositionStack:Push(0)
+            else 
+                alert("Compiler Bug in EnterBlock of the Type Check Listener.")
+            end
         end
 
         if currentBlockOpcode = undefined
@@ -189,6 +198,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     action ExitBlock(BlockContext context)
         if currentBlock not= undefined
             currentBlock = currentBlock:GetParentBlock() //may be undefined
+            blockPositionStack:Pop()
         end
 
         if currentBlockOpcode not= undefined

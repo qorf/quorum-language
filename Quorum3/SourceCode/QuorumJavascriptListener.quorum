@@ -20,7 +20,9 @@ class QuorumJavascriptListener is QuorumSourceListener
     BlockOpcode currentBlockOpcode = undefined
     BlockOpcode recentlyPopped = undefined
     Stack<QuorumOpcode> opcodeStack
-
+    Stack<integer> blockPositionStack
+    Stack<BlockOpcode> poppedBlockOpcodes
+    Stack<BlockOpcode> currentBlocks
     text build = "TestBuild"
     text run = "TestRun"
     
@@ -178,28 +180,45 @@ class QuorumJavascriptListener is QuorumSourceListener
     action EnterBlock(BlockContext context)
         if currentBlock = undefined
             currentBlock = currentAction:GetBlock()
+            blockPositionStack:Push(0)
         else 
-            currentBlock = currentBlock:GetNextBlock()
+            integer value = blockPositionStack:Pop()
+            if value < currentBlock:GetSubBlockSize()
+                currentBlock = currentBlock:GetBlock(value)
+                blockPositionStack:Push(value + 1)
+                //now push on a 0 for the new block
+                blockPositionStack:Push(0)
+            else 
+                alert("Compiler Bug in EnterBlock of the Type Check Listener.")
+            end
         end
 
         if currentBlockOpcode = undefined
             BlockOpcode block
             currentBlockOpcode = block
+            currentBlocks:Push(block)
         else
             BlockOpcode block
             block:SetParentBlock(currentBlockOpcode)
             currentBlockOpcode = block
+            currentBlocks:Push(block)
         end
     end
     
     action ExitBlock(BlockContext context)
-       if currentBlock not= undefined
+        if currentBlock not= undefined
             currentBlock = currentBlock:GetParentBlock() //may be undefined
+            blockPositionStack:Pop()
         end
 
         if currentBlockOpcode not= undefined
-            recentlyPopped = currentBlockOpcode
-            currentBlockOpcode = currentBlockOpcode:GetParentBlock()
+            BlockOpcode op = currentBlocks:Pop()
+            poppedBlockOpcodes:Push(op)
+            if currentBlocks:IsEmpty()
+                currentBlockOpcode = undefined
+            else
+                currentBlockOpcode = currentBlocks:Peek()
+            end
         end
     end
 

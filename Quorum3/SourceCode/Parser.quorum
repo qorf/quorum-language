@@ -78,8 +78,11 @@ class Parser is QuorumSourceListener
 
     action EnterBlock(BlockContext context) 
         Block block
-        if currentAction not= undefined
-            currentAction:AddBlock(block)
+
+        if currentBlock not= undefined
+            currentBlock:Add(block)
+        elseif currentAction not= undefined
+            currentAction:SetBlock(block)
         end
         currentBlock = block
         blocks:Push(block)

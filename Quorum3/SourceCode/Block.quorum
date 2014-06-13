@@ -27,11 +27,25 @@ class Block
         return undefined
     end
 
-    action GetNextBlock returns Block
-        if not blocks:IsEmpty()
-            return blocks:Get(0)
-        end
-        return undefined
+//    action GetNextBlock returns Block
+//        if not blocks:IsEmpty()
+//            return blocks:Get(0)
+//        end
+//        return undefined
+//    end
+
+    action GetBlock(integer next) returns Block
+        return blocks:Get(next)
+    end
+
+    /*
+        Returns the number of blocks that are contained 
+        within this block at the root level. Blocks inside of this block
+        may contain their own sub-blocks, but these are not counted
+        by this action.
+    */
+    action GetSubBlockSize returns integer
+        return blocks:GetSize()
     end
 
     action SetByteCodeLocation(Variable variable)
