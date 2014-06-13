@@ -14,6 +14,7 @@ class TypeCheckListener is QuorumSourceListener
     Block currentBlock = undefined
     Stack<Block> blocks
     Stack<Type> expressionStack
+    boolean isNextVariableReferenceMe = false
 
     action ExitPackageRule(PackageContext context) 
         packageValue = context:name
@@ -156,6 +157,64 @@ class TypeCheckListener is QuorumSourceListener
         end
     end
 
+    action EnterVariableFunctionCall(VariableFunctionCallContext context) 
+        isNextVariableReferenceMe = context:hasMe
+    end
+    action ExitVariableFunctionCall(VariableFunctionCallContext context) 
+        isNextVariableReferenceMe = false
+    end
+
+    action EnterActionCall(ActionCallContext context)
+        if context:isActionCall 
+        else 
+            name = context:name
+            Variable variable = undefined
+            
+            if isNextVariableReferenceMe
+                variable = currentClass:GetVariable(name)
+            else 
+                variable = currentBlock:GetVariable(name)
+                isNextVariableReferenceMe = false
+            end
+
+            Type type = variable:GetType()
+            if variable:IsField()
+            else
+            end
+            expressionStack:Push(type)
+        end
+    end
+
+    action ExitAnd(AndOrContext context) 
+        DoAndOr(context)
+    end
+
+    action ExitOr(AndOrContext context)
+        DoAndOr(context)
+    end
+
+    action DoAndOr(AndOrContext context)
+        TypeChecker checker = GetTypeChecker()
+        Type right = expressionStack:Pop()
+        Type left = expressionStack:Pop()
+        Operation op
+        if context:isAnd
+            op:SetOperation(op:AND)
+        else 
+            op:SetOperation(op:OR)
+        end
+
+        TypeCheckResult result = checker:Check(left, right, op) 
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
+        expressionStack:Push(result:result)
+    end
+
     action ExitEquals(EqualsContext context)
         TypeChecker checker = GetTypeChecker()
         Type right = expressionStack:Pop()
@@ -204,6 +263,7 @@ class TypeCheckListener is QuorumSourceListener
         expressionStack:Push(result:result)
     end
 
+
     action ExitAddition(AdditionContext context) 
         TypeChecker checker = GetTypeChecker()
         Type right = expressionStack:Pop()
@@ -216,6 +276,30 @@ class TypeCheckListener is QuorumSourceListener
         end
         
         TypeCheckResult result = checker:Check(left, right, add) 
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
+        expressionStack:Push(result:result)
+    end
+
+    action ExitMultiplication(MultiplicationContext context) 
+        TypeChecker checker = GetTypeChecker()
+        Type right = expressionStack:Pop()
+        Type left = expressionStack:Pop()
+        Operation op
+        if context:isDivide
+            op:SetOperation(op:DIVIDE)
+        elseif context:isMultiply
+            op:SetOperation(op:TIMES)
+        else
+            op:SetOperation(op:MODULUS)
+        end
+
+        TypeCheckResult result = checker:Check(left, right, op) 
         CompilerError error = result:GetCompilerError(context:GetLocation())
         if error not= undefined
             CompilerErrorManager manager = GetCompilerErrorManager()
