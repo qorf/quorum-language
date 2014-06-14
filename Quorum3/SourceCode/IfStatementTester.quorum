@@ -25,14 +25,27 @@ class IfStatementTester
         IfStatementCompoundBoolean()
         IfStatementCompoundEqual()
         IfStatementCompoundLTandEqual()
-        IfStatementOneCondition_Const()
-        IfStatementOneCondition_Equal()
-        IfStatementOneCondition_GT()
-        IfStatementOneCondition_GTE()
-        IfStatementOneCondition_LT()
-        IfStatementOneCondition_LTE()
-        IfStatementOneCondition_NotEqual()
-        IfStatementOneCondition_Var()
+        IfStatementOneCondition_ConstEqual_False()
+        IfStatementOneCondition_ConstEqual_True()
+        IfStatementOneCondition_ConstNotEqual_False()
+        IfStatementOneCondition_ConstNotEqual_True()
+        IfStatementOneCondition_GT_Equal()
+        IfStatementOneCondition_GT_False()
+        IfStatementOneCondition_GT_True()
+        IfStatementOneCondition_GTE_Equal()
+        IfStatementOneCondition_GTE_False()
+        IfStatementOneCondition_GTE_True()
+        IfStatementOneCondition_LT_Equal()
+        IfStatementOneCondition_LT_False()
+        IfStatementOneCondition_LT_True()
+        IfStatementOneCondition_LTE_Equal()
+        IfStatementOneCondition_LTE_False()
+        IfStatementOneCondition_LTE_True()
+        IfStatementOneCondition_VarEqual_False()
+        IfStatementOneCondition_VarEqual_True()
+        IfStatementOneCondition_VarNotEqual_False()
+        IfStatementOneCondition_VarNotEqual_True()
+
         IfWithElse_Const()
         IfWithElse_Var()
     end
@@ -114,44 +127,105 @@ class IfStatementTester
         //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementCompoundLTandEqual.quorum", "true")
     end
 
-    action IfStatementOneCondition_Const 
-        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_Const.quorum", "false")
-        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_Const.quorum", "false")
+
+    action IfStatementOneCondition_ConstEqual_False 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_ConstEqual_False.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_ConstEqual_False.quorum", "false")
     end
 
-    action IfStatementOneCondition_Equal 
-        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_Equal.quorum", "true")
-        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_Equal.quorum", "true")
+    action IfStatementOneCondition_ConstEqual_True 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_ConstEqual_True.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_ConstEqual_True.quorum", "true")
     end
 
-    action IfStatementOneCondition_GT 
-        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GT.quorum", "true")
-        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GT.quorum", "true")
+    action IfStatementOneCondition_ConstNotEqual_False 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_ConstNotEqual_False.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_ConstNotEqual_False.quorum", "false")
     end
 
-    action IfStatementOneCondition_GTE 
-        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GTE.quorum", "true")
-        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GTE.quorum", "true")
+    action IfStatementOneCondition_ConstNotEqual_True 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_ConstNotEqual_True.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_ConstNotEqual_True.quorum", "true")
     end
 
-    action IfStatementOneCondition_LT 
-        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LT.quorum", "true")
-        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LT.quorum", "true")
+    action IfStatementOneCondition_GT_Equal
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GT_Equal.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GT.quorum", "false")
     end
 
-    action IfStatementOneCondition_LTE 
-        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LTE.quorum", "true")
-        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LTE.quorum", "true")
+    action IfStatementOneCondition_GT_False 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GT_False.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GT.quorum", "false")
     end
 
-    action IfStatementOneCondition_NotEqual 
-        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_NotEqual.quorum", "true")
-        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_NotEqual.quorum", "true")
+    action IfStatementOneCondition_GT_True 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GT_True.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GT.quorum", "true")
     end
 
-    action IfStatementOneCondition_Var 
-        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_Var.quorum", "false")
-        //suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_Var.quorum", "false")
+    action IfStatementOneCondition_GTE_Equal
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GTE_Equal.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GT.quorum", "true")
+    end
+
+    action IfStatementOneCondition_GTE_False 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GTE_False.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GT.quorum", "false")
+    end
+
+    action IfStatementOneCondition_GTE_True 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GTE_True.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_GT.quorum", "true")
+    end
+
+    action IfStatementOneCondition_LT_Equal
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LT_Equal.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LT_Equal.quorum", "false")
+    end
+
+    action IfStatementOneCondition_LT_False
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LT_False.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LT_False.quorum", "false")
+    end
+
+    action IfStatementOneCondition_LT_True
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LT_True.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LT_True.quorum", "true")
+    end
+
+    action IfStatementOneCondition_LTE_Equal
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LTE_Equal.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LTE_Equal.quorum_Equal", "true")
+    end
+
+    action IfStatementOneCondition_LTE_False
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LTE_False.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LTE_False.quorum_Equal", "false")
+    end
+
+    action IfStatementOneCondition_LTE_True 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LTE_True.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_LTE_True.quorum_Equal", "true")
+    end
+
+    action IfStatementOneCondition_VarEqual_False 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_VarEqual_False.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_VarEqual_False.quorum", "false")
+    end
+
+    action IfStatementOneCondition_VarEqual_True
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_VarEqual_True.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_VarEqual_True.quorum", "true")
+    end
+
+    action IfStatementOneCondition_VarNotEqual_False 
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_VarNotEqual_False.quorum", "false")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_VarNotEqual_False.quorum", "false")
+    end
+
+    action IfStatementOneCondition_VarNotEqual_True
+        suite:RunTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_VarNotEqual_True.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfStatementOneCondition_VarNotEqual_True.quorum", "true")
     end
 
     action IfWithElse_Const 
