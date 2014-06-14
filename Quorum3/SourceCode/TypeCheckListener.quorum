@@ -16,6 +16,7 @@ class TypeCheckListener is QuorumSourceListener
     Stack<Type> expressionStack
     boolean isNextVariableReferenceMe = false
     Stack<integer> blockPositionStack
+    integer loopCounter = 0
 
     action ExitPackageRule(PackageContext context) 
         packageValue = context:name
@@ -91,6 +92,16 @@ class TypeCheckListener is QuorumSourceListener
         currentAction = undefined
     end
 
+    action EnterLoopStatement(LoopContext context)
+        if context:isTimes
+            constant text LOOP_NAME = "Loopy"
+            Variable variable = undefined
+            variable = currentBlock:GetVariable(loopCounter + LOOP_NAME)
+            currentBlock:SetBytecodeLocation(variable)
+        end
+        loopCounter = loopCounter + 1
+    end
+
     action ExitNormalAssignment(NormalAssignmentContext context) 
         text name = context:name
         Variable variable = undefined
@@ -117,7 +128,7 @@ class TypeCheckListener is QuorumSourceListener
             integer bytecodeSize = right:GetBytecodeSize()
 
             if not context:isField
-                currentBlock:SetByteCodeLocation(variable)
+                currentBlock:SetBytecodeLocation(variable)
             end
 
             TypeChecker checker = GetTypeChecker()
@@ -163,7 +174,7 @@ class TypeCheckListener is QuorumSourceListener
                 variable:SetType(type)
             end
             if not context:hasMe and not context:isField
-                currentBlock:SetByteCodeLocation(variable)
+                currentBlock:SetBytecodeLocation(variable)
             end
         end
     end

@@ -14,6 +14,7 @@ class Parser is QuorumSourceListener
     Action currentAction = undefined
     Class currentClass = undefined
     Block currentBlock = undefined
+    integer loopCounter = 0
     Stack<Block> blocks
 
     action EnterStart(StartContext context) 
@@ -117,6 +118,23 @@ class Parser is QuorumSourceListener
     end
 
     action ExitBlueprintAction(ActionContext context)
+    end
+
+    action EnterLoopStatement(LoopContext context)
+        if context:isTimes
+            constant text LOOP_NAME = "Loopy"
+            Variable variable
+            variable:SetName(loopCounter + LOOP_NAME)
+            variable:SetIsParameter(false)
+            variable:SetVisibleToDebugger(false)
+            Type type
+            type:SetToInteger()
+            type:SetIntegerConstant(0)
+            variable:SetType(type)
+            currentBlock:Add(variable)
+        end
+
+        loopCounter = loopCounter + 1
     end
 
     action ExitActionHeader(ActionContext context)

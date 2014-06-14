@@ -48,7 +48,7 @@ class Block
         return blocks:GetSize()
     end
 
-    action SetByteCodeLocation(Variable variable)
+    action SetBytecodeLocation(Variable variable)
         Type type = variable:GetType()
         integer size = type:GetBytecodeSize()
         integer parentLoc = GetBytecodeLocation()

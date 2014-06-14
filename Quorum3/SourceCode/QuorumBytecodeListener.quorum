@@ -47,7 +47,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     Stack<BlockOpcode> poppedBlockOpcodes
     Stack<BlockOpcode> currentBlocks
     Stack<integer> blockPositionStack
-
+    integer loopCounter = 0
     integer ifCount = 0
 
     action GetBuildFile returns File
@@ -223,7 +223,16 @@ class QuorumBytecodeListener is QuorumSourceListener
         else
             loop:SetWhile()
         end
+
+        if context:isTimes
+            constant text LOOP_NAME = "Loopy"
+            Variable variable = undefined
+            variable = currentBlock:GetVariable(loopCounter + LOOP_NAME)
+            loop:SetBytecodeLocation(variable:GetBytecodeLocation())
+        end
+
         loopStack:Push(loop)
+        loopCounter = loopCounter + 1
     end
 
     action ExitLoopStatement(LoopContext context) 

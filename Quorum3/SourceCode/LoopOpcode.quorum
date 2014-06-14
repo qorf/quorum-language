@@ -7,6 +7,15 @@ class LoopOpcode is QuorumOpcode
     JavaBytecodeOpcodes opcodes
     boolean isUntil = false
     boolean isTimes = false
+    integer bytecodeLocation = -1
+
+    action GetBytecodeLocation returns integer
+        return bytecodeLocation
+    end
+
+    action SetBytecodeLocation(integer location) 
+        bytecodeLocation = location
+    end
 
     action SetWhile
         isUntil = false
@@ -51,28 +60,60 @@ class LoopOpcode is QuorumOpcode
         JavaBytecodeLabel startLabel
         JavaBytecodeLabel endLabel
 
-        methodWriter:VisitLabel(startLabel)
+        if not isTimes
+            methodWriter:VisitLabel(startLabel)
+        else 
+            methodWriter:VisitConstant(0)
+            methodWriter:VisitVariable(opcodes:GetIntegerStore(), bytecodeLocation)
+        end
+
         expression:Write()
 
-        if expression is BinaryOpcode
-            BinaryOpcode bop = cast(BinaryOpcode, expression)
-            if isUntil
-                integer op = bop:GetJavaOpcode()
-                op = opcodes:GetInvertedIntegerCompareOpcode(op)
-                methodWriter:VisitJump(op, endLabel)
+        if isTimes //for this one, the answer is guaranteed to be a single
+                   //integer 
+            //set a label for the jump point here, AFTER the expression has been written
+            methodWriter:VisitLabel(startLabel)
+
+            //so next we duplicate the integer
+            methodWriter:VisitInstruction(opcodes:GetDuplicate())
+            
+            //then push on the counter variable
+            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), bytecodeLocation)
+
+            //next compare the counter variable with the value
+            methodWriter:VisitJump(opcodes:GetIfIntegerLessThanEquals(), endLabel)
+        else
+            if expression is BinaryOpcode
+                BinaryOpcode bop = cast(BinaryOpcode, expression)
+                if isUntil
+                    integer op = bop:GetJavaOpcode()
+                    op = opcodes:GetInvertedIntegerCompareOpcode(op)
+                    methodWriter:VisitJump(op, endLabel)
+                else 
+                    methodWriter:VisitJump(bop:GetJavaOpcode(), endLabel)
+                end
             else 
-                methodWriter:VisitJump(bop:GetJavaOpcode(), endLabel)
-            end
-        else 
-            if isUntil
-                methodWriter:VisitJump(opcodes:GetIfNotEquals(), endLabel)
-            else
-                methodWriter:VisitJump(opcodes:GetIfEquals(), endLabel)
+                if isUntil
+                    methodWriter:VisitJump(opcodes:GetIfNotEquals(), endLabel)
+                else
+                    methodWriter:VisitJump(opcodes:GetIfEquals(), endLabel)
+                end
             end
         end
         block:Write()
+
+        if isTimes
+            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), bytecodeLocation)
+            methodWriter:VisitConstant(1)
+            methodWriter:VisitInstruction(opcodes:GetIntegerAdd())
+            methodWriter:VisitVariable(opcodes:GetIntegerStore(), bytecodeLocation)
+        end
+
         methodWriter:VisitJump(opcodes:GetGoto(), startLabel)
         methodWriter:VisitLabel(endLabel)
+        if isTimes
+            methodWriter:VisitInstruction(opcodes:GetPop())
+        end
     end
 
     action WriteJavaScript returns text

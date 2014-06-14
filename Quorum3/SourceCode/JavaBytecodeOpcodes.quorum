@@ -262,6 +262,10 @@ class JavaBytecodeOpcodes
         return -1
     end
 
+    action GetIncrementInteger returns integer
+        return IINC
+    end
+
     action GetIfEquals returns integer
         return IFEQ
     end
