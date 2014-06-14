@@ -231,6 +231,37 @@ class JavaBytecodeOpcodes
     constant integer IFNULL = 198
     constant integer IFNONNULL = 199
 
+    action GetInvertedIntegerCompareOpcode(integer op) returns integer
+        if op = IFEQ
+            return IFNE
+        elseif op = IFNE
+            return IFEQ
+        elseif op = IFLT
+            return IFGE
+        elseif op = IFLE
+            return IFGT
+        elseif op = IFGT
+            return IFLE
+        elseif op = IFGE
+            return IFLT
+        end
+
+        if op = IF_ICMPEQ
+            return IF_ICMPNE
+        elseif op = IF_ICMPNE
+            return IF_ICMPEQ
+        elseif op = IF_ICMPLT
+            return IF_ICMPGE
+        elseif op = IF_ICMPLE
+            return IF_ICMPGT
+        elseif op = IF_ICMPGT
+            return IF_ICMPLE
+        elseif op = IF_ICMPGE
+            return IF_ICMPLT
+        end
+        return -1
+    end
+
     action GetIfEquals returns integer
         return IFEQ
     end

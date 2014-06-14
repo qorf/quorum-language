@@ -5,6 +5,23 @@ class LoopOpcode is QuorumOpcode
     BlockOpcode block = undefined
     JavaBytecodeMethodWriter methodWriter = undefined
     JavaBytecodeOpcodes opcodes
+    boolean isUntil = false
+    boolean isTimes = false
+
+    action SetWhile
+        isUntil = false
+        isTimes = false
+    end
+
+    action SetUntil
+        isUntil = true
+        isTimes = false
+    end
+
+    action SetTimes
+        isUntil = false
+        isTimes = true
+    end
 
     action GetMethodWriter returns JavaBytecodeMethodWriter
         return methodWriter
@@ -39,9 +56,19 @@ class LoopOpcode is QuorumOpcode
 
         if expression is BinaryOpcode
             BinaryOpcode bop = cast(BinaryOpcode, expression)
-            methodWriter:VisitJump(bop:GetJavaOpcode(), endLabel)
+            if isUntil
+                integer op = bop:GetJavaOpcode()
+                op = opcodes:GetInvertedIntegerCompareOpcode(op)
+                methodWriter:VisitJump(op, endLabel)
+            else 
+                methodWriter:VisitJump(bop:GetJavaOpcode(), endLabel)
+            end
         else 
-            methodWriter:VisitJump(opcodes:GetIfEquals(), endLabel)
+            if isUntil
+                methodWriter:VisitJump(opcodes:GetIfNotEquals(), endLabel)
+            else
+                methodWriter:VisitJump(opcodes:GetIfEquals(), endLabel)
+            end
         end
         block:Write()
         methodWriter:VisitJump(opcodes:GetGoto(), startLabel)

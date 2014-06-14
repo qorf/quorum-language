@@ -216,7 +216,13 @@ class QuorumBytecodeListener is QuorumSourceListener
     action EnterLoopStatement(LoopContext context) 
         LoopOpcode loop
         loop:SetMethodWriter(methodWriter)
-
+        if context:isUntil
+            loop:SetUntil()
+        elseif context:isTimes
+            loop:SetTimes()
+        else
+            loop:SetWhile()
+        end
         loopStack:Push(loop)
     end
 
@@ -224,6 +230,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         LoopOpcode loop = loopStack:Pop()
         QuorumOpcode qop = opcodeStack:Pop()
         qop:SetIsIfExpression(true)
+        
 
         loop:SetExpression(qop)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
@@ -246,7 +253,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         ConditionalOpcode conditional = ifStack:Pop()
         QuorumOpcode qop = opcodeStack:Pop()
         qop:SetIsIfExpression(true)
-
         conditional:SetExpression(qop)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         conditional:SetBlock(recentlyPopped)
