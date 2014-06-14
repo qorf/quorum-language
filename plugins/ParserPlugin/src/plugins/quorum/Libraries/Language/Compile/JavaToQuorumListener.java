@@ -475,6 +475,13 @@ public class JavaToQuorumListener implements QuorumListener {
         quorum.Libraries.Language.Compile.Context.LoopContext context = 
                 new quorum.Libraries.Language.Compile.Context.LoopContext();
         setLocation(ctx, context);
+        if(ctx.TIMES() != null) {
+            context.isTimes = true;
+        } else if (ctx.WHILE() != null) {
+            context.isWhile = true;
+        } else {
+            context.isUntil = true;
+        }
         listener.EnterLoopStatement(context);
     }
 
