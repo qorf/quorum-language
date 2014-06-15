@@ -14,6 +14,8 @@ class Block
     Class parentClass = undefined
     Action parentAction = undefined
     integer bytecodeLocation = 0
+    integer bytecodeLocationStartOfBlock = 0
+    Array<Variable> orderedVariables
 
     action Add(Variable variable) returns CompilerError
         if variables:HasKey(variable:GetStaticKey())
@@ -24,8 +26,38 @@ class Block
             return error
         end
         variables:Add(variable:GetStaticKey(), variable)
+        orderedVariables:Add(variable)
         return undefined
     end
+
+//    action GetBytecodeLocationBlockStart returns integer
+//        return bytecodeLocationStartOfBlock
+//    end
+//
+//    action SetBytecodeLocationBlockStart(integer start)
+//        bytecodeLocationStartOfBlock = start
+//    end
+
+    action AssignBytecodeLocations
+        bytecodeLocation = 0
+        
+        if parentBlock not= undefined
+            bytecodeLocation = parentBlock:GetBytecodeLocation()
+        else 
+            bytecodeLocation = parentAction:GetBytecodeLocation()
+        end
+        
+        i = 0 
+        repeat while i < orderedVariables:GetSize()
+            Variable var = orderedVariables:Get(i)
+            Type type = var:GetType()
+            size = type:GetBytecodeSize()
+            var:SetBytecodeLocation(bytecodeLocation)
+            bytecodeLocation = bytecodeLocation + size
+            i = i + 1
+        end
+    end
+
 
 //    action GetNextBlock returns Block
 //        if not blocks:IsEmpty()
@@ -48,22 +80,23 @@ class Block
         return blocks:GetSize()
     end
 
-    action SetBytecodeLocation(Variable variable)
-        Type type = variable:GetType()
-        integer size = type:GetBytecodeSize()
-        integer parentLoc = GetBytecodeLocation()
-        variable:SetBytecodeLocation(parentLoc)
-        bytecodeLocation = bytecodeLocation + size
-    end
+//    action SetBytecodeLocation(Variable variable)
+//        Type type = variable:GetType()
+//        integer size = type:GetBytecodeSize()
+//        integer parentLoc = GetBytecodeLocation()
+//        variable:SetBytecodeLocation(parentLoc)
+//        bytecodeLocation = bytecodeLocation + size
+//    end
 
     action GetBytecodeLocation returns integer
-        integer size = 0
-        if parentBlock not= undefined
-            size = parentBlock:GetBytecodeLocation()
-        else 
-            size = parentAction:GetBytecodeLocation()
-        end
-        return size + bytecodeLocation
+//        integer size = 0
+//        if parentBlock not= undefined
+//            size = parentBlock:GetBytecodeLocation()
+//        else 
+//            size = parentAction:GetBytecodeLocation()
+//        end
+//        return size + bytecodeLocation
+        return bytecodeLocation
     end
 
     action GetVariableThisBlock(text key) returns Variable

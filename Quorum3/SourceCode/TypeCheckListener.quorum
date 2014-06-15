@@ -83,7 +83,9 @@ class TypeCheckListener is QuorumSourceListener
     
     action ExitBlock(BlockContext context)
         if currentBlock not= undefined
+            Block temp = currentBlock
             currentBlock = currentBlock:GetParentBlock() //may be undefined
+            temp:AssignBytecodeLocations()
             blockPositionStack:Pop()
         end
     end
@@ -93,12 +95,6 @@ class TypeCheckListener is QuorumSourceListener
     end
 
     action EnterLoopStatement(LoopContext context)
-        if context:isTimes
-            constant text LOOP_NAME = "Loopy"
-            Variable variable = undefined
-            variable = currentBlock:GetVariable(loopCounter + LOOP_NAME)
-            currentBlock:SetBytecodeLocation(variable)
-        end
         loopCounter = loopCounter + 1
     end
 
@@ -126,10 +122,6 @@ class TypeCheckListener is QuorumSourceListener
         if not expressionStack:IsEmpty() //ignore the operation, a compiler should have already been issued
             Type right = expressionStack:Pop()
             integer bytecodeSize = right:GetBytecodeSize()
-
-            if not context:isField
-                currentBlock:SetBytecodeLocation(variable)
-            end
 
             TypeChecker checker = GetTypeChecker()
             TypeCheckResult result = checker:Check(variable:GetType(), right, undefined, true) 
@@ -172,9 +164,6 @@ class TypeCheckListener is QuorumSourceListener
         else //this is an implicit cast, so make sure if follows the rules
             if variable:GetType() = undefined //implicit cast. If it follows the rules, allow it
                 variable:SetType(type)
-            end
-            if not context:hasMe and not context:isField
-                currentBlock:SetBytecodeLocation(variable)
             end
         end
     end
