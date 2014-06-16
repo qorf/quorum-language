@@ -1,3 +1,5 @@
+use Libraries.Compute.Random
+
 class Biology 
     action IsDNA(text dna) returns boolean
         index = 0
@@ -12,6 +14,62 @@ class Biology
     end
 
     action Clone(text value) returns text
+        text newDNA = value
+        //loop through DNA string and change a letter within it 10% of the time
+        Random random
+        integer randomNumber = random:RandomIntegerBetween(1,10)
+        if(randomNumber = 7)
+            newDNA:Replace("C", "U")
+        end
+        //at the end of the loop, update the DNA string with whatever it is after the mutation checking
+        output newDNA
         return value
     end
-end
+
+    action IsParent(text child, text possibleParent) returns boolean
+        if(child = possibleParent)
+            return true
+        else
+            return false
+        end
+    end
+
+    action GenerateBug(text bugDNA) returns text
+        text returnOutput = ""
+        if(bugDNA = "XGATTAUA")
+            returnOutput = "Laser beams: Bug shoots laser beams out of its eyes"
+        elseif(bugDNA = "GXATTAUA")
+            returnOutput = ""
+        elseif(bugDNA = "GATXTAUA")
+            returnOutput = ""
+        elseif(bugDNA = "GATTXAUA")
+            returnOutput = ""
+        elseif(bugDNA = "GATTAXUA")
+            returnOutput = ""
+        elseif(bugDNA = "GATTAUXA")
+            returnOutput = ""
+        elseif(bugDNA = "GATTAUAX")
+            returnOutput = ""
+        elseif(bugDNA = "YGATTAUA")
+            returnOutput = ""
+        elseif(bugDNA = "GYATTAUA")
+            returnOutput = ""
+        elseif(bugDNA = "GAYTTAUA")
+            returnOutput = ""
+        elseif(bugDNA = "GATYTAUA")
+            returnOutput = ""
+        elseif(bugDNA = "GATTYAUA")
+            returnOutput = ""
+        elseif(bugDNA = "GATTAYUA")
+            returnOutput = ""
+        elseif(bugDNA = "GATTAUYA")
+            returnOutput = ""
+        elseif(bugDNA = "GATTAUAY")
+            returnOutput = ""
+        else
+            returnOutput = "This sequence is unstable. The bug dies."
+        end
+        return returnOutput
+    end
+        
+ end
