@@ -494,6 +494,16 @@ var submitCodeSample = function(){
 	})
 }
 
+var isDNA = function(DNA) {
+    for (var i = 0; i < DNA.length; i++) {
+        if ((DNA.charAt(i) == 'A') || (DNA.charAt(i) == 'C') || (DNA.charAt(i) == 'G') || (DNA.charAt(i) == 'T')) {
+        }
+        else {
+            return false;
+        }
+    }
+    return true;
+}
 
 var AreYouMyMommy = function(mom, child) {
     if (mom.length == 0 || child.length == 0) {
