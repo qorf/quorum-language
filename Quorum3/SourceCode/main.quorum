@@ -7,6 +7,7 @@ use Libraries.Language.Compile.Translate.QuorumJarGenerator
 use Libraries.Web.WebResponder
 use Libraries.Web.WebResponse
 use Libraries.Web.WebRequest
+use Libraries.Containers.Array
 
 class Main is WebResponder
     public constant number VERSION = 3.0
@@ -14,50 +15,52 @@ class Main is WebResponder
 //        WebRequest request
 //        request:AddParameter("code", "output 5")
 //        Respond(request)
-        output "Hi, from Quorum " + VERSION
-        Compiler compiler
-        File file
-        //file:SetPath("Library/Tests/Expressions/Pass/ComplexExpression.quorum")
-        file:SetPath("Library/Tests/Loops/Pass/RepeatNestedFromTimesUntilWhile.quorum")
-        compiler:SetMain(file)
-        Parser parser
         
-        output "Parsing"
-        compiler:Parse(file, parser)
-        CompilerErrorManager manager = parser:GetCompilerErrorManager()
-        if not manager:IsCompilationErrorFree()
-            OutputCompilerErrors(compiler, manager)
-            return now
-        end
+        Compiler compiler
+        output compiler:GetVersion()
 
-        output "Typechecking"
-        TypeCheckListener checker
-        compiler:Parse(file, checker)
-        if not manager:IsCompilationErrorFree()
-            OutputCompilerErrors(compiler, manager)
-            return now
-        end
+        File main
+        main:SetPath("Library/Tests/Expressions/Pass/ComplexExpression.quorum")
+        //main:SetPath("Library/Tests/Actions/Pass/VTableObjectTest.quorum")
+        Array<File> files
+        files:Add(main)
 
-        output "Writing bytecode"
-        QuorumBytecodeListener bytecode
-        compiler:Parse(file, bytecode)
-        if manager:IsCompilationErrorFree()
-            QuorumJarGenerator generator
-            File jar = compiler:GetDistributionFile()
-            generator:SetCompiler(compiler)
-            generator:Write()
-            output "Build completed successfully"
-        end
-    end
+        compiler:SetMain(main)
+        compiler:Compile(files)
 
-    action OutputCompilerErrors(Compiler compiler, CompilerErrorManager manager)
-        output "The code did not build correctly. Here is a list of errors:"
-        Iterator<CompilerError> errors = manager:GetIterator()
-        repeat while errors:HasNext()
-            CompilerError error = errors:Next()
-            text t = error:GetDisplayName()
-            output t
+        if compiler:IsCompilationErrorFree()
+            output "Build Successful"
+        else
+            compiler:OutputCompilerErrors()
         end
+        //Parser parser
+        
+//        output "Parsing"
+//        compiler:Parse(main, parser)
+//        CompilerErrorManager manager = parser:GetCompilerErrorManager()
+//        if not manager:IsCompilationErrorFree()
+//            OutputCompilerErrors(compiler, manager)
+//            return now
+//        end
+//
+//        output "Typechecking"
+//        TypeCheckListener checker
+//        compiler:Parse(main, checker)
+//        if not manager:IsCompilationErrorFree()
+//            OutputCompilerErrors(compiler, manager)
+//            return now
+//        end
+
+//        output "Writing bytecode"
+//        QuorumBytecodeListener bytecode
+//        compiler:Parse(main, bytecode)
+//        if manager:IsCompilationErrorFree()
+//            QuorumJarGenerator generator
+//            File jar = compiler:GetDistributionFile()
+//            generator:SetCompiler(compiler)
+//            generator:Write()
+//            output "Build completed successfully"
+//        end
     end
 
     action Respond(WebRequest request) returns WebResponse
