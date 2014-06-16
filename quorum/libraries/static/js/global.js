@@ -494,7 +494,7 @@ var submitCodeSample = function(){
 	})
 }
 
-var isDNA = function(DNA) {
+var IsDNA = function(DNA) {
     for (var i = 0; i < DNA.length; i++) {
         if ((DNA.charAt(i) == 'A') || (DNA.charAt(i) == 'C') || (DNA.charAt(i) == 'G') || (DNA.charAt(i) == 'T')) {
         }
@@ -505,39 +505,76 @@ var isDNA = function(DNA) {
     return true;
 }
 
-var AreYouMyMommy = function(mom, child) {
-    if (mom.length == 0 || child.length == 0) {
-        if (mom.length == 0) {
-        return "Error: the variable containing the parent's DNA is empty";
+var CloneDNA = function(DNA) {
+    //loop through the DNA one character at a time, 1% chance to mutate a letter
+    var randomNumber = Math.floor((Math.random() * 100) + 1); //random 1 - 100
+    var cloneDNA = "";
+    for (var i = 0; i < DNA.length; i++) {
+        console.log(randomNumber);
+        if (randomNumber == 42) {
+            //mutate
+            var randomNumber2 = Math.floor((Math.random() * 4) + 1); //random 1 - 4
+            switch (randomNumber2) {
+                case 1:
+                    cloneDNA = cloneDNA + 'A';
+                    break;
+                case 2:
+                    cloneDNA = cloneDNA + 'C';
+                    break;
+                case 3:
+                    cloneDNA = cloneDNA + 'G';
+                    break;
+                case 4:
+                    cloneDNA = cloneDNA + 'T';
+                    break;
+            }
         }
         else {
-        return "Error: the variable containing the child's DNA is empty";
-        }
-    }
-    
-    else {
-        //TODO: check to make sure string consists of ony ACGT chars
-        
-        if (mom.length != child.length) {
-            return "Error: DNA sequences are of different sizes";
+            cloneDNA = cloneDNA + DNA.charAt(i);
         }
         
-        else {
-            var matches = 0;
-            for (var i = 0; i < mom.length; i++) {
-                if (mom.charAt(i) == child.charAt(i)) {
-                    matches++;
-                }
+        if (cloneDNA.length == DNA.length) {
+            if (cloneDNA != DNA) {
+                document.write(cloneDNA);
             }
-            if ((matches / mom.length) < .26) {
-                return "I am not your mommy.";
-            }
-            else {
-                return "I am your mommy!";
-            }
+            cloneDNA = "";
         }
     }
-};
+}
+
+//var AreYouMyMommy = function(mom, child) {
+//    if (mom.length == 0 || child.length == 0) {
+//        if (mom.length == 0) {
+//        return "Error: the variable containing the parent's DNA is empty";
+//        }
+//        else {
+//        return "Error: the variable containing the child's DNA is empty";
+//        }
+//    }
+//    
+//    else {
+//        //TODO: check to make sure string consists of ony ACGT chars
+//        
+//        if (mom.length != child.length) {
+//            return "Error: DNA sequences are of different sizes";
+//        }
+//        
+//        else {
+//            var matches = 0;
+//            for (var i = 0; i < mom.length; i++) {
+//                if (mom.charAt(i) == child.charAt(i)) {
+//                    matches++;
+//                }
+//            }
+//            if ((matches / mom.length) < .26) {
+//                return "I am not your mommy.";
+//            }
+//            else {
+//                return "I am your mommy!";
+//            }
+//        }
+//    }
+//};
 
 //var Person = function(eyeColor, hairColor) {
 //  this.eyeColor = eyeColor;

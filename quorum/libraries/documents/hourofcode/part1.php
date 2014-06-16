@@ -29,7 +29,7 @@
         <textarea id="hour-of-code-IDE-input" class="ide inputArea" role="textbox" aria-multiline="true">var DNAStrand1 = "GATTACA";
 var DNAStrand2 = "GARRACA";
 
-var validDNA = isDNA(DNAStrand2);
+var validDNA = IsDNA(DNAStrand2);
 "The result of this DNA is: " + validDNA;</textarea>
         <pre id="hour-of-code-IDE-output" class="outputArea" role="log" aria-live="polite"></pre><div id="run-button" class="btn-group">
                 <a class="btn btn-success" href="#">Run</a>
