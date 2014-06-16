@@ -18,14 +18,11 @@ class Action is Symbol
         return block
     end
 
-    action AddBlock(Block block)
+    action SetBlock(Block block)
         block:SetParentAction(me)
         block:SetParentClass(GetParentClass())
         if me:block = undefined
             me:block = block
-        else 
-            Block actionBlock = me:block
-            actionBlock:Add(block)
         end
     end
 

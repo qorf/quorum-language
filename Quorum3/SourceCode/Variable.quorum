@@ -15,7 +15,16 @@ class Variable is Symbol
     integer bytecodeLocation = -1
     integer parameterLocation = -1
     List<Location> locations
-    
+    boolean isVisibileToDebugger = true
+
+    action IsVisibleToDebugger returns boolean
+        return isVisibileToDebugger
+    end
+
+    action SetVisibleToDebugger(boolean visible)
+        isVisibileToDebugger = visible
+    end
+
     action AddUsage(Location location)
         locations:Add(location)
     end
