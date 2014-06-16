@@ -40,13 +40,14 @@ class QuorumBytecodeListener is QuorumSourceListener
     boolean isNextVariableReferenceMe = false
     Stack<QuorumOpcode> opcodeStack
     Stack<ConditionalOpcode> ifStack
+    Stack<LoopOpcode> loopStack
     File buildFile = undefined
     File buildInterfaceFile = undefined
     BlockOpcode currentBlockOpcode = undefined
     Stack<BlockOpcode> poppedBlockOpcodes
     Stack<BlockOpcode> currentBlocks
-    //BlockOpcode recentlyPopped = undefined
-
+    Stack<integer> blockPositionStack
+    integer loopCounter = 0
     integer ifCount = 0
 
     action GetBuildFile returns File
@@ -170,8 +171,17 @@ class QuorumBytecodeListener is QuorumSourceListener
     action EnterBlock(BlockContext context)
         if currentBlock = undefined
             currentBlock = currentAction:GetBlock()
+            blockPositionStack:Push(0)
         else 
-            currentBlock = currentBlock:GetNextBlock()
+            integer value = blockPositionStack:Pop()
+            if value < currentBlock:GetSubBlockSize()
+                currentBlock = currentBlock:GetBlock(value)
+                blockPositionStack:Push(value + 1)
+                //now push on a 0 for the new block
+                blockPositionStack:Push(0)
+            else 
+                alert("Compiler Bug in EnterBlock of the Type Check Listener.")
+            end
         end
 
         if currentBlockOpcode = undefined
@@ -189,6 +199,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     action ExitBlock(BlockContext context)
         if currentBlock not= undefined
             currentBlock = currentBlock:GetParentBlock() //may be undefined
+            blockPositionStack:Pop()
         end
 
         if currentBlockOpcode not= undefined
@@ -200,6 +211,41 @@ class QuorumBytecodeListener is QuorumSourceListener
                 currentBlockOpcode = currentBlocks:Peek()
             end
         end
+    end
+
+    action EnterLoopStatement(LoopContext context) 
+        LoopOpcode loop
+        loop:SetMethodWriter(methodWriter)
+        if context:isUntil
+            loop:SetUntil()
+        elseif context:isTimes
+            loop:SetTimes()
+        else
+            loop:SetWhile()
+        end
+
+        if context:isTimes
+            constant text LOOP_NAME = "Loopy"
+            Variable variable = undefined
+            variable = currentBlock:GetVariable(loopCounter + LOOP_NAME)
+            loop:SetBytecodeLocation(variable:GetBytecodeLocation())
+        end
+
+        loopStack:Push(loop)
+        loopCounter = loopCounter + 1
+    end
+
+    action ExitLoopStatement(LoopContext context) 
+        LoopOpcode loop = loopStack:Pop()
+        QuorumOpcode qop = opcodeStack:Pop()
+        qop:SetIsIfExpression(true)
+        
+
+        loop:SetExpression(qop)
+        BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
+        loop:SetBlock(recentlyPopped)
+        
+        currentBlockOpcode:Add(loop)
     end
 
     action EnterIfStatement(IfContext context) 
@@ -216,7 +262,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         ConditionalOpcode conditional = ifStack:Pop()
         QuorumOpcode qop = opcodeStack:Pop()
         qop:SetIsIfExpression(true)
-
         conditional:SetExpression(qop)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         conditional:SetBlock(recentlyPopped)

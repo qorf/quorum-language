@@ -15,6 +15,8 @@ class TypeCheckListener is QuorumSourceListener
     Stack<Block> blocks
     Stack<Type> expressionStack
     boolean isNextVariableReferenceMe = false
+    Stack<integer> blockPositionStack
+    integer loopCounter = 0
 
     action ExitPackageRule(PackageContext context) 
         packageValue = context:name
@@ -65,19 +67,35 @@ class TypeCheckListener is QuorumSourceListener
     action EnterBlock(BlockContext context)
         if currentBlock = undefined
             currentBlock = currentAction:GetBlock()
+            blockPositionStack:Push(0)
         else 
-            currentBlock = currentBlock:GetNextBlock()
+            integer value = blockPositionStack:Pop()
+            if value < currentBlock:GetSubBlockSize()
+                currentBlock = currentBlock:GetBlock(value)
+                blockPositionStack:Push(value + 1)
+                //now push on a 0 for the new block
+                blockPositionStack:Push(0)
+            else 
+                alert("Compiler Bug in EnterBlock of the Type Check Listener.")
+            end
         end
     end
     
     action ExitBlock(BlockContext context)
         if currentBlock not= undefined
+            Block temp = currentBlock
             currentBlock = currentBlock:GetParentBlock() //may be undefined
+            temp:AssignBytecodeLocations()
+            blockPositionStack:Pop()
         end
     end
 
     action ExitAction(ActionContext context) 
         currentAction = undefined
+    end
+
+    action EnterLoopStatement(LoopContext context)
+        loopCounter = loopCounter + 1
     end
 
     action ExitNormalAssignment(NormalAssignmentContext context) 
@@ -104,10 +122,6 @@ class TypeCheckListener is QuorumSourceListener
         if not expressionStack:IsEmpty() //ignore the operation, a compiler should have already been issued
             Type right = expressionStack:Pop()
             integer bytecodeSize = right:GetBytecodeSize()
-
-            if not context:isField
-                currentBlock:SetByteCodeLocation(variable)
-            end
 
             TypeChecker checker = GetTypeChecker()
             TypeCheckResult result = checker:Check(variable:GetType(), right, undefined, true) 
@@ -150,9 +164,6 @@ class TypeCheckListener is QuorumSourceListener
         else //this is an implicit cast, so make sure if follows the rules
             if variable:GetType() = undefined //implicit cast. If it follows the rules, allow it
                 variable:SetType(type)
-            end
-            if not context:hasMe and not context:isField
-                currentBlock:SetByteCodeLocation(variable)
             end
         end
     end
