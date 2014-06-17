@@ -2,8 +2,12 @@ package Libraries.Language.Compile.Symbol
 
 use Libraries.Language.Compile.QualifiedName
 use Libraries.Language.Compile.CompilerError
+    use Libraries.Language.Compile.CompilerErrorType
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Location
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Array
+use Libraries.System.File
 
 class Class is Symbol
     QualifiedName packageName
@@ -11,6 +15,10 @@ class Class is Symbol
     HashTable<text, Variable> fields
     Action constructor = undefined
     boolean hasMain = false
+    Array<QualifiedName> unresolvedUseStatements
+    HashTable<text, Class> validUses
+    HashTable<text, Class> validUsesFullyQualified
+    File file = undefined
 
     action Add(Action method) returns CompilerError
         if not IsDefined(method)
@@ -25,12 +33,51 @@ class Class is Symbol
         error:SetLineNumber(method:GetLineNumber())
         error:SetFile(method:GetFile())
         error:SetErrorMessage("Action " + method:GetDisplayName() + " has already been defined.")
-
         return error
+    end
+
+    action AddValidUse(Class clazz) returns CompilerError
+        name = clazz:GetName()
+        if validUses:HasKey(name)
+            Class defined = validUses:GetValue(name)
+            CompilerError error
+            CompilerErrorType type
+            type:SetCurrentType(type:USE_AMBIGUOUS)
+            error:SetCompilerErrorType(type)
+            error:SetErrorMessage("I do not understand by defining " + name + " as type " + clazz:GetStaticKey() + "." + 
+                " I already defined it as type " + defined:GetStaticKey() + ".")
+            return error
+        else
+            validUses:Add(name, clazz)
+            validUsesFullyQualified:Add(clazz:GetStaticKey(), clazz)
+        end
+        return undefined
+    end
+
+    /*
+        Returns the file on disk that contains the implementation of this class.
+    */
+    action GetFile returns File
+        return file
+    end
+
+    /*
+        Sets a pointer to the file on disk that contains this class.
+    */
+    action SetFile(File container)
+        file = container
     end
 
     action HasMainAction returns boolean
         return hasMain
+    end
+
+    action AddUnresolvedUseStatement(QualifiedName name)
+        unresolvedUseStatements:Add(name)
+    end
+
+    action GetUnresolvedUseStatements returns Iterator<QualifiedName>
+        return unresolvedUseStatements:GetIterator()
     end
 
     action Add(Variable variable) returns CompilerError

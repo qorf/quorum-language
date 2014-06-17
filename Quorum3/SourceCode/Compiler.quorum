@@ -3,7 +3,9 @@ package Libraries.Language.Compile
 use Libraries.System.File
 use Libraries.Language.Compile.Symbol.all
 use Libraries.Containers.HashTable
+use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.QuorumJarGenerator
 
 class Compiler
     public constant number VERSION = 3.0
@@ -25,6 +27,7 @@ class Compiler
     TypeChecker checker
 
     on create //load default dependencies
+        standardLibraryFolder = GetStandardLibraryFolder()
         LoadDependency("/quorum", "/quorum")
         //LoadDependency("/plugins", "/plugins")
         //LoadDependency("/antlr", "/antlr")
@@ -40,6 +43,105 @@ class Compiler
 
     action GetDependencies returns Iterator<Dependency>
         return dependencies:GetValueIterator()
+    end
+
+    /*
+        This action compiles the array of files to Java Bytecode, which
+        it writes to disk. By default, it generates a .jar file into the 
+        folder named Run and the class files into the folder labeled
+        Build.
+    */
+    action Compile(Array<File> files)
+
+        i = 0
+        repeat while i < files:GetSize()
+            File file = files:Get(i)
+            Parser listener
+            Parse(file, listener)
+            i = i + 1
+        end
+        
+        //This array will contain all files that must be built, 
+        //including potentially some from the standard library
+        //in order to build the requested files
+        Array<File> allFiles = files //GetAllRequiredFiles()
+        i = 0
+        repeat while i < allFiles:GetSize()
+            File file = allFiles:Get(i)
+            TypeCheckListener listener
+            Parse(file, listener)
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < allFiles:GetSize()
+            File file = allFiles:Get(i)
+            QuorumBytecodeListener listener
+            Parse(file, listener)
+            i = i + 1
+        end
+
+        if compilerErrorManager:IsCompilationErrorFree()
+            QuorumJarGenerator generator
+            File jar = GetDistributionFile()
+            generator:SetCompiler(me)
+            generator:Write()
+        end
+    end
+
+    action IsCompilationErrorFree returns boolean
+        return compilerErrorManager:IsCompilationErrorFree()
+    end
+
+    action OutputCompilerErrors
+        output "The code did not build correctly. Here is a list of errors:"
+        Iterator<CompilerError> errors = compilerErrorManager:GetIterator()
+        repeat while errors:HasNext()
+            CompilerError error = errors:Next()
+            text t = error:GetDisplayName()
+            output t
+        end
+    end
+
+    /*
+        This action is called after the parsing phase, returning an array
+        of all files were required for building the project.
+    */
+    action GetAllRequiredFiles returns Array<File>
+        Array<File> files
+
+        HashTable<text, File> parsed
+        HashTable<text, File> unparsed
+
+        Iterator<Class> classes = symbolTable:GetClasses()
+
+        repeat while classes:HasNext()
+            Class clazz = classes:Next()
+
+            if not parsed:HasKey(clazz:GetStaticKey())
+                parsed:Add(clazz:GetStaticKey(), clazz:GetFile())
+            end
+            Iterator<QualifiedName> names = clazz:GetUnresolvedUseStatements()
+            repeat while names:HasNext()
+                QualifiedName qn = names:Next()
+                text key = qn:GetStaticKey()
+
+                if parsed:HasKey(key) //this class has already been parsed
+
+                elseif unparsed:HasKey(key) //this class is already scheduled for parsing
+                    
+                else
+
+                end
+            end
+
+        end
+
+        return files
+    end
+
+    action CompileToJavaScript(Array<File> files)
+
     end
 
     action Parse(File file, QuorumSourceListener listener)
@@ -114,7 +216,6 @@ class Compiler
         if standardLibraryFolder = undefined
             File build
             build:SetPath(DEFAULT_STANDARD_LIBRARY_FOLDER)
-            standardLibraryFolder = build
         end
         return standardLibraryFolder
     end

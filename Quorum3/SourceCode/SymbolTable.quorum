@@ -4,6 +4,8 @@ use Libraries.Language.Compile.CompilerError
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Location
 use Libraries.System.File
+use Libraries.Containers.Array
+use Libraries.Containers.Blueprints.Iterator
 
 class SymbolTable 
     HashTable<text, Source> files
@@ -31,6 +33,10 @@ class SymbolTable
         end
 
         return undefined
+    end
+
+    action GetClasses returns Iterator<Class>
+        return classes:GetValueIterator()
     end
 
     action Add(Action act) returns CompilerError
