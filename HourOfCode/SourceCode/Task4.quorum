@@ -1,3 +1,5 @@
+Biology bio
+
 text parent1 = ""
 text parent2 = ""
 text parent3 = ""
@@ -6,7 +8,8 @@ text parent5 = ""
 
 text mutantDNA = "TACGAGTA"
 
-if(IsParent(mutantDNA, parent1))
+if(bio:IsParent(mutantDNA, parent1))
     output "true"
 else
     output "false"
+end

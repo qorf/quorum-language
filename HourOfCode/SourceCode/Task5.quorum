@@ -5,13 +5,16 @@ text mutantOne = ""
 text mutantTwo = ""
 
 repeat until mutantOne not= ""
-	clone = bio:clone(originalDNA)
+	clone = bio:Clone(originalDNA)
 	if( clone not= originalDNA )
 		mutantOne = clone
-
+        end
+end
 repeat until mutantTwo not= ""
-	clone = bio:clone(originalDNA)
+	clone = bio:Clone(originalDNA)
 	if( clone not= originalDNA )
 		mutantTwo = clone
+        end
+end
 
-text mutantChild = breed(mutantOne, mutantTwo)
+text mutantChild = bio:Breed(mutantOne, mutantTwo)
