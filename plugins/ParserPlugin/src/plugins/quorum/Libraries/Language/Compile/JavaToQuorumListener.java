@@ -681,6 +681,11 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterReference(QuorumParser.ReferenceContext ctx) {
         quorum.Libraries.Language.Compile.Context.UseContext context = 
                 new quorum.Libraries.Language.Compile.Context.UseContext();
+        QuorumParser.Qualified_nameContext name = ctx.name;
+        List<TerminalNode> ID = name.ID();
+        for (int i = 0; i < ID.size(); i++) {
+            context.name.Add(ID.get(i).getText());
+        }
         setLocation(ctx, context);
         listener.EnterUse(context);
     }
@@ -689,6 +694,11 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitReference(QuorumParser.ReferenceContext ctx) {
         quorum.Libraries.Language.Compile.Context.UseContext context = 
                 new quorum.Libraries.Language.Compile.Context.UseContext();
+        QuorumParser.Qualified_nameContext name = ctx.name;
+        List<TerminalNode> ID = name.ID();
+        for (int i = 0; i < ID.size(); i++) {
+            context.name.Add(ID.get(i).getText());
+        }
         setLocation(ctx, context);
         listener.ExitUse(context);
     }

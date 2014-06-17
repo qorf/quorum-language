@@ -9,14 +9,9 @@ start	:
 	class_declaration  EOF
 	;
 	
-package_rule :	
-    PACKAGE_NAME name=qualified_name
-    ;
+package_rule : PACKAGE_NAME name=qualified_name;
 	
-reference 
-	:	
-	USE qualified_name
-	;
+reference : USE name=qualified_name ;
 
 
 class_declaration 	
