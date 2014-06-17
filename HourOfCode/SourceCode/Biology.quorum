@@ -13,17 +13,103 @@ class Biology
         return true
     end
 
-    action Clone(text value) returns text
-        text newDNA = value
+    action Clone(text DNA) returns text
         //loop through DNA string and change a letter within it 10% of the time
         Random random
         integer randomNumber = random:RandomIntegerBetween(1,10)
         if(randomNumber = 7)
-            newDNA:Replace("C", "U")
+        //cause mutation on random character
+        text mutatedDNA = ""
+
+        integer randomIndex = random:RandomIntegerBetween(0, DNA:GetSize() - 1)
+        integer randomNumber2 = random:RandomIntegerBetween(1, 3)
+            if DNA:GetCharacter(randomIndex) = "A"
+                //if the random index isn't the first or last character in the string
+                if randomIndex not= 0 or randomIndex not= DNA:GetSize() - 1
+                mutatedDNA = DNA:GetSubtext(0, randomIndex - 1)
+                mutatedDNA:Append(mutateDNA("A", randomNumber2))
+                mutatedDNA:Append(DNA:GetSubtext(randomIndex + 1))
+                end
+
+                //if the random index is 0
+                if randomIndex = 0
+                mutatedDNA:Append(mutateDNA("A", randomNumber2))
+                mutatedDNA:Append(DNA:GetSubtext(1))
+                end
+                
+                //if the random index is at the end of the character array
+                if randomIndex = DNA:GetSize() - 1
+                    mutatedDNA:Append(DNA:GetSubtext(0, DNA:GetSize() - 2))
+                    mutatedDNA:Append(mutateDNA("A", randomNumber2))
+                end
+            end
+
+            if DNA:GetCharacter(randomIndex) = "B"
+                //if the random index isn't the first or last character in the string
+                if randomIndex not= 0 or randomIndex not= DNA:GetSize() - 1
+                mutatedDNA = DNA:GetSubtext(0, randomIndex - 1)
+                mutatedDNA:Append(mutateDNA("B", randomNumber2))
+                mutatedDNA:Append(DNA:GetSubtext(randomIndex + 1))
+                end
+
+                //if the random index is 0
+                if randomIndex = 0
+                mutatedDNA:Append(mutateDNA("B", randomNumber2))
+                mutatedDNA:Append(DNA:GetSubtext(1))
+                end
+                
+                //if the random index is at the end of the character array
+                if randomIndex = DNA:GetSize() - 1
+                    mutatedDNA:Append(DNA:GetSubtext(0, DNA:GetSize() - 2))
+                    mutatedDNA:Append(mutateDNA("B", randomNumber2))
+                end
+            end
+
+            if DNA:GetCharacter(randomIndex) = "C"
+                //if the random index isn't the first or last character in the string
+                if randomIndex not= 0 or randomIndex not= DNA:GetSize() - 1
+                mutatedDNA = DNA:GetSubtext(0, randomIndex - 1)
+                mutatedDNA:Append(mutateDNA("C", randomNumber2))
+                mutatedDNA:Append(DNA:GetSubtext(randomIndex + 1))
+                end
+
+                //if the random index is 0
+                if randomIndex = 0
+                mutatedDNA:Append(mutateDNA("C", randomNumber2))
+                mutatedDNA:Append(DNA:GetSubtext(1))
+                end
+                
+                //if the random index is at the end of the character array
+                if randomIndex = DNA:GetSize() - 1
+                    mutatedDNA:Append(DNA:GetSubtext(0, DNA:GetSize() - 2))
+                    mutatedDNA:Append(mutateDNA("C", randomNumber2))
+                end
+            end
+
+            if DNA:GetCharacter(randomIndex) = "D"
+                //if the random index isn't the first or last character in the string
+                if randomIndex not= 0 or randomIndex not= DNA:GetSize() - 1
+                mutatedDNA = DNA:GetSubtext(0, randomIndex - 1)
+                mutatedDNA:Append(mutateDNA("D", randomNumber2))
+                mutatedDNA:Append(DNA:GetSubtext(randomIndex + 1))
+                end
+
+                //if the random index is 0
+                if randomIndex = 0
+                mutatedDNA:Append(mutateDNA("D", randomNumber2))
+                mutatedDNA:Append(DNA:GetSubtext(1))
+                end
+                
+                //if the random index is at the end of the character array
+                if randomIndex = DNA:GetSize() - 1
+                    mutatedDNA:Append(DNA:GetSubtext(0, DNA:GetSize() - 2))
+                    mutatedDNA:Append(mutateDNA("D", randomNumber2))
+                end
+            end
+
+            return mutatedDNA
         end
-        //at the end of the loop, update the DNA string with whatever it is after the mutation checking
-        output newDNA
-        return value
+        return DNA
     end
 
     action IsParent(text child, text possibleParent) returns boolean
@@ -34,37 +120,84 @@ class Biology
         end
     end
 
+    action mutateDNA(text nucleotide, integer mutateNumber) returns text
+    // if nucleotide = "A", 1 = C, 2 = G, 3 = T
+        if nucleotide = "A"
+            if mutateNumber = 1
+                return "C"
+            elseif mutateNumber = 2
+                return "G"
+            elseif mutateNumber = 3
+                return "T"
+            end
+        end
+
+    // if nucleotide = "C", 1 = A, 2 = G, 3 = T
+        if nucleotide = "C"
+            if mutateNumber = 1
+                return "A"
+            elseif mutateNumber = 2
+                return "G"
+            elseif mutateNumber = 3
+                return "T"
+            end
+        end
+
+    // if nucleotide = "G", 1 = A, 2 = C, 3 = T
+        if nucleotide = "G"
+            if mutateNumber = 1
+                return "A"
+            elseif mutateNumber = 2
+                return "C"
+            elseif mutateNumber = 3
+                return "T"
+            end
+        end
+
+    // if nucleotide = "T", 1 = A, 2 = C, 3 = G
+        if nucleotide = "T"
+            if mutateNumber = 1
+                return "A"
+            elseif mutateNumber = 2
+                return "C"
+            elseif mutateNumber = 3
+                return "G"
+            end
+        end
+        return ""
+    end
+
     action GenerateBug(text bugDNA) returns text
         text returnOutput = ""
-        if(bugDNA = "XGATTAUA")
+        if(bugDNA = "XGATTACA")
             returnOutput = "Laser beams: Bug shoots laser beams out of its eyes"
-        elseif(bugDNA = "GXATTAUA")
+        elseif(bugDNA = "GXATTACA")
             returnOutput = ""
-        elseif(bugDNA = "GATXTAUA")
+        elseif(bugDNA = "GATXTACA")
             returnOutput = ""
-        elseif(bugDNA = "GATTXAUA")
+        elseif(bugDNA = "GATTXACA")
             returnOutput = ""
-        elseif(bugDNA = "GATTAXUA")
+        elseif(bugDNA = "GATTAXCA")
             returnOutput = ""
-        elseif(bugDNA = "GATTAUXA")
+        elseif(bugDNA = "GATTACXA")
             returnOutput = ""
-        elseif(bugDNA = "GATTAUAX")
+        elseif(bugDNA = "GATTACAX")
             returnOutput = ""
-        elseif(bugDNA = "YGATTAUA")
+        elseif(bugDNA = "YGATTACA")
             returnOutput = ""
-        elseif(bugDNA = "GYATTAUA")
+        elseif(bugDNA = "GYATTACA")
             returnOutput = ""
-        elseif(bugDNA = "GAYTTAUA")
+        elseif(bugDNA = "GAYTTACA")
             returnOutput = ""
-        elseif(bugDNA = "GATYTAUA")
+        elseif(bugDNA = "GATYTACA")
             returnOutput = ""
-        elseif(bugDNA = "GATTYAUA")
+        elseif(bugDNA = "GATTYACA")
             returnOutput = ""
-        elseif(bugDNA = "GATTAYUA")
+        elseif(bugDNA = "GATTAYCA")
             returnOutput = ""
-        elseif(bugDNA = "GATTAUYA")
+        elseif(bugDNA = "GATTACYA")
             returnOutput = ""
-        elseif(bugDNA = "GATTAUAY")
+        elseif(bugDNA = "GATTACAY")
             returnOutput = ""
         else
             returnOutput = "This sequence is unstable. The bug dies."
