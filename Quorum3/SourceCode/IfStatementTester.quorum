@@ -47,6 +47,19 @@ class IfStatementTester
         IfStatementOneCondition_VarNotEqual_True()
         IfWithElse_Const()
         IfWithElse_Var()
+        MultipleIfBlocksNestedLevel2_00()
+        MultipleIfBlocksNestedLevel2_01()
+        MultipleIfBlocksNestedLevel2_02()
+        MultipleIfBlocksNestedLevel2_11()
+        MultipleIfBlocksNestedLevel2_1A1()
+        MultipleIfBlocksNestedLevel2_1AB1()
+        MultipleIfBlocksNestedLevel2_1ABC1()
+        MultipleIfBlocksNestedLevel2_1AC1()
+        MultipleIfBlocksNestedLevel2_1B1()
+        MultipleIfBlocksNestedLevel2_1BC1()
+        MultipleIfBlocksNestedLevel2_1C1()
+
+
         MultipleIfElseBlocks_1AFalse()
         MultipleIfElseBlocks_1ATrue()
         MultipleIfElseBlocks_1BFalse()
@@ -337,7 +350,62 @@ class IfStatementTester
         suite:RunTest("Library/Tests/IfStatement/Pass/MultipleIfElseBlocks_4BTrue.quorum", "520")
         //suite:RunTestJavaScript("Library/Tests/IfStatement/Pass/MultipleIfElseBlocks_4BTrue.quorum", "520")
     end
- 
+
+    action MultipleIfBlocksNestedLevel2_00
+        suite:RunTest("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_00.quorum", "3000")
+        //suite:RunTestJavaScript("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_00.quorum", "3000")
+    end
+
+    action MultipleIfBlocksNestedLevel2_01
+        suite:RunTest("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_01.quorum", "1000")
+        //suite:RunTestJavaScript("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_01.quorum", "1000")
+    end
+
+    action MultipleIfBlocksNestedLevel2_02
+        suite:RunTest("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_02.quorum", "2000")
+        //suite:RunTestJavaScript("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_02.quorum", "2000")
+    end
+
+    action MultipleIfBlocksNestedLevel2_11
+        suite:RunTest("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_11.quorum", "1202")
+        //suite:RunTestJavaScript("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1ABC1.quorum", "1202")
+    end
+
+    action MultipleIfBlocksNestedLevel2_1A1
+        suite:RunTest("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1A1.quorum", "2002")
+        //suite:RunTestJavaScript("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1A1.quorum", "2002")
+    end
+
+    action MultipleIfBlocksNestedLevel2_1AB1
+        suite:RunTest("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1AB1.quorum", "1101")
+        //suite:RunTestJavaScript("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1AB1.quorum", "1101")
+    end
+
+    action MultipleIfBlocksNestedLevel2_1ABC1
+        suite:RunTest("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1ABC1.quorum", "1101")
+        //suite:RunTestJavaScript("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1ABC1.quorum", "1101")
+    end
+
+    action MultipleIfBlocksNestedLevel2_1AC1
+        suite:RunTest("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1AC1.quorum", "1101")
+        //suite:RunTestJavaScript("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1AC1.quorum", "1101")
+    end
+
+    action MultipleIfBlocksNestedLevel2_1B1
+        suite:RunTest("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1B1.quorum", "1101")
+        //suite:RunTestJavaScript("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1B1.quorum", "1101")
+    end
+
+    action MultipleIfBlocksNestedLevel2_1BC1
+        suite:RunTest("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1BC1.quorum", "1101")
+        //suite:RunTestJavaScript("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1BC1.quorum", "1101")
+    end
+
+    action MultipleIfBlocksNestedLevel2_1C1
+        suite:RunTest("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1C1.quorum", "1101")
+        //suite:RunTestJavaScript("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1C1.quorum", "1101")
+    end
+
     //FAIL TESTS
     action IfStatementDouble
         //suite:RunTestFail("Library/Tests/IfStatement/Fail/IfStatementDouble().quorum")
