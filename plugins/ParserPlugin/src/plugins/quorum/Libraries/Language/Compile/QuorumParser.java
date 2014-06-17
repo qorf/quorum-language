@@ -239,6 +239,7 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class ReferenceContext extends ParserRuleContext {
+		public Qualified_nameContext name;
 		public Qualified_nameContext qualified_name() {
 			return getRuleContext(Qualified_nameContext.class,0);
 		}
@@ -264,7 +265,7 @@ public class QuorumParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(96); match(USE);
-			setState(97); qualified_name();
+			setState(97); ((ReferenceContext)_localctx).name = qualified_name();
 			}
 		}
 		catch (RecognitionException re) {
