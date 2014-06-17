@@ -1,6 +1,7 @@
 use Libraries.Compute.Random
 
 class Biology 
+    Random random
     action IsDNA(text dna) returns boolean
         index = 0
         repeat dna:GetSize() times
@@ -15,7 +16,8 @@ class Biology
 
     action Clone(text DNA) returns text
         //loop through DNA string and change a letter within it 10% of the time
-        Random random
+        
+        
         integer randomNumber = random:RandomIntegerBetween(1,10)
         if(randomNumber = 7)
         //cause mutation on random character
@@ -23,114 +25,34 @@ class Biology
 
         integer randomIndex = random:RandomIntegerBetween(0, DNA:GetSize() - 1)
         integer randomNumber2 = random:RandomIntegerBetween(1, 3)
-            if DNA:GetCharacter(randomIndex) = "A"
+        text nucleotide = DNA:GetCharacter(randomIndex)
+
+            if nucleotide not= "A" and nucleotide not= "C" and nucleotide not= "G" and nucleotide not= "T"
+                return "GATTACA"
+            else
                 //if the random index isn't the first or last character in the string
-                if randomIndex not= 0 or randomIndex not= DNA:GetSize() - 1
-                mutatedDNA = DNA:GetSubtext(0, randomIndex - 1)
-                mutatedDNA:Append(mutateDNA("A", randomNumber2))
-                mutatedDNA:Append(DNA:GetSubtext(randomIndex + 1))
+                if randomIndex not= 0 and randomIndex not= DNA:GetSize() - 1
+                    mutatedDNA = DNA:GetSubtext(0, randomIndex)
+                    mutatedDNA = mutatedDNA + mutateDNA(nucleotide, randomNumber2)
+                    mutatedDNA = mutatedDNA + DNA:GetSubtext(randomIndex + 1)
                 end
 
                 //if the random index is 0
                 if randomIndex = 0
-                mutatedDNA:Append(mutateDNA("A", randomNumber2))
-                mutatedDNA:Append(DNA:GetSubtext(1))
+                    mutatedDNA = mutatedDNA + mutateDNA(nucleotide, randomNumber2)
+                    mutatedDNA = mutatedDNA + DNA:GetSubtext(1)
                 end
                 
                 //if the random index is at the end of the character array
                 if randomIndex = DNA:GetSize() - 1
-                    mutatedDNA:Append(DNA:GetSubtext(0, DNA:GetSize() - 2))
-                    mutatedDNA:Append(mutateDNA("A", randomNumber2))
-                end
-            end
-
-            if DNA:GetCharacter(randomIndex) = "B"
-                //if the random index isn't the first or last character in the string
-                if randomIndex not= 0 or randomIndex not= DNA:GetSize() - 1
-                mutatedDNA = DNA:GetSubtext(0, randomIndex - 1)
-                mutatedDNA:Append(mutateDNA("B", randomNumber2))
-                mutatedDNA:Append(DNA:GetSubtext(randomIndex + 1))
-                end
-
-                //if the random index is 0
-                if randomIndex = 0
-                mutatedDNA:Append(mutateDNA("B", randomNumber2))
-                mutatedDNA:Append(DNA:GetSubtext(1))
-                end
-                
-                //if the random index is at the end of the character array
-                if randomIndex = DNA:GetSize() - 1
-                    mutatedDNA:Append(DNA:GetSubtext(0, DNA:GetSize() - 2))
-                    mutatedDNA:Append(mutateDNA("B", randomNumber2))
-                end
-            end
-
-            if DNA:GetCharacter(randomIndex) = "C"
-                //if the random index isn't the first or last character in the string
-                if randomIndex not= 0 or randomIndex not= DNA:GetSize() - 1
-                mutatedDNA = DNA:GetSubtext(0, randomIndex - 1)
-                mutatedDNA:Append(mutateDNA("C", randomNumber2))
-                mutatedDNA:Append(DNA:GetSubtext(randomIndex + 1))
-                end
-
-                //if the random index is 0
-                if randomIndex = 0
-                mutatedDNA:Append(mutateDNA("C", randomNumber2))
-                mutatedDNA:Append(DNA:GetSubtext(1))
-                end
-                
-                //if the random index is at the end of the character array
-                if randomIndex = DNA:GetSize() - 1
-                    mutatedDNA:Append(DNA:GetSubtext(0, DNA:GetSize() - 2))
-                    mutatedDNA:Append(mutateDNA("C", randomNumber2))
-                end
-            end
-
-            if DNA:GetCharacter(randomIndex) = "D"
-                //if the random index isn't the first or last character in the string
-                if randomIndex not= 0 or randomIndex not= DNA:GetSize() - 1
-                mutatedDNA = DNA:GetSubtext(0, randomIndex - 1)
-                mutatedDNA:Append(mutateDNA("D", randomNumber2))
-                mutatedDNA:Append(DNA:GetSubtext(randomIndex + 1))
-                end
-
-                //if the random index is 0
-                if randomIndex = 0
-                mutatedDNA:Append(mutateDNA("D", randomNumber2))
-                mutatedDNA:Append(DNA:GetSubtext(1))
-                end
-                
-                //if the random index is at the end of the character array
-                if randomIndex = DNA:GetSize() - 1
-                    mutatedDNA:Append(DNA:GetSubtext(0, DNA:GetSize() - 2))
-                    mutatedDNA:Append(mutateDNA("D", randomNumber2))
+                    mutatedDNA = mutatedDNA + DNA:GetSubtext(0, DNA:GetSize() - 1)
+                    mutatedDNA = mutatedDNA + mutateDNA(nucleotide, randomNumber2)
                 end
             end
 
             return mutatedDNA
         end
         return DNA
-    end
-
-    action IsParent(text child, text possibleParent) returns boolean
-        // Check if both the child and possible parent are DNA at all; also check that child and possible parent DNA are the same size
-        if(child:GetSize() = possibleParent:GetSize() and IsDNA(child) and IsDNA(possibleParent))
-            // If they are, loop through the characters of child and possible parent and count how many of them are the same
-            integer index = 0
-            integer count = 0
-            repeat child:GetSize() times
-                if(child:GetCharacter(index) = possibleParent:GetCharacter(index))
-                    count = count + 1
-                end
-                index = index + 1
-            end
-            // The DNA counts as a parent if the DNA has at least 25% equal characters
-            number percentSimilar = count / child:GetSize()
-            if(percentSimilar > 0.25)
-                return true
-            end
-        end
-        return false
     end
 
     action mutateDNA(text nucleotide, integer mutateNumber) returns text
@@ -180,12 +102,37 @@ class Biology
         return ""
     end
 
+    action IsParent(text child, text possibleParent) returns boolean
+        // Check if both the child and possible parent are DNA at all; also check that child and possible parent DNA are the same size
+        if(child:GetSize() = possibleParent:GetSize() and IsDNA(child) and IsDNA(possibleParent))
+            // If they are, loop through the characters of child and possible parent and count how many of them are the same
+            integer index = 0
+            integer count = 0
+            repeat child:GetSize() times
+                if child:GetCharacter(index) = possibleParent:GetCharacter(index)
+                    count = count + 1
+                end
+                index = index + 1
+            end
+            // The DNA counts as a parent if the DNA has at least 25% equal characters
+            number percentSimilar = 1.0 * count / child:GetSize()
+            if(percentSimilar > 0.25)
+                return true
+            end
+        end
+        return false
+    end
+
     action GenerateBug(text bugDNA)
         text superpower = ""
         boolean isValidMutation = true
-        if(bugDNA = "XGATTACA")
+        if(bugDNA = "CHEETOS")
+            superpower = "winning: Bug has an endless supply of Cheetos and can never lose."
+        elseif(bugDNA = "XGATTACA")
             superpower = "Laser beams: Bug shoots laser beams out of its eyes"
         elseif(bugDNA = "GXATTACA")
+            superpower = ""
+        elseif(bugDNA = "GAXTTACA")
             superpower = ""
         elseif(bugDNA = "GATXTACA")
             superpower = ""
@@ -233,9 +180,9 @@ class Biology
             integer index = 0
             repeat parent1:GetSize() times
                 if(rand:RandomIntegerBetween(0,1) = 0)
-                    child = child + parent1:GetSubtext(index, index)
+                    child = child + parent1:GetCharacter(index)
                 else
-                    child = child + parent2:GetSubtext(index, index)
+                    child = child + parent2:GetCharacter(index)
                 end
                 index = index + 1
             end

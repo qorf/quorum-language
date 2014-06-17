@@ -1,14 +1,14 @@
 Biology bio
 
-text parent1 = ""
-text parent2 = ""
-text parent3 = ""
-text parent4 = ""
-text parent5 = ""
+text parent1 = "ACGTACTG" //false
+text parent2 = "GATCGCAT" //false
+text parent3 = "CGTAGCAT" //false
+text parent4 = "GAGGCCAT" //false
+text parent5 = "CATTAGAT" //true
 
 text mutantDNA = "TACGAGTA"
 
-if(bio:IsParent(mutantDNA, parent1))
+if bio:IsParent(mutantDNA, parent5)
     output "true"
 else
     output "false"

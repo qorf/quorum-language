@@ -6,15 +6,17 @@ text mutantTwo = ""
 
 repeat until mutantOne not= ""
 	clone = bio:Clone(originalDNA)
-	if( clone not= originalDNA )
+	if clone not= originalDNA
 		mutantOne = clone
         end
 end
 repeat until mutantTwo not= ""
 	clone = bio:Clone(originalDNA)
-	if( clone not= originalDNA )
+	if clone not= originalDNA
 		mutantTwo = clone
         end
 end
 
 text mutantChild = bio:Breed(mutantOne, mutantTwo)
+
+output "The mutant child's DNA is: " + mutantChild
