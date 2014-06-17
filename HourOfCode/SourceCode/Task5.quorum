@@ -1,0 +1,20 @@
+Biology bio
+text originalDNA = "GATTACA"
+text clone = ""
+text mutantOne = ""
+text mutantTwo = ""
+
+repeat until mutantOne not= ""
+	clone = bio:Clone(originalDNA)
+	if( clone not= originalDNA )
+		mutantOne = clone
+        end
+end
+repeat until mutantTwo not= ""
+	clone = bio:Clone(originalDNA)
+	if( clone not= originalDNA )
+		mutantTwo = clone
+        end
+end
+
+text mutantChild = bio:Breed(mutantOne, mutantTwo)
