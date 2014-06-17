@@ -1,7 +1,7 @@
 use Libraries.Compute.Random
 
-class Biology 
-    Random random
+class Biology
+    Random random //required up here to seed correctly
     action IsDNA(text dna) returns boolean
         index = 0
         repeat dna:GetSize() times
@@ -127,39 +127,39 @@ class Biology
         text superpower = ""
         boolean isValidMutation = true
         if(bugDNA = "CHEETOS")
-            superpower = "winning: Bug has an endless supply of Cheetos and can never lose."
+            superpower = "winning: the bug has an endless supply of Cheetos and can never lose."
         elseif(bugDNA = "XGATTACA")
-            superpower = "Laser beams: Bug shoots laser beams out of its eyes"
+            superpower = "laser beams: the bug shoots laser beams out of its eyes."
         elseif(bugDNA = "GXATTACA")
-            superpower = ""
+            superpower = "mind control: the bug can force others to do its bidding"
         elseif(bugDNA = "GAXTTACA")
-            superpower = ""
+            superpower = "controlling electricity: the bug can manipulate electricity"
         elseif(bugDNA = "GATXTACA")
-            superpower = ""
+            superpower = "super strength: the bug is able to lift or break anything physically"
         elseif(bugDNA = "GATTXACA")
-            superpower = ""
+            superpower = "phasing: the bug can pass through solid objects"
         elseif(bugDNA = "GATTAXCA")
-            superpower = ""
+            superpower = "controlling weather: the bug can manipulate any type of weather"
         elseif(bugDNA = "GATTACXA")
-            superpower = ""
+            superpower = "size shifting: the bug is capable of changing its size"
         elseif(bugDNA = "GATTACAX")
-            superpower = ""
+            superpower = "X-Ray Vision: the bug can see through almost anything... except lead"
         elseif(bugDNA = "YGATTACA")
-            superpower = ""
+            superpower = "immortality: the bug is capable of living forever."
         elseif(bugDNA = "GYATTACA")
-            superpower = ""
+            superpower = "mimicking other powers: the bug can copy the powers of any other bug"
         elseif(bugDNA = "GAYTTACA")
-            superpower = ""
+            superpower = "time travel: the bug can travel to the past, present and future"
         elseif(bugDNA = "GATYTACA")
-            superpower = ""
+            superpower = "invisibility: the bug can vanish from sight"
         elseif(bugDNA = "GATTYACA")
-            superpower = ""
+            superpower = "controlling machines: the bug can manipulate any machinery"
         elseif(bugDNA = "GATTAYCA")
-            superpower = ""
+            superpower = "shapeshifting: the bug can become anything (almost)"
         elseif(bugDNA = "GATTACYA")
-            superpower = ""
+            superpower = "summoning zombies: the bug can raise the dead"
         elseif(bugDNA = "GATTACAY")
-            superpower = ""
+            superpower = "telepathy: the bug is capable of communicating with others mentally"
         else
             isValidMutation = false
         end
@@ -190,4 +190,12 @@ class Biology
         end
         return "These parents aren't compatible"
     end
+
+    action BattleBugs(text mutantBug, text opponentBug) returns text
+        //write algorithm to decide which bug wins
+
+        //return "your bug" or "opponent bug" or "nobody, the battle resulted in a stalemate"
+        return "nobody!"
+    end
+
 end
