@@ -4,7 +4,7 @@
     
     //slide array
     var slideArray = new Array();
-    slideArray[0] = "";
+    slideArray[0] = "<h5 role=\"heading\">Superbugs.</h5><ul><li role=\"listitem\"><li>We made superbugs with superpowerd DNA sequences, meaning they have superpowers.</li>";
     slideArray[1] = "";
     slideArray[2] = "";
     slideArray[3] = "";

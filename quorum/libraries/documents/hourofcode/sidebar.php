@@ -1,7 +1,7 @@
 <div id="sidebar-navigation">
     <ul>
-        <a href="introduction.php"><li id="sidebar-introduction" class="sidebar-link">Part 0: What is programming?</li></a>
-        <a href="part1.php"><li id="sidebar-part1" class="sidebar-link">Part 1: Building Blocks of Life</li></a>
+        <a href="introduction.php"><li id="sidebar-introduction" class="sidebar-link">Part 0: Meeting Mary</li></a>
+        <a href="part1.php"><li id="sidebar-part1" class="sidebar-link">Part 1: Check DNA</li></a>
         <a href="part2.php"><li id="sidebar-part2" class="sidebar-link">Part 2: Mutations!</li></a>
         <a href="part3.php"><li id="sidebar-part3" class="sidebar-link">Part 3: Count the Mutants</li></a>
         <a href="part4.php"><li id="sidebar-part4" class="sidebar-link">Part 4: Hi... Mom?</li></a>

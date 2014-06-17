@@ -4,7 +4,7 @@
     
     //slide array
     var slideArray = new Array();
-    slideArray[0] = "<h5 role=\"heading\">Mystery Solved.</h5><ul><li role=\"listitem\">Dr. Day figured out what that funny smell was and I received a pay bonus!</li>";
+    slideArray[0] = "<h5 role=\"heading\">Mystery Solved.</h5><ul><li role=\"listitem\">Dr. Day figured out what that funny smell was and I received a pay bonus!</li><li>He said all my hard work shows and I really deserved the bonus</li><li>He then asked me to breed the mutants and since I have a degree in biology, I know exactly how to do this.</li>";
     slideArray[1] = "";
     slideArray[2] = "";
     slideArray[3] = "";
@@ -26,7 +26,22 @@
     <h2>Try It! <span class="hour-of-code-IDE-subtitle">Enter Quorum code below and press "Run" to execute it</span></h2>
     <div id="hour-of-code-IDE-controller">
     </div>
-        <textarea id="hour-of-code-IDE-input" class="ide inputArea" role="textbox" aria-multiline="true"></textarea>
+        <textarea id="hour-of-code-IDE-input" class="ide inputArea" role="textbox" aria-multiline="true">repeat until mutantOne not= ""
+	clone = bio:Clone(originalDNA)
+	if clone not= originalDNA
+		mutantOne = clone
+        end
+end
+repeat until mutantTwo not= ""
+	clone = bio:Clone(originalDNA)
+	if clone not= originalDNA
+		mutantTwo = clone
+        end
+end
+
+text mutantChild = bio:Breed(mutantOne, mutantTwo)
+
+output "The mutant child's DNA is: " + mutantChild</textarea>
         <pre id="hour-of-code-IDE-output" class="outputArea" role="log" aria-live="polite"></pre><div id="run-button" class="btn-group">
                 <a class="btn btn-success" href="#">Run</a>
         </div></div><div id="video-container">
