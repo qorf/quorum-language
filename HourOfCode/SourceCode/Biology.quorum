@@ -113,11 +113,24 @@ class Biology
     end
 
     action IsParent(text child, text possibleParent) returns boolean
-        if(child = possibleParent)
-            return true
-        else
-            return false
+        // Check if both the child and possible parent are DNA at all; also check that child and possible parent DNA are the same size
+        if(child:GetSize() = possibleParent:GetSize() and IsDNA(child) and IsDNA(possibleParent))
+            // If they are, loop through the characters of child and possible parent and count how many of them are the same
+            integer index = 0
+            integer count = 0
+            repeat child:GetSize() times
+                if(child:GetCharacter(index) = possibleParent:GetCharacter(index))
+                    count = count + 1
+                end
+                index = index + 1
+            end
+            // The DNA counts as a parent if the DNA has at least 25% equal characters
+            number percentSimilar = count / child:GetSize()
+            if(percentSimilar > 0.25)
+                return true
+            end
         end
+        return false
     end
 
     action mutateDNA(text nucleotide, integer mutateNumber) returns text
@@ -167,42 +180,67 @@ class Biology
         return ""
     end
 
-    action GenerateBug(text bugDNA) returns text
-        text returnOutput = ""
+    action GenerateBug(text bugDNA)
+        text superpower = ""
+        boolean isValidMutation = true
         if(bugDNA = "XGATTACA")
-            returnOutput = "Laser beams: Bug shoots laser beams out of its eyes"
+            superpower = "Laser beams: Bug shoots laser beams out of its eyes"
         elseif(bugDNA = "GXATTACA")
-            returnOutput = ""
+            superpower = ""
         elseif(bugDNA = "GATXTACA")
-            returnOutput = ""
+            superpower = ""
         elseif(bugDNA = "GATTXACA")
-            returnOutput = ""
+            superpower = ""
         elseif(bugDNA = "GATTAXCA")
-            returnOutput = ""
+            superpower = ""
         elseif(bugDNA = "GATTACXA")
-            returnOutput = ""
+            superpower = ""
         elseif(bugDNA = "GATTACAX")
-            returnOutput = ""
+            superpower = ""
         elseif(bugDNA = "YGATTACA")
-            returnOutput = ""
+            superpower = ""
         elseif(bugDNA = "GYATTACA")
-            returnOutput = ""
+            superpower = ""
         elseif(bugDNA = "GAYTTACA")
-            returnOutput = ""
+            superpower = ""
         elseif(bugDNA = "GATYTACA")
-            returnOutput = ""
+            superpower = ""
         elseif(bugDNA = "GATTYACA")
-            returnOutput = ""
+            superpower = ""
         elseif(bugDNA = "GATTAYCA")
-            returnOutput = ""
+            superpower = ""
         elseif(bugDNA = "GATTACYA")
-            returnOutput = ""
+            superpower = ""
         elseif(bugDNA = "GATTACAY")
-            returnOutput = ""
+            superpower = ""
         else
-            returnOutput = "This sequence is unstable. The bug dies."
+            isValidMutation = false
         end
-        return returnOutput
+        if(isValidMutation)
+            output "This bug has the super power of " + superpower
+        else
+            output "This is not a valid DNA sequence. The bug has died."
+        end
     end
-        
- end
+
+    action Breed(text parent1, text parent2) returns text
+        // Check that both parents are valid DNA sequences, and of the same length
+        Biology bio
+        text child = ""
+        Random rand
+        if(parent1:GetSize() = parent2:GetSize() and bio:IsDNA(parent1) and bio:IsDNA(parent2))
+            // Loop through each character, create a new string that will either take the parent1's or parent2's character randomly
+            integer index = 0
+            repeat parent1:GetSize() times
+                if(rand:RandomIntegerBetween(0,1) = 0)
+                    child = child + parent1:GetSubtext(index, index)
+                else
+                    child = child + parent2:GetSubtext(index, index)
+                end
+                index = index + 1
+            end
+            return child
+        end
+        return "These parents aren't compatible"
+    end
+end
