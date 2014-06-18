@@ -1,9 +1,9 @@
 Biology bio
-text mutantBug = "CHEETOS"
-bio:GenerateBug(mutantBug)
 
-text opponentBug = "XGATTACA"
+text mutantBug = "GXATTACA"
 
-text winner = bio:BattleBugs(mutantBug, opponentBug)
+text opponentBug = "YGATTACA"
 
-output "The winner of the bug battle is " + winner
+text result = bio:BattleBugs(mutantBug, opponentBug)
+
+output result

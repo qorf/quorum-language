@@ -123,53 +123,6 @@ class Biology
         return false
     end
 
-    action GenerateBug(text bugDNA)
-        text superpower = ""
-        boolean isValidMutation = true
-        if(bugDNA = "CHEETOS")
-            superpower = "winning: the bug has an endless supply of Cheetos and can never lose."
-        elseif(bugDNA = "XGATTACA")
-            superpower = "laser beams: the bug shoots laser beams out of its eyes."
-        elseif(bugDNA = "GXATTACA")
-            superpower = "mind control: the bug can force others to do its bidding"
-        elseif(bugDNA = "GAXTTACA")
-            superpower = "controlling electricity: the bug can manipulate electricity"
-        elseif(bugDNA = "GATXTACA")
-            superpower = "super strength: the bug is able to lift or break anything physically"
-        elseif(bugDNA = "GATTXACA")
-            superpower = "phasing: the bug can pass through solid objects"
-        elseif(bugDNA = "GATTAXCA")
-            superpower = "controlling weather: the bug can manipulate any type of weather"
-        elseif(bugDNA = "GATTACXA")
-            superpower = "size shifting: the bug is capable of changing its size"
-        elseif(bugDNA = "GATTACAX")
-            superpower = "X-Ray Vision: the bug can see through almost anything... except lead"
-        elseif(bugDNA = "YGATTACA")
-            superpower = "immortality: the bug is capable of living forever."
-        elseif(bugDNA = "GYATTACA")
-            superpower = "mimicking other powers: the bug can copy the powers of any other bug"
-        elseif(bugDNA = "GAYTTACA")
-            superpower = "time travel: the bug can travel to the past, present and future"
-        elseif(bugDNA = "GATYTACA")
-            superpower = "invisibility: the bug can vanish from sight"
-        elseif(bugDNA = "GATTYACA")
-            superpower = "controlling machines: the bug can manipulate any machinery"
-        elseif(bugDNA = "GATTAYCA")
-            superpower = "shapeshifting: the bug can become anything (almost)"
-        elseif(bugDNA = "GATTACYA")
-            superpower = "summoning zombies: the bug can raise the dead"
-        elseif(bugDNA = "GATTACAY")
-            superpower = "telepathy: the bug is capable of communicating with others mentally"
-        else
-            isValidMutation = false
-        end
-        if(isValidMutation)
-            output "This bug has the super power of " + superpower
-        else
-            output "This is not a valid DNA sequence. The bug has died."
-        end
-    end
-
     action Breed(text parent1, text parent2) returns text
         // Check that both parents are valid DNA sequences, and of the same length
         Biology bio
@@ -191,11 +144,156 @@ class Biology
         return "These parents aren't compatible"
     end
 
-    action BattleBugs(text mutantBug, text opponentBug) returns text
-        //write algorithm to decide which bug wins
 
-        //return "your bug" or "opponent bug" or "nobody, the battle resulted in a stalemate"
-        return "nobody!"
+//part 6 stuff
+
+    action BattleBugs(text mutantBug, text opponentBug) returns text
+        Biology bio
+
+        //validate the combatants
+        if bio:IsValidBattleBugDNA(mutantBug) not= true and bio:IsValidBattleBugDNA(opponentBug) not= true
+            return "Both bugs are already dead, nobody wins."
+
+        elseif bio:IsValidBattleBugDNA(mutantBug) not= true
+            return "Your bug is dead, giving the opponent bug an automatic victory."
+        elseif bio:IsValidBattleBugDNA(opponentBug) not= true
+            return "The opponent bug is already dead, thus earning your bug an empty victory."
+        end
+
+        //both bugs are valid strings
+        if mutantBug = opponentBug
+            return "The battle results in a stalemate.  Neither bug wins or loses."
+        end
+
+        integer yourBP = 0
+        integer opponentBP = 0
+
+        if mutantBug:Contains("X")
+            yourBP = 2 * mutantBug:IndexOf("X")
+        elseif mutantBug:Contains("Y")
+            yourBP = 2 * mutantBug:IndexOf("Y") + 1
+        else
+        //cheat code
+            yourBP = -1
+        end
+
+        if opponentBug:Contains("X")
+            opponentBP = 2 * opponentBug:IndexOf("X")
+        elseif opponentBug:Contains("Y")
+            opponentBP = 2 * opponentBug:IndexOf("Y") + 1
+        else
+        //cheat code
+            opponentBP = -1
+        end
+
+        //I originally meant for the bug with the higher BP to win, but it turned out to be like golf; the lower score wins
+        if yourBP <= opponentBP
+            //win
+            return "Your bug, with the power of " + bio:GenerateSuperpower(mutantBug) + ", overwhelmed the opposing bug that was capable of " + bio:GenerateSuperpower(opponentBug) + ".  Your bug is victorious and all shall know its name... except for the fact that it doesn't have a name."
+        else
+            //lose
+            return "Your bug, capable of " + bio:GenerateSuperpower(mutantBug) + ", was no match for the opposing bug, which had the power of " + bio:GenerateSuperpower(opponentBug) + ".  Your bug has suffered an honorable defeat on the battlefield today.  RIP bug."
+        end
+        
+        return "Nobody wins!"
+    end
+
+    action IsValidBattleBugDNA(text DNA) returns boolean
+        //check for cheat codes
+        if DNA = "CHEETOS"
+            return true
+
+        //remove X or Y, check for "GATTACA"
+        elseif DNA:Contains("X")
+            integer index = DNA:IndexOf("X")
+            text subStrand = ""
+            //remove the X, check for GATTACA by concatenating the parts around it
+
+            //get first part, assuming X isn't at the beginning
+            if index not= 0
+                subStrand = DNA:GetSubtext(0, index)
+            end
+            //get second part, assuming X isn't at the end
+            if index not= DNA:GetSize() - 1
+                subStrand = subStrand + DNA:GetSubtext(index + 1)
+            end
+
+            if subStrand = "GATTACA"
+                return true
+            else
+                return false
+            end
+            
+        elseif DNA:Contains("Y")
+            integer index = DNA:IndexOf("Y")
+            text subStrand = ""
+
+            if index not= 0
+                subStrand = DNA:GetSubtext(0, index)
+            end
+
+            if index not= DNA:GetSize() - 1
+                subStrand = subStrand + DNA:GetSubtext(index + 1)
+            end
+
+            if subStrand = "GATTACA"
+                return true
+            else
+                return false
+            end
+            
+        else
+            return false
+        end
+        return false
+    end
+
+    action GenerateSuperpower(text bugDNA) returns text
+        text superpower = ""
+        boolean isValidMutation = true
+        if(bugDNA = "CHEETOS")
+            superpower = "winning (the bug has an endless supply of Cheetos and can never lose)"
+        elseif(bugDNA = "XGATTACA")
+            superpower = "shooting laser beams out of its eyes"
+        elseif(bugDNA = "GXATTACA")
+            superpower = "mind control"
+        elseif(bugDNA = "GAXTTACA")
+            superpower = "controlling electricity"
+        elseif(bugDNA = "GATXTACA")
+            superpower = "super strength"
+        elseif(bugDNA = "GATTXACA")
+            superpower = "passing through solid objects"
+        elseif(bugDNA = "GATTAXCA")
+            superpower = "controlling weather"
+        elseif(bugDNA = "GATTACXA")
+            superpower = "manipulating its size"
+        elseif(bugDNA = "GATTACAX")
+            superpower = "X-Ray Vision"
+        elseif(bugDNA = "YGATTACA")
+            superpower = "immortality"
+        elseif(bugDNA = "GYATTACA")
+            superpower = "mimicking other powers"
+        elseif(bugDNA = "GAYTTACA")
+            superpower = "time travel"
+        elseif(bugDNA = "GATYTACA")
+            superpower = "invisibility"
+        elseif(bugDNA = "GATTYACA")
+            superpower = "controlling machines"
+        elseif(bugDNA = "GATTAYCA")
+            superpower = "shapeshifting"
+        elseif(bugDNA = "GATTACYA")
+            superpower = "summoning zombies"
+        elseif(bugDNA = "GATTACAY")
+            superpower = "telepathy"
+        else
+            isValidMutation = false
+        end
+        if(isValidMutation)
+            return superpower
+        else
+            output "This is not a valid DNA sequence. The bug has died."
+        end
+        return superpower
     end
 
 end
