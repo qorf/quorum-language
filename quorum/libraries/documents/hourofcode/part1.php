@@ -14,7 +14,7 @@
 
 <div class="hero-unit">
 	<div class="hero-unit-container" role="banner">
-		<h1>Hour of Code: Introduction</h1>
+		<h1>Hour of Code: Part 1</h1>
                 <p>Building Blocks of Life</p>
 	</div>
 </div>
