@@ -1,8 +1,9 @@
 Biology bio
 text mindControlDNA = "GXATTACA"
-Boolean validDNA = bio:IsDNA(mindControlDNA)
+boolean validDNA = bio:IsValidBattleBugDNA(mindControlDNA)
 if validDNA
    repeat 500 times
-      bio:SendDNA(mindControlDNA)
+      text result = bio:SendDNA(mindControlDNA)
+      output result
    end
 end
