@@ -3,11 +3,13 @@
 	<div class="hero-unit-container">
 		<h1>The Quorum Programming Language</h1>
 		<p>The world's first <a href="evidence.php">evidence-oriented programming language.</a></p>
-                <p>Want to learn about Quorum? Come to the <a href="Epiq.php">Experience Programming in Quorum Workshop!</a></p>
 	</div>
 </div>
 
+
 <div class="content index-content">
+ 
+  <?php require("ide.php"); ?>  
 <h1>Introducing Quorum</h1>
 <p>
     Quorum 2.1 (see 
@@ -15,17 +17,18 @@
     has the following features and more:
 </p>
  
- <?php require("ide.php"); ?>
- <div class="ide-embed-info">
-    <label>Embed to your website: </label>
-    <input type="text" value='<iframe src="http://www.quorumlanguage.com/embedded-ide.php" height="432" width="582" scrolling="no" class="quorum-ide" style="border:0; box-shadow: 2px 2px 2px #999999; -webkit-box-shadow: 2px 2px 2px #999999; -moz-box-shadow: 2px 2px 2px #999999; ">'>
- </div>
-
 <ul>
-    <li>A language design that is heavily tested for ease of use in formal 
+    <li>Quorum is a Java Virtual Machine language, like JRuby, Jython, or Groovy, with
+    a clean syntax, a <a href="documents/syntax/plugins.php">plugin system</a> for extensions, and a growing 
+    <a href="libraries.php">Standard Library</a>.</li>
+    <li>Quorum has been heavily vetted for ease of use in formal 
         <a href="http://dl.acm.org/citation.cfm?id=2534973">scientific peer-reviewed studies</a>. 
         For details, listen to a recent <a href="http://goo.gl/DB2RtQ">podcast</a>.</li>
-    <li>A Static type system that conforms to the <a href="http://dl.acm.org/citation.cfm?id=2384616.2384666&coll=DL&dl=GUIDE&CFID=263596418&CFTOKEN=51077801">
+    
+    <li>Comes with an Integrated Development Environment (IDE) called 
+        <a href="http://localhost/download.php">Sodbeans,</a>
+        based on <a href="netbeans.org">NetBeans</a>.</li>
+<!--    <li>A Static type system that conforms to the <a href="http://dl.acm.org/citation.cfm?id=2384616.2384666&coll=DL&dl=GUIDE&CFID=263596418&CFTOKEN=51077801">
         latest scientific evidence on ease
         of use</a> from the academic peer reviewed literature.</li>
     <li>Quorum is Object-oriented, but this is hidden from beginners for initial ease of use. 
@@ -37,7 +40,7 @@
     <li>A growing <a href="libraries.php">Standard Library</a> (e.g., data structures, 
         music generation, text-to-speech)</li>
     <li>A <a href="documents/syntax/plugins.php">Plugin system</a> for extending Quorum with Java or C++</li>
-    <li>Full Java Debugging Interface (JDI) support for Quorum in NetBeans</li>
+    <li>Full Java Debugging Interface (JDI) support for Quorum in NetBeans</li>-->
 </ul>
 <h2>Getting Started</h2>
 <ul>
@@ -54,9 +57,10 @@
         <a href="https://groups.google.com/forum/#!forum/quorum-language">Quorum Google Group</a> 
         or post about it on the 
         <a href="https://www.facebook.com/quorumlanguage">Quorum Facebook page</a></li>
-
+  
 </ul>
-<h2>Example Code in Quorum</h2>
+
+<!--<h2>Example Code in Quorum</h2>
 <p>
     Below are some full examples of programs written in Quorum. These examples 
     are complete standalone programs. Here's hello, world:
@@ -82,6 +86,23 @@ repeat 12 times
    muse:Play(60 + i,1)
    i = i + 1
 end
-</code></pre></p>
-</div>
+</code></pre></p>-->
+
+
+
+
+
+<div class="ide-embed-info">
+    <label>Embed to your website: </label>
+    <input type="text" value='<iframe src="http://www.quorumlanguage.com/embedded-ide.php" height="432" width="582" scrolling="no" class="quorum-ide" style="border:0; box-shadow: 2px 2px 2px #999999; -webkit-box-shadow: 2px 2px 2px #999999; -moz-box-shadow: 2px 2px 2px #999999; ">'>
+ </div>
+
+
+
+
+
+
 <?php require_once("static/templates/pagefooter.template.php"); ?>
+</div>
+
+
