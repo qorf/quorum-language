@@ -8,13 +8,11 @@
 
 
 <div class="content index-content">
- 
+
   <?php require("ide.php"); ?>  
 <h1>Introducing Quorum</h1>
 <p>
-    Quorum 2.1 (see 
-    the <a href="documents/release.php">Quorum release notes</a>), 
-    has the following features and more:
+    Current Version: Quorum 2.1 (see the <a href="documents/release.php">Quorum release notes</a>)
 </p>
  
 <ul>
@@ -60,6 +58,10 @@
   
 </ul>
 
+<ul class="learn-index-grid">
+    <li class="learn-grid-item-large grid-item-hour-of-code front-page-grid-item"><a href="/documents/hourofcode/introduction.php"><h2 class="index_package_title"><i></i>Learn how to use Quorum with Mary</h2></a>
+</ul>
+
 <!--<h2>Example Code in Quorum</h2>
 <p>
     Below are some full examples of programs written in Quorum. These examples 
@@ -92,17 +94,12 @@ end
 
 
 
-<div class="ide-embed-info">
+<!--<div class="ide-embed-info">
     <label>Embed to your website: </label>
     <input type="text" value='<iframe src="http://www.quorumlanguage.com/embedded-ide.php" height="432" width="582" scrolling="no" class="quorum-ide" style="border:0; box-shadow: 2px 2px 2px #999999; -webkit-box-shadow: 2px 2px 2px #999999; -moz-box-shadow: 2px 2px 2px #999999; ">'>
- </div>
+ </div>-->
 
-
-
-
-
-
-<?php require_once("static/templates/pagefooter.template.php"); ?>
 </div>
 
 
+<?php require_once("static/templates/pagefooter.template.php"); ?>

@@ -45,7 +45,7 @@
 
     </div>
 
-   <textarea id="hour-of-code-IDE-input" class="ide inputArea" role="textbox" aria-multiline="true">Hello World!
+   <textarea id="intro-IDE-input" class="ide inputArea" role="textbox" aria-multiline="true">Hello World!
             </textarea>
         <pre id="hour-of-code-IDE-output" class="outputArea" role="log" aria-live="polite"></pre><div id="run-button" class="btn-group">
                 <a class="btn btn-success" href="#">Run</a>

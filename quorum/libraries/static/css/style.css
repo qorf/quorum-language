@@ -181,6 +181,26 @@
     text-shadow: 1px 1px 1px darken(#0088cc, 30%);
 }
 
+#intro-IDE-input {
+    display: block;
+    width: 100%;
+    min-height: 180px;
+    resize:none;
+    font-family: Menlo, monospace;
+    text-align: left;
+    overflow: scroll;
+    overflow-y: scroll; 
+    overflow-x: hidden;	
+    overflow:-moz-scrollbars-vertical;
+    border-radius: 0;
+    border-right: none;
+    border-left: none;
+    border-bottom: solid 1px lightgrey;
+    margin: 0;
+    padding-bottom: 0;
+    overflow: auto;
+}
+
 #hour-of-code-IDE h2 {
     margin: 0;
     background: #0088cc;
@@ -288,4 +308,31 @@ span.hour-of-code-IDE-subtitle {
     border-left: 25px solid #BBB !important;
     opacity: .5 !important;
     cursor: default !important;
+}
+
+.front-page-grid-item {
+    background: none repeat scroll 0 0 #eeeeee;
+    border-radius: 0 !important;
+    box-shadow: 0 1px 4px #333333;
+    cursor: pointer;
+    float: left;
+    height: 220px;
+    margin: 10px 0 !important;
+    opacity: 0.65;
+    position: relative !important;
+    transition: background 0.2s ease-in 0s;
+    width: 100% !important;
+}
+
+.front-page-grid-item i {
+    margin: 0 auto !important;
+}
+
+.front-page-grid-item a {
+    text-decoration: none;
+    color: #333;
+}
+
+.front-page-grid-item a:hover {
+    color: #333;
 }
