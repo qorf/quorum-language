@@ -37,6 +37,7 @@ class Parser is QuorumSourceListener
         i = 0
         repeat while i < unresolvedUseStatements:GetSize()
             currentClass:AddUnresolvedUseStatement(unresolvedUseStatements:Get(i))
+            i = i + 1
         end
         currentClass:SetFile(me:GetFile())
         Array<QualifiedName> newArray

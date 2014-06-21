@@ -12,7 +12,7 @@ class Compiler
     File main = undefined
     constant text DEFAULT_BUILD_FOLDER = "TestBuild"
     constant text DEFAULT_RUN_FOLDER = "TestRun"
-    constant text DEFAULT_STANDARD_LIBRARY_FOLDER = "Library"
+    constant text DEFAULT_STANDARD_LIBRARY_FOLDER = "Library/Standard"
     File buildFolder = undefined
     File runFolder = undefined
     File standardLibraryFolder = undefined
@@ -117,7 +117,8 @@ class Compiler
 
         repeat while classes:HasNext()
             Class clazz = classes:Next()
-
+            File classFile = clazz:GetFile()
+            text path = classFile:GetAbsolutePath()
             if not parsed:HasKey(clazz:GetStaticKey())
                 parsed:Add(clazz:GetStaticKey(), clazz:GetFile())
             end
@@ -125,19 +126,49 @@ class Compiler
             repeat while names:HasNext()
                 QualifiedName qn = names:Next()
                 text key = qn:GetStaticKey()
+                File file = GetStandardLibraryFile(key)
+                text newPath = file:GetAbsolutePath()
+                if parsed:HasKey(newPath) //this class has already been parsed
 
-                if parsed:HasKey(key) //this class has already been parsed
-
-                elseif unparsed:HasKey(key) //this class is already scheduled for parsing
+                elseif unparsed:HasKey(newPath) //this class is already scheduled for parsing
                     
                 else
-
+                    unparsed:Add(newPath, file)
                 end
             end
 
         end
 
         return files
+    end
+
+    action GetStandardLibraryFile(text key) returns File
+        Array<text> values = key:Split("\.")
+        text loc = standardLibraryFolder:GetWorkingDirectory()
+        text loc2 = standardLibraryFolder:GetAbsolutePath()
+
+        File file
+        file:SetWorkingDirectory(loc2)
+
+        text location = "/"
+        Iterator<text> it = values:GetIterator()
+        repeat while it:HasNext()
+            text next = it:Next()
+            location = location + next
+
+            if it:HasNext()
+                location = location + "/"
+            else
+                location = location + ".quorum"
+            end
+        end
+
+        file:SetPath(location)
+        if file:Exists()
+            return file
+        end
+
+        return undefined
     end
 
     action CompileToJavaScript(Array<File> files)
@@ -216,6 +247,7 @@ class Compiler
         if standardLibraryFolder = undefined
             File build
             build:SetPath(DEFAULT_STANDARD_LIBRARY_FOLDER)
+            return build
         end
         return standardLibraryFolder
     end
