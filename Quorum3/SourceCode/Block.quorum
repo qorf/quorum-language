@@ -30,14 +30,6 @@ class Block
         return undefined
     end
 
-//    action GetBytecodeLocationBlockStart returns integer
-//        return bytecodeLocationStartOfBlock
-//    end
-//
-//    action SetBytecodeLocationBlockStart(integer start)
-//        bytecodeLocationStartOfBlock = start
-//    end
-
     action AssignBytecodeLocations
         bytecodeLocation = 0
         
@@ -58,14 +50,6 @@ class Block
         end
     end
 
-
-//    action GetNextBlock returns Block
-//        if not blocks:IsEmpty()
-//            return blocks:Get(0)
-//        end
-//        return undefined
-//    end
-
     action GetBlock(integer next) returns Block
         return blocks:Get(next)
     end
@@ -80,22 +64,7 @@ class Block
         return blocks:GetSize()
     end
 
-//    action SetBytecodeLocation(Variable variable)
-//        Type type = variable:GetType()
-//        integer size = type:GetBytecodeSize()
-//        integer parentLoc = GetBytecodeLocation()
-//        variable:SetBytecodeLocation(parentLoc)
-//        bytecodeLocation = bytecodeLocation + size
-//    end
-
     action GetBytecodeLocation returns integer
-//        integer size = 0
-//        if parentBlock not= undefined
-//            size = parentBlock:GetBytecodeLocation()
-//        else 
-//            size = parentAction:GetBytecodeLocation()
-//        end
-//        return size + bytecodeLocation
         return bytecodeLocation
     end
 
@@ -132,6 +101,8 @@ class Block
 
     action Add(Block block)
         block:SetParentBlock(me)
+        block:SetParentAction(parentAction)
+        block:SetParentClass(parentClass)
         blocks:Add(block)
     end
 

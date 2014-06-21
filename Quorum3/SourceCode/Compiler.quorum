@@ -6,6 +6,7 @@ use Libraries.Containers.HashTable
 use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Language.Compile.Translate.QuorumJarGenerator
+use Libraries.Containers.List
 
 class Compiler
     public constant number VERSION = 3.0
@@ -114,31 +115,54 @@ class Compiler
         HashTable<text, File> unparsed
 
         Iterator<Class> classes = symbolTable:GetClasses()
-
         repeat while classes:HasNext()
-            Class clazz = classes:Next()
-            File classFile = clazz:GetFile()
-            text path = classFile:GetAbsolutePath()
-            if not parsed:HasKey(clazz:GetStaticKey())
-                parsed:Add(clazz:GetStaticKey(), clazz:GetFile())
-            end
-            Iterator<QualifiedName> names = clazz:GetUnresolvedUseStatements()
-            repeat while names:HasNext()
-                QualifiedName qn = names:Next()
-                text key = qn:GetStaticKey()
-                File file = GetStandardLibraryFile(key)
-                text newPath = file:GetAbsolutePath()
-                if parsed:HasKey(newPath) //this class has already been parsed
+            repeat while classes:HasNext()
+                Class clazz = classes:Next()
+                File classFile = clazz:GetFile()
+                text path = classFile:GetAbsolutePath()
+                if not parsed:HasKey(path)
+                    parsed:Add(path, clazz:GetFile())
+                end
+                Iterator<QualifiedName> names = clazz:GetUnresolvedUseStatements()
+                repeat while names:HasNext()
+                    QualifiedName qn = names:Next()
+                    text key = qn:GetStaticKey()
+                    output key
+                    File file = GetStandardLibraryFile(key)
+                    if file not= undefined
+                        text newPath = file:GetAbsolutePath()
+                        if parsed:HasKey(newPath) //this class has already been parsed
 
-                elseif unparsed:HasKey(newPath) //this class is already scheduled for parsing
-                    
-                else
-                    unparsed:Add(newPath, file)
+                        elseif unparsed:HasKey(newPath) //this class is already scheduled for parsing
+
+                        else
+                            unparsed:Add(newPath, file)
+                        end
+                    else//this should be a compiler error. The user requested a file that doesn't exist
+                        
+                    end
                 end
             end
 
-        end
+            List<Class> newClasses
+            Iterator<File> mustParse = unparsed:GetValueIterator()
+            repeat while mustParse:HasNext()
+                File next = mustParse:Next()
+                Parser listener
+                Parse(next, listener)
+                parsed:Add(next:GetAbsolutePath(), next)
 
+                Iterator<Class> parsedClasses = listener:GetClassesIterator()
+                repeat while parsedClasses:HasNext()
+                    Class clazz = parsedClasses:Next()
+                    //if symbolTable:GetClass(clazz:GetStaticKey()) = undefined
+                        newClasses:Add(clazz)
+                    //end //not a compiler error, because it would have already been fired
+                end
+            end
+            classes = newClasses:GetIterator()
+            unparsed:Empty()
+        end
         return files
     end
 

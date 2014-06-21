@@ -18,6 +18,15 @@ class Parser is QuorumSourceListener
     integer loopCounter = 0
     Stack<Block> blocks
     Array<QualifiedName> unresolvedUseStatements
+    List<Class> classes
+
+    /*
+        This action returns an iterator of all of the classes parsed
+        by this parser.
+    */
+    action GetClassesIterator returns Iterator<Class>
+        return classes:GetIterator()
+    end
 
     action EnterStart(StartContext context) 
         source:SetFile(me:GetFile())
@@ -42,6 +51,7 @@ class Parser is QuorumSourceListener
         currentClass:SetFile(me:GetFile())
         Array<QualifiedName> newArray
         unresolvedUseStatements = newArray
+        classes:Add(currentClass)
     end
 
     action ExitUse(UseContext context) 
