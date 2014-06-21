@@ -243,6 +243,9 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
     action Empty
         array:Empty()
         size = 0
+        array:SetSize(arraySize)
+        array:SetAutoResize(false)
+        maxItemsBeforeResize = ComputeMaxItemResize()
     end
 
     /*
