@@ -3,7 +3,6 @@ package Libraries.Language.Compile.Symbol
 use Libraries.Language.Compile.CompilerErrorType
 use Libraries.Language.Compile.CompilerError
 use Libraries.Language.Compile.Location
-use Libraries.Language.Compile.Translate.JavaOpcodeWriter
 use Libraries.Language.Compile.Translate.QuorumOpcode
 
 class TypeCheckResult 
@@ -12,7 +11,6 @@ class TypeCheckResult
     public TypeConversionPoints points
     public text errorMessage = ""
     public CompilerErrorType errorType = undefined
-    public JavaOpcodeWriter writer
     QuorumOpcode opcode = undefined
 
     action GetQuorumOpcode returns QuorumOpcode

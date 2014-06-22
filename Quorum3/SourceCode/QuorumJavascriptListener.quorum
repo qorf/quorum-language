@@ -68,18 +68,11 @@ class QuorumJavascriptListener is QuorumSourceListener
         currentClassOpcode:SetClass(currentClass)
         currentClassOpcode:SetName(name)
         currentClassOpcode:SetStaticKey(staticKey)
-        
-        //not sure if I need this
-        //currentClassOpcode:SetBuildPath(build)
-        //currentClassOpcode:SetRunPath(run)
-        //currentClassOpcode:SetPackage(packageValue)
     end
 
     action ExitFullClassDeclaration(FullClassDeclarationContext context) 
         if currentClass not= undefined
             convertedSource = currentClassOpcode:WriteJavaScript()
-            //buildFile = currentClassOpcode:GetBuildFile()
-            //buildInterfaceFile = currentClassOpcode:GetBuildInterfaceFile()
         end
     end
 
@@ -99,40 +92,6 @@ class QuorumJavascriptListener is QuorumSourceListener
             currentClassOpcode:Add(currentActionOpcode)
         end
     end
-
-//    action ExitNormalAssignment(NormalAssignmentContext context) 
-//        text name = context:name
-//        Variable variable = undefined
-//        
-//        if context:isField
-//            variable = currentClass:GetVariable(name)
-//            //write the field
-//        else 
-//            variable = currentBlock:GetVariable(name)
-//            Type left = variable:GetType()
-//            QuorumOpcode right = opcodeStack:Pop()
-//
-//            Operation assign
-//            assign:SetOperation(assign:EQUALS)
-//
-//            TypeChecker checker = GetTypeChecker()
-//            TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
-//
-//            text quote = ""
-//            quote = quote:GetDoubleQuote()
-//
-//            //text print = OUTPUT_VARIABLE + " = "
-//            text opcodeResult = right:WriteJavaScript()
-//            //print = print + quote + opcodeResult + quote + ";" + quote:GetCarriageReturn() + quote:GetLineFeed()
-//            //convertedSource = convertedSource + print
-//            //write the local variable, which is guaranteed at this stage not null
-////            integer location = variable:GetBytecodeLocation()
-////            JavaOpcodeWriter writer = result:writer
-////            if writer not= undefined
-////                writer:Write(methodWriter, location)
-////            end
-//        end
-//    end
 
     action ExitOutputStatement(OutputContext context)
         QuorumOpcode op = opcodeStack:Pop()

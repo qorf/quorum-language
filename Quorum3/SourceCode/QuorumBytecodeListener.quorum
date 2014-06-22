@@ -415,8 +415,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             add:SetOperation(add:LESS_EQUALS)
         end
         
-        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add) 
-        JavaOpcodeWriter opcodeWriter = result:writer
+        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add)
         Type value = result:result
         ComparisonOpcode compare = cast(ComparisonOpcode, result:GetQuorumOpcode())
         compare:SetMethodWriter(methodWriter)
@@ -437,8 +436,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             add:SetOperation(add:NOT_EQUALS)
         end
         
-        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add) 
-        JavaOpcodeWriter opcodeWriter = result:writer
+        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add)
         Type value = result:result
         ComparisonOpcode compare = cast(ComparisonOpcode, result:GetQuorumOpcode())
         compare:SetMethodWriter(methodWriter)
@@ -464,8 +462,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             op:SetOperation(op:OR)
         end
 
-        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), op) 
-        JavaOpcodeWriter opcodeWriter = result:writer
+        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), op)
         Type value = result:result
         BinaryAndOrOpcode binary
         binary:isAnd = context:isAnd
@@ -508,8 +505,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             op:SetOperation(op:MODULUS)
         end
 
-        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), op) 
-        JavaOpcodeWriter opcodeWriter = result:writer
+        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), op)
         Type value = result:result
         BinaryOpcode binary = cast(BinaryOpcode, result:GetQuorumOpcode())
         binary:SetMethodWriter(methodWriter)
@@ -530,8 +526,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             add:SetOperation(add:MINUS)
         end
 
-        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add) 
-        JavaOpcodeWriter opcodeWriter = result:writer
+        TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add)
         Type value = result:result
         BinaryOpcode binary = cast(BinaryOpcode, result:GetQuorumOpcode())
         binary:SetMethodWriter(methodWriter)

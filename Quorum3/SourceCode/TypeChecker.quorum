@@ -17,7 +17,6 @@ class TypeChecker
         TypeCheckResult result = undefined
         Type type = undefined
         Operation opConstant
-        JavaOpcodeWriter opcodeWriter = undefined
         ////////////////////////////////////////////////////////////////////////
         //INTEGER INTEGER
         ////////////////////////////////////////////////////////////////////////
@@ -399,7 +398,6 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
             constants:INTEGER_PRIMITIVE_KEY, undefined, true, false)
         result = GetWideningConvertResult()
-        opcodeWriter = result:writer
         type = result:result
         type:SetToNumber()
         assignment = GetAssignmentOpcode(opcodes:GetIntegerToDouble(), opcodes:GetDoubleStore(), type)
@@ -1002,7 +1000,6 @@ class TypeChecker
         TypeCheckResult result = undefined
         Type type = undefined
         Operation opConstant
-        JavaOpcodeWriter opcodeWriter = undefined
         TypeConversionPoints points = undefined
 
         //implicit cast from integer to object
