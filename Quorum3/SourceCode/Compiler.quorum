@@ -159,15 +159,12 @@ class Compiler
                 File next = mustParse:Next()
                 Parser listener
                 Parse(next, listener)
-                output next:GetAbsolutePath()
                 parsed:Add(next:GetAbsolutePath(), next)
 
                 Iterator<Class> parsedClasses = listener:GetClassesIterator()
                 repeat while parsedClasses:HasNext()
                     Class clazz = parsedClasses:Next()
-                    //if symbolTable:GetClass(clazz:GetStaticKey()) = undefined
-                        newClasses:Add(clazz)
-                    //end //not a compiler error, because it would have already been fired
+                    newClasses:Add(clazz)
                 end
             end
             classes = newClasses:GetIterator()
