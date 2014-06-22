@@ -2,8 +2,9 @@ package Libraries.Language.Compile
 
 use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Location
 
-class QualifiedName 
+class QualifiedName is Location
     List<text> names
 
     action Add(text name)

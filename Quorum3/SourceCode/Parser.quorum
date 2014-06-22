@@ -55,7 +55,9 @@ class Parser is QuorumSourceListener
     end
 
     action ExitUse(UseContext context) 
-        unresolvedUseStatements:Add(context:name)       
+        QualifiedName name = context:name
+        name:SetLocation(context:GetLocation())
+        unresolvedUseStatements:Add(name)       
     end
 
     action AddClass(text name)
@@ -99,7 +101,6 @@ class Parser is QuorumSourceListener
 
     action EnterBlock(BlockContext context) 
         Block block
-
         if currentBlock not= undefined
             currentBlock:Add(block)
         elseif currentAction not= undefined
@@ -178,6 +179,28 @@ class Parser is QuorumSourceListener
         end
     end
 
+    action EnterConstructor(ConstructorContext context) 
+        Action act
+        currentAction = act
+        act:SetParentClass(currentClass)
+        currentAction:SetName("on create")
+        currentAction:SetLocation(context:GetLocation())
+        
+        if currentClass:GetConstructor() not= undefined
+            CompilerError error
+            error:SetLocation(context:GetLocation())
+            CompilerErrorType cet
+            cet:SetCurrentType(cet:METHOD_DUPLICATE)
+            error:SetCompilerErrorType(cet)
+            error:SetErrorMessage("I noticed that there is a second constructor defined, but I am not sure " +
+                "which one is supposed to setup the object.")
+        else
+            currentClass:SetConstructor(act)
+        end
+    end
+
+    action ExitConstructor(ConstructorContext context) end
+
     action EnterAction(ActionContext context) 
         Action act
         currentAction = act
@@ -231,6 +254,9 @@ class Parser is QuorumSourceListener
         if currentBlock = undefined //we're in a field initiatlization block
             isDefinedAlready = currentClass:GetVariable(context:name)
         else //we're in the block of an action
+            if currentBlock:GetParentAction() = undefined
+                a = 5
+            end
             isDefinedAlready = currentBlock:GetVariable(context:name)
         end
 

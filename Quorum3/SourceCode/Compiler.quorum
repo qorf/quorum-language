@@ -65,7 +65,7 @@ class Compiler
         //This array will contain all files that must be built, 
         //including potentially some from the standard library
         //in order to build the requested files
-        Array<File> allFiles = files //GetAllRequiredFiles()
+        Array<File> allFiles = GetAllRequiredFiles()
         i = 0
         repeat while i < allFiles:GetSize()
             File file = allFiles:Get(i)
@@ -127,19 +127,28 @@ class Compiler
                 repeat while names:HasNext()
                     QualifiedName qn = names:Next()
                     text key = qn:GetStaticKey()
-                    output key
-                    File file = GetStandardLibraryFile(key)
-                    if file not= undefined
-                        text newPath = file:GetAbsolutePath()
-                        if parsed:HasKey(newPath) //this class has already been parsed
+                    Class classCheck =  symbolTable:GetClass(key)
+                    if classCheck = undefined //ignore it if it exists already
+                        File file = GetStandardLibraryFile(key)
+                        if file not= undefined
+                            text newPath = file:GetAbsolutePath()
+                            if parsed:HasKey(newPath) //this class has already been parsed
 
-                        elseif unparsed:HasKey(newPath) //this class is already scheduled for parsing
+                            elseif unparsed:HasKey(newPath) //this class is already scheduled for parsing
 
-                        else
-                            unparsed:Add(newPath, file)
+                            else
+                                unparsed:Add(newPath, file)
+                            end
+                        else//this should be a compiler error. The user requested a file that doesn't exist
+                            CompilerError error
+                            error:SetLocation(qn)
+                            CompilerErrorType type
+                            type:SetCurrentType(type:MISSING_CLASS)
+                            error:SetCompilerErrorType(type)
+                            error:SetErrorMessage("I could not find a class named " + key + "." 
+                                + " Did you forget to tell me about it or put it in the standard library?")
+                            compilerErrorManager:Add(error)
                         end
-                    else//this should be a compiler error. The user requested a file that doesn't exist
-                        
                     end
                 end
             end
@@ -150,6 +159,7 @@ class Compiler
                 File next = mustParse:Next()
                 Parser listener
                 Parse(next, listener)
+                output next:GetAbsolutePath()
                 parsed:Add(next:GetAbsolutePath(), next)
 
                 Iterator<Class> parsedClasses = listener:GetClassesIterator()
