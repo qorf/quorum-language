@@ -11,7 +11,7 @@
 	</div>
 </div>
 
-<div class="content index-content">
+<div id="syntaxDescriptions">
 	<h3>Variables and Types</h3>
 	<p>
 	    It is often helpful to be able to tell the computer to remember 

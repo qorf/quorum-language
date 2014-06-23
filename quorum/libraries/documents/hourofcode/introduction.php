@@ -29,7 +29,7 @@
     </div>
         <textarea id="hour-of-code-IDE-input" class="ide inputArea" role="textbox" aria-multiline="true">text dna = "GATTACA"
 output dna</textarea>
-        <pre id="hour-of-code-IDE-output" class="outputArea" role="log" aria-live="polite"></pre><div id="run-button" class="btn-group">
+        <pre id="IDE-output" class="outputArea" role="log" aria-live="polite"></pre><div id="run-button" class="btn-group">
                 <a class="btn btn-success" href="#">Run</a>
         </div></div><div id="video-container">
     <iframe width="946" height="710" src="//www.youtube.com/embed/If3KlMxbtcc?rel=0" frameborder="0" allowfullscreen></iframe>

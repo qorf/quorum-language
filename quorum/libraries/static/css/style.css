@@ -148,135 +148,7 @@
     padding: 0 30px 10px;
 }
 
-#hour-of-code-IDE {
-    width:39.5%;
-    height:370px;
-    display: inline-block;
-    vertical-align: top;
-    box-sizing: border-box;
-    border: solid 1px lightgrey;
-    background: #EEEEEE;
-    margin-left: 0.5%;
-    overflow: hidden;
-}
 
-#Intro-IDE {
-    width:39.5%;
-    height:370px;
-    display: inline-block;
-    vertical-align: top;
-    box-sizing: border-box;
-    border: solid 1px lightgrey;
-    background: #EEEEEE;
-    margin-left: 0.5%;
-    overflow: hidden;
-    float: right;
-}
-
-#Intro-IDE h2 {
-    margin: 0;
-    background: #0088cc;
-    padding: 5px 10px;
-    color: #EEEEEE;
-    text-shadow: 1px 1px 1px darken(#0088cc, 30%);
-}
-
-#intro-IDE-input {
-    display: block;
-    width: 100%;
-    min-height: 180px;
-    resize:none;
-    font-family: Menlo, monospace;
-    text-align: left;
-    overflow: scroll;
-    overflow-y: scroll; 
-    overflow-x: hidden;	
-    overflow:-moz-scrollbars-vertical;
-    border-radius: 0;
-    border-right: none;
-    border-left: none;
-    border-bottom: solid 1px lightgrey;
-    margin: 0;
-    padding-bottom: 0;
-    overflow: auto;
-}
-
-#hour-of-code-IDE h2 {
-    margin: 0;
-    background: #0088cc;
-    padding: 5px 10px;
-    color: #EEEEEE;
-    text-shadow: 1px 1px 1px darken(#0088cc, 30%);
-}
-
-span.hour-of-code-IDE-subtitle {
-    vertical-align: middle;
-    font-size: 14px;
-    font-weight: 300;
-    color: #FFFFFF;
-    display: inline-block;
-    line-height: 20px;
-    margin: 0;
-    padding-bottom: 6px;
-    position: relative;
-    top: 2px;
-    text-shadow: 0 0 0;
-}
-
-#hour-of-code-IDE-input {
-    display: block;
-    width: 100%;
-    min-height:203px;
-    resize:none;
-    font-family: Menlo, monospace;
-    text-align: left;
-    overflow: scroll;
-    overflow-y: scroll; 
-    overflow-x: hidden;	
-    overflow:-moz-scrollbars-vertical;
-    border-radius: 0;
-    border-right: none;
-    border-left: none;
-    border-bottom: solid 1px lightgrey;
-    margin: 0;
-    padding-bottom: 0;
-    overflow: auto;
-}
-
-#hour-of-code-IDE-output {
-    display: inline-block;
-    box-sizing: border-box;
-    width: 88%;
-    vertical-align: top;
-    height: 89px;
-    text-align: left;
-    overflow: scroll;
-    overflow-x: scroll; 
-    overflow-y: scroll;	
-    -ms-overflow-x: scroll;
-    -ms-overflow-y: scroll;
-    overflow:-moz-scrollbars-horizontal;
-    overflow:-moz-scrollbars-vertical;
-    border-radius: 0;
-    border: none;
-    margin: 0;
-    padding: 4px 0px 4px 6px;
-    overflow: auto;
-}
-
-#run-button {
-    display: inline-block;
-    box-sizing: border-box;
-    height: 89px;
-    width: 12%;
-    vertical-align: top;
-    padding-top: 5px;
-    background-color: #F5F5F5;
-}
-
-#run-button a {
-    outline: none;
-}
 
 #video-container {
     display: block;
@@ -335,4 +207,140 @@ span.hour-of-code-IDE-subtitle {
 
 .front-page-grid-item a:hover {
     color: #333;
+}
+
+//syntax page
+
+
+
+//IDE
+
+.full-page-height {
+    height: 100%;
+}
+
+#IDE {
+    display: inline-block;
+    vertical-align: top;
+    box-sizing: border-box;
+    border: solid 1px lightgrey;
+    background: #EEEEEE;
+    overflow: hidden;
+}
+
+.small-IDE {
+    width:39.5%;
+    height:370px;
+}
+
+.full-page-IDE {
+    width:100%;
+    height:100%;
+}
+
+#IDE h2 {
+    margin: 0;
+    background: #0088cc;
+    padding: 5px 10px;
+    color: #EEEEEE;
+    text-shadow: 1px 1px 1px darken(#0088cc, 30%);
+}
+
+.full-page-IDE-subtitle {
+    height: 5%;
+}
+
+.IDE-subtitle {
+    vertical-align: top;
+    font-size: 14px;
+    font-weight: 300;
+    color: #FFFFFF;
+    display: inline-block;
+    line-height: 20px;
+    margin: 0;
+    position: relative;
+    top: 10px;
+    text-shadow: 0 0 0;
+}
+
+
+#IDE-input {
+    display: block;
+    position: relative;
+    resize:none;
+    font-family: Menlo, monospace;
+    text-align: left;
+    overflow: scroll;
+    overflow-y: scroll;
+    overflow-x: hidden;	
+    overflow:-moz-scrollbars-vertical;
+    border-radius: 0;
+    border-right: none;
+    border-left: none;
+    border-bottom: solid 1px lightgrey;
+    margin: 0;
+    padding-bottom: 0;
+    overflow: auto;
+}
+
+
+.full-page-IDE-input {
+    width: 100%;
+    height: 70%;
+}
+
+.hour-of-code-IDE-input {
+    width: 100%;
+    min-height:203px;
+}
+
+.intro-IDE-input {
+    width: 100%;
+    min-height: 180px;
+}
+
+#IDE-output-container {
+    position: relative;
+}
+
+#IDE-output {
+    display: inline-block;
+    box-sizing: border-box;
+    vertical-align: top;
+    text-align: left;
+    overflow: scroll;
+    overflow-x: scroll; 
+    overflow-y: scroll;	
+    -ms-overflow-x: scroll;
+    -ms-overflow-y: scroll;
+    overflow:-moz-scrollbars-horizontal;
+    overflow:-moz-scrollbars-vertical;
+    border-radius: 0;
+    border: none;
+    margin: 0;
+    padding: 4px 0px 4px 6px;
+    overflow: auto;
+}
+
+.small-IDE-output {
+    height: 89px;
+    width: 88%;
+}
+
+.full-page-IDE-output {
+    width: 100%;
+    height: 25%;
+}
+
+#run-button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    box-sizing: border-box;
+    vertical-align: top;
+    background-color: #F5F5F5;
+}
+
+#run-button a {
+    outline: none;
 }

@@ -32,6 +32,10 @@ $(function() {
 	extendLeftSidebar(); // keep this at the end
 });
 
+$(document).ready(function(){
+    $('#Quorum-IDE').height($(window).height());
+});
+
 function getUrlVars() {
     var vars = {};
     var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
@@ -483,7 +487,7 @@ var submitCodeSample = function(){
                                 //alert(output);
                                 //var value = eval(result);
                                 console.log(result);
-                                $("#hour-of-code-IDE-output").text(eval(result));
+                                $("#IDE-output").text(eval(result));
                                 //window.speechSynthesis.speak(msg);
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
@@ -788,34 +792,3 @@ var controlPanel = function () {
         });
     });
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
