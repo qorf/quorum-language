@@ -3,88 +3,34 @@
 <div class="hero-unit">
 	<div class="hero-unit-container">
 		<h1>Learn About Quorum</h1>
-		<p>On this page, we describe how to write executing
+<!--		<p>On this page, we describe how to write executing
                     Quorum programs. We focus 
                     our attention on the core language features, namely 
                     1) creating and using variables, 2) control structures, 
-                    3) classes and actions, and 4) libraries and extensions.</p>
+                    3) classes and actions, and 4) libraries and extensions.</p>-->
 	</div>
 </div>
 
 <div id="syntaxDescriptions">
-	<h3>Variables and Types</h3>
-	<p>
-	    It is often helpful to be able to tell the computer to remember 
-	    information while it executes a computer program. For example, 
-	    you might ask the computer to remember how many dollars are in a 
-	    bank account or grades on an exam. In this section, we discuss the 
-	    various ways of storing data in the Quorum programming language.
-	</p>
-	<ul>
-	    <li><a href="documents/syntax/types.php">Types and Variables</a>: Understanding Quorum's type system.</li>
-	    <li><a href="documents/syntax/operators.php">Operators</a>: Adding, subtracting, and multiplying, oh my!</li>
-	    <li><a href="documents/syntax/casting.php">Type Casting</a>: Convert one type of thing to another.</li>
-	    <li><a href="documents/syntax/comments.php">Comments</a>: Writing notes to yourself 
-	        (or others) to help understand the code.</li>
-	    <li><a href="documents/syntax/arrays.php">Arrays</a>: Storing collections of data in memory.</li>
-	</ul>
-	<h3>Control Structures</h3>
-	<p>
-	    Often times we want to control how the computer processes information. 
-	    For example, we might want the computer to do one operation if a 
-	    variable is greater than 10 and another if it is less then 10. Or, 
-	    we might want the computer to take the same steps repeatedly. 
-	    Together, these ideas are called control structures. In this section, 
-	    we talk about the control structures that are available in the 
-	    Quorum language.
-	</p>
-	<ul>
-	    <li><a href="documents/syntax/repeat.php">Repeat</a>: Doing things zero or more times</li>
-	    <li><a href="documents/syntax/if.php">If</a>: Do something only when a condition 
-	        is true</li>            
-	</ul>
-	<h3>Classes and Actions</h3>
-	<p>
-	    As computer programs become larger, it often helps to organize 
-	    computer code in a variety of ways. Probably the two most common 
-	    ways to organize code are to use structures that hold a collection 
-	    of data (called &quot;classes&quot; in Quorum), and a way for code 
-	    to take a certain behavior (called &quot;actions&quot; in Quorum). 
-	    Below are links to how these organizational mechanisms are used in 
-	    the Quorum Programming Language:
-	</p>
-	<ul>
-	    <li><a href="documents/syntax/actions.php">Actions</a>: Telling Quorum to take certain behaviors.</li>
-	    <li><a href="documents/syntax/classes.php">Classes</a>: Classes allow you to make your own custom types.</li>
-	    <li><a href="documents/syntax/use.php">Use statements</a>: Use statements make it 
-	        easier to use classes from the standard library.</li>
-	    <li><a href="documents/syntax/inheritance.php">Inheritance</a>: Create relationships between classes.</li>
-	    <li><a href="documents/syntax/is.php">is</a>: A special operator that determines 
-	        whether an object is a subclass of a parent.</li>
-	    <li><a href="documents/syntax/blueprints.php">Blueprints</a>: Blueprint actions
-	        allow you to specify that child classes must implement an action.</li>
-	    <li><a href="documents/syntax/generics.php">Generics</a>: Generics allow you to specify 
-	        types in container classes.</li>
-	    <li><a href="documents/syntax/autoboxing.php">Auto-boxing</a>: Automatic conversion 
-	        between primitive types and Object types.</li>
-	    <li><a href="documents/syntax/errors.php">Error Handling</a>: This section shows how to 
-	        deal with errors (called exceptions in other languages).</li>
-	</ul>
-	<h3>Libraries and Extensions</h3>
-	<p>
-	    As Quorum is a new programming language, we are still building the
-	    standard library. In this section, we discuss this library, how you
-	    add to it, and general recommended coding standards.
-	</p>
-	<ul>
-	    <li><a href="documents/syntax/standards.php">Coding Standards</a>: This section describes
-	        coding standards for Quorum classes.</li>
-	    <li><a href="libraries.php">The Quorum Standard Library</a>: The Quorum standard library 
-	        provides additional functionality for the programming language.</li>
-	    <li><a href="documents/syntax/plugins.php">Writing Plugins to connect to 
-                Java or C++ from Quorum</a>: This page describes how we can use
-                system actions to call down to Java, and from there, other languages
-                like C++.</li>
+	<ul class="syntax-index-grid">
+            <li class="syntax-grid-item grid-item-variables-and-types"><h2 class="index_package_title"><a href="/documents/syntax/types.php">Variables and Types</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-operators"><h2 class="index_package_title"><a href="documents/syntax/operators.php">Operators</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-type-casting"><h2 class="index_package_title"><a href="documents/syntax/casting.php">Type Casting</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-comments"><h2 class="index_package_title"><a href="documents/syntax/comments.php">Comments</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-arrays"><h2 class="index_package_title"><a href="documents/syntax/arrays.php">Arrays</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-repeat"><h2 class="index_package_title"><a href="documents/syntax/repeat.php">Repeat</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-if"><h2 class="index_package_title"><a href="documents/syntax/if.php">If</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-actions"><h2 class="index_package_title"><a href="documents/syntax/actions.php">Actions</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-classes"><h2 class="index_package_title"><a href="documents/syntax/classes.php">Classes</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-use-statements"><h2 class="index_package_title"><a href="documents/syntax/use.php">Use Statements</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-inheritance"><h2 class="index_package_title"><a href="documents/syntax/inheritance.php">Inheritance</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-is"><h2 class="index_package_title"><a href="documents/syntax/is.php">Is</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-blueprints"><h2 class="index_package_title"><a href="documents/syntax/blueprints.php">Blueprints</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-generics"><h2 class="index_package_title"><a href="documents/syntax/generics.php">Generics</a></h2><i></i>
+            <li class="syntax-grid-item grid-item-auto-boxing"><h2 class="index_package_title"><a href="documents/syntax/autoboxing.php">Auto-boxing</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-error-handling"><h2 class="index_package_title"><a href="documents/syntax/errors.php">Error Handling</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-coding-standards"><h2 class="index_package_title"><a href="documents/syntax/standards.php">Coding Standards</a></h2><i></i>
+	    <li class="syntax-grid-item grid-item-plugins"><h2 class="index_package_title"><a href="documents/syntax/plugins.php">Plugins to Connect to Java or C++</a></h2><i></i>
 	</ul>
 </div>
 

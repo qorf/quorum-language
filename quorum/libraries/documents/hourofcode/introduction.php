@@ -1,4 +1,4 @@
-    <?php include("../../static/templates/pageheader.template.php"); ?>
+<?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
     document.title = 'Hour of Code: Intro | Quorum Programming Language';
     
@@ -10,6 +10,11 @@
     slideArray[3] = "<h5 role=\"heading\">A lot to learn.</h5><ul><li role=\"listitem\">Today I have a lot to learn.</li><li>My first task is to figure out how to ouput a small gene sequence to the screen.</li><li>Next, I have to store the same sequence into something called a variable and then tell the computer to output whatever is stored in that variable.</li></ul>";
     slideArray[4] = "<h5 role=\"heading\">Instructions: Output</h5><ul><li>To output something to the screen we just type <code>output</code>, followed by a space and then whatever text I want surrounded by double quotes.</li><li>Something within double quotes is called a <code>literal</code> because the computer will treat it as text exactly how we type it.</li></ul>";
     slideArray[5] = "<h5 role=\"heading\">Instructions: Outputting Variables</h5><ul><li>In contrast to a literal, we can also make a <code>variable</code>, which can store information, including information we want to output.</li><li>There are different types of variables that will hold different types of information.</li><li>Since we want to store text in this variable, we should tell the computer that this variable stores text by declaring the variable as <code>text</code> before the variable's name, which we can name whatever we want.</li><li>We can then tell the computer to output the contents of the variable by typing <code>output</code> followed by a space and the variable's name.</li><li>Remember, when outputting a variable we do not use double quotes because it is not a literal.</li></ul>";
+
+
+$(document).ready(function(){
+    $('#IDE-input').text('text dna = "GATTACA"\noutput dna');
+});
 </script>
 <?php include("slideshow.php"); ?>
 
@@ -23,16 +28,8 @@
 
       <?php include("sidebar.php"); ?><div id="content-box"><div id="slide-navigation"></div>
           <div id="slide-box-wrapper" role="description" aria-live="polite"><button id="leftArrow" class="leftArrow-disabled" aria-hidden="true" aria-label="Previous Slide"></button><div id ="slide-box"></div></div><button id="rightArrow" aria-label="Next Slide"></button>
-</div><div id="hour-of-code-IDE">
-    <h2>Try It! <span class="hour-of-code-IDE-subtitle">Enter Quorum code below and press "Run" to execute it</span></h2>
-    <div id="hour-of-code-IDE-controller">
-    </div>
-        <textarea id="hour-of-code-IDE-input" class="ide inputArea" role="textbox" aria-multiline="true">text dna = "GATTACA"
-output dna</textarea>
-        <pre id="IDE-output" class="outputArea" role="log" aria-live="polite"></pre><div id="run-button" class="btn-group">
-                <a class="btn btn-success" href="#">Run</a>
-        </div></div><div id="video-container">
+</div><?php include("../../ide.php"); ?><div id="video-container">
     <iframe width="946" height="710" src="//www.youtube.com/embed/If3KlMxbtcc?rel=0" frameborder="0" allowfullscreen></iframe>
 </div>
 
-<?php include("../../static/templates/pagefooter.template.php"); ?>
+<?php require_once("../../static/templates/pagefooter.template.php"); ?>

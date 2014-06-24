@@ -32,10 +32,6 @@ $(function() {
 	extendLeftSidebar(); // keep this at the end
 });
 
-$(document).ready(function(){
-    $('#Quorum-IDE').height($(window).height());
-});
-
 function getUrlVars() {
     var vars = {};
     var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
@@ -622,12 +618,12 @@ var fadeInLibraryTable = function() {
 }
 
 var changeCodeExample = function(){
-	$("li.code-example").on("click", function(e) {
+	$("#buttonGroup").change(function() {
 			$(".inputArea").text("");
-			var selection = $(this).text();
+			var selection = $(this).children(":selected").html();
 			var carret = '\u25BE';
 			var codeExample = "";
-			$("#dropdown-button").text(selection + carret);	
+			$("#dropdown-button").text(selection + carret);
 			if (selection == " Hello, World! "){
 				codeExample = "output \"Hello, World!\"";
 			}
