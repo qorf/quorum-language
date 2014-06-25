@@ -3,7 +3,7 @@
 	<div class="hero-unit-container">
 		<h1>The Quorum Programming Language</h1>
 		<p>The world's first <a href="evidence.php">evidence-oriented programming language.</a></p>
-                <div class="fb-like fb_iframe_widget" data-href="https://www.facebook.com/quorumlanguage" data-layout="standard" data-action="like" data-show-faces="true" data-share="true" fb-xfbml-state="rendered" fb-iframe-plugin-query="action=like&amp;app_id=&amp;href=https%3A%2F%2Fwww.facebook.com%2Fquorumlanguage&amp;layout=standard&amp;locale=en_US&amp;sdk=joey&amp;share=true&amp;show_faces=true">
+                <div id="facebook-links" class="fb-like fb_iframe_widget" data-href="https://www.facebook.com/quorumlanguage" data-layout="standard" data-action="like" data-show-faces="true" data-share="true" fb-xfbml-state="rendered" fb-iframe-plugin-query="action=like&amp;app_id=&amp;href=https%3A%2F%2Fwww.facebook.com%2Fquorumlanguage&amp;layout=standard&amp;locale=en_US&amp;sdk=joey&amp;share=true&amp;show_faces=true">
                     <span style="vertical-align: bottom; width: 450px; height: 25px;"><iframe name="f11630dfb" width="1000px" height="1000px" frameborder="0" allowtransparency="true" scrolling="no" title="fb:like Facebook Social Plugin" src="http://www.facebook.com/v2.0/plugins/like.php?action=like&amp;app_id=&amp;channel=http%3A%2F%2Fstatic.ak.facebook.com%2Fconnect%2Fxd_arbiter%2FDhmkJ2TR0QN.js%3Fversion%3D41%23cb%3Df2337e286%26domain%3Dquorumlanguage.com%26origin%3Dhttp%253A%252F%252Fquorumlanguage.com%252Ff39ca920c%26relation%3Dparent.parent&amp;href=https%3A%2F%2Fwww.facebook.com%2Fquorumlanguage&amp;layout=standard&amp;locale=en_US&amp;sdk=joey&amp;share=true&amp;show_faces=true" 
                          style="border: none; visibility: visible; width: 450px; height: 25px;" class=""></iframe></span></div>     
                   
@@ -17,13 +17,13 @@
                     <select id="buttonGroup">
                         <option class="code-example" value="Hello, World!"> Hello, World! </option>
                         <option class="code-example" value="Conditionals"> Conditionals </option>
-                        <option class="code-example" value="Conditionals"> Loops </option>
-                        <option class="code-example" value="Conditionals"> Actions </option>
-                        <option class="code-example" value="Conditionals"> Classes </option>
+                        <option class="code-example" value="Loops"> Loops </option>
+                        <option class="code-example" value="Actions"> Actions </option>
+                        <option class="code-example" value="Classes"> Classes </option>
                     </select>
 <h2>Try Quorum! <span class="IDE-subtitle small-IDE-subtitle">Enter Quorum code below and press "Run" to execute it</span></h2>
 
-   <textarea id="IDE-input" class="ide inputArea small-IDE-input" role="textbox" aria-multiline="true">Hello World!</textarea><div id="IDE-output-container">
+   <textarea id="IDE-input" class="ide inputArea small-IDE-input" role="textbox" aria-multiline="true">output "Hello World!"</textarea><div id="IDE-output-container">
         <pre id="IDE-output" class="outputArea  small-IDE-output" role="log" aria-live="polite"></pre><div id="run-button" class="btn-group">
                 <a class="btn btn-success small-IDE-run-button" href="#">Run</a>
         </div>

@@ -634,7 +634,7 @@ var changeCodeExample = function(){
 				codeExample = "repeat 3 times\n\toutput \"Quorum\"\nend"
 			}
 			else if (selection == " Actions "){
-				codeExample = "action main\n\tinteger addedNumbers = add(5,10)\n\toutput addedNumbers\nend\naction add(integer a, integer b) returns integer\n\treturn a + b\nend";
+				codeExample = "action Main\n\tinteger addedNumbers = add(5,10)\n\toutput addedNumbers\nend\n\naction add(integer a, integer b) returns integer\n\treturn a + b\nend";
 			}
                         else if (selection == " Classes "){
 				codeExample = 
