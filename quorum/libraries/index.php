@@ -12,25 +12,7 @@
 
 
 <div class="content index-content">
-
-<div id="IDE" class="small-IDE floating">
-                    <select id="buttonGroup">
-                        <option class="code-example" value="Hello, World!"> Hello, World! </option>
-                        <option class="code-example" value="Conditionals"> Conditionals </option>
-                        <option class="code-example" value="Loops"> Loops </option>
-                        <option class="code-example" value="Actions"> Actions </option>
-                        <option class="code-example" value="Classes"> Classes </option>
-                    </select>
-<h2>Try Quorum! <span class="IDE-subtitle small-IDE-subtitle">Enter Quorum code below and press "Run" to execute it</span></h2>
-
-   <textarea id="IDE-input" class="ide inputArea small-IDE-input" role="textbox" aria-multiline="true">output "Hello World!"</textarea><div id="IDE-output-container">
-        <pre id="IDE-output" class="outputArea  small-IDE-output" role="log" aria-live="polite"></pre><div id="run-button" class="btn-group">
-                <a class="btn btn-success small-IDE-run-button" href="#">Run</a>
-        </div>
-</div>    
-        
-</div>    
-    
+    <div id="homePageContent">
 <h1>Introducing Quorum</h1>
 <p>
     Current Version: Quorum 2.1 (see the <a href="documents/release.php">Quorum release notes</a>)
@@ -65,10 +47,30 @@
         <a href="https://www.facebook.com/quorumlanguage">Quorum Facebook page</a></li>
   
 </ul>
+</div>
 
-<ul class="learn-index-grid">
+<div id="IDE" class="small-IDE floating">
+<h2>Try Quorum! <span class="IDE-subtitle small-IDE-subtitle">Enter Quorum code below and press "Run" to execute it</span></h2>
+                    <select id="buttonGroup" aria-label="examples dropdown menu">
+                        <option class="code-example" value="Hello, World!"> Hello, World! </option>
+                        <option class="code-example" value="Conditionals"> Conditionals </option>
+                        <option class="code-example" value="Loops"> Loops </option>
+                        <option class="code-example" value="Actions"> Actions </option>
+                        <option class="code-example" value="Classes"> Classes </option>
+                    </select>
+
+   <textarea id="IDE-input" class="ide inputArea small-IDE-input" role="textbox" aria-multiline="true">output "Hello World!"</textarea><div id="IDE-output-container">
+        <pre id="IDE-output" class="outputArea  small-IDE-output" role="log" aria-live="polite"></pre><div id="run-button" class="btn-group">
+                <button class="btn btn-success small-IDE-run-button" href="#">Run</button>
+        </div>
+</div>    
+        
+</div>   
+
+
+<div class="learn-index-grid">
     <li class="learn-grid-item-large grid-item-hour-of-code front-page-grid-item"><a href="/documents/hourofcode/introduction.php"><h2 class="index_package_title"><i></i>Learn how to use Quorum with Mary</h2></a>
-</ul>
+</div>
 
 </div>
 

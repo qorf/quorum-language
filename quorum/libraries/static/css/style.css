@@ -226,6 +226,7 @@
     border: solid 1px lightgrey;
     background: #EEEEEE;
     overflow: hidden;
+    position: relative;
 }
 
 .small-IDE {
@@ -365,9 +366,9 @@
 }
 
 #buttonGroup {
-    float: right;
-    margin-top: 8px;
-    margin-right: 8px;
+    position: absolute;
+    top: 8px;
+    right: 8px;
 }
 
 #buttonGroup select:focus {
@@ -387,4 +388,9 @@
     display: inline-block;
     vertical-align: middle;
     margin-left: 30px;
+}
+
+#homePageContent {
+    display: inline-block;
+    max-width: 700px;
 }
