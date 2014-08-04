@@ -468,7 +468,7 @@ var submitCodeSample = function(){
 		e.preventDefault();
 		$(".outputArea").text("");
 		var codeData = {code: $(".inputArea").val()};
-                //var msg = new SpeechSynthesisUtterance('');
+                //var msg = new SpeechSynthesisUtterance('28.27431');
 		//console.log(codeData);
 		$.ajax({
 			type: "POST",
@@ -483,7 +483,8 @@ var submitCodeSample = function(){
                                 //alert(output);
                                 //var value = eval(result);
                                 console.log(result);
-                                $("#IDE-output").text(eval(result));
+                                $("#IDE-output").text("Before\nTest Message\nAfter");
+                                //$("#IDE-output").text(eval(result));
                                 //window.speechSynthesis.speak(msg);
 			},
 			error: function (xhr, ajaxOptions, thrownError) {

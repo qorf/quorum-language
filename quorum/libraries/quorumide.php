@@ -52,15 +52,9 @@
 	</head>
 	<body class="full-page-height">
             <div id="IDE" class="full-page-IDE">
-<h2 class="full-screen-IDE-h2">Quorum IDE <span class="IDE-subtitle full-page-IDE-subtitle">Enter Quorum code below and press "Run" to execute it</span></h2>
+<h2 class="full-screen-IDE-h2">Quorum IDE<span class="IDE-subtitle full-page-IDE-subtitle">Enter Quorum code below and press "Run" to execute it</span></h2>
 
-   <textarea id="IDE-input" class="ide inputArea full-page-IDE-input" role="textbox" aria-multiline="true">number pi = 3.14159
-integer radius = 3
-number area = pi * (radius * radius)
-output "The area of your circle is: " + area
-radius = radius + 1
-area = pi * (radius * radius)
-output "The area of your second circle is: " + area</textarea>
+   <textarea id="IDE-input" class="ide inputArea full-page-IDE-input" role="textbox" aria-multiline="true"></textarea>
 <div id="IDE-output-container">
         <pre id="IDE-output" class="outputArea  full-page-IDE-output" role="log" aria-live="polite"></pre><div id="run-button" class="btn-group">
                 <a class="btn btn-success full-page-IDE-run-button" href="#">Run</a>
