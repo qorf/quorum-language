@@ -213,6 +213,8 @@ public class JavaToQuorumListener implements QuorumListener {
         quorum.Libraries.Language.Compile.Context.ActionExpressionListContext context = 
                 new quorum.Libraries.Language.Compile.Context.ActionExpressionListContext();
         setLocation(ctx, context);
+        int size = ctx.expression().size();
+        context.size = size;
         listener.EnterActionExpressionList(context);
     }
 
@@ -221,6 +223,8 @@ public class JavaToQuorumListener implements QuorumListener {
         quorum.Libraries.Language.Compile.Context.ActionExpressionListContext context = 
                 new quorum.Libraries.Language.Compile.Context.ActionExpressionListContext();
         setLocation(ctx, context);
+        int size = ctx.expression().size();
+        context.size = size;
         listener.ExitActionExpressionList(context);
     }
 
@@ -1262,7 +1266,7 @@ public class JavaToQuorumListener implements QuorumListener {
         boolean isActionCall = ctx.LEFT_PAREN() != null;
         context.name = name;
         context.isActionCall = isActionCall;
-        
+
         listener.ExitActionCall(context);
     }
 
