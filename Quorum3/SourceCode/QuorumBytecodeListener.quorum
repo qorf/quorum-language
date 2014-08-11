@@ -47,6 +47,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     Stack<BlockOpcode> poppedBlockOpcodes
     Stack<BlockOpcode> currentBlocks
     Stack<integer> blockPositionStack
+    Stack<ActionExpressionListContext> actionCallParameterStack
     integer loopCounter = 0
     integer ifCount = 0
 
@@ -385,12 +386,33 @@ class QuorumBytecodeListener is QuorumSourceListener
         a =5
     end
 
-    action EnterActionCall(ActionCallContext context)
+    action ExitActionExpressionList(ActionExpressionListContext context) 
+        actionCallParameterStack:Push(context)
+    end
+
+    action ExitActionCall(ActionCallContext context)
         ActionCallOpcode actionCall
         actionCall:SetMethodWriter(methodWriter)
 
         if context:isActionCall //push the "this" pointer
             actionCall:SetIsActionCall(true)
+            ActionExpressionListContext params =  actionCallParameterStack:Pop()
+            size = params:size
+
+            Array<QuorumOpcode> parametersBackward
+            repeat size times
+                QuorumOpcode param = opcodeStack:Pop()
+                parametersBackward:Add(param)
+            end
+
+            Array<QuorumOpcode> parameters
+            i = size - 1
+            repeat size times
+                parameters:Add(parametersBackward:Get(i))
+                i = i - 1
+            end
+
+            i = i
         else //push the variable
             actionCall:SetIsActionCall(false)
             name = context:name
@@ -411,10 +433,6 @@ class QuorumBytecodeListener is QuorumSourceListener
             end
         end
         opcodeStack:Push(actionCall)
-    end
-
-    action ExitActionCall(ActionCallContext context)
-        a =5
     end
 
     action EnterParentCall(ParentCallContext context)
