@@ -156,6 +156,13 @@ class Type
         return isNumber
     end
 
+    action IsPrimitive returns boolean
+        if IsInteger() or IsNumber() or IsBoolean() or IsText()
+            return true
+        end
+        return false
+    end
+
     action IsText returns boolean
         return isText
     end

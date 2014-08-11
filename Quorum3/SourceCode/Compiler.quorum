@@ -170,7 +170,8 @@ class Compiler
             classes = newClasses:GetIterator()
             unparsed:Empty()
         end
-        return files
+        return parsed:CopyToValueArray()
+        //return files
     end
 
     action GetStandardLibraryFile(text key) returns File

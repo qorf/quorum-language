@@ -294,7 +294,35 @@ class QuorumBytecodeListener is QuorumSourceListener
         else 
             variable = currentBlock:GetVariable(name)
             Type left = variable:GetType()
-            QuorumOpcode right = opcodeStack:Pop()
+            QuorumOpcode right = undefined
+
+            if context:hasRightHandSide = false
+                Type typeOriginal = context:leftHandSide
+                if typeOriginal:IsPrimitive()
+                    Type type = typeOriginal:Copy()
+                    type:SetIsConstant(true)
+                    QuorumConstant const
+                    const:methodWriter = methodWriter
+                    const:SetType(type)
+                    if type:IsInteger()
+                        type:SetIntegerConstant(0)
+                        const:integerValue = 0
+                    elseif type:IsBoolean()
+                        type:SetBooleanConstant(false)
+                        const:booleanValue = false
+                    elseif type:IsNumber()
+                        type:SetNumberConstant(0.0)
+                        const:numberValue = 0.0
+                    elseif type:IsText()
+                        type:SetTextConstant("")
+                        const:textValue = ""
+                    end
+                    opcodeStack:Push(const)
+                end
+            end
+
+            right = opcodeStack:Pop()
+
 
             Operation assign
             assign:SetOperation(assign:EQUALS)

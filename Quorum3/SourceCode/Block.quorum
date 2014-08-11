@@ -48,6 +48,13 @@ class Block
             bytecodeLocation = bytecodeLocation + size
             i = i + 1
         end
+
+        i = 0
+        repeat while i < blocks:GetSize()
+            Block b = blocks:Get(i)
+            b:AssignBytecodeLocations()
+            i = i + 1
+        end
     end
 
     action GetBlock(integer next) returns Block

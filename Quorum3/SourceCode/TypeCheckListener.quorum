@@ -85,13 +85,18 @@ class TypeCheckListener is QuorumSourceListener
         if currentBlock not= undefined
             Block temp = currentBlock
             currentBlock = currentBlock:GetParentBlock() //may be undefined
-            temp:AssignBytecodeLocations()
+            //temp:AssignBytecodeLocations()
             blockPositionStack:Pop()
         end
     end
 
     action ExitAction(ActionContext context) 
-        currentAction = undefined
+        if currentAction not= undefined
+            Block b = currentAction:GetBlock()
+            b:AssignBytecodeLocations()
+            currentAction = undefined
+        end
+        
     end
 
     action EnterLoopStatement(LoopContext context)
@@ -119,7 +124,15 @@ class TypeCheckListener is QuorumSourceListener
             return now
         end
 
-        if not expressionStack:IsEmpty() //ignore the operation, a compiler should have already been issued
+        if not expressionStack:IsEmpty() //ignore the operation, a compiler error should have already been issued
+            if context:hasRightHandSide = false
+                Type typeOriginal = context:leftHandSide
+                if typeOriginal:IsPrimitive()
+                    Type type = typeOriginal:Copy()
+                    type:SetIsConstant(true)
+                    expressionStack:Push(type)
+                end
+            end
             Type right = expressionStack:Pop()
             integer bytecodeSize = right:GetBytecodeSize()
 
