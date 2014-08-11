@@ -915,7 +915,6 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterMethod_shared(QuorumParser.Method_sharedContext ctx) {
        ActionContext context = new ActionContext();
         setLocation(ctx, context);
-        listener.ExitAction(context);
         List<QuorumParser.Formal_parameterContext> params = ctx.formal_parameter();
 
         Iterator<QuorumParser.Formal_parameterContext> it = params.iterator();
@@ -945,7 +944,6 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitMethod_shared(QuorumParser.Method_sharedContext ctx) {
         ActionContext context = new ActionContext();
         setLocation(ctx, context);
-        listener.ExitAction(context);
         List<QuorumParser.Formal_parameterContext> params = ctx.formal_parameter();
 
         Iterator<QuorumParser.Formal_parameterContext> it = params.iterator();
@@ -1132,6 +1130,12 @@ public class JavaToQuorumListener implements QuorumListener {
         }
         if(ctx.assignment_declaration() != null) {
             context.leftHandSide = ctx.assignment_declaration().type;
+        }
+        
+        if(ctx.rhs == null) {
+            context.hasRightHandSide = false;
+        } else {
+            context.hasRightHandSide = true;
         }
         listener.ExitNormalAssignment(context);
     }
