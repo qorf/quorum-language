@@ -47,6 +47,13 @@ class IfStatementTester
         IfStatementOneCondition_VarNotEqual_True()
         IfWithElse_Const()
         IfWithElse_Var()
+        Lab3_1_0()
+        Lab3_1_1()
+        Lab3_1_2()
+        Lab3_1_20()
+        Lab3_1_21()
+        Lab3_1_3()
+        Lab3_1_4()
         MultipleIfBlocksNestedLevel2_00()
         MultipleIfBlocksNestedLevel2_01()
         MultipleIfBlocksNestedLevel2_02()
@@ -285,6 +292,41 @@ class IfStatementTester
         //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/IfWithElse_Var.quorum", "6")
     end
    
+    action Lab3_1_0
+        suite:RunTest("Library/Tests/IfStatement/Pass/Lab3_1_0.quorum", "Error: numberOfCars set to 1", "20000")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/Lab3_1_0.quorum", "20000")
+    end
+
+    action Lab3_1_1
+        suite:RunTest("Library/Tests/IfStatement/Pass/Lab3_1_1.quorum", "20000")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/Lab3_1_1.quorum", "20000")
+    end
+
+    action Lab3_1_2
+        suite:RunTest("Library/Tests/IfStatement/Pass/Lab3_1_2.quorum", "39900")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/Lab3_1_2.quorum", "39900")
+    end
+
+    action Lab3_1_20
+        suite:RunTest("Library/Tests/IfStatement/Pass/Lab3_1_20.quorum", "396000")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/Lab3_1_20.quorum", "396000")
+    end
+
+    action Lab3_1_21
+        suite:RunTest("Library/Tests/IfStatement/Pass/Lab3_1_21.quorum", "Error: numberOfCars set to 20", "396000")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/Lab3_1_21.quorum", "396000")
+    end
+
+    action Lab3_1_3
+        suite:RunTest("Library/Tests/IfStatement/Pass/Lab3_1_3.quorum", "59700")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/Lab3_1_3.quorum", "59700")
+    end
+
+    action Lab3_1_4
+        suite:RunTest("Library/Tests/IfStatement/Pass/Lab3_1_4.quorum", "79200")
+        //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/Lab3_1_4.quorum", "79200")
+    end
+
     action MultipleIfElseBlocks_1AFalse
         suite:RunTest("Library/Tests/IfStatement/Pass/MultipleIfElseBlocks_1AFalse.quorum", "111")
         //suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/MultipleIfElseBlocks_1AFalse.quorum", "111")
