@@ -30,8 +30,11 @@ class ActionsTester
 //        MultipleNestedFunctionCallsInSoloCall()
 //        MultipleNestedFunctionCallsWithAssignments()
 //        MultipleNestedFunctionCallsWithAssignmentsDouble()
+//          NestedConditionalRepeat1()
+//          NestedConditionalRepeat2()
 //        NestedFunctionCall()
 //        NestedFunctionCallDouble()
+//          RepeatTextCall()
 //        SimpleActionPassObject()
 //        SimpleCastArgument()
 //        SimpleNestedActions()
@@ -146,6 +149,16 @@ class ActionsTester
         //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsWithAssignmentsDouble.quorum", "65536.0")
     end
 
+    action NestedConditionalRepeat1
+        suite:RunTest("Library/Tests/Actions/Pass/NestedConditionalRepeat1.quorum", "1", "16", "81", "256")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/NestedConditionalRepeat1.quorum", "1", "16", "81", "256")
+    end
+
+    action NestedConditionalRepeat2
+        suite:RunTest("Library/Tests/Actions/Pass/NestedConditionalRepeat2.quorum", "1", "512", "19683", "262144")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/NestedConditionalRepeat2.quorum", "1", "512", "19683", "262144")
+    end
+
     action NestedFunctionCall 
         suite:RunTest("Library/Tests/Actions/Pass/NestedFunctionCall.quorum", "300")
         //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/NestedFunctionCall.quorum", "300")
@@ -154,6 +167,11 @@ class ActionsTester
     action NestedFunctionCallDouble 
         suite:RunTest("Library/Tests/Actions/Pass/NestedFunctionCallDouble.quorum", "300.0")
         //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/NestedFunctionCallDouble.quorum", "300.0")
+    end
+
+    action RepeatTextCall 
+        suite:RunTest("Library/Tests/Actions/Pass/RepeatTextCall.quorum", "321...Liftoff")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/RepeatTextCall.quorum", "321...Liftoff")
     end
 
     action SimpleActionPassObject 
