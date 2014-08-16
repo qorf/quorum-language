@@ -412,6 +412,15 @@ class QuorumBytecodeListener is QuorumSourceListener
                 i = i - 1
             end
 
+            ActionCall call
+            call:actualParameters = parameters
+            call:name = context:name
+            ActionCallResolution resolved = currentClass:ResolveAction(call)
+
+            if resolved = undefined //throw a compiler error, if in the type checker, but not in bytecode generator
+                
+            end
+
             i = i
         else //push the variable
             actionCall:SetIsActionCall(false)

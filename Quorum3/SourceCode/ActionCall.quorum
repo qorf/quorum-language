@@ -1,0 +1,13 @@
+package Libraries.Language.Compile.Symbol
+
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Translate.QuorumOpcode
+
+/*
+    This class contains information about action calls, allowing the compiler
+    to disambiguate various kinds of calls from actual to specified parameters.
+*/
+class ActionCall
+    public Array<QuorumOpcode> actualParameters = undefined
+    public text name = ""
+end

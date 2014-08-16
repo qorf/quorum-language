@@ -2,12 +2,13 @@ package Libraries.Language.Compile.Symbol
 
 use Libraries.Language.Compile.QualifiedName
 use Libraries.Language.Compile.CompilerError
-    use Libraries.Language.Compile.CompilerErrorType
+use Libraries.Language.Compile.CompilerErrorType
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Location
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Containers.Array
 use Libraries.System.File
+use Libraries.Language.Compile.Translate.QuorumOpcode
 
 class Class is Symbol
     QualifiedName packageName
@@ -140,6 +141,34 @@ class Class is Symbol
 
     action GetPackage returns QualifiedName
         return packageName:Copy()
+    end
+
+    action ResolveAction(ActionCall call) returns ActionCallResolution
+        ActionCallResolution resolution
+        Array<QuorumOpcode> parameters = call:actualParameters
+
+        Array<Action> named //actions with the right name
+        Iterator<Action> all = actions:GetValueIterator()
+        repeat while all:HasNext()
+            Action act = all:Next()
+            if act:GetName() = call:name //the name is right
+                calledParameterSize = parameters:GetSize()
+                actualParameterSize = act:GetParametersSize()
+
+                if calledParameterSize = actualParameterSize //the number of parameters match
+                    named:Add(act)
+                end
+            end
+        end
+
+        if named:IsEmpty()
+            resolution:isResolved = false
+            return resolution
+        end
+
+        //now check all of the parameters to see whether the types are compatible
+
+        return resolution
     end
 
     action SetPackage(QualifiedName pack)

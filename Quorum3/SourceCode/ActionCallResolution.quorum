@@ -1,0 +1,10 @@
+package Libraries.Language.Compile.Symbol
+
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Translate.QuorumOpcode
+
+class ActionCallResolution 
+    public Action resolvedAction = undefined
+    public Array<QuorumOpcode> resolvedParameters = undefined
+    public boolean isResolved = false
+end
