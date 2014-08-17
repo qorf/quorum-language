@@ -158,6 +158,18 @@ class QuorumBytecodeListener is QuorumSourceListener
             if not poppedBlockOpcodes:IsEmpty()
                 currentActionOpcode:Add(poppedBlockOpcodes:Pop())
             end
+
+            //if there are opcodes on the opcode stack for a return, pop them
+            //there should never be more than 1, so throw an error if there is
+            remaining = opcodeStack:GetSize()
+            if remaining not= 0
+                if remaining not= 1
+                    alert("Compiler Bug: Cannot have more than 1 remaining opcode on the opcode stack at the end of an action.")
+                else 
+                    QuorumOpcode op = opcodeStack:Pop()
+                    currentActionOpcode:Add(op)
+                end
+            end
         end
     end
 
@@ -398,6 +410,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             actionCall:SetIsActionCall(true)
             ActionExpressionListContext params =  actionCallParameterStack:Pop()
             size = params:size
+            
 
             Array<QuorumOpcode> parametersBackward
             repeat size times
@@ -417,8 +430,9 @@ class QuorumBytecodeListener is QuorumSourceListener
             call:name = context:name
             ActionCallResolution resolved = currentClass:ResolveAction(call)
 
-            if resolved = undefined //throw a compiler error, if in the type checker, but not in bytecode generator
-                
+            if resolved not= undefined //throw a compiler error, if in the type checker, but not in bytecode generator
+                actionCall:SetActionCallResolution(resolved)
+                actionCall:SetIsActionCall(true)
             end
 
             i = i

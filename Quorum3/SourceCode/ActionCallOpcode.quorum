@@ -1,6 +1,9 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Symbol.ActionCallResolution
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Language.Compile.Symbol.Class
 
 class ActionCallOpcode is QuorumOpcode
     JavaBytecodeMethodWriter methodWriter = undefined
@@ -8,6 +11,18 @@ class ActionCallOpcode is QuorumOpcode
     integer bytecodeLocation = -1
     JavaBytecodeOpcodes opcodes
     boolean isActionCall = false
+    ActionCallResolution actionResolution = undefined
+
+    action GetActionCallResolution returns ActionCallResolution
+        return actionResolution
+    end
+
+    action SetActionCallResolution(ActionCallResolution resolution)
+        actionResolution = resolution
+        Action act = actionResolution:resolvedAction
+        Type returnType = act:GetReturnType()
+        me:SetType(returnType)
+    end
 
     action GetMethodWriter returns JavaBytecodeMethodWriter
         return methodWriter
@@ -34,7 +49,25 @@ class ActionCallOpcode is QuorumOpcode
     end
 
     action Write //TODO: make this work for action calls and fields
-        methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetType()), bytecodeLocation)
+
+        if isActionCall
+            //if there's a variable, load it.
+            //this isn't right, but load "THIS" onto the stack for testing
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+
+            //actual plan - push on variables, if necessary
+
+            //push on parameters, if necessary
+
+
+            Action act = actionResolution:resolvedAction
+            Class clazz = act:GetParentClass()
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
+                clazz:ConvertStaticKeyToBytecodePath(), act:GetName(), 
+                act:ConvertActionToBytecodeParameterSignature(), false)
+        else
+            methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetType()), bytecodeLocation)
+        end
     end
 
     action WriteJavaScript returns text 

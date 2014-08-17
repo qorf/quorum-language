@@ -295,4 +295,25 @@ class Type
         isBooleanObject = false
         staticKey = TEXT_OBJECT_KEY
     end
+
+    action ConvertTypeToBytecodeSignature returns text
+        if IsBoolean()
+            return "Z"
+        elseif IsText()
+            return "Ljava/lang/String;"
+        elseif IsNumber()
+            return "D"
+        elseif IsInteger()
+            return "I"
+        elseif IsVoid()
+            return "V"
+        else //it is an object, so return its interface type
+            return "L" + ConvertStaticKeyToBytecodePath(GetStaticKey()) + "$Interface;"
+        end
+    end
+
+    private action ConvertStaticKeyToBytecodePath(text key) returns text
+        text result = "quorum/" + key:Replace(".", "/")
+        return result
+    end
 end

@@ -152,4 +152,20 @@ class Action is Symbol
     action SetReturnType(Type type)
         returnType = type
     end
+
+    action ConvertActionToBytecodeParameterSignature returns text
+        text parameters = "("
+        Iterator<Variable> it = GetParameterIterator()
+        repeat while it:HasNext()
+            Variable param = it:Next()
+            Type type = param:GetType()
+            parameters = parameters + type:ConvertTypeToBytecodeSignature()
+        end
+        parameters = parameters + ")"
+
+        Type returnType = GetReturnType()
+        text returnText = returnType:ConvertTypeToBytecodeSignature()
+
+        return parameters + returnText
+    end
 end
