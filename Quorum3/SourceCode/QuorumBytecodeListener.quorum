@@ -22,7 +22,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     Action currentAction = undefined
     ActionOpcode currentActionOpcode = undefined
     ClassOpcode currentClassOpcode = undefined
-
+    boolean isInAction = false
 
     Class currentClass = undefined
     Block currentBlock = undefined
@@ -149,6 +149,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action EnterAction(ActionContext context) 
         SetNormalAction()
+        isInAction = true
     end
 
     action ExitAction(ActionContext context) 
@@ -171,6 +172,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 end
             end
         end
+        isInAction = false
     end
 
     action ExitOutputStatement(OutputContext context)
@@ -301,57 +303,77 @@ class QuorumBytecodeListener is QuorumSourceListener
     action ExitNormalAssignment(NormalAssignmentContext context) 
         text name = context:name
         Variable variable = undefined
-        if context:isField
+        if not isInAction
             variable = currentClass:GetVariable(name)
-            //write the field
         else 
             variable = currentBlock:GetVariable(name)
-            Type left = variable:GetType()
-            QuorumOpcode right = undefined
+        end
 
-            if context:hasRightHandSide = false
-                Type typeOriginal = context:leftHandSide
-                if typeOriginal:IsPrimitive()
-                    Type type = typeOriginal:Copy()
-                    type:SetIsConstant(true)
-                    QuorumConstant const
-                    const:methodWriter = methodWriter
-                    const:SetType(type)
-                    if type:IsInteger()
-                        type:SetIntegerConstant(0)
-                        const:integerValue = 0
-                    elseif type:IsBoolean()
-                        type:SetBooleanConstant(false)
-                        const:booleanValue = false
-                    elseif type:IsNumber()
-                        type:SetNumberConstant(0.0)
-                        const:numberValue = 0.0
-                    elseif type:IsText()
-                        type:SetTextConstant("")
-                        const:textValue = ""
-                    end
-                    opcodeStack:Push(const)
+        Type left = variable:GetType()
+        QuorumOpcode right = undefined
+        if context:hasRightHandSide = false
+            Type typeOriginal = context:leftHandSide
+            if typeOriginal:IsPrimitive()
+                Type type = typeOriginal:Copy()
+                type:SetIsConstant(true)
+                QuorumConstant const
+                const:methodWriter = methodWriter
+                const:SetType(type)
+                if type:IsInteger()
+                    type:SetIntegerConstant(0)
+                    const:integerValue = 0
+                elseif type:IsBoolean()
+                    type:SetBooleanConstant(false)
+                    const:booleanValue = false
+                elseif type:IsNumber()
+                    type:SetNumberConstant(0.0)
+                    const:numberValue = 0.0
+                elseif type:IsText()
+                    type:SetTextConstant("")
+                    const:textValue = ""
                 end
+                opcodeStack:Push(const)
+            else 
+                SymbolTable table = me:GetSymbolTable()
+                Class clazz = table:GetClass(left:GetStaticKey())
+                CreateObjectOpcode opcode
+                opcode:SetMethodWriter(methodWriter)
+                opcode:SetClass(clazz)
+                opcode:SetBytecodeLocation(variable:GetBytecodeLocation())
+
+                if isInAction
+                    currentBlockOpcode:Add(opcode)
+                    return now
+                else //add the opcode to the field calculator
+                    currentClassOpcode:AddField(opcode)
+                    return now
+                end
+                
             end
+        end
 
-            right = opcodeStack:Pop()
+        right = opcodeStack:Pop()
 
 
-            Operation assign
-            assign:SetOperation(assign:EQUALS)
+        Operation assign
+        assign:SetOperation(assign:EQUALS)
 
-            TypeChecker checker = GetTypeChecker()
-            TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
+        TypeChecker checker = GetTypeChecker()
+        TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
 
-            integer location = variable:GetBytecodeLocation()
-            Type value = result:result
-            QuorumOpcode qop = result:GetQuorumOpcode()
-            AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
-            assignment:SetRightHandSide(right)
-            assignment:SetType(value)
-            assignment:SetMethodWriter(methodWriter)
-            assignment:SetBytecodeLocation(location)
+        integer location = variable:GetBytecodeLocation()
+        Type value = result:result
+        QuorumOpcode qop = result:GetQuorumOpcode()
+        AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+        assignment:SetRightHandSide(right)
+        assignment:SetType(value)
+        assignment:SetMethodWriter(methodWriter)
+        assignment:SetBytecodeLocation(location)
+
+        if isInAction
             currentBlockOpcode:Add(assignment)
+        else //add the opcode to the field calculator
+            currentClassOpcode:AddField(assignment)
         end
     end
 

@@ -12,6 +12,7 @@ class TypeCheckListener is QuorumSourceListener
     Action currentAction = undefined
     Class currentClass = undefined
     Block currentBlock = undefined
+    boolean isInAction = false
     Stack<Block> blocks
     Stack<Type> expressionStack
     boolean isNextVariableReferenceMe = false
@@ -90,13 +91,17 @@ class TypeCheckListener is QuorumSourceListener
         end
     end
 
+    action EnterAction(ActionContext context)
+        isInAction = true
+    end
+
     action ExitAction(ActionContext context) 
         if currentAction not= undefined
             Block b = currentAction:GetBlock()
             b:AssignBytecodeLocations()
             currentAction = undefined
         end
-        
+        isInAction = false
     end
 
     action EnterLoopStatement(LoopContext context)
@@ -107,7 +112,7 @@ class TypeCheckListener is QuorumSourceListener
         text name = context:name
         Variable variable = undefined
 
-        if context:isField
+        if not isInAction
             variable = currentClass:GetVariable(name)
         else 
             variable = currentBlock:GetVariable(name)

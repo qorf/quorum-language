@@ -308,11 +308,12 @@ class Type
         elseif IsVoid()
             return "V"
         else //it is an object, so return its interface type
-            return "L" + ConvertStaticKeyToBytecodePath(GetStaticKey()) + "$Interface;"
+            return "L" + ConvertStaticKeyToBytecodePath() + "$Interface;"
         end
     end
 
-    private action ConvertStaticKeyToBytecodePath(text key) returns text
+    private action ConvertStaticKeyToBytecodePath() returns text
+        text key = GetStaticKey()
         text result = "quorum/" + key:Replace(".", "/")
         return result
     end
