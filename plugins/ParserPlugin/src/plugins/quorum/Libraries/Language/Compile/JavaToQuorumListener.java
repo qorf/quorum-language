@@ -8,6 +8,7 @@ package plugins.quorum.Libraries.Language.Compile;
 import java.util.Iterator;
 import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -17,6 +18,7 @@ import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
 import quorum.Libraries.Language.Compile.Symbol.Type;
 import quorum.Libraries.Language.Compile.Symbol.Type$Interface;
 import quorum.Libraries.Language.Compile.Symbol.Variable;
+import quorum.Libraries.Language.Types.Text;
 import quorum.Libraries.System.File$Interface;
 
 /**
@@ -727,6 +729,15 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterGeneric_declaration(QuorumParser.Generic_declarationContext ctx) {
         quorum.Libraries.Language.Compile.Context.GenericDeclarationContext context = 
                 new quorum.Libraries.Language.Compile.Context.GenericDeclarationContext();
+        List<Token> ids = ctx.ids;
+        Iterator<Token> tokens = ids.iterator();
+        while (tokens.hasNext()) {
+            Token next = tokens.next();
+            String value = next.getText();
+            Text text = new Text();
+            text.value = value;
+            context.tokens.Add(text);
+        }
         setLocation(ctx, context);
         listener.EnterGenericDeclaration(context);
     }
@@ -735,6 +746,15 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitGeneric_declaration(QuorumParser.Generic_declarationContext ctx) {
         quorum.Libraries.Language.Compile.Context.GenericDeclarationContext context = 
                 new quorum.Libraries.Language.Compile.Context.GenericDeclarationContext();
+        List<Token> ids = ctx.ids;
+        Iterator<Token> tokens = ids.iterator();
+        while (tokens.hasNext()) {
+            Token next = tokens.next();
+            String value = next.getText();
+            Text text = new Text();
+            text.value = value;
+            context.tokens.Add(text);
+        }
         setLocation(ctx, context);
         listener.ExitGenericDeclaration(context);
     }

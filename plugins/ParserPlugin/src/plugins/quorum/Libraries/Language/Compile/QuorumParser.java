@@ -80,17 +80,17 @@ public class QuorumParser extends Parser {
 	}
 	public static class StartContext extends ParserRuleContext {
 		public TerminalNode EOF() { return getToken(QuorumParser.EOF, 0); }
+		public List<ReferenceContext> reference() {
+			return getRuleContexts(ReferenceContext.class);
+		}
+		public ReferenceContext reference(int i) {
+			return getRuleContext(ReferenceContext.class,i);
+		}
 		public Class_declarationContext class_declaration() {
 			return getRuleContext(Class_declarationContext.class,0);
 		}
 		public Package_ruleContext package_rule() {
 			return getRuleContext(Package_ruleContext.class,0);
-		}
-		public ReferenceContext reference(int i) {
-			return getRuleContext(ReferenceContext.class,i);
-		}
-		public List<ReferenceContext> reference() {
-			return getRuleContexts(ReferenceContext.class);
 		}
 		public StartContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -199,10 +199,10 @@ public class QuorumParser extends Parser {
 
 	public static class Package_ruleContext extends ParserRuleContext {
 		public Qualified_nameContext name;
+		public TerminalNode PACKAGE_NAME() { return getToken(QuorumParser.PACKAGE_NAME, 0); }
 		public Qualified_nameContext qualified_name() {
 			return getRuleContext(Qualified_nameContext.class,0);
 		}
-		public TerminalNode PACKAGE_NAME() { return getToken(QuorumParser.PACKAGE_NAME, 0); }
 		public Package_ruleContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -240,10 +240,10 @@ public class QuorumParser extends Parser {
 
 	public static class ReferenceContext extends ParserRuleContext {
 		public Qualified_nameContext name;
+		public TerminalNode USE() { return getToken(QuorumParser.USE, 0); }
 		public Qualified_nameContext qualified_name() {
 			return getRuleContext(Qualified_nameContext.class,0);
 		}
-		public TerminalNode USE() { return getToken(QuorumParser.USE, 0); }
 		public ReferenceContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -290,6 +290,32 @@ public class QuorumParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	public static class FullClassDeclarationContext extends Class_declarationContext {
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public Class_stmntsContext class_stmnts(int i) {
+			return getRuleContext(Class_stmntsContext.class,i);
+		}
+		public Generic_declarationContext generic_declaration() {
+			return getRuleContext(Generic_declarationContext.class,0);
+		}
+		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
+		public TerminalNode CLASS() { return getToken(QuorumParser.CLASS, 0); }
+		public List<Class_stmntsContext> class_stmnts() {
+			return getRuleContexts(Class_stmntsContext.class);
+		}
+		public Inherit_stmntsContext inherit_stmnts() {
+			return getRuleContext(Inherit_stmntsContext.class,0);
+		}
+		public FullClassDeclarationContext(Class_declarationContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterFullClassDeclaration(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitFullClassDeclaration(this);
+		}
+	}
 	public static class NoClassDeclarationContext extends Class_declarationContext {
 		public No_class_stmntsContext no_class_stmnts() {
 			return getRuleContext(No_class_stmntsContext.class,0);
@@ -302,32 +328,6 @@ public class QuorumParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNoClassDeclaration(this);
-		}
-	}
-	public static class FullClassDeclarationContext extends Class_declarationContext {
-		public Class_stmntsContext class_stmnts(int i) {
-			return getRuleContext(Class_stmntsContext.class,i);
-		}
-		public Generic_declarationContext generic_declaration() {
-			return getRuleContext(Generic_declarationContext.class,0);
-		}
-		public List<Class_stmntsContext> class_stmnts() {
-			return getRuleContexts(Class_stmntsContext.class);
-		}
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public Inherit_stmntsContext inherit_stmnts() {
-			return getRuleContext(Inherit_stmntsContext.class,0);
-		}
-		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
-		public TerminalNode CLASS() { return getToken(QuorumParser.CLASS, 0); }
-		public FullClassDeclarationContext(Class_declarationContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterFullClassDeclaration(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitFullClassDeclaration(this);
 		}
 	}
 
@@ -421,23 +421,23 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class No_class_stmntsContext extends ParserRuleContext {
-		public Access_modifierContext access_modifier(int i) {
-			return getRuleContext(Access_modifierContext.class,i);
-		}
-		public List<StatementContext> statement() {
-			return getRuleContexts(StatementContext.class);
+		public List<Method_declarationContext> method_declaration() {
+			return getRuleContexts(Method_declarationContext.class);
 		}
 		public Method_declarationContext method_declaration(int i) {
 			return getRuleContext(Method_declarationContext.class,i);
 		}
-		public List<Method_declarationContext> method_declaration() {
-			return getRuleContexts(Method_declarationContext.class);
+		public Access_modifierContext access_modifier(int i) {
+			return getRuleContext(Access_modifierContext.class,i);
 		}
 		public StatementContext statement(int i) {
 			return getRuleContext(StatementContext.class,i);
 		}
 		public List<Access_modifierContext> access_modifier() {
 			return getRuleContexts(Access_modifierContext.class);
+		}
+		public List<StatementContext> statement() {
+			return getRuleContexts(StatementContext.class);
 		}
 		public No_class_stmntsContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -519,22 +519,22 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Inherit_stmntsContext extends ParserRuleContext {
+		public List<Generic_declarationContext> generic_declaration() {
+			return getRuleContexts(Generic_declarationContext.class);
+		}
+		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
+		public Generic_declarationContext generic_declaration(int i) {
+			return getRuleContext(Generic_declarationContext.class,i);
+		}
+		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
 		public List<Qualified_nameContext> qualified_name() {
 			return getRuleContexts(Qualified_nameContext.class);
 		}
-		public List<Generic_statementContext> generic_statement() {
-			return getRuleContexts(Generic_statementContext.class);
+		public TerminalNode COMMA(int i) {
+			return getToken(QuorumParser.COMMA, i);
 		}
 		public Qualified_nameContext qualified_name(int i) {
 			return getRuleContext(Qualified_nameContext.class,i);
-		}
-		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
-		public Generic_statementContext generic_statement(int i) {
-			return getRuleContext(Generic_statementContext.class,i);
-		}
-		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
-		public TerminalNode COMMA(int i) {
-			return getToken(QuorumParser.COMMA, i);
 		}
 		public Inherit_stmntsContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -563,7 +563,7 @@ public class QuorumParser extends Parser {
 			_la = _input.LA(1);
 			if (_la==LESS) {
 				{
-				setState(134); generic_statement();
+				setState(134); generic_declaration();
 				}
 			}
 
@@ -579,7 +579,7 @@ public class QuorumParser extends Parser {
 				_la = _input.LA(1);
 				if (_la==LESS) {
 					{
-					setState(139); generic_statement();
+					setState(139); generic_declaration();
 					}
 				}
 
@@ -646,11 +646,11 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Class_stmntsContext extends ParserRuleContext {
-		public Assignment_statementContext assignment_statement() {
-			return getRuleContext(Assignment_statementContext.class,0);
-		}
 		public Method_declarationContext method_declaration() {
 			return getRuleContext(Method_declarationContext.class,0);
+		}
+		public Assignment_statementContext assignment_statement() {
+			return getRuleContext(Assignment_statementContext.class,0);
 		}
 		public Access_modifierContext access_modifier() {
 			return getRuleContext(Access_modifierContext.class,0);
@@ -721,6 +721,41 @@ public class QuorumParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	public static class ActionContext extends Method_declarationContext {
+		public Method_sharedContext method_shared() {
+			return getRuleContext(Method_sharedContext.class,0);
+		}
+		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
+		public BlockContext block() {
+			return getRuleContext(BlockContext.class,0);
+		}
+		public ActionContext(Method_declarationContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterAction(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAction(this);
+		}
+	}
+	public static class ConstructorContext extends Method_declarationContext {
+		public TerminalNode ON() { return getToken(QuorumParser.ON, 0); }
+		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
+		public TerminalNode CREATE() { return getToken(QuorumParser.CREATE, 0); }
+		public BlockContext block() {
+			return getRuleContext(BlockContext.class,0);
+		}
+		public ConstructorContext(Method_declarationContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterConstructor(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitConstructor(this);
+		}
+	}
 	public static class NativeActionContext extends Method_declarationContext {
 		public TerminalNode NATIVE() { return getToken(QuorumParser.NATIVE, 0); }
 		public Method_sharedContext method_shared() {
@@ -734,41 +769,6 @@ public class QuorumParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNativeAction(this);
-		}
-	}
-	public static class ActionContext extends Method_declarationContext {
-		public BlockContext block() {
-			return getRuleContext(BlockContext.class,0);
-		}
-		public Method_sharedContext method_shared() {
-			return getRuleContext(Method_sharedContext.class,0);
-		}
-		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
-		public ActionContext(Method_declarationContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterAction(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAction(this);
-		}
-	}
-	public static class ConstructorContext extends Method_declarationContext {
-		public TerminalNode CREATE() { return getToken(QuorumParser.CREATE, 0); }
-		public TerminalNode ON() { return getToken(QuorumParser.ON, 0); }
-		public BlockContext block() {
-			return getRuleContext(BlockContext.class,0);
-		}
-		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
-		public ConstructorContext(Method_declarationContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterConstructor(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitConstructor(this);
 		}
 	}
 	public static class BlueprintActionContext extends Method_declarationContext {
@@ -849,18 +849,18 @@ public class QuorumParser extends Parser {
 		public Assignment_declarationContext assignment_declaration() {
 			return getRuleContext(Assignment_declarationContext.class,0);
 		}
-		public TerminalNode ACTION() { return getToken(QuorumParser.ACTION, 0); }
-		public Formal_parameterContext formal_parameter(int i) {
-			return getRuleContext(Formal_parameterContext.class,i);
-		}
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
 		public List<Formal_parameterContext> formal_parameter() {
 			return getRuleContexts(Formal_parameterContext.class);
 		}
-		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public TerminalNode RETURNS() { return getToken(QuorumParser.RETURNS, 0); }
 		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public TerminalNode ACTION() { return getToken(QuorumParser.ACTION, 0); }
+		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
+		public TerminalNode RETURNS() { return getToken(QuorumParser.RETURNS, 0); }
 		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
+		public Formal_parameterContext formal_parameter(int i) {
+			return getRuleContext(Formal_parameterContext.class,i);
+		}
 		public TerminalNode COMMA(int i) {
 			return getToken(QuorumParser.COMMA, i);
 		}
@@ -985,12 +985,12 @@ public class QuorumParser extends Parser {
 		public Token ID;
 		public List<Token> ids = new ArrayList<Token>();
 		public List<TerminalNode> ID() { return getTokens(QuorumParser.ID); }
-		public TerminalNode PERIOD(int i) {
-			return getToken(QuorumParser.PERIOD, i);
-		}
-		public List<TerminalNode> PERIOD() { return getTokens(QuorumParser.PERIOD); }
 		public TerminalNode ID(int i) {
 			return getToken(QuorumParser.ID, i);
+		}
+		public List<TerminalNode> PERIOD() { return getTokens(QuorumParser.PERIOD); }
+		public TerminalNode PERIOD(int i) {
+			return getToken(QuorumParser.PERIOD, i);
 		}
 		public Qualified_nameContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1046,11 +1046,11 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class BlockContext extends ParserRuleContext {
-		public List<StatementContext> statement() {
-			return getRuleContexts(StatementContext.class);
-		}
 		public StatementContext statement(int i) {
 			return getRuleContext(StatementContext.class,i);
+		}
+		public List<StatementContext> statement() {
+			return getRuleContexts(StatementContext.class);
 		}
 		public BlockContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1100,11 +1100,20 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class StatementContext extends ParserRuleContext {
-		public Loop_statementContext loop_statement() {
-			return getRuleContext(Loop_statementContext.class,0);
+		public Return_statementContext return_statement() {
+			return getRuleContext(Return_statementContext.class,0);
 		}
-		public Print_statementContext print_statement() {
-			return getRuleContext(Print_statementContext.class,0);
+		public Check_statementContext check_statement() {
+			return getRuleContext(Check_statementContext.class,0);
+		}
+		public If_statementContext if_statement() {
+			return getRuleContext(If_statementContext.class,0);
+		}
+		public Solo_method_callContext solo_method_call() {
+			return getRuleContext(Solo_method_callContext.class,0);
+		}
+		public Assignment_statementContext assignment_statement() {
+			return getRuleContext(Assignment_statementContext.class,0);
 		}
 		public Alert_statementContext alert_statement() {
 			return getRuleContext(Alert_statementContext.class,0);
@@ -1112,20 +1121,11 @@ public class QuorumParser extends Parser {
 		public Speak_statementContext speak_statement() {
 			return getRuleContext(Speak_statementContext.class,0);
 		}
-		public Assignment_statementContext assignment_statement() {
-			return getRuleContext(Assignment_statementContext.class,0);
+		public Loop_statementContext loop_statement() {
+			return getRuleContext(Loop_statementContext.class,0);
 		}
-		public Solo_method_callContext solo_method_call() {
-			return getRuleContext(Solo_method_callContext.class,0);
-		}
-		public Check_statementContext check_statement() {
-			return getRuleContext(Check_statementContext.class,0);
-		}
-		public Return_statementContext return_statement() {
-			return getRuleContext(Return_statementContext.class,0);
-		}
-		public If_statementContext if_statement() {
-			return getRuleContext(If_statementContext.class,0);
+		public Print_statementContext print_statement() {
+			return getRuleContext(Print_statementContext.class,0);
 		}
 		public StatementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1223,28 +1223,28 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Solo_method_callContext extends ParserRuleContext {
-		public Qualified_nameContext qualified_name() {
-			return getRuleContext(Qualified_nameContext.class,0);
-		}
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
-		}
-		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
 		public TerminalNode COLON(int i) {
 			return getToken(QuorumParser.COLON, i);
 		}
+		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
+		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
+		}
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
-		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
-		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
-		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
+		public Qualified_nameContext qualified_name() {
+			return getRuleContext(Qualified_nameContext.class,0);
+		}
 		public TerminalNode COMMA(int i) {
 			return getToken(QuorumParser.COMMA, i);
 		}
+		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
 		public Solo_method_callContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -1396,12 +1396,12 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Alert_statementContext extends ParserRuleContext {
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public TerminalNode ALERT() { return getToken(QuorumParser.ALERT, 0); }
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
-		public TerminalNode ALERT() { return getToken(QuorumParser.ALERT, 0); }
 		public Alert_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -1441,24 +1441,24 @@ public class QuorumParser extends Parser {
 
 	public static class Check_statementContext extends ParserRuleContext {
 		public TerminalNode CHECK() { return getToken(QuorumParser.CHECK, 0); }
-		public List<TerminalNode> DETECT() { return getTokens(QuorumParser.DETECT); }
-		public Detect_parameterContext detect_parameter(int i) {
-			return getRuleContext(Detect_parameterContext.class,i);
+		public TerminalNode DETECT(int i) {
+			return getToken(QuorumParser.DETECT, i);
 		}
 		public BlockContext block(int i) {
 			return getRuleContext(BlockContext.class,i);
 		}
-		public List<BlockContext> block() {
-			return getRuleContexts(BlockContext.class);
-		}
 		public List<Detect_parameterContext> detect_parameter() {
 			return getRuleContexts(Detect_parameterContext.class);
 		}
-		public TerminalNode ALWAYS() { return getToken(QuorumParser.ALWAYS, 0); }
-		public TerminalNode DETECT(int i) {
-			return getToken(QuorumParser.DETECT, i);
+		public Detect_parameterContext detect_parameter(int i) {
+			return getRuleContext(Detect_parameterContext.class,i);
 		}
 		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
+		public List<TerminalNode> DETECT() { return getTokens(QuorumParser.DETECT); }
+		public List<BlockContext> block() {
+			return getRuleContexts(BlockContext.class);
+		}
+		public TerminalNode ALWAYS() { return getToken(QuorumParser.ALWAYS, 0); }
 		public Check_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -1536,17 +1536,17 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Detect_parameterContext extends ParserRuleContext {
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
+		public List<TerminalNode> OR() { return getTokens(QuorumParser.OR); }
+		public TerminalNode OR(int i) {
+			return getToken(QuorumParser.OR, i);
+		}
 		public List<Qualified_nameContext> qualified_name() {
 			return getRuleContexts(Qualified_nameContext.class);
 		}
 		public Qualified_nameContext qualified_name(int i) {
 			return getRuleContext(Qualified_nameContext.class,i);
-		}
-		public List<TerminalNode> OR() { return getTokens(QuorumParser.OR); }
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
-		public TerminalNode OR(int i) {
-			return getToken(QuorumParser.OR, i);
 		}
 		public Detect_parameterContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1647,10 +1647,10 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Speak_statementContext extends ParserRuleContext {
-		public TerminalNode SAY() { return getToken(QuorumParser.SAY, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
+		public TerminalNode SAY() { return getToken(QuorumParser.SAY, 0); }
 		public Speak_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -1687,8 +1687,8 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Return_statementContext extends ParserRuleContext {
-		public TerminalNode NOW() { return getToken(QuorumParser.NOW, 0); }
 		public TerminalNode RETURN() { return getToken(QuorumParser.RETURN, 0); }
+		public TerminalNode NOW() { return getToken(QuorumParser.NOW, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
@@ -1757,14 +1757,14 @@ public class QuorumParser extends Parser {
 		public Token ID;
 		public List<Token> ids = new ArrayList<Token>();
 		public TerminalNode LESS() { return getToken(QuorumParser.LESS, 0); }
-		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public List<TerminalNode> ID() { return getTokens(QuorumParser.ID); }
+		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
+		public TerminalNode ID(int i) {
+			return getToken(QuorumParser.ID, i);
+		}
 		public TerminalNode GREATER() { return getToken(QuorumParser.GREATER, 0); }
 		public TerminalNode COMMA(int i) {
 			return getToken(QuorumParser.COMMA, i);
-		}
-		public TerminalNode ID(int i) {
-			return getToken(QuorumParser.ID, i);
 		}
 		public Generic_declarationContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1820,14 +1820,14 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Generic_statementContext extends ParserRuleContext {
+		public TerminalNode LESS() { return getToken(QuorumParser.LESS, 0); }
 		public List<Assignment_declarationContext> assignment_declaration() {
 			return getRuleContexts(Assignment_declarationContext.class);
 		}
+		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public Assignment_declarationContext assignment_declaration(int i) {
 			return getRuleContext(Assignment_declarationContext.class,i);
 		}
-		public TerminalNode LESS() { return getToken(QuorumParser.LESS, 0); }
-		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public TerminalNode GREATER() { return getToken(QuorumParser.GREATER, 0); }
 		public TerminalNode COMMA(int i) {
 			return getToken(QuorumParser.COMMA, i);
@@ -1934,21 +1934,16 @@ public class QuorumParser extends Parser {
 			this.type = ctx.type;
 		}
 	}
-	public static class GenericAssignmentDeclarationContext extends Assignment_declarationContext {
-		public Qualified_nameContext qualified_name() {
-			return getRuleContext(Qualified_nameContext.class,0);
-		}
-		public Generic_statementContext generic_statement() {
-			return getRuleContext(Generic_statementContext.class,0);
-		}
-		public GenericAssignmentDeclarationContext(Assignment_declarationContext ctx) { copyFrom(ctx); }
+	public static class IntegerAssignmentDeclarationContext extends Assignment_declarationContext {
+		public TerminalNode INTEGER_KEYWORD() { return getToken(QuorumParser.INTEGER_KEYWORD, 0); }
+		public IntegerAssignmentDeclarationContext(Assignment_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterGenericAssignmentDeclaration(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterIntegerAssignmentDeclaration(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitGenericAssignmentDeclaration(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitIntegerAssignmentDeclaration(this);
 		}
 	}
 	public static class NumberAssignmentDeclarationContext extends Assignment_declarationContext {
@@ -1987,16 +1982,21 @@ public class QuorumParser extends Parser {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitBooleanAssignmentDeclaration(this);
 		}
 	}
-	public static class IntegerAssignmentDeclarationContext extends Assignment_declarationContext {
-		public TerminalNode INTEGER_KEYWORD() { return getToken(QuorumParser.INTEGER_KEYWORD, 0); }
-		public IntegerAssignmentDeclarationContext(Assignment_declarationContext ctx) { copyFrom(ctx); }
+	public static class GenericAssignmentDeclarationContext extends Assignment_declarationContext {
+		public Generic_statementContext generic_statement() {
+			return getRuleContext(Generic_statementContext.class,0);
+		}
+		public Qualified_nameContext qualified_name() {
+			return getRuleContext(Qualified_nameContext.class,0);
+		}
+		public GenericAssignmentDeclarationContext(Assignment_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterIntegerAssignmentDeclaration(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterGenericAssignmentDeclaration(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitIntegerAssignmentDeclaration(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitGenericAssignmentDeclaration(this);
 		}
 	}
 
@@ -2076,26 +2076,73 @@ public class QuorumParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	public static class NoTypeAssignmentContext extends Assignment_statementContext {
+		public Token name;
+		public ExpressionContext rhs;
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public TerminalNode COLON() { return getToken(QuorumParser.COLON, 0); }
+		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public NoTypeAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNoTypeAssignment(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNoTypeAssignment(this);
+		}
+	}
+	public static class ParentAssignmentContext extends Assignment_statementContext {
+		public Qualified_nameContext parent;
+		public Token name;
+		public ExpressionContext rhs;
+		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public TerminalNode COLON(int i) {
+			return getToken(QuorumParser.COLON, i);
+		}
+		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
+		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public Qualified_nameContext qualified_name() {
+			return getRuleContext(Qualified_nameContext.class,0);
+		}
+		public ParentAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParentAssignment(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParentAssignment(this);
+		}
+	}
 	public static class ObjectAssignmentContext extends Assignment_statementContext {
 		public Token object;
 		public Qualified_nameContext parent;
 		public Token name;
 		public ExpressionContext rhs;
-		public Qualified_nameContext qualified_name() {
-			return getRuleContext(Qualified_nameContext.class,0);
-		}
-		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
 		public List<TerminalNode> ID() { return getTokens(QuorumParser.ID); }
+		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
 		public TerminalNode COLON(int i) {
 			return getToken(QuorumParser.COLON, i);
 		}
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
 		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
 		public TerminalNode ID(int i) {
 			return getToken(QuorumParser.ID, i);
+		}
+		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public Qualified_nameContext qualified_name() {
+			return getRuleContext(Qualified_nameContext.class,0);
 		}
 		public ObjectAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
 		@Override
@@ -2115,15 +2162,15 @@ public class QuorumParser extends Parser {
 		public Assignment_declarationContext assignment_declaration() {
 			return getRuleContext(Assignment_declarationContext.class,0);
 		}
-		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
 		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
 		public Access_modifierContext access_modifier() {
 			return getRuleContext(Access_modifierContext.class,0);
 		}
 		public TerminalNode CONSTANT() { return getToken(QuorumParser.CONSTANT, 0); }
+		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
 		public NormalAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
@@ -2132,53 +2179,6 @@ public class QuorumParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNormalAssignment(this);
-		}
-	}
-	public static class ParentAssignmentContext extends Assignment_statementContext {
-		public Qualified_nameContext parent;
-		public Token name;
-		public ExpressionContext rhs;
-		public Qualified_nameContext qualified_name() {
-			return getRuleContext(Qualified_nameContext.class,0);
-		}
-		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public TerminalNode COLON(int i) {
-			return getToken(QuorumParser.COLON, i);
-		}
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
-		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
-		public ParentAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParentAssignment(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParentAssignment(this);
-		}
-	}
-	public static class NoTypeAssignmentContext extends Assignment_statementContext {
-		public Token name;
-		public ExpressionContext rhs;
-		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
-		public TerminalNode COLON() { return getToken(QuorumParser.COLON, 0); }
-		public NoTypeAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNoTypeAssignment(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNoTypeAssignment(this);
 		}
 	}
 
@@ -2292,23 +2292,23 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class If_statementContext extends ParserRuleContext {
-		public TerminalNode IF() { return getToken(QuorumParser.IF, 0); }
-		public List<Elseif_statementContext> elseif_statement() {
-			return getRuleContexts(Elseif_statementContext.class);
+		public Elseif_statementContext elseif_statement(int i) {
+			return getRuleContext(Elseif_statementContext.class,i);
 		}
+		public TerminalNode IF() { return getToken(QuorumParser.IF, 0); }
+		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
 		public Else_statementContext else_statement() {
 			return getRuleContext(Else_statementContext.class,0);
 		}
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
-		public Elseif_statementContext elseif_statement(int i) {
-			return getRuleContext(Elseif_statementContext.class,i);
-		}
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
 		}
-		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
+		public List<Elseif_statementContext> elseif_statement() {
+			return getRuleContexts(Elseif_statementContext.class);
+		}
 		public If_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -2369,13 +2369,13 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Elseif_statementContext extends ParserRuleContext {
+		public TerminalNode ELSE_IF() { return getToken(QuorumParser.ELSE_IF, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
 		}
-		public TerminalNode ELSE_IF() { return getToken(QuorumParser.ELSE_IF, 0); }
 		public Elseif_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -2453,17 +2453,17 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Loop_statementContext extends ParserRuleContext {
-		public TerminalNode WHILE() { return getToken(QuorumParser.WHILE, 0); }
 		public TerminalNode TIMES() { return getToken(QuorumParser.TIMES, 0); }
-		public TerminalNode REPEAT() { return getToken(QuorumParser.REPEAT, 0); }
+		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
 		public TerminalNode UNTIL() { return getToken(QuorumParser.UNTIL, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
 		}
-		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public TerminalNode WHILE() { return getToken(QuorumParser.WHILE, 0); }
+		public TerminalNode REPEAT() { return getToken(QuorumParser.REPEAT, 0); }
 		public Loop_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -2594,17 +2594,17 @@ public class QuorumParser extends Parser {
 
 	public static class Parent_callContext extends ParserRuleContext {
 		public Qualified_nameContext parent;
-		public Qualified_nameContext qualified_name() {
-			return getRuleContext(Qualified_nameContext.class,0);
-		}
+		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
 		public List<Action_callContext> action_call() {
 			return getRuleContexts(Action_callContext.class);
 		}
 		public TerminalNode COLON(int i) {
 			return getToken(QuorumParser.COLON, i);
 		}
-		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
 		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
+		public Qualified_nameContext qualified_name() {
+			return getRuleContext(Qualified_nameContext.class,0);
+		}
 		public Action_callContext action_call(int i) {
 			return getRuleContext(Action_callContext.class,i);
 		}
@@ -2676,7 +2676,41 @@ public class QuorumParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	public static class CastContext extends ExpressionContext {
+		public Assignment_declarationContext assignment_declaration() {
+			return getRuleContext(Assignment_declarationContext.class,0);
+		}
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public TerminalNode COMMA() { return getToken(QuorumParser.COMMA, 0); }
+		public TerminalNode CAST() { return getToken(QuorumParser.CAST, 0); }
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public CastContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterCast(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitCast(this);
+		}
+	}
+	public static class NullContext extends ExpressionContext {
+		public TerminalNode NULL() { return getToken(QuorumParser.NULL, 0); }
+		public NullContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNull(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNull(this);
+		}
+	}
 	public static class MultiplicationContext extends ExpressionContext {
+		public TerminalNode DIVIDE() { return getToken(QuorumParser.DIVIDE, 0); }
 		public ExpressionContext expression(int i) {
 			return getRuleContext(ExpressionContext.class,i);
 		}
@@ -2685,7 +2719,6 @@ public class QuorumParser extends Parser {
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
-		public TerminalNode DIVIDE() { return getToken(QuorumParser.DIVIDE, 0); }
 		public MultiplicationContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
@@ -2696,165 +2729,23 @@ public class QuorumParser extends Parser {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitMultiplication(this);
 		}
 	}
-	public static class InputContext extends ExpressionContext {
-		public TerminalNode INPUT() { return getToken(QuorumParser.INPUT, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
+	public static class AdditionContext extends ExpressionContext {
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
 		}
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
-		public InputContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterInput(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInput(this);
-		}
-	}
-	public static class MinusContext extends ExpressionContext {
+		public TerminalNode PLUS() { return getToken(QuorumParser.PLUS, 0); }
 		public TerminalNode MINUS() { return getToken(QuorumParser.MINUS, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
 		}
-		public MinusContext(ExpressionContext ctx) { copyFrom(ctx); }
+		public AdditionContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterMinus(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterAddition(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitMinus(this);
-		}
-	}
-	public static class VariableFunctionCallContext extends ExpressionContext {
-		public Parent_callContext parent_call() {
-			return getRuleContext(Parent_callContext.class,0);
-		}
-		public List<Action_callContext> action_call() {
-			return getRuleContexts(Action_callContext.class);
-		}
-		public TerminalNode COLON(int i) {
-			return getToken(QuorumParser.COLON, i);
-		}
-		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
-		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
-		public Action_callContext action_call(int i) {
-			return getRuleContext(Action_callContext.class,i);
-		}
-		public VariableFunctionCallContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterVariableFunctionCall(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitVariableFunctionCall(this);
-		}
-	}
-	public static class BooleanContext extends ExpressionContext {
-		public TerminalNode BOOLEAN() { return getToken(QuorumParser.BOOLEAN, 0); }
-		public BooleanContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterBoolean(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitBoolean(this);
-		}
-	}
-	public static class ParentVariableFunctionCallContext extends ExpressionContext {
-		public List<Action_callContext> action_call() {
-			return getRuleContexts(Action_callContext.class);
-		}
-		public Parent_callContext parent_call() {
-			return getRuleContext(Parent_callContext.class,0);
-		}
-		public TerminalNode COLON(int i) {
-			return getToken(QuorumParser.COLON, i);
-		}
-		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
-		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
-		public Action_callContext action_call(int i) {
-			return getRuleContext(Action_callContext.class,i);
-		}
-		public ParentVariableFunctionCallContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParentVariableFunctionCall(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParentVariableFunctionCall(this);
-		}
-	}
-	public static class NotContext extends ExpressionContext {
-		public TerminalNode NOT() { return getToken(QuorumParser.NOT, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public NotContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNot(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNot(this);
-		}
-	}
-	public static class MeContext extends ExpressionContext {
-		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
-		public MeContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterMe(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitMe(this);
-		}
-	}
-	public static class ParenthesisExpressionContext extends ExpressionContext {
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
-		public ParenthesisExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParenthesisExpression(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParenthesisExpression(this);
-		}
-	}
-	public static class DecimalContext extends ExpressionContext {
-		public TerminalNode DECIMAL() { return getToken(QuorumParser.DECIMAL, 0); }
-		public DecimalContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterDecimal(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitDecimal(this);
-		}
-	}
-	public static class StringContext extends ExpressionContext {
-		public TerminalNode STRING() { return getToken(QuorumParser.STRING, 0); }
-		public StringContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterString(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitString(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAddition(this);
 		}
 	}
 	public static class OrContext extends ExpressionContext {
@@ -2875,65 +2766,50 @@ public class QuorumParser extends Parser {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitOr(this);
 		}
 	}
-	public static class CastContext extends ExpressionContext {
-		public Assignment_declarationContext assignment_declaration() {
-			return getRuleContext(Assignment_declarationContext.class,0);
-		}
-		public TerminalNode COMMA() { return getToken(QuorumParser.COMMA, 0); }
+	public static class ParenthesisExpressionContext extends ExpressionContext {
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
-		public TerminalNode CAST() { return getToken(QuorumParser.CAST, 0); }
-		public CastContext(ExpressionContext ctx) { copyFrom(ctx); }
+		public ParenthesisExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterCast(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParenthesisExpression(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitCast(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParenthesisExpression(this);
 		}
 	}
-	public static class EqualsContext extends ExpressionContext {
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
+	public static class InheritsContext extends ExpressionContext {
+		public Class_typeContext class_type() {
+			return getRuleContext(Class_typeContext.class,0);
 		}
-		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
-		public List<ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
+		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
 		}
-		public TerminalNode NOTEQUALS() { return getToken(QuorumParser.NOTEQUALS, 0); }
-		public EqualsContext(ExpressionContext ctx) { copyFrom(ctx); }
+		public InheritsContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterEquals(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterInherits(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitEquals(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInherits(this);
 		}
 	}
-	public static class GreaterContext extends ExpressionContext {
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
-		}
-		public TerminalNode GREATER_EQUAL() { return getToken(QuorumParser.GREATER_EQUAL, 0); }
-		public TerminalNode LESS_EQUAL() { return getToken(QuorumParser.LESS_EQUAL, 0); }
-		public TerminalNode LESS() { return getToken(QuorumParser.LESS, 0); }
-		public List<ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
-		}
-		public TerminalNode GREATER() { return getToken(QuorumParser.GREATER, 0); }
-		public GreaterContext(ExpressionContext ctx) { copyFrom(ctx); }
+	public static class StringContext extends ExpressionContext {
+		public TerminalNode STRING() { return getToken(QuorumParser.STRING, 0); }
+		public StringContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterGreater(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterString(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitGreater(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitString(this);
 		}
 	}
 	public static class IntegerContext extends ExpressionContext {
@@ -2948,23 +2824,92 @@ public class QuorumParser extends Parser {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInteger(this);
 		}
 	}
-	public static class AdditionContext extends ExpressionContext {
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
+	public static class VariableFunctionCallContext extends ExpressionContext {
+		public List<Action_callContext> action_call() {
+			return getRuleContexts(Action_callContext.class);
 		}
-		public TerminalNode MINUS() { return getToken(QuorumParser.MINUS, 0); }
-		public List<ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
+		public TerminalNode COLON(int i) {
+			return getToken(QuorumParser.COLON, i);
 		}
-		public TerminalNode PLUS() { return getToken(QuorumParser.PLUS, 0); }
-		public AdditionContext(ExpressionContext ctx) { copyFrom(ctx); }
+		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
+		public Parent_callContext parent_call() {
+			return getRuleContext(Parent_callContext.class,0);
+		}
+		public Action_callContext action_call(int i) {
+			return getRuleContext(Action_callContext.class,i);
+		}
+		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public VariableFunctionCallContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterAddition(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterVariableFunctionCall(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAddition(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitVariableFunctionCall(this);
+		}
+	}
+	public static class NotContext extends ExpressionContext {
+		public TerminalNode NOT() { return getToken(QuorumParser.NOT, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public NotContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNot(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNot(this);
+		}
+	}
+	public static class InputContext extends ExpressionContext {
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public TerminalNode INPUT() { return getToken(QuorumParser.INPUT, 0); }
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public InputContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterInput(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInput(this);
+		}
+	}
+	public static class EqualsContext extends ExpressionContext {
+		public TerminalNode NOTEQUALS() { return getToken(QuorumParser.NOTEQUALS, 0); }
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
+		}
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
+		}
+		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
+		public EqualsContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterEquals(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitEquals(this);
+		}
+	}
+	public static class DecimalContext extends ExpressionContext {
+		public TerminalNode DECIMAL() { return getToken(QuorumParser.DECIMAL, 0); }
+		public DecimalContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterDecimal(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitDecimal(this);
 		}
 	}
 	public static class AndContext extends ExpressionContext {
@@ -2985,34 +2930,89 @@ public class QuorumParser extends Parser {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAnd(this);
 		}
 	}
-	public static class NullContext extends ExpressionContext {
-		public TerminalNode NULL() { return getToken(QuorumParser.NULL, 0); }
-		public NullContext(ExpressionContext ctx) { copyFrom(ctx); }
+	public static class MeContext extends ExpressionContext {
+		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public MeContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNull(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterMe(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNull(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitMe(this);
 		}
 	}
-	public static class InheritsContext extends ExpressionContext {
-		public Class_typeContext class_type() {
-			return getRuleContext(Class_typeContext.class,0);
+	public static class GreaterContext extends ExpressionContext {
+		public TerminalNode LESS() { return getToken(QuorumParser.LESS, 0); }
+		public TerminalNode LESS_EQUAL() { return getToken(QuorumParser.LESS_EQUAL, 0); }
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
 		}
+		public TerminalNode GREATER_EQUAL() { return getToken(QuorumParser.GREATER_EQUAL, 0); }
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
+		}
+		public TerminalNode GREATER() { return getToken(QuorumParser.GREATER, 0); }
+		public GreaterContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterGreater(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitGreater(this);
+		}
+	}
+	public static class BooleanContext extends ExpressionContext {
+		public TerminalNode BOOLEAN() { return getToken(QuorumParser.BOOLEAN, 0); }
+		public BooleanContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterBoolean(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitBoolean(this);
+		}
+	}
+	public static class MinusContext extends ExpressionContext {
+		public TerminalNode MINUS() { return getToken(QuorumParser.MINUS, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
-		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
-		public InheritsContext(ExpressionContext ctx) { copyFrom(ctx); }
+		public MinusContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterInherits(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterMinus(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInherits(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitMinus(this);
+		}
+	}
+	public static class ParentVariableFunctionCallContext extends ExpressionContext {
+		public List<Action_callContext> action_call() {
+			return getRuleContexts(Action_callContext.class);
+		}
+		public TerminalNode COLON(int i) {
+			return getToken(QuorumParser.COLON, i);
+		}
+		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
+		public Parent_callContext parent_call() {
+			return getRuleContext(Parent_callContext.class,0);
+		}
+		public Action_callContext action_call(int i) {
+			return getRuleContext(Action_callContext.class,i);
+		}
+		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public ParentVariableFunctionCallContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParentVariableFunctionCall(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParentVariableFunctionCall(this);
 		}
 	}
 
@@ -3370,10 +3370,10 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Function_expression_listContext extends ParserRuleContext {
+		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public ExpressionContext expression(int i) {
 			return getRuleContext(ExpressionContext.class,i);
 		}
-		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
@@ -3527,9 +3527,9 @@ public class QuorumParser extends Parser {
 		"~\177\3\2\2\2\177\u0081\5\22\n\2\u0080}\3\2\2\2\u0081\u0082\3\2\2\2\u0082"+
 		"\u0080\3\2\2\2\u0082\u0083\3\2\2\2\u0083\u0085\3\2\2\2\u0084x\3\2\2\2"+
 		"\u0084\u0080\3\2\2\2\u0085\13\3\2\2\2\u0086\u0087\7\23\2\2\u0087\u0089"+
-		"\5\30\r\2\u0088\u008a\5.\30\2\u0089\u0088\3\2\2\2\u0089\u008a\3\2\2\2"+
+		"\5\30\r\2\u0088\u008a\5,\27\2\u0089\u0088\3\2\2\2\u0089\u008a\3\2\2\2"+
 		"\u008a\u0092\3\2\2\2\u008b\u008c\7,\2\2\u008c\u008e\5\30\r\2\u008d\u008f"+
-		"\5.\30\2\u008e\u008d\3\2\2\2\u008e\u008f\3\2\2\2\u008f\u0091\3\2\2\2\u0090"+
+		"\5,\27\2\u008e\u008d\3\2\2\2\u008e\u008f\3\2\2\2\u008f\u0091\3\2\2\2\u0090"+
 		"\u008b\3\2\2\2\u0091\u0094\3\2\2\2\u0092\u0090\3\2\2\2\u0092\u0093\3\2"+
 		"\2\2\u0093\r\3\2\2\2\u0094\u0092\3\2\2\2\u0095\u0096\t\2\2\2\u0096\17"+
 		"\3\2\2\2\u0097\u009d\5\64\33\2\u0098\u009a\5\16\b\2\u0099\u0098\3\2\2"+
