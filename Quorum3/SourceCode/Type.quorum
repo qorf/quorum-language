@@ -36,7 +36,7 @@ class Type
     /* This is the value of the text if it happens to be a constant. */
     text textConstant = ""
 
-    action Copy returns Type //TODO: does not yet handle objects or generics
+    action Copy returns Type //TODO: does not yet handle generics
         Type type
         if IsInteger()
             type:SetToInteger()
@@ -52,6 +52,8 @@ class Type
             type:SetTextConstant(textConstant)
         elseif IsVoid()
             type:SetToVoid()
+        else
+            type:SetToObject(staticKey)
         end
         type:SetIsConstant(isConstant)
         return type
@@ -202,6 +204,7 @@ class Type
         isTextObject = false
         isNumberObject = false
         isBooleanObject = false
+        isPrimitive = true
         staticKey = INTEGER_PRIMITIVE_KEY
     end
 
@@ -215,6 +218,7 @@ class Type
         isTextObject = false
         isNumberObject = false
         isBooleanObject = false
+        isPrimitive = true
         staticKey = BOOLEAN_PRIMITIVE_KEY
     end
 
@@ -228,6 +232,7 @@ class Type
         isTextObject = false
         isNumberObject = false
         isBooleanObject = false
+        isPrimitive = true
         staticKey = NUMBER_PRIMITIVE_KEY
     end
 
@@ -241,6 +246,7 @@ class Type
         isTextObject = false
         isNumberObject = false
         isBooleanObject = false
+        isPrimitive = true
         staticKey = TEXT_PRIMITIVE_KEY
     end
 
@@ -254,6 +260,7 @@ class Type
         isTextObject = false
         isNumberObject = false
         isBooleanObject = false
+        isPrimitive = false
         staticKey = INTEGER_OBJECT_KEY
     end
 
@@ -267,6 +274,7 @@ class Type
         isTextObject = false
         isNumberObject = false
         isBooleanObject = true
+        isPrimitive = false
         staticKey = BOOLEAN_OBJECT_KEY
     end
 
@@ -280,6 +288,7 @@ class Type
         isTextObject = false
         isNumberObject = true
         isBooleanObject = false
+        isPrimitive = false
         staticKey = NUMBER_OBJECT_KEY
     end
 
@@ -293,7 +302,22 @@ class Type
         isTextObject = true
         isNumberObject = false
         isBooleanObject = false
+        isPrimitive = false
         staticKey = TEXT_OBJECT_KEY
+    end
+
+    action SetToObject(text key)
+        isInteger = false
+        isText = false
+        isNumber = false
+        isBoolean = false
+        isVoid = false
+        isIntegerObject = false
+        isTextObject = true
+        isNumberObject = false
+        isBooleanObject = false
+        isPrimitive = false
+        staticKey = key
     end
 
     action ConvertTypeToBytecodeSignature returns text
@@ -308,7 +332,7 @@ class Type
         elseif IsVoid()
             return "V"
         else //it is an object, so return its interface type
-            return "L" + ConvertStaticKeyToBytecodePath() + "$Interface;"
+            return "L" + ConvertStaticKeyToBytecodePath() + ";"
         end
     end
 

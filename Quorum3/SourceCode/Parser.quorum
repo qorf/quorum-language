@@ -60,6 +60,23 @@ class Parser is QuorumSourceListener
         unresolvedUseStatements:Add(name)       
     end
 
+    action EnterGenericStatement(GenericContext context) end
+    action ExitGenericStatement(GenericContext context) end
+
+    action EnterGenericDeclaration(GenericDeclarationContext context) end
+    action ExitGenericDeclaration(GenericDeclarationContext context) 
+        Array<text> declarations = context:tokens
+        i = 0
+        size = declarations:GetSize()
+        repeat while i < size
+            
+            i = i + 1
+        end
+    end
+
+    action EnterInheritStatements(InheritStatementContext context) end
+    action ExitInheritStatements(InheritStatementContext context) end
+
     action AddClass(text name)
         text key = name
         Class clazz

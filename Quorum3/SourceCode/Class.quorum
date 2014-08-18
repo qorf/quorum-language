@@ -17,6 +17,8 @@ class Class is Symbol
     Action constructor = undefined
     boolean hasMain = false
     Array<QualifiedName> unresolvedUseStatements
+    Array<QualifiedName> unresolvedParents
+    Array<text> genericDeclarations
     HashTable<text, Class> validUses
     HashTable<text, Class> validUsesFullyQualified
     File file = undefined
@@ -35,6 +37,10 @@ class Class is Symbol
         error:SetFile(method:GetFile())
         error:SetErrorMessage("Action " + method:GetDisplayName() + " has already been defined.")
         return error
+    end
+
+    action AddGenericDeclaration(text value)
+        genericDeclarations:Add(value)
     end
 
     action AddValidUse(Class clazz) returns CompilerError
