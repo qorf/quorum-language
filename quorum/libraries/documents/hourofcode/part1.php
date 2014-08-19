@@ -4,29 +4,30 @@
     
     //slide array
     var slideArray = new Array();
-    slideArray[0] = "<h5 role=\"heading\">This is where you will find my Notes.</h5><ul><li role=\"listitem\">My first experiment is to test some code.</li><li>Dr. Day already gave me some variables to test, he's so awesome.</li><li>There are several DNA sequences and we are going to use some text and try to determine if it is a valid DNA sequence or not.</li><li>To check the DNA we need to make sure the sequence only has letters A, C, G, or T.</li>";
-    slideArray[1] = "<h5 role=\"heading\">Today's Notes.</h5><ul><li role=\"listitem\">Paul created something called an action.</li><li>I think that will perform the execution of his code when I tell the computer to do so.</li><li>So the action is called IsDNA, to tell me if the action is valid or not, seems pretty neat.</li>After that I'll put the variable I want the action to use in parantheses.</li>";
-    slideArray[2] = "<h5 role=\"heading\">Today's Notes.</h5><ul><li role=\"listitem\">Hmmm. What else do I need to know?</li><li>When an action uses a variable, that variable is said to be a parameter of the action.</li><li>Alright. Once I run Paul's code it seems I will get something back.</li><li>It should give me a boolean which can only be true and false, I think.</li>";
-    slideArray[3] = "<h5 role=\"heading\">Today's Notes.</h5><ul><li role=\"listitem\">I have to put Boolean in front of my variable, I called it validDNA, so I know a valid DNA will give me true.</li><li>So I set that variable equal to the variable IsDNA to receive the result.</li><li>To check the variable I'll do that thing called an output statement to the IsDNA variable.</li>";
-    slideArray[4] = "<h5 role=\"heading\">Instructions.</h5>";
-    
-    $(document).ready(function(){
-        $('#IDE-input').text('var DNAStrand1 = "GATTACA";\nvar DNAStrand2 = "GARRACA";\n\nvar validDNA = IsDNA(DNAStrand2);\n"The result of this DNA is: " + validDNA;');
-    });
+    slideArray[0] = "<h5 role=\"heading\">Variables</h5><ul><li>In programming, a <code>variable</code> is used as a container to store information that can be used at a later time.</li><li>There are different kinds of variables that will hold different kinds of information.</li><li>For this example, we will create a <code>text</code> variable, which can hold anything you want to type in.</li></ul>";
+    slideArray[1] = "<h5 role=\"heading\">Creating Variables</h5><ul><li>To create a variable in Quorum, we start by telling the computer what type of variable we want to make, in this case it's a text variable, followed by a space and a name for the variable.  Let's create a variable named dna by typing the code: <code>text dna</code></li><li>When naming a variable, we start with a lowercase letter followed by more letters or numbers.</li><li><span class=\"bold\">Note: </span>Names are case sensitive; dna is not the same as DNA.</li></ul>";
+    slideArray[2] = "<h5 role=\"heading\">Storing Information in Variables: Basics</h5><ul><li>We have made a variable, but we haven't stored any information in it yet.</li><li>To put something into a variable we use the <code>=</code> operator followed by the information we want stored.</li><li><span class=\"bold\">Note: </span>When we store something in a text variable, we need to let the computer know whether it should store something we type in directly or if it should store information from another variable.  To make this distinction, we put double quotes around what we type.  Without double quotes, the computer will treat whatever we type as a variable.</li></ul>";
+    slideArray[3] = "<h5 role=\"heading\">Storing Information in Variables: Example</h5><ul><li>For this example, let's store the text GATTACA by adding on to what we have: <code>text dna = \"GATTACA\"</code></li><li><span class=\"bold\">Note: </span>When working with text variables, always be sure to use double quotes when not storing information from another variable.</li></ul>";
+    slideArray[4] = "<h5 role=\"heading\">Using Variables for Output</h5><ul><li>Now that we've stored something in our variable, we can refer to its contents whenever we need.</li><li>To demonstrate this, let's grab what we have stored in our variable and display it to the screen.</li><li>In Quorum, to output information to the screen we type the word <code>output</code> followed by a space and then whatever we want to show up on screen.</li><li>In this case, we want to output the contents of our variable named dna, so to do this we would type: <code>output dna</code>.</li></ul>";
+    slideArray[5] = "<h5 role=\"heading\">Additional Information Regarding Variables</h5><ul><li>Because variables are just containers, if we were to go back and change what was stored inside of dna we could still use the same output statement and get a different result on screen.  If you've been following along, you can test this by changing what is stored in the dna variable.</li></ul>";
+
+$(document).ready(function(){
+    $('#IDE-input').text('text dna = "GATTACA"\noutput dna');
+});
 </script>
 <?php include("slideshow.php"); ?>
 
 <div class="hero-unit">
 	<div class="hero-unit-container" role="banner">
 		<h1>Hour of Code: Part 1</h1>
-                <p>Building Blocks of Life</p>
+                <p>Got a New Gig</p>
 	</div>
 </div>
   <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 
       <?php include("sidebar.php"); ?><div id="content-box"><div id="slide-navigation"></div>
           <div id="slide-box-wrapper" role="description" aria-live="polite"><button id="leftArrow" class="leftArrow-disabled" aria-hidden="true" aria-label="Previous Slide"></button><div id ="slide-box"></div></div><button id="rightArrow" aria-label="Next Slide"></button>
-</div><?php include ("../../ide.php"); ?><div id="video-container">
+</div><?php include("../../ide.php"); ?><div id="video-container">
     <iframe width="946" height="710" src="//www.youtube.com/embed/If3KlMxbtcc?rel=0" frameborder="0" allowfullscreen></iframe>
 </div>
 

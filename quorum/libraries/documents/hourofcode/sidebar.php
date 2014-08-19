@@ -1,13 +1,12 @@
 <div id="sidebar-navigation">
     <ul>
-        <a href="introduction.php"><li id="sidebar-introduction" class="sidebar-link">Part 0: Meeting Mary</li></a>
-        <a href="part1.php"><li id="sidebar-part1" class="sidebar-link">Part 1: Check DNA</li></a>
-        <a href="part2.php"><li id="sidebar-part2" class="sidebar-link">Part 2: Mutations!</li></a>
-        <a href="part3.php"><li id="sidebar-part3" class="sidebar-link">Part 3: Count the Mutants</li></a>
-        <a href="part4.php"><li id="sidebar-part4" class="sidebar-link">Part 4: Hi... Mom?</li></a>
-        <a href="part5.php"><li id="sidebar-part5" class="sidebar-link">Part 5: Breed the Mutants</li></a>
-        <a href="part6.php"><li id="sidebar-part6" class="sidebar-link">Part 6: Create Superbugs</li></a>
-        <a href="part7.php"><li id="sidebar-part7" class="sidebar-link">Part 7: Take Over the World!</li></a>
+        <a href="part1.php"><li id="sidebar-part1" class="sidebar-link">Part 1: Got a New Gig</li></a>
+        <a href="part2.php"><li id="sidebar-part2" class="sidebar-link">Part 2: Sayin' Stuff</li></a>
+        <a href="part3.php"><li id="sidebar-part3" class="sidebar-link">Part 3: This or That</li></a>
+        <a href="part4.php"><li id="sidebar-part4" class="sidebar-link">Part 4: Clothing Picker</li></a>
+        <a href="part5.php"><li id="sidebar-part5" class="sidebar-link">Part 5: Choose My Clothing!</li></a>
+        <a href="part6.php"><li id="sidebar-part6" class="sidebar-link">Part 6: Mutate the Bugs</li></a>
+        <a href="part7.php"><li id="sidebar-part7" class="sidebar-link">Part 7: The End of the World</li></a>
     </ul>    
 </div><script type="text/javascript">
     

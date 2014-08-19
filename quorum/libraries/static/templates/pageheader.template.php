@@ -59,7 +59,7 @@
 		<div class="navbar navbar-inverse navbar-fixed-top">
 			<div class="navbar-inner">
 				<div class="navbar-container">
-					<a class="brand" href="/">Quorum</a>
+                                    <a class="brand" href="/"><img src="../../static/img/quorum_logo.png"> Quorum</a>
 					<ul class="nav">
 						<?php
 							createNavBarLink("Learn","syntax.php", 1);
