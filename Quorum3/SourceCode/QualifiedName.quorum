@@ -6,15 +6,27 @@ use Libraries.Language.Compile.Location
 
 class QualifiedName is Location
     List<text> names
+    List<text> generics
 
     action Add(text name)
         names:Add(name)
+    end
+
+    action AddGeneric(text generic)
+        generics:Add(generic)
     end
 
     action GetSize returns integer
         return names:GetSize()
     end
 
+    /*
+        This returns the static key for the qualified name. If this
+        action contains information about generic types, they are ignored. 
+        The reason for this is because generics are not related to the generation
+        of static keys, as they are unique identifiers based on package
+        and class name.
+    */
     action GetStaticKey returns text
         key = ""
         i = 0

@@ -1,4 +1,9 @@
 package Libraries.Language.Compile.Context
 
+use Libraries.Containers.Array
+use Libraries.Language.Compile.QualifiedName
+
 class InheritStatementContext is ParseContext
+    public QualifiedName name = undefined
+    Array<text> generics
 end

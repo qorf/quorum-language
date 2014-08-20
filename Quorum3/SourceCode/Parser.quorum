@@ -75,7 +75,15 @@ class Parser is QuorumSourceListener
     end
 
     action EnterInheritStatements(InheritStatementContext context) end
-    action ExitInheritStatements(InheritStatementContext context) end
+    action ExitInheritStatements(InheritStatementContext context) 
+        a = 5
+
+    end
+
+    action EnterInheritStatement(InheritStatementContext context) end
+    action ExitInheritStatement(InheritStatementContext context) 
+        a = 5
+    end
 
     action AddClass(text name)
         text key = name

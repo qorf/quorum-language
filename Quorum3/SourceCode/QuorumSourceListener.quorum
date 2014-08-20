@@ -148,8 +148,11 @@ class QuorumSourceListener
     action EnterAssignmentDeclaration(AssignmentDeclaractionContext context) end
     action ExitAssignmentDeclaration(AssignmentDeclaractionContext context) end
 
-    action EnterInheritStatements(InheritStatementContext context) end
-    action ExitInheritStatements(InheritStatementContext context) end
+    action EnterInheritStatements(InheritStatementsContext context) end
+    action ExitInheritStatements(InheritStatementsContext context) end
+
+    action EnterInheritStatement(InheritStatementContext context) end
+    action ExitInheritStatement(InheritStatementContext context) end
 
     action EnterDetectParameter(DetectParameterContext context) end
     action ExitDetectParameter(DetectParameterContext context) end
