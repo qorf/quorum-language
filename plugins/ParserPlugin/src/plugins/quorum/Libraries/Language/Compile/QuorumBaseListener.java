@@ -30,6 +30,19 @@ public class QuorumBaseListener implements QuorumListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterInherit_stmt(@NotNull QuorumParser.Inherit_stmtContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitInherit_stmt(@NotNull QuorumParser.Inherit_stmtContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterNull(@NotNull QuorumParser.NullContext ctx) { }
 	/**
 	 * {@inheritDoc}

@@ -31,9 +31,13 @@ no_class_stmnts
 	|(access_modifier? method_declaration)+
 	;
 inherit_stmnts
-	:	INHERITS qualified_name generic_declaration? 
-        (COMMA qualified_name generic_declaration? )*
+	:	INHERITS inherit_stmt 
+        (COMMA inherit_stmt )*
 	;
+inherit_stmt
+        :
+            qualified_name generic_declaration? 
+        ;
 access_modifier
 	:	PUBLIC
 	|	PRIVATE

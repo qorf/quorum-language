@@ -20,6 +20,17 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitFormal_parameter(@NotNull QuorumParser.Formal_parameterContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link QuorumParser#inherit_stmt}.
+	 * @param ctx the parse tree
+	 */
+	void enterInherit_stmt(@NotNull QuorumParser.Inherit_stmtContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuorumParser#inherit_stmt}.
+	 * @param ctx the parse tree
+	 */
+	void exitInherit_stmt(@NotNull QuorumParser.Inherit_stmtContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link QuorumParser#Null}.
 	 * @param ctx the parse tree
 	 */

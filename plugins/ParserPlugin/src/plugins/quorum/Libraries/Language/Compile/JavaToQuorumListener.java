@@ -12,12 +12,15 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import quorum.Libraries.Containers.Array;
 import quorum.Libraries.Language.Compile.Context.*;
 import quorum.Libraries.Language.Compile.Location;
+import quorum.Libraries.Language.Compile.QualifiedName;
 import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
 import quorum.Libraries.Language.Compile.Symbol.Type;
 import quorum.Libraries.Language.Compile.Symbol.Type$Interface;
 import quorum.Libraries.Language.Compile.Symbol.Variable;
+import quorum.Libraries.Language.Object$Interface;
 import quorum.Libraries.Language.Types.Text;
 import quorum.Libraries.System.File$Interface;
 
@@ -501,18 +504,64 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterInherit_stmnts(QuorumParser.Inherit_stmntsContext ctx) {
-        quorum.Libraries.Language.Compile.Context.InheritStatementContext context = 
-                new quorum.Libraries.Language.Compile.Context.InheritStatementContext();
+        quorum.Libraries.Language.Compile.Context.InheritStatementsContext context = 
+                new quorum.Libraries.Language.Compile.Context.InheritStatementsContext();
         setLocation(ctx, context);
         listener.EnterInheritStatements(context);
     }
 
     @Override
     public void exitInherit_stmnts(QuorumParser.Inherit_stmntsContext ctx) {
-        quorum.Libraries.Language.Compile.Context.InheritStatementContext context = 
-                new quorum.Libraries.Language.Compile.Context.InheritStatementContext();
+        quorum.Libraries.Language.Compile.Context.InheritStatementsContext context = 
+                new quorum.Libraries.Language.Compile.Context.InheritStatementsContext();
         setLocation(ctx, context);
         listener.ExitInheritStatements(context);
+    }
+    
+    @Override
+    public void enterInherit_stmt(QuorumParser.Inherit_stmtContext ctx) {
+        quorum.Libraries.Language.Compile.Context.InheritStatementContext context = 
+                new quorum.Libraries.Language.Compile.Context.InheritStatementContext();
+        
+        setLocation(ctx, context);
+        listener.EnterInheritStatement(context);
+    }
+
+    @Override
+    public void exitInherit_stmt(QuorumParser.Inherit_stmtContext ctx) {
+        quorum.Libraries.Language.Compile.Context.InheritStatementContext context = 
+                new quorum.Libraries.Language.Compile.Context.InheritStatementContext();
+        QuorumParser.Qualified_nameContext name = ctx.qualified_name();
+        QuorumParser.Generic_declarationContext generic = ctx.generic_declaration();
+        
+        context.name = Convert(name);
+        
+        if(generic != null) {
+            List<Token> tokenList = generic.ids;
+            Iterator<Token> tokens = tokenList.iterator();
+            while(tokens.hasNext()) {
+                Token token = tokens.next();
+                String value = token.getText();
+                Text text = new Text();
+                text.value = value;
+                context.generics.Add(text);
+            }
+        }
+        
+        setLocation(ctx, context);
+        listener.ExitInheritStatement(context);
+    }
+    
+    public QualifiedName Convert(QuorumParser.Qualified_nameContext next) {
+        QualifiedName name = new QualifiedName();
+        List<Token> ids = next.ids;
+        Iterator<Token> tokens = ids.iterator();
+        while(tokens.hasNext()) {
+            Token token = tokens.next();
+            String value = token.getText();
+            name.Add(value);
+        }
+        return name;
     }
 
     @Override
