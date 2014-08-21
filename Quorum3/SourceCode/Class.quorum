@@ -43,6 +43,10 @@ class Class is Symbol
         genericDeclarations:Add(value)
     end
 
+    action AddUnresolvedParent(QualifiedName name)
+        unresolvedParents:Add(name)
+    end
+
     action AddValidUse(Class clazz) returns CompilerError
         name = clazz:GetName()
         if validUses:HasKey(name)
@@ -85,6 +89,25 @@ class Class is Symbol
 
     action GetUnresolvedUseStatements returns Iterator<QualifiedName>
         return unresolvedUseStatements:GetIterator()
+    end
+
+    action GetUnresolvedParents returns Iterator<QualifiedName>
+        return unresolvedParents:GetIterator()
+    end
+
+    /*
+        This action returns a class from a name, like Object, for
+        Libraries.Language.Object. It assumes that the name passed in is
+        not resolved. Fully resolvable names (Libraries.Language.Object) will
+        not be resolved by this action, and as such, need to be resolved
+        from the symbol table.
+    */
+    action GetValidUseName(text name) returns Class
+        if validUses:HasKey(name)
+            return validUses:GetValue(name)
+        end
+
+        return undefined
     end
 
     action Add(Variable variable) returns CompilerError
@@ -139,6 +162,18 @@ class Class is Symbol
             return me:GetName()
         end
         return pack + "." + me:GetName()
+    end
+
+    /*
+        This returns a key related to the package a class is contained in. For
+        example, if a class's fully qualified name is Libraries.Language.Object,
+        then this would return Libraries.Langauge. If the class's fully qualified
+        name is Bob, then this would return the empty string, which indicates
+        the default package.
+    */
+    action GetPackageKey returns text
+        text pack = packageName:GetStaticKey()
+        return pack
     end
 
     action GetDisplayName returns text

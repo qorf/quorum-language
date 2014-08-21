@@ -19,6 +19,7 @@ class Parser is QuorumSourceListener
     Stack<Block> blocks
     Array<QualifiedName> unresolvedUseStatements
     List<Class> classes
+    boolean isFirstGenericInFile = false
 
     /*
         This action returns an iterator of all of the classes parsed
@@ -40,6 +41,7 @@ class Parser is QuorumSourceListener
     action EnterFullClassDeclaration(FullClassDeclarationContext context)
         text name = context:className
         AddClass(name)
+        isFirstGenericInFile = true
     end
 
     action ExitFullClassDeclaration(FullClassDeclarationContext context) 
@@ -65,24 +67,20 @@ class Parser is QuorumSourceListener
 
     action EnterGenericDeclaration(GenericDeclarationContext context) end
     action ExitGenericDeclaration(GenericDeclarationContext context) 
-        Array<text> declarations = context:tokens
-        i = 0
-        size = declarations:GetSize()
-        repeat while i < size
-            
-            i = i + 1
+        if isFirstGenericInFile
+            Array<text> declarations = context:tokens
+            i = 0
+            size = declarations:GetSize()
+            repeat while i < size
+                currentClass:AddGenericDeclaration(declarations:Get(i))
+                i = i + 1
+            end
+            isFirstGenericInFile = false
         end
     end
 
-    action EnterInheritStatements(InheritStatementContext context) end
-    action ExitInheritStatements(InheritStatementContext context) 
-        a = 5
-
-    end
-
-    action EnterInheritStatement(InheritStatementContext context) end
     action ExitInheritStatement(InheritStatementContext context) 
-        a = 5
+        currentClass:AddUnresolvedParent(context:name)
     end
 
     action AddClass(text name)

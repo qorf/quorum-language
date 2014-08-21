@@ -42,6 +42,15 @@ class QualifiedName is Location
         return key
     end
 
+    /* This action returns the final value in the qualified name. So, for example,
+        if the qualified name is Libraries.Language.Object, this action would
+        return object.
+    */
+    action GetName returns text
+        text name = names:Get(names:GetSize() - 1)
+        return name
+    end
+
     action GetPath returns text
         key = ""
         i = 0

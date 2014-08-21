@@ -116,6 +116,9 @@ class Compiler
 
         Iterator<Class> classes = symbolTable:GetClasses()
         repeat while classes:HasNext()
+            //gather up all the classes on the system and check their
+            //use statements for classes we don't know about
+            //if there are some, mark them as unparsed
             repeat while classes:HasNext()
                 Class clazz = classes:Next()
                 File classFile = clazz:GetFile()
@@ -124,35 +127,15 @@ class Compiler
                     parsed:Add(path, clazz:GetFile())
                 end
                 Iterator<QualifiedName> names = clazz:GetUnresolvedUseStatements()
-                repeat while names:HasNext()
-                    QualifiedName qn = names:Next()
-                    text key = qn:GetStaticKey()
-                    Class classCheck =  symbolTable:GetClass(key)
-                    if classCheck = undefined //ignore it if it exists already
-                        File file = GetStandardLibraryFile(key)
-                        if file not= undefined
-                            text newPath = file:GetAbsolutePath()
-                            if parsed:HasKey(newPath) //this class has already been parsed
+                ResolveQualifiedNames(names, parsed, unparsed, clazz)
 
-                            elseif unparsed:HasKey(newPath) //this class is already scheduled for parsing
-
-                            else
-                                unparsed:Add(newPath, file)
-                            end
-                        else//this should be a compiler error. The user requested a file that doesn't exist
-                            CompilerError error
-                            error:SetLocation(qn)
-                            CompilerErrorType type
-                            type:SetCurrentType(type:MISSING_CLASS)
-                            error:SetCompilerErrorType(type)
-                            error:SetErrorMessage("I could not find a class named " + key + "." 
-                                + " Did you forget to tell me about it or put it in the standard library?")
-                            compilerErrorManager:Add(error)
-                        end
-                    end
-                end
+                Iterator<QualifiedName> parents = clazz:GetUnresolvedParents()
+                ResolveParents(parents, parsed, unparsed, clazz)
             end
 
+            //make list of any new classes that need to be analyzed
+            //that have not previously been parsed. If there are some
+            //send them back through the loop
             List<Class> newClasses
             Iterator<File> mustParse = unparsed:GetValueIterator()
             repeat while mustParse:HasNext()
@@ -165,13 +148,95 @@ class Compiler
                 repeat while parsedClasses:HasNext()
                     Class clazz = parsedClasses:Next()
                     newClasses:Add(clazz)
+                    if not symbolTable:HasClass(clazz:GetStaticKey())
+                        symbolTable:Add(clazz)
+                    end
                 end
             end
             classes = newClasses:GetIterator()
             unparsed:Empty()
         end
         return parsed:CopyToValueArray()
-        //return files
+    end
+
+    private action ResolveParents(Iterator<QualifiedName> names, 
+            HashTable<text, File> parsed,
+            HashTable<text, File> unparsed, Class clazz)
+
+
+        repeat while names:HasNext()
+            QualifiedName qn = names:Next()
+            text key = qn:GetStaticKey()
+            Class classCheck = clazz:GetValidUseName(key)
+
+            //is there a class of that name in the same package?
+            if classCheck = undefined
+                text pack = clazz:GetPackageKey()
+                classCheck = symbolTable:GetClassInPackage(pack, qn:GetName())
+            end
+            
+            //Is there a class with a fully qualified name in the symbol table?
+            if classCheck = undefined
+                classCheck =  symbolTable:GetClass(key) //is it in the symbol table?
+            end
+
+            if classCheck = undefined //ignore it if it exists already
+                File file = GetStandardLibraryFile(key)
+                if file not= undefined
+                    text newPath = file:GetAbsolutePath()
+                    if parsed:HasKey(newPath) //this class has already been parsed
+                    elseif unparsed:HasKey(newPath) //this class is already scheduled for parsing
+                    else
+                        unparsed:Add(newPath, file)
+                    end
+                else//this should be a compiler error. The user requested a file that doesn't exist
+                    CompilerError error
+                    error:SetLocation(qn)
+                    CompilerErrorType type
+                    type:SetCurrentType(type:MISSING_CLASS)
+                    error:SetCompilerErrorType(type)
+                    error:SetErrorMessage("I noticed that this class is a " + key + ", but I cannot find it." 
+                        + " Did you forget to tell me about it or put it in the standard library?")
+                    compilerErrorManager:Add(error)
+                end
+            end
+        end
+    end
+
+    private action ResolveQualifiedNames(
+            Iterator<QualifiedName> names, 
+            HashTable<text, File> parsed,
+            HashTable<text, File> unparsed, Class clazz)
+        repeat while names:HasNext()
+            QualifiedName qn = names:Next()
+            text key = qn:GetStaticKey()
+            Class classCheck =  symbolTable:GetClass(key)
+            if classCheck = undefined //ignore it if it exists already
+                File file = GetStandardLibraryFile(key)
+                if file not= undefined
+                    text newPath = file:GetAbsolutePath()
+                    if parsed:HasKey(newPath) //this class has already been parsed
+                        Class newClass = symbolTable:GetClassInFile(newPath)
+                        clazz:AddValidUse(newClass)
+                    elseif unparsed:HasKey(newPath) //this class is already scheduled for parsing
+
+                    else
+                        unparsed:Add(newPath, file)
+                    end
+                else//this should be a compiler error. The user requested a file that doesn't exist
+                    CompilerError error
+                    error:SetLocation(qn)
+                    CompilerErrorType type
+                    type:SetCurrentType(type:MISSING_CLASS)
+                    error:SetCompilerErrorType(type)
+                    error:SetErrorMessage("I could not find a class named " + key + "." 
+                        + " Did you forget to tell me about it or put it in the standard library?")
+                    compilerErrorManager:Add(error)
+                end
+            else
+                clazz:AddValidUse(classCheck)
+            end
+        end
     end
 
     action GetStandardLibraryFile(text key) returns File

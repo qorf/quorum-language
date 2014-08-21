@@ -10,6 +10,7 @@ use Libraries.Containers.Blueprints.Iterator
 class SymbolTable 
     HashTable<text, Source> files
     HashTable<text, Class> classes
+    HashTable<text, HashTable<text, Class>> packages
 
     action Add(Class clazz) returns CompilerError
         if classes:HasKey(clazz:GetStaticKey())
@@ -17,6 +18,7 @@ class SymbolTable
             error:SetLineNumber(clazz:GetLineNumber())
             error:SetFile(clazz:GetFile())
             error:SetErrorMessage("Class " + clazz:GetStaticKey() + " is already defined.")
+            return error
         end //otherwise just add it
         classes:Add(clazz:GetStaticKey(), clazz)
 
@@ -32,11 +34,29 @@ class SymbolTable
             files:Add(source:GetStaticKey(), source)
         end
 
+        text pack = clazz:GetPackageKey()
+        if not packages:HasKey(pack) //create one
+            HashTable<text, Class> p
+            packages:Add(pack, p)
+        end
+        
+        HashTable<text, Class> thePackage = packages:GetValue(pack)
+        thePackage:Add(clazz:GetName(), clazz)
         return undefined
     end
 
     action GetClasses returns Iterator<Class>
         return classes:GetValueIterator()
+    end
+
+    action GetClassInPackage(text packageKey, text name) returns Class
+        HashTable<text, Class> pack = packages:GetValue(packageKey)
+        if pack = undefined
+            return undefined
+        end
+
+        Class clazz = pack:GetValue(name)
+        return clazz
     end
 
     action Add(Action act) returns CompilerError
@@ -53,6 +73,14 @@ class SymbolTable
 
     action GetClass(text key) returns Class
         return classes:GetValue(key)
+    end
+
+    /*
+        Returns whether or not a class exists in the symbol table. The key
+        passed must be the full static key (i.e., Libraries.Language.Object, not Object).
+    */
+    action HasClass(text key) returns boolean
+        return classes:HasKey(key)
     end
 
     /*
