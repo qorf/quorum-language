@@ -69,7 +69,7 @@
 
 
 <div class="learn-index-grid">
-    <li class="learn-grid-item-large grid-item-hour-of-code front-page-grid-item"><a href="/documents/hourofcode/introduction.php"><h2 class="index_package_title"><i></i>Learn how to use Quorum with Mary</h2></a>
+    <li class="learn-grid-item-large grid-item-hour-of-code front-page-grid-item"><a href="/documents/hourofcode/part1.php"><h2 class="index_package_title"><i></i>Learn how to use Quorum with Mary</h2></a>
 </div>
 
 </div>

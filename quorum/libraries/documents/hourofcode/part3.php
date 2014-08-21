@@ -1,14 +1,14 @@
 <?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
-    document.title = 'Hour of Code: Part 3 | Quorum Programming Language';
+    document.title = 'Hour of Code: Part 2 | Quorum Programming Language';
     
     //slide array
     var slideArray = new Array();
-    slideArray[0] = "<h5 role=\"heading\">Hello again.</h5><ul><li role=\"listitem\">Dr. Day saw the mutation and told me to run more tests.</li><li>My new goal is to find out how many times the mutation occurs, which could take a while.</li><li>But he gave me Cheetos, which of course are my favorite kind of chips.</li>";
-    slideArray[1] = "<h5 role=\"heading\">Today's Notes.</h5><ul><li role=\"listitem\">He taught me that in Quorum, I can use an if statement.</li><li>The if statement should tell me whether the clone is a mutant or not.</li><li>Then I think I can use an integer variable to store how many mutants I come across.</li>";
-    slideArray[2] = "<h5 role=\"heading\">Today's Notes.</h5><ul><li role=\"listitem\">The integer variable is named mutationCount.</li><li>And I could then put in the if statement, whatever that is.</li><li>If it does not equal GATTACA, its a mutant.</li>";
-    slideArray[3] = "<h5 role=\"heading\">Today's Notes.</h5><ul><li role=\"listitem\">I ended up with a TON of mutants.</li><li>It seemed pretty surprising but I didn't tell Dr. Day yet.</li><li>I guess we will find out what happens tomorrow.</li><li>I almost forgot, we got a pet rat.</li>";
-    slideArray[4] = "<h5 role=\"heading\">Instructions.</h5>";
+    slideArray[0] = "<h5 role=\"heading\">A new day.</h5><ul><li role=\"listitem\">Today Dr. Day told me to clone DNA.</li><li>Oh yeah, I also got this awesome keychain!</li><li>Anyways, I had to clone this DNA 10 times, which might taken a while to do.</li><li>So, I chose to do it the shorter way with programming.</li>";
+    slideArray[1] = "<h5 role=\"heading\">Today's Notes.</h5><ul><li role=\"listitem\">I used the Quorum programming language, kind of like you are!</li><li>So to clone the DNA 10 times I just repeat it.</li><li>It seemed like it was working pretty well for a while.</li>";
+    slideArray[2] = "<h5 role=\"heading\">Today's Notes.</h5><ul><li role=\"listitem\">Oh goodness!</li><li>During the DNA replication process an error had occured which caused a mutation.</li><li>A mutation is an error in the replication process that damaged the DNA.</li>";
+    slideArray[3] = "<h5 role=\"heading\">Instructions.</h5>";
+    slideArray[4] = "";
     
     $(document).ready(function(){
         $('#IDE-input').text('');
@@ -18,8 +18,8 @@
 
 <div class="hero-unit">
 	<div class="hero-unit-container" role="banner">
-		<h1>Hour of Code: Part 3</h1>
-                <p>Count the Mutants</p>
+		<h1>Hour of Code: Part 2</h1>
+                <p>Mutations!</p>
 	</div>
 </div>
   <?php include("../../static/templates/contentwrapperheader.template.php"); ?>

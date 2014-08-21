@@ -33,7 +33,7 @@ $( document ).ready(function() {
         //initial load stuff
         $(buttonArray[0]).addClass('active-slide-navigation-button');
         $('#slide-box').replaceWith($.parseHTML(slideArray[0]));
-        $('#slide-navigation').append('<p aria-hidden="true">Mary\'s Notes</p>');
+        $('#slide-navigation').append('<p aria-hidden="true">Programming Notes</p>');
         
         //changing slides
         var slide = function(index, direction) {
