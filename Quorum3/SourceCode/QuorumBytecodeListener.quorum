@@ -165,7 +165,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             remaining = opcodeStack:GetSize()
             if remaining not= 0
                 if remaining not= 1
-                    alert("Compiler Bug: Cannot have more than 1 remaining opcode on the opcode stack at the end of an action.")
+                    //alert("Compiler Bug: Cannot have more than 1 remaining opcode on the opcode stack at the end of an action.")
                 else 
                     QuorumOpcode op = opcodeStack:Pop()
                     currentActionOpcode:Add(op)
@@ -470,11 +470,13 @@ class QuorumBytecodeListener is QuorumSourceListener
                 isNextVariableReferenceMe = false
             end
 
-            Type type = variable:GetType()
-            actionCall:SetType(type)
-            actionCall:SetBytecodeLocation(variable:GetBytecodeLocation())
-            if variable:IsField()
-            else
+            if variable not= undefined
+                Type type = variable:GetType()
+                actionCall:SetType(type)
+                actionCall:SetBytecodeLocation(variable:GetBytecodeLocation())
+                if variable:IsField()
+                else
+                end
             end
         end
         opcodeStack:Push(actionCall)

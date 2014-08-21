@@ -31,9 +31,11 @@ class CreateObjectOpcode is QuorumOpcode
     end
 
     action Write
-        methodWriter:VisitType(opcodes:GetNew(), clazz:ConvertStaticKeyToBytecodePath())
-        methodWriter:VisitInstruction(opcodes:GetDuplicate())
-        methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), clazz:ConvertStaticKeyToBytecodePath(), "<init>", "()V", false)
+        if clazz not= undefined
+            methodWriter:VisitType(opcodes:GetNew(), clazz:ConvertStaticKeyToBytecodePath())
+            methodWriter:VisitInstruction(opcodes:GetDuplicate())
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), clazz:ConvertStaticKeyToBytecodePath(), "<init>", "()V", false)
+        end
     end
 
     action GetMethodWriter returns JavaBytecodeMethodWriter

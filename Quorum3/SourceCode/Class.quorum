@@ -22,6 +22,16 @@ class Class is Symbol
     HashTable<text, Class> validUses
     HashTable<text, Class> validUsesFullyQualified
     File file = undefined
+    
+    on create
+        QualifiedName name
+        name:Add("Libraries")
+        name:Add("Language")
+        name:Add("Object")
+
+        //by default, all classes inherit from Object
+        AddUnresolvedParent(name)
+    end
 
     action Add(Action method) returns CompilerError
         if not IsDefined(method)

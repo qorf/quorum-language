@@ -62,11 +62,15 @@ class ActionCallOpcode is QuorumOpcode
 
             Action act = actionResolution:resolvedAction
             Class clazz = act:GetParentClass()
-            methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
-                clazz:ConvertStaticKeyToBytecodePath(), act:GetName(), 
-                act:ConvertActionToBytecodeParameterSignature(), false)
+            if act not= undefined and clazz not= undefined
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
+                    clazz:ConvertStaticKeyToBytecodePath(), act:GetName(), 
+                    act:ConvertActionToBytecodeParameterSignature(), false)
+            end
         else
-            methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetType()), bytecodeLocation)
+            if GetType() not= undefined
+                methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetType()), bytecodeLocation)
+            end
         end
     end
 

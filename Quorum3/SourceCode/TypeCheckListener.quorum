@@ -206,11 +206,13 @@ class TypeCheckListener is QuorumSourceListener
                 isNextVariableReferenceMe = false
             end
 
-            Type type = variable:GetType()
-            if variable:IsField()
-            else
+            if variable not= undefined
+                Type type = variable:GetType()
+                if variable:IsField()
+                else
+                end
+                expressionStack:Push(type)
             end
-            expressionStack:Push(type)
         end
     end
 
