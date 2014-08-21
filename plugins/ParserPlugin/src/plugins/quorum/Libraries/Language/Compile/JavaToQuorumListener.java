@@ -542,9 +542,7 @@ public class JavaToQuorumListener implements QuorumListener {
             while(tokens.hasNext()) {
                 Token token = tokens.next();
                 String value = token.getText();
-                Text text = new Text();
-                text.value = value;
-                context.generics.Add(text);
+                context.name.AddGeneric(value);
             }
         }
         
