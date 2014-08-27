@@ -28,6 +28,7 @@ class InheritanceTester
         //SingleInheritanceSimpleOneLayer()
         //SystemActionInherit()
         //TruckMain()
+        //InheritanceOverloading()
 //Tests in InheritanceTester.java that need to be implemented
 //MultipleInheritanceBlueprints
 //MultipleInheritanceCallingInheritedBlueprints
@@ -122,6 +123,10 @@ class InheritanceTester
     action TruckMain 
         suite:RunTest("Library/Tests/Inheritance/Pass/TruckMain.quorum", "Number of wheels: 4", "Size of gas tank (gallons): 20")
         //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/TruckMain.quorum", "Number of wheels: 4", "Size of gas tank (gallons): 20")
+    end
+
+    action InheritanceOverloading   
+        suite:RunTest("Library/Tests/Inheritance/Pass/InheritanceOverloadingMain.quorum", "SubClass")
     end
 
     //FAIL Tests
