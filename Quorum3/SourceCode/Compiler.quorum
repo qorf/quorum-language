@@ -66,6 +66,7 @@ class Compiler
         //including potentially some from the standard library
         //in order to build the requested files
         Array<File> allFiles = GetAllRequiredFiles()
+        ResolveAllParents()
         i = 0
         repeat while i < allFiles:GetSize()
             File file = allFiles:Get(i)
@@ -87,6 +88,27 @@ class Compiler
             File jar = GetDistributionFile()
             generator:SetCompiler(me)
             generator:Write()
+        end
+    end
+
+    action ResolveAllParents
+        Iterator<Class> classes = symbolTable:GetClasses()
+        repeat while classes:HasNext()
+            Class next = classes:Next()
+
+            //because of the way the parent flattening algorithm works,
+            //parents may already be resolved. As such, if this has already
+            //happened, we can ignore these, as their errors are already
+            //accounted for.
+            if not next:AreParentsResolved()
+                Array<CompilerError> errors = next:ResolveParents(symbolTable)
+                i = 0
+                repeat errors:GetSize() times
+                    CompilerError error = errors:Get(i)
+                    compilerErrorManager:Add(error)
+                    i = i + 1
+                end
+            end
         end
     end
 

@@ -21,6 +21,9 @@ class Class is Symbol
     Array<text> genericDeclarations
     HashTable<text, Class> validUses
     HashTable<text, Class> validUsesFullyQualified
+    HashTable<text, Class> parents
+    boolean areParentsResolved = false
+    boolean isResolvingParents = false
     File file = undefined
     
     on create
@@ -55,6 +58,161 @@ class Class is Symbol
 
     action AddUnresolvedParent(QualifiedName name)
         unresolvedParents:Add(name)
+    end
+
+    action AddParentClass(Class clazz) //check for compiler error or just ignore?
+        parents:Add(clazz:GetStaticKey(), clazz)
+    end
+
+    action ResolveParents(SymbolTable table) returns Array<CompilerError>
+        Array<CompilerError> errors
+        isResolvingParents = true
+        Iterator<QualifiedName> names = GetUnresolvedParents()
+        repeat while names:HasNext()
+            QualifiedName name = names:Next()
+            Class myParent = undefined
+            if name:GetSize() = 1 //it might need to be resolved
+                text value = name:GetName()
+                //is there a class with this name in the package?
+                Class fromPackage = table:GetClassInPackage(me:GetPackageKey(), value)
+
+                //is there a name in the use list?
+                Class fromUse = me:GetValidUseName(value)
+
+                //is there a name in both the use list and the package?
+                //if so, it's a compiler error if they conflict
+                //if no name is found, this is an error
+                //if the name is unique, use that one and put it in the class
+                if fromPackage not= undefined and fromUse = undefined
+                    myParent = fromPackage
+                elseif fromPackage = undefined and fromUse not= undefined
+                    myParent = fromUse
+                elseif fromPackage not= undefined and fromUse not= undefined
+                    //if both classes are the same, then return it
+                    if fromPackage:GetStaticKey() = fromUse:GetStaticKey()
+                        myParent = fromPackage
+                    else //this is a conflict and a compiler error
+                        CompilerError error
+                        text a = ""
+                        a = a:GetDoubleQuote()
+                        error:SetErrorMessage("The name " + a + value + a
+                            + " could be either " + a + fromPackage:GetStaticKey() + a 
+                            + " or " + a + fromUse:GetStaticKey() + a + ". I cannot tell which one you meant." ) 
+                        //TODO: Add in compiler error line and location.
+                        errors:Add(error)
+                    end
+                else //both are undefined. This is an error
+                    CompilerError error
+                    text a = ""
+                    a = a:GetDoubleQuote()
+                    error:SetErrorMessage("The parent name " + a + value + a + 
+                        " could not be found. Did you forget a use statement?") 
+                    //TODO: Add in compiler error line and location.
+                    errors:Add(error)
+                end
+            else //this is a unique name, either it exists or it doesn't.
+                 //if it doesn't, it is a compiler error
+                myParent = table:GetClass(name:GetStaticKey())
+
+                if myParent = undefined
+                    CompilerError error
+                    text a = ""
+                    a = a:GetDoubleQuote()
+                    error:SetErrorMessage("The parent name " + a + name:GetStaticKey() + a + 
+                        " could not be found.") 
+                    //TODO: Add in compiler error line and location.
+                    errors:Add(error)
+                end
+            end
+
+            if myParent not= undefined //if it is defined, add it as a valid parent
+                parents:Add(myParent:GetStaticKey(), myParent)
+            end //if it is not, ignore it, as an error has already been issued
+        end
+
+        //ok, we now have all first level parents, so check them all
+        //if they are already resolved, then flatten their lists and check
+        //for circular dependencies
+        //if the parents are not resolved, then resolve them before doing this.
+        //since each parent's list is flattened after solution,
+        //this does not need to go another level deeper.
+        Iterator<Class> parentIterator = parents:GetValueIterator()
+        repeat while parentIterator:HasNext()
+            Class next = parentIterator:Next()
+            
+            //if this parent is in the middle of a ResolveParents call
+            //we have a circular dependency and should throw a compiler error
+            //we should also bail out at this point, because the behavior
+            //would make no sense
+            if next:IsResolvingParents()
+                CompilerError error
+                text a = ""
+                a = a:GetDoubleQuote()
+                error:SetErrorMessage("The parent name " + a + next:GetStaticKey() + a + 
+                    " has the current class as a parent, but I do not understand what this would mean.") 
+                //TODO: Add in compiler error line and location.
+                errors:Add(error)
+
+                isResolvingParents = false
+                areParentsResolved = true
+                return errors
+            end
+
+
+            //otherwise check if the parent is resolved
+            if not next:AreParentsResolved()
+                Array<CompilerError> parentErrors = next:ResolveParents(table)
+
+                //if there are any errors, keep track of them.
+                Iterator<CompilerError> it = parentErrors:GetIterator()
+                repeat while it:HasNext()
+                    CompilerError error = it:Next()
+                    errors:Add(error)
+                end
+            end
+            //the parent is now resolved. 
+            Iterator<Class> list = next:GetParentClasses()
+            repeat while list:HasNext()
+                Class possibleParent = list:Next()
+                //if this parent is not in our list, add it
+                if not parents:HasKey(possibleParent:GetStaticKey())
+                    parents:Add(possibleParent:GetStaticKey(), possibleParent)
+                end
+            end
+        end
+
+        //regardless of whether the user has errors in their code,
+        //the parents have been resolved.
+        isResolvingParents = false
+        areParentsResolved = true
+        return errors
+    end
+
+    /*
+        This action returns true only if the action ResolveParents is currently
+        executing for this class. It is useful in detecting circular inheritance,
+        which is not allowed in Quorum.
+    */
+    action IsResolvingParents returns boolean
+        return isResolvingParents
+    end
+
+    /*
+        This action determines whether this class has a complete
+        flattened list of parents from all possible super-classes.
+        For example, if we have a class A is B, class B is C, and class C is D,
+        then the flattened list of A is B, C, D, and Libraries.Language.Object.
+    */
+    action AreParentsResolved returns boolean
+        return me:areParentsResolved
+    end
+
+    action GetParentClass(text key) returns Class
+        return parents:GetValue(key)
+    end
+
+    action GetParentClasses returns Iterator<Class>
+        return parents:GetValueIterator()
     end
 
     action AddValidUse(Class clazz) returns CompilerError
