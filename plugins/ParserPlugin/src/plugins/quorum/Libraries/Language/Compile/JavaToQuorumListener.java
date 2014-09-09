@@ -12,15 +12,11 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import quorum.Libraries.Containers.Array;
 import quorum.Libraries.Language.Compile.Context.*;
-import quorum.Libraries.Language.Compile.Location;
 import quorum.Libraries.Language.Compile.QualifiedName;
 import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
 import quorum.Libraries.Language.Compile.Symbol.Type;
-import quorum.Libraries.Language.Compile.Symbol.Type$Interface;
 import quorum.Libraries.Language.Compile.Symbol.Variable;
-import quorum.Libraries.Language.Object$Interface;
 import quorum.Libraries.Language.Types.Text;
 import quorum.Libraries.System.File$Interface;
 
@@ -128,6 +124,23 @@ public class JavaToQuorumListener implements QuorumListener {
         FullClassDeclarationContext context = new FullClassDeclarationContext();
         context.className = ctx.ID().getText();
         setLocation(ctx, context);
+        
+        QualifiedName name = new QualifiedName();
+        QuorumParser.Generic_declarationContext generic = ctx.generic_declaration();
+        
+        context.name = name;
+        name.Add(ctx.ID().getText());
+        
+        
+        if(generic != null) {
+            List<Token> tokenList = generic.ids;
+            Iterator<Token> tokens = tokenList.iterator();
+            while(tokens.hasNext()) {
+                Token token = tokens.next();
+                String value = token.getText();
+                context.name.AddGeneric(value);
+            }
+        }
         listener.ExitFullClassDeclaration(context);
     }
 
