@@ -28,13 +28,6 @@ class Class is Symbol
     File file = undefined
     
     on create
-        QualifiedName name
-        name:Add("Libraries")
-        name:Add("Language")
-        name:Add("Object")
-
-        //by default, all classes inherit from Object
-        AddUnresolvedParent(name)
     end
 
     action AddGeneric(text name)
@@ -52,6 +45,26 @@ class Class is Symbol
 
     action HasGeneric(text name) returns boolean
         return genericHash:HasKey(name)
+    end
+
+    /*
+        This action returns a list of of all generic names. For example, if
+        the class is declared as A<Type, Value>, then this action will return
+        "Type, Value" without double quotes.
+    */ 
+    action GetGenericList returns text
+        text value = ""
+        
+        i = 0
+        repeat GetNumberGenerics() times
+            if i = 0
+                value = value + GetGeneric(i)
+            else 
+                value = value + ", " + GetGeneric(i)
+            end
+            i = i + 1
+        end
+        return value
     end
 
     action Add(Action method) returns CompilerError

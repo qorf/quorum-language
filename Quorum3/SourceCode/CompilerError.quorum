@@ -27,7 +27,11 @@ class CompilerError is Location
 
     action GetDisplayName returns text
         File file = GetFile()
-        text path = file:GetAbsolutePath()
+        text path = ""
+
+        if file not= undefined
+            path = file:GetAbsolutePath()
+        end
         text line = "" + GetLineNumber()
         text column = "" + GetColumnNumber()
         return path + ", Line " + line + ", Column " + column + ": " + message

@@ -26,7 +26,8 @@ class TypeCheckListener is QuorumSourceListener
     action EnterFullClassDeclaration(FullClassDeclarationContext context) 
         text name = context:className
         SymbolTable table = me:GetSymbolTable()
-        
+        CompilerErrorManager manager = GetCompilerErrorManager()
+
         text staticKey = ""
         if packageValue = undefined
             QualifiedName default
@@ -41,8 +42,34 @@ class TypeCheckListener is QuorumSourceListener
             error:SetLineNumber(location:GetLineNumber())
             error:SetFile(location:GetFile())
             error:SetErrorMessage("Class " + context:className + " could not be found.")
-            CompilerErrorManager manager = GetCompilerErrorManager()
+            
             manager:Add(error)
+        else //parents are already resolved, so let's check templating in our hierarchy
+
+            
+            Iterator<QualifiedName> names = currentClass:GetUnresolvedParents()
+            repeat while names:HasNext()
+                QualifiedName mom = names:Next()
+                //if the parent has a template, make sure it's in the right set
+                i = 0
+                repeat mom:GetNumberGenerics() times
+                    text value = mom:GetGeneric(i)
+                    //the listed generic must match one in this classes list
+                    //if it doesn't, it is a compiler error, as it 
+                    //would not make sense
+                    if not currentClass:HasGeneric(value)
+                        Location location = context:GetLocation()
+                        CompilerError error
+                        error:SetLineNumber(location:GetLineNumber())
+                        error:SetFile(location:GetFile())
+                        error:SetErrorMessage("Parent " + mom:GetStaticKey() 
+                            + " declared a template of type " + value + ", but "
+                            + "only the following names are declared by the class: " + currentClass:GetGenericList() )
+                        manager:Add(error)
+                    end
+                    i = i + 1
+                end
+            end
         end
     end
 

@@ -60,6 +60,20 @@ class Parser is QuorumSourceListener
         end
 
         currentClass:SetFile(me:GetFile())
+
+        if currentClass:GetStaticKey() not= "Libraries.Language.Object"
+            //if this class is not Libraries.Language.Object, add this class
+            //as a parent
+            QualifiedName object
+            object:Add("Libraries")
+            object:Add("Language")
+            object:Add("Object")
+
+            //by default, all classes inherit from Object
+            currentClass:AddUnresolvedParent(object)
+        end
+
+
         Array<QualifiedName> newArray
         unresolvedUseStatements = newArray
         classes:Add(currentClass)
