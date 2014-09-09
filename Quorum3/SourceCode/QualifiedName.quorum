@@ -16,6 +16,14 @@ class QualifiedName is Location
         generics:Add(generic)
     end
 
+    action GetNumberGenerics returns integer
+        return generics:GetSize()
+    end
+
+    action GetGeneric(integer location) returns text
+        return generics:Get(location)
+    end
+
     action GetSize returns integer
         return names:GetSize()
     end

@@ -1,5 +1,8 @@
 package Libraries.Language.Compile.Context
 
+use Libraries.Language.Compile.QualifiedName
+
 class FullClassDeclarationContext is ParseContext
     public text className = ""
+    public QualifiedName name = undefined
 end

@@ -18,10 +18,11 @@ class Class is Symbol
     boolean hasMain = false
     Array<QualifiedName> unresolvedUseStatements
     Array<QualifiedName> unresolvedParents
-    Array<text> genericDeclarations
     HashTable<text, Class> validUses
     HashTable<text, Class> validUsesFullyQualified
     HashTable<text, Class> parents
+    Array<text> generics
+    HashTable<text, text> genericHash
     boolean areParentsResolved = false
     boolean isResolvingParents = false
     File file = undefined
@@ -34,6 +35,23 @@ class Class is Symbol
 
         //by default, all classes inherit from Object
         AddUnresolvedParent(name)
+    end
+
+    action AddGeneric(text name)
+        generics:Add(name)
+        genericHash:Add(name, name)
+    end
+
+    action GetNumberGenerics returns integer
+        return generics:GetSize()
+    end
+
+    action GetGeneric(integer location) returns text
+        return generics:Get(location)
+    end
+
+    action HasGeneric(text name) returns boolean
+        return genericHash:HasKey(name)
     end
 
     action Add(Action method) returns CompilerError
@@ -50,10 +68,6 @@ class Class is Symbol
         error:SetFile(method:GetFile())
         error:SetErrorMessage("Action " + method:GetDisplayName() + " has already been defined.")
         return error
-    end
-
-    action AddGenericDeclaration(text value)
-        genericDeclarations:Add(value)
     end
 
     action AddUnresolvedParent(QualifiedName name)
