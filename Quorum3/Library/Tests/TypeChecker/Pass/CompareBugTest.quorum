@@ -1,0 +1,22 @@
+use Libraries.Language.Support.CompareResult
+
+// not quite sure what happens here but this thing throws weird errors
+class CompareBugTest
+
+    action Main
+        CompareBugTest test
+        output "a"
+    end
+
+    integer power = 0
+
+    action GetPower returns integer
+        return me:power
+    end
+    
+    action Compare(CompareBugTest otherPower) returns CompareResult
+        CompareResult outcome = power:Compare(otherPower:GetPower())
+        return outcome
+    end
+
+end

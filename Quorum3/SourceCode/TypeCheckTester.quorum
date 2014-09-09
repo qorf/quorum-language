@@ -167,6 +167,7 @@ class TypeCheckTester
 //        TypeInferenceNumber()
 //        TypeInferenceReturnTypes()
 //        TypeInferenceText()
+//        CompareBugTest()
 
     //Tests that should fail
 //        ExpAssignBoolObjBoolean()
@@ -1085,6 +1086,10 @@ class TypeCheckTester
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceText.quorum", "hello world")
     end
 
+    action CompareBugTest
+        suite:RunTest("Library/Tests/TypeChecker/Pass/CompareBugTest.quorum", "a")
+    end
+
     //Tests that should fail
 
     action ExpAssignBoolObjBoolean
@@ -1747,5 +1752,6 @@ class TypeCheckTester
         //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/TypeInferenceDifferentTypes.quorum")
     end
 
+   
 end
 

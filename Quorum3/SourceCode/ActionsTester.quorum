@@ -50,6 +50,9 @@ class ActionsTester
 //        SimpleOneActionTwoParamsReturnInt()
 //        TwoActionsDifferentParameters()
 //        VTableObjectTest()
+
+        SetterAfterUse()
+        SetterBeforeUse()
     end
 
     action GetName returns text
@@ -247,6 +250,14 @@ class ActionsTester
     action VTableObjectTest 
         suite:RunTest("Library/Tests/Actions/Pass/VTableObjectTest.quorum", "0","1")
         //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/VTableObjectTest.quorum", "0","1")
+    end
+
+    action SetterAfterUse
+        suite:RunTest("Library/Tests/Actions/Pass/SetterAfterUse.quorum", "0")
+    end
+
+    action SetterBeforeUse
+        suite:RunTest("Library/Tests/Actions/Pass/SetterBeforeUse.quorum", "0")
     end
 
 end
