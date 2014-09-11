@@ -73,6 +73,19 @@ class TypeCheckListener is QuorumSourceListener
         end
     end
 
+    action EnterFormalParameter(FormalParameterContext context) 
+        a = 5
+    end
+
+
+    action ExitFormalParameter(FormalParameterContext context) 
+        a = 5
+    end
+
+    action EnterActionHeader(ActionContext context)
+        a = 5
+    end
+
     action ExitActionHeader(ActionContext context)
         if currentClass not= undefined
             //get the method name
@@ -222,6 +235,8 @@ class TypeCheckListener is QuorumSourceListener
 
     action EnterActionCall(ActionCallContext context)
         if context:isActionCall 
+
+            a = 5
         else 
             name = context:name
             Variable variable = undefined

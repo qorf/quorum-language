@@ -98,6 +98,12 @@ class QualifiedName is Location
             text value = it:Next()
             new:Add(value)
         end
+
+        Iterator<text> gen = generics:GetIterator()
+        repeat while gen:HasNext()
+            text value = gen:Next()
+            new:AddGeneric(value)
+        end
         return new
     end
 end

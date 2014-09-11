@@ -1,5 +1,7 @@
 package Libraries.Language.Compile.Symbol
 
+use Libraries.Language.Compile.QualifiedName
+
 class Type 
     boolean isInteger = false
     boolean isText = false
@@ -13,6 +15,7 @@ class Type
     boolean isPrimitive = false
     boolean isConstant = false
     boolean isGeneric = false
+    QualifiedName objectName = undefined
     text staticKey = ""
 
     public constant text OBJECT_KEY = "Libraries.Language.Object"
@@ -53,7 +56,7 @@ class Type
         elseif IsVoid()
             type:SetToVoid()
         else
-            type:SetToObject(staticKey)
+            type:SetToObject(objectName)
         end
         type:SetIsConstant(isConstant)
         return type
@@ -306,7 +309,13 @@ class Type
         staticKey = TEXT_OBJECT_KEY
     end
 
-    action SetToObject(text key)
+    action SetToObject(QualifiedName name)
+        if name not= undefined
+            QualifiedName val = name:Copy()
+            objectName = val
+            staticKey = val:GetStaticKey()
+        end
+
         isInteger = false
         isText = false
         isNumber = false
@@ -317,7 +326,6 @@ class Type
         isNumberObject = false
         isBooleanObject = false
         isPrimitive = false
-        staticKey = key
     end
 
     action ConvertTypeToBytecodeSignature returns text
