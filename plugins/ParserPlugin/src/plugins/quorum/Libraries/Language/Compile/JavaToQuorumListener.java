@@ -181,6 +181,8 @@ public class JavaToQuorumListener implements QuorumListener {
         FormalParameterContext context = new FormalParameterContext();
         setLocation(ctx, context);
         context.name = ctx.ID().getText();
+        
+        
         listener.EnterFormalParameter(context);
     }
 
@@ -1158,7 +1160,16 @@ public class JavaToQuorumListener implements QuorumListener {
     @Override
     public void enterGenericAssignmentDeclaration(QuorumParser.GenericAssignmentDeclarationContext ctx) {
         Type type = new Type();
-
+        QuorumParser.Qualified_nameContext qx = ctx.qualified_name();
+        QualifiedName name = new QualifiedName();
+        List<TerminalNode> ids = qx.ID();
+        Iterator<TerminalNode> it = ids.iterator();
+        while(it.hasNext()) {
+            String value = it.next().getText();
+            name.Add(value);
+        }
+        
+        type.SetToObject(name);
         ctx.type = type;
     }
 
