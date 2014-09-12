@@ -147,6 +147,14 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
     end
 
+    action EnterConstructor(ConstructorContext context) 
+        currentAction = currentClass:GetConstructor()
+    end
+
+    action ExitConstructor(ConstructorContext context) 
+        currentAction = undefined
+    end
+
     action EnterAction(ActionContext context) 
         SetNormalAction()
         isInAction = true

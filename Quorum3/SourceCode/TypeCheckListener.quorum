@@ -17,6 +17,7 @@ class TypeCheckListener is QuorumSourceListener
     Stack<Type> expressionStack
     boolean isNextVariableReferenceMe = false
     Stack<integer> blockPositionStack
+    text constructorName = "on create"
     integer loopCounter = 0
 
     action ExitPackageRule(PackageContext context) 
@@ -89,7 +90,8 @@ class TypeCheckListener is QuorumSourceListener
     action ExitActionHeader(ActionContext context)
         if currentClass not= undefined
             //get the method name
-            text key = context:GetStaticKey()
+            text key = currentClass:ResolveActionKey(context:actionName, 
+                context:GetParameters(), GetSymbolTable(), GetCompilerErrorManager())
             Action method = currentClass:GetAction(key)
             currentAction = method
 
@@ -103,6 +105,14 @@ class TypeCheckListener is QuorumSourceListener
                 manager:Add(error)
             end
         end
+    end 
+
+    action EnterConstructor(ConstructorContext context) 
+        currentAction = currentClass:GetConstructor()
+    end
+
+    action ExitConstructor(ConstructorContext context) 
+        currentAction = undefined
     end
 
     action EnterBlock(BlockContext context)

@@ -190,11 +190,38 @@ class Class is Symbol
                             //therefore, it is safe to ignore this
             return now
         end
+        ResolveType(variable, type, table, errors)
+    end
+
+    private action ResolveType(Variable variable, Type type, SymbolTable table, CompilerErrorManager errors)
         if not type:IsPrimitive() //if it's a primitive, do nothing
             text key = type:GetStaticKey()
             Class clazz = GetClass(key, table, errors)
             if clazz not= undefined
                 type:SetToObject(clazz:GetStaticKey())
+                if type:HasGenerics()
+                    //check to see if the number of generics matches with the class
+                    if clazz:GetNumberGenerics() not= type:GetNumberGenerics() 
+                        CompilerError error
+                        error:SetLocation(variable)
+                        CompilerErrorType t
+                        t:SetCurrentType(t:MISMATCHED_TEMPLATES)
+                        error:SetCompilerErrorType(t)
+                        error:SetErrorMessage("I noticed there is a variable of type "
+                            +  key + ". This class requires " + clazz:GetNumberGenerics()
+                            + " generics, but there are " + type:GetNumberGenerics() + " defined.")
+                        errors:Add(error)
+                    end
+
+
+                    Iterator<Type> generics = type:GetGenerics()
+                    repeat while generics:HasNext()
+                        Type generic = generics:Next()
+                        if type:HasGenerics()
+                            ResolveType(variable, generic, table, errors)
+                        end
+                    end
+                end
             else
                 CompilerError error
                 error:SetLocation(variable)
@@ -202,10 +229,75 @@ class Class is Symbol
                 t:SetCurrentType(t:MISSING_USE)
                 error:SetCompilerErrorType(t)
                 error:SetErrorMessage("I could not locate a type named "
-                    +  key + ". Are you sure you spelled it correct?" )
+                    +  key + ". Are you sure it was spelled it correct?" )
                 errors:Add(error)
             end
         end
+        
+    end
+
+    action ResolveActionKey(text name, Iterator<Variable> parameters, 
+        SymbolTable table, CompilerErrorManager errors) returns text
+        text final = name
+        
+        repeat while parameters:HasNext()
+            Variable param = parameters:Next()
+            Type type = param:GetType()
+            if type:IsPrimitive()
+                final = final + ":" + type:GetStaticKey() 
+            else
+                Class clazz = GetClass(type:GetStaticKey(), table, errors)
+                if clazz not= undefined //if it is, an error has been issued
+                    final = final + ":" + clazz:GetStaticKey()
+                end
+
+                //does the type have generics
+                if type:HasGenerics()
+                    Iterator<Type> generics = type:GetGenerics()
+                    final = final + GetGenericKey(generics, table, errors)
+                end
+            end
+        end
+
+        return final
+    end
+
+    private action GetGenericKey(Iterator<Type> generics, 
+        SymbolTable table, CompilerErrorManager errors) returns text
+        text final = "<"
+        first = true
+        repeat while generics:HasNext()
+            Type type = generics:Next()
+            
+            if type:IsPrimitive()
+                if first
+                    final = final + type:GetStaticKey() 
+                    first = false
+                else
+                    final = final + ":" + type:GetStaticKey() 
+                end
+                
+            else
+                Class clazz = GetClass(type:GetStaticKey(), table, errors)
+                if clazz not= undefined //if it is, an error has been issued
+                    if first
+                        final = final + clazz:GetStaticKey()
+                        first = false
+                    else
+                        final = final + ":" + clazz:GetStaticKey()
+                    end
+                    
+                end
+
+                //does the type have generics
+                if type:HasGenerics()
+                    Iterator<Type> gen = type:GetGenerics()
+                    final = final + GetGenericKey(gen, table, errors)
+                end
+            end
+        end
+
+        return final + ">"
     end
 
     private action GetClass(text key, SymbolTable table, CompilerErrorManager errors) returns Class

@@ -23,4 +23,8 @@ class ActionContext is ParseContext
 
         return key
     end
+
+    action GetParameters returns Iterator<Variable>
+        return parameters:GetIterator()
+    end
 end

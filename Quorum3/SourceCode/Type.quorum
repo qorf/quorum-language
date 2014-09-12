@@ -2,6 +2,7 @@ package Libraries.Language.Compile.Symbol
 
 use Libraries.Language.Compile.QualifiedName
 use Libraries.Containers.Array
+use Libraries.Containers.Blueprints.Iterator
 
 class Type 
     boolean isInteger = false
@@ -90,6 +91,14 @@ class Type
     end
 
     /*
+        This action returns all top level generics. Each of these generics
+        may have subgenerics.
+    */
+    action GetGenerics returns Iterator<Type>
+        return generics:GetIterator()
+    end
+
+    /*
         This action returns the number of top level generics. Nested generics
         are not taken into account by this action. For example, if I had
 
@@ -104,6 +113,27 @@ class Type
 
     action GetStaticKey returns text
         return staticKey
+    end
+
+    action GetStaticKeyWithGenerics returns text
+        text final = staticKey
+        boolean first = true
+
+        if HasGenerics()
+            final = final + "<"
+            Iterator<Type> gen = generics:GetIterator()
+            repeat while gen:HasNext()
+                Type type = gen:Next()
+                if first
+                    final = final + type:GetStaticKeyWithGenerics()
+                    first = false
+                else
+                    final = final + ":" + type:GetStaticKeyWithGenerics()
+                end
+            end
+            final = final + ">"
+        end
+        return final
     end
 
     action GetBytecodeSize returns integer
@@ -169,7 +199,7 @@ class Type
        for this type. If this type is not declared as a constant, this
        action is invalid.
     */
-    action isConstant returns boolean
+    action IsConstant returns boolean
         return isConstant
     end
 
