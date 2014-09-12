@@ -14,6 +14,7 @@ class Compiler
     constant text DEFAULT_BUILD_FOLDER = "TestBuild"
     constant text DEFAULT_RUN_FOLDER = "TestRun"
     constant text DEFAULT_STANDARD_LIBRARY_FOLDER = "Library/Standard"
+    constant text OBJECT = "Libraries.Language.Object"
     File buildFolder = undefined
     File runFolder = undefined
     File standardLibraryFolder = undefined
@@ -69,9 +70,9 @@ class Compiler
         if compilerErrorManager:IsCompilationErrorFree()
             allFiles = GetAllRequiredFiles()
         end
-        
+
         if compilerErrorManager:IsCompilationErrorFree()
-            ResolveAllParents()
+            TypeResolution()
         end
 
         if compilerErrorManager:IsCompilationErrorFree()
@@ -102,23 +103,15 @@ class Compiler
         end
     end
 
-    action ResolveAllParents
+    action TypeResolution
         Iterator<Class> classes = symbolTable:GetClasses()
         repeat while classes:HasNext()
             Class next = classes:Next()
 
             //because of the way the parent flattening algorithm works,
-            //parents may already be resolved. As such, if this has already
-            //happened, we can ignore these, as their errors are already
-            //accounted for.
-            if not next:AreParentsResolved()
-                Array<CompilerError> errors = next:ResolveParents(symbolTable)
-                i = 0
-                repeat errors:GetSize() times
-                    CompilerError error = errors:Get(i)
-                    compilerErrorManager:Add(error)
-                    i = i + 1
-                end
+            //classes may already be resolved
+            if not next:IsResolved()
+                next:ResolveAllTypes(symbolTable, compilerErrorManager)
             end
         end
     end
@@ -164,6 +157,8 @@ class Compiler
 
                 Iterator<QualifiedName> parents = clazz:GetUnresolvedParents()
                 ResolveParents(parents, parsed, unparsed, clazz)
+
+                ResolveBlocks(parsed, unparsed, clazz)
             end
 
             //make list of any new classes that need to be analyzed
@@ -192,47 +187,80 @@ class Compiler
         return parsed:CopyToValueArray()
     end
 
+    private action ResolveBlocks(HashTable<text, File> parsed,
+        HashTable<text, File> unparsed, Class clazz)
+        
+        Iterator<Action> actions = clazz:GetActions()
+        repeat while actions:HasNext()
+            Action act = actions:Next()
+            //resolve parameters first
+            Iterator<Variable> parameters = act:GetParameterIterator()
+            repeat while parameters:HasNext()
+                Variable parameter = parameters:Next()
+                Type type = parameter:GetType()
+                ResolveClass(type:GetStaticKey(), clazz, parsed, unparsed)
+            end
+        end
+    end
+
+    /*
+        This action handles resolving a class or otherwise scheduling a parse
+        from the standard library. If a class is returned, then it has
+        already been parsed and is in the symbol table. If the class
+        returns is undefined, then either the class does not exist or 
+        it is in the standard library and has not yet been parsed. As such,
+        returning undefined is not necessarily a compiler error.
+    */
+    private action ResolveClass(text key, Class clazz, HashTable<text, File> parsed,
+        HashTable<text, File> unparsed)
+        boolean done = false
+        Class c = undefined
+        //first check if it's already valid by looking at the symbol
+        //table
+        c = symbolTable:GetClass(key)
+
+        //if it isn't there, check our use table
+        if c = undefined
+            c = clazz:GetValidUseName(key)
+        end
+
+        //if it isn't there, check the standard library, to 
+        //see if there's a file in the right place
+        //if there is, mark it for parsing
+        if c = undefined
+            File file = GetStandardLibraryFile(key, clazz:GetPackageKey())
+            if file not= undefined
+                text newPath = file:GetAbsolutePath()
+                if parsed:HasKey(newPath) //this class has already been parsed
+                elseif unparsed:HasKey(newPath) //this class is already scheduled for parsing
+                else
+                    unparsed:Add(newPath, file)
+                end
+            else //ok last chance. Check an unresolved use statement to
+                 //see if one of these reference the standard library
+                 QualifiedName qn = clazz:GetUnresolvedUseStatement(key)
+                 if qn not= undefined
+                    file = GetStandardLibraryFile(qn:GetStaticKey(), clazz:GetPackageKey())
+                    if file not= undefined
+                        text newPath = file:GetAbsolutePath()
+                        if parsed:HasKey(newPath) //this class has already been parsed
+                        elseif unparsed:HasKey(newPath) //this class is already scheduled for parsing
+                        else
+                            unparsed:Add(newPath, file)
+                        end
+                    end
+                 end
+            end
+        end
+    end
+
     private action ResolveParents(Iterator<QualifiedName> names, 
             HashTable<text, File> parsed,
             HashTable<text, File> unparsed, Class clazz)
-
-
         repeat while names:HasNext()
             QualifiedName qn = names:Next()
             text key = qn:GetStaticKey()
-            Class classCheck = clazz:GetValidUseName(key)
-
-            //is there a class of that name in the same package?
-            if classCheck = undefined
-                text pack = clazz:GetPackageKey()
-                classCheck = symbolTable:GetClassInPackage(pack, qn:GetName())
-            end
-            
-            //Is there a class with a fully qualified name in the symbol table?
-            if classCheck = undefined
-                classCheck =  symbolTable:GetClass(key) //is it in the symbol table?
-            end
-
-            if classCheck = undefined //ignore it if it exists already
-                File file = GetStandardLibraryFile(key)
-                if file not= undefined
-                    text newPath = file:GetAbsolutePath()
-                    if parsed:HasKey(newPath) //this class has already been parsed
-                    elseif unparsed:HasKey(newPath) //this class is already scheduled for parsing
-                    else
-                        unparsed:Add(newPath, file)
-                    end
-                else//this should be a compiler error. The user requested a file that doesn't exist
-                    CompilerError error
-                    error:SetLocation(qn)
-                    CompilerErrorType type
-                    type:SetCurrentType(type:MISSING_CLASS)
-                    error:SetCompilerErrorType(type)
-                    error:SetErrorMessage("I noticed that this class is a " + key + ", but I cannot find it." 
-                        + " Did you forget to tell me about it or put it in the standard library?")
-                    compilerErrorManager:Add(error)
-                end
-            end
+            ResolveClass(key, clazz, parsed, unparsed)
         end
     end
 
@@ -243,36 +271,11 @@ class Compiler
         repeat while names:HasNext()
             QualifiedName qn = names:Next()
             text key = qn:GetStaticKey()
-            Class classCheck =  symbolTable:GetClass(key)
-            if classCheck = undefined //ignore it if it exists already
-                File file = GetStandardLibraryFile(key)
-                if file not= undefined
-                    text newPath = file:GetAbsolutePath()
-                    if parsed:HasKey(newPath) //this class has already been parsed
-                        Class newClass = symbolTable:GetClassInFile(newPath)
-                        clazz:AddValidUse(newClass)
-                    elseif unparsed:HasKey(newPath) //this class is already scheduled for parsing
-
-                    else
-                        unparsed:Add(newPath, file)
-                    end
-                else//this should be a compiler error. The user requested a file that doesn't exist
-                    CompilerError error
-                    error:SetLocation(qn)
-                    CompilerErrorType type
-                    type:SetCurrentType(type:MISSING_CLASS)
-                    error:SetCompilerErrorType(type)
-                    error:SetErrorMessage("I could not find a class named " + key + "." 
-                        + " Did you forget to tell me about it or put it in the standard library?")
-                    compilerErrorManager:Add(error)
-                end
-            else
-                clazz:AddValidUse(classCheck)
-            end
+            ResolveClass(key, clazz, parsed, unparsed)
         end
     end
 
-    action GetStandardLibraryFile(text key) returns File
+    action GetStandardLibraryFile(text key, text fromPackage) returns File
         Array<text> values = key:Split("\.")
         text loc = standardLibraryFolder:GetWorkingDirectory()
         text loc2 = standardLibraryFolder:GetAbsolutePath()
@@ -280,24 +283,32 @@ class Compiler
         File file
         file:SetWorkingDirectory(loc2)
 
-        text location = "/"
-        Iterator<text> it = values:GetIterator()
-        repeat while it:HasNext()
-            text next = it:Next()
-            location = location + next
+        if values:GetSize() = 1
+            text mySplit = "/" + fromPackage:Replace(".", "/") + "/" + key + ".quorum"
+            file:SetPath(mySplit)
+            if file:Exists()
+                return file
+            end
+        else
+            text location = "/"
+            Iterator<text> it = values:GetIterator()
+            repeat while it:HasNext()
+                text next = it:Next()
+                location = location + next
 
-            if it:HasNext()
-                location = location + "/"
-            else
-                location = location + ".quorum"
+                if it:HasNext()
+                    location = location + "/"
+                else
+                    location = location + ".quorum"
+                end
+            end
+
+            file:SetPath(location)
+            if file:Exists()
+                return file
             end
         end
-
-        file:SetPath(location)
-        if file:Exists()
-            return file
-        end
-
+        
         return undefined
     end
 

@@ -2,6 +2,7 @@ package Libraries.Language.Compile.Symbol
 
 use Libraries.Language.Compile.QualifiedName
 use Libraries.Language.Compile.CompilerError
+use Libraries.Language.Compile.CompilerErrorManager
 use Libraries.Language.Compile.CompilerErrorType
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Location
@@ -16,7 +17,7 @@ class Class is Symbol
     HashTable<text, Variable> fields
     Action constructor = undefined
     boolean hasMain = false
-    Array<QualifiedName> unresolvedUseStatements
+    HashTable<text, QualifiedName> unresolvedUseStatements
     Array<QualifiedName> unresolvedParents
     HashTable<text, Class> validUses
     HashTable<text, Class> validUsesFullyQualified
@@ -25,6 +26,7 @@ class Class is Symbol
     HashTable<text, text> genericHash
     boolean areParentsResolved = false
     boolean isResolvingParents = false
+    boolean isTypeResolved = false
     File file = undefined
     
     on create
@@ -90,67 +92,124 @@ class Class is Symbol
     action AddParentClass(Class clazz) //check for compiler error or just ignore?
         parents:Add(clazz:GetStaticKey(), clazz)
     end
+    
+    /*
+        This action checks to see if all types have been resolved for this class.
+    */
+    action IsResolved returns boolean
+        return isTypeResolved
+    end
 
-    action ResolveParents(SymbolTable table) returns Array<CompilerError>
-        Array<CompilerError> errors
+    action ResolveAllTypes(SymbolTable table, CompilerErrorManager errors)
+        //first resolve all use statements
+        Iterator<QualifiedName> unresolvedUse = GetUnresolvedUseStatements()
+        repeat while unresolvedUse:HasNext()
+            QualifiedName name = unresolvedUse:Next()
+            Class clazz = GetClass(name:GetStaticKey(), table, errors)
+            if clazz not= undefined
+                AddValidUse(clazz)
+            else
+                CompilerError error
+                error:SetLocation(name)
+                CompilerErrorType type
+                type:SetCurrentType(type:MISSING_USE)
+                error:SetCompilerErrorType(type)
+                error:SetErrorMessage("I could not locate the use statement named "
+                    +   name:GetStaticKey() + ". Are you sure you spelled it correct?" )
+                errors:Add(error)
+            end
+        end
+
+        //next resolve all parents
+        ResolveParents(table, errors)
+
+        //next resolve all actions and their blocks
+
+        isTypeResolved = true
+    end
+
+    private action GetClass(text key, SymbolTable table, CompilerErrorManager errors) returns Class
+        Class clazz = undefined
+        Array<text> split = key:Split("\.")
+
+        //first check if this is a full name in the symbol table. 
+        //be careful to check the default package only if this class
+        //is in the default package. 
+        if split:GetSize() > 1
+            clazz = table:GetClass(key)
+        end
+
+        if clazz not= undefined
+            return clazz
+        end
+        //next check if this is the name of a generic in this class
+        has = HasGeneric(key)
+        if has
+            Type type
+            clazz = table:GetClass(type:OBJECT_KEY)
+        end
+
+        if clazz not= undefined
+            return clazz
+        end
+
+        //if we still haven't found it, then check if there are any classes
+        //in the current package of the class by that name. If there are, then
+        //use that.
+        Class fromPackage = table:GetClassInPackage(me:GetPackageKey(), key)
+
+        //is there a name in the use list?
+        Class fromUse = me:GetValidUseName(key)
+
+        //is there a name in both the use list and the package?
+        //if so, it's a compiler error if they conflict
+        //if no name is found, this is an error
+        //if the name is unique, use that one and put it in the class
+        if fromPackage not= undefined and fromUse = undefined
+            clazz = fromPackage
+        elseif fromPackage = undefined and fromUse not= undefined
+            clazz = fromUse
+        elseif fromPackage not= undefined and fromUse not= undefined
+            //if both classes are the same, then return it
+            if fromPackage:GetStaticKey() = fromUse:GetStaticKey()
+                clazz = fromPackage
+            else //this is a conflict and a compiler error
+                CompilerError error
+                text a = ""
+                a = a:GetDoubleQuote()
+                error:SetErrorMessage("The name " + a + key + a
+                    + " could be either " + a + fromPackage:GetStaticKey() + a 
+                    + " or " + a + fromUse:GetStaticKey() + a + ". I cannot tell which one you meant." ) 
+                //TODO: Add in compiler error line and location.
+                errors:Add(error)
+            end
+        end
+
+        if clazz not= undefined
+            return clazz
+        end
+
+        if clazz = undefined
+            CompilerError error
+            text a = ""
+            a = a:GetDoubleQuote()
+            error:SetErrorMessage("The class name " + a + key + a + 
+                " could not be found. Did you forget a use statement?") 
+            //TODO: Add in compiler error line and location.
+            errors:Add(error)
+        end
+        //if we still have not found the class, then it cannot be found, 
+        //which is an error
+        return undefined
+    end
+
+
+    action ResolveParents(SymbolTable table, CompilerErrorManager errors)
         isResolvingParents = true
         Iterator<QualifiedName> names = GetUnresolvedParents()
         repeat while names:HasNext()
             QualifiedName name = names:Next()
-            Class myParent = undefined
-            if name:GetSize() = 1 //it might need to be resolved
-                text value = name:GetName()
-                //is there a class with this name in the package?
-                Class fromPackage = table:GetClassInPackage(me:GetPackageKey(), value)
-
-                //is there a name in the use list?
-                Class fromUse = me:GetValidUseName(value)
-
-                //is there a name in both the use list and the package?
-                //if so, it's a compiler error if they conflict
-                //if no name is found, this is an error
-                //if the name is unique, use that one and put it in the class
-                if fromPackage not= undefined and fromUse = undefined
-                    myParent = fromPackage
-                elseif fromPackage = undefined and fromUse not= undefined
-                    myParent = fromUse
-                elseif fromPackage not= undefined and fromUse not= undefined
-                    //if both classes are the same, then return it
-                    if fromPackage:GetStaticKey() = fromUse:GetStaticKey()
-                        myParent = fromPackage
-                    else //this is a conflict and a compiler error
-                        CompilerError error
-                        text a = ""
-                        a = a:GetDoubleQuote()
-                        error:SetErrorMessage("The name " + a + value + a
-                            + " could be either " + a + fromPackage:GetStaticKey() + a 
-                            + " or " + a + fromUse:GetStaticKey() + a + ". I cannot tell which one you meant." ) 
-                        //TODO: Add in compiler error line and location.
-                        errors:Add(error)
-                    end
-                else //both are undefined. This is an error
-                    CompilerError error
-                    text a = ""
-                    a = a:GetDoubleQuote()
-                    error:SetErrorMessage("The parent name " + a + value + a + 
-                        " could not be found. Did you forget a use statement?") 
-                    //TODO: Add in compiler error line and location.
-                    errors:Add(error)
-                end
-            else //this is a unique name, either it exists or it doesn't.
-                 //if it doesn't, it is a compiler error
-                myParent = table:GetClass(name:GetStaticKey())
-
-                if myParent = undefined
-                    CompilerError error
-                    text a = ""
-                    a = a:GetDoubleQuote()
-                    error:SetErrorMessage("The parent name " + a + name:GetStaticKey() + a + 
-                        " could not be found.") 
-                    //TODO: Add in compiler error line and location.
-                    errors:Add(error)
-                end
-            end
+            Class myParent = GetClass(name:GetStaticKey(), table, errors)
 
             if myParent not= undefined //if it is defined, add it as a valid parent
                 parents:Add(myParent:GetStaticKey(), myParent)
@@ -182,20 +241,12 @@ class Class is Symbol
 
                 isResolvingParents = false
                 areParentsResolved = true
-                return errors
             end
 
 
             //otherwise check if the parent is resolved
             if not next:AreParentsResolved()
-                Array<CompilerError> parentErrors = next:ResolveParents(table)
-
-                //if there are any errors, keep track of them.
-                Iterator<CompilerError> it = parentErrors:GetIterator()
-                repeat while it:HasNext()
-                    CompilerError error = it:Next()
-                    errors:Add(error)
-                end
+                next:ResolveParents(table, errors)
             end
             //the parent is now resolved. 
             Iterator<Class> list = next:GetParentClasses()
@@ -212,7 +263,6 @@ class Class is Symbol
         //the parents have been resolved.
         isResolvingParents = false
         areParentsResolved = true
-        return errors
     end
 
     /*
@@ -230,7 +280,7 @@ class Class is Symbol
         For example, if we have a class A is B, class B is C, and class C is D,
         then the flattened list of A is B, C, D, and Libraries.Language.Object.
     */
-    action AreParentsResolved returns boolean
+    private action AreParentsResolved returns boolean
         return me:areParentsResolved
     end
 
@@ -279,11 +329,15 @@ class Class is Symbol
     end
 
     action AddUnresolvedUseStatement(QualifiedName name)
-        unresolvedUseStatements:Add(name)
+        unresolvedUseStatements:Add(name:GetName(), name)
+    end
+
+    action GetUnresolvedUseStatement(text key) returns QualifiedName
+        return unresolvedUseStatements:GetValue(key)
     end
 
     action GetUnresolvedUseStatements returns Iterator<QualifiedName>
-        return unresolvedUseStatements:GetIterator()
+        return unresolvedUseStatements:GetValueIterator()
     end
 
     action GetUnresolvedParents returns Iterator<QualifiedName>
@@ -324,6 +378,10 @@ class Class is Symbol
 
     action GetAction(text key) returns Action
         return actions:GetValue(key)
+    end
+
+    action GetActions returns Iterator<Action>
+        return actions:GetValueIterator()
     end
 
     action HasAction(text key) returns boolean

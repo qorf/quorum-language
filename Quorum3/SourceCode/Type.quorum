@@ -1,6 +1,7 @@
 package Libraries.Language.Compile.Symbol
 
 use Libraries.Language.Compile.QualifiedName
+use Libraries.Containers.Array
 
 class Type 
     boolean isInteger = false
@@ -15,8 +16,9 @@ class Type
     boolean isPrimitive = false
     boolean isConstant = false
     boolean isGeneric = false
-    QualifiedName objectName = undefined
+    text genericName = ""
     text staticKey = ""
+    Array<Type> generics
 
     public constant text OBJECT_KEY = "Libraries.Language.Object"
     public constant text INTEGER_PRIMITIVE_KEY = "integer"
@@ -56,10 +58,48 @@ class Type
         elseif IsVoid()
             type:SetToVoid()
         else
-            type:SetToObject(objectName)
+            type:SetToObject(staticKey)
         end
         type:SetIsConstant(isConstant)
         return type
+    end
+
+    /*
+        This action adds a generic to this type as a subtype.
+    */
+    action AddGeneric(Type type)
+        generics:Add(type)
+    end
+
+    /*
+        This action returns whether or not this action has generics.
+    */
+    action HasGenerics returns boolean
+        return not generics:IsEmpty()
+    end
+
+    /*
+
+        This action returns a top-level generic at a particular location. If,
+        for example, I have:
+
+        T<V<F<I>>, M<Z>>, this action would return the generic M<Z>.
+    */
+    action GetGeneric(integer location) returns Type
+        return generics:Get(location)
+    end
+
+    /*
+        This action returns the number of top level generics. Nested generics
+        are not taken into account by this action. For example, if I had
+
+        T<V>, this would return 1. If I had
+        T<V<X>>, this action would still return 1. If I had:
+        T<V<X>, V<X>>, this action would return 2.
+        
+    */
+    action GetNumberGenerics returns integer
+        return generics:GetSize()
     end
 
     action GetStaticKey returns text
@@ -326,6 +366,32 @@ class Type
         isNumberObject = false
         isBooleanObject = false
         isPrimitive = false
+    end
+
+    action SetToObject(text name)
+        if not(name = undefined)
+            staticKey = name
+        end
+
+        isInteger = false
+        isText = false
+        isNumber = false
+        isBoolean = false
+        isVoid = false
+        isIntegerObject = false
+        isTextObject = true
+        isNumberObject = false
+        isBooleanObject = false
+        isPrimitive = false
+    end
+
+    /*
+        This action changes this type to represent a generic, with the given
+        name that is currently its static key. 
+    */ 
+    action SetToGeneric
+        genericName = staticKey
+        staticKey = OBJECT_KEY
     end
 
     action ConvertTypeToBytecodeSignature returns text
