@@ -30,6 +30,12 @@ class Class is Symbol
     File file = undefined
     
     on create
+        QualifiedName object
+        object:Add("Libraries")
+        object:Add("Language")
+        object:Add("Object")
+
+        AddUnresolvedUseStatement(object)
     end
 
     action AddGeneric(text name)
@@ -124,8 +130,82 @@ class Class is Symbol
         ResolveParents(table, errors)
 
         //next resolve all actions and their blocks
+        ResolveActions(table, errors)
 
         isTypeResolved = true
+    end
+
+    private action ResolveActions(SymbolTable table, CompilerErrorManager errors)
+        Iterator<Action> actionIterator = me:GetActions()
+        Array<Action> temp
+        repeat while actionIterator:HasNext()
+            Action next = actionIterator:Next()
+            temp:Add(next)
+            //first, we resolve the parameters
+            Iterator<Variable> parameters = next:GetParameterIterator()
+            repeat while parameters:HasNext()
+                Variable param = parameters:Next()
+                ResolveVariable(param, table, errors)
+            end
+
+            //next we resolve all of the variables in its blocks
+            if next:GetBlock() not= undefined
+                ResolveBlock(next:GetBlock(), table, errors)
+            end
+        end
+
+        //now we pull all actions out of the hash and re-hash them,
+        //now with resolved type names and keys
+        hasMain = false
+        actions:Empty()
+        actionIterator = temp:GetIterator()
+        repeat while actionIterator:HasNext()
+            Action next = actionIterator:Next()
+            CompilerError error = Add(next)
+            if error not= undefined
+                errors:Add(error)
+            end
+        end
+    end
+
+    private action ResolveBlock(Block block, SymbolTable table, CompilerErrorManager errors)
+        //first resolve all of the variables in this block
+        Iterator<Variable> variables = block:GetVariables()
+        repeat while variables:HasNext()
+            Variable next = variables:Next()
+            ResolveVariable(next, table, errors)
+        end
+
+        //next resolve any variables in the children
+        Iterator<Block> blocks = block:GetBlocks()
+        repeat while blocks:HasNext()
+            Block next = blocks:Next()
+            ResolveBlock(next, table, errors)
+        end
+    end
+
+    private action ResolveVariable(Variable variable, SymbolTable table, CompilerErrorManager errors)
+        Type type = variable:GetType()
+        if type = undefined //this is an implicit type, which has to be a primitive
+                            //therefore, it is safe to ignore this
+            return now
+        end
+        if not type:IsPrimitive() //if it's a primitive, do nothing
+            text key = type:GetStaticKey()
+            Class clazz = GetClass(key, table, errors)
+            if clazz not= undefined
+                type:SetToObject(clazz:GetStaticKey())
+            else
+                CompilerError error
+                error:SetLocation(variable)
+                CompilerErrorType t
+                t:SetCurrentType(t:MISSING_USE)
+                error:SetCompilerErrorType(t)
+                error:SetErrorMessage("I could not locate a type named "
+                    +  key + ". Are you sure you spelled it correct?" )
+                errors:Add(error)
+            end
+        end
     end
 
     private action GetClass(text key, SymbolTable table, CompilerErrorManager errors) returns Class
