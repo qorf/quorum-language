@@ -448,10 +448,11 @@ class QuorumBytecodeListener is QuorumSourceListener
                 parametersBackward:Add(param)
             end
 
-            Array<QuorumOpcode> parameters
+            Array<Type> parameters
             i = size - 1
             repeat size times
-                parameters:Add(parametersBackward:Get(i))
+                QuorumOpcode op = parametersBackward:Get(i)
+                parameters:Add(op:GetType())
                 i = i - 1
             end
 
@@ -460,7 +461,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             call:name = context:name
             ActionCallResolution resolved = currentClass:ResolveAction(call)
 
-            if resolved not= undefined //throw a compiler error, if in the type checker, but not in bytecode generator
+            if resolved not= undefined and resolved:isResolved//throw a compiler error, if in the type checker, but not in bytecode generator
                 actionCall:SetActionCallResolution(resolved)
                 actionCall:SetIsActionCall(true)
             end

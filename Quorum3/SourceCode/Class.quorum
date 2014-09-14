@@ -611,7 +611,7 @@ class Class is Symbol
 
     action ResolveAction(ActionCall call) returns ActionCallResolution
         ActionCallResolution resolution
-        Array<QuorumOpcode> parameters = call:actualParameters
+        Array<Type> parameters = call:actualParameters
 
         Array<Action> named //actions with the right name
         Iterator<Action> all = actions:GetValueIterator()
@@ -637,7 +637,7 @@ class Class is Symbol
             if parameters:IsEmpty() and only:GetParametersSize() = 0
                 resolution:isResolved = true
                 resolution:resolvedAction = only
-                resolution:resolvedParameters = parameters
+                //resolution:resolvedParameters = parameters
             end
         end
         //now check all of the parameters to see whether the types are compatible
