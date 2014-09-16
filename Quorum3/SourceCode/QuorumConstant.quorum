@@ -3,7 +3,6 @@ package Libraries.Language.Compile.Translate
 use Libraries.Language.Compile.Symbol.Type
 
 class QuorumConstant is QuorumOpcode
-    public JavaBytecodeMethodWriter methodWriter = undefined
     public integer integerValue = 0
     public number numberValue = 0
     public boolean booleanValue = false
@@ -24,6 +23,7 @@ class QuorumConstant is QuorumOpcode
     end
 
     action Write
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         Type type = GetType()
         if type:IsInteger()
             methodWriter:VisitConstant(integerValue)

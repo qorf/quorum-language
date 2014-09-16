@@ -612,8 +612,10 @@ class Class is Symbol
     action ResolveAction(ActionCall call) returns ActionCallResolution
         ActionCallResolution resolution
         Array<Type> parameters = call:actualParameters
+        TypeChecker checker = call:checker
 
         Array<Action> named //actions with the right name
+        Array<Action> candidates
         Iterator<Action> all = actions:GetValueIterator()
         repeat while all:HasNext()
             Action act = all:Next()
@@ -629,8 +631,39 @@ class Class is Symbol
 
         if named:IsEmpty()
             resolution:isResolved = false
+            CompilerError error
+
+            //TODO: Improve this error message
+            error:SetErrorMessage("I could not find any action with the name '" + 
+                call:name + "' in the class '" + me:GetStaticKey() + "'")
+            error:SetLocation(call)
+            resolution:error = error
             return resolution
         end
+        Operation implicit
+        implicit:SetOperation(implicit:IMPLICIT_CAST)
+
+        Iterator<Action> it = named:GetIterator()
+        //assume they have an equal number of parameters
+        repeat while it:HasNext() 
+            Action act = it:Next()
+            i = 0
+            Iterator<Variable> variables = act:GetParameterIterator()
+            repeat while variables:HasNext()
+                Variable formalParameter = variables:Next()
+                Type formalParameterType = formalParameter:GetType()
+                Type actualParameterType = parameters:Get(i)
+                
+                //Check the types to make sure that they are compatible
+                TypeCheckResult result = checker:Check(formalParameterType, actualParameterType, implicit, false)
+                CompilerError error = result:GetCompilerError(call)
+                if error not= undefined
+
+                end
+                i = i + 1
+            end
+        end
+        
 
         if named:GetSize() = 1 //if there are no parameters and one method
             Action only = named:Get(0)
@@ -639,8 +672,21 @@ class Class is Symbol
                 resolution:resolvedAction = only
                 //resolution:resolvedParameters = parameters
             end
+        elseif named:GetSize() > 1 //check all of the parameters
+
+            
         end
         //now check all of the parameters to see whether the types are compatible
+        if resolution:resolvedAction = undefined
+            CompilerError error
+
+            //TODO: Improve this error message
+            error:SetErrorMessage("I could not find any action with the name '" + 
+                call:name + "' in the class '" + me:GetStaticKey() + "'")
+            error:SetLocation(call)
+            resolution:error = error
+        end
+        
 
         return resolution
     end

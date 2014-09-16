@@ -120,7 +120,7 @@ class Action is Symbol
             repeat while params:HasNext()
                 Variable variable = params:Next()
                 Type varType = variable:GetType()
-                key = key + ":" + varType:GetStaticKeyWithGenerics()
+                key = key + ":" + varType:GetStaticKey()
             end
         end
         return key

@@ -325,7 +325,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 Type type = typeOriginal:Copy()
                 type:SetIsConstant(true)
                 QuorumConstant const
-                const:methodWriter = methodWriter
+                const:SetMethodWriter(methodWriter)
                 const:SetType(type)
                 if type:IsInteger()
                     type:SetIntegerConstant(0)
@@ -377,6 +377,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         assignment:SetType(value)
         assignment:SetMethodWriter(methodWriter)
         assignment:SetBytecodeLocation(location)
+        assignment:SetVariable(variable)
 
         if isInAction
             currentBlockOpcode:Add(assignment)
@@ -674,7 +675,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         type:SetIntegerConstant(context:value)
 
         QuorumConstant const
-        const:methodWriter = methodWriter
+        const:SetMethodWriter(methodWriter)
         const:SetType(type)
         const:integerValue = context:value
         opcodeStack:Push(const)
@@ -686,7 +687,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         type:SetTextConstant(context:value)
 
         QuorumConstant const
-        const:methodWriter = methodWriter
+        const:SetMethodWriter(methodWriter)
         const:SetType(type)
         const:textValue = context:value
         opcodeStack:Push(const)
@@ -698,7 +699,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         type:SetBooleanConstant(context:value)
 
         QuorumConstant const
-        const:methodWriter = methodWriter
+        const:SetMethodWriter(methodWriter)
         const:SetType(type)
         const:booleanValue = context:value
         opcodeStack:Push(const)
@@ -710,7 +711,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         type:SetNumberConstant(context:value)
 
         QuorumConstant const
-        const:methodWriter = methodWriter
+        const:SetMethodWriter(methodWriter)
         const:SetType(type)
         const:numberValue = context:value
         opcodeStack:Push(const)

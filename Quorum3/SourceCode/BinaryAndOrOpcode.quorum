@@ -18,6 +18,17 @@ class BinaryAndOrOpcode is QuorumOpcode
     public boolean isOnLeft = false
     public BinaryAndOrOpcode opcodeParent = undefined
 
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+        if left not= undefined
+            left:SetMethodWriterToAllChildren(writer)
+        end
+
+        if right not= undefined
+            right:SetMethodWriterToAllChildren(writer)
+        end
+    end
+
     action WriteJavaScript returns text
         return ""
     end

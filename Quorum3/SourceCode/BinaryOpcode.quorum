@@ -5,13 +5,23 @@ use Libraries.Language.Compile.Symbol.Type
 class BinaryOpcode is QuorumOpcode
     QuorumOpcode left = undefined
     QuorumOpcode right = undefined
-    JavaBytecodeMethodWriter methodWriter = undefined
     
     integer opcode = -1
     integer leftOpcode = -1
     integer rightOpcode = -1
     integer leftOpcode2 = -1
     integer rightOpcode2 = -1
+
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+        if left not= undefined
+            left:SetMethodWriterToAllChildren(writer)
+        end
+
+        if right not= undefined
+            right:SetMethodWriterToAllChildren(writer)
+        end
+    end
 
     action WriteJavaScript returns text
         //This isn't working yet, it's just been stubbed in
@@ -82,14 +92,6 @@ class BinaryOpcode is QuorumOpcode
         rightOpcode2 = op
     end
 
-    action GetMethodWriter returns JavaBytecodeMethodWriter
-        return methodWriter
-    end
-
-    action SetMethodWriter(JavaBytecodeMethodWriter writer)
-        methodWriter = writer
-    end
-
     action GetLeftOpcode returns QuorumOpcode
         return left
     end
@@ -107,6 +109,7 @@ class BinaryOpcode is QuorumOpcode
     end
 
     action Write
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         left:Write()
         WriteLeft()
         right:Write()
@@ -118,12 +121,14 @@ class BinaryOpcode is QuorumOpcode
     end
 
     action WriteLeft
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         if leftOpcode not= -1
             methodWriter:VisitInstruction(leftOpcode)
         end
     end
 
     action WriteRight
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         if rightOpcode not= -1
             methodWriter:VisitInstruction(rightOpcode)
         end

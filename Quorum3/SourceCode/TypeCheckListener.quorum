@@ -306,8 +306,12 @@ class TypeCheckListener is QuorumSourceListener
             end
 
             ActionCall call
+            call:SetLocation(context:GetLocation())
             call:actualParameters = parameters
             call:name = context:name
+            call:checker = GetTypeChecker()
+            call:table = GetSymbolTable()
+
             ActionCallResolution resolved = currentClass:ResolveAction(call)
 
             if resolved not= undefined and resolved:isResolved
@@ -317,7 +321,11 @@ class TypeCheckListener is QuorumSourceListener
             //    actionCall:SetActionCallResolution(resolved)
             //    actionCall:SetIsActionCall(true)
             else //throw a compiler error here
-
+                CompilerError error = resolved:error
+                if error not= undefined
+                    CompilerErrorManager manager = GetCompilerErrorManager()
+                    manager:Add(error)
+                end
             end
         else 
             name = context:name

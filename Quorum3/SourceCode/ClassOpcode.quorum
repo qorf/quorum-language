@@ -130,12 +130,6 @@ class ClassOpcode is QuorumOpcode
         //once fully integrated, check if this is a the Quorum error class or a subclass. For now, just weave in Object.
         classWriter:Visit(version, access, converter:ConvertStaticKeyToBytecodePath(staticKey), null, JAVA_OBJECT, interfaces)
 
-        Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
-        repeat while fieldIterator:HasNext()
-            QuorumOpcode field = fieldIterator:Next()
-            field:Write()
-        end
-
         ComputeConstructor(true)
         ComputeConstructor(false)
 
@@ -170,6 +164,15 @@ class ClassOpcode is QuorumOpcode
         interfaceWriter:Write(interfaceFile)
 
         buildInterfaceFile = interfaceFile
+    end
+
+    action WriteFields (JavaBytecodeMethodWriter methodWriter)
+        Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
+        repeat while fieldIterator:HasNext()
+            QuorumOpcode field = fieldIterator:Next()
+            field:SetMethodWriterToAllChildren(methodWriter)
+            field:Write()
+        end
     end
 
     action WriteMain
@@ -223,7 +226,7 @@ class ClassOpcode is QuorumOpcode
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), "java/lang/Object", "<init>", "()V", false)
 
 
-
+        WriteFields(methodWriter)
 
         methodWriter:VisitInstruction(opcodes:GetReturn())
         methodWriter:VisitMaxSize(1, 1)

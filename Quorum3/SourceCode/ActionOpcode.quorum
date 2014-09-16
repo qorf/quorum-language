@@ -9,15 +9,11 @@ use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
 class ActionOpcode is QuorumOpcode
     List<QuorumOpcode> opcodeList
     Action method = undefined
-    JavaBytecodeMethodWriter methodWriter = undefined
     JavaBytecodeOpcodes opcodes
 
-    action GetMethodWriter returns JavaBytecodeMethodWriter
-        return methodWriter
-    end
-
-    action SetMethodWriter(JavaBytecodeMethodWriter writer)
-        methodWriter = writer
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+        //no need to write to children, because this can't be called in a constructor
     end
 
     action GetAction returns Action
@@ -29,6 +25,7 @@ class ActionOpcode is QuorumOpcode
     end
 
     action Write
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         methodWriter:VisitCode()
         Iterator<QuorumOpcode> iterator = opcodeList:GetIterator()
         repeat while iterator:HasNext()
