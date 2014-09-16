@@ -615,7 +615,8 @@ class Class is Symbol
         TypeChecker checker = call:checker
 
         Array<Action> named //actions with the right name
-        Array<Action> candidates
+        Array<integer> scores
+        Array<Action> matches
         Iterator<Action> all = actions:GetValueIterator()
         repeat while all:HasNext()
             Action act = all:Next()
@@ -648,8 +649,10 @@ class Class is Symbol
         repeat while it:HasNext() 
             Action act = it:Next()
             i = 0
+            integer actionPoints = 0
             Iterator<Variable> variables = act:GetParameterIterator()
-            repeat while variables:HasNext()
+            boolean isMatch = true
+            repeat while variables:HasNext() and isMatch
                 Variable formalParameter = variables:Next()
                 Type formalParameterType = formalParameter:GetType()
                 Type actualParameterType = parameters:Get(i)
@@ -657,27 +660,68 @@ class Class is Symbol
                 //Check the types to make sure that they are compatible
                 TypeCheckResult result = checker:Check(formalParameterType, actualParameterType, implicit, false)
                 CompilerError error = result:GetCompilerError(call)
-                if error not= undefined
-
+                if error not= undefined //this action is not a match. We can break out
+                    isMatch = false
+                else 
+                    TypeConversionPoints points = result:points
+                    actionPoints = actionPoints + points:GetPoints()
                 end
                 i = i + 1
             end
+
+            if isMatch
+                matches:Add(act)
+                scores:Add(actionPoints)
+            end
         end
         
-
-        if named:GetSize() = 1 //if there are no parameters and one method
-            Action only = named:Get(0)
-            if parameters:IsEmpty() and only:GetParametersSize() = 0
-                resolution:isResolved = true
-                resolution:resolvedAction = only
-                //resolution:resolvedParameters = parameters
-            end
-        elseif named:GetSize() > 1 //check all of the parameters
-
+        Array<Action> finalMatches
+        integer minPoints = 0
+        minPoints = minPoints:GetMaximumValue()
+        i = 0
+        repeat matches:GetSize() times
+            Action act = matches:Get(i)
+            integer points = scores:Get(i)
             
+            if points < minPoints
+                minPoints = points
+                finalMatches:Add(act)
+            elseif points = minPoints
+                finalMatches:Add(act)
+            end
+
+            i = i + 1
         end
-        //now check all of the parameters to see whether the types are compatible
-        if resolution:resolvedAction = undefined
+
+        if finalMatches:GetSize() = 1 //if there are no parameters and one method
+            resolution:resolvedAction = finalMatches:Get(0)
+            resolution:isResolved = true
+        elseif finalMatches:GetSize() > 1 //check all of the scores
+            resolution:resolvedAction = undefined
+            resolution:isResolved = false
+            CompilerError error
+
+            text value = "I could not find an action that uniquely matches with the name '" + 
+                call:name + "' in the class '" + me:GetStaticKey() + "' The reason is because the actions "
+
+             Iterator<Action> m = finalMatches:GetIterator()
+             repeat while m:HasNext()
+                Action a = m:Next()
+                value = a:GetStaticKey()
+
+                if m:HasNext()
+                    value = value + ", "
+                end
+             end
+             value = value + " all match the parameters."
+             
+            //TODO: Improve this error message
+            error:SetErrorMessage(value)
+            error:SetLocation(call)
+            resolution:error = error
+        else //There are no matches
+            resolution:resolvedAction = undefined
+            resolution:isResolved = false
             CompilerError error
 
             //TODO: Improve this error message
@@ -686,7 +730,6 @@ class Class is Symbol
             error:SetLocation(call)
             resolution:error = error
         end
-        
 
         return resolution
     end

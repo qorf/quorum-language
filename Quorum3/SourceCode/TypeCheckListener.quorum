@@ -321,8 +321,8 @@ class TypeCheckListener is QuorumSourceListener
             //    actionCall:SetActionCallResolution(resolved)
             //    actionCall:SetIsActionCall(true)
             else //throw a compiler error here
-                CompilerError error = resolved:error
-                if error not= undefined
+                CompilerError error = resolved:error 
+               if error not= undefined
                     CompilerErrorManager manager = GetCompilerErrorManager()
                     manager:Add(error)
                 end
