@@ -1,0 +1,58 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Symbol.ActionCallResolution
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Language.Compile.Symbol.Class
+
+class ReturnOpcode is QuorumOpcode
+
+    integer opcode = -1
+    integer opcode2 = -1
+
+    action GetJavaOpcode returns integer
+        return opcode
+    end
+
+    action SetJavaOpcode(integer op)
+        opcode = op
+    end
+
+    action GetJavaOpcode2 returns integer
+        return opcode2
+    end
+
+    action SetJavaOpcode2(integer op)
+        opcode2 = op
+    end
+
+    action Write
+        Type type = GetType()
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        JavaBytecodeOpcodes opcodes
+
+        if type:IsBoolean()
+            methodWriter:VisitInstruction(opcodes:GetBooleanReturn())
+        elseif type:IsInteger()
+            methodWriter:VisitInstruction(opcodes:GetIntegerReturn())
+        elseif type:IsNumber()
+            methodWriter:VisitInstruction(opcodes:GetDoubleReturn())
+        elseif type:IsText()
+            methodWriter:VisitInstruction(opcodes:GetObjectReturn())
+        elseif type:IsVoid()
+            methodWriter:VisitInstruction(opcodes:GetReturn())
+        else //assume it is an object otherwise
+            methodWriter:VisitInstruction(opcodes:GetObjectReturn())
+        end
+    end
+
+    action WriteJavaScript returns text 
+        return ""
+    end
+
+    action GetTemplateCopy returns QuorumOpcode
+        ReturnOpcode op
+        op:SetType(GetType())
+        return op
+    end
+end

@@ -462,6 +462,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToInteger()
+        ReturnOpcode returnMe = GetReturnOpcode(opcodes:GetIntegerReturn(), -1, type)
+        result:SetQuorumOpcode(returnMe)
         results:Add(key, result)
 
         //text text
@@ -470,7 +472,9 @@ class TypeChecker
             constants:TEXT_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
         type = result:result
-        type:SetToInteger()
+        type:SetToText()
+        returnMe = GetReturnOpcode(opcodes:GetObjectReturn(), -1, type)
+        result:SetQuorumOpcode(returnMe)
         results:Add(key, result)
 
         //text undefined
@@ -479,7 +483,9 @@ class TypeChecker
             constants:UNDEFINED_KEY, op, false)
         result = GetNoConvertResult()
         type = result:result
-        type:SetToInteger()
+        type:SetToText()
+        returnMe = GetReturnOpcode(opcodes:GetObjectReturn(), -1, type)
+        result:SetQuorumOpcode(returnMe)
         results:Add(key, result)
 
         //number number
@@ -489,6 +495,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToNumber()
+        returnMe = GetReturnOpcode(opcodes:GetDoubleReturn(), -1, type)
+        result:SetQuorumOpcode(returnMe)
         results:Add(key, result)
 
         //boolean boolean
@@ -498,6 +506,8 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToBoolean()
+        returnMe = GetReturnOpcode(opcodes:GetBooleanReturn(), -1, type)
+        result:SetQuorumOpcode(returnMe)
         results:Add(key, result)
 
         //number integer
@@ -507,6 +517,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToNumber()
+        returnMe = GetReturnOpcode(opcodes:GetIntegerToDouble(), opcodes:GetDoubleReturn(), type)
+        result:SetQuorumOpcode(returnMe)
         TypeConversionPoints points = result:points
         points:SetPoints(points:LOSSLESS_CONVERT)
         results:Add(key, result)
@@ -518,6 +530,8 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToText()
+        returnMe = GetReturnOpcode(opcodes:GetIntegerToDouble(), opcodes:GetDoubleReturn(), type)
+        result:SetQuorumOpcode(returnMe)
         points = result:points
         points:SetPoints(points:LOSSLESS_CONVERT)
         results:Add(key, result)
@@ -1369,6 +1383,14 @@ class TypeChecker
         op:SetJavaOpcode2(secondOpcode)
         op:SetType(type)
         return op
+    end
+
+    private action GetReturnOpcode(integer opcode, integer secondOpcode, Type type) returns ReturnOpcode
+        ReturnOpcode returnMe
+        returnMe:SetJavaOpcode(opcode)
+        returnMe:SetJavaOpcode2(secondOpcode)
+        returnMe:SetType(type)
+        return returnMe
     end
 
     private action GetBinaryComparisonOpcode(integer opcode, integer leftOpcode,

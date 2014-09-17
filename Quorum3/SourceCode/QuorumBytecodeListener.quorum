@@ -467,6 +467,8 @@ class QuorumBytecodeListener is QuorumSourceListener
             if resolved not= undefined and resolved:isResolved//throw a compiler error, if in the type checker, but not in bytecode generator
                 actionCall:SetActionCallResolution(resolved)
                 actionCall:SetIsActionCall(true)
+
+                actionCall:SetActionCallResolution(resolved)
             end
 
             i = i
@@ -492,6 +494,28 @@ class QuorumBytecodeListener is QuorumSourceListener
             end
         end
         opcodeStack:Push(actionCall)
+    end
+
+    action ExitReturnStatement(ReturnContext context) 
+        Type type = currentAction:GetReturnType()
+        if not type:IsVoid() //if this is not a void method, handle the return
+            QuorumOpcode right = opcodeStack:Pop()
+
+            Operation returnOp
+            returnOp:SetOperation(returnOp:RETURN)
+
+            TypeChecker checker = GetTypeChecker()
+            TypeCheckResult result = checker:Check(type, right:GetType(), returnOp, true) 
+
+            ReturnOpcode opcode = cast(ReturnOpcode, result:GetQuorumOpcode())
+            opcode:SetMethodWriter(methodWriter)
+            currentBlockOpcode:Add(opcode)
+        else //if it is a void method, just do a normal return, but don't pop off the opcode stack
+            ReturnOpcode opcode
+            opcode:SetType(type)
+            opcode:SetMethodWriter(methodWriter)
+            currentBlockOpcode:Add(opcode)
+        end
     end
 
     action EnterParentCall(ParentCallContext context)
