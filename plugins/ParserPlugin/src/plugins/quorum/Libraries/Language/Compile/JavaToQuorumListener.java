@@ -12,15 +12,11 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import quorum.Libraries.Containers.Array;
 import quorum.Libraries.Language.Compile.Context.*;
-import quorum.Libraries.Language.Compile.Location;
 import quorum.Libraries.Language.Compile.QualifiedName;
 import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
 import quorum.Libraries.Language.Compile.Symbol.Type;
-import quorum.Libraries.Language.Compile.Symbol.Type$Interface;
 import quorum.Libraries.Language.Compile.Symbol.Variable;
-import quorum.Libraries.Language.Object$Interface;
 import quorum.Libraries.Language.Types.Text;
 import quorum.Libraries.System.File$Interface;
 
@@ -128,6 +124,23 @@ public class JavaToQuorumListener implements QuorumListener {
         FullClassDeclarationContext context = new FullClassDeclarationContext();
         context.className = ctx.ID().getText();
         setLocation(ctx, context);
+        
+        QualifiedName name = new QualifiedName();
+        QuorumParser.Generic_declarationContext generic = ctx.generic_declaration();
+        
+        context.name = name;
+        name.Add(ctx.ID().getText());
+        
+        
+        if(generic != null) {
+            List<Token> tokenList = generic.ids;
+            Iterator<Token> tokens = tokenList.iterator();
+            while(tokens.hasNext()) {
+                Token token = tokens.next();
+                String value = token.getText();
+                context.name.AddGeneric(value);
+            }
+        }
         listener.ExitFullClassDeclaration(context);
     }
 
@@ -168,6 +181,8 @@ public class JavaToQuorumListener implements QuorumListener {
         FormalParameterContext context = new FormalParameterContext();
         setLocation(ctx, context);
         context.name = ctx.ID().getText();
+        
+        
         listener.EnterFormalParameter(context);
     }
 
@@ -1145,13 +1160,58 @@ public class JavaToQuorumListener implements QuorumListener {
     @Override
     public void enterGenericAssignmentDeclaration(QuorumParser.GenericAssignmentDeclarationContext ctx) {
         Type type = new Type();
-
+        QuorumParser.Qualified_nameContext qx = ctx.qualified_name();
+        QualifiedName name = new QualifiedName();
+        List<TerminalNode> ids = qx.ID();
+        Iterator<TerminalNode> it = ids.iterator();
+        while(it.hasNext()) {
+            String value = it.next().getText();
+            name.Add(value);
+        }
+        
+        type.SetToObject(name);
+        QuorumParser.Generic_statementContext generic_statement = ctx.generic_statement();
+        if(generic_statement != null) {
+            List<QuorumParser.Assignment_declarationContext> assignments = generic_statement.assignment_declaration();
+            Iterator<QuorumParser.Assignment_declarationContext> iterator = assignments.iterator();
+            //get all the subtypes, which themselves may have subtypes
+            //add them to the current type
+            while(iterator.hasNext()) {
+                QuorumParser.Assignment_declarationContext next = iterator.next();
+                Type t = next.type;
+                type.AddGeneric(t);
+            }
+        }
+        
         ctx.type = type;
     }
 
     @Override
     public void exitGenericAssignmentDeclaration(QuorumParser.GenericAssignmentDeclarationContext ctx) {
         Type type = new Type();
+        QuorumParser.Qualified_nameContext qx = ctx.qualified_name();
+        QualifiedName name = new QualifiedName();
+        List<TerminalNode> ids = qx.ID();
+        Iterator<TerminalNode> it = ids.iterator();
+        while(it.hasNext()) {
+            String value = it.next().getText();
+            name.Add(value);
+        }
+        
+        type.SetToObject(name);
+        QuorumParser.Generic_statementContext generic_statement = ctx.generic_statement();
+        if(generic_statement != null) {
+            List<QuorumParser.Assignment_declarationContext> assignments = generic_statement.assignment_declaration();
+            Iterator<QuorumParser.Assignment_declarationContext> iterator = assignments.iterator();
+            //get all the subtypes, which themselves may have subtypes
+            //add them to the current type
+            while(iterator.hasNext()) {
+                QuorumParser.Assignment_declarationContext next = iterator.next();
+                Type t = next.type;
+                type.AddGeneric(t);
+            }
+        }
+            
         ctx.type = type;
     }
 

@@ -7,6 +7,7 @@ class QuorumOpcode
     boolean isIfExpression = false
     blueprint action Write
     blueprint action WriteJavaScript returns text
+    JavaBytecodeMethodWriter methodWriter = undefined
 
     action GetType returns Type
         return type
@@ -22,6 +23,18 @@ class QuorumOpcode
 
     action SetIsIfExpression(boolean isInIf)
         isIfExpression = isInIf
+    end
+
+    action GetMethodWriter returns JavaBytecodeMethodWriter
+        return methodWriter
+    end
+
+    action SetMethodWriter(JavaBytecodeMethodWriter writer)
+        methodWriter = writer
+    end
+
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        methodWriter = writer
     end
 
     /*

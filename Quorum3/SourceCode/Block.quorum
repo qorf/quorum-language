@@ -5,6 +5,7 @@ use Libraries.Containers.Array
 use Libraries.Language.Compile.CompilerError
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Location
+use Libraries.Containers.Blueprints.Iterator
 
 class Block
     HashTable<text, Variable> variables
@@ -61,6 +62,10 @@ class Block
         return blocks:Get(next)
     end
 
+    action GetBlocks returns Iterator<Block>
+        return blocks:GetIterator()
+    end
+
     /*
         Returns the number of blocks that are contained 
         within this block at the root level. Blocks inside of this block
@@ -108,6 +113,14 @@ class Block
         variable = parentClass:GetVariable(key)
         return variable
     end 
+
+    /*
+        This action returns all variables in this, and only this, block. 
+        Variables in parent scope or child scope are excluded.
+    */
+    action GetVariables returns Iterator<Variable>
+        return variables:GetValueIterator()
+    end
 
     action Add(Block block)
         block:SetParentBlock(me)

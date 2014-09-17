@@ -5,18 +5,16 @@ use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
 
 class UnaryOpcode is QuorumOpcode
     QuorumOpcode opcode = undefined
-    JavaBytecodeMethodWriter methodWriter = undefined
+
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+        if opcode not= undefined
+            opcode:SetMethodWriterToAllChildren(writer)
+        end
+    end
 
     action WriteJavaScript returns text
         return ""
-    end
-
-    action GetMethodWriter returns JavaBytecodeMethodWriter
-        return methodWriter
-    end
-
-    action SetMethodWriter(JavaBytecodeMethodWriter writer)
-        methodWriter = writer
     end
 
     action GetOpcode returns QuorumOpcode

@@ -1,13 +1,23 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Symbol.Variable
 
 class AssignmentOpcode is QuorumOpcode
     integer bytecodeLocation = -1
     integer opcode = -1
     integer opcode2 = -1
-    JavaBytecodeMethodWriter methodWriter = undefined
+    //JavaBytecodeMethodWriter methodWriter = undefined
     QuorumOpcode rightHandSide = undefined
+    Variable variable = undefined
+
+    action GetVariable returns Variable
+        return variable
+    end
+
+    action SetVariable(Variable var)
+        variable = var
+    end
 
     action GetRightHandSide returns QuorumOpcode
         return rightHandSide
@@ -41,21 +51,33 @@ class AssignmentOpcode is QuorumOpcode
         bytecodeLocation = location
     end
 
-    action GetMethodWriter returns JavaBytecodeMethodWriter
-        return methodWriter
-    end
+//    action GetMethodWriter returns JavaBytecodeMethodWriter
+//        return methodWriter
+//    end
+//
+//    action SetMethodWriter(JavaBytecodeMethodWriter writer)
+//        methodWriter = writer
+//    end
 
-    action SetMethodWriter(JavaBytecodeMethodWriter writer)
-        methodWriter = writer
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+        rightHandSide:SetMethodWriterToAllChildren(writer)
     end
 
     action Write 
-
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         rightHandSide:Write()
-        methodWriter:VisitVariable(opcode, bytecodeLocation)
 
-        if opcode2 not= -1
-            methodWriter:VisitVariable(opcode2, bytecodeLocation)
+        if variable not= undefined
+            if variable:IsField()
+
+            else
+                methodWriter:VisitVariable(opcode, bytecodeLocation)
+
+                if opcode2 not= -1
+                    methodWriter:VisitVariable(opcode2, bytecodeLocation)
+                end
+            end
         end
     end
 

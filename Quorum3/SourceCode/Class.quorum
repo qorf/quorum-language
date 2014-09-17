@@ -2,6 +2,7 @@ package Libraries.Language.Compile.Symbol
 
 use Libraries.Language.Compile.QualifiedName
 use Libraries.Language.Compile.CompilerError
+use Libraries.Language.Compile.CompilerErrorManager
 use Libraries.Language.Compile.CompilerErrorType
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Location
@@ -16,24 +17,62 @@ class Class is Symbol
     HashTable<text, Variable> fields
     Action constructor = undefined
     boolean hasMain = false
-    Array<QualifiedName> unresolvedUseStatements
+    HashTable<text, QualifiedName> unresolvedUseStatements
     Array<QualifiedName> unresolvedParents
-    Array<text> genericDeclarations
     HashTable<text, Class> validUses
     HashTable<text, Class> validUsesFullyQualified
     HashTable<text, Class> parents
+    Array<text> generics
+    HashTable<text, text> genericHash
     boolean areParentsResolved = false
     boolean isResolvingParents = false
+    boolean isTypeResolved = false
     File file = undefined
     
     on create
-        QualifiedName name
-        name:Add("Libraries")
-        name:Add("Language")
-        name:Add("Object")
+        QualifiedName object
+        object:Add("Libraries")
+        object:Add("Language")
+        object:Add("Object")
 
-        //by default, all classes inherit from Object
-        AddUnresolvedParent(name)
+        AddUnresolvedUseStatement(object)
+    end
+
+    action AddGeneric(text name)
+        generics:Add(name)
+        genericHash:Add(name, name)
+    end
+
+    action GetNumberGenerics returns integer
+        return generics:GetSize()
+    end
+
+    action GetGeneric(integer location) returns text
+        return generics:Get(location)
+    end
+
+    action HasGeneric(text name) returns boolean
+        return genericHash:HasKey(name)
+    end
+
+    /*
+        This action returns a list of of all generic names. For example, if
+        the class is declared as A<Type, Value>, then this action will return
+        "Type, Value" without double quotes.
+    */ 
+    action GetGenericList returns text
+        text value = ""
+        
+        i = 0
+        repeat GetNumberGenerics() times
+            if i = 0
+                value = value + GetGeneric(i)
+            else 
+                value = value + ", " + GetGeneric(i)
+            end
+            i = i + 1
+        end
+        return value
     end
 
     action Add(Action method) returns CompilerError
@@ -52,10 +91,6 @@ class Class is Symbol
         return error
     end
 
-    action AddGenericDeclaration(text value)
-        genericDeclarations:Add(value)
-    end
-
     action AddUnresolvedParent(QualifiedName name)
         unresolvedParents:Add(name)
     end
@@ -63,67 +98,290 @@ class Class is Symbol
     action AddParentClass(Class clazz) //check for compiler error or just ignore?
         parents:Add(clazz:GetStaticKey(), clazz)
     end
+    
+    /*
+        This action checks to see if all types have been resolved for this class.
+    */
+    action IsResolved returns boolean
+        return isTypeResolved
+    end
 
-    action ResolveParents(SymbolTable table) returns Array<CompilerError>
-        Array<CompilerError> errors
+    action ResolveAllTypes(SymbolTable table, CompilerErrorManager errors)
+        //first resolve all use statements
+        Iterator<QualifiedName> unresolvedUse = GetUnresolvedUseStatements()
+        repeat while unresolvedUse:HasNext()
+            QualifiedName name = unresolvedUse:Next()
+            Class clazz = GetClass(name:GetStaticKey(), table, errors)
+            if clazz not= undefined
+                AddValidUse(clazz)
+            else
+                CompilerError error
+                error:SetLocation(name)
+                CompilerErrorType type
+                type:SetCurrentType(type:MISSING_USE)
+                error:SetCompilerErrorType(type)
+                error:SetErrorMessage("I could not locate the use statement named "
+                    +   name:GetStaticKey() + ". Are you sure you spelled it correct?" )
+                errors:Add(error)
+            end
+        end
+
+        //next resolve all parents
+        ResolveParents(table, errors)
+
+        //next resolve all actions and their blocks
+        ResolveActions(table, errors)
+
+        isTypeResolved = true
+    end
+
+    private action ResolveActions(SymbolTable table, CompilerErrorManager errors)
+        Iterator<Action> actionIterator = me:GetActions()
+        Array<Action> temp
+        repeat while actionIterator:HasNext()
+            Action next = actionIterator:Next()
+            temp:Add(next)
+            //first, we resolve the parameters
+            Iterator<Variable> parameters = next:GetParameterIterator()
+            repeat while parameters:HasNext()
+                Variable param = parameters:Next()
+                ResolveVariable(param, table, errors)
+            end
+
+            //next we resolve all of the variables in its blocks
+            if next:GetBlock() not= undefined
+                ResolveBlock(next:GetBlock(), table, errors)
+            end
+        end
+
+        //now we pull all actions out of the hash and re-hash them,
+        //now with resolved type names and keys
+        hasMain = false
+        actions:Empty()
+        actionIterator = temp:GetIterator()
+        repeat while actionIterator:HasNext()
+            Action next = actionIterator:Next()
+            CompilerError error = Add(next)
+            if error not= undefined
+                errors:Add(error)
+            end
+        end
+    end
+
+    private action ResolveBlock(Block block, SymbolTable table, CompilerErrorManager errors)
+        //first resolve all of the variables in this block
+        Iterator<Variable> variables = block:GetVariables()
+        repeat while variables:HasNext()
+            Variable next = variables:Next()
+            ResolveVariable(next, table, errors)
+        end
+
+        //next resolve any variables in the children
+        Iterator<Block> blocks = block:GetBlocks()
+        repeat while blocks:HasNext()
+            Block next = blocks:Next()
+            ResolveBlock(next, table, errors)
+        end
+    end
+
+    private action ResolveVariable(Variable variable, SymbolTable table, CompilerErrorManager errors)
+        Type type = variable:GetType()
+        if type = undefined //this is an implicit type, which has to be a primitive
+                            //therefore, it is safe to ignore this
+            return now
+        end
+        ResolveType(variable, type, table, errors)
+    end
+
+    private action ResolveType(Variable variable, Type type, SymbolTable table, CompilerErrorManager errors)
+        if not type:IsPrimitive() //if it's a primitive, do nothing
+            text key = type:GetStaticKey()
+            Class clazz = GetClass(key, table, errors)
+            if clazz not= undefined
+                type:SetToObject(clazz:GetStaticKey())
+                if type:HasGenerics()
+                    //check to see if the number of generics matches with the class
+                    if clazz:GetNumberGenerics() not= type:GetNumberGenerics() 
+                        CompilerError error
+                        error:SetLocation(variable)
+                        CompilerErrorType t
+                        t:SetCurrentType(t:MISMATCHED_TEMPLATES)
+                        error:SetCompilerErrorType(t)
+                        error:SetErrorMessage("I noticed there is a variable of type "
+                            +  key + ". This class requires " + clazz:GetNumberGenerics()
+                            + " generics, but there are " + type:GetNumberGenerics() + " defined.")
+                        errors:Add(error)
+                    end
+
+
+                    Iterator<Type> generics = type:GetGenerics()
+                    repeat while generics:HasNext()
+                        Type generic = generics:Next()
+                        if type:HasGenerics()
+                            ResolveType(variable, generic, table, errors)
+                        end
+                    end
+                end
+            else
+                CompilerError error
+                error:SetLocation(variable)
+                CompilerErrorType t
+                t:SetCurrentType(t:MISSING_USE)
+                error:SetCompilerErrorType(t)
+                error:SetErrorMessage("I could not locate a type named "
+                    +  key + ". Are you sure it was spelled it correct?" )
+                errors:Add(error)
+            end
+        end
+        
+    end
+
+    action ResolveActionKey(text name, Iterator<Variable> parameters, 
+        SymbolTable table, CompilerErrorManager errors) returns text
+        text final = name
+        
+        repeat while parameters:HasNext()
+            Variable param = parameters:Next()
+            Type type = param:GetType()
+            if type:IsPrimitive()
+                final = final + ":" + type:GetStaticKey() 
+            else
+                Class clazz = GetClass(type:GetStaticKey(), table, errors)
+                if clazz not= undefined //if it is, an error has been issued
+                    final = final + ":" + clazz:GetStaticKey()
+                end
+
+                //does the type have generics
+                if type:HasGenerics()
+                    Iterator<Type> generics = type:GetGenerics()
+                    final = final + GetGenericKey(generics, table, errors)
+                end
+            end
+        end
+
+        return final
+    end
+
+    private action GetGenericKey(Iterator<Type> generics, 
+        SymbolTable table, CompilerErrorManager errors) returns text
+        text final = "<"
+        first = true
+        repeat while generics:HasNext()
+            Type type = generics:Next()
+            
+            if type:IsPrimitive()
+                if first
+                    final = final + type:GetStaticKey() 
+                    first = false
+                else
+                    final = final + ":" + type:GetStaticKey() 
+                end
+                
+            else
+                Class clazz = GetClass(type:GetStaticKey(), table, errors)
+                if clazz not= undefined //if it is, an error has been issued
+                    if first
+                        final = final + clazz:GetStaticKey()
+                        first = false
+                    else
+                        final = final + ":" + clazz:GetStaticKey()
+                    end
+                    
+                end
+
+                //does the type have generics
+                if type:HasGenerics()
+                    Iterator<Type> gen = type:GetGenerics()
+                    final = final + GetGenericKey(gen, table, errors)
+                end
+            end
+        end
+
+        return final + ">"
+    end
+
+    private action GetClass(text key, SymbolTable table, CompilerErrorManager errors) returns Class
+        Class clazz = undefined
+        Array<text> split = key:Split("\.")
+
+        //first check if this is a full name in the symbol table. 
+        //be careful to check the default package only if this class
+        //is in the default package. 
+        if split:GetSize() > 1
+            clazz = table:GetClass(key)
+        end
+
+        if clazz not= undefined
+            return clazz
+        end
+        //next check if this is the name of a generic in this class
+        has = HasGeneric(key)
+        if has
+            Type type
+            clazz = table:GetClass(type:OBJECT_KEY)
+        end
+
+        if clazz not= undefined
+            return clazz
+        end
+
+        //if we still haven't found it, then check if there are any classes
+        //in the current package of the class by that name. If there are, then
+        //use that.
+        Class fromPackage = table:GetClassInPackage(me:GetPackageKey(), key)
+
+        //is there a name in the use list?
+        Class fromUse = me:GetValidUseName(key)
+
+        //is there a name in both the use list and the package?
+        //if so, it's a compiler error if they conflict
+        //if no name is found, this is an error
+        //if the name is unique, use that one and put it in the class
+        if fromPackage not= undefined and fromUse = undefined
+            clazz = fromPackage
+        elseif fromPackage = undefined and fromUse not= undefined
+            clazz = fromUse
+        elseif fromPackage not= undefined and fromUse not= undefined
+            //if both classes are the same, then return it
+            if fromPackage:GetStaticKey() = fromUse:GetStaticKey()
+                clazz = fromPackage
+            else //this is a conflict and a compiler error
+                CompilerError error
+                text a = ""
+                a = a:GetDoubleQuote()
+                error:SetErrorMessage("The name " + a + key + a
+                    + " could be either " + a + fromPackage:GetStaticKey() + a 
+                    + " or " + a + fromUse:GetStaticKey() + a + ". I cannot tell which one you meant." ) 
+                //TODO: Add in compiler error line and location.
+                errors:Add(error)
+            end
+        end
+
+        if clazz not= undefined
+            return clazz
+        end
+
+        if clazz = undefined
+            CompilerError error
+            text a = ""
+            a = a:GetDoubleQuote()
+            error:SetErrorMessage("The class name " + a + key + a + 
+                " could not be found. Did you forget a use statement?") 
+            //TODO: Add in compiler error line and location.
+            errors:Add(error)
+        end
+        //if we still have not found the class, then it cannot be found, 
+        //which is an error
+        return undefined
+    end
+
+
+    action ResolveParents(SymbolTable table, CompilerErrorManager errors)
         isResolvingParents = true
         Iterator<QualifiedName> names = GetUnresolvedParents()
         repeat while names:HasNext()
             QualifiedName name = names:Next()
-            Class myParent = undefined
-            if name:GetSize() = 1 //it might need to be resolved
-                text value = name:GetName()
-                //is there a class with this name in the package?
-                Class fromPackage = table:GetClassInPackage(me:GetPackageKey(), value)
-
-                //is there a name in the use list?
-                Class fromUse = me:GetValidUseName(value)
-
-                //is there a name in both the use list and the package?
-                //if so, it's a compiler error if they conflict
-                //if no name is found, this is an error
-                //if the name is unique, use that one and put it in the class
-                if fromPackage not= undefined and fromUse = undefined
-                    myParent = fromPackage
-                elseif fromPackage = undefined and fromUse not= undefined
-                    myParent = fromUse
-                elseif fromPackage not= undefined and fromUse not= undefined
-                    //if both classes are the same, then return it
-                    if fromPackage:GetStaticKey() = fromUse:GetStaticKey()
-                        myParent = fromPackage
-                    else //this is a conflict and a compiler error
-                        CompilerError error
-                        text a = ""
-                        a = a:GetDoubleQuote()
-                        error:SetErrorMessage("The name " + a + value + a
-                            + " could be either " + a + fromPackage:GetStaticKey() + a 
-                            + " or " + a + fromUse:GetStaticKey() + a + ". I cannot tell which one you meant." ) 
-                        //TODO: Add in compiler error line and location.
-                        errors:Add(error)
-                    end
-                else //both are undefined. This is an error
-                    CompilerError error
-                    text a = ""
-                    a = a:GetDoubleQuote()
-                    error:SetErrorMessage("The parent name " + a + value + a + 
-                        " could not be found. Did you forget a use statement?") 
-                    //TODO: Add in compiler error line and location.
-                    errors:Add(error)
-                end
-            else //this is a unique name, either it exists or it doesn't.
-                 //if it doesn't, it is a compiler error
-                myParent = table:GetClass(name:GetStaticKey())
-
-                if myParent = undefined
-                    CompilerError error
-                    text a = ""
-                    a = a:GetDoubleQuote()
-                    error:SetErrorMessage("The parent name " + a + name:GetStaticKey() + a + 
-                        " could not be found.") 
-                    //TODO: Add in compiler error line and location.
-                    errors:Add(error)
-                end
-            end
+            Class myParent = GetClass(name:GetStaticKey(), table, errors)
 
             if myParent not= undefined //if it is defined, add it as a valid parent
                 parents:Add(myParent:GetStaticKey(), myParent)
@@ -155,20 +413,12 @@ class Class is Symbol
 
                 isResolvingParents = false
                 areParentsResolved = true
-                return errors
             end
 
 
             //otherwise check if the parent is resolved
             if not next:AreParentsResolved()
-                Array<CompilerError> parentErrors = next:ResolveParents(table)
-
-                //if there are any errors, keep track of them.
-                Iterator<CompilerError> it = parentErrors:GetIterator()
-                repeat while it:HasNext()
-                    CompilerError error = it:Next()
-                    errors:Add(error)
-                end
+                next:ResolveParents(table, errors)
             end
             //the parent is now resolved. 
             Iterator<Class> list = next:GetParentClasses()
@@ -185,7 +435,6 @@ class Class is Symbol
         //the parents have been resolved.
         isResolvingParents = false
         areParentsResolved = true
-        return errors
     end
 
     /*
@@ -203,7 +452,7 @@ class Class is Symbol
         For example, if we have a class A is B, class B is C, and class C is D,
         then the flattened list of A is B, C, D, and Libraries.Language.Object.
     */
-    action AreParentsResolved returns boolean
+    private action AreParentsResolved returns boolean
         return me:areParentsResolved
     end
 
@@ -252,11 +501,15 @@ class Class is Symbol
     end
 
     action AddUnresolvedUseStatement(QualifiedName name)
-        unresolvedUseStatements:Add(name)
+        unresolvedUseStatements:Add(name:GetName(), name)
+    end
+
+    action GetUnresolvedUseStatement(text key) returns QualifiedName
+        return unresolvedUseStatements:GetValue(key)
     end
 
     action GetUnresolvedUseStatements returns Iterator<QualifiedName>
-        return unresolvedUseStatements:GetIterator()
+        return unresolvedUseStatements:GetValueIterator()
     end
 
     action GetUnresolvedParents returns Iterator<QualifiedName>
@@ -297,6 +550,10 @@ class Class is Symbol
 
     action GetAction(text key) returns Action
         return actions:GetValue(key)
+    end
+
+    action GetActions returns Iterator<Action>
+        return actions:GetValueIterator()
     end
 
     action HasAction(text key) returns boolean
@@ -354,9 +611,12 @@ class Class is Symbol
 
     action ResolveAction(ActionCall call) returns ActionCallResolution
         ActionCallResolution resolution
-        Array<QuorumOpcode> parameters = call:actualParameters
+        Array<Type> parameters = call:actualParameters
+        TypeChecker checker = call:checker
 
         Array<Action> named //actions with the right name
+        Array<integer> scores
+        Array<Action> matches
         Iterator<Action> all = actions:GetValueIterator()
         repeat while all:HasNext()
             Action act = all:Next()
@@ -372,18 +632,104 @@ class Class is Symbol
 
         if named:IsEmpty()
             resolution:isResolved = false
+            CompilerError error
+
+            //TODO: Improve this error message
+            error:SetErrorMessage("I could not find any action with the name '" + 
+                call:name + "' in the class '" + me:GetStaticKey() + "'")
+            error:SetLocation(call)
+            resolution:error = error
             return resolution
         end
+        Operation implicit
+        implicit:SetOperation(implicit:IMPLICIT_CAST)
 
-        if named:GetSize() = 1 //if there are no parameters and one method
-            Action only = named:Get(0)
-            if parameters:IsEmpty() and only:GetParametersSize() = 0
-                resolution:isResolved = true
-                resolution:resolvedAction = only
-                resolution:resolvedParameters = parameters
+        Iterator<Action> it = named:GetIterator()
+        //assume they have an equal number of parameters
+        repeat while it:HasNext() 
+            Action act = it:Next()
+            i = 0
+            integer actionPoints = 0
+            Iterator<Variable> variables = act:GetParameterIterator()
+            boolean isMatch = true
+            repeat while variables:HasNext() and isMatch
+                Variable formalParameter = variables:Next()
+                Type formalParameterType = formalParameter:GetType()
+                Type actualParameterType = parameters:Get(i)
+                
+                //Check the types to make sure that they are compatible
+                TypeCheckResult result = checker:Check(formalParameterType, actualParameterType, implicit, false)
+                CompilerError error = result:GetCompilerError(call)
+                if error not= undefined //this action is not a match. We can break out
+                    isMatch = false
+                else 
+                    TypeConversionPoints points = result:points
+                    actionPoints = actionPoints + points:GetPoints()
+                end
+                i = i + 1
+            end
+
+            if isMatch
+                matches:Add(act)
+                scores:Add(actionPoints)
             end
         end
-        //now check all of the parameters to see whether the types are compatible
+        
+        Array<Action> finalMatches
+        integer minPoints = 0
+        minPoints = minPoints:GetMaximumValue()
+        i = 0
+        repeat matches:GetSize() times
+            Action act = matches:Get(i)
+            integer points = scores:Get(i)
+            
+            if points < minPoints
+                minPoints = points
+                finalMatches:Add(act)
+            elseif points = minPoints
+                finalMatches:Add(act)
+            end
+
+            i = i + 1
+        end
+
+        if finalMatches:GetSize() = 1 //if there are no parameters and one method
+            resolution:resolvedAction = finalMatches:Get(0)
+            resolution:isResolved = true
+        elseif finalMatches:GetSize() > 1 //check all of the scores
+            resolution:resolvedAction = undefined
+            resolution:isResolved = false
+            CompilerError error
+
+            text value = "I could not find an action that uniquely matches with the name '" + 
+                call:name + "' in the class '" + me:GetStaticKey() + "' The reason is because the actions "
+
+             Iterator<Action> m = finalMatches:GetIterator()
+             repeat while m:HasNext()
+                Action a = m:Next()
+                value = a:GetStaticKey()
+
+                if m:HasNext()
+                    value = value + ", "
+                end
+             end
+             value = value + " all match the parameters."
+             
+            //TODO: Improve this error message
+            error:SetErrorMessage(value)
+            error:SetLocation(call)
+            resolution:error = error
+        else //There are no matches
+            resolution:resolvedAction = undefined
+            resolution:isResolved = false
+            CompilerError error
+
+            //TODO: Improve this error message
+            error:SetErrorMessage("I could not find any action with the name '" + 
+                call:name + "' in the class '" + me:GetStaticKey() + "'")
+            error:SetLocation(call)
+            resolution:error = error
+        end
 
         return resolution
     end

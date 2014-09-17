@@ -2,12 +2,15 @@ package Libraries.Language.Compile.Symbol
 
 use Libraries.Containers.Array
 use Libraries.Language.Compile.Translate.QuorumOpcode
+use Libraries.Language.Compile.Location
 
 /*
     This class contains information about action calls, allowing the compiler
     to disambiguate various kinds of calls from actual to specified parameters.
 */
-class ActionCall
-    public Array<QuorumOpcode> actualParameters = undefined
+class ActionCall is Location
+    public Array<Type> actualParameters = undefined
     public text name = ""
+    public SymbolTable table = undefined
+    public TypeChecker checker = undefined
 end

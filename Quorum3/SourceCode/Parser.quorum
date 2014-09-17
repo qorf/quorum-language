@@ -50,7 +50,30 @@ class Parser is QuorumSourceListener
             currentClass:AddUnresolvedUseStatement(unresolvedUseStatements:Get(i))
             i = i + 1
         end
+
+        QualifiedName generics = context:name
+
+        i = 0
+        repeat generics:GetNumberGenerics() times
+            currentClass:AddGeneric(generics:GetGeneric(i))
+            i = i + 1
+        end
+
         currentClass:SetFile(me:GetFile())
+
+        if currentClass:GetStaticKey() not= "Libraries.Language.Object"
+            //if this class is not Libraries.Language.Object, add this class
+            //as a parent
+            QualifiedName object
+            object:Add("Libraries")
+            object:Add("Language")
+            object:Add("Object")
+
+            //by default, all classes inherit from Object
+            currentClass:AddUnresolvedParent(object)
+        end
+
+
         Array<QualifiedName> newArray
         unresolvedUseStatements = newArray
         classes:Add(currentClass)
@@ -67,16 +90,6 @@ class Parser is QuorumSourceListener
 
     action EnterGenericDeclaration(GenericDeclarationContext context) end
     action ExitGenericDeclaration(GenericDeclarationContext context) 
-        if isFirstGenericInFile
-            Array<text> declarations = context:tokens
-            i = 0
-            size = declarations:GetSize()
-            repeat while i < size
-                currentClass:AddGenericDeclaration(declarations:Get(i))
-                i = i + 1
-            end
-            isFirstGenericInFile = false
-        end
     end
 
     action ExitInheritStatement(InheritStatementContext context) 

@@ -16,6 +16,14 @@ class QualifiedName is Location
         generics:Add(generic)
     end
 
+    action GetNumberGenerics returns integer
+        return generics:GetSize()
+    end
+
+    action GetGeneric(integer location) returns text
+        return generics:Get(location)
+    end
+
     action GetSize returns integer
         return names:GetSize()
     end
@@ -89,6 +97,12 @@ class QualifiedName is Location
         repeat while it:HasNext()
             text value = it:Next()
             new:Add(value)
+        end
+
+        Iterator<text> gen = generics:GetIterator()
+        repeat while gen:HasNext()
+            text value = gen:Next()
+            new:AddGeneric(value)
         end
         return new
     end

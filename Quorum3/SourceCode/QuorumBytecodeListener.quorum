@@ -147,6 +147,14 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
     end
 
+    action EnterConstructor(ConstructorContext context) 
+        currentAction = currentClass:GetConstructor()
+    end
+
+    action ExitConstructor(ConstructorContext context) 
+        currentAction = undefined
+    end
+
     action EnterAction(ActionContext context) 
         SetNormalAction()
         isInAction = true
@@ -317,7 +325,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 Type type = typeOriginal:Copy()
                 type:SetIsConstant(true)
                 QuorumConstant const
-                const:methodWriter = methodWriter
+                const:SetMethodWriter(methodWriter)
                 const:SetType(type)
                 if type:IsInteger()
                     type:SetIntegerConstant(0)
@@ -369,6 +377,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         assignment:SetType(value)
         assignment:SetMethodWriter(methodWriter)
         assignment:SetBytecodeLocation(location)
+        assignment:SetVariable(variable)
 
         if isInAction
             currentBlockOpcode:Add(assignment)
@@ -440,19 +449,22 @@ class QuorumBytecodeListener is QuorumSourceListener
                 parametersBackward:Add(param)
             end
 
-            Array<QuorumOpcode> parameters
+            Array<Type> parameters
             i = size - 1
             repeat size times
-                parameters:Add(parametersBackward:Get(i))
+                QuorumOpcode op = parametersBackward:Get(i)
+                parameters:Add(op:GetType())
                 i = i - 1
             end
 
             ActionCall call
             call:actualParameters = parameters
             call:name = context:name
+            call:checker = GetTypeChecker()
+            call:table = GetSymbolTable()
             ActionCallResolution resolved = currentClass:ResolveAction(call)
 
-            if resolved not= undefined //throw a compiler error, if in the type checker, but not in bytecode generator
+            if resolved not= undefined and resolved:isResolved//throw a compiler error, if in the type checker, but not in bytecode generator
                 actionCall:SetActionCallResolution(resolved)
                 actionCall:SetIsActionCall(true)
             end
@@ -665,7 +677,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         type:SetIntegerConstant(context:value)
 
         QuorumConstant const
-        const:methodWriter = methodWriter
+        const:SetMethodWriter(methodWriter)
         const:SetType(type)
         const:integerValue = context:value
         opcodeStack:Push(const)
@@ -677,7 +689,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         type:SetTextConstant(context:value)
 
         QuorumConstant const
-        const:methodWriter = methodWriter
+        const:SetMethodWriter(methodWriter)
         const:SetType(type)
         const:textValue = context:value
         opcodeStack:Push(const)
@@ -689,7 +701,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         type:SetBooleanConstant(context:value)
 
         QuorumConstant const
-        const:methodWriter = methodWriter
+        const:SetMethodWriter(methodWriter)
         const:SetType(type)
         const:booleanValue = context:value
         opcodeStack:Push(const)
@@ -701,7 +713,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         type:SetNumberConstant(context:value)
 
         QuorumConstant const
-        const:methodWriter = methodWriter
+        const:SetMethodWriter(methodWriter)
         const:SetType(type)
         const:numberValue = context:value
         opcodeStack:Push(const)

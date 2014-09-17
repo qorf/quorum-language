@@ -6,6 +6,7 @@ use Libraries.Language.Compile.Symbol.all
 use Libraries.System.File
 use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Array
 
 class TypeCheckListener is QuorumSourceListener
     QualifiedName packageValue = undefined
@@ -17,7 +18,9 @@ class TypeCheckListener is QuorumSourceListener
     Stack<Type> expressionStack
     boolean isNextVariableReferenceMe = false
     Stack<integer> blockPositionStack
+    text constructorName = "on create"
     integer loopCounter = 0
+    Stack<ActionExpressionListContext> actionCallParameterStack
 
     action ExitPackageRule(PackageContext context) 
         packageValue = context:name
@@ -26,7 +29,8 @@ class TypeCheckListener is QuorumSourceListener
     action EnterFullClassDeclaration(FullClassDeclarationContext context) 
         text name = context:className
         SymbolTable table = me:GetSymbolTable()
-        
+        CompilerErrorManager manager = GetCompilerErrorManager()
+
         text staticKey = ""
         if packageValue = undefined
             QualifiedName default
@@ -41,15 +45,55 @@ class TypeCheckListener is QuorumSourceListener
             error:SetLineNumber(location:GetLineNumber())
             error:SetFile(location:GetFile())
             error:SetErrorMessage("Class " + context:className + " could not be found.")
-            CompilerErrorManager manager = GetCompilerErrorManager()
+            
             manager:Add(error)
+        else //parents are already resolved, so let's check templating in our hierarchy
+
+            
+            Iterator<QualifiedName> names = currentClass:GetUnresolvedParents()
+            repeat while names:HasNext()
+                QualifiedName mom = names:Next()
+                //if the parent has a template, make sure it's in the right set
+                i = 0
+                repeat mom:GetNumberGenerics() times
+                    text value = mom:GetGeneric(i)
+                    //the listed generic must match one in this classes list
+                    //if it doesn't, it is a compiler error, as it 
+                    //would not make sense
+                    if not currentClass:HasGeneric(value)
+                        Location location = context:GetLocation()
+                        CompilerError error
+                        error:SetLineNumber(location:GetLineNumber())
+                        error:SetFile(location:GetFile())
+                        error:SetErrorMessage("Parent " + mom:GetStaticKey() 
+                            + " declared a template of type " + value + ", but "
+                            + "only the following names are declared by the class: " + currentClass:GetGenericList() )
+                        manager:Add(error)
+                    end
+                    i = i + 1
+                end
+            end
         end
+    end
+
+    action EnterFormalParameter(FormalParameterContext context) 
+        a = 5
+    end
+
+
+    action ExitFormalParameter(FormalParameterContext context) 
+        a = 5
+    end
+
+    action EnterActionHeader(ActionContext context)
+        a = 5
     end
 
     action ExitActionHeader(ActionContext context)
         if currentClass not= undefined
             //get the method name
-            text key = context:GetStaticKey()
+            text key = currentClass:ResolveActionKey(context:actionName, 
+                context:GetParameters(), GetSymbolTable(), GetCompilerErrorManager())
             Action method = currentClass:GetAction(key)
             currentAction = method
 
@@ -63,6 +107,14 @@ class TypeCheckListener is QuorumSourceListener
                 manager:Add(error)
             end
         end
+    end 
+
+    action EnterConstructor(ConstructorContext context) 
+        currentAction = currentClass:GetConstructor()
+    end
+
+    action ExitConstructor(ConstructorContext context) 
+        currentAction = undefined
     end
 
     action EnterBlock(BlockContext context)
@@ -111,6 +163,7 @@ class TypeCheckListener is QuorumSourceListener
     action ExitNormalAssignment(NormalAssignmentContext context) 
         text name = context:name
         Variable variable = undefined
+        Location location = context:GetLocation()
 
         if not isInAction
             variable = currentClass:GetVariable(name)
@@ -119,13 +172,26 @@ class TypeCheckListener is QuorumSourceListener
         end
         
         if variable = undefined
-            Location location = context:GetLocation()
             CompilerError error
             error:SetLineNumber(location:GetLineNumber())
             error:SetFile(location:GetFile())
             error:SetErrorMessage("Variable " + context:name + " could not be found.")
             CompilerErrorManager manager = GetCompilerErrorManager()
             manager:Add(error)
+            return now
+        end
+
+        if not context:hasRightHandSide
+            Type type = variable:GetType()
+            if type:IsPrimitive() //this is a compiler error
+                CompilerError error
+                error:SetLineNumber(location:GetLineNumber())
+                error:SetFile(location:GetFile())
+                error:SetErrorMessage("The Variable " + context:name + " was found, but "
+                    +   " is a primitive, which must define a value.")
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(error)
+            end //if this is an object instantiation, there is nothing to do
             return now
         end
 
@@ -194,7 +260,73 @@ class TypeCheckListener is QuorumSourceListener
     end
 
     action EnterActionCall(ActionCallContext context)
-        if context:isActionCall 
+//        if context:isActionCall 
+//            
+//        else 
+//            name = context:name
+//            Variable variable = undefined
+//            
+//            if isNextVariableReferenceMe
+//                variable = currentClass:GetVariable(name)
+//            else 
+//                variable = currentBlock:GetVariable(name)
+//                isNextVariableReferenceMe = false
+//            end
+//
+//            if variable not= undefined
+//                Type type = variable:GetType()
+//                if variable:IsField()
+//                else
+//                end
+//                expressionStack:Push(type)
+//            end
+//        end
+    end
+
+    action ExitActionExpressionList(ActionExpressionListContext context) 
+        actionCallParameterStack:Push(context)
+    end
+
+    action ExitActionCall(ActionCallContext context)
+        if context:isActionCall
+            ActionExpressionListContext params =  actionCallParameterStack:Pop()
+            size = params:size
+
+            Array<Type> parametersBackward
+            repeat size times
+                Type param = expressionStack:Pop()
+                parametersBackward:Add(param)
+            end
+
+            Array<Type> parameters
+            i = size - 1
+            repeat size times
+                parameters:Add(parametersBackward:Get(i))
+                i = i - 1
+            end
+
+            ActionCall call
+            call:SetLocation(context:GetLocation())
+            call:actualParameters = parameters
+            call:name = context:name
+            call:checker = GetTypeChecker()
+            call:table = GetSymbolTable()
+
+            ActionCallResolution resolved = currentClass:ResolveAction(call)
+
+            if resolved not= undefined and resolved:isResolved
+                Action act = resolved:resolvedAction
+                Type ret = act:GetReturnType()
+                expressionStack:Push(ret)
+            //    actionCall:SetActionCallResolution(resolved)
+            //    actionCall:SetIsActionCall(true)
+            else //throw a compiler error here
+                CompilerError error = resolved:error 
+               if error not= undefined
+                    CompilerErrorManager manager = GetCompilerErrorManager()
+                    manager:Add(error)
+                end
+            end
         else 
             name = context:name
             Variable variable = undefined
@@ -215,6 +347,7 @@ class TypeCheckListener is QuorumSourceListener
             end
         end
     end
+
 
     action ExitAnd(AndOrContext context) 
         DoAndOr(context)
