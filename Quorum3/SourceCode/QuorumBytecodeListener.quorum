@@ -9,6 +9,8 @@ use Libraries.Language.Compile.Symbol.all
 use Libraries.Language.Compile.Translate.all
 
 use Libraries.Containers.Array
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
 use Libraries.System.File
 use Libraries.Containers.Stack
 
@@ -128,7 +130,11 @@ class QuorumBytecodeListener is QuorumSourceListener
     action ExitActionHeader(ActionContext context)
         if currentClass not= undefined
             //get the method name
-            text key = context:GetStaticKey()
+            List<Variable> list = context:parameters
+            Iterator<Variable> paramIt = list:GetIterator()
+            text key = currentClass:ResolveActionKey(context:actionName, paramIt,
+                GetSymbolTable(), GetCompilerErrorManager())
+
             Action method = currentClass:GetAction(key)
             currentAction = method
             ActionOpcode actionOpcode
@@ -505,7 +511,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             returnOp:SetOperation(returnOp:RETURN)
 
             TypeChecker checker = GetTypeChecker()
-            TypeCheckResult result = checker:Check(type, right:GetType(), returnOp, true) 
+            TypeCheckResult result = checker:Check(type, right:GetType(), returnOp) 
 
             ReturnOpcode opcode = cast(ReturnOpcode, result:GetQuorumOpcode())
             opcode:SetMethodWriter(methodWriter)
