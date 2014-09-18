@@ -148,6 +148,11 @@ class Class is Symbol
                 ResolveVariable(param, table, errors)
             end
 
+            Type returnType = next:GetReturnType()
+            if not returnType:IsVoid()
+                ResolveType(next, returnType, table, errors)
+            end
+
             //next we resolve all of the variables in its blocks
             if next:GetBlock() not= undefined
                 ResolveBlock(next:GetBlock(), table, errors)
@@ -233,7 +238,51 @@ class Class is Symbol
                 errors:Add(error)
             end
         end
-        
+    end
+
+    /*
+        This action resolves a type that lives in an action.
+    */
+    private action ResolveType(Action act, Type type, SymbolTable table, CompilerErrorManager errors)
+        if not type:IsPrimitive() //if it's a primitive, do nothing
+            text key = type:GetStaticKey()
+            Class clazz = GetClass(key, table, errors)
+            if clazz not= undefined
+                type:SetToObject(clazz:GetStaticKey())
+                if type:HasGenerics()
+                    //check to see if the number of generics matches with the class
+                    if clazz:GetNumberGenerics() not= type:GetNumberGenerics() 
+                        CompilerError error
+                        error:SetLocation(act)
+                        CompilerErrorType t
+                        t:SetCurrentType(t:MISMATCHED_TEMPLATES)
+                        error:SetCompilerErrorType(t)
+                        error:SetErrorMessage("I noticed there is a variable of type "
+                            +  key + ". This class requires " + clazz:GetNumberGenerics()
+                            + " generics, but there are " + type:GetNumberGenerics() + " defined.")
+                        errors:Add(error)
+                    end
+
+
+                    Iterator<Type> generics = type:GetGenerics()
+                    repeat while generics:HasNext()
+                        Type generic = generics:Next()
+                        if type:HasGenerics()
+                            ResolveType(act, generic, table, errors)
+                        end
+                    end
+                end
+            else
+                CompilerError error
+                error:SetLocation(act)
+                CompilerErrorType t
+                t:SetCurrentType(t:MISSING_USE)
+                error:SetCompilerErrorType(t)
+                error:SetErrorMessage("I could not locate a type named "
+                    +  key + ". Are you sure it was spelled it correct?" )
+                errors:Add(error)
+            end
+        end
     end
 
     action ResolveActionKey(text name, Iterator<Variable> parameters, 

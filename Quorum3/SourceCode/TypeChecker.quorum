@@ -4,6 +4,7 @@ use Libraries.Containers.HashTable
 use Libraries.Language.Compile.CompilerErrorType
 use Libraries.Language.Compile.Translate.all
 use Libraries.Containers.Array
+use Libraries.Containers.Blueprints.Iterator
 
 class TypeChecker
     HashTable<text, TypeCheckResult> results
@@ -1497,6 +1498,256 @@ class TypeChecker
         c:SetConversion(c:NARROWING)
         result:errorMessage = ""
         return result
+    end
+    
+    /*
+        This action adds a class to the type checker, setting up operations
+        for assignment or other aspects. This action also prepares
+        any parent relationships in the type checker as well.
+
+    */
+    action Add(Class clazz)
+        TypeCheckResult result = undefined
+        Type type = undefined
+        Operation opConstant
+        text staticKey = clazz:GetStaticKey()
+        text null = undefined
+
+        //line 1376
+        Operation op = undefined
+        text key = GenerateTypeCheckKey(staticKey,
+                null, op, true)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToObject(staticKey)
+        CreateObjectOpcode cop
+        cop:SetClass(clazz)
+        result:SetQuorumOpcode(cop)
+        results:Add(key, result)
+
+        //line 1395
+        op = undefined
+        key = GenerateTypeCheckKey(staticKey,
+                staticKey, op, true, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToObject(staticKey)
+        AssignmentOpcode assignment = GetAssignmentOpcode(opcodes:GetObjectStore(), type)
+        result:SetQuorumOpcode(assignment)
+        results:Add(key, result)
+
+        //line 1410
+        op = GetOperation(opConstant:RETURN)
+        key = GenerateTypeCheckKey(staticKey,
+                staticKey, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToObject(staticKey)
+        returnMe = GetReturnOpcode(opcodes:GetObjectReturn(), -1, type)
+        result:SetQuorumOpcode(returnMe)
+        results:Add(key, result)
+
+        //line 1416
+        op = GetOperation(opConstant:RETURN)
+        key = GenerateTypeCheckKey(staticKey,
+                constants:UNDEFINED_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToObject(staticKey)
+        returnMe = GetReturnOpcode(opcodes:GetObjectReturn(), -1, type)
+        result:SetQuorumOpcode(returnMe)
+        results:Add(key, result)
+
+        //line 1424
+        op = undefined
+        key = GenerateTypeCheckKey(staticKey,
+                constants:UNDEFINED_KEY, op, true, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToObject(staticKey)
+        assignment = GetAssignmentOpcode(opcodes:GetObjectStore(), type)
+        result:SetQuorumOpcode(assignment)
+        results:Add(key, result)
+
+        //line 1439
+        op = GetOperation(opConstant:EQUALS)
+        key = GenerateTypeCheckKey(staticKey,
+            staticKey, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        ComparisonOpcode compare = GetBinaryComparisonOpcode(opcodes:GetIfObjectNotEquals(), -1, -1, type)
+        result:SetQuorumOpcode(compare)
+        results:Add(key, result)
+
+        //line 1447
+        op = GetOperation(opConstant:NOT_EQUALS)
+        key = GenerateTypeCheckKey(staticKey,
+            staticKey, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfObjectEquals(), -1, -1, type)
+        result:SetQuorumOpcode(compare)
+        results:Add(key, result)
+
+        //line 1455
+        op = GetOperation(opConstant:IS)
+        key = GenerateTypeCheckKey(staticKey,
+            staticKey, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        IsOpcode isOpcode
+        isOpcode:SetType(type)
+        result:SetQuorumOpcode(isOpcode)
+        results:Add(key, result)
+
+        //line 1464
+        op = GetOperation(opConstant:EQUALS)
+        key = GenerateTypeCheckKey(staticKey,
+            constants:UNDEFINED_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfObjectNotEquals(), -1, -1, type)
+        result:SetQuorumOpcode(compare)
+        results:Add(key, result)
+
+        //1472
+        op = GetOperation(opConstant:EQUALS)
+        key = GenerateTypeCheckKey(constants:UNDEFINED_KEY,
+            staticKey, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfObjectNotEquals(), -1, -1, type)
+        result:SetQuorumOpcode(compare)
+        results:Add(key, result)
+
+        //line 1481
+        op = GetOperation(opConstant:NOT_EQUALS)
+        key = GenerateTypeCheckKey(staticKey,
+            constants:UNDEFINED_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfObjectEquals(), -1, -1, type)
+        result:SetQuorumOpcode(compare)
+        results:Add(key, result)
+
+        //line 1489
+        op = GetOperation(opConstant:NOT_EQUALS)
+        key = GenerateTypeCheckKey(constants:UNDEFINED_KEY,
+            staticKey, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfObjectEquals(), -1, -1, type)
+        result:SetQuorumOpcode(compare)
+        results:Add(key, result)
+
+        //line 1496
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(staticKey, constants:UNDEFINED_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToObject(staticKey)
+        results:Add(key, result)
+
+        //line 1505
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(staticKey, staticKey, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToObject(staticKey)
+        results:Add(key, result)
+
+        //line 1513
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(staticKey, staticKey, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToObject(staticKey)
+        results:Add(key, result)
+        
+        Iterator<Class> parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+
+            //line 1534
+            op = undefined
+            key = GenerateTypeCheckKey(staticKey,
+                    staticKey, op, true, false)
+            result = GetNoConvertResult()
+            type = result:result
+            type:SetToObject(parentKey)
+            assignment = GetAssignmentOpcode(opcodes:GetObjectStore(), type)
+            result:SetQuorumOpcode(assignment)
+            results:Add(key, result)
+
+            //line 1550
+            op = GetOperation(opConstant:IMPLICIT_CAST)
+            key = GenerateTypeCheckKey(parentKey, staticKey, op, false)
+            result = GetNoConvertResult()
+            type = result:result
+            type:SetToObject(parentKey)
+            results:Add(key, result)
+
+            //line 1559
+            op = GetOperation(opConstant:IS)
+            key = GenerateTypeCheckKey(staticKey,
+                parentKey, op, false)
+            result = GetNoConvertResult()
+            type = result:result
+            type:SetToBoolean()
+            IsOpcode isOpcode2
+            isOpcode:SetType(type)
+            result:SetQuorumOpcode(isOpcode2)
+            results:Add(key, result)
+
+            //line 1567
+            op = GetOperation(opConstant:IS)
+            key = GenerateTypeCheckKey(parentKey,
+                staticKey, op, false)
+            result = GetNoConvertResult()
+            type = result:result
+            type:SetToBoolean()
+            IsOpcode isOpcode3
+            isOpcode:SetType(type)
+            result:SetQuorumOpcode(isOpcode3)
+            results:Add(key, result)
+
+            //line 1584
+            op = GetOperation(opConstant:CAST)
+            key = GenerateTypeCheckKey(parentKey, staticKey, op, false)
+            result = GetSubclassNarrowingConvertResult()
+            type = result:result
+            type:SetToObject(staticKey)
+            results:Add(key, result)
+
+            //line 1584
+            op = GetOperation(opConstant:CAST)
+            key = GenerateTypeCheckKey(staticKey, parentKey, op, false)
+            result = GetSubclassWideningConvertResult()
+            type = result:result
+            type:SetToObject(staticKey)
+            results:Add(key, result)
+
+            //line 1593
+            op = GetOperation(opConstant:RETURN)
+            key = GenerateTypeCheckKey(parentKey,
+                    staticKey, op, false)
+            result = GetNoConvertResult()
+            type = result:result
+            type:SetToObject(staticKey)
+            returnMe = GetReturnOpcode(opcodes:GetObjectReturn(), -1, type)
+            result:SetQuorumOpcode(returnMe)
+            TypeConversionPoints points = result:points
+            points:SetPoints(points:LOSSLESS_CONVERT)
+            results:Add(key, result)
+        end
     end
 
     action GenerateTypeCheckKey(text left, text right,

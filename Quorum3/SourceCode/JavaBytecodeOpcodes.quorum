@@ -294,6 +294,14 @@ class JavaBytecodeOpcodes
         return IF_ICMPEQ
     end
 
+    action GetIfObjectEquals returns integer
+        return IF_ACMPEQ
+    end
+
+    action GetIfObjectNotEquals returns integer
+        return IF_ACMPNE
+    end
+
     action GetIfIntegerNotEquals returns integer
         return IF_ICMPNE
     end
