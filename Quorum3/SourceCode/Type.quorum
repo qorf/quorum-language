@@ -415,6 +415,11 @@ class Type
         isPrimitive = false
     end
 
+    action SetToObject(Class clazz)
+        key = clazz:GetStaticKey()
+        SetToObject(key)
+    end
+
     /*
         This action changes this type to represent a generic, with the given
         name that is currently its static key. 
