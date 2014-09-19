@@ -1,0 +1,187 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.QuorumJarGenerator
+use Libraries.System.StackTraceItem
+
+class TemplatingTester 
+    CompilerTestSuite suite = undefined
+
+    action Test
+//        ArraySetAndGet_0()
+//        ExpressionInTemplatedMethodParameter()
+//        ExpressionInTemplatedMethodParameter2()
+//        ExpressionInTemplatedMethodParameter3()
+//        ExpressionInTemplatedMethodParameter4()
+//        ExpressionInTemplatedMethodParameter5()
+//        GenericPass()     //Test not in 2.0 test suite, not sure if complete
+//        ListNodeInteger()
+//        ListNodeNumber()
+//        ListNodeText()
+//        PassBooleanTakesBoolean_5()
+//        PassBooleanTakesText_14()
+//        PassIntegerTakesInteger_4()
+//        PassIntegerTakesNumber_11()
+//        PassIntegerTakesText_12()
+//        PassNumberTakesNumber_6()
+//        PassNumberTakesText_13()
+//        PassTextTakesText_7()
+//        ProgramUsingEntryWithThreeTypes_2()
+//        ReturnNullWithTemplatedReturnType_9()
+//        TempClassHasATempClass_8()
+//        TempClassHasTempClassThatInheritsFromTempClass_10()
+//        TemplateUsingInteger_1()
+//        TemplateUsingTemplatedClass_15() //Modified
+//        TemplateUsingTwoIntegers_3()
+//        TemplatedParentAutoBox()
+
+    end
+
+    action GetName returns text
+        return "Templating Tests"
+    end
+
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+    action ArraySetAndGet_0
+        suite:RunTest("Library/Tests/Templating/Pass/ArraySetAndGet_0.quorum", "34", "16", "-62", "3")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ArraySetAndGet_0.quorum", "34", "16", "-62", "3")
+    end
+
+    action ExpressionInTemplatedMethodParameter()
+        suite:RunTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter.quorum", "")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter.quorum", "")
+    end
+
+    action ExpressionInTemplatedMethodParameter2()
+        suite:RunTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter2.quorum", "")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter2.quorum", "")
+    end
+
+    action ExpressionInTemplatedMethodParameter3()
+        suite:RunTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter3.quorum", "")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter3.quorum", "")
+    end
+
+    action ExpressionInTemplatedMethodParameter4()
+        suite:RunTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter4.quorum", "")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter4.quorum", "")
+    end
+
+    action ExpressionInTemplatedMethodParameter5()
+        suite:RunTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter5.quorum", "")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter5.quorum", "")
+    end
+
+    action GenericPass()
+        suite:RunTest("Library/Tests/Templating/Pass/GenericPass.quorum", "")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/GenericPass.quorum", "")
+    end
+
+    action ListNodeInteger()
+        suite:RunTest("Library/Tests/Templating/Pass/ListNodeInteger.quorum", "integerPassed")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ListNodeInteger.quorum", "integerPassed")
+    end
+
+    action ListNodeNumber()
+        suite:RunTest("Library/Tests/Templating/Pass/ListNodeNumber.quorum", "numberPassed")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ListNodeNumber.quorum", "numberPassed")
+    end
+
+    action ListNodeText()
+        suite:RunTest("Library/Tests/Templating/Pass/ListNodeText.quorum", "textPassed")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ListNodeText.quorum", "textPassed")
+    end
+
+    action PassBooleanTakesBoolean_5()
+        suite:RunTest("Library/Tests/Templating/Pass/PassBooleanTakesBoolean_5.quorum", "doSomething")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassBooleanTakesBoolean_5.quorum", "doSomething")
+    end
+
+    action PassBooleanTakesText_14()
+        suite:RunTest("Library/Tests/Templating/Pass/PassBooleanTakesText_14.quorum", "doSomething")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassBooleanTakesText_14.quorum", "doSomething")
+    end
+
+    action PassIntegerTakesInteger_4()
+        suite:RunTest("Library/Tests/Templating/Pass/PassIntegerTakesInteger_4.quorum", "doSomething")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassIntegerTakesInteger_4.quorum", "doSomething")
+    end
+
+    action PassIntegerTakesNumber_11()
+        suite:RunTest("Library/Tests/Templating/Pass/PassIntegerTakesNumber_11.quorum", "doSomething")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassIntegerTakesNumber_11.quorum", "doSomething")
+    end
+
+    action PassIntegerTakesText_12()
+        suite:RunTest("Library/Tests/Templating/Pass/PassIntegerTakesText_12.quorum", "doSomething")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassIntegerTakesText_12.quorum", "doSomething")
+    end
+
+    action PassNumberTakesNumber_6()
+        suite:RunTest("Library/Tests/Templating/Pass/PassNumberTakesNumber_6.quorum", "doSomething")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassNumberTakesNumber_6.quorum", "doSomething")
+    end
+
+    action PassNumberTakesText_13()
+        suite:RunTest("Library/Tests/Templating/Pass/PassNumberTakesText_13.quorum", "doSomething")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassNumberTakesText_13.quorum", "doSomething")
+    end
+
+    action PassTextTakesText_7()
+        suite:RunTest("Library/Tests/Templating/Pass/PassTextTakesText_7.quorum", "doSomething")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassTextTakesText_7.quorum", "doSomething")
+    end
+
+    action ProgramUsingEntryWithThreeTypes_2()
+        suite:RunTest("Library/Tests/Templating/Pass/ProgramUsingEntryWithThreeTypes_2.quorum", "doSomething1", "doSomething2", "doSomething3")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ProgramUsingEntryWithThreeTypes_2.quorum", "doSomething1", "doSomething2", "doSomething3")
+    end
+
+    action ReturnNullWithTemplatedReturnType_9()
+        suite:RunTest("Library/Tests/Templating/Pass/ReturnNullWithTemplatedReturnType_9.quorum", "")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ReturnNullWithTemplatedReturnType_9.quorum", "")
+    end
+
+    action TempClassHasATempClass_8()
+        suite:RunTest("Library/Tests/Templating/Pass/TempClassHasATempClass_8.quorum", "5", "35")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/TempClassHasATempClass_8.quorum", "5", "35")
+    end
+
+    action TempClassHasTempClassThatInheritsFromTempClass_10()
+        suite:RunTest("Library/Tests/Templating/Pass/TempClassHasTempClassThatInheritsFromTempClass_10.quorum", "1", "Slattery", "Stefik")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/TempClassHasTempClassThatInheritsFromTempClass_10.quorum", "1", "Slattery", "Stefik")
+    end
+
+    action TemplateUsingInteger_1()
+        suite:RunTest("Library/Tests/Templating/Pass/TemplateUsingInteger_1.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/TemplateUsingInteger_1.quorum", "5")
+    end
+
+    action TemplateUsingTemplatedClass_15()
+        suite:RunTest("Library/Tests/Templating/Pass/TemplateUsingTemplatedClass_15.quorum", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/TemplateUsingTemplatedClass_15.quorum", "5")
+    end
+
+    action TemplateUsingTwoIntegers_3()
+        suite:RunTest("Library/Tests/Templating/Pass/TemplateUsingTwoIntegers_3.quorum", "10", "5")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/TemplateUsingTwoIntegers_3.quorum", "10", "5")
+    end
+
+    action TemplatedParentAutoBox()
+        suite:RunTest("Library/Tests/Templating/Pass/TemplatedParentAutoBox.quorum", "1")
+        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/TemplatedParentAutoBox.quorum", "1")
+    end
+
+end
