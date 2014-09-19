@@ -23,7 +23,7 @@ class CompilerTestSuite
     ActionsTester actionsChecks
     InheritanceTester inheritanceChecks
     TemplatingTester templatingChecks
-    ExceptionTester exceptionChecks
+    //ExceptionTester exceptionChecks
 
     on create
         expressions:SetCompilerTestSuite(me)
@@ -33,7 +33,7 @@ class CompilerTestSuite
         actionsChecks:SetCompilerTestSuite(me)
         inheritanceChecks:SetCompilerTestSuite(me)
         templatingChecks:SetCompilerTestSuite(me)
-        exceptionChecks:SetCompilerTestSuite(me)
+        //exceptionChecks:SetCompilerTestSuite(me)
     end
 
     action Main
@@ -63,8 +63,8 @@ class CompilerTestSuite
         output templatingChecks:GetName()
         templatingChecks:Test()
         output ""
-        output exceptionChecks:GetName()
-        exceptionChecks:Test()
+        //output exceptionChecks:GetName()
+        //exceptionChecks:Test()
         output ""
 
         DateTime date2
