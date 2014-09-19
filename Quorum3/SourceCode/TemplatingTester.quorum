@@ -11,7 +11,12 @@ use Libraries.System.StackTraceItem
 
 class TemplatingTester 
     CompilerTestSuite suite = undefined
-
+    Array<File> files
+    File main
+    File dependent1
+    File dependent2
+    Array<Text> results
+    
     action Test
 //        ArraySetAndGet_0()
 //        ExpressionInTemplatedMethodParameter()
@@ -37,7 +42,7 @@ class TemplatingTester
 //        TempClassHasTempClassThatInheritsFromTempClass_10()
 //        TemplateUsingInteger_1()
 //        TemplateUsingTemplatedClass_15() //Modified
-//        TemplateUsingTwoIntegers_3()
+        TemplateUsingTwoIntegers_3()
 //        TemplatedParentAutoBox()
 
     end
@@ -175,7 +180,18 @@ class TemplatingTester
     end
 
     action TemplateUsingTwoIntegers_3()
-        suite:RunTest("Library/Tests/Templating/Pass/TemplateUsingTwoIntegers_3.quorum", "10", "5")
+        files:Empty()
+        main:SetPath("Library/Tests/Templating/Pass/TemplateUsingTwoIntegers_3.quorum")
+        dependent1:SetPath("Library/Tests/Templating/Pass/Entry2_3.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Empty()
+        results:Add(0, "10")
+        results:Add(1, "5")
+
+        suite:RunTestArray(files, results)
+
+        //suite:RunTest("Library/Tests/Templating/Pass/TemplateUsingTwoIntegers_3.quorum", "10", "5")
         //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/TemplateUsingTwoIntegers_3.quorum", "10", "5")
     end
 

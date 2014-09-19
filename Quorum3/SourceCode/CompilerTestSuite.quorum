@@ -281,6 +281,21 @@ class CompilerTestSuite
         return result
     end
 
+    action RunTestArray(Array<File> files, Array<Text> reply)
+        i = files:GetSize()
+        repeat i times
+            File f = files:RemoveFromFront()
+            output f:GetFileName()
+        end
+
+        i = reply:GetSize()
+        repeat i times
+            Text r = reply:RemoveFromFront()
+            output r
+        end
+
+    end
+
     action RunTest(text source, text reply)
         CompilerTestResult result
         result:name = source
