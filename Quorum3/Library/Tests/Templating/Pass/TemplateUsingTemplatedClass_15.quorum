@@ -4,7 +4,11 @@ class Main
         Entry<integer> e
         e:setEntry(5,"e")
         c:setContents(e)
-        integer int = e:getValue()
+
+        Entry<integer> f
+        f = c:getContents()
+
+        integer int = f:getValue()
 
         output int
     end

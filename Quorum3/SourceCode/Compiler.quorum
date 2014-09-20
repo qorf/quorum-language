@@ -114,6 +114,12 @@ class Compiler
                 next:ResolveAllTypes(symbolTable, compilerErrorManager)
             end
         end
+
+        classes = symbolTable:GetClasses()
+        repeat while classes:HasNext()
+            Class next = classes:Next()
+            checker:Add(next)
+        end
     end
 
     action IsCompilationErrorFree returns boolean

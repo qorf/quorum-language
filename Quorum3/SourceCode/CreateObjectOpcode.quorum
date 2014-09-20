@@ -16,6 +16,8 @@ class CreateObjectOpcode is QuorumOpcode
 
     action SetClass(Class clazz)
         me:clazz = clazz
+        Type type
+        type:SetToObject(clazz)
     end
 
     action GetBytecodeLocation returns integer
@@ -48,8 +50,8 @@ class CreateObjectOpcode is QuorumOpcode
 
     action GetTemplateCopy returns QuorumOpcode
         CreateObjectOpcode con
-        Type t = GetType()
-        me:SetType(t:Copy())
+        con:SetClass(GetClass())
+        
         return con
     end
 end
