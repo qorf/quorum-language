@@ -9,5 +9,6 @@ class JavaBytecodeClassWriter
     system action VisitSource(text name)
     system action VisitEnd
     system action VisitMethod(integer access, text actionName, text description, text generics, Array<text> errors) returns JavaBytecodeMethodWriter
+    system action VisitField(integer opcode, text name, text description, text signature,  Object object) returns JavaBytecodeFieldWriter
     system action Write(File file)
 end

@@ -27,13 +27,16 @@ class ClassOpcode is QuorumOpcode
     constant text JAVA_THROWABLE = "java/lang/Throwable"
     constant text JAVA_OBJECT = "java/lang/Object"
     constant text QUORUM_ERROR = "quorum/Libraries/Language/Errors/Error"
+    constant text QUORUM_ERROR_INTERFACE = "quorum/Libraries/Language/Errors/Error$Interface"
+    constant text QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR = "Libraries.Language.Errors.Error"
+    constant text CONSTRUCTOR_JAVA_NAME = "<init>"
     constant integer ME = 0
     constant text QUORUM = "quorum"
     text buildPath = ""
     text runPath = ""
     File buildFile = undefined
     File buildInterfaceFile = undefined
-
+    
     
 
     action GetBuildFile returns File
@@ -130,6 +133,10 @@ class ClassOpcode is QuorumOpcode
         //once fully integrated, check if this is a the Quorum error class or a subclass. For now, just weave in Object.
         classWriter:Visit(version, access, converter:ConvertStaticKeyToBytecodePath(staticKey), null, JAVA_OBJECT, interfaces)
 
+        JavaBytecodeFieldWriter field = classWriter:VisitField(opcodes:GetPublic(), 
+            clazz:GetHiddenVariableName(), clazz:ConvertStaticKeyToBytecodePathTypeName(), null, undefined)
+        field:VisitEnd()
+
         ComputeConstructor(true)
         ComputeConstructor(false)
 
@@ -142,7 +149,7 @@ class ClassOpcode is QuorumOpcode
         Iterator<ActionOpcode> actionIterator = actions:GetIterator()
         repeat while actionIterator:HasNext()
             ActionOpcode act = actionIterator:Next()
-            act:Write()
+          //  act:Write()
         end
 
         classWriter:VisitEnd()
@@ -166,13 +173,8 @@ class ClassOpcode is QuorumOpcode
         buildInterfaceFile = interfaceFile
     end
 
-    action WriteFields (JavaBytecodeMethodWriter methodWriter)
-        Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
-        repeat while fieldIterator:HasNext()
-            QuorumOpcode field = fieldIterator:Next()
-            field:SetMethodWriterToAllChildren(methodWriter)
-            field:Write()
-        end
+    action WriteFieldDeclarations
+        
     end
 
     action WriteMain
@@ -217,20 +219,128 @@ class ClassOpcode is QuorumOpcode
             signature = "(Z)V"
         end
 
-
         //call the class's initialization function
         text null = undefined
         methodWriter = classWriter:VisitMethod(opcodes:GetPublic(), "<init>", signature, null, undefined)
         methodWriter:VisitCode()
         methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-        methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), "java/lang/Object", "<init>", "()V", false)
 
+        //handle inheritance with the error system
+        text key = me:clazz:GetStaticKey()
+        if key = QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), JAVA_THROWABLE, CONSTRUCTOR_JAVA_NAME, "()V", false)
+        elseif clazz:HasParentClass(QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR)
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), QUORUM_ERROR, CONSTRUCTOR_JAVA_NAME, "()V", false)
+        else
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), JAVA_OBJECT, CONSTRUCTOR_JAVA_NAME, "()V", false)
+        end
 
+        if clazz:HasSystemAction()
+            WritePlugin(methodWriter)
+        end
+
+        //setup a hidden variable with the $me variable
+        methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+        methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+        methodWriter:VisitField(opcodes:GetPutField(), clazz:ConvertStaticKeyToBytecodePath(),
+            clazz:GetHiddenVariableName(), clazz:ConvertStaticKeyToBytecodePathTypeNameInterface())
+
+        //initialize all of the parents
+        if isParent
+            WriteParents(methodWriter)
+        end
+
+        //write all of the fields
         WriteFields(methodWriter)
+
+        if clazz:HasConstructor()
+            constructor:Write()
+        end
 
         methodWriter:VisitInstruction(opcodes:GetReturn())
         methodWriter:VisitMaxSize(1, 1)
         methodWriter:VisitEnd()
+    end
+
+    private action WritePlugin(JavaBytecodeMethodWriter methodWriter)
+        methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+        text converted = clazz:ConvertStaticKeyToPluginPath()
+        text convertedSupplement = clazz:ConvertStaticKeyToPluginPathTypeName()
+        methodWriter:VisitType(opcodes:GetNew(), converted)
+        methodWriter:VisitInstruction(opcodes:GetDuplicate())
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), converted, CONSTRUCTOR_JAVA_NAME, "()V", false)
+        methodWriter:VisitField(opcodes:GetPutField(), clazz:ConvertStaticKeyToBytecodePath(), clazz:GetPluginName(), convertedSupplement)
+
+        //now load the current object into the plugin, in case it needs it
+        methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+        methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), clazz:GetPluginName(), convertedSupplement)
+        methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+        methodWriter:VisitField(opcodes:GetPutField(), converted, "$me", "Ljava/lang/Object;")
+    end
+
+    private action WriteParents(JavaBytecodeMethodWriter methodWriter)
+        Iterator<Class> parents = clazz:GetParentClasses()
+        text classBytecodeName = converter:ConvertStaticKeyToBytecodePath(staticKey)
+        
+
+        //initialize all of the parent objects as fields
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            text parentName = p:ConvertStaticKeyToParentFieldName()
+            text converted = p:ConvertStaticKeyToBytecodePath()
+            text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+            methodWriter:VisitType(opcodes:GetNew(), converted)
+            methodWriter:VisitInstruction(opcodes:GetDuplicate())
+
+            //push false on the parents and call a separate constructor
+            methodWriter:VisitInstruction(opcodes:GetIntegerZero())
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), converted, CONSTRUCTOR_JAVA_NAME, "(Z)V", false)
+            methodWriter:VisitField(opcodes:GetPutField(), classBytecodeName, parentName, convertedParentNameType)
+
+            
+            text convertedHiddenType = p:ConvertStaticKeyToBytecodePathTypeNameInterface()
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+            methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), parentName, convertedHiddenType)
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+            methodWriter:VisitField(opcodes:GetPutField(), converted, p:GetHiddenVariableName(), convertedHiddenType)
+        end
+        
+        //now that all parents have been instantiated, get 
+        //their parents and set them appropriately
+        parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            text parentName = p:ConvertStaticKeyToParentFieldName()
+            text convertedParentName = p:ConvertStaticKeyToBytecodePath()
+            text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
+
+            Iterator<Class> grandParents = p:GetParentClasses()
+            repeat while grandParents:HasNext()
+                Class grandParent = grandParents:Next()
+                text grandParentKey = grandParent:GetStaticKey()
+                text grandParentName = grandParent:ConvertStaticKeyToParentFieldName()
+                text convertedGrandParent = grandParent:ConvertStaticKeyToBytecodePathTypeName()
+                
+                //now load the same parents into the grand parents
+                methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+                methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), parentName, convertedParentName)
+                methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+                methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), grandParentName, convertedGrandParent)
+                methodWriter:VisitField(opcodes:GetPutField(), convertedParentName, grandParentName, convertedGrandParent)
+            end
+        end
+    end
+
+    action WriteFields (JavaBytecodeMethodWriter methodWriter)
+        Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
+        repeat while fieldIterator:HasNext()
+            QuorumOpcode field = fieldIterator:Next()
+            field:SetMethodWriterToAllChildren(methodWriter)
+            field:Write()
+        end
     end
 
     action WriteJavaScript returns text

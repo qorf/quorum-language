@@ -2,6 +2,7 @@ package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Language.Compile.Symbol.Class
 
 class AssignmentOpcode is QuorumOpcode
     integer bytecodeLocation = -1
@@ -10,6 +11,17 @@ class AssignmentOpcode is QuorumOpcode
     //JavaBytecodeMethodWriter methodWriter = undefined
     QuorumOpcode rightHandSide = undefined
     Variable variable = undefined
+    JavaBytecodeOpcodes opcodes
+    constant integer ME = 0
+    Class clazz = undefined
+
+    action GetClass returns Class
+        return clazz
+    end
+
+    action SetClass(Class clazz)
+        me:clazz = clazz
+    end
 
     action GetVariable returns Variable
         return variable
@@ -66,12 +78,18 @@ class AssignmentOpcode is QuorumOpcode
 
     action Write 
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
-        rightHandSide:Write()
+        
 
         if variable not= undefined
             if variable:IsField()
-
+                methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+                rightHandSide:Write()
+                Type type = variable:GetType()
+                methodWriter:VisitField(opcodes:GetPutField(), 
+                    clazz:ConvertStaticKeyToBytecodePath(), variable:GetName(), 
+                    type:ConvertTypeToBytecodeSignature())
             else
+                rightHandSide:Write()
                 methodWriter:VisitVariable(opcode, bytecodeLocation)
 
                 if opcode2 not= -1

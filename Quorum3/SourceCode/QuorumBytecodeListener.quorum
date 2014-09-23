@@ -379,6 +379,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         Type value = result:result
         QuorumOpcode qop = result:GetQuorumOpcode()
         AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+        assignment:SetClass(currentClass)
         assignment:SetRightHandSide(right)
         assignment:SetType(value)
         assignment:SetMethodWriter(methodWriter)
@@ -413,6 +414,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             integer location = variable:GetBytecodeLocation()
             Type value = result:result
             AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+            assignment:SetClass(currentClass)
             assignment:SetRightHandSide(right)
             assignment:SetType(value)
             assignment:SetMethodWriter(methodWriter)

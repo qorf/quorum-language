@@ -231,6 +231,14 @@ class JavaBytecodeOpcodes
     constant integer IFNULL = 198
     constant integer IFNONNULL = 199
 
+    action GetIntegerZero returns integer
+        return ICONST_0
+    end
+
+    action GetIntegerOne returns integer
+        return ICONST_1
+    end
+
     action GetInvertedIntegerCompareOpcode(integer op) returns integer
         if op = IFEQ
             return IFNE
@@ -540,6 +548,14 @@ class JavaBytecodeOpcodes
         end
         
         alert("The value of " + version + " is not a valid version of Java. The values 1 - 8 are allowed.")
+    end
+
+    action GetPutField returns integer
+        return PUTFIELD
+    end
+
+    action GetGetField returns integer
+        return GETFIELD
     end
 
     action GetPublic returns integer

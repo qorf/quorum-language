@@ -28,7 +28,8 @@ class Class is Symbol
     boolean isResolvingParents = false
     boolean isTypeResolved = false
     File file = undefined
-    
+    boolean hasSystemAction = false
+
     on create
         QualifiedName object
         object:Add("Libraries")
@@ -81,6 +82,10 @@ class Class is Symbol
             if method:IsMain()
                 hasMain = true
             end
+
+            if method:IsSystem()
+                hasSystemAction = true
+            end
             return undefined
         end
 
@@ -89,6 +94,10 @@ class Class is Symbol
         error:SetFile(method:GetFile())
         error:SetErrorMessage("Action " + method:GetDisplayName() + " has already been defined.")
         return error
+    end
+
+    action HasSystemAction returns boolean
+        return hasSystemAction
     end
 
     action AddUnresolvedParent(QualifiedName name)
@@ -505,6 +514,10 @@ class Class is Symbol
         return me:areParentsResolved
     end
 
+    action HasParentClass(text key) returns boolean
+        return parents:GetValue(key) not= undefined
+    end
+
     action GetParentClass(text key) returns Class
         return parents:GetValue(key)
     end
@@ -636,6 +649,79 @@ class Class is Symbol
             return me:GetName()
         end
         return pack + "." + me:GetName()
+    end
+
+    /*
+        This action returns the static key formatted as a class name in 
+        Java bytecode.
+    */
+    action ConvertStaticKeyToBytecodePath returns text
+        text key = GetStaticKey()
+        text result = "quorum/" + key:Replace(".", "/")
+        return result
+    end
+
+    /*
+        This action returns the static key formatted as a plugin class name in 
+        Java bytecode.
+    */
+    action ConvertStaticKeyToPluginPath returns text
+        text key = GetStaticKey()
+        text result = "plugins/quorum/" + key:Replace(".", "/")
+        return result
+    end
+
+    /*
+        This action returns the static key formatted as a plugin class type name in 
+        Java bytecode.
+    */
+    action ConvertStaticKeyToPluginPathTypeName returns text
+        text key = GetStaticKey()
+        text result = "Lplugins/quorum/" + key:Replace(".", "/") + ";"
+        return result
+    end
+
+    /*
+        Returns the name of the plugin for this class.
+    */
+    action GetPluginName returns text
+        return "<plugin>"
+    end
+
+    /*
+        This action returns the static key formatted as a type name in
+        Java bytecode.
+    */
+    action ConvertStaticKeyToBytecodePathTypeName returns text
+        text key = GetStaticKey()
+        text result = "Lquorum/" + key:Replace(".", "/") + ";"
+        return result
+    end
+
+    /*
+        This action returns the static key formatted as a type name in
+        Java bytecode. This version acts as an interface type.
+    */
+    action ConvertStaticKeyToBytecodePathTypeNameInterface returns text
+        text key = GetStaticKey()
+        text result = "Lquorum/" + key:Replace(".", "/") + "$Interface;"
+        return result
+    end
+
+    action GetHiddenVariableName() returns text
+        return "$hidden$"
+    end
+
+    /*
+        This action converts the static key of this class to a 
+        name that can be used by the compiler as a class field name.
+        An example would be that Libraries.Language.Object becomes
+        $Libraries/Language/Object.
+    */
+    action ConvertStaticKeyToParentFieldName returns text
+        text key = GetStaticKey()
+        text result = "$" + key:Replace(".", "/")
+        return result
     end
 
     /*
@@ -781,12 +867,6 @@ class Class is Symbol
         end
 
         return resolution
-    end
-
-    action ConvertStaticKeyToBytecodePath returns text
-        text key = GetStaticKey()
-        text result = "quorum/" + key:Replace(".", "/")
-        return result
     end
 
     action SetPackage(QualifiedName pack)
