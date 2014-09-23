@@ -5,7 +5,7 @@
     //slide array
     var slideArray = new Array();
     
-    slideArray[0] = "<h5 role=\"heading\">Boolean Variables</h5><ul><li>A <code>boolean</code> variable is a special type of variable that contains one of two possible words: <code>true</code> or <code>false</code>.</li><li>Alone, booleans aren't very useful, but are a powerful tool when working with control structures as we will soon see.</li><span class=\"title\">Try it!</span><div class =\"task\">Make a boolean variable: <code>boolean sayStatement = true</code> and a text variable with a whatever you want: <code>text greeting = \"I live in a giant bucket!\"</code> (we will use this later).</div></ul>";
+    slideArray[0] = "<h5 role=\"heading\">Boolean Variables</h5><ul><li>A <code>boolean</code> variable is a special type of variable that contains one of two possible words: <code>true</code> or <code>false</code>.</li><li>Alone, booleans don't do much, but they are a powerful tool when working with control structures as we will soon see.</li><span class=\"title\">Try it!</span><div class =\"task\">Make a boolean variable: <code>boolean sayStatement = true</code> and a text variable with a whatever you want: <code>text greeting = \"I live in a giant bucket!\"</code> (we will use this later).</div></ul>";
     
     slideArray[1] = "<h5 role=\"heading\">Control Structures: If (Structure)</h5><ul><li>Suppose we want the computer to output a statement sometimes, but say the same statement at other times.  We would then need to have the computer make a decision.  In Quorum, we can do this by using an <code>if</code> statement.</li><li>The way we do this is by starting the statement with the word if, followed by some sort of condition.</li><li>With every if statement, we also need to tell the computer what it should do and where it should <code>end</code>.</li><span class=\"title\">Try it!</span><div class =\"task\"><p>Create an if statement using the boolean from the last task: <code>if sayStatement = true</code> and then type <code>end</code> on a line below.</p></div></ul>";
     
@@ -15,7 +15,7 @@
     
     slideArray[4] = "<h5 role=\"heading\">Control Structures: If (else)</h5><ul><li>Finally, there is one last piece to an if statement.  When no condition has been met, you can still tell the computer to do something with the word <code>else</code>.</li><li>Like with <code>elseif</code>, it's not always necessary to have this part in your if block.</li><li>If the computer gets to the <code>else</code> part, it knows no other condition was met and automatically executes code until it hits the word <code>end</code>.</li><li>If you've been following along with the examples, we've already accounted for sayStatement = true and sayStatement = false.  As such, the computer would never get to the <code>else</code> statement within our if block.</li></ul>";
     
-    slideArray[5] = "<h5 role=\"heading\">Additional Information</h5><ul><li></li></ul>"
+    slideArray[5] = "<h5>If Statements: Additional Information</h5><ul><li>More documentation on <code>if</code> statements can be found <a href=\"http://quorumlanguage.com/documents/syntax/if.php\">here</a>.</li></ul>";
     
     $(document).ready(function(){
         $('#IDE-input').text('boolean sayStatement = true\ntext greeting = "I live in a giant bucket"\nif sayStatement\n        say greeting\nelseif sayStatement = false\n        output greeting\nend');

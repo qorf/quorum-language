@@ -1,25 +1,29 @@
 <?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
-    document.title = 'Hour of Code: Part 3 | Quorum Programming Language';
+    document.title = 'Hour of Code: Part 4 | Quorum Programming Language';
     
     //slide array
     var slideArray = new Array();
-    slideArray[0] = "<h5 role=\"heading\">Hello again.</h5><ul><li role=\"listitem\">Dr. Day saw the mutation and told me to run more tests.</li><li>My new goal is to find out how many times the mutation occurs, which could take a while.</li><li>But he gave me Cheetos, which of course are my favorite kind of chips.</li>";
-    slideArray[1] = "<h5 role=\"heading\">Today's Notes.</h5><ul><li role=\"listitem\">He taught me that in Quorum, I can use an if statement.</li><li>The if statement should tell me whether the clone is a mutant or not.</li><li>Then I think I can use an integer variable to store how many mutants I come across.</li>";
-    slideArray[2] = "<h5 role=\"heading\">Today's Notes.</h5><ul><li role=\"listitem\">The integer variable is named mutationCount.</li><li>And I could then put in the if statement, whatever that is.</li><li>If it does not equal GATTACA, its a mutant.</li>";
-    slideArray[3] = "<h5 role=\"heading\">Today's Notes.</h5><ul><li role=\"listitem\">I ended up with a TON of mutants.</li><li>It seemed pretty surprising but I didn't tell Dr. Day yet.</li><li>I guess we will find out what happens tomorrow.</li><li>I almost forgot, we got a pet rat.</li>";
-    slideArray[4] = "<h5 role=\"heading\">Instructions.</h5>";
+    slideArray[0] = "<h5>Control Structures: Repeat</h5><ul><li>Let's say we want to list some even numbers.  We could use output statements for each one, but what if we had 100 numbers to output or even 1000?  Sometimes it makes more sense to tell the computer to do the repetitive work for us.</li><li>We can accomplish this with the use of the word <code>repeat</code>.</li><li>Just like with the <code>if</code> statements when we told the computer where the end of the code block was, we must always use the word <code>end</code> to indicate where the section of code being repeated ends.</li><li>In this example, we will explore three different ways to control the repitition of code: <code>repeat times</code>, <code>repeat while</code> and <code>repeat until</code>.</li>";
+    
+    slideArray[1] = "<h5>Control Structures: Repeat Times</h5><ul><li>When it comes to repeating, sometimes we know how many times we want the code to run.</li><li>If we want to do something 5 times, we can just tell the computer <code>repeat 5 times</code> and then the computer knows to execute any lines of code in the repeat block 5 times.</li><span class=\"title\">Try it!</span><div class =\"task\"><p>Output five even numbers:<br><code>number evenNumber = 0</code><br><code>repeat 5 times</code><br>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<code>output evenNumber</code><br>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<code>evenNumber = evenNumber + 2</code><br><code>end</code></p></div></ul>";
+    
+    slideArray[2] = "<h5>Control Structures: Repeat While</h5><ul><li>Sometimes we only want to repeat while a certain condition is true.</li><li>We can get the same result as the other repeat statement since we know it should keep going while evenNumber is less than 10.</li><li>The way we denote \"less than\" in Qurorum is with the operator <code><</code>.</li><li>Notice that evenNumber will hold the value 10 at the end, but never gets output because our repeat condition is false.</li><span class=\"title\">Try it!</span><div class =\"task\"><p>Output five even numbers by changing the repeat statement to: <code>repeat while evenNumber < 10</code></p></div></ul>";
+    
+    slideArray[3] = "<h5>Control Structures: Repeat Until</h5><ul><li>When we know exactly the condition(s) under which the repeat should stop, we can use <code>repeat until</code>.</li><li>Whereas <code>repeat while</code> stops once the given condition is false, <code>repeat until</code>, stops once the given condition is true.</li><li>Following the other repeat examples, we can get the equivalent output by telling our program to repeat until evenNumber hits 10.</li><span class=\"title\">Try it!</span><div class =\"task\"><p>Output five even numbers by changing the repeat statement to: <code>repeat until evenNumber = 10</code></p></div></ul>";
+    
+    slideArray[4] = "<h5>Control Structures: Additional Information</h5><ul><li>More documentation on <code>repeat</code> can be found <a href=\"http://quorumlanguage.com/documents/syntax/repeat.php\">here</a>.</li></ul>";
     
     $(document).ready(function(){
-        $('#IDE-input').text('');
+        $('#IDE-input').text('number evenNumber = 0\nrepeat 5 times\n        output evenNumber\n        evenNumber = evenNumber + 2\nend');
     });
 </script>
 <?php include("slideshow.php"); ?>
 
 <div class="hero-unit">
 	<div class="hero-unit-container" role="banner">
-		<h1>Hour of Code: Part 3</h1>
-                <p>Count the Mutants</p>
+		<h1>Hour of Code: Part 4</h1>
+                <p>Clothing Picker</p>
 	</div>
 </div>
   <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
