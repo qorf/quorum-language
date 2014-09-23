@@ -11,39 +11,42 @@ use Libraries.System.StackTraceItem
 
 class TemplatingTester 
     CompilerTestSuite suite = undefined
-    Array<File> files
-    File main
-    File dependent1
-    File dependent2
-    Array<Text> results
+    text path = "Library/Tests/Templating/"
+    text passPath = path + "Pass/"
+    text failPath = path + "Fail/"
     
     action Test
-//        ArraySetAndGet_0()
-//        ExpressionInTemplatedMethodParameter()
-//        ExpressionInTemplatedMethodParameter2()
-//        ExpressionInTemplatedMethodParameter3()
-//        ExpressionInTemplatedMethodParameter4()
-//        ExpressionInTemplatedMethodParameter5()
-//        GenericPass()     //Test not in 2.0 test suite, not sure if complete
-//        ListNodeInteger()
-//        ListNodeNumber()
-//        ListNodeText()
-//        PassBooleanTakesBoolean_5()
-//        PassBooleanTakesText_14()
-//        PassIntegerTakesInteger_4()
-//        PassIntegerTakesNumber_11()
-//        PassIntegerTakesText_12()
-//        PassNumberTakesNumber_6()
-//        PassNumberTakesText_13()
-//        PassTextTakesText_7()
-//        ProgramUsingEntryWithThreeTypes_2()
-//        ReturnNullWithTemplatedReturnType_9()
-//        TempClassHasATempClass_8()
-//        TempClassHasTempClassThatInheritsFromTempClass_10()
-//        TemplateUsingInteger_1()
-//        TemplateUsingTemplatedClass_15() //Modified
+//PASS TESTS
+        path = passPath
+        ArraySetAndGet_0()
+        ExpressionInTemplatedMethodParameter()
+        ExpressionInTemplatedMethodParameter2()
+        ExpressionInTemplatedMethodParameter3()
+        ExpressionInTemplatedMethodParameter4()
+        ExpressionInTemplatedMethodParameter5()
+        GenericPass()     //Test not in 2.0 test suite, not sure if complete
+        ListNodeInteger()
+        ListNodeNumber()
+        ListNodeText()
+        PassBooleanTakesBoolean_5()
+        PassBooleanTakesText_14()
+        PassIntegerTakesInteger_4()
+        PassIntegerTakesNumber_11()
+        PassIntegerTakesText_12()
+        PassNumberTakesNumber_6()
+        PassNumberTakesText_13()
+        PassTextTakesText_7()
+        ProgramUsingEntryWithThreeTypes_2()
+        ReturnNullWithTemplatedReturnType_9()
+        TempClassHasATempClass_8()
+        TempClassHasTempClassThatInheritsFromTempClass_10()
+        TemplateUsingInteger_1()
+        TemplateUsingTemplatedClass_15() 
         TemplateUsingTwoIntegers_3()
-//        TemplatedParentAutoBox()
+        TemplatedParentAutoBox()
+        
+//FAIL TESTS
+        path = failPath
 
     end
 
@@ -60,144 +63,407 @@ class TemplatingTester
     end
 
     action ArraySetAndGet_0
-        suite:RunTest("Library/Tests/Templating/Pass/ArraySetAndGet_0.quorum", "34", "16", "-62", "3")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ArraySetAndGet_0.quorum", "34", "16", "-62", "3")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArraySetAndGet_0.quorum")
+        files:Add(main)
+        results:Add(0, "34")
+        results:Add(1, "16")
+        results:Add(2, "-62")
+        results:Add(3, "3")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action ExpressionInTemplatedMethodParameter()
-        suite:RunTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter.quorum", "")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter.quorum", "")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "ExpressionInTemplatedMethodParameter.quorum")
+        dependent1:SetPath(path + "Returner.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action ExpressionInTemplatedMethodParameter2()
-        suite:RunTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter2.quorum", "")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter2.quorum", "")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "ExpressionInTemplatedMethodParameter2.quorum")
+        dependent1:SetPath(path + "Returner.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action ExpressionInTemplatedMethodParameter3()
-        suite:RunTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter3.quorum", "")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter3.quorum", "")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "ExpressionInTemplatedMethodParameter3.quorum")
+        dependent1:SetPath(path + "Returner.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action ExpressionInTemplatedMethodParameter4()
-        suite:RunTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter4.quorum", "")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter4.quorum", "")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "ExpressionInTemplatedMethodParameter4.quorum")
+        dependent1:SetPath(path + "Returner.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action ExpressionInTemplatedMethodParameter5()
-        suite:RunTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter5.quorum", "")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ExpressionInTemplatedMethodParameter5.quorum", "")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "ExpressionInTemplatedMethodParameter5.quorum")
+        dependent1:SetPath(path + "Returner.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action GenericPass()
-        suite:RunTest("Library/Tests/Templating/Pass/GenericPass.quorum", "")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/GenericPass.quorum", "")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "GenericPass.quorum")
+        dependent1:SetPath(path + "GenericParentA.quorum")
+        dependent2:SetPath(path + "GenericParentB.quorum")
+        dependent3:SetPath(path + "GenericParentC.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        results:Add(0, "")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action ListNodeInteger()
-        suite:RunTest("Library/Tests/Templating/Pass/ListNodeInteger.quorum", "integerPassed")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ListNodeInteger.quorum", "integerPassed")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ListNodeInteger.quorum")
+        files:Add(main)
+        results:Add(0, "integerPassed")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action ListNodeNumber()
-        suite:RunTest("Library/Tests/Templating/Pass/ListNodeNumber.quorum", "numberPassed")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ListNodeNumber.quorum", "numberPassed")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ListNodeNumber.quorum")
+        files:Add(main)
+        results:Add(0, "numberPassed")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action ListNodeText()
-        suite:RunTest("Library/Tests/Templating/Pass/ListNodeText.quorum", "textPassed")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ListNodeText.quorum", "textPassed")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ListNodeText.quorum")
+        files:Add(main)
+        results:Add(0, "textPassed")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action PassBooleanTakesBoolean_5()
-        suite:RunTest("Library/Tests/Templating/Pass/PassBooleanTakesBoolean_5.quorum", "doSomething")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassBooleanTakesBoolean_5.quorum", "doSomething")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "PassBooleanTakesBoolean_5.quorum")
+        dependent1:SetPath(path + "Test_4.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "doSomething")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action PassBooleanTakesText_14()
-        suite:RunTest("Library/Tests/Templating/Pass/PassBooleanTakesText_14.quorum", "doSomething")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassBooleanTakesText_14.quorum", "doSomething")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "PassBooleanTakesText_14.quorum")
+        dependent1:SetPath(path + "Test_4.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "doSomething")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action PassIntegerTakesInteger_4()
-        suite:RunTest("Library/Tests/Templating/Pass/PassIntegerTakesInteger_4.quorum", "doSomething")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassIntegerTakesInteger_4.quorum", "doSomething")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "PassIntegerTakesInteger_4.quorum")
+        dependent1:SetPath(path + "Test_4.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "doSomething")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action PassIntegerTakesNumber_11()
-        suite:RunTest("Library/Tests/Templating/Pass/PassIntegerTakesNumber_11.quorum", "doSomething")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassIntegerTakesNumber_11.quorum", "doSomething")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "PassIntegerTakesNumber_11.quorum")
+        dependent1:SetPath(path + "Test_4.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "doSomething")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action PassIntegerTakesText_12()
-        suite:RunTest("Library/Tests/Templating/Pass/PassIntegerTakesText_12.quorum", "doSomething")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassIntegerTakesText_12.quorum", "doSomething")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "PassIntegerTakesText_12.quorum")
+        dependent1:SetPath(path + "Test_4.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "doSomething")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action PassNumberTakesNumber_6()
-        suite:RunTest("Library/Tests/Templating/Pass/PassNumberTakesNumber_6.quorum", "doSomething")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassNumberTakesNumber_6.quorum", "doSomething")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "PassNumberTakesNumber_6.quorum")
+        dependent1:SetPath(path + "Test_4.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "doSomething")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action PassNumberTakesText_13()
-        suite:RunTest("Library/Tests/Templating/Pass/PassNumberTakesText_13.quorum", "doSomething")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassNumberTakesText_13.quorum", "doSomething")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "PassNumberTakesText_13.quorum")
+        dependent1:SetPath(path + "Test_4.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "doSomething")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action PassTextTakesText_7()
-        suite:RunTest("Library/Tests/Templating/Pass/PassTextTakesText_7.quorum", "doSomething")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/PassTextTakesText_7.quorum", "doSomething")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "PassTextTakesText_7.quorum")
+        dependent1:SetPath(path + "Test_4.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "doSomething")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action ProgramUsingEntryWithThreeTypes_2()
-        suite:RunTest("Library/Tests/Templating/Pass/ProgramUsingEntryWithThreeTypes_2.quorum", "doSomething1", "doSomething2", "doSomething3")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ProgramUsingEntryWithThreeTypes_2.quorum", "doSomething1", "doSomething2", "doSomething3")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "ProgramUsingEntryWithThreeTypes_2.quorum")
+        dependent1:SetPath(path + "SimpleEntryUsingThreeTypes_2.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "doSomething1")
+        results:Add(1, "doSomething2")
+        results:Add(2, "doSomething3")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action ReturnNullWithTemplatedReturnType_9()
-        suite:RunTest("Library/Tests/Templating/Pass/ReturnNullWithTemplatedReturnType_9.quorum", "")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/ReturnNullWithTemplatedReturnType_9.quorum", "")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "ReturnNullWithTemplatedReturnType_9.quorum")
+        dependent1:SetPath(path + "Node_8.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
+
     end
 
     action TempClassHasATempClass_8()
-        suite:RunTest("Library/Tests/Templating/Pass/TempClassHasATempClass_8.quorum", "5", "35")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/TempClassHasATempClass_8.quorum", "5", "35")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        File dependent2
+        main:SetPath(path + "TempClassHasATempClass_8.quorum")
+        dependent1:SetPath(path + "LinkedList_8.quorum")
+        dependent2:SetPath(path + "Node_8.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "5")
+        results:Add(1, "35")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action TempClassHasTempClassThatInheritsFromTempClass_10()
-        suite:RunTest("Library/Tests/Templating/Pass/TempClassHasTempClassThatInheritsFromTempClass_10.quorum", "1", "Slattery", "Stefik")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/TempClassHasTempClassThatInheritsFromTempClass_10.quorum", "1", "Slattery", "Stefik")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "TempClassHasTempClassThatInheritsFromTempClass_10.quorum")
+        dependent1:SetPath(path + "DoubleNodeList_10.quorum")
+        dependent2:SetPath(path + "DoubleNode_10.quorum")
+        dependent3:SetPath(path + "Node_8.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        results:Add(0, "1")
+        results:Add(0, "Slattery")
+        results:Add(0, "Stefik")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action TemplateUsingInteger_1()
-        suite:RunTest("Library/Tests/Templating/Pass/TemplateUsingInteger_1.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/TemplateUsingInteger_1.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "TemplateUsingInteger_1.quorum")
+        dependent1:SetPath(path + "Entry_1.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "5")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action TemplateUsingTemplatedClass_15()
-        suite:RunTest("Library/Tests/Templating/Pass/TemplateUsingTemplatedClass_15.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/TemplateUsingTemplatedClass_15.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        File dependent2
+        main:SetPath(path + "TemplateUsingTemplatedClass_15.quorum")
+        dependent1:SetPath(path + "Entry_1.quorum")
+        dependent2:SetPath(path + "Container_15.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "5")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action TemplateUsingTwoIntegers_3()
-        files:Empty()
-        main:SetPath("Library/Tests/Templating/Pass/TemplateUsingTwoIntegers_3.quorum")
-        dependent1:SetPath("Library/Tests/Templating/Pass/Entry2_3.quorum")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "TemplateUsingTwoIntegers_3.quorum")
+        dependent1:SetPath(path + "Entry2_3.quorum")
         files:Add(main)
         files:Add(dependent1)
         results:Empty()
         results:Add(0, "10")
         results:Add(1, "5")
 
-        suite:RunTestArray(files, results)
-
-        //suite:RunTest("Library/Tests/Templating/Pass/TemplateUsingTwoIntegers_3.quorum", "10", "5")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/TemplateUsingTwoIntegers_3.quorum", "10", "5")
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action TemplatedParentAutoBox()
-        suite:RunTest("Library/Tests/Templating/Pass/TemplatedParentAutoBox.quorum", "1")
-        //suite:RunJavaScriptTest("Library/Tests/Templating/Pass/TemplatedParentAutoBox.quorum", "1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TemplatedParentAutoBox.quorum")
+        files:Add(main)
+        results:Add(0, "1")
+
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
 end
