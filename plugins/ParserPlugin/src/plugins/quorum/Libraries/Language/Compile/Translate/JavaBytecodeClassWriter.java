@@ -12,6 +12,7 @@ import java.lang.reflect.Field;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import quorum.Libraries.Language.Errors.InputOutputError;
@@ -84,6 +85,23 @@ public class JavaBytecodeClassWriter implements Opcodes{
             Logger.getLogger(JavaBytecodeClassWriter.class.getName()).log(Level.SEVERE, null, ex);
         }
         return methodWriter;
+    }
+        
+    public quorum.Libraries.Language.Compile.Translate.JavaBytecodeFieldWriter$Interface VisitField(
+            int opcode, String name, String description, String signature, quorum.Libraries.Language.Object$Interface object) {
+        quorum.Libraries.Language.Compile.Translate.JavaBytecodeFieldWriter fieldWriter = 
+                new quorum.Libraries.Language.Compile.Translate.JavaBytecodeFieldWriter();
+        
+        FieldVisitor visitor = classWriter.visitField(opcode, name, description, signature, object);
+        try {
+            //get the plugin from the passed class
+            Field field = fieldWriter.getClass().getField("<plugin>");
+            JavaBytecodeFieldWriter get = (JavaBytecodeFieldWriter) field.get(fieldWriter);
+            get.setFieldVisitor(visitor);
+        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
+            Logger.getLogger(JavaBytecodeClassWriter.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return fieldWriter;
     }
     
     public void VisitEnd() {
