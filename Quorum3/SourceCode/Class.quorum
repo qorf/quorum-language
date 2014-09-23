@@ -610,6 +610,10 @@ class Class is Symbol
         return fields:GetValue(key)
     end
 
+    action GetVariables returns Iterator<Variable> 
+        return fields:GetValueIterator()
+    end
+
     action GetAction(text key) returns Action
         return actions:GetValue(key)
     end
