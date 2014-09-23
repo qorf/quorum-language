@@ -281,21 +281,84 @@ class CompilerTestSuite
         return result
     end
 
-    action RunTestArray(Array<File> files, Array<Text> reply)
-        i = files:GetSize()
-        repeat i times
-            File f = files:RemoveFromFront()
-            output f:GetFileName()
-        end
+    action Test(Array<File> files, Array<text> reply)
+        Compiler compiler
+        
+        compiler:SetMain(files:GetFromFront())
+//        compiler:Compile(files)
 
-        i = reply:GetSize()
-        repeat i times
-            Text r = reply:RemoveFromFront()
-            output r
-        end
+// NOTE - MAY HAVE TO SET THE PATH OF THE COMPLIER OBJECT
+//        if compiler:IsCompilationErrorFree()
+//            QuorumJarGenerator generator
+//            CompilerTestResult result = undefined
+//
+//            File jar = compiler:GetDistributionFile()
+//            generator:SetCompiler(compiler)
+//            generator:Write()
+//            check
+//                result = RunClassFile(jar)
+//                if result:ranWithoutError
+//                    Array<text> lines = result:lines
+//                    integer n = lines:GetSize()
+//                    result:passed = true
+//                    repeat n times
+//                        if lines:Get(n) not= reply:Get(n)
+//                           result:passed = false
+//                        end
+//                    end
+//                else
+//                    result:passed = false
+//                end
+//            detect e
+//                text message = e:GetErrorMessage()
+//                result:passed = false
+//                result:errorMessage = message
+//                result:stackTrace = e:GetStackTrace()
+//            end
+//            result:isBytecodeTest = true
+//            Add(result)
+//        else
+//            compiler:OutputCompilerErrors()
+//        end
 
+//temporary check to see if files exist
+//remove when complier is put back together
+        integer i = files:GetSize()
+        integer j = 0
+        repeat i times
+            File f = files:Get(j)
+            if j = 0
+                output f:Exists() + ": " + f:GetFileName()
+            else
+                output "    Dep:" + f:Exists() + ": " + f:GetFileName()
+            end
+            j = j + 1
+        end
     end
 
+    action TestJavaScript(Array<File> files, Array<text> reply)
+//temporary check to see if files exist
+//remove when complier is put back together
+        output "Testing JavaScript"
+        integer i = files:GetSize()
+        integer j = 0
+        repeat i times
+            File f = files:Get(j)
+            output f:Exists() + ": " + f:GetFileName()
+            j = j + 1
+        end
+    end
+
+    action TestFail(Array<File> files)
+//temporary check to see if files exist
+//remove when complier is put back together
+        integer i = files:GetSize()
+        repeat i times
+            File f = files:RemoveFromFront()
+            output f:Exists() + ": " + f:GetFileName()
+        end
+    end
+    
     action RunTest(text source, text reply)
         CompilerTestResult result
         result:name = source
