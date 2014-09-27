@@ -283,14 +283,18 @@ class CompilerTestSuite
 
     action Test(Array<File> files, Array<text> reply)
         Compiler compiler
-        
-        compiler:SetMain(files:GetFromFront())
+        CompilerTestResult result
+
+        File testFile 
+        testFile = files:Get(0)
+        result:name = testFile:GetPath()
+
+        compiler:SetMain(testFile)
 //        compiler:Compile(files)
 
 // NOTE - MAY HAVE TO SET THE PATH OF THE COMPLIER OBJECT
 //        if compiler:IsCompilationErrorFree()
 //            QuorumJarGenerator generator
-//            CompilerTestResult result = undefined
 //
 //            File jar = compiler:GetDistributionFile()
 //            generator:SetCompiler(compiler)
@@ -322,7 +326,7 @@ class CompilerTestSuite
 //        end
 
 //temporary check to see if files exist
-//remove when complier is put back together
+//remove when compiler is put back together
         integer i = files:GetSize()
         integer j = 0
         repeat i times
@@ -338,7 +342,7 @@ class CompilerTestSuite
 
     action TestJavaScript(Array<File> files, Array<text> reply)
 //temporary check to see if files exist
-//remove when complier is put back together
+//remove when compiler is put back together
         output "Testing JavaScript"
         integer i = files:GetSize()
         integer j = 0
@@ -350,12 +354,36 @@ class CompilerTestSuite
     end
 
     action TestFail(Array<File> files)
+        Compiler compiler
+        CompilerTestResult result
+        File testFile
+        testFile = files:Get(0)
+//        result:name = testFile:GetPath()
+//        result:passed = false
+//        
+//        check
+//            compiler:SetMain(testFile)
+//            compiler:Compile(files)
+//        detect e
+//            result:passed = true
+//        end
+//        if compiler:IsCompilationErrorFree()
+//            result:passed = false
+//        end
+//        Add(result)
+
 //temporary check to see if files exist
-//remove when complier is put back together
+//remove when compiler is put back together
         integer i = files:GetSize()
+        integer j = 0
         repeat i times
-            File f = files:RemoveFromFront()
-            output f:Exists() + ": " + f:GetFileName()
+            File f = files:Get(j)
+            if j = 0
+                output f:Exists() + ": " + f:GetFileName()
+            else
+                output "    Dep:" + f:Exists() + ": " + f:GetFileName()
+            end
+            j = j + 1
         end
     end
     
