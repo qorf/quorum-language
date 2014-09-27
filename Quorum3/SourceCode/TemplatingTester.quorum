@@ -47,7 +47,19 @@ class TemplatingTester
         
 //FAIL TESTS
         path = failPath
-
+        ArrayFilledWithWrongType()
+        DefineTypeOfUntemplatedClass_10()
+        DiamondProblemWithTwoTypes_9()
+        PassBooleanTakesInteger_1()
+        PassBooleanTakesNumber_7()
+        PassIntegerTakesBoolean_4()
+        PassNumberTakesBoolean_5()
+        PassNumberTakesInteger_2()
+        PassTextTakesBoolean_6()
+        PassTextTakesInteger_3()
+        PassTextTakesNumber_8()
+        TypeCheckTemplatedChildOfTempClass_12()
+        TypeCheckUntemplatedChildOfTempClass_11()
     end
 
     action GetName returns text
@@ -466,4 +478,180 @@ class TemplatingTester
         //suite:TestJavaScript(files, results)
     end
 
+    //FAIL TESTS
+    action ArrayFilledWithWrongType()
+        Array<File> files
+        File main
+        main:SetPath(path + "ArrayFilledWithWrongType.quorum")
+        files:Add(main)
+
+        suite:TestFail(files)
+    end
+
+    action DefineTypeOfUntemplatedClass_10()
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "DefineTypeOfUntemplatedClass_10.quorum")
+        dependent1:SetPath(path + "C_10.quorum")
+        dependent2:SetPath(path + "B_10.quorum")
+        dependent3:SetPath(path + "A_10.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+
+        suite:TestFail(files)
+    end
+
+    action DiamondProblemWithTwoTypes_9()
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        File dependent4
+        main:SetPath(path + "DiamondProblemWithTwoTypes_9.quorum")
+        dependent1:SetPath(path + "A_9.quorum")
+        dependent2:SetPath(path + "B_9.quorum")
+        dependent3:SetPath(path + "C_9.quorum")
+        dependent4:SetPath(path + "D_9.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        files:Add(dependent4)
+
+        suite:TestFail(files)
+    end
+
+    action PassBooleanTakesInteger_1()
+        Array<File> files
+        File main
+        File dependent1
+        main:SetPath(path + "PassBooleanTakesInteger_1.quorum")
+        dependent1:SetPath(path + "Test_1.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+
+        suite:TestFail(files)
+    end
+
+    action PassBooleanTakesNumber_7()
+        Array<File> files
+        File main
+        File dependent1
+        main:SetPath(path + "PassBooleanTakesNumber_7.quorum")
+        dependent1:SetPath(path + "Test_1.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+
+        suite:TestFail(files)
+    end
+
+    action PassIntegerTakesBoolean_4()
+        Array<File> files
+        File main
+        File dependent1
+        main:SetPath(path + "PassIntegerTakesBoolean_4.quorum")
+        dependent1:SetPath(path + "Test_1.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+
+        suite:TestFail(files)
+    end
+
+    action PassNumberTakesBoolean_5()
+        Array<File> files
+        File main
+        File dependent1
+        main:SetPath(path + "PassNumberTakesBoolean_5.quorum")
+        dependent1:SetPath(path + "Test_1.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+
+        suite:TestFail(files)
+    end
+
+    action PassNumberTakesInteger_2()
+        Array<File> files
+        File main
+        File dependent1
+        main:SetPath(path + "PassNumberTakesInteger_2.quorum")
+        dependent1:SetPath(path + "Test_1.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+
+        suite:TestFail(files)
+    end
+
+    action PassTextTakesBoolean_6()
+        Array<File> files
+        File main
+        File dependent1
+        main:SetPath(path + "PassTextTakesBoolean_6.quorum")
+        dependent1:SetPath(path + "Test_1.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+
+        suite:TestFail(files)
+    end
+
+    action PassTextTakesInteger_3()
+        Array<File> files
+        File main
+        File dependent1
+        main:SetPath(path + "PassTextTakesInteger_3.quorum")
+        dependent1:SetPath(path + "Test_1.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+
+        suite:TestFail(files)
+    end
+
+    action PassTextTakesNumber_8()
+        Array<File> files
+        File main
+        File dependent1
+        main:SetPath(path + "PassTextTakesNumber_8.quorum")
+        dependent1:SetPath(path + "Test_1.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+
+        suite:TestFail(files)
+    end
+
+    action TypeCheckTemplatedChildOfTempClass_12()
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "TypeCheckTemplatedChildOfTempClass_12.quorum")
+        dependent1:SetPath(path + "B_11.quorum")
+        dependent2:SetPath(path + "A_11.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+
+        suite:TestFail(files)
+    end
+
+    action TypeCheckUntemplatedChildOfTempClass_11()
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "TypeCheckUntemplatedChildOfTempClass_11.quorum")
+        dependent1:SetPath(path + "B_12.quorum")
+        dependent2:SetPath(path + "A_11.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+
+        suite:TestFail(files)
+    end
 end
