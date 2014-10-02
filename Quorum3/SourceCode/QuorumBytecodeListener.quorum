@@ -19,6 +19,8 @@ class QuorumBytecodeListener is QuorumSourceListener
     JavaBytecodeClassWriter classWriter = undefined
     JavaBytecodeClassWriter interfaceWriter = undefined
     JavaBytecodeMethodWriter methodWriter = undefined
+    JavaBytecodeMethodWriter interfaceMethodWriter = undefined
+
     QuorumBytecodeConverter converter
     JavaBytecodeOpcodes opcodes
     Action currentAction = undefined
@@ -143,8 +145,8 @@ class QuorumBytecodeListener is QuorumSourceListener
 
             boolean isMain = method:IsMain()
             text null = undefined
-            text name = context:actionName
-            text params = converter:ConvertActionToBytecodeParameterSignature(method)
+            text name = method:GetName()
+            text params = method:ConvertActionToBytecodeParameterInterfaceSignature()
             methodWriter = 
                 classWriter:VisitMethod(opcodes:GetPublic(), 
                 name, params, null, undefined)

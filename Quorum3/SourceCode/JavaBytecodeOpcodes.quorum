@@ -558,6 +558,14 @@ class JavaBytecodeOpcodes
         return GETFIELD
     end
 
+    action GetAbstract returns integer
+        return ACC_ABSTRACT
+    end
+
+    action GetInterface returns integer
+        return ACC_INTERFACE
+    end
+
     action GetPublic returns integer
         return ACC_PUBLIC
     end

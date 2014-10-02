@@ -144,6 +144,11 @@ class Class is Symbol
         isTypeResolved = true
     end
 
+    action GetInterfaceName returns text
+        text name = GetName()
+        return name + "$Interface"
+    end
+
     private action ResolveActions(SymbolTable table, CompilerErrorManager errors)
         Iterator<Action> actionIterator = me:GetActions()
         Array<Action> temp
@@ -662,6 +667,16 @@ class Class is Symbol
     action ConvertStaticKeyToBytecodePath returns text
         text key = GetStaticKey()
         text result = "quorum/" + key:Replace(".", "/")
+        return result
+    end
+
+    /*
+        This action returns the static key formatted as a class name in 
+        Java bytecode.
+    */
+    action ConvertStaticKeyToBytecodeInterfacePath returns text
+        text key = GetStaticKey()
+        text result = "quorum/" + key:Replace(".", "/") + "$Interface"
         return result
     end
 

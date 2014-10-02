@@ -62,7 +62,7 @@ class ActionCallOpcode is QuorumOpcode
             if act not= undefined and clazz not= undefined
                 methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
                     clazz:ConvertStaticKeyToBytecodePath(), act:GetName(), 
-                    act:ConvertActionToBytecodeParameterSignature(), false)
+                    act:ConvertActionToBytecodeParameterInterfaceSignature(), false)
             end
         else
             if GetType() not= undefined

@@ -168,4 +168,20 @@ class Action is Symbol
 
         return parameters + returnText
     end
+
+    action ConvertActionToBytecodeParameterInterfaceSignature returns text
+        text parameters = "("
+        Iterator<Variable> it = GetParameterIterator()
+        repeat while it:HasNext()
+            Variable param = it:Next()
+            Type type = param:GetType()
+            parameters = parameters + type:ConvertTypeToBytecodeSignatureInterface()
+        end
+        parameters = parameters + ")"
+
+        Type returnType = GetReturnType()
+        text returnText = returnType:ConvertTypeToBytecodeSignatureInterface()
+
+        return parameters + returnText
+    end
 end

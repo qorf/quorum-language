@@ -129,10 +129,15 @@ class ClassOpcode is QuorumOpcode
         integer access = opcodes:GetPublic() + opcodes:GetSuper()
         text interfaceName = converter:ConvertClassNameToInterfaceName(name)
         Array<text> interfaces
+        Array<text> parentsForInterface
         //interfaces:Add(interfaceName)
         text null = undefined //temporary workaround for Bug#97 https://quorum.atlassian.net/browse/QUOR-97
         //once fully integrated, check if this is a the Quorum error class or a subclass. For now, just weave in Object.
-        classWriter:Visit(version, access, converter:ConvertStaticKeyToBytecodePath(staticKey), null, JAVA_OBJECT, interfaces)
+        classWriter:Visit(version, access, clazz:ConvertStaticKeyToBytecodePath(), null, JAVA_OBJECT, interfaces)
+        interfaceWriter:Visit(version, opcodes:GetPublic() + opcodes:GetAbstract() + 
+            opcodes:GetInterface(), clazz:ConvertStaticKeyToBytecodeInterfacePath(), null, JAVA_OBJECT, parentsForInterface)
+
+
 
         WriteFieldDeclarations()
         
@@ -149,7 +154,19 @@ class ClassOpcode is QuorumOpcode
         Iterator<ActionOpcode> actionIterator = actions:GetIterator()
         repeat while actionIterator:HasNext()
             ActionOpcode act = actionIterator:Next()
-          //  act:Write()
+            //write to the class
+            //  act:Write()
+
+            //write to the interface
+            Action method = act:GetAction()
+            text name = method:GetName()
+            text params = method:ConvertActionToBytecodeParameterInterfaceSignature()
+            JavaBytecodeMethodWriter interfaceMethodWriter = 
+                interfaceWriter:VisitMethod(opcodes:GetPublic() + opcodes:GetAbstract(), 
+                name, params, null, undefined)
+                
+
+            interfaceMethodWriter:VisitEnd()
         end
 
         classWriter:VisitEnd()
@@ -167,7 +184,7 @@ class ClassOpcode is QuorumOpcode
         File interfaceFile
         path = buildPath + "/" + QUORUM + "/" + packageValue:GetPath()
 
-        interfaceFile:SetPath(path + "/" + clazz:GetName() + "$Interface.class")
+        interfaceFile:SetPath(path + "/" + clazz:GetInterfaceName() + ".class")
         interfaceWriter:Write(interfaceFile)
 
         buildInterfaceFile = interfaceFile

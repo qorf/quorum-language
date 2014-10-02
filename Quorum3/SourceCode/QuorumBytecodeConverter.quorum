@@ -34,20 +34,4 @@ class QuorumBytecodeConverter
             return "L" + ConvertStaticKeyToBytecodePath(type:GetStaticKey()) + "$Interface;"
         end
     end
-
-    action ConvertActionToBytecodeParameterSignature(Action method) returns text
-        text parameters = "("
-        Iterator<Variable> it = method:GetParameterIterator()
-        repeat while it:HasNext()
-            Variable param = it:Next()
-            Type type = param:GetType()
-            parameters = parameters + ConvertTypeToBytecodeSignature(type)
-        end
-        parameters = parameters + ")"
-
-        Type returnType = method:GetReturnType()
-        text returnText = ConvertTypeToBytecodeSignature(returnType)
-
-        return parameters + returnText
-    end
 end
