@@ -267,17 +267,29 @@ class ClassOpcode is QuorumOpcode
             text hiddenGetterName = clazz:ConvertToActionNameFromField(variable, true)
             text hiddenGetterSignature = type:ConvertToSignatureFromField(true)
             
-            //interfaceMethodVisitor = interfaceWriter.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, hiddenGetterName, hiddenGetterSignature, null, null);
-            //interfaceMethodVisitor.visitEnd();
+            //do the getter in the interface file
             JavaBytecodeMethodWriter interfaceMethodWriter = 
                 interfaceWriter:VisitMethod(opcodes:GetPublic() + opcodes:GetAbstract(), 
                 hiddenGetterName, hiddenGetterSignature, null, undefined)
-            interfaceMethodWriter:VisitEnd()
+            interfaceMethodWriter:VisitEnd() 
 
-            //WriteHiddenField(variable, true)
-            //WriteHiddenField(variable, false)     
+            //do the getter implementation
+            //now generate the actual getter in the implementation class
+            JavaBytecodeMethodWriter methodWriter = classWriter:VisitMethod(opcodes:GetPublic(), 
+                hiddenGetterName, hiddenGetterSignature, null, undefined)
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+                
+            //TODO: Check that what is at line 2231 of QuorumJavaBytecodeStepVisitor
+            //is not an artifact of that system and is actually important.
+            methodWriter:VisitField(opcodes:GetField(), clazz:ConvertStaticKeyToBytecodePath(),
+                variable:GetName(), converted)
+
+            methodWriter:VisitInstruction(opcodes:GetReturnOpcode(type))
+            methodWriter:VisitMaxSize(1,1)
+            methodWriter:VisitEnd()
 
 
+            //do the setter in the interface file
             text hiddenSetterName = clazz:ConvertToActionNameFromField(variable, false)
             text hiddenSetterSignature = type:ConvertToSignatureFromField(false)
 
@@ -285,6 +297,23 @@ class ClassOpcode is QuorumOpcode
                 interfaceWriter:VisitMethod(opcodes:GetPublic() + opcodes:GetAbstract(), 
                 hiddenSetterName, hiddenSetterSignature, null, undefined)
             interfaceMethodWriter:VisitEnd()
+
+
+            //do the setter implementation
+            methodWriter = classWriter:VisitMethod(opcodes:GetPublic(), 
+                hiddenSetterName, hiddenSetterSignature, null, undefined)
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+                
+            //TODO: Check that what is at line 2264 of QuorumJavaBytecodeStepVisitor
+            //is not an artifact of that system and is actually important.
+            methodWriter:VisitVariable(opcodes:GetLoadOpcode(type), 1)
+            methodWriter:VisitField(opcodes:PutField(), clazz:ConvertStaticKeyToBytecodePath(),
+                variable:GetName(), converted)
+
+            methodWriter:VisitInstruction(opcodes:GetReturn())
+            methodWriter:VisitMaxSize(1,1)
+            methodWriter:VisitEnd()
+
         end
     end
 
