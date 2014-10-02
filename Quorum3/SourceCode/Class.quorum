@@ -29,6 +29,7 @@ class Class is Symbol
     boolean isTypeResolved = false
     File file = undefined
     boolean hasSystemAction = false
+    constant text LIBRARIES_LANGUAGE_OBJECT = "Libraries.Language.Object"
 
     on create
         QualifiedName object
@@ -98,6 +99,18 @@ class Class is Symbol
 
     action HasSystemAction returns boolean
         return hasSystemAction
+    end
+
+    /*
+        This action returns whether or not this particular class
+        represents Libraries.Language.Object.
+    */
+    action IsObject returns boolean
+        if GetStaticKey() = LIBRARIES_LANGUAGE_OBJECT
+            return true
+        else
+            return false
+        end
     end
 
     action AddUnresolvedParent(QualifiedName name)
