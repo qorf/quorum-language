@@ -231,6 +231,36 @@ class JavaBytecodeOpcodes
     constant integer IFNULL = 198
     constant integer IFNONNULL = 199
 
+    /*
+      Generates the appropriate opcode for loading an item onto the stack
+      from a given Quorum type descriptor.
+     */
+    action GetLoadOpcode(Type type) returns integer
+        if type:IsInteger() or type:IsBoolean()
+            return ILOAD
+        elseif type:IsNumber()
+            return DLOAD
+        end
+
+        return ALOAD
+    end
+
+    action GetReturnOpcode(Type type) returns integer
+        if type:IsBoolean()
+            return GetBooleanReturn()
+        elseif type:IsInteger()
+            return GetIntegerReturn()
+        elseif type:IsNumber()
+            return GetDoubleReturn()
+        elseif type:IsText()
+            return GetObjectReturn()
+        elseif type:IsVoid()
+            return GetReturn()
+        else //assume it is an object otherwise
+            return GetObjectReturn()
+        end
+    end
+
     action GetIntegerZero returns integer
         return ICONST_0
     end

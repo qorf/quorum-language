@@ -4,11 +4,14 @@ use Libraries.Language.Compile.Symbol.Type
 use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Language.Compile.Symbol.Action
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Symbol.Variable
 use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
 
 class ActionOpcode is QuorumOpcode
     List<QuorumOpcode> opcodeList
     Action method = undefined
+    Class clazz = undefined
     JavaBytecodeOpcodes opcodes
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
@@ -24,33 +27,68 @@ class ActionOpcode is QuorumOpcode
         me:method = method
     end
 
+    action GetClass returns Class
+        return clazz
+    end
+
+    action SetClass(Class clazz)
+        me:clazz = clazz
+    end
+
     action Write
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
-        methodWriter:VisitCode()
-        Iterator<QuorumOpcode> iterator = opcodeList:GetIterator()
-        repeat while iterator:HasNext()
-            QuorumOpcode opcode = iterator:Next()
-            opcode:Write()
+
+        if method:IsSystem()
+            methodWriter:VisitCode()
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+            methodWriter:VisitField(opcodes:GetField(), clazz:ConvertStaticKeyToBytecodePath(),
+                clazz:GetPluginName(), clazz:ConvertStaticKeyToPluginPathTypeName())
+
+            Iterator<Variable> parameters = method:GetParameterIterator()
+            integer position = 1
+            repeat while parameters:HasNext()
+                Variable param = parameters:Next()
+                Type type = param:GetType()
+                methodWriter:VisitVariable(opcodes:GetLoadOpcode(type), position)
+                position = position + type:GetBytecodeSize()
+            end
+
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
+                clazz:ConvertStaticKeyToPluginPath(), method:GetName(), 
+                method:ConvertActionToBytecodeParameterInterfaceSignature(), false)
+
+            methodWriter:VisitInstruction(opcodes:GetReturnOpcode(method:GetReturnType()))
+            methodWriter:VisitMaxSize(1,1)
+            methodWriter:VisitEnd()
+        else 
+
+
+            methodWriter:VisitCode()
+            Iterator<QuorumOpcode> iterator = opcodeList:GetIterator()
+            repeat while iterator:HasNext()
+                QuorumOpcode opcode = iterator:Next()
+                opcode:Write()
+            end
+
+            Type type = method:GetReturnType()
+
+            if type:IsBoolean()
+                methodWriter:VisitInstruction(opcodes:GetBooleanReturn())
+            elseif type:IsInteger()
+                methodWriter:VisitInstruction(opcodes:GetIntegerReturn())
+            elseif type:IsNumber()
+                methodWriter:VisitInstruction(opcodes:GetDoubleReturn())
+            elseif type:IsText()
+                methodWriter:VisitInstruction(opcodes:GetObjectReturn())
+            elseif type:IsVoid()
+                methodWriter:VisitInstruction(opcodes:GetReturn())
+            else //assume it is an object otherwise
+                methodWriter:VisitInstruction(opcodes:GetObjectReturn())
+            end
+
+            methodWriter:VisitMaxSize(1,1)
+            methodWriter:VisitEnd()
         end
-
-        Type type = method:GetReturnType()
-
-        if type:IsBoolean()
-            methodWriter:VisitInstruction(opcodes:GetBooleanReturn())
-        elseif type:IsInteger()
-            methodWriter:VisitInstruction(opcodes:GetIntegerReturn())
-        elseif type:IsNumber()
-            methodWriter:VisitInstruction(opcodes:GetDoubleReturn())
-        elseif type:IsText()
-            methodWriter:VisitInstruction(opcodes:GetObjectReturn())
-        elseif type:IsVoid()
-            methodWriter:VisitInstruction(opcodes:GetReturn())
-        else //assume it is an object otherwise
-            methodWriter:VisitInstruction(opcodes:GetObjectReturn())
-        end
-
-        methodWriter:VisitMaxSize(1,1)
-        methodWriter:VisitEnd()
     end
 
     action WriteJavaScript returns text

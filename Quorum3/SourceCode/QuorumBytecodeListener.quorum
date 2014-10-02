@@ -142,6 +142,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             ActionOpcode actionOpcode
             currentActionOpcode = actionOpcode
             currentActionOpcode:SetAction(method)
+            currentActionOpcode:SetClass(currentClass)
 
             boolean isMain = method:IsMain()
             text null = undefined

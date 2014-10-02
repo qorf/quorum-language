@@ -31,7 +31,6 @@ class ClassOpcode is QuorumOpcode
     constant text QUORUM_ERROR_INTERFACE = "quorum/Libraries/Language/Errors/Error$Interface"
     constant text QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR = "Libraries.Language.Errors.Error"
     constant text CONSTRUCTOR_JAVA_NAME = "<init>"
-    constant text PLUGIN_NAME = "<plugin>"
     constant integer ME = 0
     constant text QUORUM = "quorum"
     text buildPath = ""
@@ -155,11 +154,17 @@ class ClassOpcode is QuorumOpcode
         Iterator<ActionOpcode> actionIterator = actions:GetIterator()
         repeat while actionIterator:HasNext()
             ActionOpcode act = actionIterator:Next()
+            
+
+            
+            Action method = act:GetAction()
+
             //write to the class
-            //  act:Write()
+            if method:GetName() = "GetHashCode"
+                act:Write()
+            end
 
             //write to the interface
-            Action method = act:GetAction()
             text name = method:GetName()
             text params = method:ConvertActionToBytecodeParameterInterfaceSignature()
             JavaBytecodeMethodWriter interfaceMethodWriter = 
@@ -235,7 +240,7 @@ class ClassOpcode is QuorumOpcode
             //at the bytecode level it doesn't provide any security anyway
             //as people can just rip it out with reflection
             JavaBytecodeFieldWriter field = classWriter:VisitField(opcodes:GetPublic(),
-                PLUGIN_NAME, converted, null, undefined)
+                clazz:GetPluginName(), converted, null, undefined)
             field:VisitEnd()
         end
     end
