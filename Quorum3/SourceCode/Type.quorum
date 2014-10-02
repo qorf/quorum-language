@@ -461,6 +461,17 @@ class Type
         end
     end
 
+    action ConvertToSignatureFromField(boolean isGetter) returns text
+        text result = ""
+        if isGetter
+            result = result +  "()" + ConvertTypeToBytecodeSignatureInterface()
+        else
+            result = result + "(" + ConvertTypeToBytecodeSignatureInterface() + ")V"
+        end
+
+        return result
+    end
+
     private action ConvertStaticKeyToBytecodePath() returns text
         text key = GetStaticKey()
         text result = "quorum/" + key:Replace(".", "/")

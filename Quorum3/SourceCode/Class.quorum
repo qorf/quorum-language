@@ -113,6 +113,25 @@ class Class is Symbol
         end
     end
 
+    action GenerateSetterNameFromField(Variable variable) returns text
+        text result = "Set$"
+        result = result + ConvertStaticKeyToFieldPath() + variable:GetName()
+        return result
+    end
+
+    action ConvertToActionNameFromField(Variable variable, boolean isGetter) returns text
+        text result = ""
+
+        if isGetter
+            result = result + "Get$"
+        else
+            result = result + "Set$"
+        end
+        
+        result = result + ConvertStaticKeyToFieldPath() + "$" + variable:GetName()
+        return result
+    end
+
     action AddUnresolvedParent(QualifiedName name)
         unresolvedParents:Add(name)
     end
@@ -680,6 +699,16 @@ class Class is Symbol
     action ConvertStaticKeyToBytecodePath returns text
         text key = GetStaticKey()
         text result = "quorum/" + key:Replace(".", "/")
+        return result
+    end
+    
+    /*
+        This action returns the static key formatted as a class name in 
+        the style of a field.
+    */
+    action ConvertStaticKeyToFieldPath returns text
+        text key = GetStaticKey()
+        text result = key:Replace(".", "$")
         return result
     end
 

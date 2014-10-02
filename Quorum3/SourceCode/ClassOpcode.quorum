@@ -255,6 +255,37 @@ class ClassOpcode is QuorumOpcode
                 clazz:GetPluginName(), converted, null, undefined)
             field:VisitEnd()
         end
+
+        //write the methods for the fields
+        fields = clazz:GetVariables()
+        repeat while fields:HasNext()
+            Variable variable = fields:Next()
+
+            text varName = variable:GetName()
+            Type type = variable:GetType()
+            text converted = type:ConvertTypeToBytecodeSignature()
+            text hiddenGetterName = clazz:ConvertToActionNameFromField(variable, true)
+            text hiddenGetterSignature = type:ConvertToSignatureFromField(true)
+            
+            //interfaceMethodVisitor = interfaceWriter.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, hiddenGetterName, hiddenGetterSignature, null, null);
+            //interfaceMethodVisitor.visitEnd();
+            JavaBytecodeMethodWriter interfaceMethodWriter = 
+                interfaceWriter:VisitMethod(opcodes:GetPublic() + opcodes:GetAbstract(), 
+                hiddenGetterName, hiddenGetterSignature, null, undefined)
+            interfaceMethodWriter:VisitEnd()
+
+            //WriteHiddenField(variable, true)
+            //WriteHiddenField(variable, false)     
+
+
+            text hiddenSetterName = clazz:ConvertToActionNameFromField(variable, false)
+            text hiddenSetterSignature = type:ConvertToSignatureFromField(false)
+
+            interfaceMethodWriter = 
+                interfaceWriter:VisitMethod(opcodes:GetPublic() + opcodes:GetAbstract(), 
+                hiddenSetterName, hiddenSetterSignature, null, undefined)
+            interfaceMethodWriter:VisitEnd()
+        end
     end
 
     action WriteMain
