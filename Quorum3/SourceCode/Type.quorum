@@ -472,7 +472,7 @@ class Type
         return result
     end
 
-    private action ConvertStaticKeyToBytecodePath() returns text
+    action ConvertStaticKeyToBytecodePath() returns text
         text key = GetStaticKey()
         text result = "quorum/" + key:Replace(".", "/")
         return result

@@ -320,6 +320,66 @@ class QuorumBytecodeListener is QuorumSourceListener
         conditional:SetElseBlock(recentlyPopped)
     end
 
+    action ExitObjectAssignment(ObjectAssignmentContext context) 
+        text name = context:name
+        text object = context:object
+        QualifiedName theParent = context:parentName
+        
+        Variable variable = undefined
+        Variable field = undefined
+        Class clazz = undefined
+        if not isInAction
+            variable = currentClass:GetVariable(object)
+        else 
+            variable = currentBlock:GetVariable(object)
+        end
+
+        //this is not a call to a parent field.
+        if theParent not= undefined
+            //now get the field from that object
+
+        else
+            if variable not= undefined //if it is, it should have been caught in a previous phase
+                Type type = variable:GetType()
+                if not type:IsPrimitive() //if it is, again previous phase
+                    text staticKey = type:GetStaticKey()
+                    SymbolTable table = GetSymbolTable()
+                    clazz = table:GetClass(staticKey)
+                    
+                    //get a field. It has to be there, otherwise a previous phase would have complained
+                    field = clazz:GetVariable(name)
+                end
+            end
+
+        end
+
+        right = opcodeStack:Pop()
+
+
+        Operation assign
+        assign:SetOperation(assign:EQUALS)
+
+        TypeChecker checker = GetTypeChecker()
+        TypeCheckResult result = checker:Check(field:GetType(), right:GetType(), undefined, true) 
+
+        integer location = variable:GetBytecodeLocation()
+        Type value = result:result
+        QuorumOpcode qop = result:GetQuorumOpcode()
+        AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+        assignment:SetClass(currentClass)
+        assignment:SetRightHandSide(right)
+        assignment:SetType(value)
+        assignment:SetMethodWriter(methodWriter)
+        assignment:SetBytecodeLocation(location)
+        assignment:SetVariable(variable)
+
+        if isInAction
+            currentBlockOpcode:Add(assignment)
+        else //add the opcode to the field calculator
+            currentClassOpcode:AddField(assignment)
+        end
+    end
+
     action ExitNormalAssignment(NormalAssignmentContext context) 
         text name = context:name
         Variable variable = undefined
@@ -435,6 +495,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         actionCallStacks:Add(me:currentActionStack, stack)
         currentActionStack = currentActionStack + 1
     end
+
     action ExitVariableFunctionCall(VariableFunctionCallContext context) 
         isNextVariableReferenceMe = false
         Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
@@ -510,27 +571,47 @@ class QuorumBytecodeListener is QuorumSourceListener
             name = context:name
             Variable variable = undefined
 
-            
-            
-            if isNextVariableReferenceMe
-                variable = currentClass:GetVariable(name)
-            else 
-                variable = currentBlock:GetVariable(name)
-                isNextVariableReferenceMe = false
-            end
+            Array<ActionCallOpcode> stack = actionCallStacks:GetValue(currentActionStack - 1)
 
-            if variable not= undefined
-                Type type = variable:GetType()
-                actionCall:SetType(type)
-                actionCall:SetBytecodeLocation(variable:GetBytecodeLocation())
-                if variable:IsField()
-                else
+            if stack:IsEmpty() //this is a solo call, push on this
+                if isNextVariableReferenceMe
+                    variable = currentClass:GetVariable(name)
+                else 
+                    variable = currentBlock:GetVariable(name)
+                    isNextVariableReferenceMe = false
                 end
 
-
-                //Array<ActionCallOpcode> stack = actionCallStacks:GetValue(currentActionStack - 1)
-                //stack:Add(actionCall)
+                if variable not= undefined
+                    Type type = variable:GetType()
+                    actionCall:SetType(type)
+                    actionCall:SetBytecodeLocation(variable:GetBytecodeLocation())
+                end
+            else //get the most recent type off the stack
+                ActionCallOpcode code = stack:Get(stack:GetSize() - 1)
+                Type type = code:GetType()
+                if not type:IsPrimitive() //if it is, again previous phase will catch this
+                    text staticKey = type:GetStaticKey()
+                    SymbolTable table = GetSymbolTable()
+                    clazz = table:GetClass(staticKey)
+                    
+                    //get a field. It has to be there, otherwise a previous phase would have complained
+                    field = clazz:GetVariable(name)
+                    if field not= undefined
+                        Type fieldType = field:GetType()
+                        actionCall:SetType(fieldType)
+                        //tell the action call opcode this is a field and of whom
+                        //actionCall:SetBytecodeLocation(field:GetBytecodeLocation())
+                        actionCall:SetIsField(true)
+                        actionCall:SetField(field)
+                        actionCall:SetFieldHolder(clazz)
+                    end
+                end
             end
+            
+            
+            
+
+            
         end
 
         Array<ActionCallOpcode> stack = actionCallStacks:GetValue(currentActionStack - 1)
