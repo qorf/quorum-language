@@ -37,6 +37,7 @@ class CreateObjectOpcode is QuorumOpcode
             methodWriter:VisitType(opcodes:GetNew(), clazz:ConvertStaticKeyToBytecodePath())
             methodWriter:VisitInstruction(opcodes:GetDuplicate())
             methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), clazz:ConvertStaticKeyToBytecodePath(), "<init>", "()V", false)
+            methodWriter:VisitVariable(opcodes:GetObjectStore(), bytecodeLocation)
         end
     end
 
