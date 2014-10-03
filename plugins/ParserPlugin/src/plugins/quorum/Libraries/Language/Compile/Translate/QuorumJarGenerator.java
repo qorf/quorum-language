@@ -19,6 +19,7 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import quorum.Libraries.Containers.Blueprints.Iterator$Interface;
 import quorum.Libraries.Language.Compile.Dependency;
 import quorum.Libraries.Language.Object$Interface;
@@ -51,19 +52,18 @@ public class QuorumJarGenerator {
             quorum.Libraries.System.File jarLocation = 
                     (quorum.Libraries.System.File) compiler.GetDistributionFile();
             File writeLocation = new File(jarLocation.GetAbsolutePath());
-            
             if(!writeLocation.exists()) {
                 writeLocation.getParentFile().mkdirs();
             }
             
             stream = new FileOutputStream(writeLocation);
             target = new JarOutputStream(stream, manifest);
-            File$Interface build = compiler.GetBuildFolder();
+            File$Interface build = compiler.GetRootFolder();
             buildDirectory = build.GetAbsolutePath();
             Iterator$Interface dependencies = compiler.GetDependencies();
             while(dependencies.HasNext()) {
                 Dependency next = (Dependency) dependencies.Next();
-                add(new File(buildDirectory + next.from), target);
+                add(new File(buildDirectory + next.from), next, target);
             }
         } catch (Exception ex) {
             Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
@@ -87,21 +87,20 @@ public class QuorumJarGenerator {
 //        }
     }
     
-    private void add(File source, JarOutputStream target) throws IOException {
+    private void add(File source, Dependency dep, JarOutputStream target) throws IOException {
         //taken in part from http://stackoverflow.com/questions/1281229/how-to-use-jaroutputstream-to-create-a-jar-file
         BufferedInputStream in = null;
         try {
             if (buildDirectory.compareTo(source.getAbsolutePath()) == 0) {
                 for (File nestedFile : source.listFiles()) {
-                    add(nestedFile, target);
+                    add(nestedFile, dep, target);
                 }
             } else {
-                int pathLength = buildDirectory.length();
+                int pathLength = buildDirectory.length() + dep.from.length();
                 String absolute = source.getAbsolutePath();
-
-                String relative = absolute.substring(pathLength + 1);
-                String name = relative.replace("\\", "/");
-
+                
+                String relative = absolute.substring(pathLength);
+                String name = dep.to.substring(1) + relative.replace("\\", "/");
                 if (source.isDirectory()) {
                     if (!name.isEmpty()) {
                         if (!name.endsWith("/")) {
@@ -117,7 +116,7 @@ public class QuorumJarGenerator {
                         target.closeEntry();
                     }
                     for (File nestedFile : source.listFiles()) {
-                        add(nestedFile, target);
+                        add(nestedFile, dep, target);
                     }
                     return;
                 }
