@@ -208,13 +208,13 @@ class ClassOpcode is QuorumOpcode
 
     action WriteFieldDeclarations
         text null = undefined 
+        text hiddenType = clazz:ConvertStaticKeyToBytecodePathTypeNameInterface()
         JavaBytecodeFieldWriter hiddenField = classWriter:VisitField(opcodes:GetPublic(), 
-            clazz:GetHiddenVariableName(), clazz:ConvertStaticKeyToBytecodePathTypeName(), null, undefined)
+            clazz:GetHiddenVariableName(), hiddenType, null, undefined)
         hiddenField:VisitEnd()
 
         //write parents in class
         Iterator<Class> parents = clazz:GetParentClasses()
-        
 
         //initialize all of the parent objects as fields
         repeat while parents:HasNext()
@@ -263,7 +263,7 @@ class ClassOpcode is QuorumOpcode
             Type type = variable:GetType()
             text converted = type:ConvertTypeToBytecodeSignature()
             text hiddenGetterName = clazz:ConvertToActionNameFromField(variable, true)
-            text hiddenGetterSignature = type:ConvertToSignatureFromField(true)
+            text hiddenGetterSignature = type:ConvertToSignatureFromFieldInterface(true)
             
             //do the getter in the interface file
             JavaBytecodeMethodWriter interfaceMethodWriter = 
@@ -438,11 +438,11 @@ class ClassOpcode is QuorumOpcode
             methodWriter:VisitField(opcodes:GetPutField(), classBytecodeName, parentName, convertedParentNameType)
 
             
-            text convertedHiddenType = p:ConvertStaticKeyToBytecodePathTypeNameInterface()
-            methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-            methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), parentName, convertedHiddenType)
-            methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-            methodWriter:VisitField(opcodes:GetPutField(), converted, p:GetHiddenVariableName(), convertedHiddenType)
+            //text convertedHiddenType = p:ConvertStaticKeyToBytecodePathTypeName()
+            //methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+            //methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), parentName, convertedHiddenType)
+            //methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+            //methodWriter:VisitField(opcodes:GetPutField(), converted, p:GetHiddenVariableName(), convertedHiddenType)
         end
         
         //now that all parents have been instantiated, get 

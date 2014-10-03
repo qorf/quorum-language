@@ -58,11 +58,7 @@ class ActionOpcode is QuorumOpcode
                 method:ConvertActionToBytecodeParameterInterfaceSignature(), false)
 
             methodWriter:VisitInstruction(opcodes:GetReturnOpcode(method:GetReturnType()))
-            methodWriter:VisitMaxSize(1,1)
-            methodWriter:VisitEnd()
         else 
-
-
             methodWriter:VisitCode()
             Iterator<QuorumOpcode> iterator = opcodeList:GetIterator()
             repeat while iterator:HasNext()
@@ -85,10 +81,10 @@ class ActionOpcode is QuorumOpcode
             else //assume it is an object otherwise
                 methodWriter:VisitInstruction(opcodes:GetObjectReturn())
             end
-
-            methodWriter:VisitMaxSize(1,1)
-            methodWriter:VisitEnd()
         end
+
+        methodWriter:VisitMaxSize(0,0)
+        methodWriter:VisitEnd()
     end
 
     action WriteJavaScript returns text

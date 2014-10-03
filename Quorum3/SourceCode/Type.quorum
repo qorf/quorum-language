@@ -464,6 +464,17 @@ class Type
     action ConvertToSignatureFromField(boolean isGetter) returns text
         text result = ""
         if isGetter
+            result = result +  "()" + ConvertTypeToBytecodeSignature()
+        else
+            result = result + "(" + ConvertTypeToBytecodeSignature() + ")V"
+        end
+
+        return result
+    end
+
+    action ConvertToSignatureFromFieldInterface(boolean isGetter) returns text
+        text result = ""
+        if isGetter
             result = result +  "()" + ConvertTypeToBytecodeSignatureInterface()
         else
             result = result + "(" + ConvertTypeToBytecodeSignatureInterface() + ")V"

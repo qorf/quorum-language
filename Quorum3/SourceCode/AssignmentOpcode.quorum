@@ -14,6 +14,24 @@ class AssignmentOpcode is QuorumOpcode
     JavaBytecodeOpcodes opcodes
     constant integer ME = 0
     Class clazz = undefined
+    boolean isObjectField = false
+    Variable field = undefined
+
+    action IsObjectField returns boolean
+        return isObjectField
+    end
+
+    action SetIsObjectField(boolean field)
+        isObjectField = field
+    end
+
+    action GetField returns Variable
+        return field
+    end
+
+    action SetField(Variable field)
+        me:field = field
+    end
 
     action GetClass returns Class
         return clazz
@@ -63,14 +81,6 @@ class AssignmentOpcode is QuorumOpcode
         bytecodeLocation = location
     end
 
-//    action GetMethodWriter returns JavaBytecodeMethodWriter
-//        return methodWriter
-//    end
-//
-//    action SetMethodWriter(JavaBytecodeMethodWriter writer)
-//        methodWriter = writer
-//    end
-
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
         rightHandSide:SetMethodWriterToAllChildren(writer)
@@ -79,23 +89,33 @@ class AssignmentOpcode is QuorumOpcode
     action Write 
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         
+        if not isObjectField
+            if variable not= undefined
+                if variable:IsField()
+                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+                    rightHandSide:Write()
+                    Type type = variable:GetType()
+                    methodWriter:VisitField(opcodes:GetPutField(), 
+                        clazz:ConvertStaticKeyToBytecodePath(), variable:GetName(), 
+                        type:ConvertTypeToBytecodeSignature())
+                else
+                    rightHandSide:Write()
+                    methodWriter:VisitVariable(opcode, bytecodeLocation)
 
-        if variable not= undefined
-            if variable:IsField()
-                methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-                rightHandSide:Write()
-                Type type = variable:GetType()
-                methodWriter:VisitField(opcodes:GetPutField(), 
-                    clazz:ConvertStaticKeyToBytecodePath(), variable:GetName(), 
-                    type:ConvertTypeToBytecodeSignature())
-            else
-                rightHandSide:Write()
-                methodWriter:VisitVariable(opcode, bytecodeLocation)
-
-                if opcode2 not= -1
-                    methodWriter:VisitVariable(opcode2, bytecodeLocation)
+                    if opcode2 not= -1
+                        methodWriter:VisitVariable(opcode2, bytecodeLocation)
+                    end
                 end
             end
+        else
+            Type type = field:GetType()
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), bytecodeLocation)
+            rightHandSide:Write()
+            path = clazz:ConvertStaticKeyToBytecodeInterfacePath()
+            getterName = clazz:ConvertToActionNameFromField(field, false)
+            methodName = type:ConvertToSignatureFromField(false)
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+                path, getterName, methodName, true)
         end
     end
 

@@ -781,7 +781,7 @@ class Class is Symbol
     */
     action ConvertStaticKeyToParentFieldName returns text
         text key = GetStaticKey()
-        text result = "$" + key:Replace(".", "/")
+        text result = "$" + key:Replace(".", "$")
         return result
     end
 

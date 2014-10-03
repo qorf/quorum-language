@@ -100,9 +100,9 @@ class ActionCallOpcode is QuorumOpcode
             Action act = actionResolution:resolvedAction
             Class clazz = act:GetParentClass()
             if act not= undefined and clazz not= undefined
-                methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
-                    clazz:ConvertStaticKeyToBytecodePath(), act:GetName(), 
-                    act:ConvertActionToBytecodeParameterInterfaceSignature(), false)
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+                    clazz:ConvertStaticKeyToBytecodeInterfacePath(), act:GetName(), 
+                    act:ConvertActionToBytecodeParameterInterfaceSignature(), true)
             end
         else
             Type type = GetType()
@@ -114,7 +114,7 @@ class ActionCallOpcode is QuorumOpcode
                 getterName = fieldHolder:ConvertToActionNameFromField(field, true)
                 methodName = type:ConvertToSignatureFromField(true)
                 methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
-                    path, getterName, methodName, false)
+                    path, getterName, methodName, true)
             end
         end
     end
