@@ -80,17 +80,17 @@ public class QuorumParser extends Parser {
 	}
 	public static class StartContext extends ParserRuleContext {
 		public TerminalNode EOF() { return getToken(QuorumParser.EOF, 0); }
-		public List<ReferenceContext> reference() {
-			return getRuleContexts(ReferenceContext.class);
-		}
-		public ReferenceContext reference(int i) {
-			return getRuleContext(ReferenceContext.class,i);
-		}
 		public Class_declarationContext class_declaration() {
 			return getRuleContext(Class_declarationContext.class,0);
 		}
 		public Package_ruleContext package_rule() {
 			return getRuleContext(Package_ruleContext.class,0);
+		}
+		public ReferenceContext reference(int i) {
+			return getRuleContext(ReferenceContext.class,i);
+		}
+		public List<ReferenceContext> reference() {
+			return getRuleContexts(ReferenceContext.class);
 		}
 		public StartContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -199,10 +199,10 @@ public class QuorumParser extends Parser {
 
 	public static class Package_ruleContext extends ParserRuleContext {
 		public Qualified_nameContext name;
-		public TerminalNode PACKAGE_NAME() { return getToken(QuorumParser.PACKAGE_NAME, 0); }
 		public Qualified_nameContext qualified_name() {
 			return getRuleContext(Qualified_nameContext.class,0);
 		}
+		public TerminalNode PACKAGE_NAME() { return getToken(QuorumParser.PACKAGE_NAME, 0); }
 		public Package_ruleContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -240,10 +240,10 @@ public class QuorumParser extends Parser {
 
 	public static class ReferenceContext extends ParserRuleContext {
 		public Qualified_nameContext name;
-		public TerminalNode USE() { return getToken(QuorumParser.USE, 0); }
 		public Qualified_nameContext qualified_name() {
 			return getRuleContext(Qualified_nameContext.class,0);
 		}
+		public TerminalNode USE() { return getToken(QuorumParser.USE, 0); }
 		public ReferenceContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -290,32 +290,6 @@ public class QuorumParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
-	public static class FullClassDeclarationContext extends Class_declarationContext {
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public Class_stmntsContext class_stmnts(int i) {
-			return getRuleContext(Class_stmntsContext.class,i);
-		}
-		public Generic_declarationContext generic_declaration() {
-			return getRuleContext(Generic_declarationContext.class,0);
-		}
-		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
-		public TerminalNode CLASS() { return getToken(QuorumParser.CLASS, 0); }
-		public List<Class_stmntsContext> class_stmnts() {
-			return getRuleContexts(Class_stmntsContext.class);
-		}
-		public Inherit_stmntsContext inherit_stmnts() {
-			return getRuleContext(Inherit_stmntsContext.class,0);
-		}
-		public FullClassDeclarationContext(Class_declarationContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterFullClassDeclaration(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitFullClassDeclaration(this);
-		}
-	}
 	public static class NoClassDeclarationContext extends Class_declarationContext {
 		public No_class_stmntsContext no_class_stmnts() {
 			return getRuleContext(No_class_stmntsContext.class,0);
@@ -328,6 +302,32 @@ public class QuorumParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNoClassDeclaration(this);
+		}
+	}
+	public static class FullClassDeclarationContext extends Class_declarationContext {
+		public Class_stmntsContext class_stmnts(int i) {
+			return getRuleContext(Class_stmntsContext.class,i);
+		}
+		public Generic_declarationContext generic_declaration() {
+			return getRuleContext(Generic_declarationContext.class,0);
+		}
+		public List<Class_stmntsContext> class_stmnts() {
+			return getRuleContexts(Class_stmntsContext.class);
+		}
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public Inherit_stmntsContext inherit_stmnts() {
+			return getRuleContext(Inherit_stmntsContext.class,0);
+		}
+		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
+		public TerminalNode CLASS() { return getToken(QuorumParser.CLASS, 0); }
+		public FullClassDeclarationContext(Class_declarationContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterFullClassDeclaration(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitFullClassDeclaration(this);
 		}
 	}
 
@@ -421,23 +421,23 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class No_class_stmntsContext extends ParserRuleContext {
-		public List<Method_declarationContext> method_declaration() {
-			return getRuleContexts(Method_declarationContext.class);
+		public Access_modifierContext access_modifier(int i) {
+			return getRuleContext(Access_modifierContext.class,i);
+		}
+		public List<StatementContext> statement() {
+			return getRuleContexts(StatementContext.class);
 		}
 		public Method_declarationContext method_declaration(int i) {
 			return getRuleContext(Method_declarationContext.class,i);
 		}
-		public Access_modifierContext access_modifier(int i) {
-			return getRuleContext(Access_modifierContext.class,i);
+		public List<Method_declarationContext> method_declaration() {
+			return getRuleContexts(Method_declarationContext.class);
 		}
 		public StatementContext statement(int i) {
 			return getRuleContext(StatementContext.class,i);
 		}
 		public List<Access_modifierContext> access_modifier() {
 			return getRuleContexts(Access_modifierContext.class);
-		}
-		public List<StatementContext> statement() {
-			return getRuleContexts(StatementContext.class);
 		}
 		public No_class_stmntsContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -581,11 +581,11 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Inherit_stmtContext extends ParserRuleContext {
-		public Generic_declarationContext generic_declaration() {
-			return getRuleContext(Generic_declarationContext.class,0);
-		}
 		public Qualified_nameContext qualified_name() {
 			return getRuleContext(Qualified_nameContext.class,0);
+		}
+		public Generic_declarationContext generic_declaration() {
+			return getRuleContext(Generic_declarationContext.class,0);
 		}
 		public Inherit_stmtContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -674,11 +674,11 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Class_stmntsContext extends ParserRuleContext {
-		public Method_declarationContext method_declaration() {
-			return getRuleContext(Method_declarationContext.class,0);
-		}
 		public Assignment_statementContext assignment_statement() {
 			return getRuleContext(Assignment_statementContext.class,0);
+		}
+		public Method_declarationContext method_declaration() {
+			return getRuleContext(Method_declarationContext.class,0);
 		}
 		public Access_modifierContext access_modifier() {
 			return getRuleContext(Access_modifierContext.class,0);
@@ -749,41 +749,6 @@ public class QuorumParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
-	public static class ActionContext extends Method_declarationContext {
-		public Method_sharedContext method_shared() {
-			return getRuleContext(Method_sharedContext.class,0);
-		}
-		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
-		public BlockContext block() {
-			return getRuleContext(BlockContext.class,0);
-		}
-		public ActionContext(Method_declarationContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterAction(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAction(this);
-		}
-	}
-	public static class ConstructorContext extends Method_declarationContext {
-		public TerminalNode ON() { return getToken(QuorumParser.ON, 0); }
-		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
-		public TerminalNode CREATE() { return getToken(QuorumParser.CREATE, 0); }
-		public BlockContext block() {
-			return getRuleContext(BlockContext.class,0);
-		}
-		public ConstructorContext(Method_declarationContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterConstructor(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitConstructor(this);
-		}
-	}
 	public static class NativeActionContext extends Method_declarationContext {
 		public TerminalNode NATIVE() { return getToken(QuorumParser.NATIVE, 0); }
 		public Method_sharedContext method_shared() {
@@ -797,6 +762,41 @@ public class QuorumParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNativeAction(this);
+		}
+	}
+	public static class ActionContext extends Method_declarationContext {
+		public BlockContext block() {
+			return getRuleContext(BlockContext.class,0);
+		}
+		public Method_sharedContext method_shared() {
+			return getRuleContext(Method_sharedContext.class,0);
+		}
+		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
+		public ActionContext(Method_declarationContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterAction(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAction(this);
+		}
+	}
+	public static class ConstructorContext extends Method_declarationContext {
+		public TerminalNode CREATE() { return getToken(QuorumParser.CREATE, 0); }
+		public TerminalNode ON() { return getToken(QuorumParser.ON, 0); }
+		public BlockContext block() {
+			return getRuleContext(BlockContext.class,0);
+		}
+		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
+		public ConstructorContext(Method_declarationContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterConstructor(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitConstructor(this);
 		}
 	}
 	public static class BlueprintActionContext extends Method_declarationContext {
@@ -877,18 +877,18 @@ public class QuorumParser extends Parser {
 		public Assignment_declarationContext assignment_declaration() {
 			return getRuleContext(Assignment_declarationContext.class,0);
 		}
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public List<Formal_parameterContext> formal_parameter() {
-			return getRuleContexts(Formal_parameterContext.class);
-		}
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
 		public TerminalNode ACTION() { return getToken(QuorumParser.ACTION, 0); }
-		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
-		public TerminalNode RETURNS() { return getToken(QuorumParser.RETURNS, 0); }
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
 		public Formal_parameterContext formal_parameter(int i) {
 			return getRuleContext(Formal_parameterContext.class,i);
 		}
+		public List<Formal_parameterContext> formal_parameter() {
+			return getRuleContexts(Formal_parameterContext.class);
+		}
+		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public TerminalNode RETURNS() { return getToken(QuorumParser.RETURNS, 0); }
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
 		public TerminalNode COMMA(int i) {
 			return getToken(QuorumParser.COMMA, i);
 		}
@@ -1013,12 +1013,12 @@ public class QuorumParser extends Parser {
 		public Token ID;
 		public List<Token> ids = new ArrayList<Token>();
 		public List<TerminalNode> ID() { return getTokens(QuorumParser.ID); }
-		public TerminalNode ID(int i) {
-			return getToken(QuorumParser.ID, i);
-		}
-		public List<TerminalNode> PERIOD() { return getTokens(QuorumParser.PERIOD); }
 		public TerminalNode PERIOD(int i) {
 			return getToken(QuorumParser.PERIOD, i);
+		}
+		public List<TerminalNode> PERIOD() { return getTokens(QuorumParser.PERIOD); }
+		public TerminalNode ID(int i) {
+			return getToken(QuorumParser.ID, i);
 		}
 		public Qualified_nameContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1074,11 +1074,11 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class BlockContext extends ParserRuleContext {
-		public StatementContext statement(int i) {
-			return getRuleContext(StatementContext.class,i);
-		}
 		public List<StatementContext> statement() {
 			return getRuleContexts(StatementContext.class);
+		}
+		public StatementContext statement(int i) {
+			return getRuleContext(StatementContext.class,i);
 		}
 		public BlockContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1128,20 +1128,11 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class StatementContext extends ParserRuleContext {
-		public Return_statementContext return_statement() {
-			return getRuleContext(Return_statementContext.class,0);
+		public Loop_statementContext loop_statement() {
+			return getRuleContext(Loop_statementContext.class,0);
 		}
-		public Check_statementContext check_statement() {
-			return getRuleContext(Check_statementContext.class,0);
-		}
-		public If_statementContext if_statement() {
-			return getRuleContext(If_statementContext.class,0);
-		}
-		public Solo_method_callContext solo_method_call() {
-			return getRuleContext(Solo_method_callContext.class,0);
-		}
-		public Assignment_statementContext assignment_statement() {
-			return getRuleContext(Assignment_statementContext.class,0);
+		public Print_statementContext print_statement() {
+			return getRuleContext(Print_statementContext.class,0);
 		}
 		public Alert_statementContext alert_statement() {
 			return getRuleContext(Alert_statementContext.class,0);
@@ -1149,11 +1140,20 @@ public class QuorumParser extends Parser {
 		public Speak_statementContext speak_statement() {
 			return getRuleContext(Speak_statementContext.class,0);
 		}
-		public Loop_statementContext loop_statement() {
-			return getRuleContext(Loop_statementContext.class,0);
+		public Assignment_statementContext assignment_statement() {
+			return getRuleContext(Assignment_statementContext.class,0);
 		}
-		public Print_statementContext print_statement() {
-			return getRuleContext(Print_statementContext.class,0);
+		public Solo_method_callContext solo_method_call() {
+			return getRuleContext(Solo_method_callContext.class,0);
+		}
+		public Check_statementContext check_statement() {
+			return getRuleContext(Check_statementContext.class,0);
+		}
+		public Return_statementContext return_statement() {
+			return getRuleContext(Return_statementContext.class,0);
+		}
+		public If_statementContext if_statement() {
+			return getRuleContext(If_statementContext.class,0);
 		}
 		public StatementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1251,28 +1251,28 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Solo_method_callContext extends ParserRuleContext {
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
-		public TerminalNode COLON(int i) {
-			return getToken(QuorumParser.COLON, i);
-		}
-		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
-		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
-		}
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
-		public List<ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
-		}
 		public Qualified_nameContext qualified_name() {
 			return getRuleContext(Qualified_nameContext.class,0);
 		}
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
+		}
+		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public TerminalNode COLON(int i) {
+			return getToken(QuorumParser.COLON, i);
+		}
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
+		}
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
+		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
 		public TerminalNode COMMA(int i) {
 			return getToken(QuorumParser.COMMA, i);
 		}
-		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
 		public Solo_method_callContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -1424,12 +1424,12 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Alert_statementContext extends ParserRuleContext {
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
-		public TerminalNode ALERT() { return getToken(QuorumParser.ALERT, 0); }
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
+		public TerminalNode ALERT() { return getToken(QuorumParser.ALERT, 0); }
 		public Alert_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -1469,24 +1469,24 @@ public class QuorumParser extends Parser {
 
 	public static class Check_statementContext extends ParserRuleContext {
 		public TerminalNode CHECK() { return getToken(QuorumParser.CHECK, 0); }
-		public TerminalNode DETECT(int i) {
-			return getToken(QuorumParser.DETECT, i);
+		public List<TerminalNode> DETECT() { return getTokens(QuorumParser.DETECT); }
+		public Detect_parameterContext detect_parameter(int i) {
+			return getRuleContext(Detect_parameterContext.class,i);
 		}
 		public BlockContext block(int i) {
 			return getRuleContext(BlockContext.class,i);
 		}
-		public List<Detect_parameterContext> detect_parameter() {
-			return getRuleContexts(Detect_parameterContext.class);
-		}
-		public Detect_parameterContext detect_parameter(int i) {
-			return getRuleContext(Detect_parameterContext.class,i);
-		}
-		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
-		public List<TerminalNode> DETECT() { return getTokens(QuorumParser.DETECT); }
 		public List<BlockContext> block() {
 			return getRuleContexts(BlockContext.class);
 		}
+		public List<Detect_parameterContext> detect_parameter() {
+			return getRuleContexts(Detect_parameterContext.class);
+		}
 		public TerminalNode ALWAYS() { return getToken(QuorumParser.ALWAYS, 0); }
+		public TerminalNode DETECT(int i) {
+			return getToken(QuorumParser.DETECT, i);
+		}
+		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
 		public Check_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -1564,17 +1564,17 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Detect_parameterContext extends ParserRuleContext {
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
-		public List<TerminalNode> OR() { return getTokens(QuorumParser.OR); }
-		public TerminalNode OR(int i) {
-			return getToken(QuorumParser.OR, i);
-		}
 		public List<Qualified_nameContext> qualified_name() {
 			return getRuleContexts(Qualified_nameContext.class);
 		}
 		public Qualified_nameContext qualified_name(int i) {
 			return getRuleContext(Qualified_nameContext.class,i);
+		}
+		public List<TerminalNode> OR() { return getTokens(QuorumParser.OR); }
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
+		public TerminalNode OR(int i) {
+			return getToken(QuorumParser.OR, i);
 		}
 		public Detect_parameterContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1675,10 +1675,10 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Speak_statementContext extends ParserRuleContext {
+		public TerminalNode SAY() { return getToken(QuorumParser.SAY, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
-		public TerminalNode SAY() { return getToken(QuorumParser.SAY, 0); }
 		public Speak_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -1715,8 +1715,8 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Return_statementContext extends ParserRuleContext {
-		public TerminalNode RETURN() { return getToken(QuorumParser.RETURN, 0); }
 		public TerminalNode NOW() { return getToken(QuorumParser.NOW, 0); }
+		public TerminalNode RETURN() { return getToken(QuorumParser.RETURN, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
@@ -1785,14 +1785,14 @@ public class QuorumParser extends Parser {
 		public Token ID;
 		public List<Token> ids = new ArrayList<Token>();
 		public TerminalNode LESS() { return getToken(QuorumParser.LESS, 0); }
-		public List<TerminalNode> ID() { return getTokens(QuorumParser.ID); }
 		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
-		public TerminalNode ID(int i) {
-			return getToken(QuorumParser.ID, i);
-		}
+		public List<TerminalNode> ID() { return getTokens(QuorumParser.ID); }
 		public TerminalNode GREATER() { return getToken(QuorumParser.GREATER, 0); }
 		public TerminalNode COMMA(int i) {
 			return getToken(QuorumParser.COMMA, i);
+		}
+		public TerminalNode ID(int i) {
+			return getToken(QuorumParser.ID, i);
 		}
 		public Generic_declarationContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1848,14 +1848,14 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Generic_statementContext extends ParserRuleContext {
-		public TerminalNode LESS() { return getToken(QuorumParser.LESS, 0); }
 		public List<Assignment_declarationContext> assignment_declaration() {
 			return getRuleContexts(Assignment_declarationContext.class);
 		}
-		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public Assignment_declarationContext assignment_declaration(int i) {
 			return getRuleContext(Assignment_declarationContext.class,i);
 		}
+		public TerminalNode LESS() { return getToken(QuorumParser.LESS, 0); }
+		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public TerminalNode GREATER() { return getToken(QuorumParser.GREATER, 0); }
 		public TerminalNode COMMA(int i) {
 			return getToken(QuorumParser.COMMA, i);
@@ -1962,16 +1962,21 @@ public class QuorumParser extends Parser {
 			this.type = ctx.type;
 		}
 	}
-	public static class IntegerAssignmentDeclarationContext extends Assignment_declarationContext {
-		public TerminalNode INTEGER_KEYWORD() { return getToken(QuorumParser.INTEGER_KEYWORD, 0); }
-		public IntegerAssignmentDeclarationContext(Assignment_declarationContext ctx) { copyFrom(ctx); }
+	public static class GenericAssignmentDeclarationContext extends Assignment_declarationContext {
+		public Qualified_nameContext qualified_name() {
+			return getRuleContext(Qualified_nameContext.class,0);
+		}
+		public Generic_statementContext generic_statement() {
+			return getRuleContext(Generic_statementContext.class,0);
+		}
+		public GenericAssignmentDeclarationContext(Assignment_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterIntegerAssignmentDeclaration(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterGenericAssignmentDeclaration(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitIntegerAssignmentDeclaration(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitGenericAssignmentDeclaration(this);
 		}
 	}
 	public static class NumberAssignmentDeclarationContext extends Assignment_declarationContext {
@@ -2010,21 +2015,16 @@ public class QuorumParser extends Parser {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitBooleanAssignmentDeclaration(this);
 		}
 	}
-	public static class GenericAssignmentDeclarationContext extends Assignment_declarationContext {
-		public Generic_statementContext generic_statement() {
-			return getRuleContext(Generic_statementContext.class,0);
-		}
-		public Qualified_nameContext qualified_name() {
-			return getRuleContext(Qualified_nameContext.class,0);
-		}
-		public GenericAssignmentDeclarationContext(Assignment_declarationContext ctx) { copyFrom(ctx); }
+	public static class IntegerAssignmentDeclarationContext extends Assignment_declarationContext {
+		public TerminalNode INTEGER_KEYWORD() { return getToken(QuorumParser.INTEGER_KEYWORD, 0); }
+		public IntegerAssignmentDeclarationContext(Assignment_declarationContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterGenericAssignmentDeclaration(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterIntegerAssignmentDeclaration(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitGenericAssignmentDeclaration(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitIntegerAssignmentDeclaration(this);
 		}
 	}
 
@@ -2104,73 +2104,26 @@ public class QuorumParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
-	public static class NoTypeAssignmentContext extends Assignment_statementContext {
-		public Token name;
-		public ExpressionContext rhs;
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public TerminalNode COLON() { return getToken(QuorumParser.COLON, 0); }
-		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
-		public NoTypeAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNoTypeAssignment(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNoTypeAssignment(this);
-		}
-	}
-	public static class ParentAssignmentContext extends Assignment_statementContext {
-		public Qualified_nameContext parent;
-		public Token name;
-		public ExpressionContext rhs;
-		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
-		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
-		public TerminalNode COLON(int i) {
-			return getToken(QuorumParser.COLON, i);
-		}
-		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
-		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public Qualified_nameContext qualified_name() {
-			return getRuleContext(Qualified_nameContext.class,0);
-		}
-		public ParentAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParentAssignment(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParentAssignment(this);
-		}
-	}
 	public static class ObjectAssignmentContext extends Assignment_statementContext {
 		public Token object;
 		public Qualified_nameContext parent;
 		public Token name;
 		public ExpressionContext rhs;
+		public Qualified_nameContext qualified_name() {
+			return getRuleContext(Qualified_nameContext.class,0);
+		}
+		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
 		public List<TerminalNode> ID() { return getTokens(QuorumParser.ID); }
-		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
 		public TerminalNode COLON(int i) {
 			return getToken(QuorumParser.COLON, i);
 		}
-		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
-		public TerminalNode ID(int i) {
-			return getToken(QuorumParser.ID, i);
-		}
-		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
-		public Qualified_nameContext qualified_name() {
-			return getRuleContext(Qualified_nameContext.class,0);
+		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
+		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
+		public TerminalNode ID(int i) {
+			return getToken(QuorumParser.ID, i);
 		}
 		public ObjectAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
 		@Override
@@ -2190,15 +2143,15 @@ public class QuorumParser extends Parser {
 		public Assignment_declarationContext assignment_declaration() {
 			return getRuleContext(Assignment_declarationContext.class,0);
 		}
+		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
 		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
 		public Access_modifierContext access_modifier() {
 			return getRuleContext(Access_modifierContext.class,0);
 		}
 		public TerminalNode CONSTANT() { return getToken(QuorumParser.CONSTANT, 0); }
-		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
 		public NormalAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
@@ -2207,6 +2160,53 @@ public class QuorumParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNormalAssignment(this);
+		}
+	}
+	public static class ParentAssignmentContext extends Assignment_statementContext {
+		public Qualified_nameContext parent;
+		public Token name;
+		public ExpressionContext rhs;
+		public Qualified_nameContext qualified_name() {
+			return getRuleContext(Qualified_nameContext.class,0);
+		}
+		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public TerminalNode COLON(int i) {
+			return getToken(QuorumParser.COLON, i);
+		}
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
+		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
+		public ParentAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParentAssignment(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParentAssignment(this);
+		}
+	}
+	public static class NoTypeAssignmentContext extends Assignment_statementContext {
+		public Token name;
+		public ExpressionContext rhs;
+		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
+		public TerminalNode ID() { return getToken(QuorumParser.ID, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public TerminalNode COLON() { return getToken(QuorumParser.COLON, 0); }
+		public NoTypeAssignmentContext(Assignment_statementContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNoTypeAssignment(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNoTypeAssignment(this);
 		}
 	}
 
@@ -2320,23 +2320,23 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class If_statementContext extends ParserRuleContext {
-		public Elseif_statementContext elseif_statement(int i) {
-			return getRuleContext(Elseif_statementContext.class,i);
-		}
 		public TerminalNode IF() { return getToken(QuorumParser.IF, 0); }
-		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
+		public List<Elseif_statementContext> elseif_statement() {
+			return getRuleContexts(Elseif_statementContext.class);
+		}
 		public Else_statementContext else_statement() {
 			return getRuleContext(Else_statementContext.class,0);
 		}
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
+		public Elseif_statementContext elseif_statement(int i) {
+			return getRuleContext(Elseif_statementContext.class,i);
+		}
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
 		}
-		public List<Elseif_statementContext> elseif_statement() {
-			return getRuleContexts(Elseif_statementContext.class);
-		}
+		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
 		public If_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -2397,13 +2397,13 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Elseif_statementContext extends ParserRuleContext {
-		public TerminalNode ELSE_IF() { return getToken(QuorumParser.ELSE_IF, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
 		}
+		public TerminalNode ELSE_IF() { return getToken(QuorumParser.ELSE_IF, 0); }
 		public Elseif_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -2481,17 +2481,17 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Loop_statementContext extends ParserRuleContext {
+		public TerminalNode WHILE() { return getToken(QuorumParser.WHILE, 0); }
 		public TerminalNode TIMES() { return getToken(QuorumParser.TIMES, 0); }
-		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
+		public TerminalNode REPEAT() { return getToken(QuorumParser.REPEAT, 0); }
 		public TerminalNode UNTIL() { return getToken(QuorumParser.UNTIL, 0); }
-		public BlockContext block() {
-			return getRuleContext(BlockContext.class,0);
-		}
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
-		public TerminalNode WHILE() { return getToken(QuorumParser.WHILE, 0); }
-		public TerminalNode REPEAT() { return getToken(QuorumParser.REPEAT, 0); }
+		public BlockContext block() {
+			return getRuleContext(BlockContext.class,0);
+		}
+		public TerminalNode END() { return getToken(QuorumParser.END, 0); }
 		public Loop_statementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -2622,17 +2622,17 @@ public class QuorumParser extends Parser {
 
 	public static class Parent_callContext extends ParserRuleContext {
 		public Qualified_nameContext parent;
-		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
+		public Qualified_nameContext qualified_name() {
+			return getRuleContext(Qualified_nameContext.class,0);
+		}
 		public List<Action_callContext> action_call() {
 			return getRuleContexts(Action_callContext.class);
 		}
 		public TerminalNode COLON(int i) {
 			return getToken(QuorumParser.COLON, i);
 		}
+		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
 		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
-		public Qualified_nameContext qualified_name() {
-			return getRuleContext(Qualified_nameContext.class,0);
-		}
 		public Action_callContext action_call(int i) {
 			return getRuleContext(Action_callContext.class,i);
 		}
@@ -2704,41 +2704,7 @@ public class QuorumParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
-	public static class CastContext extends ExpressionContext {
-		public Assignment_declarationContext assignment_declaration() {
-			return getRuleContext(Assignment_declarationContext.class,0);
-		}
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
-		public TerminalNode COMMA() { return getToken(QuorumParser.COMMA, 0); }
-		public TerminalNode CAST() { return getToken(QuorumParser.CAST, 0); }
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public CastContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterCast(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitCast(this);
-		}
-	}
-	public static class NullContext extends ExpressionContext {
-		public TerminalNode NULL() { return getToken(QuorumParser.NULL, 0); }
-		public NullContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNull(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNull(this);
-		}
-	}
 	public static class MultiplicationContext extends ExpressionContext {
-		public TerminalNode DIVIDE() { return getToken(QuorumParser.DIVIDE, 0); }
 		public ExpressionContext expression(int i) {
 			return getRuleContext(ExpressionContext.class,i);
 		}
@@ -2747,6 +2713,7 @@ public class QuorumParser extends Parser {
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
+		public TerminalNode DIVIDE() { return getToken(QuorumParser.DIVIDE, 0); }
 		public MultiplicationContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
@@ -2757,23 +2724,162 @@ public class QuorumParser extends Parser {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitMultiplication(this);
 		}
 	}
-	public static class AdditionContext extends ExpressionContext {
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
+	public static class InputContext extends ExpressionContext {
+		public TerminalNode INPUT() { return getToken(QuorumParser.INPUT, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
 		}
-		public TerminalNode PLUS() { return getToken(QuorumParser.PLUS, 0); }
-		public TerminalNode MINUS() { return getToken(QuorumParser.MINUS, 0); }
-		public List<ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
-		}
-		public AdditionContext(ExpressionContext ctx) { copyFrom(ctx); }
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
+		public InputContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterAddition(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterInput(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAddition(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInput(this);
+		}
+	}
+	public static class MinusContext extends ExpressionContext {
+		public TerminalNode MINUS() { return getToken(QuorumParser.MINUS, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public MinusContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterMinus(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitMinus(this);
+		}
+	}
+	public static class VariableFunctionCallContext extends ExpressionContext {
+		public List<Action_callContext> action_call() {
+			return getRuleContexts(Action_callContext.class);
+		}
+		public TerminalNode COLON(int i) {
+			return getToken(QuorumParser.COLON, i);
+		}
+		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
+		public Action_callContext action_call(int i) {
+			return getRuleContext(Action_callContext.class,i);
+		}
+		public VariableFunctionCallContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterVariableFunctionCall(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitVariableFunctionCall(this);
+		}
+	}
+	public static class BooleanContext extends ExpressionContext {
+		public TerminalNode BOOLEAN() { return getToken(QuorumParser.BOOLEAN, 0); }
+		public BooleanContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterBoolean(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitBoolean(this);
+		}
+	}
+	public static class ParentVariableFunctionCallContext extends ExpressionContext {
+		public List<Action_callContext> action_call() {
+			return getRuleContexts(Action_callContext.class);
+		}
+		public Parent_callContext parent_call() {
+			return getRuleContext(Parent_callContext.class,0);
+		}
+		public TerminalNode COLON(int i) {
+			return getToken(QuorumParser.COLON, i);
+		}
+		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
+		public Action_callContext action_call(int i) {
+			return getRuleContext(Action_callContext.class,i);
+		}
+		public ParentVariableFunctionCallContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParentVariableFunctionCall(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParentVariableFunctionCall(this);
+		}
+	}
+	public static class NotContext extends ExpressionContext {
+		public TerminalNode NOT() { return getToken(QuorumParser.NOT, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public NotContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNot(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNot(this);
+		}
+	}
+	public static class MeContext extends ExpressionContext {
+		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public MeContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterMe(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitMe(this);
+		}
+	}
+	public static class ParenthesisExpressionContext extends ExpressionContext {
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
+		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
+		public ParenthesisExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParenthesisExpression(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParenthesisExpression(this);
+		}
+	}
+	public static class DecimalContext extends ExpressionContext {
+		public TerminalNode DECIMAL() { return getToken(QuorumParser.DECIMAL, 0); }
+		public DecimalContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterDecimal(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitDecimal(this);
+		}
+	}
+	public static class StringContext extends ExpressionContext {
+		public TerminalNode STRING() { return getToken(QuorumParser.STRING, 0); }
+		public StringContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterString(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitString(this);
 		}
 	}
 	public static class OrContext extends ExpressionContext {
@@ -2794,50 +2900,65 @@ public class QuorumParser extends Parser {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitOr(this);
 		}
 	}
-	public static class ParenthesisExpressionContext extends ExpressionContext {
+	public static class CastContext extends ExpressionContext {
+		public Assignment_declarationContext assignment_declaration() {
+			return getRuleContext(Assignment_declarationContext.class,0);
+		}
+		public TerminalNode COMMA() { return getToken(QuorumParser.COMMA, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
 		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
 		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public ParenthesisExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
+		public TerminalNode CAST() { return getToken(QuorumParser.CAST, 0); }
+		public CastContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParenthesisExpression(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterCast(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParenthesisExpression(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitCast(this);
 		}
 	}
-	public static class InheritsContext extends ExpressionContext {
-		public Class_typeContext class_type() {
-			return getRuleContext(Class_typeContext.class,0);
+	public static class EqualsContext extends ExpressionContext {
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
 		}
-		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
+		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
 		}
-		public InheritsContext(ExpressionContext ctx) { copyFrom(ctx); }
+		public TerminalNode NOTEQUALS() { return getToken(QuorumParser.NOTEQUALS, 0); }
+		public EqualsContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterInherits(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterEquals(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInherits(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitEquals(this);
 		}
 	}
-	public static class StringContext extends ExpressionContext {
-		public TerminalNode STRING() { return getToken(QuorumParser.STRING, 0); }
-		public StringContext(ExpressionContext ctx) { copyFrom(ctx); }
+	public static class GreaterContext extends ExpressionContext {
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
+		}
+		public TerminalNode GREATER_EQUAL() { return getToken(QuorumParser.GREATER_EQUAL, 0); }
+		public TerminalNode LESS_EQUAL() { return getToken(QuorumParser.LESS_EQUAL, 0); }
+		public TerminalNode LESS() { return getToken(QuorumParser.LESS, 0); }
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
+		}
+		public TerminalNode GREATER() { return getToken(QuorumParser.GREATER, 0); }
+		public GreaterContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterString(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterGreater(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitString(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitGreater(this);
 		}
 	}
 	public static class IntegerContext extends ExpressionContext {
@@ -2852,92 +2973,23 @@ public class QuorumParser extends Parser {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInteger(this);
 		}
 	}
-	public static class VariableFunctionCallContext extends ExpressionContext {
-		public List<Action_callContext> action_call() {
-			return getRuleContexts(Action_callContext.class);
-		}
-		public TerminalNode COLON(int i) {
-			return getToken(QuorumParser.COLON, i);
-		}
-		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
-		public Parent_callContext parent_call() {
-			return getRuleContext(Parent_callContext.class,0);
-		}
-		public Action_callContext action_call(int i) {
-			return getRuleContext(Action_callContext.class,i);
-		}
-		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
-		public VariableFunctionCallContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterVariableFunctionCall(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitVariableFunctionCall(this);
-		}
-	}
-	public static class NotContext extends ExpressionContext {
-		public TerminalNode NOT() { return getToken(QuorumParser.NOT, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public NotContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNot(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNot(this);
-		}
-	}
-	public static class InputContext extends ExpressionContext {
-		public TerminalNode RIGHT_PAREN() { return getToken(QuorumParser.RIGHT_PAREN, 0); }
-		public TerminalNode INPUT() { return getToken(QuorumParser.INPUT, 0); }
-		public TerminalNode LEFT_PAREN() { return getToken(QuorumParser.LEFT_PAREN, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public InputContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterInput(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInput(this);
-		}
-	}
-	public static class EqualsContext extends ExpressionContext {
-		public TerminalNode NOTEQUALS() { return getToken(QuorumParser.NOTEQUALS, 0); }
+	public static class AdditionContext extends ExpressionContext {
 		public ExpressionContext expression(int i) {
 			return getRuleContext(ExpressionContext.class,i);
 		}
+		public TerminalNode MINUS() { return getToken(QuorumParser.MINUS, 0); }
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
-		public TerminalNode EQUALITY() { return getToken(QuorumParser.EQUALITY, 0); }
-		public EqualsContext(ExpressionContext ctx) { copyFrom(ctx); }
+		public TerminalNode PLUS() { return getToken(QuorumParser.PLUS, 0); }
+		public AdditionContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterEquals(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterAddition(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitEquals(this);
-		}
-	}
-	public static class DecimalContext extends ExpressionContext {
-		public TerminalNode DECIMAL() { return getToken(QuorumParser.DECIMAL, 0); }
-		public DecimalContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterDecimal(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitDecimal(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAddition(this);
 		}
 	}
 	public static class AndContext extends ExpressionContext {
@@ -2958,89 +3010,34 @@ public class QuorumParser extends Parser {
 			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitAnd(this);
 		}
 	}
-	public static class MeContext extends ExpressionContext {
-		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
-		public MeContext(ExpressionContext ctx) { copyFrom(ctx); }
+	public static class NullContext extends ExpressionContext {
+		public TerminalNode NULL() { return getToken(QuorumParser.NULL, 0); }
+		public NullContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterMe(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNull(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitMe(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNull(this);
 		}
 	}
-	public static class GreaterContext extends ExpressionContext {
-		public TerminalNode LESS() { return getToken(QuorumParser.LESS, 0); }
-		public TerminalNode LESS_EQUAL() { return getToken(QuorumParser.LESS_EQUAL, 0); }
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
+	public static class InheritsContext extends ExpressionContext {
+		public Class_typeContext class_type() {
+			return getRuleContext(Class_typeContext.class,0);
 		}
-		public TerminalNode GREATER_EQUAL() { return getToken(QuorumParser.GREATER_EQUAL, 0); }
-		public List<ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
-		}
-		public TerminalNode GREATER() { return getToken(QuorumParser.GREATER, 0); }
-		public GreaterContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterGreater(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitGreater(this);
-		}
-	}
-	public static class BooleanContext extends ExpressionContext {
-		public TerminalNode BOOLEAN() { return getToken(QuorumParser.BOOLEAN, 0); }
-		public BooleanContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterBoolean(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitBoolean(this);
-		}
-	}
-	public static class MinusContext extends ExpressionContext {
-		public TerminalNode MINUS() { return getToken(QuorumParser.MINUS, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
-		public MinusContext(ExpressionContext ctx) { copyFrom(ctx); }
+		public TerminalNode INHERITS() { return getToken(QuorumParser.INHERITS, 0); }
+		public InheritsContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterMinus(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterInherits(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitMinus(this);
-		}
-	}
-	public static class ParentVariableFunctionCallContext extends ExpressionContext {
-		public List<Action_callContext> action_call() {
-			return getRuleContexts(Action_callContext.class);
-		}
-		public TerminalNode COLON(int i) {
-			return getToken(QuorumParser.COLON, i);
-		}
-		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
-		public Parent_callContext parent_call() {
-			return getRuleContext(Parent_callContext.class,0);
-		}
-		public Action_callContext action_call(int i) {
-			return getRuleContext(Action_callContext.class,i);
-		}
-		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
-		public ParentVariableFunctionCallContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterParentVariableFunctionCall(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitParentVariableFunctionCall(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitInherits(this);
 		}
 	}
 
@@ -3060,8 +3057,8 @@ public class QuorumParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(502);
-			switch ( getInterpreter().adaptivePredict(_input,60,_ctx) ) {
+			setState(499);
+			switch ( getInterpreter().adaptivePredict(_input,59,_ctx) ) {
 			case 1:
 				{
 				_localctx = new MinusContext(_localctx);
@@ -3098,38 +3095,27 @@ public class QuorumParser extends Parser {
 				}
 
 				setState(456); action_call();
-				setState(467);
-				switch ( getInterpreter().adaptivePredict(_input,57,_ctx) ) {
+				setState(464);
+				switch ( getInterpreter().adaptivePredict(_input,56,_ctx) ) {
 				case 1:
 					{
 					setState(457); match(COLON);
-					setState(465);
-					switch ( getInterpreter().adaptivePredict(_input,56,_ctx) ) {
-					case 1:
-						{
-						setState(458); parent_call();
+					{
+					setState(461);
+					_errHandler.sync(this);
+					_alt = getInterpreter().adaptivePredict(_input,55,_ctx);
+					while ( _alt!=2 && _alt!=ATN.INVALID_ALT_NUMBER ) {
+						if ( _alt==1 ) {
+							{
+							{
+							setState(458); action_call();
+							}
+							} 
 						}
-						break;
-
-					case 2:
-						{
-						setState(462);
+						setState(463);
 						_errHandler.sync(this);
 						_alt = getInterpreter().adaptivePredict(_input,55,_ctx);
-						while ( _alt!=2 && _alt!=ATN.INVALID_ALT_NUMBER ) {
-							if ( _alt==1 ) {
-								{
-								{
-								setState(459); action_call();
-								}
-								} 
-							}
-							setState(464);
-							_errHandler.sync(this);
-							_alt = getInterpreter().adaptivePredict(_input,55,_ctx);
-						}
-						}
-						break;
+					}
 					}
 					}
 					break;
@@ -3142,17 +3128,17 @@ public class QuorumParser extends Parser {
 				_localctx = new ParentVariableFunctionCallContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(471);
+				setState(468);
 				_la = _input.LA(1);
 				if (_la==ME) {
 					{
-					setState(469); match(ME);
-					setState(470); match(COLON);
+					setState(466); match(ME);
+					setState(467); match(COLON);
 					}
 				}
 
-				setState(473); parent_call();
-				setState(476); 
+				setState(470); parent_call();
+				setState(473); 
 				_errHandler.sync(this);
 				_alt = 1;
 				do {
@@ -3160,17 +3146,17 @@ public class QuorumParser extends Parser {
 					case 1:
 						{
 						{
-						setState(474); match(COLON);
-						setState(475); action_call();
+						setState(471); match(COLON);
+						setState(472); action_call();
 						}
 						}
 						break;
 					default:
 						throw new NoViableAltException(this);
 					}
-					setState(478); 
+					setState(475); 
 					_errHandler.sync(this);
-					_alt = getInterpreter().adaptivePredict(_input,59,_ctx);
+					_alt = getInterpreter().adaptivePredict(_input,58,_ctx);
 				} while ( _alt!=2 && _alt!=ATN.INVALID_ALT_NUMBER );
 				}
 				break;
@@ -3180,12 +3166,12 @@ public class QuorumParser extends Parser {
 				_localctx = new CastContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(480); match(CAST);
-				setState(481); match(LEFT_PAREN);
-				setState(482); assignment_declaration();
-				setState(483); match(COMMA);
-				setState(484); expression(0);
-				setState(485); match(RIGHT_PAREN);
+				setState(477); match(CAST);
+				setState(478); match(LEFT_PAREN);
+				setState(479); assignment_declaration();
+				setState(480); match(COMMA);
+				setState(481); expression(0);
+				setState(482); match(RIGHT_PAREN);
 				}
 				break;
 
@@ -3194,7 +3180,7 @@ public class QuorumParser extends Parser {
 				_localctx = new IntegerContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(487); match(INT);
+				setState(484); match(INT);
 				}
 				break;
 
@@ -3203,7 +3189,7 @@ public class QuorumParser extends Parser {
 				_localctx = new BooleanContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(488); match(BOOLEAN);
+				setState(485); match(BOOLEAN);
 				}
 				break;
 
@@ -3212,7 +3198,7 @@ public class QuorumParser extends Parser {
 				_localctx = new DecimalContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(489); match(DECIMAL);
+				setState(486); match(DECIMAL);
 				}
 				break;
 
@@ -3221,7 +3207,7 @@ public class QuorumParser extends Parser {
 				_localctx = new StringContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(490); match(STRING);
+				setState(487); match(STRING);
 				}
 				break;
 
@@ -3230,7 +3216,7 @@ public class QuorumParser extends Parser {
 				_localctx = new NullContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(491); match(NULL);
+				setState(488); match(NULL);
 				}
 				break;
 
@@ -3239,7 +3225,7 @@ public class QuorumParser extends Parser {
 				_localctx = new MeContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(492); match(ME);
+				setState(489); match(ME);
 				}
 				break;
 
@@ -3248,10 +3234,10 @@ public class QuorumParser extends Parser {
 				_localctx = new InputContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(493); match(INPUT);
-				setState(494); match(LEFT_PAREN);
-				setState(495); expression(0);
-				setState(496); match(RIGHT_PAREN);
+				setState(490); match(INPUT);
+				setState(491); match(LEFT_PAREN);
+				setState(492); expression(0);
+				setState(493); match(RIGHT_PAREN);
 				}
 				break;
 
@@ -3260,36 +3246,36 @@ public class QuorumParser extends Parser {
 				_localctx = new ParenthesisExpressionContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(498); match(LEFT_PAREN);
-				setState(499); expression(0);
-				setState(500); match(RIGHT_PAREN);
+				setState(495); match(LEFT_PAREN);
+				setState(496); expression(0);
+				setState(497); match(RIGHT_PAREN);
 				}
 				break;
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(527);
+			setState(524);
 			_errHandler.sync(this);
-			_alt = getInterpreter().adaptivePredict(_input,62,_ctx);
+			_alt = getInterpreter().adaptivePredict(_input,61,_ctx);
 			while ( _alt!=2 && _alt!=ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					if ( _parseListeners!=null ) triggerExitRuleEvent();
 					_prevctx = _localctx;
 					{
-					setState(525);
-					switch ( getInterpreter().adaptivePredict(_input,61,_ctx) ) {
+					setState(522);
+					switch ( getInterpreter().adaptivePredict(_input,60,_ctx) ) {
 					case 1:
 						{
 						_localctx = new MultiplicationContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(504);
+						setState(501);
 						if (!(precpred(_ctx, 15))) throw new FailedPredicateException(this, "precpred(_ctx, 15)");
-						setState(505);
+						setState(502);
 						_la = _input.LA(1);
 						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << MULTIPLY) | (1L << DIVIDE) | (1L << MODULO))) != 0)) ) {
 						_errHandler.recoverInline(this);
 						}
 						consume();
-						setState(506); expression(16);
+						setState(503); expression(16);
 						}
 						break;
 
@@ -3297,15 +3283,15 @@ public class QuorumParser extends Parser {
 						{
 						_localctx = new AdditionContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(507);
+						setState(504);
 						if (!(precpred(_ctx, 14))) throw new FailedPredicateException(this, "precpred(_ctx, 14)");
-						setState(508);
+						setState(505);
 						_la = _input.LA(1);
 						if ( !(_la==PLUS || _la==MINUS) ) {
 						_errHandler.recoverInline(this);
 						}
 						consume();
-						setState(509); expression(15);
+						setState(506); expression(15);
 						}
 						break;
 
@@ -3313,15 +3299,15 @@ public class QuorumParser extends Parser {
 						{
 						_localctx = new GreaterContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(510);
+						setState(507);
 						if (!(precpred(_ctx, 13))) throw new FailedPredicateException(this, "precpred(_ctx, 13)");
-						setState(511);
+						setState(508);
 						_la = _input.LA(1);
 						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << GREATER) | (1L << GREATER_EQUAL) | (1L << LESS) | (1L << LESS_EQUAL))) != 0)) ) {
 						_errHandler.recoverInline(this);
 						}
 						consume();
-						setState(512); expression(14);
+						setState(509); expression(14);
 						}
 						break;
 
@@ -3329,15 +3315,15 @@ public class QuorumParser extends Parser {
 						{
 						_localctx = new EqualsContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(513);
+						setState(510);
 						if (!(precpred(_ctx, 11))) throw new FailedPredicateException(this, "precpred(_ctx, 11)");
-						setState(514);
+						setState(511);
 						_la = _input.LA(1);
 						if ( !(_la==NOTEQUALS || _la==EQUALITY) ) {
 						_errHandler.recoverInline(this);
 						}
 						consume();
-						setState(515); expression(12);
+						setState(512); expression(12);
 						}
 						break;
 
@@ -3345,12 +3331,12 @@ public class QuorumParser extends Parser {
 						{
 						_localctx = new AndContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(516);
+						setState(513);
 						if (!(precpred(_ctx, 10))) throw new FailedPredicateException(this, "precpred(_ctx, 10)");
 						{
-						setState(517); match(AND);
+						setState(514); match(AND);
 						}
-						setState(518); expression(11);
+						setState(515); expression(11);
 						}
 						break;
 
@@ -3358,12 +3344,12 @@ public class QuorumParser extends Parser {
 						{
 						_localctx = new OrContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(519);
+						setState(516);
 						if (!(precpred(_ctx, 9))) throw new FailedPredicateException(this, "precpred(_ctx, 9)");
 						{
-						setState(520); match(OR);
+						setState(517); match(OR);
 						}
-						setState(521); expression(10);
+						setState(518); expression(10);
 						}
 						break;
 
@@ -3371,18 +3357,18 @@ public class QuorumParser extends Parser {
 						{
 						_localctx = new InheritsContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(522);
+						setState(519);
 						if (!(precpred(_ctx, 12))) throw new FailedPredicateException(this, "precpred(_ctx, 12)");
-						setState(523); match(INHERITS);
-						setState(524); class_type();
+						setState(520); match(INHERITS);
+						setState(521); class_type();
 						}
 						break;
 					}
 					} 
 				}
-				setState(529);
+				setState(526);
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,62,_ctx);
+				_alt = getInterpreter().adaptivePredict(_input,61,_ctx);
 			}
 			}
 		}
@@ -3398,10 +3384,10 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class Function_expression_listContext extends ParserRuleContext {
-		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public ExpressionContext expression(int i) {
 			return getRuleContext(ExpressionContext.class,i);
 		}
+		public List<TerminalNode> COMMA() { return getTokens(QuorumParser.COMMA); }
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
@@ -3429,22 +3415,22 @@ public class QuorumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(538);
+			setState(535);
 			_la = _input.LA(1);
 			if (((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & ((1L << (ME - 6)) | (1L << (PARENT - 6)) | (1L << (CAST - 6)) | (1L << (INPUT - 6)) | (1L << (NULL - 6)) | (1L << (NOT - 6)) | (1L << (MINUS - 6)) | (1L << (LEFT_PAREN - 6)) | (1L << (BOOLEAN - 6)) | (1L << (INT - 6)) | (1L << (DECIMAL - 6)) | (1L << (ID - 6)) | (1L << (STRING - 6)))) != 0)) {
 				{
-				setState(530); expression(0);
-				setState(535);
+				setState(527); expression(0);
+				setState(532);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				while (_la==COMMA) {
 					{
 					{
-					setState(531); match(COMMA);
-					setState(532); expression(0);
+					setState(528); match(COMMA);
+					setState(529); expression(0);
 					}
 					}
-					setState(537);
+					setState(534);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
@@ -3490,7 +3476,7 @@ public class QuorumParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3F\u021f\4\2\t\2\4"+
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3F\u021c\4\2\t\2\4"+
 		"\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t"+
 		"\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22"+
 		"\4\23\t\23\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30\t\30\4\31\t\31"+
@@ -3526,175 +3512,174 @@ public class QuorumParser extends Parser {
 		"\13\35\3\35\5\35\u019c\n\35\3\35\3\35\3\36\3\36\3\36\3\36\3\37\3\37\3"+
 		"\37\3 \3 \3 \3 \3 \3 \5 \u01ad\n \3 \3 \3 \3!\3!\3!\3!\3!\5!\u01b7\n!"+
 		"\3\"\3\"\3\"\3\"\3\"\6\"\u01be\n\"\r\"\16\"\u01bf\3#\3#\3#\3#\3#\3#\3"+
-		"#\5#\u01c9\n#\3#\3#\3#\3#\7#\u01cf\n#\f#\16#\u01d2\13#\5#\u01d4\n#\5#"+
-		"\u01d6\n#\3#\3#\5#\u01da\n#\3#\3#\3#\6#\u01df\n#\r#\16#\u01e0\3#\3#\3"+
-		"#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\5#\u01f9\n"+
-		"#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\7#\u0210"+
-		"\n#\f#\16#\u0213\13#\3$\3$\3$\7$\u0218\n$\f$\16$\u021b\13$\5$\u021d\n"+
-		"$\3$\2\3D%\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,.\60\62\64\66"+
-		"8:<>@BDF\2\b\3\2\n\13\4\2\t\t\30\30\3\2\64\66\3\2\62\63\3\2.\61\4\2**"+
-		"--\u025e\2\\\3\2\2\2\4a\3\2\2\2\6d\3\2\2\2\bw\3\2\2\2\n\u0086\3\2\2\2"+
-		"\f\u0088\3\2\2\2\16\u0091\3\2\2\2\20\u0095\3\2\2\2\22\u009c\3\2\2\2\24"+
-		"\u00ab\3\2\2\2\26\u00ad\3\2\2\2\30\u00c1\3\2\2\2\32\u00c4\3\2\2\2\34\u00cf"+
-		"\3\2\2\2\36\u00db\3\2\2\2 \u0115\3\2\2\2\"\u0117\3\2\2\2$\u011c\3\2\2"+
-		"\2&\u0130\3\2\2\2(\u013c\3\2\2\2*\u013f\3\2\2\2,\u0142\3\2\2\2.\u0147"+
-		"\3\2\2\2\60\u0152\3\2\2\2\62\u015d\3\2\2\2\64\u0167\3\2\2\2\66\u018f\3"+
-		"\2\2\28\u0191\3\2\2\2:\u019f\3\2\2\2<\u01a3\3\2\2\2>\u01a6\3\2\2\2@\u01b1"+
-		"\3\2\2\2B\u01b8\3\2\2\2D\u01f8\3\2\2\2F\u021c\3\2\2\2HJ\5\4\3\2IK\5\6"+
-		"\4\2JI\3\2\2\2KL\3\2\2\2LJ\3\2\2\2LM\3\2\2\2M]\3\2\2\2NP\5\6\4\2ON\3\2"+
-		"\2\2PQ\3\2\2\2QO\3\2\2\2QR\3\2\2\2RS\3\2\2\2ST\5\4\3\2T]\3\2\2\2U]\5\4"+
-		"\3\2VX\5\6\4\2WV\3\2\2\2XY\3\2\2\2YW\3\2\2\2YZ\3\2\2\2Z]\3\2\2\2[]\3\2"+
-		"\2\2\\H\3\2\2\2\\O\3\2\2\2\\U\3\2\2\2\\W\3\2\2\2\\[\3\2\2\2]^\3\2\2\2"+
-		"^_\5\b\5\2_`\7\2\2\3`\3\3\2\2\2ab\7\31\2\2bc\5\32\16\2c\5\3\2\2\2de\7"+
-		"(\2\2ef\5\32\16\2f\7\3\2\2\2gh\7>\2\2hj\7B\2\2ik\5.\30\2ji\3\2\2\2jk\3"+
-		"\2\2\2km\3\2\2\2ln\5\f\7\2ml\3\2\2\2mn\3\2\2\2nr\3\2\2\2oq\5\22\n\2po"+
-		"\3\2\2\2qt\3\2\2\2rp\3\2\2\2rs\3\2\2\2su\3\2\2\2tr\3\2\2\2ux\7=\2\2vx"+
-		"\5\n\6\2wg\3\2\2\2wv\3\2\2\2x\t\3\2\2\2y{\5\36\20\2zy\3\2\2\2{|\3\2\2"+
-		"\2|z\3\2\2\2|}\3\2\2\2}\u0087\3\2\2\2~\u0080\5\20\t\2\177~\3\2\2\2\177"+
-		"\u0080\3\2\2\2\u0080\u0081\3\2\2\2\u0081\u0083\5\24\13\2\u0082\177\3\2"+
-		"\2\2\u0083\u0084\3\2\2\2\u0084\u0082\3\2\2\2\u0084\u0085\3\2\2\2\u0085"+
-		"\u0087\3\2\2\2\u0086z\3\2\2\2\u0086\u0082\3\2\2\2\u0087\13\3\2\2\2\u0088"+
-		"\u0089\7\23\2\2\u0089\u008e\5\16\b\2\u008a\u008b\7,\2\2\u008b\u008d\5"+
-		"\16\b\2\u008c\u008a\3\2\2\2\u008d\u0090\3\2\2\2\u008e\u008c\3\2\2\2\u008e"+
-		"\u008f\3\2\2\2\u008f\r\3\2\2\2\u0090\u008e\3\2\2\2\u0091\u0093\5\32\16"+
-		"\2\u0092\u0094\5.\30\2\u0093\u0092\3\2\2\2\u0093\u0094\3\2\2\2\u0094\17"+
-		"\3\2\2\2\u0095\u0096\t\2\2\2\u0096\21\3\2\2\2\u0097\u009d\5\66\34\2\u0098"+
-		"\u009a\5\20\t\2\u0099\u0098\3\2\2\2\u0099\u009a\3\2\2\2\u009a\u009b\3"+
-		"\2\2\2\u009b\u009d\5\24\13\2\u009c\u0097\3\2\2\2\u009c\u0099\3\2\2\2\u009d"+
-		"\23\3\2\2\2\u009e\u009f\5\26\f\2\u009f\u00a0\5\34\17\2\u00a0\u00a1\7="+
-		"\2\2\u00a1\u00ac\3\2\2\2\u00a2\u00a3\7\21\2\2\u00a3\u00ac\5\26\f\2\u00a4"+
-		"\u00a5\7\22\2\2\u00a5\u00ac\5\26\f\2\u00a6\u00a7\7\4\2\2\u00a7\u00a8\7"+
-		"\5\2\2\u00a8\u00a9\5\34\17\2\u00a9\u00aa\7=\2\2\u00aa\u00ac\3\2\2\2\u00ab"+
-		"\u009e\3\2\2\2\u00ab\u00a2\3\2\2\2\u00ab\u00a4\3\2\2\2\u00ab\u00a6\3\2"+
-		"\2\2\u00ac\25\3\2\2\2\u00ad\u00ae\7\"\2\2\u00ae\u00bb\7B\2\2\u00af\u00b8"+
-		"\79\2\2\u00b0\u00b5\5\30\r\2\u00b1\u00b2\7,\2\2\u00b2\u00b4\5\30\r\2\u00b3"+
-		"\u00b1\3\2\2\2\u00b4\u00b7\3\2\2\2\u00b5\u00b3\3\2\2\2\u00b5\u00b6\3\2"+
-		"\2\2\u00b6\u00b9\3\2\2\2\u00b7\u00b5\3\2\2\2\u00b8\u00b0\3\2\2\2\u00b8"+
-		"\u00b9\3\2\2\2\u00b9\u00ba\3\2\2\2\u00ba\u00bc\7:\2\2\u00bb\u00af\3\2"+
-		"\2\2\u00bb\u00bc\3\2\2\2\u00bc\u00bf\3\2\2\2\u00bd\u00be\7\35\2\2\u00be"+
-		"\u00c0\5\64\33\2\u00bf\u00bd\3\2\2\2\u00bf\u00c0\3\2\2\2\u00c0\27\3\2"+
-		"\2\2\u00c1\u00c2\5\64\33\2\u00c2\u00c3\7B\2\2\u00c3\31\3\2\2\2\u00c4\u00c9"+
-		"\7B\2\2\u00c5\u00c6\7+\2\2\u00c6\u00c8\7B\2\2\u00c7\u00c5\3\2\2\2\u00c8"+
-		"\u00cb\3\2\2\2\u00c9\u00c7\3\2\2\2\u00c9\u00ca\3\2\2\2\u00ca\33\3\2\2"+
-		"\2\u00cb\u00c9\3\2\2\2\u00cc\u00ce\5\36\20\2\u00cd\u00cc\3\2\2\2\u00ce"+
-		"\u00d1\3\2\2\2\u00cf\u00cd\3\2\2\2\u00cf\u00d0\3\2\2\2\u00d0\35\3\2\2"+
-		"\2\u00d1\u00cf\3\2\2\2\u00d2\u00dc\5 \21\2\u00d3\u00dc\58\35\2\u00d4\u00dc"+
-		"\5\66\34\2\u00d5\u00dc\5> \2\u00d6\u00dc\5,\27\2\u00d7\u00dc\5(\25\2\u00d8"+
-		"\u00dc\5*\26\2\u00d9\u00dc\5$\23\2\u00da\u00dc\5\"\22\2\u00db\u00d2\3"+
-		"\2\2\2\u00db\u00d3\3\2\2\2\u00db\u00d4\3\2\2\2\u00db\u00d5\3\2\2\2\u00db"+
-		"\u00d6\3\2\2\2\u00db\u00d7\3\2\2\2\u00db\u00d8\3\2\2\2\u00db\u00d9\3\2"+
-		"\2\2\u00db\u00da\3\2\2\2\u00dc\37\3\2\2\2\u00dd\u00e0\5\32\16\2\u00de"+
-		"\u00df\7#\2\2\u00df\u00e1\7B\2\2\u00e0\u00de\3\2\2\2\u00e0\u00e1\3\2\2"+
-		"\2\u00e1\u00e2\3\2\2\2\u00e2\u00eb\79\2\2\u00e3\u00e8\5D#\2\u00e4\u00e5"+
-		"\7,\2\2\u00e5\u00e7\5D#\2\u00e6\u00e4\3\2\2\2\u00e7\u00ea\3\2\2\2\u00e8"+
-		"\u00e6\3\2\2\2\u00e8\u00e9\3\2\2\2\u00e9\u00ec\3\2\2\2\u00ea\u00e8\3\2"+
-		"\2\2\u00eb\u00e3\3\2\2\2\u00eb\u00ec\3\2\2\2\u00ec\u00ed\3\2\2\2\u00ed"+
-		"\u00ee\7:\2\2\u00ee\u0116\3\2\2\2\u00ef\u00f0\7\20\2\2\u00f0\u00f1\7#"+
-		"\2\2\u00f1\u00f2\5\32\16\2\u00f2\u00f3\7#\2\2\u00f3\u00f4\7B\2\2\u00f4"+
-		"\u00fd\79\2\2\u00f5\u00fa\5D#\2\u00f6\u00f7\7,\2\2\u00f7\u00f9\5D#\2\u00f8"+
-		"\u00f6\3\2\2\2\u00f9\u00fc\3\2\2\2\u00fa\u00f8\3\2\2\2\u00fa\u00fb\3\2"+
-		"\2\2\u00fb\u00fe\3\2\2\2\u00fc\u00fa\3\2\2\2\u00fd\u00f5\3\2\2\2\u00fd"+
-		"\u00fe\3\2\2\2\u00fe\u00ff\3\2\2\2\u00ff\u0100\7:\2\2\u0100\u0116\3\2"+
-		"\2\2\u0101\u0102\7\b\2\2\u0102\u0103\7#\2\2\u0103\u0106\5\32\16\2\u0104"+
-		"\u0105\7#\2\2\u0105\u0107\7B\2\2\u0106\u0104\3\2\2\2\u0106\u0107\3\2\2"+
-		"\2\u0107\u0108\3\2\2\2\u0108\u0111\79\2\2\u0109\u010e\5D#\2\u010a\u010b"+
-		"\7,\2\2\u010b\u010d\5D#\2\u010c\u010a\3\2\2\2\u010d\u0110\3\2\2\2\u010e"+
-		"\u010c\3\2\2\2\u010e\u010f\3\2\2\2\u010f\u0112\3\2\2\2\u0110\u010e\3\2"+
-		"\2\2\u0111\u0109\3\2\2\2\u0111\u0112\3\2\2\2\u0112\u0113\3\2\2\2\u0113"+
-		"\u0114\7:\2\2\u0114\u0116\3\2\2\2\u0115\u00dd\3\2\2\2\u0115\u00ef\3\2"+
-		"\2\2\u0115\u0101\3\2\2\2\u0116!\3\2\2\2\u0117\u0118\7\f\2\2\u0118\u0119"+
-		"\79\2\2\u0119\u011a\5D#\2\u011a\u011b\7:\2\2\u011b#\3\2\2\2\u011c\u011d"+
-		"\7\17\2\2\u011d\u012c\5\34\17\2\u011e\u011f\7\r\2\2\u011f\u0120\5&\24"+
-		"\2\u0120\u0121\5\34\17\2\u0121\u0123\3\2\2\2\u0122\u011e\3\2\2\2\u0123"+
-		"\u0124\3\2\2\2\u0124\u0122\3\2\2\2\u0124\u0125\3\2\2\2\u0125\u0128\3\2"+
-		"\2\2\u0126\u0127\7\16\2\2\u0127\u0129\5\34\17\2\u0128\u0126\3\2\2\2\u0128"+
-		"\u0129\3\2\2\2\u0129\u012d\3\2\2\2\u012a\u012b\7\16\2\2\u012b\u012d\5"+
-		"\34\17\2\u012c\u0122\3\2\2\2\u012c\u012a\3\2\2\2\u012d\u012e\3\2\2\2\u012e"+
-		"\u012f\7=\2\2\u012f%\3\2\2\2\u0130\u013a\7B\2\2\u0131\u0132\7\23\2\2\u0132"+
-		"\u0137\5\32\16\2\u0133\u0134\7 \2\2\u0134\u0136\5\32\16\2\u0135\u0133"+
-		"\3\2\2\2\u0136\u0139\3\2\2\2\u0137\u0135\3\2\2\2\u0137\u0138\3\2\2\2\u0138"+
-		"\u013b\3\2\2\2\u0139\u0137\3\2\2\2\u013a\u0131\3\2\2\2\u013a\u013b\3\2"+
-		"\2\2\u013b\'\3\2\2\2\u013c\u013d\7\3\2\2\u013d\u013e\5D#\2\u013e)\3\2"+
-		"\2\2\u013f\u0140\7\26\2\2\u0140\u0141\5D#\2\u0141+\3\2\2\2\u0142\u0145"+
-		"\7\36\2\2\u0143\u0146\5D#\2\u0144\u0146\7\27\2\2\u0145\u0143\3\2\2\2\u0145"+
-		"\u0144\3\2\2\2\u0146-\3\2\2\2\u0147\u0148\7\60\2\2\u0148\u014d\7B\2\2"+
-		"\u0149\u014a\7,\2\2\u014a\u014c\7B\2\2\u014b\u0149\3\2\2\2\u014c\u014f"+
-		"\3\2\2\2\u014d\u014b\3\2\2\2\u014d\u014e\3\2\2\2\u014e\u0150\3\2\2\2\u014f"+
-		"\u014d\3\2\2\2\u0150\u0151\7.\2\2\u0151/\3\2\2\2\u0152\u0153\7\60\2\2"+
-		"\u0153\u0158\5\64\33\2\u0154\u0155\7,\2\2\u0155\u0157\5\64\33\2\u0156"+
-		"\u0154\3\2\2\2\u0157\u015a\3\2\2\2\u0158\u0156\3\2\2\2\u0158\u0159\3\2"+
-		"\2\2\u0159\u015b\3\2\2\2\u015a\u0158\3\2\2\2\u015b\u015c\7.\2\2\u015c"+
-		"\61\3\2\2\2\u015d\u015e\5\32\16\2\u015e\63\3\2\2\2\u015f\u0161\5\32\16"+
-		"\2\u0160\u0162\5\60\31\2\u0161\u0160\3\2\2\2\u0161\u0162\3\2\2\2\u0162"+
-		"\u0168\3\2\2\2\u0163\u0168\7$\2\2\u0164\u0168\7%\2\2\u0165\u0168\7&\2"+
-		"\2\u0166\u0168\7\'\2\2\u0167\u015f\3\2\2\2\u0167\u0163\3\2\2\2\u0167\u0164"+
-		"\3\2\2\2\u0167\u0165\3\2\2\2\u0167\u0166\3\2\2\2\u0168\65\3\2\2\2\u0169"+
-		"\u016a\7\b\2\2\u016a\u016c\7#\2\2\u016b\u0169\3\2\2\2\u016b\u016c\3\2"+
-		"\2\2\u016c\u016d\3\2\2\2\u016d\u016e\7B\2\2\u016e\u016f\7-\2\2\u016f\u0190"+
-		"\5D#\2\u0170\u0171\7\20\2\2\u0171\u0172\7#\2\2\u0172\u0173\5\32\16\2\u0173"+
-		"\u0174\7#\2\2\u0174\u0175\7B\2\2\u0175\u0176\7-\2\2\u0176\u0177\5D#\2"+
-		"\u0177\u0190\3\2\2\2\u0178\u017d\7B\2\2\u0179\u017a\7#\2\2\u017a\u017b"+
-		"\7\20\2\2\u017b\u017c\7#\2\2\u017c\u017e\5\32\16\2\u017d\u0179\3\2\2\2"+
-		"\u017d\u017e\3\2\2\2\u017e\u017f\3\2\2\2\u017f\u0180\7#\2\2\u0180\u0181"+
-		"\7B\2\2\u0181\u0182\7-\2\2\u0182\u0190\5D#\2\u0183\u0185\5\20\t\2\u0184"+
-		"\u0183\3\2\2\2\u0184\u0185\3\2\2\2\u0185\u0187\3\2\2\2\u0186\u0188\7\6"+
-		"\2\2\u0187\u0186\3\2\2\2\u0187\u0188\3\2\2\2\u0188\u0189\3\2\2\2\u0189"+
-		"\u018a\5\64\33\2\u018a\u018d\7B\2\2\u018b\u018c\7-\2\2\u018c\u018e\5D"+
-		"#\2\u018d\u018b\3\2\2\2\u018d\u018e\3\2\2\2\u018e\u0190\3\2\2\2\u018f"+
-		"\u016b\3\2\2\2\u018f\u0170\3\2\2\2\u018f\u0178\3\2\2\2\u018f\u0184\3\2"+
-		"\2\2\u0190\67\3\2\2\2\u0191\u0192\7<\2\2\u0192\u0193\5D#\2\u0193\u0197"+
-		"\5\34\17\2\u0194\u0196\5:\36\2\u0195\u0194\3\2\2\2\u0196\u0199\3\2\2\2"+
-		"\u0197\u0195\3\2\2\2\u0197\u0198\3\2\2\2\u0198\u019b\3\2\2\2\u0199\u0197"+
-		"\3\2\2\2\u019a\u019c\5<\37\2\u019b\u019a\3\2\2\2\u019b\u019c\3\2\2\2\u019c"+
-		"\u019d\3\2\2\2\u019d\u019e\7=\2\2\u019e9\3\2\2\2\u019f\u01a0\7\7\2\2\u01a0"+
-		"\u01a1\5D#\2\u01a1\u01a2\5\34\17\2\u01a2;\3\2\2\2\u01a3\u01a4\7\34\2\2"+
-		"\u01a4\u01a5\5\34\17\2\u01a5=\3\2\2\2\u01a6\u01ac\7\33\2\2\u01a7\u01a8"+
-		"\5D#\2\u01a8\u01a9\7\32\2\2\u01a9\u01ad\3\2\2\2\u01aa\u01ab\t\3\2\2\u01ab"+
-		"\u01ad\5D#\2\u01ac\u01a7\3\2\2\2\u01ac\u01aa\3\2\2\2\u01ad\u01ae\3\2\2"+
-		"\2\u01ae\u01af\5\34\17\2\u01af\u01b0\7=\2\2\u01b0?\3\2\2\2\u01b1\u01b6"+
-		"\7B\2\2\u01b2\u01b3\79\2\2\u01b3\u01b4\5F$\2\u01b4\u01b5\7:\2\2\u01b5"+
-		"\u01b7\3\2\2\2\u01b6\u01b2\3\2\2\2\u01b6\u01b7\3\2\2\2\u01b7A\3\2\2\2"+
-		"\u01b8\u01b9\7\20\2\2\u01b9\u01ba\7#\2\2\u01ba\u01bd\5\32\16\2\u01bb\u01bc"+
-		"\7#\2\2\u01bc\u01be\5@!\2\u01bd\u01bb\3\2\2\2\u01be\u01bf\3\2\2\2\u01bf"+
-		"\u01bd\3\2\2\2\u01bf\u01c0\3\2\2\2\u01c0C\3\2\2\2\u01c1\u01c2\b#\1\2\u01c2"+
-		"\u01c3\7\63\2\2\u01c3\u01f9\5D#\24\u01c4\u01c5\7)\2\2\u01c5\u01f9\5D#"+
-		"\23\u01c6\u01c7\7\b\2\2\u01c7\u01c9\7#\2\2\u01c8\u01c6\3\2\2\2\u01c8\u01c9"+
-		"\3\2\2\2\u01c9\u01ca\3\2\2\2\u01ca\u01d5\5@!\2\u01cb\u01d3\7#\2\2\u01cc"+
-		"\u01d4\5B\"\2\u01cd\u01cf\5@!\2\u01ce\u01cd\3\2\2\2\u01cf\u01d2\3\2\2"+
-		"\2\u01d0\u01ce\3\2\2\2\u01d0\u01d1\3\2\2\2\u01d1\u01d4\3\2\2\2\u01d2\u01d0"+
-		"\3\2\2\2\u01d3\u01cc\3\2\2\2\u01d3\u01d0\3\2\2\2\u01d4\u01d6\3\2\2\2\u01d5"+
-		"\u01cb\3\2\2\2\u01d5\u01d6\3\2\2\2\u01d6\u01f9\3\2\2\2\u01d7\u01d8\7\b"+
-		"\2\2\u01d8\u01da\7#\2\2\u01d9\u01d7\3\2\2\2\u01d9\u01da\3\2\2\2\u01da"+
-		"\u01db\3\2\2\2\u01db\u01de\5B\"\2\u01dc\u01dd\7#\2\2\u01dd\u01df\5@!\2"+
-		"\u01de\u01dc\3\2\2\2\u01df\u01e0\3\2\2\2\u01e0\u01de\3\2\2\2\u01e0\u01e1"+
-		"\3\2\2\2\u01e1\u01f9\3\2\2\2\u01e2\u01e3\7\24\2\2\u01e3\u01e4\79\2\2\u01e4"+
-		"\u01e5\5\64\33\2\u01e5\u01e6\7,\2\2\u01e6\u01e7\5D#\2\u01e7\u01e8\7:\2"+
-		"\2\u01e8\u01f9\3\2\2\2\u01e9\u01f9\7@\2\2\u01ea\u01f9\7?\2\2\u01eb\u01f9"+
-		"\7A\2\2\u01ec\u01f9\7C\2\2\u01ed\u01f9\7!\2\2\u01ee\u01f9\7\b\2\2\u01ef"+
-		"\u01f0\7\25\2\2\u01f0\u01f1\79\2\2\u01f1\u01f2\5D#\2\u01f2\u01f3\7:\2"+
-		"\2\u01f3\u01f9\3\2\2\2\u01f4\u01f5\79\2\2\u01f5\u01f6\5D#\2\u01f6\u01f7"+
-		"\7:\2\2\u01f7\u01f9\3\2\2\2\u01f8\u01c1\3\2\2\2\u01f8\u01c4\3\2\2\2\u01f8"+
-		"\u01c8\3\2\2\2\u01f8\u01d9\3\2\2\2\u01f8\u01e2\3\2\2\2\u01f8\u01e9\3\2"+
-		"\2\2\u01f8\u01ea\3\2\2\2\u01f8\u01eb\3\2\2\2\u01f8\u01ec\3\2\2\2\u01f8"+
-		"\u01ed\3\2\2\2\u01f8\u01ee\3\2\2\2\u01f8\u01ef\3\2\2\2\u01f8\u01f4\3\2"+
-		"\2\2\u01f9\u0211\3\2\2\2\u01fa\u01fb\f\21\2\2\u01fb\u01fc\t\4\2\2\u01fc"+
-		"\u0210\5D#\22\u01fd\u01fe\f\20\2\2\u01fe\u01ff\t\5\2\2\u01ff\u0210\5D"+
-		"#\21\u0200\u0201\f\17\2\2\u0201\u0202\t\6\2\2\u0202\u0210\5D#\20\u0203"+
-		"\u0204\f\r\2\2\u0204\u0205\t\7\2\2\u0205\u0210\5D#\16\u0206\u0207\f\f"+
-		"\2\2\u0207\u0208\7\37\2\2\u0208\u0210\5D#\r\u0209\u020a\f\13\2\2\u020a"+
-		"\u020b\7 \2\2\u020b\u0210\5D#\f\u020c\u020d\f\16\2\2\u020d\u020e\7\23"+
-		"\2\2\u020e\u0210\5\62\32\2\u020f\u01fa\3\2\2\2\u020f\u01fd\3\2\2\2\u020f"+
-		"\u0200\3\2\2\2\u020f\u0203\3\2\2\2\u020f\u0206\3\2\2\2\u020f\u0209\3\2"+
-		"\2\2\u020f\u020c\3\2\2\2\u0210\u0213\3\2\2\2\u0211\u020f\3\2\2\2\u0211"+
-		"\u0212\3\2\2\2\u0212E\3\2\2\2\u0213\u0211\3\2\2\2\u0214\u0219\5D#\2\u0215"+
-		"\u0216\7,\2\2\u0216\u0218\5D#\2\u0217\u0215\3\2\2\2\u0218\u021b\3\2\2"+
-		"\2\u0219\u0217\3\2\2\2\u0219\u021a\3\2\2\2\u021a\u021d\3\2\2\2\u021b\u0219"+
-		"\3\2\2\2\u021c\u0214\3\2\2\2\u021c\u021d\3\2\2\2\u021dG\3\2\2\2CLQY\\"+
-		"jmrw|\177\u0084\u0086\u008e\u0093\u0099\u009c\u00ab\u00b5\u00b8\u00bb"+
-		"\u00bf\u00c9\u00cf\u00db\u00e0\u00e8\u00eb\u00fa\u00fd\u0106\u010e\u0111"+
-		"\u0115\u0124\u0128\u012c\u0137\u013a\u0145\u014d\u0158\u0161\u0167\u016b"+
-		"\u017d\u0184\u0187\u018d\u018f\u0197\u019b\u01ac\u01b6\u01bf\u01c8\u01d0"+
-		"\u01d3\u01d5\u01d9\u01e0\u01f8\u020f\u0211\u0219\u021c";
+		"#\5#\u01c9\n#\3#\3#\3#\7#\u01ce\n#\f#\16#\u01d1\13#\5#\u01d3\n#\3#\3#"+
+		"\5#\u01d7\n#\3#\3#\3#\6#\u01dc\n#\r#\16#\u01dd\3#\3#\3#\3#\3#\3#\3#\3"+
+		"#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\5#\u01f6\n#\3#\3#\3#\3#\3"+
+		"#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\7#\u020d\n#\f#\16#\u0210"+
+		"\13#\3$\3$\3$\7$\u0215\n$\f$\16$\u0218\13$\5$\u021a\n$\3$\2\3D%\2\4\6"+
+		"\b\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,.\60\62\64\668:<>@BDF\2\b\3\2"+
+		"\n\13\4\2\t\t\30\30\3\2\64\66\3\2\62\63\3\2.\61\4\2**--\u025a\2\\\3\2"+
+		"\2\2\4a\3\2\2\2\6d\3\2\2\2\bw\3\2\2\2\n\u0086\3\2\2\2\f\u0088\3\2\2\2"+
+		"\16\u0091\3\2\2\2\20\u0095\3\2\2\2\22\u009c\3\2\2\2\24\u00ab\3\2\2\2\26"+
+		"\u00ad\3\2\2\2\30\u00c1\3\2\2\2\32\u00c4\3\2\2\2\34\u00cf\3\2\2\2\36\u00db"+
+		"\3\2\2\2 \u0115\3\2\2\2\"\u0117\3\2\2\2$\u011c\3\2\2\2&\u0130\3\2\2\2"+
+		"(\u013c\3\2\2\2*\u013f\3\2\2\2,\u0142\3\2\2\2.\u0147\3\2\2\2\60\u0152"+
+		"\3\2\2\2\62\u015d\3\2\2\2\64\u0167\3\2\2\2\66\u018f\3\2\2\28\u0191\3\2"+
+		"\2\2:\u019f\3\2\2\2<\u01a3\3\2\2\2>\u01a6\3\2\2\2@\u01b1\3\2\2\2B\u01b8"+
+		"\3\2\2\2D\u01f5\3\2\2\2F\u0219\3\2\2\2HJ\5\4\3\2IK\5\6\4\2JI\3\2\2\2K"+
+		"L\3\2\2\2LJ\3\2\2\2LM\3\2\2\2M]\3\2\2\2NP\5\6\4\2ON\3\2\2\2PQ\3\2\2\2"+
+		"QO\3\2\2\2QR\3\2\2\2RS\3\2\2\2ST\5\4\3\2T]\3\2\2\2U]\5\4\3\2VX\5\6\4\2"+
+		"WV\3\2\2\2XY\3\2\2\2YW\3\2\2\2YZ\3\2\2\2Z]\3\2\2\2[]\3\2\2\2\\H\3\2\2"+
+		"\2\\O\3\2\2\2\\U\3\2\2\2\\W\3\2\2\2\\[\3\2\2\2]^\3\2\2\2^_\5\b\5\2_`\7"+
+		"\2\2\3`\3\3\2\2\2ab\7\31\2\2bc\5\32\16\2c\5\3\2\2\2de\7(\2\2ef\5\32\16"+
+		"\2f\7\3\2\2\2gh\7>\2\2hj\7B\2\2ik\5.\30\2ji\3\2\2\2jk\3\2\2\2km\3\2\2"+
+		"\2ln\5\f\7\2ml\3\2\2\2mn\3\2\2\2nr\3\2\2\2oq\5\22\n\2po\3\2\2\2qt\3\2"+
+		"\2\2rp\3\2\2\2rs\3\2\2\2su\3\2\2\2tr\3\2\2\2ux\7=\2\2vx\5\n\6\2wg\3\2"+
+		"\2\2wv\3\2\2\2x\t\3\2\2\2y{\5\36\20\2zy\3\2\2\2{|\3\2\2\2|z\3\2\2\2|}"+
+		"\3\2\2\2}\u0087\3\2\2\2~\u0080\5\20\t\2\177~\3\2\2\2\177\u0080\3\2\2\2"+
+		"\u0080\u0081\3\2\2\2\u0081\u0083\5\24\13\2\u0082\177\3\2\2\2\u0083\u0084"+
+		"\3\2\2\2\u0084\u0082\3\2\2\2\u0084\u0085\3\2\2\2\u0085\u0087\3\2\2\2\u0086"+
+		"z\3\2\2\2\u0086\u0082\3\2\2\2\u0087\13\3\2\2\2\u0088\u0089\7\23\2\2\u0089"+
+		"\u008e\5\16\b\2\u008a\u008b\7,\2\2\u008b\u008d\5\16\b\2\u008c\u008a\3"+
+		"\2\2\2\u008d\u0090\3\2\2\2\u008e\u008c\3\2\2\2\u008e\u008f\3\2\2\2\u008f"+
+		"\r\3\2\2\2\u0090\u008e\3\2\2\2\u0091\u0093\5\32\16\2\u0092\u0094\5.\30"+
+		"\2\u0093\u0092\3\2\2\2\u0093\u0094\3\2\2\2\u0094\17\3\2\2\2\u0095\u0096"+
+		"\t\2\2\2\u0096\21\3\2\2\2\u0097\u009d\5\66\34\2\u0098\u009a\5\20\t\2\u0099"+
+		"\u0098\3\2\2\2\u0099\u009a\3\2\2\2\u009a\u009b\3\2\2\2\u009b\u009d\5\24"+
+		"\13\2\u009c\u0097\3\2\2\2\u009c\u0099\3\2\2\2\u009d\23\3\2\2\2\u009e\u009f"+
+		"\5\26\f\2\u009f\u00a0\5\34\17\2\u00a0\u00a1\7=\2\2\u00a1\u00ac\3\2\2\2"+
+		"\u00a2\u00a3\7\21\2\2\u00a3\u00ac\5\26\f\2\u00a4\u00a5\7\22\2\2\u00a5"+
+		"\u00ac\5\26\f\2\u00a6\u00a7\7\4\2\2\u00a7\u00a8\7\5\2\2\u00a8\u00a9\5"+
+		"\34\17\2\u00a9\u00aa\7=\2\2\u00aa\u00ac\3\2\2\2\u00ab\u009e\3\2\2\2\u00ab"+
+		"\u00a2\3\2\2\2\u00ab\u00a4\3\2\2\2\u00ab\u00a6\3\2\2\2\u00ac\25\3\2\2"+
+		"\2\u00ad\u00ae\7\"\2\2\u00ae\u00bb\7B\2\2\u00af\u00b8\79\2\2\u00b0\u00b5"+
+		"\5\30\r\2\u00b1\u00b2\7,\2\2\u00b2\u00b4\5\30\r\2\u00b3\u00b1\3\2\2\2"+
+		"\u00b4\u00b7\3\2\2\2\u00b5\u00b3\3\2\2\2\u00b5\u00b6\3\2\2\2\u00b6\u00b9"+
+		"\3\2\2\2\u00b7\u00b5\3\2\2\2\u00b8\u00b0\3\2\2\2\u00b8\u00b9\3\2\2\2\u00b9"+
+		"\u00ba\3\2\2\2\u00ba\u00bc\7:\2\2\u00bb\u00af\3\2\2\2\u00bb\u00bc\3\2"+
+		"\2\2\u00bc\u00bf\3\2\2\2\u00bd\u00be\7\35\2\2\u00be\u00c0\5\64\33\2\u00bf"+
+		"\u00bd\3\2\2\2\u00bf\u00c0\3\2\2\2\u00c0\27\3\2\2\2\u00c1\u00c2\5\64\33"+
+		"\2\u00c2\u00c3\7B\2\2\u00c3\31\3\2\2\2\u00c4\u00c9\7B\2\2\u00c5\u00c6"+
+		"\7+\2\2\u00c6\u00c8\7B\2\2\u00c7\u00c5\3\2\2\2\u00c8\u00cb\3\2\2\2\u00c9"+
+		"\u00c7\3\2\2\2\u00c9\u00ca\3\2\2\2\u00ca\33\3\2\2\2\u00cb\u00c9\3\2\2"+
+		"\2\u00cc\u00ce\5\36\20\2\u00cd\u00cc\3\2\2\2\u00ce\u00d1\3\2\2\2\u00cf"+
+		"\u00cd\3\2\2\2\u00cf\u00d0\3\2\2\2\u00d0\35\3\2\2\2\u00d1\u00cf\3\2\2"+
+		"\2\u00d2\u00dc\5 \21\2\u00d3\u00dc\58\35\2\u00d4\u00dc\5\66\34\2\u00d5"+
+		"\u00dc\5> \2\u00d6\u00dc\5,\27\2\u00d7\u00dc\5(\25\2\u00d8\u00dc\5*\26"+
+		"\2\u00d9\u00dc\5$\23\2\u00da\u00dc\5\"\22\2\u00db\u00d2\3\2\2\2\u00db"+
+		"\u00d3\3\2\2\2\u00db\u00d4\3\2\2\2\u00db\u00d5\3\2\2\2\u00db\u00d6\3\2"+
+		"\2\2\u00db\u00d7\3\2\2\2\u00db\u00d8\3\2\2\2\u00db\u00d9\3\2\2\2\u00db"+
+		"\u00da\3\2\2\2\u00dc\37\3\2\2\2\u00dd\u00e0\5\32\16\2\u00de\u00df\7#\2"+
+		"\2\u00df\u00e1\7B\2\2\u00e0\u00de\3\2\2\2\u00e0\u00e1\3\2\2\2\u00e1\u00e2"+
+		"\3\2\2\2\u00e2\u00eb\79\2\2\u00e3\u00e8\5D#\2\u00e4\u00e5\7,\2\2\u00e5"+
+		"\u00e7\5D#\2\u00e6\u00e4\3\2\2\2\u00e7\u00ea\3\2\2\2\u00e8\u00e6\3\2\2"+
+		"\2\u00e8\u00e9\3\2\2\2\u00e9\u00ec\3\2\2\2\u00ea\u00e8\3\2\2\2\u00eb\u00e3"+
+		"\3\2\2\2\u00eb\u00ec\3\2\2\2\u00ec\u00ed\3\2\2\2\u00ed\u00ee\7:\2\2\u00ee"+
+		"\u0116\3\2\2\2\u00ef\u00f0\7\20\2\2\u00f0\u00f1\7#\2\2\u00f1\u00f2\5\32"+
+		"\16\2\u00f2\u00f3\7#\2\2\u00f3\u00f4\7B\2\2\u00f4\u00fd\79\2\2\u00f5\u00fa"+
+		"\5D#\2\u00f6\u00f7\7,\2\2\u00f7\u00f9\5D#\2\u00f8\u00f6\3\2\2\2\u00f9"+
+		"\u00fc\3\2\2\2\u00fa\u00f8\3\2\2\2\u00fa\u00fb\3\2\2\2\u00fb\u00fe\3\2"+
+		"\2\2\u00fc\u00fa\3\2\2\2\u00fd\u00f5\3\2\2\2\u00fd\u00fe\3\2\2\2\u00fe"+
+		"\u00ff\3\2\2\2\u00ff\u0100\7:\2\2\u0100\u0116\3\2\2\2\u0101\u0102\7\b"+
+		"\2\2\u0102\u0103\7#\2\2\u0103\u0106\5\32\16\2\u0104\u0105\7#\2\2\u0105"+
+		"\u0107\7B\2\2\u0106\u0104\3\2\2\2\u0106\u0107\3\2\2\2\u0107\u0108\3\2"+
+		"\2\2\u0108\u0111\79\2\2\u0109\u010e\5D#\2\u010a\u010b\7,\2\2\u010b\u010d"+
+		"\5D#\2\u010c\u010a\3\2\2\2\u010d\u0110\3\2\2\2\u010e\u010c\3\2\2\2\u010e"+
+		"\u010f\3\2\2\2\u010f\u0112\3\2\2\2\u0110\u010e\3\2\2\2\u0111\u0109\3\2"+
+		"\2\2\u0111\u0112\3\2\2\2\u0112\u0113\3\2\2\2\u0113\u0114\7:\2\2\u0114"+
+		"\u0116\3\2\2\2\u0115\u00dd\3\2\2\2\u0115\u00ef\3\2\2\2\u0115\u0101\3\2"+
+		"\2\2\u0116!\3\2\2\2\u0117\u0118\7\f\2\2\u0118\u0119\79\2\2\u0119\u011a"+
+		"\5D#\2\u011a\u011b\7:\2\2\u011b#\3\2\2\2\u011c\u011d\7\17\2\2\u011d\u012c"+
+		"\5\34\17\2\u011e\u011f\7\r\2\2\u011f\u0120\5&\24\2\u0120\u0121\5\34\17"+
+		"\2\u0121\u0123\3\2\2\2\u0122\u011e\3\2\2\2\u0123\u0124\3\2\2\2\u0124\u0122"+
+		"\3\2\2\2\u0124\u0125\3\2\2\2\u0125\u0128\3\2\2\2\u0126\u0127\7\16\2\2"+
+		"\u0127\u0129\5\34\17\2\u0128\u0126\3\2\2\2\u0128\u0129\3\2\2\2\u0129\u012d"+
+		"\3\2\2\2\u012a\u012b\7\16\2\2\u012b\u012d\5\34\17\2\u012c\u0122\3\2\2"+
+		"\2\u012c\u012a\3\2\2\2\u012d\u012e\3\2\2\2\u012e\u012f\7=\2\2\u012f%\3"+
+		"\2\2\2\u0130\u013a\7B\2\2\u0131\u0132\7\23\2\2\u0132\u0137\5\32\16\2\u0133"+
+		"\u0134\7 \2\2\u0134\u0136\5\32\16\2\u0135\u0133\3\2\2\2\u0136\u0139\3"+
+		"\2\2\2\u0137\u0135\3\2\2\2\u0137\u0138\3\2\2\2\u0138\u013b\3\2\2\2\u0139"+
+		"\u0137\3\2\2\2\u013a\u0131\3\2\2\2\u013a\u013b\3\2\2\2\u013b\'\3\2\2\2"+
+		"\u013c\u013d\7\3\2\2\u013d\u013e\5D#\2\u013e)\3\2\2\2\u013f\u0140\7\26"+
+		"\2\2\u0140\u0141\5D#\2\u0141+\3\2\2\2\u0142\u0145\7\36\2\2\u0143\u0146"+
+		"\5D#\2\u0144\u0146\7\27\2\2\u0145\u0143\3\2\2\2\u0145\u0144\3\2\2\2\u0146"+
+		"-\3\2\2\2\u0147\u0148\7\60\2\2\u0148\u014d\7B\2\2\u0149\u014a\7,\2\2\u014a"+
+		"\u014c\7B\2\2\u014b\u0149\3\2\2\2\u014c\u014f\3\2\2\2\u014d\u014b\3\2"+
+		"\2\2\u014d\u014e\3\2\2\2\u014e\u0150\3\2\2\2\u014f\u014d\3\2\2\2\u0150"+
+		"\u0151\7.\2\2\u0151/\3\2\2\2\u0152\u0153\7\60\2\2\u0153\u0158\5\64\33"+
+		"\2\u0154\u0155\7,\2\2\u0155\u0157\5\64\33\2\u0156\u0154\3\2\2\2\u0157"+
+		"\u015a\3\2\2\2\u0158\u0156\3\2\2\2\u0158\u0159\3\2\2\2\u0159\u015b\3\2"+
+		"\2\2\u015a\u0158\3\2\2\2\u015b\u015c\7.\2\2\u015c\61\3\2\2\2\u015d\u015e"+
+		"\5\32\16\2\u015e\63\3\2\2\2\u015f\u0161\5\32\16\2\u0160\u0162\5\60\31"+
+		"\2\u0161\u0160\3\2\2\2\u0161\u0162\3\2\2\2\u0162\u0168\3\2\2\2\u0163\u0168"+
+		"\7$\2\2\u0164\u0168\7%\2\2\u0165\u0168\7&\2\2\u0166\u0168\7\'\2\2\u0167"+
+		"\u015f\3\2\2\2\u0167\u0163\3\2\2\2\u0167\u0164\3\2\2\2\u0167\u0165\3\2"+
+		"\2\2\u0167\u0166\3\2\2\2\u0168\65\3\2\2\2\u0169\u016a\7\b\2\2\u016a\u016c"+
+		"\7#\2\2\u016b\u0169\3\2\2\2\u016b\u016c\3\2\2\2\u016c\u016d\3\2\2\2\u016d"+
+		"\u016e\7B\2\2\u016e\u016f\7-\2\2\u016f\u0190\5D#\2\u0170\u0171\7\20\2"+
+		"\2\u0171\u0172\7#\2\2\u0172\u0173\5\32\16\2\u0173\u0174\7#\2\2\u0174\u0175"+
+		"\7B\2\2\u0175\u0176\7-\2\2\u0176\u0177\5D#\2\u0177\u0190\3\2\2\2\u0178"+
+		"\u017d\7B\2\2\u0179\u017a\7#\2\2\u017a\u017b\7\20\2\2\u017b\u017c\7#\2"+
+		"\2\u017c\u017e\5\32\16\2\u017d\u0179\3\2\2\2\u017d\u017e\3\2\2\2\u017e"+
+		"\u017f\3\2\2\2\u017f\u0180\7#\2\2\u0180\u0181\7B\2\2\u0181\u0182\7-\2"+
+		"\2\u0182\u0190\5D#\2\u0183\u0185\5\20\t\2\u0184\u0183\3\2\2\2\u0184\u0185"+
+		"\3\2\2\2\u0185\u0187\3\2\2\2\u0186\u0188\7\6\2\2\u0187\u0186\3\2\2\2\u0187"+
+		"\u0188\3\2\2\2\u0188\u0189\3\2\2\2\u0189\u018a\5\64\33\2\u018a\u018d\7"+
+		"B\2\2\u018b\u018c\7-\2\2\u018c\u018e\5D#\2\u018d\u018b\3\2\2\2\u018d\u018e"+
+		"\3\2\2\2\u018e\u0190\3\2\2\2\u018f\u016b\3\2\2\2\u018f\u0170\3\2\2\2\u018f"+
+		"\u0178\3\2\2\2\u018f\u0184\3\2\2\2\u0190\67\3\2\2\2\u0191\u0192\7<\2\2"+
+		"\u0192\u0193\5D#\2\u0193\u0197\5\34\17\2\u0194\u0196\5:\36\2\u0195\u0194"+
+		"\3\2\2\2\u0196\u0199\3\2\2\2\u0197\u0195\3\2\2\2\u0197\u0198\3\2\2\2\u0198"+
+		"\u019b\3\2\2\2\u0199\u0197\3\2\2\2\u019a\u019c\5<\37\2\u019b\u019a\3\2"+
+		"\2\2\u019b\u019c\3\2\2\2\u019c\u019d\3\2\2\2\u019d\u019e\7=\2\2\u019e"+
+		"9\3\2\2\2\u019f\u01a0\7\7\2\2\u01a0\u01a1\5D#\2\u01a1\u01a2\5\34\17\2"+
+		"\u01a2;\3\2\2\2\u01a3\u01a4\7\34\2\2\u01a4\u01a5\5\34\17\2\u01a5=\3\2"+
+		"\2\2\u01a6\u01ac\7\33\2\2\u01a7\u01a8\5D#\2\u01a8\u01a9\7\32\2\2\u01a9"+
+		"\u01ad\3\2\2\2\u01aa\u01ab\t\3\2\2\u01ab\u01ad\5D#\2\u01ac\u01a7\3\2\2"+
+		"\2\u01ac\u01aa\3\2\2\2\u01ad\u01ae\3\2\2\2\u01ae\u01af\5\34\17\2\u01af"+
+		"\u01b0\7=\2\2\u01b0?\3\2\2\2\u01b1\u01b6\7B\2\2\u01b2\u01b3\79\2\2\u01b3"+
+		"\u01b4\5F$\2\u01b4\u01b5\7:\2\2\u01b5\u01b7\3\2\2\2\u01b6\u01b2\3\2\2"+
+		"\2\u01b6\u01b7\3\2\2\2\u01b7A\3\2\2\2\u01b8\u01b9\7\20\2\2\u01b9\u01ba"+
+		"\7#\2\2\u01ba\u01bd\5\32\16\2\u01bb\u01bc\7#\2\2\u01bc\u01be\5@!\2\u01bd"+
+		"\u01bb\3\2\2\2\u01be\u01bf\3\2\2\2\u01bf\u01bd\3\2\2\2\u01bf\u01c0\3\2"+
+		"\2\2\u01c0C\3\2\2\2\u01c1\u01c2\b#\1\2\u01c2\u01c3\7\63\2\2\u01c3\u01f6"+
+		"\5D#\24\u01c4\u01c5\7)\2\2\u01c5\u01f6\5D#\23\u01c6\u01c7\7\b\2\2\u01c7"+
+		"\u01c9\7#\2\2\u01c8\u01c6\3\2\2\2\u01c8\u01c9\3\2\2\2\u01c9\u01ca\3\2"+
+		"\2\2\u01ca\u01d2\5@!\2\u01cb\u01cf\7#\2\2\u01cc\u01ce\5@!\2\u01cd\u01cc"+
+		"\3\2\2\2\u01ce\u01d1\3\2\2\2\u01cf\u01cd\3\2\2\2\u01cf\u01d0\3\2\2\2\u01d0"+
+		"\u01d3\3\2\2\2\u01d1\u01cf\3\2\2\2\u01d2\u01cb\3\2\2\2\u01d2\u01d3\3\2"+
+		"\2\2\u01d3\u01f6\3\2\2\2\u01d4\u01d5\7\b\2\2\u01d5\u01d7\7#\2\2\u01d6"+
+		"\u01d4\3\2\2\2\u01d6\u01d7\3\2\2\2\u01d7\u01d8\3\2\2\2\u01d8\u01db\5B"+
+		"\"\2\u01d9\u01da\7#\2\2\u01da\u01dc\5@!\2\u01db\u01d9\3\2\2\2\u01dc\u01dd"+
+		"\3\2\2\2\u01dd\u01db\3\2\2\2\u01dd\u01de\3\2\2\2\u01de\u01f6\3\2\2\2\u01df"+
+		"\u01e0\7\24\2\2\u01e0\u01e1\79\2\2\u01e1\u01e2\5\64\33\2\u01e2\u01e3\7"+
+		",\2\2\u01e3\u01e4\5D#\2\u01e4\u01e5\7:\2\2\u01e5\u01f6\3\2\2\2\u01e6\u01f6"+
+		"\7@\2\2\u01e7\u01f6\7?\2\2\u01e8\u01f6\7A\2\2\u01e9\u01f6\7C\2\2\u01ea"+
+		"\u01f6\7!\2\2\u01eb\u01f6\7\b\2\2\u01ec\u01ed\7\25\2\2\u01ed\u01ee\79"+
+		"\2\2\u01ee\u01ef\5D#\2\u01ef\u01f0\7:\2\2\u01f0\u01f6\3\2\2\2\u01f1\u01f2"+
+		"\79\2\2\u01f2\u01f3\5D#\2\u01f3\u01f4\7:\2\2\u01f4\u01f6\3\2\2\2\u01f5"+
+		"\u01c1\3\2\2\2\u01f5\u01c4\3\2\2\2\u01f5\u01c8\3\2\2\2\u01f5\u01d6\3\2"+
+		"\2\2\u01f5\u01df\3\2\2\2\u01f5\u01e6\3\2\2\2\u01f5\u01e7\3\2\2\2\u01f5"+
+		"\u01e8\3\2\2\2\u01f5\u01e9\3\2\2\2\u01f5\u01ea\3\2\2\2\u01f5\u01eb\3\2"+
+		"\2\2\u01f5\u01ec\3\2\2\2\u01f5\u01f1\3\2\2\2\u01f6\u020e\3\2\2\2\u01f7"+
+		"\u01f8\f\21\2\2\u01f8\u01f9\t\4\2\2\u01f9\u020d\5D#\22\u01fa\u01fb\f\20"+
+		"\2\2\u01fb\u01fc\t\5\2\2\u01fc\u020d\5D#\21\u01fd\u01fe\f\17\2\2\u01fe"+
+		"\u01ff\t\6\2\2\u01ff\u020d\5D#\20\u0200\u0201\f\r\2\2\u0201\u0202\t\7"+
+		"\2\2\u0202\u020d\5D#\16\u0203\u0204\f\f\2\2\u0204\u0205\7\37\2\2\u0205"+
+		"\u020d\5D#\r\u0206\u0207\f\13\2\2\u0207\u0208\7 \2\2\u0208\u020d\5D#\f"+
+		"\u0209\u020a\f\16\2\2\u020a\u020b\7\23\2\2\u020b\u020d\5\62\32\2\u020c"+
+		"\u01f7\3\2\2\2\u020c\u01fa\3\2\2\2\u020c\u01fd\3\2\2\2\u020c\u0200\3\2"+
+		"\2\2\u020c\u0203\3\2\2\2\u020c\u0206\3\2\2\2\u020c\u0209\3\2\2\2\u020d"+
+		"\u0210\3\2\2\2\u020e\u020c\3\2\2\2\u020e\u020f\3\2\2\2\u020fE\3\2\2\2"+
+		"\u0210\u020e\3\2\2\2\u0211\u0216\5D#\2\u0212\u0213\7,\2\2\u0213\u0215"+
+		"\5D#\2\u0214\u0212\3\2\2\2\u0215\u0218\3\2\2\2\u0216\u0214\3\2\2\2\u0216"+
+		"\u0217\3\2\2\2\u0217\u021a\3\2\2\2\u0218\u0216\3\2\2\2\u0219\u0211\3\2"+
+		"\2\2\u0219\u021a\3\2\2\2\u021aG\3\2\2\2BLQY\\jmrw|\177\u0084\u0086\u008e"+
+		"\u0093\u0099\u009c\u00ab\u00b5\u00b8\u00bb\u00bf\u00c9\u00cf\u00db\u00e0"+
+		"\u00e8\u00eb\u00fa\u00fd\u0106\u010e\u0111\u0115\u0124\u0128\u012c\u0137"+
+		"\u013a\u0145\u014d\u0158\u0161\u0167\u016b\u017d\u0184\u0187\u018d\u018f"+
+		"\u0197\u019b\u01ac\u01b6\u01bf\u01c8\u01cf\u01d2\u01d6\u01dd\u01f5\u020c"+
+		"\u020e\u0216\u0219";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

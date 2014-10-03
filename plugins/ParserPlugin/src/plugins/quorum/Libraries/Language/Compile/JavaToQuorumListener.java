@@ -1360,6 +1360,8 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitVariableFunctionCall(QuorumParser.VariableFunctionCallContext ctx) {
         VariableFunctionCallContext context = new VariableFunctionCallContext();
         setLocation(ctx, context);
+        boolean hasMe = ctx.ME() != null;
+        context.hasMe = hasMe;
         listener.ExitVariableFunctionCall(context);
     }
 
@@ -1381,11 +1383,6 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterAction_call(QuorumParser.Action_callContext ctx) {
         ActionCallContext context = new ActionCallContext();
         setLocation(ctx, context);
-        String name = ctx.var.getText();
-        boolean isActionCall = ctx.LEFT_PAREN() != null;
-        context.name = name;
-        context.isActionCall = isActionCall;
-        
         listener.EnterActionCall(context);
     }
 
