@@ -11,6 +11,15 @@ class ActionCallOpcode is QuorumOpcode
     JavaBytecodeOpcodes opcodes
     boolean isActionCall = false
     ActionCallResolution actionResolution = undefined
+    boolean pushOnMe = false
+
+    action GetPushOnMe returns boolean
+        return pushOnMe
+    end
+
+    action SetPushOnMe(boolean this)
+        pushOnMe = this
+    end
 
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
@@ -50,7 +59,9 @@ class ActionCallOpcode is QuorumOpcode
         if isActionCall
             //if there's a variable, load it.
             //this isn't right, but load "THIS" onto the stack for testing
-            methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+            if pushOnMe
+                methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+            end
 
             //actual plan - push on variables, if necessary
 

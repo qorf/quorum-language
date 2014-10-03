@@ -10,6 +10,7 @@ use Libraries.Language.Compile.Translate.all
 
 use Libraries.Containers.Array
 use Libraries.Containers.List
+use Libraries.Containers.HashTable
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.System.File
 use Libraries.Containers.Stack
@@ -52,6 +53,8 @@ class QuorumBytecodeListener is QuorumSourceListener
     Stack<BlockOpcode> currentBlocks
     Stack<integer> blockPositionStack
     Stack<ActionExpressionListContext> actionCallParameterStack
+    HashTable<integer, Array<ActionCallOpcode>> actionCallStacks
+    integer currentActionStack = 0
     integer loopCounter = 0
     integer ifCount = 0
 
@@ -428,9 +431,23 @@ class QuorumBytecodeListener is QuorumSourceListener
     
     action EnterVariableFunctionCall(VariableFunctionCallContext context) 
         isNextVariableReferenceMe = context:hasMe
+        Array<ActionCallOpcode> stack
+        actionCallStacks:Add(me:currentActionStack, stack)
+        currentActionStack = currentActionStack + 1
     end
     action ExitVariableFunctionCall(VariableFunctionCallContext context) 
         isNextVariableReferenceMe = false
+        Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
+        currentActionStack = currentActionStack - 1
+
+        ChainedActionCallOpcode ops
+        Iterator<ActionCallOpcode> it = stack:GetIterator()
+        repeat while it:HasNext()
+            ActionCallOpcode op = it:Next()
+            ops:Add(op)
+        end
+
+        opcodeStack:Push(ops)
     end
 
     action EnterParentVariableFunctionCall(ParentVariableFunctionCallContext context)
@@ -452,7 +469,12 @@ class QuorumBytecodeListener is QuorumSourceListener
             actionCall:SetIsActionCall(true)
             ActionExpressionListContext params =  actionCallParameterStack:Pop()
             size = params:size
-            
+
+            Array<ActionCallOpcode> stack = actionCallStacks:GetValue(currentActionStack - 1)
+
+            if stack:IsEmpty() //this is a solo call, push on this
+                actionCall:SetPushOnMe(true)
+            end
 
             Array<QuorumOpcode> parametersBackward
             repeat size times
@@ -487,6 +509,8 @@ class QuorumBytecodeListener is QuorumSourceListener
             actionCall:SetIsActionCall(false)
             name = context:name
             Variable variable = undefined
+
+            
             
             if isNextVariableReferenceMe
                 variable = currentClass:GetVariable(name)
@@ -502,9 +526,16 @@ class QuorumBytecodeListener is QuorumSourceListener
                 if variable:IsField()
                 else
                 end
+
+
+                //Array<ActionCallOpcode> stack = actionCallStacks:GetValue(currentActionStack - 1)
+                //stack:Add(actionCall)
             end
         end
-        opcodeStack:Push(actionCall)
+
+        Array<ActionCallOpcode> stack = actionCallStacks:GetValue(currentActionStack - 1)
+        stack:Add(actionCall)
+        //opcodeStack:Push(actionCall)
     end
 
     action ExitReturnStatement(ReturnContext context) 
@@ -519,6 +550,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             TypeCheckResult result = checker:Check(type, right:GetType(), returnOp) 
 
             ReturnOpcode opcode = cast(ReturnOpcode, result:GetQuorumOpcode())
+            opcode:SetReturnValue(right)
             opcode:SetMethodWriter(methodWriter)
             currentBlockOpcode:Add(opcode)
         else //if it is a void method, just do a normal return, but don't pop off the opcode stack
@@ -527,17 +559,6 @@ class QuorumBytecodeListener is QuorumSourceListener
             opcode:SetMethodWriter(methodWriter)
             currentBlockOpcode:Add(opcode)
         end
-    end
-
-    action EnterParentCall(ParentCallContext context)
-        a =5
-    end
-    action ExitParentCall(ParentCallContext context)
-        a =5
-    end
-
-    action PushThis
-
     end
 
     action ExitInequality(InequalityContext context) 

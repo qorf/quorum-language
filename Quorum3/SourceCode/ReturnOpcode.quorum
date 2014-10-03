@@ -6,9 +6,18 @@ use Libraries.Language.Compile.Symbol.Action
 use Libraries.Language.Compile.Symbol.Class
 
 class ReturnOpcode is QuorumOpcode
-
+    QuorumOpcode returnValue = undefined
+    JavaBytecodeOpcodes opcodes
     integer opcode = -1
     integer opcode2 = -1
+
+    action SetReturnValue(QuorumOpcode op)
+        returnValue = op
+    end
+    
+    action GetReturnValue returns QuorumOpcode
+        return returnValue
+    end
 
     action GetJavaOpcode returns integer
         return opcode
@@ -29,21 +38,26 @@ class ReturnOpcode is QuorumOpcode
     action Write
         Type type = GetType()
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
-        JavaBytecodeOpcodes opcodes
 
-        if type:IsBoolean()
-            methodWriter:VisitInstruction(opcodes:GetBooleanReturn())
-        elseif type:IsInteger()
-            methodWriter:VisitInstruction(opcodes:GetIntegerReturn())
-        elseif type:IsNumber()
-            methodWriter:VisitInstruction(opcodes:GetDoubleReturn())
-        elseif type:IsText()
-            methodWriter:VisitInstruction(opcodes:GetObjectReturn())
-        elseif type:IsVoid()
-            methodWriter:VisitInstruction(opcodes:GetReturn())
-        else //assume it is an object otherwise
-            methodWriter:VisitInstruction(opcodes:GetObjectReturn())
+        if returnValue not= undefined
+            returnValue:Write()
         end
+
+        integer op = opcodes:GetReturnOpcode(type)
+        methodWriter:VisitInstruction(op)
+//        if type:IsBoolean()
+//            methodWriter:VisitInstruction(opcodes:GetBooleanReturn())
+//        elseif type:IsInteger()
+//            methodWriter:VisitInstruction(opcodes:GetIntegerReturn())
+//        elseif type:IsNumber()
+//            methodWriter:VisitInstruction(opcodes:GetDoubleReturn())
+//        elseif type:IsText()
+//            methodWriter:VisitInstruction(opcodes:GetObjectReturn())
+//        elseif type:IsVoid()
+//            methodWriter:VisitInstruction(opcodes:GetReturn())
+//        else //assume it is an object otherwise
+//            methodWriter:VisitInstruction(opcodes:GetObjectReturn())
+//        end
     end
 
     action WriteJavaScript returns text 

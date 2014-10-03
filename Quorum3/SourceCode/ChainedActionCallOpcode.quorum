@@ -1,0 +1,33 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Translate.QuorumOpcode
+use Libraries.Containers.Array
+use Libraries.Containers.Blueprints.Iterator
+
+class ChainedActionCallOpcode is QuorumOpcode
+
+    Array<ActionCallOpcode> ops
+
+    action Add(ActionCallOpcode op)
+        ops:Add(op)
+        SetType(op:GetType())
+    end
+
+    action Write 
+        Iterator<ActionCallOpcode> it = ops:GetIterator()
+        repeat while it:HasNext()
+            ActionCallOpcode op = it:Next()
+            op:Write()
+        end
+    end
+
+    action WriteJavaScript returns text
+        return ""
+    end
+
+
+    action GetTemplateCopy returns QuorumOpcode
+        ChainedActionCallOpcode op
+        return op
+    end
+end

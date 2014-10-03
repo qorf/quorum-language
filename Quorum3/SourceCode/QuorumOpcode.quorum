@@ -5,9 +5,11 @@ use Libraries.Language.Compile.Symbol.Type
 class QuorumOpcode 
     Type type = undefined
     boolean isIfExpression = false
-    blueprint action Write
-    blueprint action WriteJavaScript returns text
     JavaBytecodeMethodWriter methodWriter = undefined
+
+    blueprint action Write
+
+    blueprint action WriteJavaScript returns text
 
     action GetType returns Type
         return type
