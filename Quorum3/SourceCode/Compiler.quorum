@@ -30,8 +30,8 @@ class Compiler
 
     on create //load default dependencies
         standardLibraryFolder = GetStandardLibraryFolder()
-        LoadDependency("/quorum", "/quorum")
-        //LoadDependency("/plugins", "/plugins")
+        LoadDependency("/" + DEFAULT_BUILD_FOLDER + "/quorum", "/quorum")
+        LoadDependency("/Library/Standard/Plugins/plugins", "/plugins")
         //LoadDependency("/antlr", "/antlr")
         //LoadDependency("/asm", "/asm")
     end
@@ -388,6 +388,11 @@ class Compiler
             buildFolder = build
         end
         return buildFolder
+    end
+
+    action GetRootFolder returns File
+        File root
+        return root
     end
 
     action GetStandardLibraryFolder returns File
