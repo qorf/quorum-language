@@ -172,9 +172,7 @@ class ClassOpcode is QuorumOpcode
             Action method = act:GetAction()
 
             //write to the class
-            if method:GetName() = "GetHashCode" or method:GetName() = "Equals"
-                act:Write()
-            end
+            act:Write()
 
             //write to the interface
             text name = method:GetName()
