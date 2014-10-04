@@ -487,6 +487,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             assignment:SetType(value)
             assignment:SetMethodWriter(methodWriter)
             assignment:SetBytecodeLocation(location)
+            assignment:SetVariable(variable)
             currentBlockOpcode:Add(assignment)
         end
     end
