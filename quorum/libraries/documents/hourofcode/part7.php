@@ -1,6 +1,6 @@
 <?php require_once("../../static/templates/pageheader.template.php"); ?>
 <script type="text/javascript">
-    document.title = 'Hour of Code: Part 6 | Quorum Programming Language';
+    document.title = 'Hour of Code: Part 7 | Quorum Programming Language';
     
     //slide array
     var slideArray = new Array();
@@ -18,8 +18,8 @@
 
 <div class="hero-unit">
 	<div class="hero-unit-container" role="banner">
-		<h1>Hour of Code: Part 6</h1>
-                <p>Create Superbugs</p>
+		<h1>Hour of Code: Part 7</h1>
+                <p>The End of the World</p>
 	</div>
 </div>
   <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
