@@ -38,13 +38,23 @@ class ReturnOpcode is QuorumOpcode
     action Write
         Type type = GetType()
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
-
         if returnValue not= undefined
             returnValue:Write()
         end
 
-        integer op = opcodes:GetReturnOpcode(type)
-        methodWriter:VisitInstruction(op)
+        if type:IsVoid()
+            integer op = opcodes:GetReturnOpcode(type)
+            methodWriter:VisitInstruction(op)
+        else
+            integer op = opcode
+            methodWriter:VisitInstruction(op)
+
+            integer op2 = opcode2
+            if op2 not= -1
+                methodWriter:VisitInstruction(op2)
+            end
+        end
+        
 //        if type:IsBoolean()
 //            methodWriter:VisitInstruction(opcodes:GetBooleanReturn())
 //        elseif type:IsInteger()
@@ -67,6 +77,8 @@ class ReturnOpcode is QuorumOpcode
     action GetTemplateCopy returns QuorumOpcode
         ReturnOpcode op
         op:SetType(GetType())
+        op:SetJavaOpcode(me:GetJavaOpcode())
+        op:SetJavaOpcode2(me:GetJavaOpcode2())
         return op
     end
 end

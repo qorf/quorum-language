@@ -537,7 +537,7 @@ class TypeChecker
         points:SetPoints(points:LOSSLESS_CONVERT)
         results:Add(key, result)
 
-        //number text
+        //text number
         op = GetOperation(opConstant:RETURN)
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
             constants:NUMBER_PRIMITIVE_KEY, op, false)
@@ -548,7 +548,7 @@ class TypeChecker
         points:SetPoints(points:LOSSLESS_CONVERT)
         results:Add(key, result)
 
-        //boolean text
+        //text boolean
         op = GetOperation(opConstant:RETURN)
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
             constants:BOOLEAN_PRIMITIVE_KEY, op, false)
