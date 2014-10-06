@@ -24,14 +24,14 @@ class ExpressionsTester
         AddTextInt()
         AddTextText()
         AndBooleanBoolean()
-//      CompareTextTextField()
-        //ComplexExpression()
+        CompareTextTextField()
+        ComplexExpression()
         DivDoubleDouble()
         DivDoubleInt()
         DivIntDouble()
         DivIntInt()
         EqualBooleanBoolean()
-//        EqualCustomCustom()
+        EqualCustomCustom()
         EqualDoubleDouble()
         EqualDoubleInt()
         EqualIntDouble()
@@ -48,12 +48,12 @@ class ExpressionsTester
         GTIntDouble()
         GTIntInt()
         GTTextText()
-//        GetCharacterParameterText()   //test runs but fails
-//        GetMaxParameterInteger()
-//        GetTextParameterBoolean()     //test runs but faila
-        //HelloWorld()
-//        IsA()
-//        IsInfiniteNumberParameter()   //test runs but fails
+        GetCharacterParameterText()   //test runs but fails
+        GetMaxParameterInteger()
+        GetTextParameterBoolean()     //test runs but faila
+        HelloWorld()
+        IsA()
+        IsInfiniteNumberParameter()   //test runs but fails
         LTDoubleDouble()
         LTDoubleInt()
         LTEDoubleDouble()
@@ -64,7 +64,7 @@ class ExpressionsTester
         LTETextText()
         LTIntInt()
         LTTextText()
-//        LocalVarDecl()
+        LocalVarDecl()
         LTIntDouble()     
         MinusInteger()
         MinusNumber()
@@ -78,7 +78,7 @@ class ExpressionsTester
         MultIntInt()
         NotBoolean()                  //test runs but fails
         NotEqualBooleanBoolean()
-//        NotEqualCustomCustom()
+        NotEqualCustomCustom()
         NotEqualDoubleDouble()
         NotEqualDoubleInt()
         NotEqualIntDouble()
@@ -178,8 +178,8 @@ class ExpressionsTester
     end
 
     action ComplexExpression
-        suite:RunTest("Library/Tests/Expressions/Pass/ComplexExpression.quorum", "false")
-        //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTIntInt.quorum", "false", "true")
+        suite:RunTest("Library/Tests/Expressions/Pass/ComplexExpression.quorum", "true")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTIntInt.quorum", "true")
     end
 
     action DivDoubleDouble
@@ -307,10 +307,10 @@ class ExpressionsTester
 //        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GetTextParameterBoolean.quorum", "false")
     end
 
-//    action HelloWorld
-//        suite:RunTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
-//        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
-//    end
+    action HelloWorld
+        suite:RunTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
+    end
 
     action IsA
         suite:RunTest("Library/Tests/Expressions/Pass/IsA.quorum", "true")
@@ -379,8 +379,8 @@ class ExpressionsTester
 
     action LocalVarDecl
         //note this test is not in ExpressionsTester.java
-        //suite:RunTest("Library/Tests/Expressions/Pass/LocalVarDecl.quorum", "1000", "3.0", "c", "true", "false")
-        //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LocalVarDecl.quorum", "1000", "3.0", "c", "true", "false")
+        suite:RunTest("Library/Tests/Expressions/Pass/LocalVarDecl.quorum", "1000", "3.0", "c", "false", "true")
+        //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LocalVarDecl.quorum", "1000", "3.0", "c", "false", "true")
     end
 
     action MinusInteger()

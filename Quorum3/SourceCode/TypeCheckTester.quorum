@@ -141,7 +141,7 @@ class TypeCheckTester
 //        NumberIsNotANumber()
 //        PrimitiveTextGetValue()
 //        PrimitiveTextSetValue()
-//        ReturningIntegerInPlaceOfNumber()
+        ReturningIntegerInPlaceOfNumber()
 //        TextAppend()
 //        TextCompare()
 //        TextContains()
@@ -957,13 +957,13 @@ class TypeCheckTester
     end
 
     action ReturningIntegerInPlaceOfNumber
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ReturningIntegerInPlaceOfNumber.quorum", "4")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ReturningIntegerInPlaceOfNumber.quorum", "4")
+        suite:RunTest("Library/Tests/TypeChecker/Pass/ReturningIntegerInPlaceOfNumber.quorum", "4.0")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ReturningIntegerInPlaceOfNumber.quorum", "4.0")
     end
 
     action TextAppend
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ReturningIntegerInPlaceOfNumber.quorum", "4")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ReturningIntegerInPlaceOfNumber.quorum", "4")
+        suite:RunTest("Library/Tests/TypeChecker/Pass/TextAppend.quorum", "hello5")
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextAppend.quorum", "hello5")
     end
 
     action TextCompare
