@@ -7,6 +7,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Language.Compile.Translate.QuorumJarGenerator
 use Libraries.Containers.List
+use Libraries.Language.Compile.Translate.ClassOpcode
 
 class Compiler
     public constant number VERSION = 3.0
@@ -19,14 +20,15 @@ class Compiler
     File runFolder = undefined
     File standardLibraryFolder = undefined
     HashTable<text, Dependency> dependencies
-
     boolean isWebApplication = false
     text name = "Default"
-
     //Support classes
     SymbolTable symbolTable
     CompilerErrorManager compilerErrorManager
     TypeChecker checker
+    public constant integer JAVA_BYTECODE = 0
+    public constant integer JAVASCRIPT = 1
+    integer currentOutputType = 0
 
     on create //load default dependencies
         standardLibraryFolder = GetStandardLibraryFolder()
@@ -41,6 +43,24 @@ class Compiler
         dep:from = from
         dep:to = to
         dependencies:Add(from, dep)
+    end
+
+    /* This action sets what kind of output the compiler is going to have. By default
+       this returns Java bytecode.
+    */
+    action GetOutputType returns integer
+        return currentOutputType
+    end
+
+    /*
+        This action tells the compiler what kind of output to emit.
+    */
+    action SetOutputType(integer type)
+        if type >= JAVA_BYTECODE and type <= JAVASCRIPT
+            currentOutputType = type
+        end
+
+        currentOutputType = 0
     end
 
     action GetDependencies returns Iterator<Dependency>
@@ -85,21 +105,28 @@ class Compiler
             end
         end
 
+        Array<ClassOpcode> classOpcodes
         if compilerErrorManager:IsCompilationErrorFree()
             i = 0
             repeat while i < allFiles:GetSize()
                 File file = allFiles:Get(i)
                 QuorumBytecodeListener listener
                 Parse(file, listener)
+                ClassOpcode op = listener:GetClassOpcode()
+                classOpcodes:Add(op)
                 i = i + 1
             end
         end
 
-        if compilerErrorManager:IsCompilationErrorFree()
-            QuorumJarGenerator generator
-            File jar = GetDistributionFile()
-            generator:SetCompiler(me)
-            generator:Write()
+        if currentOutputType = JAVA_BYTECODE
+            if compilerErrorManager:IsCompilationErrorFree()
+                QuorumJarGenerator generator
+                File jar = GetDistributionFile()
+                generator:SetCompiler(me)
+                generator:Write()
+            end
+        else
+            
         end
     end
 

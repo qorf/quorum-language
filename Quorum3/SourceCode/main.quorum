@@ -22,7 +22,7 @@ class Main is WebResponder
         File main
         //main:SetPath("Library/Tests/Templating/Pass/ArraySetAndGet_0.quorum")
         //main:SetPath("Library/Tests/Actions/Pass/GCD.quorum")
-        main:SetPath("Library/Tests/Expressions/Pass/ComplexExpression.quorum")
+        main:SetPath("Library/Tests/Expressions/Pass/HelloWorld.quorum")
         //main:SetPath("Library/Tests/Inheritance/Pass/Kid.quorum")
         //main:SetPath("Library/Standard/Libraries/Language/Object.quorum")
         //main:SetPath("Library/Standard/Libraries/Containers/Blueprints/ListBlueprint.quorum")
@@ -51,34 +51,6 @@ class Main is WebResponder
         else
             compiler:OutputCompilerErrors()
         end
-        //Parser parser
-        
-//        output "Parsing"
-//        compiler:Parse(main, parser)
-//        CompilerErrorManager manager = parser:GetCompilerErrorManager()
-//        if not manager:IsCompilationErrorFree()
-//            OutputCompilerErrors(compiler, manager)
-//            return now
-//        end
-//
-//        output "Typechecking"
-//        TypeCheckListener checker
-//        compiler:Parse(main, checker)
-//        if not manager:IsCompilationErrorFree()
-//            OutputCompilerErrors(compiler, manager)
-//            return now
-//        end
-
-//        output "Writing bytecode"
-//        QuorumBytecodeListener bytecode
-//        compiler:Parse(main, bytecode)
-//        if manager:IsCompilationErrorFree()
-//            QuorumJarGenerator generator
-//            File jar = compiler:GetDistributionFile()
-//            generator:SetCompiler(compiler)
-//            generator:Write()
-//            output "Build completed successfully"
-//        end
     end
 
     action Respond(WebRequest request) returns WebResponse

@@ -58,6 +58,10 @@ class QuorumBytecodeListener is QuorumSourceListener
     integer loopCounter = 0
     integer ifCount = 0
 
+    action GetClassOpcode returns ClassOpcode
+        return currentClassOpcode
+    end
+
     action GetBuildFile returns File
         return buildFile
     end
