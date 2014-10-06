@@ -14,6 +14,8 @@ use Libraries.Language.Compile.Translate.QuorumOpcode
 class Class is Symbol
     QualifiedName packageName
     HashTable<text, Action> actions
+    HashTable<text, Action> virtualActions
+    HashTable<text, Action> parentActions
     HashTable<text, Variable> fields
     Action constructor = undefined
     boolean hasMain = false
@@ -55,6 +57,73 @@ class Class is Symbol
 
     action HasGeneric(text name) returns boolean
         return genericHash:HasKey(name)
+    end
+
+    /*
+        This action looks at all actions listed in this class's declared
+        action table, in addition to those actions declared in parents,
+        and fills up a new virtual action table with all actions combined.
+        If this action has an error, it is created and sent to the 
+        compiler error manager passed in.
+    */
+    action ComputeVirtualActionTable (CompilerErrorManager errors)
+        Iterator<Action> declaredActions = GetActions()
+        repeat while declaredActions:HasNext()
+            Action act = declaredActions:Next()
+            virtualActions:Add(act:GetStaticKey(), act)
+        end
+
+        //now dig through all parents and add any virtual methods that are
+        //necessary
+        Iterator<Class> parentIterator = GetParentClasses()
+        repeat while parentIterator:HasNext()
+            Class mom = parentIterator:Next()
+            
+            Iterator<Action> momActions = mom:GetActions()
+            repeat while momActions:HasNext()
+                Action act = momActions:Next()
+                
+                text key = act:GetStaticKey()
+                Type returnType = act:GetReturnType()
+                text returnKey = returnType:GetStaticKey()
+
+                Action actionCopy = virtualActions:GetValue(key)
+                if actionCopy = undefined //it doesn't exist, so add it.
+                   virtualActions:Add(key, act) 
+                   parentActions:Add(key, act) 
+                else
+                    //check to see if the action is overriden
+                    Action baseAction = actions:GetValue(key)
+                    
+                    //if it exists, just make sure it has the same return type
+                    if baseAction not= undefined
+                        Class dad = baseAction:GetParentClass()
+                        Type baseReturnType = baseAction:GetReturnType()
+                        text baseReturnKey = baseReturnType:GetStaticKey()
+                        if returnKey not= baseReturnKey //this is an error
+                            CompilerError error
+                            error:SetErrorMessage("The action " + key + " is defined in the parent "
+                                + dad:GetStaticKey() + ", but the return types (" 
+                                + baseReturnKey + " and "+ returnKey + ") do not match.")
+                                error:SetLocation(act)
+                            errors:Add(error)
+                        end //otherwise, everything is fine, so ignore it
+                    else //the base action is undefined, so this is an error, as
+                         //multiple parents have the same action, but it is not overridden
+                         //in the base class.
+                         Class dad = actionCopy:GetParentClass()
+                         CompilerError error
+                         error:SetErrorMessage("The action " + key + " is defined "
+                            +   " in the parent classes " + mom:GetStaticKey() + " and " 
+                            + dad:GetStaticKey() + ". I cannot determine which action should "
+                            + " be called and therefore the action must be overriden in the "
+                            + " base class " + me:GetStaticKey())
+                         error:SetLocation(act)
+                         errors:Add(error)
+                    end
+                end
+            end
+        end
     end
 
     /*
