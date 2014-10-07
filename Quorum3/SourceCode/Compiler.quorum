@@ -154,6 +154,93 @@ class Compiler
         end
     end
 
+    action CompileSingle(text source)
+        Parser parser
+        File fakeLocation //set a default. It doesn't matter what it is.
+        text fakePath = "SingleFileCompile.quorum"
+        fakeLocation:SetPath(fakePath)
+        me:SetMain(fakeLocation)
+        parser:SetFile(fakeLocation)
+        Parse(source, parser)
+        
+        //This array will contain all files that must be built, 
+        //including potentially some from the standard library
+        //in order to build the requested files
+        Array<File> allFiles = undefined
+        if compilerErrorManager:IsCompilationErrorFree()
+            allFiles = GetAllRequiredFiles()
+        end
+
+        if compilerErrorManager:IsCompilationErrorFree()
+            TypeResolution()
+        end
+
+        if compilerErrorManager:IsCompilationErrorFree()
+            i = 0
+            repeat while i < allFiles:GetSize()
+                File file = allFiles:Get(i)
+                TypeCheckListener listener
+                if file:GetPath() = fakePath
+                    listener:SetFile(file)
+                    Parse(source, listener)
+                else
+                    Parse(file, listener)
+                end
+                i = i + 1
+            end
+        end
+
+        Array<ClassOpcode> classOpcodes
+        if compilerErrorManager:IsCompilationErrorFree()
+            i = 0
+            repeat while i < allFiles:GetSize()
+                File file = allFiles:Get(i)
+                QuorumBytecodeListener listener
+                if file:GetPath() = fakePath
+                    listener:SetFile(file)
+                    Parse(source, listener)
+                else
+                    Parse(file, listener)
+                end
+                ClassOpcode op = listener:GetClassOpcode()
+                classOpcodes:Add(op)
+                i = i + 1
+            end
+        end
+
+        if currentOutputType = JAVA_BYTECODE
+            //iterate over all the class opcodes and write them to disk
+            Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+            repeat while codes:HasNext()
+                ClassOpcode code = codes:Next()
+                code:Write()
+            end
+
+            if compilerErrorManager:IsCompilationErrorFree()
+                QuorumJarGenerator generator
+                File jar = GetDistributionFile()
+                generator:SetCompiler(me)
+                generator:Write()
+            end
+        elseif currentOutputType = JAVASCRIPT
+            text result = ""
+            Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+            repeat while codes:HasNext()
+                ClassOpcode code = codes:Next()
+                Class clazz = code:GetClass()
+
+                Class mainClazz = me:GetMainClass()
+                text mainClazzName = mainClazz:GetStaticKey()
+                text clazzName = clazz:GetStaticKey()
+                if clazzName = mainClazzName //keep it simple in the first version.
+                    result = result + code:WriteJavaScript()
+                end
+                a = 5
+            end
+            convertedJavaScript = result
+        end
+    end
+
     action GetCompiledJavaScript returns text
         return convertedJavaScript
     end
@@ -181,14 +268,15 @@ class Compiler
         return compilerErrorManager:IsCompilationErrorFree()
     end
 
-    action OutputCompilerErrors
-        output "The code did not build correctly. Here is a list of errors:"
+    action GetCompilerErrorsAsText returns text
+        text result =  "The code did not build correctly. Here is a list of errors:"
         Iterator<CompilerError> errors = compilerErrorManager:GetIterator()
         repeat while errors:HasNext()
             CompilerError error = errors:Next()
             text t = error:GetDisplayName()
-            output t
+            result = result + t
         end
+        return result
     end
 
     /*
@@ -388,8 +476,6 @@ class Compiler
         listener:SetSymbolTable(symbolTable)
         listener:SetCompilerErrorManager(compilerErrorManager)
         listener:SetTypeChecker(checker)
-        File file //set a default. It doesn't matter what it is.
-        listener:SetFile(file)
         ParseNative(source, listener)
     end
 

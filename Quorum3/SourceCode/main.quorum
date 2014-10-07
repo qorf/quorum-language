@@ -2,6 +2,7 @@ package Libraries.Language.Compile
 
 use Libraries.Language.Compile.Parser
 use Libraries.System.File
+use Libraries.System.DateTime
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Language.Compile.Translate.QuorumJarGenerator
 use Libraries.Web.WebResponder
@@ -12,37 +13,15 @@ use Libraries.Containers.Array
 class Main is WebResponder
     public constant number VERSION = 3.0
     action Main
-//        WebRequest request
-//        request:AddParameter("code", "output 5")
-//        Respond(request)
-        
+//        ProfileTest()
+//        ProfileWeb()
         Compiler compiler
         output compiler:GetVersion()
-
         File main
-        //main:SetPath("Library/Tests/Templating/Pass/ArraySetAndGet_0.quorum")
-        //main:SetPath("Library/Tests/Actions/Pass/GCD.quorum")
         main:SetPath("Library/Tests/Expressions/Pass/MinusInteger.quorum")
-        //main:SetPath("Library/Tests/Inheritance/Pass/Kid.quorum")
-        //main:SetPath("Library/Standard/Libraries/Language/Object.quorum")
-        //main:SetPath("Library/Standard/Libraries/Containers/Blueprints/ListBlueprint.quorum")
         Array<File> files
-        
-
-        //File next
-        //next:SetPath("Library/Tests/Templating/Pass/GenericParentA.quorum")
-
-        //File next2
-        //next2:SetPath("Library/Tests/Templating/Pass/GenericParentB.quorum")
-//
-        //File next3
-        //next3:SetPath("Library/Tests/Templating/Pass/GenericParentC.quorum")
 
         files:Add(main)
-        //files:Add(next)
-        //files:Add(next2)
-        //files:Add(next3)
-
         compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:SetMain(main)
         compiler:Compile(files)
@@ -51,8 +30,66 @@ class Main is WebResponder
             output "Build Successful"
             output compiler:GetCompiledJavaScript()
         else
-            compiler:OutputCompilerErrors()
+            output compiler:GetCompilerErrorsAsText()
         end
+    end
+
+    private action ProfileTest
+        number total = 0
+        integer amount = 1000
+        output "Starting Compiler Profiler: Desktop mode"
+        repeat amount times
+            DateTime time
+            start = time:GetEpochTime()
+            WebRequest request
+            request:AddParameter("code", "  class HelloWorld 
+                                    action Main
+                                        output 5
+                                    end
+                                end")
+            WebResponse response = Respond(request)
+            DateTime endTime
+            theEnd = endTime:GetEpochTime()
+
+            runtime = theEnd - start
+
+            total = total + runtime
+        end
+        
+        output "We ran the compiler " + amount + " times."
+        output "The total running time was " + (total / 1000.0) + " seconds."
+        output "The average running time was " + ((total / 1000.0) / amount) + " seconds."
+        number compilesPerSecond = (1.0 / ((total / 1000.0) / amount))
+        output "The total throughput of the compiler is " + compilesPerSecond + " compiles per second."
+    end
+
+    private action ProfileWeb
+        number total = 0
+        integer amount = 1000
+        output "Starting Compiler Profiler: Web mode"
+        repeat amount times
+            DateTime time
+            start = time:GetEpochTime()
+            Compiler compiler
+            compiler:SetOutputType(compiler:JAVASCRIPT)
+            compiler:CompileSingle("  class HelloWorld 
+                                    action Main
+                                        output 5
+                                    end
+                                end")
+            DateTime endTime
+            theEnd = endTime:GetEpochTime()
+
+            runtime = theEnd - start
+
+            total = total + runtime
+        end
+        
+        output "We ran the compiler " + amount + " times."
+        output "The total running time was " + (total / 1000.0) + " seconds."
+        output "The average running time was " + ((total / 1000.0) / amount) + " seconds."
+        number compilesPerSecond = (1.0 / ((total / 1000.0) / amount))
+        output "The total throughput of the compiler is " + compilesPerSecond + " compiles per second."
     end
 
     action Respond(WebRequest request) returns WebResponse
@@ -67,20 +104,14 @@ class Main is WebResponder
 
         text source = request:GetParameter("code")
         Compiler compiler
-        //compiler:SetMain(file)
-        Parser parser
-        compiler:Parse(source, parser)
+        compiler:SetOutputType(compiler:JAVASCRIPT)
+        compiler:CompileSingle(source)
 
-        TypeCheckListener checker
-        compiler:Parse(source, checker)
-
-        //QuorumBytecodeListener bytecode
-        //compiler:Parse(source, bytecode)
-        QuorumJavascriptListener javascript
-        compiler:Parse(source, javascript)
-        
-        text convertedQuorum = javascript:GetConvertedSource()
-        response:SetPageText(convertedQuorum)
+        if compiler:IsCompilationErrorFree()
+            response:SetPageText(compiler:GetCompiledJavaScript())
+        else
+            response:SetPageText(compiler:GetCompilerErrorsAsText())
+        end
         return response
     end
 end
