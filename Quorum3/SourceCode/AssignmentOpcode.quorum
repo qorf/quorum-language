@@ -120,7 +120,11 @@ class AssignmentOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text 
-        return ""
+        text result = ""
+        result = result + variable:GetName() 
+        result = result + " = " + rightHandSide:WriteJavaScript() + ";"
+
+        return result
     end
 
     action GetTemplateCopy returns QuorumOpcode

@@ -1,16 +1,25 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Symbol.Operation
 
 class BinaryOpcode is QuorumOpcode
     QuorumOpcode left = undefined
     QuorumOpcode right = undefined
-    
+    Operation op = undefined
     integer opcode = -1
     integer leftOpcode = -1
     integer rightOpcode = -1
     integer leftOpcode2 = -1
     integer rightOpcode2 = -1
+
+    action SetOperation(Operation op)
+        me:op = op
+    end
+
+    action GetOperation returns Operation
+        return op
+    end
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
@@ -25,31 +34,43 @@ class BinaryOpcode is QuorumOpcode
 
     action WriteJavaScript returns text
         //This isn't working yet, it's just been stubbed in
-        left:Write()
-        WriteJavaScriptLeft()
-        right:Write()
-        WriteJavaScriptRight()
+        text result = left:WriteJavaScript()
+        text operator = ""
+        integer current = op:GetOperation()
 
-        if opcode not= -1
-            return "" + opcode
+        if current = op:PLUS
+            operator =  "+"
+        elseif current = op:MINUS
+            operator =  "-"
+        elseif current = op:TIMES
+            operator =  "*"
+        elseif current = op:DIVIDE
+            operator =  "/"
+        elseif current = op:MODULUS
+            operator =  "%"
+        elseif current = op:AND
+            operator =  "&&"
+        elseif current = op:OR
+            operator =  "||"
+        elseif current = op:EQUALS
+            operator =  "=="
+        elseif current = op:NOT_EQUALS
+            operator =  "!="
+        elseif current = op:GREATER_EQUALS
+            operator =  ">="
+        elseif current = op:GREATER
+            operator =  ">"
+        elseif current = op:LESS_EQUALS
+            operator =  "<="
+        elseif current = op:LESS
+            operator =  "<"
+        elseif current = op:NOT
+            operator =  "!"
         end
-        return ""
-    end
 
-    action WriteJavaScriptLeft returns text
-        text returnText = ""
-        if leftOpcode not= -1
-            returnText = returnText + leftOpcode
-        end
-        return returnText
-    end
-
-    action WriteJavaScriptRight returns text
-        text returnText = ""
-        if rightOpcode not= -1
-            returnText = returnText + rightOpcode
-        end
-        return returnText
+        result = result + operator
+        result = result + " " + right:WriteJavaScript()
+        return result
     end
 
     action GetJavaOpcode returns integer
@@ -135,12 +156,17 @@ class BinaryOpcode is QuorumOpcode
     end
 
     action GetTemplateCopy returns QuorumOpcode
-        BinaryOpcode op
+        BinaryOpcode bop
         Type t = GetType()
         me:SetType(t:Copy())
-        op:opcode = opcode
-        op:leftOpcode = leftOpcode
-        op:rightOpcode = rightOpcode
-        return op
+        bop:opcode = opcode
+        bop:leftOpcode = leftOpcode
+        bop:rightOpcode = rightOpcode
+
+        Operation newOp
+        newOp:SetOperation(op:GetOperation())
+        bop:SetOperation(newOp)
+
+        return bop
     end
 end

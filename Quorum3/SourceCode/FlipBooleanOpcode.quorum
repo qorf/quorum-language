@@ -20,6 +20,11 @@ class FlipBooleanOpcode is UnaryOpcode
         methodWriter:VisitLabel(jumpPastLabel)
     end
 
+    action WriteJavaScript returns text
+        QuorumOpcode op = me:GetOpcode()
+        return "!" + op:WriteJavaScript()
+    end
+
     action GetTemplateCopy returns QuorumOpcode
         FlipBooleanOpcode opcode //nothing needed to copy, but make one just in case we add state later
         return opcode

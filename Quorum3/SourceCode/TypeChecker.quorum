@@ -28,6 +28,7 @@ class TypeChecker
         type = result:result
         type:SetToInteger()
         BinaryOpcode binary = GetBinaryOpcode(opcodes:GetIntegerAdd(), -1, -1, type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -38,6 +39,7 @@ class TypeChecker
         type = result:result
         type:SetToInteger()
         binary = GetBinaryOpcode(opcodes:GetIntegerSubtract(), -1, -1, type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -48,6 +50,7 @@ class TypeChecker
         type = result:result
         type:SetToInteger()
         binary = GetBinaryOpcode(opcodes:GetIntegerMultiply(), -1, -1, type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -58,6 +61,7 @@ class TypeChecker
         type = result:result
         type:SetToInteger()
         binary = GetBinaryOpcode(opcodes:GetIntegerDivide(), -1, -1, type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -68,6 +72,7 @@ class TypeChecker
         type = result:result
         type:SetToInteger()
         binary = GetBinaryOpcode(opcodes:GetIntegerModulus(), -1, -1, type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -78,6 +83,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         ComparisonOpcode compare = GetBinaryComparisonOpcode(opcodes:GetIfIntegerNotEquals(), -1, -1, type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -88,6 +94,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfIntegerEquals(), -1, -1, type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -98,6 +105,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfIntegerLessThan(), -1, -1, type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -108,6 +116,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfIntegerLessThanEquals(), -1, -1, type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -118,6 +127,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfIntegerGreaterThan(), -1, -1, type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -128,6 +138,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfIntegerGreaterThanEquals(), -1, -1, type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -141,6 +152,7 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         binary = GetBinaryOpcode(opcodes:GetDoubleAdd(), -1, -1, type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -151,6 +163,7 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         binary = GetBinaryOpcode(opcodes:GetDoubleSubtract(), -1, -1, type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -161,6 +174,7 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         binary = GetBinaryOpcode(opcodes:GetDoubleMultiply(), -1, -1, type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -171,6 +185,7 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         binary = GetBinaryOpcode(opcodes:GetDoubleDivide(), -1, -1, type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -181,6 +196,7 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         binary = GetBinaryOpcode(opcodes:GetDoubleModulus(), -1, -1, type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -191,6 +207,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfNotEquals(), -1, opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -201,6 +218,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfEquals(), -1, opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -211,6 +229,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfLessThan(), -1, opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -221,6 +240,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfLessThanEquals(), -1, opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -231,6 +251,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfGreaterThan(), -1, opcodes:GetCompareDoubleGreater(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -241,6 +262,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfGreaterThanEquals(), -1, opcodes:GetCompareDoubleGreater(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -270,6 +292,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfIntegerNotEquals(), -1, -1, type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -280,6 +303,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfIntegerEquals(), -1, -1, type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -293,6 +317,7 @@ class TypeChecker
         type = result:result
         type:SetToText()
         ConcatenateOpcode textConcat = GetConcatenateOpcode(false, false, constants:TEXT_PRIMITIVE_KEY, type)
+        textConcat:SetOperation(op)
         result:SetQuorumOpcode(textConcat)
         results:Add(key, result)
 
@@ -303,6 +328,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfNotEquals(), -1, -1, type)
+        compare:SetOperation(op)
         compare:isTextCompare = true
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
@@ -314,6 +340,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfEquals(), -1, -1, type)
+        compare:SetOperation(op)
         compare:isTextCompare = true
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
@@ -325,6 +352,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfLessThan(), -1, -1, type)
+        compare:SetOperation(op)
         compare:isTextCompare = true
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
@@ -336,6 +364,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfLessThanEquals(), -1, -1, type)
+        compare:SetOperation(op)
         compare:isTextCompare = true
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
@@ -347,6 +376,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfGreaterThan(), -1, -1, type)
+        compare:SetOperation(op)
         compare:isTextCompare = true
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
@@ -358,6 +388,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfGreaterThanEquals(), -1, -1, type)
+        compare:SetOperation(op)
         compare:isTextCompare = true
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
@@ -569,6 +600,7 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         binary = GetBinaryOpcode(opcodes:GetDoubleAdd(), opcodes:GetIntegerToDouble(), -1, type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -578,6 +610,7 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         binary = GetBinaryOpcode(opcodes:GetDoubleAdd(), -1, opcodes:GetIntegerToDouble(), type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -588,6 +621,7 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         binary = GetBinaryOpcode(opcodes:GetDoubleSubtract(), opcodes:GetIntegerToDouble(), -1, type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -597,6 +631,7 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         binary = GetBinaryOpcode(opcodes:GetDoubleSubtract(), -1, opcodes:GetIntegerToDouble(), type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -607,6 +642,7 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         binary = GetBinaryOpcode(opcodes:GetDoubleMultiply(), opcodes:GetIntegerToDouble(), -1, type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -616,6 +652,7 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         binary = GetBinaryOpcode(opcodes:GetDoubleMultiply(), -1, opcodes:GetIntegerToDouble(), type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -626,6 +663,7 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         binary = GetBinaryOpcode(opcodes:GetDoubleDivide(), opcodes:GetIntegerToDouble(), -1, type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -635,6 +673,7 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         binary = GetBinaryOpcode(opcodes:GetDoubleDivide(), -1, opcodes:GetIntegerToDouble(), type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -645,6 +684,7 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         binary = GetBinaryOpcode(opcodes:GetDoubleModulus(), opcodes:GetIntegerToDouble(), -1, type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -654,6 +694,7 @@ class TypeChecker
         type = result:result
         type:SetToNumber()
         binary = GetBinaryOpcode(opcodes:GetDoubleModulus(), -1, opcodes:GetIntegerToDouble(), type)
+        binary:SetOperation(op)
         result:SetQuorumOpcode(binary)
         results:Add(key, result)
 
@@ -664,6 +705,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfLessThan(), opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -673,6 +715,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryTwoOpComparisonOpcode(opcodes:GetIfLessThan(), -1,-1, opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -683,6 +726,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfLessThanEquals(), opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -692,6 +736,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryTwoOpComparisonOpcode(opcodes:GetIfLessThanEquals(), -1,-1, opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -702,6 +747,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfNotEquals(), opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -711,6 +757,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryTwoOpComparisonOpcode(opcodes:GetIfNotEquals(), -1,-1, opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -721,6 +768,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfEquals(), opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -730,6 +778,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryTwoOpComparisonOpcode(opcodes:GetIfEquals(), -1,-1, opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -740,6 +789,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfGreaterThan(), opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -749,6 +799,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryTwoOpComparisonOpcode(opcodes:GetIfGreaterThan(), -1,-1, opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -759,6 +810,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfGreaterThanEquals(), opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -768,6 +820,7 @@ class TypeChecker
         type = result:result
         type:SetToBoolean()
         compare = GetBinaryTwoOpComparisonOpcode(opcodes:GetIfGreaterThanEquals(), -1,-1, opcodes:GetIntegerToDouble(), opcodes:GetCompareDoubleLess(), type)
+        compare:SetOperation(op)
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
         
@@ -780,6 +833,7 @@ class TypeChecker
         type = result:result
         type:SetToText()
         ConcatenateOpcode concat = GetConcatenateOpcode(true, false, constants:INTEGER_PRIMITIVE_KEY, type)
+        concat:SetOperation(op)
         result:SetQuorumOpcode(concat)
         results:Add(key, result)
 
@@ -789,6 +843,7 @@ class TypeChecker
         type = result:result
         type:SetToText()
         concat = GetConcatenateOpcode(false, true, constants:INTEGER_PRIMITIVE_KEY, type)
+        concat:SetOperation(op)
         result:SetQuorumOpcode(concat)
         results:Add(key, result)
 
@@ -798,6 +853,7 @@ class TypeChecker
         type = result:result
         type:SetToText()
         concat = GetConcatenateOpcode(true, false, constants:NUMBER_PRIMITIVE_KEY, type)
+        concat:SetOperation(op)
         result:SetQuorumOpcode(concat)
         results:Add(key, result)
 
@@ -807,6 +863,7 @@ class TypeChecker
         type = result:result
         type:SetToText()
         concat = GetConcatenateOpcode(false, true, constants:NUMBER_PRIMITIVE_KEY, type)
+        concat:SetOperation(op)
         result:SetQuorumOpcode(concat)
         results:Add(key, result)
 
@@ -816,6 +873,7 @@ class TypeChecker
         type = result:result
         type:SetToText()
         concat = GetConcatenateOpcode(true, false, constants:BOOLEAN_PRIMITIVE_KEY, type)
+        concat:SetOperation(op)
         result:SetQuorumOpcode(concat)
         results:Add(key, result)
 
@@ -825,6 +883,7 @@ class TypeChecker
         type = result:result
         type:SetToText()
         concat = GetConcatenateOpcode(false, true, constants:BOOLEAN_PRIMITIVE_KEY, type)
+        concat:SetOperation(op)
         result:SetQuorumOpcode(concat)
         results:Add(key, result)
 

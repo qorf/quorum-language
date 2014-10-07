@@ -120,7 +120,14 @@ class ActionCallOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text 
-        return ""
+        text result = ""
+        if isActionCall
+            Action act = actionResolution:resolvedAction
+            Class clazz = act:GetParentClass()
+        else
+            result = result + field:GetName()
+        end
+        return result
     end
 
     action GetTemplateCopy returns QuorumOpcode
