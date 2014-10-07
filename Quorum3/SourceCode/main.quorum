@@ -22,7 +22,7 @@ class Main is WebResponder
         File main
         //main:SetPath("Library/Tests/Templating/Pass/ArraySetAndGet_0.quorum")
         //main:SetPath("Library/Tests/Actions/Pass/GCD.quorum")
-        main:SetPath("Library/Tests/Expressions/Pass/HelloWorld.quorum")
+        main:SetPath("Library/Tests/Expressions/Pass/MinusInteger.quorum")
         //main:SetPath("Library/Tests/Inheritance/Pass/Kid.quorum")
         //main:SetPath("Library/Standard/Libraries/Language/Object.quorum")
         //main:SetPath("Library/Standard/Libraries/Containers/Blueprints/ListBlueprint.quorum")
@@ -49,6 +49,7 @@ class Main is WebResponder
 
         if compiler:IsCompilationErrorFree()
             output "Build Successful"
+            output compiler:GetCompiledJavaScript()
         else
             compiler:OutputCompilerErrors()
         end

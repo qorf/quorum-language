@@ -21,6 +21,11 @@ class NegateUnaryOpcode is UnaryOpcode
         methodWriter:VisitInstruction(GetJavaOpcode())
     end
 
+    action WriteJavaScript returns text
+        QuorumOpcode op = me:GetOpcode()
+        return "-" + op:WriteJavaScript()
+    end
+
     action GetTemplateCopy returns QuorumOpcode
         NegateUnaryOpcode opcode 
         opcode:SetJavaOpcode(me:GetJavaOpcode())

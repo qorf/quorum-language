@@ -44,7 +44,7 @@ class OutputOpcode is QuorumOpcode
         quote = EOL:GetDoubleQuote()
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
         opcodeResult = opcode:WriteJavaScript()
-        JSOutput = OUTPUT_VARIABLE + "+= " + opcodeResult + ";" + EOL
+        JSOutput = OUTPUT_VARIABLE + " += " + opcodeResult + " + " + quote + "</br>" + quote + ";" + EOL
         return JSOutput
     end
 

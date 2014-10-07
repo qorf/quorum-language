@@ -1,6 +1,7 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Symbol.Operation
 
 class ConcatenateOpcode is BinaryOpcode
     public boolean convertRightToText = false
@@ -69,6 +70,11 @@ class ConcatenateOpcode is BinaryOpcode
         op:convertRightToText = convertRightToText
         op:concatenationClass = concatenationClass
         op:concatenationConvertMethod = concatenationConvertMethod
+
+        Operation newOp
+        Operation oldOp = me:GetOperation()
+        newOp:SetOperation(oldOp:GetOperation())
+        op:SetOperation(newOp)
         return op
     end
 end

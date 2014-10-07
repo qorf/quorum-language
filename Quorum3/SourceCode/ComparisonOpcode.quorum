@@ -2,6 +2,7 @@ package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
+use Libraries.Language.Compile.Symbol.Operation
 
 class ComparisonOpcode is BinaryOpcode 
     JavaBytecodeOpcodes opcodes
@@ -72,6 +73,11 @@ class ComparisonOpcode is BinaryOpcode
         op:SetJavaRightOpcode2(GetJavaRightOpcode2())
         op:isTextCompare = isTextCompare
         op:textCompareValue = textCompareValue
+
+        Operation newOp
+        Operation oldOp = me:GetOperation()
+        newOp:SetOperation(oldOp:GetOperation())
+        op:SetOperation(newOp)
         return op
     end
 end

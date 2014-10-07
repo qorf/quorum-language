@@ -591,6 +591,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 if variable not= undefined
                     Type type = variable:GetType()
                     actionCall:SetType(type)
+                    actionCall:SetField(variable)
                     actionCall:SetBytecodeLocation(variable:GetBytecodeLocation())
                 end
             else //get the most recent type off the stack
