@@ -88,28 +88,13 @@ class CompilerTestSuite
         file:SetPath(source)
         compiler:SetMain(file)
 
-        Parser parser
-        compiler:Parse(file, parser)
-        CompilerErrorManager manager = parser:GetCompilerErrorManager()
+        Array<File> files
+        files:Add(file)
 
-        if not manager:IsCompilationErrorFree()
-            CompilerTestResult result2
-            result2:name = source
-            return result2
-        end
-        TypeCheckListener checker
-        compiler:Parse(file, checker)
-        if not manager:IsCompilationErrorFree()
-            CompilerTestResult result2
-            result2:name = source
-            return result2
-        end
-
-        QuorumJavascriptListener javascript
-        compiler:Parse(file, javascript)
-
-        if manager:IsCompilationErrorFree() //run the program
-            text convertedJavaScript = javascript:GetConvertedSource()
+        compiler:SetOutputType(compiler:JAVASCRIPT)
+        compiler:Compile(files)
+        if compiler:IsCompilationErrorFree() //run the program
+            text convertedJavaScript = compiler:GetCompiledJavaScript()
             result = RunJavaScript(convertedJavaScript)
         else
             CompilerTestResult result2

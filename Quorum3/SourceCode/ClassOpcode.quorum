@@ -510,7 +510,7 @@ class ClassOpcode is QuorumOpcode
             convertedSource = convertedSource + "Main(); " + EOL
         end
         convertedSource = convertedSource + "return " + OUTPUT_VARIABLE + ";" + EOL + "}"
-
+        convertedSource = convertedSource + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
         return convertedSource
     end
 

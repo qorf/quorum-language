@@ -22,6 +22,7 @@ class Compiler
     HashTable<text, Dependency> dependencies
     boolean isWebApplication = false
     text name = "Default"
+    text convertedJavaScript = ""
     //Support classes
     SymbolTable symbolTable
     CompilerErrorManager compilerErrorManager
@@ -149,7 +150,12 @@ class Compiler
                 end
                 a = 5
             end
+            convertedJavaScript = result
         end
+    end
+
+    action GetCompiledJavaScript returns text
+        return convertedJavaScript
     end
 
     action TypeResolution
@@ -365,10 +371,6 @@ class Compiler
         end
         
         return undefined
-    end
-
-    action CompileToJavaScript(Array<File> files)
-
     end
 
     action Parse(File file, QuorumSourceListener listener)
