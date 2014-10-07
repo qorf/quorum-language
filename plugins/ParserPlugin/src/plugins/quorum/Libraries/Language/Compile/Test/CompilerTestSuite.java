@@ -73,10 +73,10 @@ public class CompilerTestSuite {
             Object eval = engine.eval(script);
             
             String output = eval.toString();
-            String lines[] = output.split("\\r?\\n");
+            String lines[] = output.split("</br>");
             for(int i = 0; i < lines.length; i++) {
                 Text text = new Text();
-                text.SetValue(lines[0]);
+                text.SetValue(lines[i]);
                 result.Get$Libraries$Language$Compile$Test$CompilerTestResult$lines().Add(text);
             }
             result.Set$Libraries$Language$Compile$Test$CompilerTestResult$ranWithoutError(true);
