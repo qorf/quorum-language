@@ -88,7 +88,20 @@ class ActionOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text
-        return ""
+        text result = "function " + method:GetName() + "() {
+"
+        
+        Iterator<QuorumOpcode> iterator = opcodeList:GetIterator()
+        repeat while iterator:HasNext()
+            QuorumOpcode opcode = iterator:Next()
+            result = result + opcode:WriteJavaScript()
+        end
+
+        result = result + "}
+
+"
+
+        return result
     end
 
     action GetTemplateCopy returns QuorumOpcode

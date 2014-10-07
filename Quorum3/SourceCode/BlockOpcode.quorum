@@ -25,7 +25,14 @@ class BlockOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text
-        return "} BlockOpcode"
+        text result = ""
+        Iterator<QuorumOpcode> iterator = opcodes:GetIterator()
+        repeat while iterator:HasNext()
+            QuorumOpcode opcode = iterator:Next()
+            result = result + opcode:WriteJavaScript()
+        end
+
+        return result
     end
 
     action GetTemplateCopy returns QuorumOpcode

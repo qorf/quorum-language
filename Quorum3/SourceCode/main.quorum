@@ -43,6 +43,7 @@ class Main is WebResponder
         //files:Add(next2)
         //files:Add(next3)
 
+        compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:SetMain(main)
         compiler:Compile(files)
 

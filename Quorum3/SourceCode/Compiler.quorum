@@ -58,9 +58,9 @@ class Compiler
     action SetOutputType(integer type)
         if type >= JAVA_BYTECODE and type <= JAVASCRIPT
             currentOutputType = type
+        else
+            currentOutputType = 0
         end
-
-        currentOutputType = 0
     end
 
     action GetDependencies returns Iterator<Dependency>
@@ -118,15 +118,37 @@ class Compiler
             end
         end
 
+        
+
         if currentOutputType = JAVA_BYTECODE
+            //iterate over all the class opcodes and write them to disk
+            Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+            repeat while codes:HasNext()
+                ClassOpcode code = codes:Next()
+                code:Write()
+            end
+
             if compilerErrorManager:IsCompilationErrorFree()
                 QuorumJarGenerator generator
                 File jar = GetDistributionFile()
                 generator:SetCompiler(me)
                 generator:Write()
             end
-        else
-            
+        elseif currentOutputType = JAVASCRIPT
+            text result = ""
+            Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+            repeat while codes:HasNext()
+                ClassOpcode code = codes:Next()
+                Class clazz = code:GetClass()
+
+                Class mainClazz = me:GetMainClass()
+                text mainClazzName = mainClazz:GetStaticKey()
+                text clazzName = clazz:GetStaticKey()
+                if clazzName = mainClazzName //keep it simple in the first version.
+                    result = result + code:WriteJavaScript()
+                end
+                a = 5
+            end
         end
     end
 

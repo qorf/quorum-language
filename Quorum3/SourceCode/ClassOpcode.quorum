@@ -186,17 +186,19 @@ class ClassOpcode is QuorumOpcode
         end
 
         classWriter:VisitEnd()
+        interfaceWriter:VisitEnd()
+        WriteBytecodeToDisk()
+    end
 
+    private action WriteBytecodeToDisk 
         File classFile
         text path = buildPath + "/" + QUORUM + "/" + packageValue:GetPath() 
         classFile:SetPath(path)
         classFile:CreateDirectories()
         classFile:SetPath(path + "/" + clazz:GetName() + ".class")
         classWriter:Write(classFile)
-
         buildFile = classFile
 
-        interfaceWriter:VisitEnd()
         File interfaceFile
         path = buildPath + "/" + QUORUM + "/" + packageValue:GetPath()
 
@@ -486,9 +488,10 @@ class ClassOpcode is QuorumOpcode
         EOL = ""
         quote = EOL:GetDoubleQuote()
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
-        //quote = quote:GetDoubleQuote()
-        convertedSource = "Main();" + EOL + "function Main() {" + EOL
-        convertedSource = convertedSource + OUTPUT_VARIABLE + " = " + quote + quote + ";" + EOL
+        convertedSource = OUTPUT_VARIABLE + " = " + quote + quote + ";" + EOL
+        convertedSource = convertedSource + EOL + "function "
+            + clazz:ConvertStaticKeyToUnderScore() + "() {" + EOL
+        
 
         Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
         repeat while fieldIterator:HasNext()
@@ -503,6 +506,9 @@ class ClassOpcode is QuorumOpcode
             convertedSource = convertedSource + act:WriteJavaScript()
         end
 
+        if clazz:HasMainAction()
+            convertedSource = convertedSource + "Main(); " + EOL
+        end
         convertedSource = convertedSource + "return " + OUTPUT_VARIABLE + ";" + EOL + "}"
 
         return convertedSource

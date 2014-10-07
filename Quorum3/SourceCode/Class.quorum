@@ -770,6 +770,12 @@ class Class is Symbol
         text result = "quorum/" + key:Replace(".", "/")
         return result
     end
+
+    action ConvertStaticKeyToUnderScore returns text
+        text key = GetStaticKey()
+        text result = "$quorum_" + key:Replace(".", "_")
+        return result
+    end
     
     /*
         This action returns the static key formatted as a class name in 
