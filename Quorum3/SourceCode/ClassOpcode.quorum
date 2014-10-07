@@ -509,7 +509,7 @@ class ClassOpcode is QuorumOpcode
         if clazz:HasMainAction()
             convertedSource = convertedSource + "Main(); " + EOL
         end
-        convertedSource = convertedSource + "return " + OUTPUT_VARIABLE + ";" + EOL + "}"
+        convertedSource = convertedSource + "return " + OUTPUT_VARIABLE + ";" + EOL + "}" + EOL
         convertedSource = convertedSource + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
         return convertedSource
     end
