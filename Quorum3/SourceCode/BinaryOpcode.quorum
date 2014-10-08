@@ -68,7 +68,7 @@ class BinaryOpcode is QuorumOpcode
             operator =  "!"
         end
 
-        result = result + operator
+        result = result + " " + operator
         result = result + " " + right:WriteJavaScript()
         return result
     end

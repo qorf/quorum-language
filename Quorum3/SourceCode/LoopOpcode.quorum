@@ -117,7 +117,23 @@ class LoopOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text
-        return ""
+        text result = ""
+
+        EOL = ""
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        text hash = "$L" + GetHashCode() 
+        if isTimes
+            result = result + "for(" + hash + "=0;" + hash + "<" + expression:WriteJavaScript() + ";" + hash + "++) {" + EOL
+        elseif isUntil
+            result = result + "while (!(" + expression:WriteJavaScript() + ")) {" + EOL
+        else //it's a while loop
+            result = result + "while (" + expression:WriteJavaScript() + ") {" + EOL
+
+        end
+
+        result = result + block:WriteJavaScript()
+        result = result + "}" + EOL
+        return result
     end
 
     action GetTemplateCopy returns QuorumOpcode
