@@ -35,7 +35,7 @@
         <ul>\n\
         <li>There are 5 main operators when using numbers: <code>+</code> (addition), <code>-</code> (subtraction), <code>*</code> (multiplication), <code>/</code> division and <code>%</code> (modulus).</li>\n\
         <li>The modulus operator is used for finding the remainder of a division operation, for example: <code>15 % 10</code> will give us a result of 5.</li>\n\
-        <li>One example of how to use the modulus operator is to deterimine if a number is even or odd: <code> even % 2</code>  equals 0 and <code>odd % 2</code> equals 1.</li>\n\
+        <li>One example of how to use the modulus operator is to deterimine if a number is even or odd: <code>evenNum % 2</code>  equals 0 and <code>oddNum % 2</code> equals 1.</li>\n\
         <li>When using <code>say</code> or <code>output</code> statements, you can concatenate (add) things to be output one after another using the <code>+</code> operator, just like in the previous slide.</li>\n\
         </ul>";
     
