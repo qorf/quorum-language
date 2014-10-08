@@ -5,17 +5,59 @@
     //slide array
     var slideArray = new Array();
     
-    slideArray[0] = "<h5 role=\"heading\">Boolean Variables</h5><ul><li>A <code>boolean</code> variable is a special type of variable that contains one of two possible words: <code>true</code> or <code>false</code>.</li><li>Alone, booleans don't do much, but they are a powerful tool when working with control structures as we will soon see.</li><span class=\"title\">Try it!</span><div class =\"task\">Make a boolean variable: <code>boolean sayStatement = true</code> and a text variable with a whatever you want: <code>text greeting = \"I live in a giant bucket!\"</code> (we will use this later).</div></ul>";
+    slideArray[0] = "<h5 role=\"heading\">Boolean Variables</h5>\n\
+        <ul>\n\
+        <li>A <code>boolean</code> variable is a special type of variable that contains one of two possible values: <code>true</code> or <code>false</code>.</li>\n\
+        <li>By themselves, <code>boolean</code> variables don't seem to do too much, but they are a powerful tool when working with control structures, as we will soon see.</li>\n\
+        <span class=\"title\">Try it!</span>\n\
+        <div class =\"task\">\n\
+            <ul>\n\
+            <li>Make a <code>boolean</code> variable and assign it a value of true: <code>boolean sayStatement = true</code>.</li>\n\
+            <li>Create a <code>text</code> variable named \"greeting\" and assign it a string you like in double quotes: <code>text greeting = \"I live in a giant bucket!\"</code></li>\n\
+            <li>We will use these variables later.</li>\n\
+            </ul></div>\n\
+        </ul>";
     
-    slideArray[1] = "<h5 role=\"heading\">Control Structures: If (Structure)</h5><ul><li>Suppose we want the computer to output a statement sometimes, but say the same statement at other times.  We would then need to have the computer make a decision.  In Quorum, we can do this by using an <code>if</code> statement.</li><li>The way we do this is by starting the statement with the word if, followed by some sort of condition.</li><li>With every if statement, we also need to tell the computer what it should do and where it should <code>end</code>.</li><span class=\"title\">Try it!</span><div class =\"task\"><p>Create an if statement using the boolean from the last task: <code>if sayStatement = true</code> and then type <code>end</code> on a line below.</p></div></ul>";
+    slideArray[1] = "<h5 role=\"heading\">Control Structures: If (Structure)</h5>\n\
+        <ul>\n\
+        <li>One powerful ability of a computer is to make a decision and then execute different instructions under different conditions.  These decisions can be made with a simple conditional statement, which in Quorum uses the keyword <code>if</code>.</li>\n\
+        <li>An <code>if</code> statement has three parts: the keyword <code>if</code> followed by a condition, followed by the block of code to execute if the condition is <code>true</code>, followed by the keyword <code>end</code>.</li>\n\
+        <li><code>boolean</code> variables are often used to specify the condition.</li>\n\
+        <span class=\"title\">Try it!</span>\n\
+        <div class =\"task\"><p>Create an <code>if</code> statement using the <code>boolean</code> from the last slide: <code>if sayStatement = true</code> and then type <code>end</code> on a new line.</p>\n\</div>\n\
+        </ul>";
     
-    slideArray[2] = "<h5 role=\"heading\">Control Structures: If (Logic)</h5><ul><li>When determining whether to execute code or not within the if block (from the <code>if</code> to the <code>end</code>) the computer checks the condition to the right of the word <code>if</code> and evaluates whether it is true or false.</li><li>For example, if you typed <code>if 1 + 1 = 4</code> then the computer would say this condition is false and ignore the code inside of your if block.</li><li>This is where booleans come in, because they are already defined as either <code>true</code> or <code>false</code>.</li><span class=\"title\">Try it!</span><div class =\"task\"><p>Tell the computer to do something inside of the <code>if</code> block, such as: <code>say greeting</code></p></div></ul>";
+    slideArray[2] = "<h5 role=\"heading\">Control Structures: If (Conditional Logic)</h5>\n\
+        <ul>\n\
+        <li>When determining whether to execute the block of code within the <code>if</code> statement the computer checks the condition part of the statement to see whether it is <code>true</code> or <code>false</code>.</li>\n\
+        <li>You can specify the condition using a <code>boolean</code> variable or any other expression that evaluates to <code>true</code> or <code>false</code></li>\n\
+        <li>For example, if you typed <code>if 1 + 1 = 4</code> the condition <code>1 + 1 = 4</code> evaluates to <code>false</code>, so the block of code will be skipped over.</li>\n\
+        <li>If code is skipped over, the computer jumps to the <code>end</code> keyword for the next instruction.</li>\n\
+        <span class=\"title\">Try it!</span>\n\
+        <div class =\"task\"><p>Inside the previous <code>if</code> block type: <code>say greeting</code></p></div>\n\
+        </ul>";
     
-    slideArray[3] = "<h5 role=\"heading\">Control Structures: If (elseif)</h5><ul><li>Let's say the initial if statement isn't true, but we want to do something else under different conditions.  The way we can do this is with the combined word <code>elseif</code>, and it works just like another if statement.</li><li>With the elseif, we can specify as many more conditions and what code should run under those conditions.</li><span class=\"title\">Try it!</span><div class =\"task\"><p>Continuing from the last example, under the line <code>say greeting</code> specify another condition and what code should run in that circumstance: <code>elseif sayStatement = false</code><br><code>output greeting</code></p></div></ul>";
+    slideArray[3] = "<h5 role=\"heading\">Control Structures: If (elseif)</h5>\n\
+        <ul>\n\
+        <li>You can also specify an alternatve condition to evaluate if the condition in the first part of the <code>if</code> statement is <code>false</code> by using the keyword <code>elseif</code> after the original <code>if</code> statement.</li>\n\
+        <li>We can include as many <code>elseif</code> conditions as we want and include code blocks to execute in each case.</li>\n\
+        <li>There is a single <code>end</code> statement at the conclusion.</li>\n\
+        <span class=\"title\">Try it!</span>\n\
+        <div class =\"task\"><p>Continuing the example from the last slide, insert a new condition before the line <code>end</code> and then a line containing the code to execute: <code>elseif sayStatement = false</code><br><code>output greeting</code></p></div>\n\
+        </ul>";
     
-    slideArray[4] = "<h5 role=\"heading\">Control Structures: If (else)</h5><ul><li>Finally, there is one last piece to an if statement.  When no condition has been met, you can still tell the computer to do something with the word <code>else</code>.</li><li>Like with <code>elseif</code>, it's not always necessary to have this part in your if block.</li><li>If the computer gets to the <code>else</code> part, it knows no other condition was met and automatically executes code until it hits the word <code>end</code>.</li><li>If you've been following along with the examples, we've already accounted for sayStatement = true and sayStatement = false.  As such, the computer would never get to the <code>else</code> statement within our if block.</li></ul>";
+    slideArray[4] = "<h5 role=\"heading\">Control Structures: If (else)</h5>\n\
+        <ul>\n\
+        <li>There is one other part of an <code>if</code> statement called the default condition, which will execute if no other condition in the statement is <code>true</code>.  In Quorum, this block is designated with the keyword <code>else</code></li>\n\
+        <li>This statement is optional, just like <code>elseif</code>.</li>\n\
+        <li>In our example, there are only two states: <code>true</code> and <code>false</code>, so there are no other possible conditions, although the <code>elseif</code> line could be converted to an <code>else</code> without a second condition.</li>\n\
+        <li>In other cases, you might have a list of conditions like <code>if x = 1</code> {code block}<br><code>elseif x = 2</code> {code block}<br><code>else</code> {code block}<br><code>end</code></li>\n\
+        </ul>";
     
-    slideArray[5] = "<h5>If Statements: Additional Information</h5><ul><li>More documentation on <code>if</code> statements can be found <a href=\"http://quorumlanguage.com/documents/syntax/if.php\">here</a>.</li></ul>";
+    slideArray[5] = "<h5>If Statements: Additional Information</h5>\n\
+        <ul>\n\
+        <li>More documentation on <code>if</code> statements can be found <a href=\"http://quorumlanguage.com/documents/syntax/if.php\">here</a>.</li>\n\
+        </ul>";
     
     $(document).ready(function(){
         $('#IDE-input').text('boolean sayStatement = true\ntext greeting = "I live in a giant bucket"\nif sayStatement\n        say greeting\nelseif sayStatement = false\n        output greeting\nend');

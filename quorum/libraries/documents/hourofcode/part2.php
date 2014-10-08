@@ -4,13 +4,40 @@
     
     //slide array
     var slideArray = new Array();
-    slideArray[0] = "<h5 role=\"heading\">Number Variables</h5><ul><li>Another type of variable used often in programming is a <code>number</code>.</li><li>A number variable holds numeric values such as 42 or 8.3439</li><li>Unlike text variables, we never need double quotes when storing a number.</li><span class=\"title\">Try it!</span><div class =\"task\">Create a number variable with the following code: <code>number pi = 3.14159</code>.</div></ul>";
+    slideArray[0] = "<h5 role=\"heading\">Number Variables</h5>\n\
+        <ul>\n\
+        <li>Another type of variable often used in programming is a real number. In Quorum to create this type of variable we use the keyword <code>number</code>.</li>\n\
+        <li>A <code>number</code> variable holds numeric values that can include decimal places such as 8.3439 or 42.0 or even 19.</li>\n\
+        <li>Unlike text variables, we never use double quotes when storing a number, we just type it.</li>\n\
+        <span class=\"title\">Try it!</span>\n\
+        <div class =\"task\">Create a number variable with the following code: <code>number pi = 3.14159</code>.</div>\n\
+        </ul>";
     
-    slideArray[1] = "<h5 role=\"heading\">Using Number Variables: Arithmetic</h5><ul><li>With number variables, we can do calculations on whatever we have stored in them.</li><li>For example, if we make another variable that holds the radius of a circle, then we can calculate its area.</li><li>In this case, we will need to multiply using the * operator.</li><span class=\"title\">Try it!</span><div class =\"task\">Create a variable to hold your circle's radius: <code>number radius = 3</code> and then calculate the area of a circle and store it in a new variable: <code>number area = pi * radius * radius</code></div></ul>";
+    slideArray[1] = "<h5 role=\"heading\">Arithmetic with Number Variables</h5>\n\
+        <ul>\n\
+        <li>We can do arithmetic calculations with <code>number</code> variables, just like we would on the numbers themselves.</li>\n\
+        <li>The computer substitutes the actual number in the variable into the formula and performs the calculation.</li>\n\
+        <li>For example, if we make a new variable that holds the radius of a circle, then we can calculate its area using the formula area = pi X radius X radius.  On a computer, the multiplication operater is the <code>*</code>.</li>\n\
+        <span class=\"title\">Try it!</span>\n\
+        <div class =\"task\">Create a variable to hold your circle's radius: <code>number radius = 3</code> and then calculate the area: <code>number area = pi * radius * radius</code></div>\n\
+        </ul>";
     
-    slideArray[2] = "<h5 role=\"heading\">Say Statements</h5><ul><li>With Quorum, we can tell the computer to say things out loud for us.  The way we do this is with the word <code>say</code> followed by whatever we want said.</li><li>Like with output statements, we can have the computer tell us what is stored in a variable and we can also have it say something we have typed in specifically.</li><li><span class = \"bold\">Note:</span> Say statements may not work with all web browsers.</li><span class=\"title\">Try it!</span><div class =\"task\">Tell the computer to say the result of the area calculation: <code>say \"The area is\" + area</code></div></ul>"; //operators, concat
+    slideArray[2] = "<h5 role=\"heading\">Make the Computer Talk with: Say</h5>\n\
+        <ul>\n\
+        <li>Quorum has a built in feature to instruct the computer to say things out loud.  This is done by using the keyword <code>say</code> followed by whatever we want it to say.</li>\n\
+        <li>Just like with output statements, the computer can say the contents of a stored variable or a string that we type in.</li>\n\
+        <li><span class = \"bold\">Note:</span> Say statements may not work with all web browsers.</li>\n\
+        <span class=\"title\">Try it!</span>\n\
+        <div class =\"task\">Tell the computer to say the result of the area calculation you just completed by typing a new line: <code>say \"The area is\" + area</code></div>\n\
+        </ul>"; //operators, concat
     
-    slideArray[3] = "<h5 role=\"heading\">Additional Information</h5><ul><li>There are 5 useful operators when using numbers: + (addition), - (subtraction), * (multiplication), / division and % (modulus).</li><li>The modulus operator is used for finding the remainder of a division operation, for example: 15 % 10 will give us a result of 5.  A good example for the use of modulus would be to determine if number is even or odd, since any even number % 2 = 0.</li><li>When using say statements, or output statements, you can concatenate (add) things to be said together like in the previous slide with the + operator.</li></ul>";
+    slideArray[3] = "<h5 role=\"heading\">Additional Information</h5>\n\
+        <ul>\n\
+        <li>There are 5 main operators when using numbers: <code>+</code> (addition), <code>-</code> (subtraction), <code>*</code> (multiplication), <code>/</code> division and <code>%</code> (modulus).</li>\n\
+        <li>The modulus operator is used for finding the remainder of a division operation, for example: <code>15 % 10</code> will give us a result of 5.</li>\n\
+        <li>One example of how to use the modulus operator is to deterimine if a number is even or odd: <code> even % 2</code>  equals 0 and <code>odd % 2</code> equals 1.</li>\n\
+        <li>When using <code>say</code> or <code>output</code> statements, you can concatenate (add) things to be output one after another using the <code>+</code> operator, just like in the previous slide.</li>\n\
+        </ul>";
     
     $(document).ready(function(){
         $('#IDE-input').text('number pi = 3.14159\nnumber radius = 3\nnumber area = pi * radius * radius\nsay "The area is" + area');

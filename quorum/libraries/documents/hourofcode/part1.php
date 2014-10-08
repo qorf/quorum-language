@@ -8,7 +8,7 @@
         <ul>\n\
         <li>In programming, a <code>variable</code> is a container to store information that can be used at a later time.</li>\n\
         <li>In Quorum, there are four types of basic variables: <code>text</code>, <code>number</code>, <code>integer</code> and <code>boolean</code>.  Each type of variable holds a different kind of information.</li>\n\
-        <li>In this first example, we will create a <code>text</code> variable, which holds a string of anything you want to type in.</li>\n\
+        <li>In this first example, we will create a <code>text</code> variable, which holds a string of anything you want to type in. We'll explain the other types in the next sections.</li>\n\
         <li>Notice that a <code>text</code> string is enclosed in two double quotation marks.</li>\n\
         </ul>";
 
@@ -52,7 +52,7 @@
     slideArray[5] = "<h5 role=\"heading\">Additional Information Regarding Variables</h5>\n\
         <ul>\n\
         <li>Names are case sensitive: dna is not the same as DNA.</li>\n\
-        <li>When storing a string into a text variable, be sure to use double quotes.</li>\n\\n\
+        <li>When storing a string into a text variable, be sure to use double quotes.</li>\n\
         <li>Because variables are just containers, if we change what is stored inside of it we can still use the same output statement and get a different result on screen.</li>\n\
         <li>If you've been following along, you can test this by changing what is initally stored in the <code>dna</code> variable.</li>\n\
         </ul>";
