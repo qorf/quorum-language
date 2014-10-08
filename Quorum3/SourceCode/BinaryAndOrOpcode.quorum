@@ -1,6 +1,7 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Symbol.Operation
 
 class BinaryAndOrOpcode is QuorumOpcode
     public boolean isAnd = true
@@ -17,6 +18,15 @@ class BinaryAndOrOpcode is QuorumOpcode
     public boolean hasParent = false
     public boolean isOnLeft = false
     public BinaryAndOrOpcode opcodeParent = undefined
+    Operation op = undefined
+
+    action SetOperation(Operation op)
+        me:op = op
+    end
+
+    action GetOperation returns Operation
+        return op
+    end
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
@@ -30,7 +40,44 @@ class BinaryAndOrOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text
-        return ""
+        //This isn't working yet, it's just been stubbed in
+        text result = left:WriteJavaScript()
+        text operator = ""
+        integer current = op:GetOperation()
+
+        if current = op:PLUS
+            operator =  "+"
+        elseif current = op:MINUS
+            operator =  "-"
+        elseif current = op:TIMES
+            operator =  "*"
+        elseif current = op:DIVIDE
+            operator =  "/"
+        elseif current = op:MODULUS
+            operator =  "%"
+        elseif current = op:AND
+            operator =  "&&"
+        elseif current = op:OR
+            operator =  "||"
+        elseif current = op:EQUALS
+            operator =  "=="
+        elseif current = op:NOT_EQUALS
+            operator =  "!="
+        elseif current = op:GREATER_EQUALS
+            operator =  ">="
+        elseif current = op:GREATER
+            operator =  ">"
+        elseif current = op:LESS_EQUALS
+            operator =  "<="
+        elseif current = op:LESS
+            operator =  "<"
+        elseif current = op:NOT
+            operator =  "!"
+        end
+
+        result = result + operator
+        result = result + " " + right:WriteJavaScript()
+        return result
     end
 
     action Write

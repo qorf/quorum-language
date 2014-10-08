@@ -143,7 +143,26 @@ class ConditionalOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text
-        return ""
+        text result = "if (" + expression:WriteJavaScript() + ") {"
+        result = result + block:WriteJavaScript()
+        result = result + "}"
+
+        i = 0
+        repeat elseIfExpressions:GetSize() times
+            QuorumOpcode elseIfOp = elseIfExpressions:Get(i)
+            BlockOpcode elseIfBlock = elseIfBlocks:Get(i)
+
+            result = result + "else if( " + elseIfOp:WriteJavaScript() + ") {" 
+            result = result + elseIfBlock:WriteJavaScript()
+            result = result + "}"
+            i = i + 1
+        end
+        
+        if elseBlock not= undefined
+            result = result + elseBlock:WriteJavaScript()
+        end
+
+        return result
     end
 
     action GetTemplateCopy returns QuorumOpcode
