@@ -110,8 +110,8 @@ class Main is WebResponder
         //if there is no code tag, then just ignore the request
         if not request:HasParameter(CODE_REQUEST)
             
-            //response:SetPageText("No Quorum code was sent to the server.")
-            response:SetPageText(directory)
+            response:SetPageText("No Quorum code was sent to the server.")
+            //response:SetPageText(directory)
             return response
         end
 
