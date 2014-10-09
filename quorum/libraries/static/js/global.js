@@ -467,12 +467,12 @@ var submitCodeSample = function(){
         $("#run-button a").on("click", function(e) {
 		e.preventDefault();
 		$(".outputArea").text("");
-		var codeData = {code: $(".inputArea").val()};
+		var codeData = {code: $('.inputArea').val()};
                 //var msg = new SpeechSynthesisUtterance('28.27431');
-		//console.log(codeData);
+		console.log(codeData);
 		$.ajax({
 			type: "POST",
-			url: "../../controllers/IDE.controller.php",
+			url: "http://run.quorumlanguage.com",
 			data: codeData,
 			success: function(result){
 //				var start = 0;
@@ -483,7 +483,7 @@ var submitCodeSample = function(){
                                 //alert(output);
                                 //var value = eval(result);
                                 console.log(result);
-                                $("#IDE-output").text("Before\nTest Message\nAfter");
+                                $("#IDE-output").text(result);
                                 //$("#IDE-output").text(eval(result));
                                 //window.speechSynthesis.speak(msg);
 			},
