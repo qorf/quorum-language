@@ -147,12 +147,14 @@ class ExpressionsTester
 
     action AddTextBoolean
         suite:RunTest("Library/Tests/Expressions/Pass/AddTextBoolean.quorum","boolean is true", "boolean is false")
-        //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddTextBoolean.quorum","boolean is true", "boolean is false")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddTextBoolean.quorum","boolean is true", "boolean is false")
     end
 
     action AddTextDouble
         suite:RunTest("Library/Tests/Expressions/Pass/AddTextDouble.quorum","number is 1.0", "number is 2.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddTextDouble.quorum","number is 1.0", "number is 2.0")
+        //TODO: This works, but should we check to ensure Javascript outputs "exactly" the same output?
+        //Or, are minor deviations acceptable, given Javascript's quirks? 
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddTextDouble.quorum","number is 1", "number is 2")
     end
 
     action AddTextInt
@@ -179,22 +181,22 @@ class ExpressionsTester
 
     action ComplexExpression
         suite:RunTest("Library/Tests/Expressions/Pass/ComplexExpression.quorum", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTIntInt.quorum", "true")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ComplexExpression.quorum", "true")
     end
 
     action DivDoubleDouble
         suite:RunTest("Library/Tests/Expressions/Pass/DivDoubleDouble.quorum", "2.0", "2.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/DivDoubleDouble.quorum", "2.0", "2.0")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/DivDoubleDouble.quorum", "2", "2")
     end
 
     action DivDoubleInt
         suite:RunTest("Library/Tests/Expressions/Pass/DivDoubleInt.quorum", "2.0", "2.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/DivDoubleInt.quorum", "2.0", "2.0")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/DivDoubleInt.quorum", "2", "2")
     end
 
     action DivIntDouble
         suite:RunTest("Library/Tests/Expressions/Pass/DivIntDouble.quorum", "2.0", "2.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/DivIntDouble.quorum", "2.0", "2.0")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/DivIntDouble.quorum", "2", "2")
     end
 
     action DivIntInt
@@ -369,7 +371,7 @@ class ExpressionsTester
 
     action LTIntInt2
         suite:RunTest("Library/Tests/Expressions/Pass/LTIntInt2.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTIntInt.quorum", "false", "true")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTIntInt2.quorum", "false", "true")
     end
 
     action LTTextText
@@ -380,7 +382,7 @@ class ExpressionsTester
     action LocalVarDecl
         //note this test is not in ExpressionsTester.java
         suite:RunTest("Library/Tests/Expressions/Pass/LocalVarDecl.quorum", "1000", "3.0", "c", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LocalVarDecl.quorum", "1000", "3.0", "c", "false", "true")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LocalVarDecl.quorum", "1000", "3", "c", "false", "true")
     end
 
     action MinusInteger()
@@ -390,22 +392,22 @@ class ExpressionsTester
 
     action MinusNumber()
         suite:RunTest("Library/Tests/Expressions/Pass/MinusNumber.quorum", "-1.0", "-15.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MinusNumber.quorum", "-1.0", "-15.0")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MinusNumber.quorum", "-1", "-15")
     end
 
     action ModDoubleDouble
         suite:RunTest("Library/Tests/Expressions/Pass/ModDoubleDouble.quorum", "1.0", "1.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ModDoubleDouble.quorum", "1.0", "1.0")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ModDoubleDouble.quorum", "1", "1")
     end
 
     action ModDoubleInt
         suite:RunTest("Library/Tests/Expressions/Pass/ModDoubleInt.quorum", "1.0", "1.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ModDoubleInt.quorum", "1.0", "1.0")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ModDoubleInt.quorum", "1", "1")
     end
 
     action ModIntDouble
         suite:RunTest("Library/Tests/Expressions/Pass/ModIntDouble.quorum", "1.0", "1.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ModIntDouble.quorum", "1.0", "1.0")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ModIntDouble.quorum", "1", "1")
     end
 
     action ModIntInt
@@ -415,17 +417,17 @@ class ExpressionsTester
 
     action MutlDoubleDouble
         suite:RunTest("Library/Tests/Expressions/Pass/MultDoubleDouble.quorum", "4.0", "4.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MultDoubleDouble.quorum", "4.0", "4.0")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MultDoubleDouble.quorum", "4", "4")
     end
 
     action MultDoubleInt
         suite:RunTest("Library/Tests/Expressions/Pass/MultDoubleInt.quorum", "4.0", "4.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MultDoubleInt.quorum", "4.0", "4.0")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MultDoubleInt.quorum", "4", "4")
     end
 
     action MultIntDouble
         suite:RunTest("Library/Tests/Expressions/Pass/MultIntDouble.quorum", "4.0", "4.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MultIntDouble.quorum", "4.0", "4.0")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MultIntDouble.quorum", "4", "4")
     end
 
     action MultIntInt
@@ -507,17 +509,17 @@ class ExpressionsTester
 
     action SubDoubleDouble
         suite:RunTest("Library/Tests/Expressions/Pass/SubDoubleDouble.quorum", "0.0", "0.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/SubDoubleDouble.quorum", "0.0", "0.0")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/SubDoubleDouble.quorum", "0", "0")
     end
 
     action SubDoubleInt
         suite:RunTest("Library/Tests/Expressions/Pass/SubDoubleInt.quorum", "0.0", "0.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/SubDoubleInt.quorum", "0.0", "0.0")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/SubDoubleInt.quorum", "0", "0")
     end
 
     action SubIntDouble
         suite:RunTest("Library/Tests/Expressions/Pass/SubIntDouble.quorum", "0.0", "0.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/SubIntDouble.quorum", "0.0", "0.0")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/SubIntDouble.quorum", "0", "0")
     end
 
     action SubIntInt

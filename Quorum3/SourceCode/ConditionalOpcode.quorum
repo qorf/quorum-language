@@ -143,23 +143,28 @@ class ConditionalOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text
-        text result = "if (" + expression:WriteJavaScript() + ") {"
+        EOL = ""
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        text result = "if (" + expression:WriteJavaScript() + ") {" + EOL
         result = result + block:WriteJavaScript()
-        result = result + "}"
+        result = result + "}" + EOL
 
         i = 0
         repeat elseIfExpressions:GetSize() times
             QuorumOpcode elseIfOp = elseIfExpressions:Get(i)
             BlockOpcode elseIfBlock = elseIfBlocks:Get(i)
 
-            result = result + "else if( " + elseIfOp:WriteJavaScript() + ") {" 
+            result = result + "else if( " + elseIfOp:WriteJavaScript() + ") {" + EOL
             result = result + elseIfBlock:WriteJavaScript()
-            result = result + "}"
+            result = result + "}" + EOL
             i = i + 1
         end
         
         if elseBlock not= undefined
-            result = result + elseBlock:WriteJavaScript()
+            if not elseBlock:IsEmpty()
+                result = result + "else { " + EOL + elseBlock:WriteJavaScript()
+                result = result + "}" + EOL
+            end
         end
 
         return result

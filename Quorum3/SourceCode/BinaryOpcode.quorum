@@ -34,7 +34,7 @@ class BinaryOpcode is QuorumOpcode
 
     action WriteJavaScript returns text
         //This isn't working yet, it's just been stubbed in
-        text result = left:WriteJavaScript()
+        text result = "(" + left:WriteJavaScript()
         text operator = ""
         integer current = op:GetOperation()
 
@@ -69,7 +69,7 @@ class BinaryOpcode is QuorumOpcode
         end
 
         result = result + " " + operator
-        result = result + " " + right:WriteJavaScript()
+        result = result + " " + right:WriteJavaScript() + ")"
         return result
     end
 

@@ -24,6 +24,15 @@ class BlockOpcode is QuorumOpcode
         parentOpcode = block
     end
 
+    /*
+        This action returns true only if the block contains opcodes. This is
+        potentially useful for the case when a block exists, but there
+        is no valid code inside of it.
+    */
+    action IsEmpty returns boolean
+        return opcodes:IsEmpty()
+    end
+
     action WriteJavaScript returns text
         text result = ""
         Iterator<QuorumOpcode> iterator = opcodes:GetIterator()

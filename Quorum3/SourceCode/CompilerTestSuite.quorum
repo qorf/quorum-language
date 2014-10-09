@@ -13,6 +13,11 @@ use Libraries.System.DateTime
 
 class CompilerTestSuite
     integer total = 0
+    integer totalBytecode = 0
+    integer totalJavaScript = 0
+
+    integer bytecodePassed = 0
+    integer javaScriptPassed = 0
     integer passed = 0
     integer failed = 0
     Math math
@@ -67,16 +72,27 @@ class CompilerTestSuite
         //exceptionChecks:Test()
         output ""
 
+        text EOL = ""
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+
         DateTime date2
         finish = date2:GetEpochTime()
         number totalTime = finish - start
         totalTime = totalTime / 1000.0
+        number bytecodePercentage = math:Round((bytecodePassed  * 100.0) / (totalBytecode * 1.0), 3)
+        number javaScriptPercentage = math:Round((javaScriptPassed  * 100.0) / (totalJavaScript * 1.0), 3)
+
         output "Finished Testing in " + totalTime + " seconds."
+        output "Bytecode Tests Passed: " + bytecodePassed + " out of " + totalBytecode
+        output "Bytecode Percentage: " + bytecodePercentage + "%." + EOL
+        
+        output "JavaScript Tests Passed: " + javaScriptPassed + " out of " + totalJavaScript
+        output "JavaScript Percentage: " + javaScriptPercentage + "%." + EOL
+
         output "Tests Passed: " + passed + " out of " + total
 
         number percent = math:Round((passed  * 100.0) / (total * 1.0), 3) //known bug workaround. This value should be 2, not three
         output "Total Percentage: " + percent + "%"
-
     end
 
     action RunJavaScriptTest(text source) returns CompilerTestResult
@@ -489,11 +505,19 @@ class CompilerTestSuite
         value = result:name 
 
         if result:isBytecodeTest
+            totalBytecode = totalBytecode + 1
             value = value + " (Bytecode)"
+            if result:passed
+                bytecodePassed = bytecodePassed + 1
+            end
         end
 
         if result:isJavaScriptTest
+            totalJavaScript = totalJavaScript + 1
             value = value + " (JavaScript)"
+            if result:passed
+                javaScriptPassed = javaScriptPassed + 1
+            end
         end
 
         if result:exceptionThrown

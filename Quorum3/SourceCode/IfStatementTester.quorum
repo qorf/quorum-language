@@ -294,7 +294,7 @@ class IfStatementTester
    
     action Lab3_1_0
         suite:RunTest("Library/Tests/IfStatement/Pass/Lab3_1_0.quorum", "Error: numberOfCars set to 1", "20000")
-        suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/Lab3_1_0.quorum", "20000")
+        suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/Lab3_1_0.quorum", "Error: numberOfCars set to 1", "20000")
     end
 
     action Lab3_1_1
@@ -314,7 +314,7 @@ class IfStatementTester
 
     action Lab3_1_21
         suite:RunTest("Library/Tests/IfStatement/Pass/Lab3_1_21.quorum", "Error: numberOfCars set to 20", "396000")
-        suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/Lab3_1_21.quorum", "396000")
+        suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/Lab3_1_21.quorum", "Error: numberOfCars set to 20", "396000")
     end
 
     action Lab3_1_3
@@ -339,7 +339,7 @@ class IfStatementTester
  
     action MultipleIfElseBlocks_1BFalse
         suite:RunTest("Library/Tests/IfStatement/Pass/MultipleIfElseBlocks_1BFalse.quorum", "112")
-        suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/MultipleIfElseBlocks_1AFalse.quorum", "112")
+        suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/MultipleIfElseBlocks_1BFalse.quorum", "112")
     end
 
     action MultipleIfElseBlocks_1BTrue
@@ -539,7 +539,7 @@ class IfStatementTester
 
     action MultipleIfBlocksNestedLevel2_1C2
         suite:RunTest("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1C2.quorum", "2601")
-        suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1C1.quorum", "2601")
+        suite:RunJavaScriptTest("Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1C2.quorum", "2601")
     end
 
     //FAIL TESTS
