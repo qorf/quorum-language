@@ -14,7 +14,7 @@ class Main is WebResponder
     public constant number VERSION = 3.0
     action Main
 //        ProfileTest()
-//        ProfileWeb()
+        //ProfileWeb()
         Compiler compiler
         output compiler:GetVersion()
         File main
@@ -34,7 +34,7 @@ class Main is WebResponder
         end
     end
 
-    private action ProfileTest
+    private action ProfileWeb
         number total = 0
         integer amount = 1000
         output "Starting Compiler Profiler: Desktop mode"
@@ -63,7 +63,7 @@ class Main is WebResponder
         output "The total throughput of the compiler is " + compilesPerSecond + " compiles per second."
     end
 
-    private action ProfileWeb
+    private action ProfileTest
         number total = 0
         integer amount = 1000
         output "Starting Compiler Profiler: Web mode"
@@ -96,14 +96,26 @@ class Main is WebResponder
         text result = ""
         WebResponse response
         constant text CODE_REQUEST = "code"
+        Compiler compiler
+        
+
+        File library
+        //To deploy to a particular server, change this line to the 
+        //parent directory for where the standard library is housed.
+        library:SetWorkingDirectory("/home/stefika/converter")
+        library:SetPath("Library/Standard")
+        compiler:SetStandardLibraryFolder(library)
+        
+        text directory = library:GetWorkingDirectory()
         //if there is no code tag, then just ignore the request
         if not request:HasParameter(CODE_REQUEST)
-            response:SetPageText("No Quorum code was sent to the server.")
+            
+            //response:SetPageText("No Quorum code was sent to the server.")
+            response:SetPageText(directory)
             return response
         end
 
         text source = request:GetParameter("code")
-        Compiler compiler
         compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:CompileSingle(source)
 
