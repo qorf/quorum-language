@@ -73,7 +73,7 @@ public class CompilerTestSuite {
             Object eval = engine.eval(script);
             
             String output = eval.toString();
-            String lines[] = output.split("</br>");
+            String lines[] = output.split("<br />");
             for(int i = 0; i < lines.length; i++) {
                 Text text = new Text();
                 text.SetValue(lines[i]);
