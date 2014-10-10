@@ -472,24 +472,16 @@ var submitCodeSample = function(){
 		console.log(codeData);
 		$.ajax({
 			type: "POST",
-			url: "http://run.quorumlanguage.com",
+			url: "http://beta.quorumlanguage.com/proxy.php",
 			data: codeData,
 			success: function(result){
-//				var start = 0;
-//				result.indexOf("|") > 0  ? start = result.indexOf("|")+1 : start = 0;
-//				var output = result.substring(start, result.length-1);
-				//$(".outputArea").text(output);
-                                //document.getElementById("myDiv").innerHTML='<script type="text/javascript" id="runscript">alert("This alert was produced from the AJAX call");<\/script>';
-                                //alert(output);
-                                //var value = eval(result);
                                 console.log(result);
-                                $("#IDE-output").text(result);
-                                //$("#IDE-output").text(eval(result));
+                                $("#IDE-output").html(eval(result));
                                 //window.speechSynthesis.speak(msg);
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
 				console.log(xhr, ajaxOptions, thrownError);
-                                $(".outputArea").text("Error: Could not connect to server");
+                                $(".outputArea").html("Error: Could not connect to server: " + thrownError.toString());
 			}
 		});
 	})
