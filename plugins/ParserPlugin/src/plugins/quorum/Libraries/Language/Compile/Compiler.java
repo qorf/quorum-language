@@ -16,9 +16,9 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import quorum.Libraries.Language.Compile.CompilerError;
+import quorum.Libraries.Language.Compile.CompilerErrorType;
 import quorum.Libraries.Language.Compile.QuorumBytecodeListener;
-import quorum.Libraries.Language.Compile.QuorumSourceListener;
-import quorum.Libraries.Language.Compile.Translate.QuorumBytecodeConverter;
 
 
 /**
@@ -27,7 +27,7 @@ import quorum.Libraries.Language.Compile.Translate.QuorumBytecodeConverter;
  */
 public class Compiler {
     public java.lang.Object $me = null;
-    private JavaToQuorumListener javaToQuorumListener = new JavaToQuorumListener();
+    
     
     public void ConnectToAntlr() {
         
@@ -35,27 +35,62 @@ public class Compiler {
     
     public void ParseNative(File$Interface file, QuorumSourceListener$Interface listener) {
         try {
-            ANTLRFileStream stream = new ANTLRFileStream(file.GetAbsolutePath());
-            QuorumLexer lexer = new QuorumLexer(stream);
-            CommonTokenStream tokens = new CommonTokenStream(lexer);
-            QuorumParser parser = new QuorumParser(tokens);
-            ParseTree tree = parser.start();
+            JavaToQuorumListener javaToQuorumListener = new JavaToQuorumListener();
+            QuorumErrorListener javaToQuorumErrorListener = new QuorumErrorListener();
             javaToQuorumListener.setFile(file);
             javaToQuorumListener.setListener(listener);
+            javaToQuorumErrorListener.setFile(file);
+            javaToQuorumErrorListener.setListener(listener);
+            
+            ANTLRFileStream stream = new ANTLRFileStream(file.GetAbsolutePath());
+            QuorumLexer lexer = new QuorumLexer(stream);
+            lexer.removeErrorListeners();
+            lexer.addErrorListener(javaToQuorumErrorListener);
+            
+            
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            QuorumParser parser = new QuorumParser(tokens);
+            parser.removeErrorListeners();
+            parser.addErrorListener(javaToQuorumErrorListener);
+            
+            ParseTree tree = parser.start();
+            
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.walk(javaToQuorumListener, tree);
         } catch (IOException ex) {
-            Logger.getLogger(Compiler.class.getName()).log(Level.SEVERE, null, ex);
+            CompilerError error = new CompilerError();
+            error.SetFile(file);
+            error.SetLineNumber(1);
+            error.SetColumnNumber(1);
+            CompilerErrorType type = new CompilerErrorType();
+            type.SetCurrentType(type.MISSING_FILE);
+            error.SetCompilerErrorType(type);
+            if(file == null) {
+                error.SetErrorMessage("I cannot find this file.");
+            } else {
+                error.SetErrorMessage("I cannot find this file.");
+            }
+            listener.SyntaxError(error);
         }
     }
     
     public void ParseNative(String source, QuorumSourceListener$Interface listener) {
+        JavaToQuorumListener javaToQuorumListener = new JavaToQuorumListener();
+        QuorumErrorListener javaToQuorumErrorListener = new QuorumErrorListener();
+        javaToQuorumListener.setListener(listener);
+        javaToQuorumErrorListener.setListener(listener);
+            
         ANTLRInputStream stream = new ANTLRInputStream(source);
         QuorumLexer lexer = new QuorumLexer(stream);
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(javaToQuorumErrorListener);
+            
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         QuorumParser parser = new QuorumParser(tokens);
+        parser.removeErrorListeners();
+        parser.addErrorListener(javaToQuorumErrorListener);
+        
         ParseTree tree = parser.start();
-        javaToQuorumListener.setListener(listener);
         ParseTreeWalker walker = new ParseTreeWalker();
         walker.walk(javaToQuorumListener, tree);
     }
@@ -71,7 +106,5 @@ public class Compiler {
         
         file.SetPath("Expression.quorum");
         compiler.ParseNative(file, listener);
-        
-        
     }
 }
