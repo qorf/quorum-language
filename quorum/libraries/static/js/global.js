@@ -476,7 +476,13 @@ var submitCodeSample = function(){
 			data: codeData,
 			success: function(result){
                                 console.log(result);
-                                $("#IDE-output").html(eval(result));
+                                try {
+                                    $("#IDE-output").html(eval(result));
+                                } catch (e) {
+                                    if (e instanceof SyntaxError) {
+                                        $("#IDE-output").text(result);
+                                    }
+                                }
                                 //window.speechSynthesis.speak(msg);
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
