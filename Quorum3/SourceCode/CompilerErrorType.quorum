@@ -42,6 +42,11 @@ class CompilerErrorType
     constant text CONSTANT_INITIALIZED_MESSAGE = "constant not initialized" 
     constant text VARIABLE_INFERRENCE_MESSAGE = "Cannot infer type"
     constant text INITIALIZED_OUT_OF_BOUNDS_MESSAGE = "Cannot initialize parent variable"
+    constant text MISSING_FILE_MESSAGE = "Cannot find file"
+    constant text FAILED_PREDICATE_MESSAGE = "semantic predicate failed"
+    constant text INPUT_MISMATCH_MESSAGE = "input does not match expected token"
+    constant text LEXER_NO_VIABLE_ALTERNATIVE_MESSAGE = "No viable alternative in lexer"
+    constant text PARSER_NO_VIABLE_ALTERNATIVE_MESSAGE = "No viable alternative in parser"
 
     public constant integer MISSING_VARIABLE = 0
     public constant integer EXPECTED_CLOSURE = 1
@@ -82,6 +87,11 @@ class CompilerErrorType
     public constant integer CONSTANT_INITIALIZED = 36
     public constant integer VARIABLE_INFERRENCE = 37
     public constant integer INITIALIZED_OUT_OF_BOUNDS = 38
+    public constant integer MISSING_FILE = 39
+    public constant integer FAILED_PREDICATE = 40
+    public constant integer INPUT_MISMATCH = 41
+    public constant integer LEXER_NO_VIABLE_ALTERNATIVE = 42
+    public constant integer PARSER_NO_VIABLE_ALTERNATIVE = 43
 
     HashTable<integer, text> messages
     integer currentType = -1
@@ -126,6 +136,11 @@ class CompilerErrorType
         messages:Add(CONSTANT_INITIALIZED, CONSTANT_INITIALIZED_MESSAGE)
         messages:Add(VARIABLE_INFERRENCE, VARIABLE_INFERRENCE_MESSAGE)
         messages:Add(INITIALIZED_OUT_OF_BOUNDS, INITIALIZED_OUT_OF_BOUNDS_MESSAGE)
+        messages:Add(MISSING_FILE, MISSING_FILE_MESSAGE)
+        messages:Add(FAILED_PREDICATE, FAILED_PREDICATE_MESSAGE)
+        messages:Add(INPUT_MISMATCH, INPUT_MISMATCH_MESSAGE)
+        messages:Add(LEXER_NO_VIABLE_ALTERNATIVE, LEXER_NO_VIABLE_ALTERNATIVE_MESSAGE)
+        messages:Add(PARSER_NO_VIABLE_ALTERNATIVE, PARSER_NO_VIABLE_ALTERNATIVE_MESSAGE)
     end
 
     action GetMessage() returns text
@@ -138,7 +153,7 @@ class CompilerErrorType
     end
 
     action SetCurrentType(integer type)
-        if type < MISSING_VARIABLE or type > INITIALIZED_OUT_OF_BOUNDS
+        if type < MISSING_VARIABLE or type > PARSER_NO_VIABLE_ALTERNATIVE
             alert("Compiler bug: Invalid CompilerErrorType")
         end
 

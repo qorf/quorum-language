@@ -269,12 +269,14 @@ class Compiler
     end
 
     action GetCompilerErrorsAsText returns text
-        text result =  "The code did not build correctly. Here is a list of errors:"
+        text EOL = ""
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        text result =  "This program did not compile. I have compiled a list of errors for you below:" + EOL
         Iterator<CompilerError> errors = compilerErrorManager:GetIterator()
         repeat while errors:HasNext()
             CompilerError error = errors:Next()
             text t = error:GetDisplayName()
-            result = result + t
+            result = EOL + result + t
         end
         return result
     end

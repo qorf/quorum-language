@@ -231,4 +231,14 @@ class QuorumSourceListener
 
     action EnterParentCall(ParentCallContext ctx) end
     action ExitParentCall(ParentCallContext ctx) end
+
+    /*
+        This action is called only under the condition that we are receiving
+        error message events from the underlying parser technology (e.g., ANTLR).
+        If we are, the messages will be propogated. Generally, this 
+        action does not need to be overriden.
+    */
+    action SyntaxError(CompilerError error) 
+        compilerErrorManager:Add(error)
+    end
 end
