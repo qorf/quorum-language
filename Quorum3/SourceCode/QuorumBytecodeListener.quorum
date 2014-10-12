@@ -480,6 +480,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     action ExitNoTypeAssignment(NoTypeAssignmentContext context) 
         text name = context:name
         Variable variable = undefined
+        TypeChecker checker = GetTypeChecker()
 
         if context:hasMe or context:isField
             variable = currentClass:GetVariable(name)
@@ -490,9 +491,10 @@ class QuorumBytecodeListener is QuorumSourceListener
 
             QuorumOpcode right = opcodeStack:Pop()
             if left = undefined //if the type is undefined, it might be possible to infer it
-                Type rightType = right:GetType()
-                rightType = rightType:Copy()
-                if right is QuorumConstant //hey awesome, that was easy!
+                InferenceResult infer = checker:CanInfer(right)
+                if infer:canInfer //hey awesome, that was easy!
+                    Type rightType = right:GetType()
+                    rightType = rightType:Copy()
                     left = rightType
                     variable:SetType(left)
                 else
@@ -515,7 +517,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             Operation assign
             assign:SetOperation(assign:EQUALS)
 
-            TypeChecker checker = GetTypeChecker()
+            
             TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
 
             integer location = variable:GetBytecodeLocation()

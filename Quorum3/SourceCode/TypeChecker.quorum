@@ -1913,4 +1913,14 @@ class TypeChecker
         end
         return result
     end
+
+    action CanInfer(QuorumOpcode opcode) returns InferenceResult
+        InferenceResult result
+        if opcode is QuorumConstant //hey awesome, that was easy!
+            result:canInfer = true
+        else
+            result:canInfer = false
+        end
+        return result
+    end
 end
