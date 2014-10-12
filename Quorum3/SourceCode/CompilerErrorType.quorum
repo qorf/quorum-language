@@ -40,7 +40,7 @@ class CompilerErrorType
     constant text CONSTANT_REASSIGNMENT_MESSAGE = "invalid constant assignment"
     constant text OTHER_MESSAGE = "other" 
     constant text CONSTANT_INITIALIZED_MESSAGE = "constant not initialized" 
-    constant text VARIABLE_INFERRENCE_MESSAGE = "Cannot infer type"
+    constant text VARIABLE_INFERENCE_MESSAGE = "Cannot infer type"
     constant text INITIALIZED_OUT_OF_BOUNDS_MESSAGE = "Cannot initialize parent variable"
     constant text MISSING_FILE_MESSAGE = "Cannot find file"
     constant text FAILED_PREDICATE_MESSAGE = "semantic predicate failed"
@@ -85,7 +85,7 @@ class CompilerErrorType
     public constant integer CONSTANT_REASSIGNMENT = 34
     public constant integer OTHER = 35
     public constant integer CONSTANT_INITIALIZED = 36
-    public constant integer VARIABLE_INFERRENCE = 37
+    public constant integer VARIABLE_INFERENCE = 37
     public constant integer INITIALIZED_OUT_OF_BOUNDS = 38
     public constant integer MISSING_FILE = 39
     public constant integer FAILED_PREDICATE = 40
@@ -134,7 +134,7 @@ class CompilerErrorType
         messages:Add(CONSTANT_REASSIGNMENT, CONSTANT_REASSIGNMENT_MESSAGE)
         messages:Add(OTHER, OTHER_MESSAGE)
         messages:Add(CONSTANT_INITIALIZED, CONSTANT_INITIALIZED_MESSAGE)
-        messages:Add(VARIABLE_INFERRENCE, VARIABLE_INFERRENCE_MESSAGE)
+        messages:Add(VARIABLE_INFERENCE, VARIABLE_INFERENCE_MESSAGE)
         messages:Add(INITIALIZED_OUT_OF_BOUNDS, INITIALIZED_OUT_OF_BOUNDS_MESSAGE)
         messages:Add(MISSING_FILE, MISSING_FILE_MESSAGE)
         messages:Add(FAILED_PREDICATE, FAILED_PREDICATE_MESSAGE)

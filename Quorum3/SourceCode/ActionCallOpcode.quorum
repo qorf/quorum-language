@@ -8,7 +8,7 @@ use Libraries.Language.Compile.Symbol.Variable
 
 class ActionCallOpcode is QuorumOpcode
     QuorumOpcode rightHandSide = undefined
-    integer bytecodeLocation = -1
+    //integer bytecodeLocation = -1
     JavaBytecodeOpcodes opcodes
     boolean isActionCall = false
     ActionCallResolution actionResolution = undefined
@@ -74,13 +74,13 @@ class ActionCallOpcode is QuorumOpcode
         isActionCall = act
     end
 
-    action GetBytecodeLocation returns integer
-        return bytecodeLocation
-    end
-
-    action SetBytecodeLocation(integer location)
-        bytecodeLocation = location
-    end
+//    action GetBytecodeLocation returns integer
+//        return bytecodeLocation
+//    end
+//
+//    action SetBytecodeLocation(integer location)
+//        bytecodeLocation = location
+//    end
 
     action Write //TODO: make this work for action calls and fields
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
@@ -106,8 +106,8 @@ class ActionCallOpcode is QuorumOpcode
             end
         else
             Type type = GetType()
-            if not isField
-                methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetType()), bytecodeLocation)
+            if not field:IsField()
+                methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetType()), field:GetBytecodeLocation())
             else
                 //Now write the getter for the field
                 path = fieldHolder:ConvertStaticKeyToBytecodeInterfacePath()

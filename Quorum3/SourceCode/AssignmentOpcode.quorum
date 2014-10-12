@@ -5,7 +5,7 @@ use Libraries.Language.Compile.Symbol.Variable
 use Libraries.Language.Compile.Symbol.Class
 
 class AssignmentOpcode is QuorumOpcode
-    integer bytecodeLocation = -1
+    //integer bytecodeLocation = -1
     integer opcode = -1
     integer opcode2 = -1
     //JavaBytecodeMethodWriter methodWriter = undefined
@@ -73,13 +73,13 @@ class AssignmentOpcode is QuorumOpcode
         opcode2 = op
     end
     
-    action GetBytecodeLocation returns integer
-        return bytecodeLocation
-    end
-
-    action SetBytecodeLocation(integer location)
-        bytecodeLocation = location
-    end
+//    action GetBytecodeLocation returns integer
+//        return bytecodeLocation
+//    end
+//
+//    action SetBytecodeLocation(integer location)
+//        bytecodeLocation = location
+//    end
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
@@ -100,16 +100,16 @@ class AssignmentOpcode is QuorumOpcode
                         type:ConvertTypeToBytecodeSignature())
                 else
                     rightHandSide:Write()
-                    methodWriter:VisitVariable(opcode, bytecodeLocation)
+                    methodWriter:VisitVariable(opcode, variable:GetBytecodeLocation())
 
                     if opcode2 not= -1
-                        methodWriter:VisitVariable(opcode2, bytecodeLocation)
+                        methodWriter:VisitVariable(opcode2, variable:GetBytecodeLocation())
                     end
                 end
             end
         else
             Type type = field:GetType()
-            methodWriter:VisitVariable(opcodes:GetObjectLoad(), bytecodeLocation)
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), variable:GetBytecodeLocation())
             rightHandSide:Write()
             path = clazz:ConvertStaticKeyToBytecodeInterfacePath()
             getterName = clazz:ConvertToActionNameFromField(field, false)

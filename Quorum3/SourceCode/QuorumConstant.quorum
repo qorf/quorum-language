@@ -18,6 +18,8 @@ class QuorumConstant is QuorumOpcode
             return type:GetBooleanConstant() + ""
         elseif type:IsText()
             return textValue:GetDoubleQuote() + type:GetTextConstant() + textValue:GetDoubleQuote() + ""
+        elseif type:IsUndefined()
+            return "null"
         end
         return ""
     end
@@ -33,6 +35,8 @@ class QuorumConstant is QuorumOpcode
             methodWriter:VisitConstant(booleanValue)
         elseif type:IsText()
             methodWriter:VisitConstant(textValue)
+        elseif type:IsUndefined()
+            methodWriter:VisitUndefinedConstant()
         end
     end
 

@@ -5,10 +5,19 @@ use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
 
 class CreateObjectOpcode is QuorumOpcode
-    integer bytecodeLocation = -1
+    //integer bytecodeLocation = -1
     JavaBytecodeMethodWriter methodWriter = undefined
     JavaBytecodeOpcodes opcodes
     Class clazz = undefined
+    Variable variable = undefined
+
+    action GetVariable returns Variable
+        return variable
+    end
+
+    action SetVariable(Variable field)
+        me:variable = field
+    end
 
     action GetClass returns Class
         return clazz
@@ -20,13 +29,13 @@ class CreateObjectOpcode is QuorumOpcode
         type:SetToObject(clazz)
     end
 
-    action GetBytecodeLocation returns integer
-        return bytecodeLocation
-    end
-
-    action SetBytecodeLocation(integer location)
-        bytecodeLocation = location
-    end
+//    action GetBytecodeLocation returns integer
+//        return bytecodeLocation
+//    end
+//
+//    action SetBytecodeLocation(integer location)
+//        bytecodeLocation = location
+//    end
 
     action WriteJavaScript returns text
         return ""
@@ -37,7 +46,7 @@ class CreateObjectOpcode is QuorumOpcode
             methodWriter:VisitType(opcodes:GetNew(), clazz:ConvertStaticKeyToBytecodePath())
             methodWriter:VisitInstruction(opcodes:GetDuplicate())
             methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), clazz:ConvertStaticKeyToBytecodePath(), "<init>", "()V", false)
-            methodWriter:VisitVariable(opcodes:GetObjectStore(), bytecodeLocation)
+            methodWriter:VisitVariable(opcodes:GetObjectStore(), variable:GetBytecodeLocation())
         end
     end
 

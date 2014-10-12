@@ -1,5 +1,7 @@
 package Libraries.Language.Compile.Translate
 
+use Libraries.Language.Compile.Symbol.all
+
 class LoopOpcode is QuorumOpcode
     QuorumOpcode expression = undefined
     BlockOpcode block = undefined
@@ -7,15 +9,25 @@ class LoopOpcode is QuorumOpcode
     JavaBytecodeOpcodes opcodes
     boolean isUntil = false
     boolean isTimes = false
-    integer bytecodeLocation = -1
+    Variable variable = undefined
 
-    action GetBytecodeLocation returns integer
-        return bytecodeLocation
+    action GetVariable returns Variable
+        return variable
     end
 
-    action SetBytecodeLocation(integer location) 
-        bytecodeLocation = location
+    action SetVariable(Variable field)
+        me:variable = field
     end
+
+//    integer bytecodeLocation = -1
+//
+//    action GetBytecodeLocation returns integer
+//        return bytecodeLocation
+//    end
+//
+//    action SetBytecodeLocation(integer location) 
+//        bytecodeLocation = location
+//    end
 
     action SetWhile
         isUntil = false
@@ -64,7 +76,7 @@ class LoopOpcode is QuorumOpcode
             methodWriter:VisitLabel(startLabel)
         else 
             methodWriter:VisitConstant(0)
-            methodWriter:VisitVariable(opcodes:GetIntegerStore(), bytecodeLocation)
+            methodWriter:VisitVariable(opcodes:GetIntegerStore(), variable:GetBytecodeLocation())
         end
 
         expression:Write()
@@ -78,7 +90,7 @@ class LoopOpcode is QuorumOpcode
             methodWriter:VisitInstruction(opcodes:GetDuplicate())
             
             //then push on the counter variable
-            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), bytecodeLocation)
+            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), variable:GetBytecodeLocation())
 
             //next compare the counter variable with the value
             methodWriter:VisitJump(opcodes:GetIfIntegerLessThanEquals(), endLabel)
@@ -103,10 +115,10 @@ class LoopOpcode is QuorumOpcode
         block:Write()
 
         if isTimes
-            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), bytecodeLocation)
+            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), variable:GetBytecodeLocation())
             methodWriter:VisitConstant(1)
             methodWriter:VisitInstruction(opcodes:GetIntegerAdd())
-            methodWriter:VisitVariable(opcodes:GetIntegerStore(), bytecodeLocation)
+            methodWriter:VisitVariable(opcodes:GetIntegerStore(), variable:GetBytecodeLocation())
         end
 
         methodWriter:VisitJump(opcodes:GetGoto(), startLabel)

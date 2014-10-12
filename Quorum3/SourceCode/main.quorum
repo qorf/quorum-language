@@ -18,11 +18,11 @@ class Main is WebResponder
         Compiler compiler
         output compiler:GetVersion()
         File main
-        main:SetPath("Library/Tests/Expressions/Pass/HelloWorldsdfsdfsdf.quorum")
+        main:SetPath("Library/Tests/Expressions/Pass/GetMaxParameterInteger.quorum")
         Array<File> files
 
         files:Add(main)
-        compiler:SetOutputType(compiler:JAVASCRIPT)
+        //compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:SetMain(main)
         compiler:Compile(files)
 
@@ -37,7 +37,7 @@ class Main is WebResponder
     private action ProfileWeb
         number total = 0
         integer amount = 1000
-        output "Starting Compiler Profiler: Desktop mode"
+        output "Starting Compiler Profiler: Web mode"
         repeat amount times
             DateTime time
             start = time:GetEpochTime()
@@ -66,7 +66,7 @@ class Main is WebResponder
     private action ProfileTest
         number total = 0
         integer amount = 1000
-        output "Starting Compiler Profiler: Web mode"
+        output "Starting Compiler Profiler: Desktop mode"
         repeat amount times
             DateTime time
             start = time:GetEpochTime()

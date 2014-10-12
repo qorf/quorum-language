@@ -288,6 +288,17 @@ class Class is Symbol
         end
     end
 
+    action ResolveFrames
+        Iterator<Action> actionIterator = me:GetActions()
+        repeat while actionIterator:HasNext()
+            Action next = actionIterator:Next()
+            if not next:IsSystem() and not next:IsBlueprint()
+                Block b = next:GetBlock()
+                b:AssignBytecodeLocations()
+            end
+        end
+    end
+
     private action ResolveBlock(Block block, SymbolTable table, CompilerErrorManager errors)
         //first resolve all of the variables in this block
         Iterator<Variable> variables = block:GetVariables()

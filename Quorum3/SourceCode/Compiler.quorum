@@ -96,15 +96,15 @@ class Compiler
             TypeResolution()
         end
 
-        if compilerErrorManager:IsCompilationErrorFree()
-            i = 0
-            repeat while i < allFiles:GetSize()
-                File file = allFiles:Get(i)
-                TypeCheckListener listener
-                Parse(file, listener)
-                i = i + 1
-            end
-        end
+//        if compilerErrorManager:IsCompilationErrorFree()
+//            i = 0
+//            repeat while i < allFiles:GetSize()
+//                File file = allFiles:Get(i)
+//                TypeCheckListener listener
+//                Parse(file, listener)
+//                i = i + 1
+//            end
+//        end
 
         Array<ClassOpcode> classOpcodes
         if compilerErrorManager:IsCompilationErrorFree()
@@ -120,37 +120,38 @@ class Compiler
         end
 
         
-
-        if currentOutputType = JAVA_BYTECODE
-            //iterate over all the class opcodes and write them to disk
-            Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
-            repeat while codes:HasNext()
-                ClassOpcode code = codes:Next()
-                code:Write()
-            end
-
-            if compilerErrorManager:IsCompilationErrorFree()
-                QuorumJarGenerator generator
-                File jar = GetDistributionFile()
-                generator:SetCompiler(me)
-                generator:Write()
-            end
-        elseif currentOutputType = JAVASCRIPT
-            text result = ""
-            Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
-            repeat while codes:HasNext()
-                ClassOpcode code = codes:Next()
-                Class clazz = code:GetClass()
-
-                Class mainClazz = me:GetMainClass()
-                text mainClazzName = mainClazz:GetStaticKey()
-                text clazzName = clazz:GetStaticKey()
-                if clazzName = mainClazzName //keep it simple in the first version.
-                    result = result + code:WriteJavaScript()
+        if compilerErrorManager:IsCompilationErrorFree()
+            if currentOutputType = JAVA_BYTECODE
+                //iterate over all the class opcodes and write them to disk
+                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+                repeat while codes:HasNext()
+                    ClassOpcode code = codes:Next()
+                    code:Write()
                 end
-                a = 5
+
+                if compilerErrorManager:IsCompilationErrorFree()
+                    QuorumJarGenerator generator
+                    File jar = GetDistributionFile()
+                    generator:SetCompiler(me)
+                    generator:Write()
+                end
+            elseif currentOutputType = JAVASCRIPT
+                text result = ""
+                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+                repeat while codes:HasNext()
+                    ClassOpcode code = codes:Next()
+                    Class clazz = code:GetClass()
+
+                    Class mainClazz = me:GetMainClass()
+                    text mainClazzName = mainClazz:GetStaticKey()
+                    text clazzName = clazz:GetStaticKey()
+                    if clazzName = mainClazzName //keep it simple in the first version.
+                        result = result + code:WriteJavaScript()
+                    end
+                    a = 5
+                end
+                convertedJavaScript = result
             end
-            convertedJavaScript = result
         end
     end
 
@@ -175,20 +176,20 @@ class Compiler
             TypeResolution()
         end
 
-        if compilerErrorManager:IsCompilationErrorFree()
-            i = 0
-            repeat while i < allFiles:GetSize()
-                File file = allFiles:Get(i)
-                TypeCheckListener listener
-                if file:GetPath() = fakePath
-                    listener:SetFile(file)
-                    Parse(source, listener)
-                else
-                    Parse(file, listener)
-                end
-                i = i + 1
-            end
-        end
+//        if compilerErrorManager:IsCompilationErrorFree()
+//            i = 0
+//            repeat while i < allFiles:GetSize()
+//                File file = allFiles:Get(i)
+//                TypeCheckListener listener
+//                if file:GetPath() = fakePath
+//                    listener:SetFile(file)
+//                    Parse(source, listener)
+//                else
+//                    Parse(file, listener)
+//                end
+//                i = i + 1
+//            end
+//        end
 
         Array<ClassOpcode> classOpcodes
         if compilerErrorManager:IsCompilationErrorFree()
@@ -208,36 +209,39 @@ class Compiler
             end
         end
 
-        if currentOutputType = JAVA_BYTECODE
-            //iterate over all the class opcodes and write them to disk
-            Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
-            repeat while codes:HasNext()
-                ClassOpcode code = codes:Next()
-                code:Write()
-            end
+        if compilerErrorManager:IsCompilationErrorFree()
 
-            if compilerErrorManager:IsCompilationErrorFree()
-                QuorumJarGenerator generator
-                File jar = GetDistributionFile()
-                generator:SetCompiler(me)
-                generator:Write()
-            end
-        elseif currentOutputType = JAVASCRIPT
-            text result = ""
-            Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
-            repeat while codes:HasNext()
-                ClassOpcode code = codes:Next()
-                Class clazz = code:GetClass()
-
-                Class mainClazz = me:GetMainClass()
-                text mainClazzName = mainClazz:GetStaticKey()
-                text clazzName = clazz:GetStaticKey()
-                if clazzName = mainClazzName //keep it simple in the first version.
-                    result = result + code:WriteJavaScript()
+            if currentOutputType = JAVA_BYTECODE
+                //iterate over all the class opcodes and write them to disk
+                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+                repeat while codes:HasNext()
+                    ClassOpcode code = codes:Next()
+                    code:Write()
                 end
-                a = 5
+
+                if compilerErrorManager:IsCompilationErrorFree()
+                    QuorumJarGenerator generator
+                    File jar = GetDistributionFile()
+                    generator:SetCompiler(me)
+                    generator:Write()
+                end
+            elseif currentOutputType = JAVASCRIPT
+                text result = ""
+                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+                repeat while codes:HasNext()
+                    ClassOpcode code = codes:Next()
+                    Class clazz = code:GetClass()
+
+                    Class mainClazz = me:GetMainClass()
+                    text mainClazzName = mainClazz:GetStaticKey()
+                    text clazzName = clazz:GetStaticKey()
+                    if clazzName = mainClazzName //keep it simple in the first version.
+                        result = result + code:WriteJavaScript()
+                    end
+                    a = 5
+                end
+                convertedJavaScript = result
             end
-            convertedJavaScript = result
         end
     end
 

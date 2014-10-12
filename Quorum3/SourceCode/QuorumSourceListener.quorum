@@ -67,9 +67,6 @@ class QuorumSourceListener
     action EnterNoClassDeclaration(NoClassDeclarationContext ctx) end
     action ExitNoClassDeclaration(NoClassDeclarationContext ctx)  end
 
-    action EnterSoloActionCall(ActionCallContext context) end
-    action ExitSoloActionCall(ActionCallContext context) end
-
     action EnterFormalParameter(FormalParameterContext context) end
     action ExitFormalParameter(FormalParameterContext context) end
 
@@ -219,6 +216,12 @@ class QuorumSourceListener
 
     action EnterMeVariableAccess(MeVariableAccessContext context) end
     action ExitMeVariableAccess(MeVariableAccessContext context) end
+
+    action EnterVariableSoloFunctionCall(VariableFunctionCallContext context) end
+    action ExitVariableSoloFunctionCall(VariableFunctionCallContext context) end
+
+    action EnterParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) end
+    action ExitParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) end
 
     action EnterVariableFunctionCall(VariableFunctionCallContext context) end
     action ExitVariableFunctionCall(VariableFunctionCallContext context) end

@@ -17,6 +17,7 @@ class Type
     boolean isPrimitive = false
     boolean isConstant = false
     boolean isGeneric = false
+    boolean isUndefined = false
     text genericName = ""
     text staticKey = ""
     Array<Type> generics
@@ -58,6 +59,8 @@ class Type
             type:SetTextConstant(textConstant)
         elseif IsVoid()
             type:SetToVoid()
+        elseif IsUndefined()
+            type:SetToUndefined()
         else
             type:SetToObject(staticKey)
         end
@@ -264,7 +267,27 @@ class Type
         isNumber = false
         isBoolean = false
         isVoid = true
+        isUndefined = false
         staticKey = VOID_KEY
+    end
+
+    action SetToUndefined
+        isInteger = false
+        isText = false
+        isNumber = false
+        isBoolean = false
+        isVoid = false
+        isIntegerObject = false
+        isTextObject = false
+        isNumberObject = false
+        isBooleanObject = false
+        isPrimitive = false
+        isUndefined = true
+        staticKey = UNDEFINED_KEY
+    end
+    
+    action IsUndefined returns boolean
+        return isUndefined
     end
 
     action SetToInteger
@@ -278,6 +301,7 @@ class Type
         isNumberObject = false
         isBooleanObject = false
         isPrimitive = true
+        isUndefined = false
         staticKey = INTEGER_PRIMITIVE_KEY
     end
 
@@ -292,6 +316,7 @@ class Type
         isNumberObject = false
         isBooleanObject = false
         isPrimitive = true
+        isUndefined = false
         staticKey = BOOLEAN_PRIMITIVE_KEY
     end
 
@@ -306,6 +331,7 @@ class Type
         isNumberObject = false
         isBooleanObject = false
         isPrimitive = true
+        isUndefined = false
         staticKey = NUMBER_PRIMITIVE_KEY
     end
 
@@ -320,6 +346,7 @@ class Type
         isNumberObject = false
         isBooleanObject = false
         isPrimitive = true
+        isUndefined = false
         staticKey = TEXT_PRIMITIVE_KEY
     end
 
@@ -334,6 +361,7 @@ class Type
         isNumberObject = false
         isBooleanObject = false
         isPrimitive = false
+        isUndefined = false
         staticKey = INTEGER_OBJECT_KEY
     end
 
@@ -348,6 +376,7 @@ class Type
         isNumberObject = false
         isBooleanObject = true
         isPrimitive = false
+        isUndefined = false
         staticKey = BOOLEAN_OBJECT_KEY
     end
 
@@ -362,6 +391,7 @@ class Type
         isNumberObject = true
         isBooleanObject = false
         isPrimitive = false
+        isUndefined = false
         staticKey = NUMBER_OBJECT_KEY
     end
 
@@ -376,6 +406,7 @@ class Type
         isNumberObject = false
         isBooleanObject = false
         isPrimitive = false
+        isUndefined = false
         staticKey = TEXT_OBJECT_KEY
     end
 
@@ -395,6 +426,7 @@ class Type
         isTextObject = true
         isNumberObject = false
         isBooleanObject = false
+        isUndefined = false
         isPrimitive = false
     end
 
@@ -412,6 +444,7 @@ class Type
         isTextObject = true
         isNumberObject = false
         isBooleanObject = false
+        isUndefined = false
         isPrimitive = false
     end
 
