@@ -160,19 +160,6 @@ public class QuorumBaseListener implements QuorumListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSolo_method_call(@NotNull QuorumParser.Solo_method_callContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSolo_method_call(@NotNull QuorumParser.Solo_method_callContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterVariableFunctionCall(@NotNull QuorumParser.VariableFunctionCallContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -349,6 +336,19 @@ public class QuorumBaseListener implements QuorumListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitFullClassDeclaration(@NotNull QuorumParser.FullClassDeclarationContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterVariableSoloFunctionCall(@NotNull QuorumParser.VariableSoloFunctionCallContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitVariableSoloFunctionCall(@NotNull QuorumParser.VariableSoloFunctionCallContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -674,6 +674,19 @@ public class QuorumBaseListener implements QuorumListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitMinus(@NotNull QuorumParser.MinusContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterParentVariableSoloFunctionCall(@NotNull QuorumParser.ParentVariableSoloFunctionCallContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitParentVariableSoloFunctionCall(@NotNull QuorumParser.ParentVariableSoloFunctionCallContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

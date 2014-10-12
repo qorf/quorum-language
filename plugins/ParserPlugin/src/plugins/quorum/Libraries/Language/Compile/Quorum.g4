@@ -85,11 +85,9 @@ statement:
 
 solo_method_call 
 	:
-	qualified_name (COLON ID)? LEFT_PAREN (expression (COMMA expression)*)? RIGHT_PAREN
-	|	PARENT COLON qualified_name COLON ID LEFT_PAREN (expression (COMMA expression)*)? RIGHT_PAREN
-	|	ME COLON qualified_name (COLON ID)? LEFT_PAREN (expression (COMMA expression)*)? RIGHT_PAREN
+            (ME COLON)? var=ID LEFT_PAREN function_expression_list RIGHT_PAREN (COLON action_call)*                                                 #VariableSoloFunctionCall
+        |   (ME COLON)? PARENT COLON parent=qualified_name COLON var=ID LEFT_PAREN function_expression_list RIGHT_PAREN (COLON action_call)*        #ParentVariableSoloFunctionCall
 	;
-	
 alert_statement 
 	:	ALERT LEFT_PAREN expression RIGHT_PAREN
 	;

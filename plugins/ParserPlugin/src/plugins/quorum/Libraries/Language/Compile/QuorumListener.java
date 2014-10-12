@@ -130,17 +130,6 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitElseif_statement(@NotNull QuorumParser.Elseif_statementContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link QuorumParser#solo_method_call}.
-	 * @param ctx the parse tree
-	 */
-	void enterSolo_method_call(@NotNull QuorumParser.Solo_method_callContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#solo_method_call}.
-	 * @param ctx the parse tree
-	 */
-	void exitSolo_method_call(@NotNull QuorumParser.Solo_method_callContext ctx);
-
-	/**
 	 * Enter a parse tree produced by {@link QuorumParser#VariableFunctionCall}.
 	 * @param ctx the parse tree
 	 */
@@ -293,6 +282,17 @@ public interface QuorumListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFullClassDeclaration(@NotNull QuorumParser.FullClassDeclarationContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link QuorumParser#VariableSoloFunctionCall}.
+	 * @param ctx the parse tree
+	 */
+	void enterVariableSoloFunctionCall(@NotNull QuorumParser.VariableSoloFunctionCallContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuorumParser#VariableSoloFunctionCall}.
+	 * @param ctx the parse tree
+	 */
+	void exitVariableSoloFunctionCall(@NotNull QuorumParser.VariableSoloFunctionCallContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link QuorumParser#generic_statement}.
@@ -568,6 +568,17 @@ public interface QuorumListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitMinus(@NotNull QuorumParser.MinusContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link QuorumParser#ParentVariableSoloFunctionCall}.
+	 * @param ctx the parse tree
+	 */
+	void enterParentVariableSoloFunctionCall(@NotNull QuorumParser.ParentVariableSoloFunctionCallContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuorumParser#ParentVariableSoloFunctionCall}.
+	 * @param ctx the parse tree
+	 */
+	void exitParentVariableSoloFunctionCall(@NotNull QuorumParser.ParentVariableSoloFunctionCallContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link QuorumParser#NoTypeAssignment}.

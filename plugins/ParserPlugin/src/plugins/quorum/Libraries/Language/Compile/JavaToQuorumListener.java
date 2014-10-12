@@ -159,29 +159,10 @@ public class JavaToQuorumListener implements QuorumListener {
     }
 
     @Override
-    public void enterSolo_method_call(QuorumParser.Solo_method_callContext ctx) {
-        quorum.Libraries.Language.Compile.Context.ActionCallContext context = 
-                new quorum.Libraries.Language.Compile.Context.ActionCallContext();
-        setLocation(ctx, context);
-        context.isSolo = true;
-        listener.EnterSoloActionCall(context);
-    }
-
-    @Override
-    public void exitSolo_method_call(QuorumParser.Solo_method_callContext ctx) {
-        quorum.Libraries.Language.Compile.Context.ActionCallContext context = 
-                new quorum.Libraries.Language.Compile.Context.ActionCallContext();
-        setLocation(ctx, context);
-        context.isSolo = true;
-        listener.ExitSoloActionCall(context);
-    }
-
-    @Override
     public void enterFormal_parameter(QuorumParser.Formal_parameterContext ctx) {
         FormalParameterContext context = new FormalParameterContext();
         setLocation(ctx, context);
         context.name = ctx.ID().getText();
-        
         
         listener.EnterFormalParameter(context);
     }
@@ -1334,25 +1315,43 @@ public class JavaToQuorumListener implements QuorumListener {
     }
 
     @Override
+    public void enterVariableSoloFunctionCall(QuorumParser.VariableSoloFunctionCallContext ctx) {
+        VariableFunctionCallContext context = new VariableFunctionCallContext();
+        setLocation(ctx, context);
+        boolean hasMe = ctx.ME() != null;
+        context.hasMe = hasMe;
+        listener.EnterVariableSoloFunctionCall(context);
+    }
+
+    @Override
+    public void exitVariableSoloFunctionCall(QuorumParser.VariableSoloFunctionCallContext ctx) {
+        VariableFunctionCallContext context = new VariableFunctionCallContext();
+        setLocation(ctx, context);
+        boolean hasMe = ctx.ME() != null;
+        context.hasMe = hasMe;
+        listener.ExitVariableSoloFunctionCall(context);
+    }
+
+    @Override
+    public void enterParentVariableSoloFunctionCall(QuorumParser.ParentVariableSoloFunctionCallContext ctx) {
+        ParentVariableFunctionCallContext context = new ParentVariableFunctionCallContext();
+        setLocation(ctx, context);
+        listener.EnterParentVariableSoloFunctionCall(context);
+    }
+
+    @Override
+    public void exitParentVariableSoloFunctionCall(QuorumParser.ParentVariableSoloFunctionCallContext ctx) {
+        ParentVariableFunctionCallContext context = new ParentVariableFunctionCallContext();
+        setLocation(ctx, context);
+        listener.ExitParentVariableSoloFunctionCall(context);
+    }
+    
+    @Override
     public void enterVariableFunctionCall(QuorumParser.VariableFunctionCallContext ctx) {
         VariableFunctionCallContext context = new VariableFunctionCallContext();
         setLocation(ctx, context);
         boolean hasMe = ctx.ME() != null;
         context.hasMe = hasMe;
-//        List<QuorumParser.Action_callContext> calls = ctx.action_call();
-//        if(calls != null) {
-//            if(calls.size() == 1) {
-//                QuorumParser.Action_callContext ctx2 = calls.get(0);
-//                context.name = ctx2.ID().getText();
-//                if(ctx2.LEFT_PAREN() != null) {
-//                    context.isActionCall = true;
-//                }
-//            }
-//        }
-//        QuorumParser.Parent_callContext parent = ctx.parent_call();
-//        if(parent != null) {
-//            context.isParentCall = true;
-//        }
         listener.EnterVariableFunctionCall(context);
     }
 

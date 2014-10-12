@@ -80,8 +80,8 @@ public class CompilerTestSuite {
                 result.Get$Libraries$Language$Compile$Test$CompilerTestResult$lines().Add(text);
             }
             result.Set$Libraries$Language$Compile$Test$CompilerTestResult$ranWithoutError(true);
-        } catch (ScriptException ex) {
-            Logger.getLogger(CompilerTestSuite.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            result.Set$Libraries$Language$Compile$Test$CompilerTestResult$passed(false);
         }
         return result;
     }
