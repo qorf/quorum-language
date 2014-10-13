@@ -538,9 +538,55 @@ class QuorumBytecodeListener is QuorumSourceListener
         Array<ActionCallOpcode> stack
         actionCallStacks:Add(me:currentActionStack, stack)
         currentActionStack = currentActionStack + 1
+
+
+        ActionCallOpcode actionCall
+        actionCall:SetMethodWriter(methodWriter)
+        actionCall:SetIsActionCall(true)
+        stack:Add(actionCall)
     end
 
-    action ExitVariableSoloFunctionCall(VariableFunctionCallContext context) 
+    action ExitVariableSoloFunctionCall(VariableFunctionCallContext context)
+        Array<ActionCallOpcode> actionArray = actionCallStacks:GetValue(0)
+        ActionCallOpcode actionCall = actionArray:Get(0)
+        actionCall:SetPushOnMe(true)
+        ActionExpressionListContext params =  actionCallParameterStack:Pop()
+        size = params:size
+
+        Array<QuorumOpcode> parametersBackward
+        repeat size times
+            QuorumOpcode param = opcodeStack:Pop()
+            parametersBackward:Add(param)
+        end
+
+        Array<Type> parameters
+        i = size - 1
+        repeat size times
+            QuorumOpcode op = parametersBackward:Get(i)
+            parameters:Add(op:GetType())
+            i = i - 1
+        end
+
+        ActionCall call
+        call:actualParameters = parameters
+        call:name = context:name
+        call:checker = GetTypeChecker()
+        call:table = GetSymbolTable()
+        ActionCallResolution resolved = currentClass:ResolveAction(call)
+
+        if resolved not= undefined and resolved:isResolved
+            actionCall:SetActionCallResolution(resolved)
+            actionCall:SetIsActionCall(true)
+
+            actionCall:SetActionCallResolution(resolved)
+        else
+            CompilerError error = resolved:error 
+            if error not= undefined
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(error)
+            end
+        end
+
         isNextVariableReferenceMe = false
         Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
         currentActionStack = currentActionStack - 1
@@ -552,7 +598,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             ops:Add(op)
         end
 
-        opcodeStack:Push(ops)
+        currentBlockOpcode:Add(ops)
     end
 
     action EnterParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) end
