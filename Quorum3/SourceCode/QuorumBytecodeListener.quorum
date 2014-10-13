@@ -560,12 +560,16 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
 
         Array<Type> parameters
+        Array<QuorumOpcode> parameterOpcodes
         i = size - 1
         repeat size times
             QuorumOpcode op = parametersBackward:Get(i)
             parameters:Add(op:GetType())
+            parameterOpcodes:Add(op)
             i = i - 1
         end
+
+        actionCall:SetParameters(parameterOpcodes)
 
         ActionCall call
         call:actualParameters = parameters
@@ -659,13 +663,16 @@ class QuorumBytecodeListener is QuorumSourceListener
             end
 
             Array<Type> parameters
+            Array<QuorumOpcode> parameterOpcodes
             i = size - 1
             repeat size times
                 QuorumOpcode op = parametersBackward:Get(i)
                 parameters:Add(op:GetType())
+                parameterOpcodes:Add(op)
                 i = i - 1
             end
 
+            actionCall:SetParameters(parameterOpcodes)
             ActionCall call
             call:actualParameters = parameters
             call:name = context:name

@@ -5,6 +5,7 @@ use Libraries.Language.Compile.Symbol.ActionCallResolution
 use Libraries.Language.Compile.Symbol.Action
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Containers.Array
 
 class ActionCallOpcode is QuorumOpcode
     QuorumOpcode rightHandSide = undefined
@@ -16,6 +17,15 @@ class ActionCallOpcode is QuorumOpcode
     boolean isField = false
     Variable field = undefined
     Class fieldHolder = undefined
+    Array<QuorumOpcode> parameters = undefined
+
+    action GetParameters returns Array<QuorumOpcode>
+        return parameters
+    end
+
+    action SetParameters(Array<QuorumOpcode> array)
+        parameters = array
+    end
 
     action IsField returns boolean
         return isField
@@ -95,7 +105,13 @@ class ActionCallOpcode is QuorumOpcode
             //actual plan - push on variables, if necessary
 
             //push on parameters, if necessary
-
+            integer numParams = parameters:GetSize()
+            i = 0
+            repeat numParams times
+                QuorumOpcode param = parameters:Get(i)
+                param:Write()
+                i = i + 1
+            end
 
             Action act = actionResolution:resolvedAction
             Class clazz = act:GetParentClass()
