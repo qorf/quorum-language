@@ -1320,6 +1320,10 @@ public class JavaToQuorumListener implements QuorumListener {
         setLocation(ctx, context);
         boolean hasMe = ctx.ME() != null;
         context.hasMe = hasMe;
+        context.name = ctx.var.getText();
+        if(ctx.object != null) {
+            context.objectName = ctx.object.getText();
+        }
         listener.EnterVariableSoloFunctionCall(context);
     }
 
@@ -1329,6 +1333,10 @@ public class JavaToQuorumListener implements QuorumListener {
         setLocation(ctx, context);
         boolean hasMe = ctx.ME() != null;
         context.hasMe = hasMe;
+        context.name = ctx.var.getText();
+        if(ctx.object != null) {
+            context.objectName = ctx.object.getText();
+        }
         listener.ExitVariableSoloFunctionCall(context);
     }
 
