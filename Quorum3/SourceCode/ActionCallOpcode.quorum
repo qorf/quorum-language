@@ -8,7 +8,6 @@ use Libraries.Language.Compile.Symbol.Variable
 use Libraries.Containers.Array
 
 class ActionCallOpcode is QuorumOpcode
-    QuorumOpcode rightHandSide = undefined
     JavaBytecodeOpcodes opcodes
     boolean isActionCall = false
     ActionCallResolution actionResolution = undefined
@@ -61,7 +60,13 @@ class ActionCallOpcode is QuorumOpcode
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
-        rightHandSide:SetMethodWriterToAllChildren(writer)
+        integer numParams = parameters:GetSize()
+        i = 0
+        repeat numParams times
+            QuorumOpcode param = parameters:Get(i)
+            param:SetMethodWriterToAllChildren(writer)
+            i = i + 1
+        end
     end
 
     action GetActionCallResolution returns ActionCallResolution
