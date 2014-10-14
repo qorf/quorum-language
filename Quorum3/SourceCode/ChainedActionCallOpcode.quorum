@@ -5,8 +5,16 @@ use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
 
 class ChainedActionCallOpcode is QuorumOpcode
-
+    boolean isSoloCall = false
     Array<ActionCallOpcode> ops
+
+    action IsSoloCall returns boolean
+        return isSoloCall
+    end
+
+    action SetIsSoloCall(boolean isSolo)
+        isSoloCall = isSolo
+    end
 
     action Add(ActionCallOpcode op)
         ops:Add(op)
@@ -37,6 +45,10 @@ class ChainedActionCallOpcode is QuorumOpcode
             ActionCallOpcode op = it:Next()
             result = result + op:WriteJavaScript()
         end
+        if isSoloCall
+            result = result + ";"
+        end
+
         return result
     end
 

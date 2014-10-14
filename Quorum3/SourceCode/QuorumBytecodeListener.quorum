@@ -596,6 +596,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         currentActionStack = currentActionStack - 1
 
         ChainedActionCallOpcode ops
+        ops:SetIsSoloCall(true)
         Iterator<ActionCallOpcode> it = stack:GetIterator()
         repeat while it:HasNext()
             ActionCallOpcode op = it:Next()

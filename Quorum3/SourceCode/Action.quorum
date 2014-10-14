@@ -184,4 +184,18 @@ class Action is Symbol
 
         return parameters + returnText
     end
+
+    action ConvertActionToJavaScriptName returns text
+        text result = ""
+        result = result + GetName()
+        Iterator<Variable> params = GetParameterIterator()
+        repeat while params:HasNext()
+            Variable par = params:Next()
+            Type type = par:GetType()
+            text t = type:ConvertStaticKeyToJavaScriptName()
+            result = result + "$" + t
+        end
+
+        return result
+    end
 end

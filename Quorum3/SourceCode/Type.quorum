@@ -521,4 +521,10 @@ class Type
         text result = "quorum/" + key:Replace(".", "/")
         return result
     end
+
+    action ConvertStaticKeyToJavaScriptName() returns text
+        text key = GetStaticKey()
+        text result = "quorum_" + key:Replace(".", "_")
+        return result
+    end
 end
