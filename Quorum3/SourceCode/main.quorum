@@ -18,11 +18,11 @@ class Main is WebResponder
         Compiler compiler
         output compiler:GetVersion()
         File main
-        main:SetPath("Library/Tests/Actions/Pass/SimpleOneActionTwoParamsReturnInt.quorum")
+        main:SetPath("Library/Tests/Expressions/Pass/HelloWorldNoClassNoActions.quorum")
         Array<File> files
 
         files:Add(main)
-        compiler:SetOutputType(compiler:JAVASCRIPT)
+        //compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:SetMain(main)
         compiler:Compile(files)
 

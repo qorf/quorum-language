@@ -42,6 +42,12 @@ class QuorumSourceListener
     action SetFile(File file)
         me:file = file
     end
+
+    action EnterNoActionsNoClass(NoActionsNoClassContext context) end
+    action ExitNoActionsNoClass(NoActionsNoClassContext context) end
+
+    action EnterActionsNoClass(ActionsNoClassContext context) end
+    action ExitActionsNoClass(ActionsNoClassContext context) end
     
     action EnterNumber(NumberContext context) end
     action ExitNumber(NumberContext context) end
@@ -156,9 +162,6 @@ class QuorumSourceListener
 
     action EnterAddition(AdditionContext addition) end
     action ExitAddition(AdditionContext addition) end
-
-    action EnterNoClassStatements(NoClassStatementsContext context) end
-    action ExitNoClassStatements(NoClassStatementsContext context) end
 
     action EnterReturnStatement(ReturnContext context) end
     action ExitReturnStatement(ReturnContext context) end

@@ -99,6 +99,10 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action EnterFullClassDeclaration(FullClassDeclarationContext context) 
+        AddClass(context:className)
+    end
+
+    action AddClass(text className) 
         JavaBytecodeClassWriter newClassWriter
         JavaBytecodeClassWriter newIinterfaceWriter
 
@@ -107,7 +111,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         ClassOpcode classOp
         currentClassOpcode = classOp
 
-        text name = context:className
+        text name = className
         SymbolTable table = me:GetSymbolTable()
         
         text staticKey = ""
@@ -127,17 +131,72 @@ class QuorumBytecodeListener is QuorumSourceListener
         currentClassOpcode:SetInterfaceWriter(interfaceWriter)
     end
 
+    action EnterNoActionsNoClass(NoActionsNoClassContext context) 
+        File file = GetFile()
+        text name = file:GetFileName()
+        text extension = file:GetFileExtension()
+        integer length = extension:GetSize()
+        name = name:GetSubtext(0, name:GetSize() - length - 1)
+        AddClass(name)
 
-    action ExitFullClassDeclaration(FullClassDeclarationContext context) 
+
+        if currentClass not= undefined
+            //get the method name
+            Array<Variable> vars
+            Iterator<Variable> paramIt = vars:GetIterator()
+            text key = currentClass:ResolveActionKey("Main", paramIt,
+                GetSymbolTable(), GetCompilerErrorManager())
+
+            Action method = currentClass:GetAction(key)
+            currentAction = method
+            ActionOpcode actionOpcode
+            currentActionOpcode = actionOpcode
+            currentActionOpcode:SetAction(method)
+            currentActionOpcode:SetClass(currentClass)
+
+            boolean isMain = method:IsMain()
+            text null = undefined
+            text actionName = method:GetName()
+            text params = method:ConvertActionToBytecodeParameterInterfaceSignature()
+            methodWriter = 
+                classWriter:VisitMethod(opcodes:GetPublic(), 
+                actionName, params, null, undefined)
+            currentActionOpcode:SetMethodWriter(methodWriter)
+            currentClassOpcode:Add(currentActionOpcode)
+
+
+            BlockContext b
+            Location loc = b:GetLocation()
+            loc:SetLocation(context:GetLocation())
+            EnterBlock(b)
+        end
+    end
+
+    action ExitNoActionsNoClass(NoActionsNoClassContext context) 
+        BlockContext b
+        Location loc = b:GetLocation()
+        loc:SetLocation(context:GetLocation())
+        ExitBlock(b)
+
+
+        ActionContext actContext
+        loc = actContext:GetLocation()
+        loc:SetLocation(context:GetLocation())
+        ExitAction(actContext)
+        ExitClass()
+    end
+
+    action ExitClass
         if currentClass not= undefined
             CompilerErrorManager manager = GetCompilerErrorManager()
             if manager:IsCompilationErrorFree()
                 currentClass:ResolveFrames()
             end
-            //currentClassOpcode:Write()
-            //buildFile = currentClassOpcode:GetBuildFile()
-            //buildInterfaceFile = currentClassOpcode:GetBuildInterfaceFile()
         end
+    end
+
+    action ExitFullClassDeclaration(FullClassDeclarationContext context) 
+        ExitClass()
     end
 
     action ExitActionHeader(ActionContext context)

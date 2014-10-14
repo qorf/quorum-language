@@ -53,6 +53,8 @@ class ExpressionsTester
         //GetMaxParameterInteger()
         GetTextParameterBoolean()     //test runs but faila
         HelloWorld()
+        HelloWorldNoClassNoActions()
+        //HelloWorldNoClass()
         IsA()
         IsInfiniteNumberParameter()   //test runs but fails
         LTDoubleDouble()
@@ -318,6 +320,16 @@ class ExpressionsTester
     action HelloWorld
         suite:RunTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
         suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
+    end
+
+    action HelloWorldNoClassNoActions
+        suite:RunTest("Library/Tests/Expressions/Pass/HelloWorldNoClassNoActions.quorum", "Hello, World!")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/HelloWorldNoClassNoActions.quorum", "Hello, World!")
+    end
+
+    action HelloWorldNoClass
+        suite:RunTest("Library/Tests/Expressions/Pass/HelloWorldNoClass.quorum", "Hello, World!")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/HelloWorldNoClass.quorum", "Hello, World!")
     end
 
     action IsA

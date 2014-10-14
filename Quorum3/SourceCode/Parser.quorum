@@ -79,6 +79,71 @@ class Parser is QuorumSourceListener
         classes:Add(currentClass)
     end
 
+    action EnterNoActionsNoClass(NoActionsNoClassContext context) 
+        File file = GetFile()
+        text name = file:GetFileName()
+        text extension = file:GetFileExtension()
+        integer length = extension:GetSize()
+        name = name:GetSubtext(0, name:GetSize() - length - 1)
+        AddClass(name)
+        isFirstGenericInFile = true
+
+        Action act
+        currentAction = act
+        act:SetParentClass(currentClass)
+
+        Type type
+        type:SetToVoid()
+        currentAction:SetReturnType(type)
+        currentAction:SetName("Main")
+        currentAction:SetLocation(context:GetLocation())
+
+        //add it to the class
+        CompilerError error = currentClass:Add(currentAction)
+        if error not= undefined
+            CompilerErrorManager manager = me:GetCompilerErrorManager()
+            manager:Add(error)
+        end
+
+        BlockContext b
+        Location loc = b:GetLocation()
+        loc:SetLocation(context:GetLocation())
+        EnterBlock(b)
+    end
+
+    action ExitNoActionsNoClass(NoActionsNoClassContext context) 
+        BlockContext b
+        Location loc = b:GetLocation()
+        loc:SetLocation(context:GetLocation())
+        ExitBlock(b)
+        i = 0
+        repeat while i < unresolvedUseStatements:GetSize()
+            currentClass:AddUnresolvedUseStatement(unresolvedUseStatements:Get(i))
+            i = i + 1
+        end
+
+        currentClass:SetFile(me:GetFile())
+
+        if currentClass:GetStaticKey() not= "Libraries.Language.Object"
+            //if this class is not Libraries.Language.Object, add this class
+            //as a parent
+            QualifiedName object
+            object:Add("Libraries")
+            object:Add("Language")
+            object:Add("Object")
+
+            //by default, all classes inherit from Object
+            currentClass:AddUnresolvedParent(object)
+        end
+
+        Array<QualifiedName> newArray
+        unresolvedUseStatements = newArray
+        classes:Add(currentClass)
+    end
+
+    action EnterActionsNoClass(ActionsNoClassContext context) end
+    action ExitActionsNoClass(ActionsNoClassContext context) end
+
     action ExitUse(UseContext context) 
         QualifiedName name = context:name
         name:SetLocation(context:GetLocation())
@@ -117,17 +182,6 @@ class Parser is QuorumSourceListener
             currentClass = clazz
         end
     end
-
-    action EnterNoClassDeclaration(NoClassDeclarationContext context) 
-        File file = me:GetFile()
-        text name = file:GetFileName()
-        text extension = file:GetFileExtension()
-        length = extension:GetSize()
-        name = name:GetSubtext(0, name:GetSize() - length - 1)
-        AddClass(name)
-    end
-
-    action ExitNoClassDeclaration(NoClassDeclarationContext context)  end
 
     action EnterSystemAction(ActionContext context) 
         Action act
