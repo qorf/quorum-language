@@ -11,6 +11,10 @@ use Libraries.System.StackTraceItem
 
 class ActionsTester 
     CompilerTestSuite suite = undefined
+    text path = "Library/Tests/Actions/"
+    text passPath = path + "Pass/"
+    text failPath = path + "Fail/"
+
 
     action Test
         AverageOfFiveNumbers()
@@ -53,6 +57,10 @@ class ActionsTester
 
         SetterAfterUse()
         SetterBeforeUse()
+
+//FAIL TESTS
+        path = failPath
+        SetterBeforeUseFail()
     end
 
     action GetName returns text
@@ -260,4 +268,11 @@ class ActionsTester
         suite:RunTest("Library/Tests/Actions/Pass/SetterBeforeUse.quorum", "0")
     end
 
+    action SetterBeforeUseFail
+        Array<File> files
+        File main
+        main:SetPath(path + "SetterBeforeUseFail.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+    end
 end
