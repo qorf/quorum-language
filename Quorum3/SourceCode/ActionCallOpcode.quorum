@@ -137,6 +137,32 @@ class ActionCallOpcode is QuorumOpcode
         if isActionCall
             Action act = actionResolution:resolvedAction
             Class clazz = act:GetParentClass()
+            if not pushOnMe //object call
+                
+            else 
+                text t = act:ConvertActionToJavaScriptName()
+                result = result + t + "("
+            end
+            integer numParams = parameters:GetSize()
+            i = 0
+            repeat numParams times
+                QuorumOpcode param = parameters:Get(i)
+                result = result + param:WriteJavaScript()
+                i = i + 1
+
+                if i < numParams
+                    result = result + ", "
+                end
+            end
+            
+            EOL = ""
+            EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+            result = result + ")"
+
+            
+           
+            result = result + EOL
+
         else
             result = result + field:GetName()
         end

@@ -54,24 +54,19 @@ class ReturnOpcode is QuorumOpcode
                 methodWriter:VisitInstruction(op2)
             end
         end
-        
-//        if type:IsBoolean()
-//            methodWriter:VisitInstruction(opcodes:GetBooleanReturn())
-//        elseif type:IsInteger()
-//            methodWriter:VisitInstruction(opcodes:GetIntegerReturn())
-//        elseif type:IsNumber()
-//            methodWriter:VisitInstruction(opcodes:GetDoubleReturn())
-//        elseif type:IsText()
-//            methodWriter:VisitInstruction(opcodes:GetObjectReturn())
-//        elseif type:IsVoid()
-//            methodWriter:VisitInstruction(opcodes:GetReturn())
-//        else //assume it is an object otherwise
-//            methodWriter:VisitInstruction(opcodes:GetObjectReturn())
-//        end
     end
 
     action WriteJavaScript returns text 
-        return ""
+        text result = ""
+        Type type = GetType()
+        if not type:IsVoid()
+            if returnValue not= undefined
+                EOL = ""
+                EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+                result = "return " + returnValue:WriteJavaScript() + ";" + EOL
+            end
+        end
+        return result
     end
 
     action GetTemplateCopy returns QuorumOpcode
