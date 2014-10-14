@@ -1,5 +1,54 @@
 /*Evan's additions (mostly Hour of Code related)*/
 
+.prontPageList {
+    margin-bottom: 20px;
+}
+
+.tileContainer {
+    display: block;
+    width: 100%;
+}
+
+.tile {
+    position: relative;
+    display: inline-block;
+    width: 24%;
+    height: 100px;
+    margin: 2px 2px 0 0;
+    padding: 32px 8px;
+    background-color: rgba(6, 148, 208, .8);
+    color: #eee;
+    border: none;
+    box-sizing: border-box;
+    text-align: center;
+    vertical-align: top;
+    font-size: 2em;
+    line-height: 1.25em;
+    text-shadow: 1px 1px 1px #022a3b;
+    box-shadow: 0 3px 10px #999999;
+}
+
+.tile:hover {
+    transition-duration: .2s;
+    background-color: rgba(6, 148, 208, 1);
+    color: #eee;
+    text-decoration: none;
+}
+
+.comboTile {
+    font-size: 3em;
+    line-height: 1em;
+    padding: 16px 8px;
+}
+
+.tileSubtext {
+    font-size: .4em;
+}
+
+.underline {
+    border-bottom: solid 1px #0694d0;
+}
+
 .code {
     color: #d14;
     background-color: #f7f7f9;
@@ -18,7 +67,7 @@
     display: block;
     margin-top: 1.25em;
     display: block;
-    color: #0088CC;
+    color: #0694d0;
 }
 
 .bold {
@@ -26,7 +75,7 @@
 }
 
 .task {
-    border: solid 2px #0088CC;
+    border: solid 2px #0694d0;
     margin-right: 20px;
     padding: 10px;
 }
@@ -71,7 +120,7 @@
 }
 
 #sidebar-navigation li:hover {
-    background-color: #049CDB !important;
+    background-color: #0694d0 !important;
     color: white !important;
 }
 
@@ -89,7 +138,7 @@
 
 #slide-navigation {
     display: block;
-    background: none repeat scroll 0 0 #0088CC;
+    background: none repeat scroll 0 0 #0694d0;
     color: #EEEEEE;
     margin: 0;
     padding: 10px;
@@ -109,7 +158,7 @@
     border: solid 1px lightgrey;
     padding: 0px 6px;
     margin-right: 4px;
-    background-color: #0088CC;
+    background-color: #0694d0;
     color: white;
     outline: none;
 }
@@ -136,7 +185,7 @@
     background-color: rgba(255,255,255,0);
     border-top: 25px solid transparent;
     border-bottom: 25px solid transparent;
-    border-right: 25px solid #0088CC;
+    border-right: 25px solid #0694d0;
     cursor: pointer;
     opacity: 0.5;
     box-shadow: none;
@@ -168,7 +217,7 @@
     background-color: rgba(255,255,255,0);
     border-top: 25px solid transparent;
     border-bottom: 25px solid transparent;
-    border-left: 25px solid #0088CC;
+    border-left: 25px solid #0694d0;
     cursor: pointer;
     opacity: 0.5;
     border-right: none;
@@ -282,10 +331,10 @@
 
 #IDE h2 {
     margin: 0;
-    background: #0088cc;
+    background: #0694d0;
     padding: 5px 10px;
     color: #EEEEEE;
-    text-shadow: 1px 1px 1px darken(#0088cc, 30%);
+    text-shadow: 1px 1px 1px darken(#0694d0, 30%);
 }
 
 .full-screen-IDE-h2 {
@@ -432,5 +481,5 @@
 
 #homePageContent {
     display: inline-block;
-    max-width: 700px;
+    width: 700px;
 }
