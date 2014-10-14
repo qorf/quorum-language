@@ -24,6 +24,7 @@ class ExpressionsTester
         AddTextInt()
         AddTextText()
         AndBooleanBoolean()
+//        CastTest()
         CompareTextTextField()
         ComplexExpression()
         DivDoubleDouble()
@@ -172,6 +173,11 @@ class ExpressionsTester
             "true", "false", "false", "false")
         suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AndBooleanBoolean.quorum",
             "true", "false", "false", "false")
+    end
+
+    action CastTest
+        suite:RunTest("Library/Tests/Expressions/Pass/CastTest.quorum", "1")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/CastTest.quorum", "1")
     end
 
     action CompareTextTextField
