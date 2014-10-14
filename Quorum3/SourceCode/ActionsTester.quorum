@@ -21,13 +21,13 @@ class ActionsTester
         CastReturnValue()
         Factorial()
         Fibonacci()
-        //Field()
+        Field()
         //FieldCastParameter()
         //FieldCastReturn()
         GCD()
         MultipleNestedFunctionCalls()
         MultipleNestedFunctionCallsDouble()
-//        MultipleNestedFunctionCallsInSoloCall()
+        MultipleNestedFunctionCallsInSoloCall()
         MultipleNestedFunctionCallsWithAssignments()
         MultipleNestedFunctionCallsWithAssignmentsDouble()
         NestedConditionalRepeat1()
@@ -51,8 +51,8 @@ class ActionsTester
         TwoActionsDifferentParameters()
         //VTableObjectTest()
 
-        //SetterAfterUse()
-        //SetterBeforeUse()
+        SetterAfterUse()
+        SetterBeforeUse()
     end
 
     action GetName returns text
@@ -178,8 +178,8 @@ class ActionsTester
     end
 
     action SimpleActionPassObject 
-        suite:RunTest("Library/Tests/Actions/Pass/SimpleActionPassObject.quorum", "Hello World!")
-        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleActionPassObject.quorum", "Hello World!")
+        suite:RunTest("Library/Tests/Actions/Pass/SimpleActionPassObject.quorum", "hello world")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleActionPassObject.quorum", "hello world")
     end
 
     action SimpleCastArgument 
@@ -198,8 +198,8 @@ class ActionsTester
     end
 
     action SimpleOneActionConcatenateText 
-        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionConcatenateText.quorum", "hello world")
-        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionConcatenateText.quorum", "hello world")
+        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionConcatenateText.quorum", "Hello World!")
+        //suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionConcatenateText.quorum", "Hello World!")
     end
 
     action SimpleOneActionInControlExpression 

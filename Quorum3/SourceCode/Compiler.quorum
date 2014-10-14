@@ -264,6 +264,7 @@ class Compiler
         classes = symbolTable:GetClasses()
         repeat while classes:HasNext()
             Class next = classes:Next()
+            next:ComputeVirtualActionTable(compilerErrorManager)
             checker:Add(next)
         end
     end

@@ -9,7 +9,6 @@ use Libraries.Containers.Array
 
 class ActionCallOpcode is QuorumOpcode
     QuorumOpcode rightHandSide = undefined
-    //integer bytecodeLocation = -1
     JavaBytecodeOpcodes opcodes
     boolean isActionCall = false
     ActionCallResolution actionResolution = undefined
@@ -84,14 +83,6 @@ class ActionCallOpcode is QuorumOpcode
         isActionCall = act
     end
 
-//    action GetBytecodeLocation returns integer
-//        return bytecodeLocation
-//    end
-//
-//    action SetBytecodeLocation(integer location)
-//        bytecodeLocation = location
-//    end
-
     action Write //TODO: make this work for action calls and fields
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         if isActionCall
@@ -129,6 +120,7 @@ class ActionCallOpcode is QuorumOpcode
                 path = fieldHolder:ConvertStaticKeyToBytecodeInterfacePath()
                 getterName = fieldHolder:ConvertToActionNameFromField(field, true)
                 methodName = type:ConvertToSignatureFromField(true)
+                methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
                 methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
                     path, getterName, methodName, true)
             end

@@ -989,10 +989,10 @@ class Class is Symbol
              Iterator<Action> m = finalMatches:GetIterator()
              repeat while m:HasNext()
                 Action a = m:Next()
-                value = a:GetStaticKey()
+                value = value + a:GetStaticKey()
 
                 if m:HasNext()
-                    value = value + ", "
+                    value = value + ", and "
                 end
              end
              value = value + " all match the parameters."
