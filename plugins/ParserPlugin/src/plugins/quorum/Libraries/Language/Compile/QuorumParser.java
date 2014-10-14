@@ -421,11 +421,36 @@ public class QuorumParser extends Parser {
 	}
 
 	public static class No_class_stmntsContext extends ParserRuleContext {
-		public Access_modifierContext access_modifier(int i) {
-			return getRuleContext(Access_modifierContext.class,i);
+		public No_class_stmntsContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
 		}
+		@Override public int getRuleIndex() { return RULE_no_class_stmnts; }
+	 
+		public No_class_stmntsContext() { }
+		public void copyFrom(No_class_stmntsContext ctx) {
+			super.copyFrom(ctx);
+		}
+	}
+	public static class NoActionsNoClassContext extends No_class_stmntsContext {
 		public List<StatementContext> statement() {
 			return getRuleContexts(StatementContext.class);
+		}
+		public StatementContext statement(int i) {
+			return getRuleContext(StatementContext.class,i);
+		}
+		public NoActionsNoClassContext(No_class_stmntsContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNoActionsNoClass(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNoActionsNoClass(this);
+		}
+	}
+	public static class ActionsNoClassContext extends No_class_stmntsContext {
+		public Access_modifierContext access_modifier(int i) {
+			return getRuleContext(Access_modifierContext.class,i);
 		}
 		public Method_declarationContext method_declaration(int i) {
 			return getRuleContext(Method_declarationContext.class,i);
@@ -433,23 +458,17 @@ public class QuorumParser extends Parser {
 		public List<Method_declarationContext> method_declaration() {
 			return getRuleContexts(Method_declarationContext.class);
 		}
-		public StatementContext statement(int i) {
-			return getRuleContext(StatementContext.class,i);
-		}
 		public List<Access_modifierContext> access_modifier() {
 			return getRuleContexts(Access_modifierContext.class);
 		}
-		public No_class_stmntsContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_no_class_stmnts; }
+		public ActionsNoClassContext(No_class_stmntsContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterNo_class_stmnts(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).enterActionsNoClass(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitNo_class_stmnts(this);
+			if ( listener instanceof QuorumListener ) ((QuorumListener)listener).exitActionsNoClass(this);
 		}
 	}
 
@@ -461,6 +480,7 @@ public class QuorumParser extends Parser {
 			setState(132);
 			switch ( getInterpreter().adaptivePredict(_input,11,_ctx) ) {
 			case 1:
+				_localctx = new NoActionsNoClassContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(120); 
@@ -480,6 +500,7 @@ public class QuorumParser extends Parser {
 				break;
 
 			case 2:
+				_localctx = new ActionsNoClassContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(128); 

@@ -27,8 +27,8 @@ class_declaration
 	;
 no_class_stmnts
         :
-	statement+
-	|(access_modifier? method_declaration)+
+	statement+                              #NoActionsNoClass
+	|(access_modifier? method_declaration)+ #ActionsNoClass
 	;
 inherit_stmnts
 	:	INHERITS inherit_stmt 

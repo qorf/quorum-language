@@ -599,22 +599,6 @@ public class JavaToQuorumListener implements QuorumListener {
     }
 
     @Override
-    public void enterNo_class_stmnts(QuorumParser.No_class_stmntsContext ctx) {
-        quorum.Libraries.Language.Compile.Context.NoClassStatementsContext context = 
-                new quorum.Libraries.Language.Compile.Context.NoClassStatementsContext();
-        setLocation(ctx, context);
-        listener.EnterNoClassStatements(context);
-    }
-
-    @Override
-    public void exitNo_class_stmnts(QuorumParser.No_class_stmntsContext ctx) {
-        quorum.Libraries.Language.Compile.Context.NoClassStatementsContext context = 
-                new quorum.Libraries.Language.Compile.Context.NoClassStatementsContext();
-        setLocation(ctx, context);
-        listener.ExitNoClassStatements(context);
-    }
-
-    @Override
     public void enterReturn_statement(QuorumParser.Return_statementContext ctx) {
         quorum.Libraries.Language.Compile.Context.ReturnContext context = 
                 new quorum.Libraries.Language.Compile.Context.ReturnContext();
@@ -1417,5 +1401,33 @@ public class JavaToQuorumListener implements QuorumListener {
         ParentCallContext context = new ParentCallContext();
         setLocation(ctx, context);
         listener.ExitParentCall(context);
+    }
+
+    @Override
+    public void enterNoActionsNoClass(QuorumParser.NoActionsNoClassContext ctx) {
+        NoActionsNoClassContext context = new NoActionsNoClassContext();
+        setLocation(ctx, context);
+        listener.EnterNoActionsNoClass(context);
+    }
+
+    @Override
+    public void exitNoActionsNoClass(QuorumParser.NoActionsNoClassContext ctx) {
+        NoActionsNoClassContext context = new NoActionsNoClassContext();
+        setLocation(ctx, context);
+        listener.ExitNoActionsNoClass(context);
+    }
+
+    @Override
+    public void enterActionsNoClass(QuorumParser.ActionsNoClassContext ctx) {
+        ActionsNoClassContext context = new ActionsNoClassContext();
+        setLocation(ctx, context);
+        listener.ExitActionsNoClass(context);
+    }
+
+    @Override
+    public void exitActionsNoClass(QuorumParser.ActionsNoClassContext ctx) {
+        ActionsNoClassContext context = new ActionsNoClassContext();
+        setLocation(ctx, context);
+        listener.ExitActionsNoClass(context);
     }
 }

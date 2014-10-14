@@ -225,6 +225,19 @@ public class QuorumBaseListener implements QuorumListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterNoActionsNoClass(@NotNull QuorumParser.NoActionsNoClassContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitNoActionsNoClass(@NotNull QuorumParser.NoActionsNoClassContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterFunction_expression_list(@NotNull QuorumParser.Function_expression_listContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -576,6 +589,19 @@ public class QuorumBaseListener implements QuorumListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterActionsNoClass(@NotNull QuorumParser.ActionsNoClassContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitActionsNoClass(@NotNull QuorumParser.ActionsNoClassContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterDetect_parameter(@NotNull QuorumParser.Detect_parameterContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -596,19 +622,6 @@ public class QuorumBaseListener implements QuorumListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitAddition(@NotNull QuorumParser.AdditionContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterNo_class_stmnts(@NotNull QuorumParser.No_class_stmntsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitNo_class_stmnts(@NotNull QuorumParser.No_class_stmntsContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
