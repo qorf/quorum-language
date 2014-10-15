@@ -1421,7 +1421,7 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterActionsNoClass(QuorumParser.ActionsNoClassContext ctx) {
         ActionsNoClassContext context = new ActionsNoClassContext();
         setLocation(ctx, context);
-        listener.ExitActionsNoClass(context);
+        listener.EnterActionsNoClass(context);
     }
 
     @Override
