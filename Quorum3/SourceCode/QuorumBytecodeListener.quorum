@@ -172,6 +172,19 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
     end
 
+    action EnterActionsNoClass(ActionsNoClassContext context) 
+        File file = GetFile()
+        text name = file:GetFileName()
+        text extension = file:GetFileExtension()
+        integer length = extension:GetSize()
+        name = name:GetSubtext(0, name:GetSize() - length - 1)
+        AddClass(name)
+    end
+
+    action ExitActionsNoClass(ActionsNoClassContext context) 
+        ExitClass()
+    end
+
     action ExitNoActionsNoClass(NoActionsNoClassContext context) 
         BlockContext b
         Location loc = b:GetLocation()
