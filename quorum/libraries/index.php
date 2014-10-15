@@ -13,25 +13,28 @@
 
 <div class="content index-content">
     <div id="homePageContent">
-<h1>Introducing Quorum</h1>
-<p>
+<h1 class = "underline">Introducing Quorum</h1>
+
+<!--<p>
     Current Version: Quorum 2.1 (see the <a href="documents/release.php">Quorum release notes</a>)
-</p>
+</p>-->
  
-<ul>
-    <li>Quorum is a Java Virtual Machine language, like JRuby, Jython, or Groovy, with
-    a clean syntax, a <a href="documents/syntax/plugins.php">plugin system</a> for extensions, and a growing 
-    <a href="libraries.php">Standard Library</a>.</li>
+<ul class="prontPageList">
+    <li>Quorum is a Java Virtual Machine language<!--, like JRuby, Jython, or Groovy,--> with
+    a clean syntax and a <a href="documents/syntax/plugins.php">plugin system</a> for extensions<!--, and a growing 
+    <a href="libraries.php">Standard Library</a>-->.</li>
     <li>Quorum has been heavily vetted for ease of use in formal 
         <a href="http://dl.acm.org/citation.cfm?id=2534973">scientific peer-reviewed studies</a>. 
-        For details, listen to a recent <a href="http://goo.gl/DB2RtQ">podcast</a>.</li>
+        <!--For details, listen to a recent <a href="http://goo.gl/DB2RtQ">podcast</a>.--></li>
     
     <li>Comes with an Integrated Development Environment (IDE) called 
         <a href="http://localhost/download.php">Sodbeans,</a>
         based on <a href="netbeans.org">NetBeans</a>.</li>
 </ul>
-<h2>Getting Started</h2>
-<ul>
+
+<div class="tileContainer"><a href ="http://localhost/documents/release.php" class="tile comboTile">2.1<br><span class="tileSubtext">Current Version</span></a><a href ="download.php" class="tile">Download</a><a href ="http://sodbeans.sourceforge.net/download.php" class="tile">Sodbeans</a><a href ="curriculum.php" class="tile">Curriculum</a></div>
+<div class="tileContainer"><a href ="syntax.php" class="tile">Syntax</a><a href ="libraries.php" class="tile">Libraries</a><a href ="http://goo.gl/DB2RtQ" class="tile">Podcasts</a><a href ="https://www.facebook.com/quorumlanguage" class="tile">Social</a></div>
+<!--<ul>
     <li>Here is the <a href="download.php">download and installation</a> page. 
         Quorum also comes included in 
         <a href="http://sodbeans.sourceforge.net/download.php">Sodbeans</a>.</li>
@@ -46,7 +49,7 @@
         or post about it on the 
         <a href="https://www.facebook.com/quorumlanguage">Quorum Facebook page</a></li>
   
-</ul>
+</ul>-->
 </div>
 
 <div id="IDE" class="small-IDE floating">
