@@ -126,6 +126,14 @@ class Class is Symbol
         end
     end
 
+    action GetVirtualTable returns Iterator<Action>
+        return virtualActions:GetValueIterator()
+    end
+
+    action GetParentActions returns Iterator<Action> 
+        return parentActions:GetValueIterator()
+    end
+
     /*
         This action returns a list of of all generic names. For example, if
         the class is declared as A<Type, Value>, then this action will return

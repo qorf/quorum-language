@@ -185,9 +185,26 @@ class ClassOpcode is QuorumOpcode
             interfaceMethodWriter:VisitEnd()
         end
 
+        Iterator<Action> it = clazz:GetParentActions()
+        repeat while it:HasNext()
+            Action act = it:Next()
+            WriteParentActionBytecode(act)
+        end
+
         classWriter:VisitEnd()
         interfaceWriter:VisitEnd()
         WriteBytecodeToDisk()
+    end
+
+    private action WriteParentActionBytecode(Action act)
+        Class mom = act:GetParentClass()
+        
+        //push on THIS
+        
+        //push on the appropriate parent field variable
+
+        //call the action on the field
+
     end
 
     private action WriteBytecodeToDisk 
