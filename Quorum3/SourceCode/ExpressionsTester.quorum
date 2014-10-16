@@ -11,7 +11,12 @@ use Libraries.System.StackTraceItem
 
 class ExpressionsTester 
     CompilerTestSuite suite = undefined
+    text path = "Library/Tests/Expressions/"
+    text passPath = path + "Pass/"
+    text failPath = path + "Fail/"
+
     action Test
+        path = passPath
         AddBooleanText()
         AddDoubleDouble()
         AddDoubleInt()
@@ -98,6 +103,7 @@ class ExpressionsTester
         SubIntDouble()
         SubIntInt()
 // FAIL TESTS
+        path = failPath
         MainNotCapitalized()
     end
 
@@ -114,6 +120,15 @@ class ExpressionsTester
     end
 
     action AddBooleanText
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AddBooleanText.quorum")
+        files:Add(main)
+        results:Add(0, "true text")
+        results:Add(1, "false text")
+        suite:Test(files, results)
+        
         suite:RunTest("Library/Tests/Expressions/Pass/AddBooleanText.quorum", "true text", "false text")
         suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddBooleanText.quorum", "true text", "false text")
     end
@@ -546,7 +561,13 @@ class ExpressionsTester
     end
 
     action MainNotCapitalized
-        suite:RunTestFail("Library/Tests/Expressions/Fail/MainNotCapitalized.quorum")
-        suite:RunJavaScriptTestFail("Library/Tests/Expressions/Fail/MainNotCapitalized.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "MainNotCapitalized.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+
+//        suite:RunTestFail("Library/Tests/Expressions/Fail/MainNotCapitalized.quorum")
+//        suite:RunJavaScriptTestFail("Library/Tests/Expressions/Fail/MainNotCapitalized.quorum")
     end
 end
