@@ -16,6 +16,15 @@ class AssignmentOpcode is QuorumOpcode
     Class clazz = undefined
     boolean isObjectField = false
     Variable field = undefined
+    Class fieldHolder = undefined
+
+    action GetFieldHolder returns Class
+        return fieldHolder
+    end
+
+    action SetFieldHolder(Class fieldHolder)
+        me:fieldHolder = fieldHolder
+    end
 
     action IsObjectField returns boolean
         return isObjectField
@@ -72,14 +81,6 @@ class AssignmentOpcode is QuorumOpcode
     action SetJavaOpcode2(integer op)
         opcode2 = op
     end
-    
-//    action GetBytecodeLocation returns integer
-//        return bytecodeLocation
-//    end
-//
-//    action SetBytecodeLocation(integer location)
-//        bytecodeLocation = location
-//    end
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
@@ -111,11 +112,11 @@ class AssignmentOpcode is QuorumOpcode
             Type type = field:GetType()
             methodWriter:VisitVariable(opcodes:GetObjectLoad(), variable:GetBytecodeLocation())
             rightHandSide:Write()
-            path = clazz:ConvertStaticKeyToBytecodeInterfacePath()
-            getterName = clazz:ConvertToActionNameFromField(field, false)
+            path = fieldHolder:ConvertStaticKeyToBytecodeInterfacePath()
+            setterName = fieldHolder:ConvertToActionNameFromField(field, false)
             methodName = type:ConvertToSignatureFromField(false)
             methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
-                path, getterName, methodName, true)
+                path, setterName, methodName, true)
         end
     end
 

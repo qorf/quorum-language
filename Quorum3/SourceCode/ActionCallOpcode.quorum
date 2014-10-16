@@ -16,6 +16,24 @@ class ActionCallOpcode is QuorumOpcode
     Variable field = undefined
     Class fieldHolder = undefined
     Array<QuorumOpcode> parameters = undefined
+    Class callingClass = undefined
+    boolean isChainedCall = false
+
+    action IsChainedCall returns boolean
+        return isChainedCall
+    end
+
+    action SetChainedCall(boolean chained)
+        isChainedCall = chained
+    end
+
+    action GetCallingClass returns Class
+        return callingClass
+    end
+
+    action SetCallingClass(Class cl) 
+        callingClass = cl
+    end
 
     action GetParameters returns Array<QuorumOpcode>
         return parameters
@@ -110,7 +128,7 @@ class ActionCallOpcode is QuorumOpcode
             end
 
             Action act = actionResolution:resolvedAction
-            Class clazz = act:GetParentClass()
+            Class clazz = actionResolution:classToMakeCallOn
             if act not= undefined and clazz not= undefined
                 methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
                     clazz:ConvertStaticKeyToBytecodeInterfacePath(), act:GetName(), 
@@ -122,10 +140,20 @@ class ActionCallOpcode is QuorumOpcode
                 methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetType()), field:GetBytecodeLocation())
             else
                 //Now write the getter for the field
-                path = fieldHolder:ConvertStaticKeyToBytecodeInterfacePath()
+                text path = ""
+                if isChainedCall
+                    path = fieldHolder:ConvertStaticKeyToBytecodeInterfacePath()
+                    integer a = 0
+                end
+
+                if not isChainedCall
+                    path = callingClass:ConvertStaticKeyToBytecodeInterfacePath()
+                    integer a = 0
+                end
+                
                 getterName = fieldHolder:ConvertToActionNameFromField(field, true)
                 methodName = type:ConvertToSignatureFromField(true)
-                methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+                //methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
                 methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
                     path, getterName, methodName, true)
             end

@@ -69,6 +69,27 @@ class Type
     end
 
     /*
+        Returns a static key for the object version of this type, even if it is
+        a primitive. It does not change the type itself.
+    */
+    action ConvertToNonPrimitiveStaticKey returns text
+        if IsInteger()
+            return me:INTEGER_OBJECT_KEY
+        elseif IsBoolean()
+            return me:BOOLEAN_OBJECT_KEY
+        elseif IsNumber()
+            return me:NUMBER_OBJECT_KEY
+        elseif IsText()
+            return me:TEXT_OBJECT_KEY
+        elseif IsVoid()
+            return me:VOID_KEY
+        elseif IsUndefined()
+            return me:UNDEFINED_KEY
+        end
+        return staticKey
+    end
+
+    /*
         This action adds a generic to this type as a subtype.
     */
     action AddGeneric(Type type)

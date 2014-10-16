@@ -408,12 +408,14 @@ class QuorumBytecodeListener is QuorumSourceListener
         Variable variable = undefined
         Variable field = undefined
         Class clazz = undefined
+        Class fieldHolder = undefined
         if not isInAction
             variable = currentClass:GetVariable(object)
         else 
             variable = currentBlock:GetVariable(object)
         end
 
+        
         //this is not a call to a parent field.
         if theParent not= undefined
             //now get the field from that object
@@ -425,9 +427,20 @@ class QuorumBytecodeListener is QuorumSourceListener
                     text staticKey = type:GetStaticKey()
                     SymbolTable table = GetSymbolTable()
                     clazz = table:GetClass(staticKey)
-                    
+                    fieldHolder = clazz
+
                     //get a field. It has to be there, otherwise a previous phase would have complained
                     field = clazz:GetVariable(name)
+                else  
+                    CompilerError error
+                    error:SetLocation(variable)
+                    CompilerErrorType errorType
+                    errorType:SetCurrentType(errorType:INVALID_OPERATOR)
+                    error:SetCompilerErrorType(errorType)
+                    error:SetErrorMessage("I cannot assign a value to a variable " +
+                        "named " + variable:GetName() + " because it is of type " + type:GetStaticKey() + ", which is a primitive")
+                    CompilerErrorManager manager = GetCompilerErrorManager()
+                    manager:Add(error)
                 end
             end
 
@@ -448,9 +461,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
         assignment:SetClass(currentClass)
         assignment:SetRightHandSide(right)
+        assignment:SetFieldHolder(fieldHolder)
         assignment:SetType(value)
         assignment:SetMethodWriter(methodWriter)
-        //assignment:SetBytecodeLocation(location)
         assignment:SetVariable(variable)
         assignment:SetField(field)
         assignment:SetIsObjectField(true)
@@ -717,16 +730,43 @@ class QuorumBytecodeListener is QuorumSourceListener
     action ExitActionCall(ActionCallContext context)
         ActionCallOpcode actionCall
         actionCall:SetMethodWriter(methodWriter)
+        SymbolTable table = GetSymbolTable()
 
         if context:isActionCall //push the "this" pointer
             actionCall:SetIsActionCall(true)
             ActionExpressionListContext params =  actionCallParameterStack:Pop()
             size = params:size
 
+            Class classToMakeCallOn = undefined
+            boolean isPrimitive = false
             Array<ActionCallOpcode> stack = actionCallStacks:GetValue(currentActionStack - 1)
 
             if stack:IsEmpty() //this is a solo call, push on this
                 actionCall:SetPushOnMe(true)
+                classToMakeCallOn = currentClass
+            else //else we're making a call on a field, so get it off the stack and take a look
+                ActionCallOpcode op = stack:GetFromEnd()
+                Type t = op:GetType()
+                if t:IsPrimitive()
+                    isPrimitive = true
+                end
+
+                text resolvedKey = t:ConvertToNonPrimitiveStaticKey()
+                classToMakeCallOn = table:GetClass(resolvedKey)
+
+                //I don't know why, but this fixes a Quorum 2 bug. 
+                integer a = 4
+                if classToMakeCallOn = undefined
+                    CompilerError classNotFoundError
+                    classNotFoundError:SetLocation(context:GetLocation())
+                    classNotFoundError:SetErrorMessage("I could not locate the class named " + resolvedKey)
+                    CompilerErrorType errorType
+                    errorType:SetCurrentType(errorType:MISSING_CLASS)
+                    classNotFoundError:SetCompilerErrorType(errorType)
+                    CompilerErrorManager manager = GetCompilerErrorManager()
+                    manager:Add(classNotFoundError)
+                    return now
+                end
             end
 
             Array<QuorumOpcode> parametersBackward
@@ -751,8 +791,9 @@ class QuorumBytecodeListener is QuorumSourceListener
             call:name = context:name
             call:checker = GetTypeChecker()
             call:table = GetSymbolTable()
-            ActionCallResolution resolved = currentClass:ResolveAction(call)
-
+            ActionCallResolution resolved = classToMakeCallOn:ResolveAction(call)
+            resolved:classToMakeCallOn = classToMakeCallOn
+            resolved:callingClass = currentClass
             if resolved not= undefined and resolved:isResolved
                 actionCall:SetActionCallResolution(resolved)
                 actionCall:SetIsActionCall(true)
@@ -774,7 +815,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
             Array<ActionCallOpcode> stack = actionCallStacks:GetValue(currentActionStack - 1)
 
-            if stack:IsEmpty() //this is a solo call, push on this
+            if stack:IsEmpty() //This is the first call, so push on the me pointer
                 if isNextVariableReferenceMe
                     variable = currentClass:GetVariable(name)
                 else 
@@ -787,17 +828,27 @@ class QuorumBytecodeListener is QuorumSourceListener
                     actionCall:SetType(type)
                     actionCall:SetField(variable)
                     actionCall:SetFieldHolder(currentClass)
-                    //actionCall:SetBytecodeLocation(variable:GetBytecodeLocation())
+                    actionCall:SetCallingClass(currentClass)
+                else
+                    CompilerError error
+                    error:SetLocation(context:GetLocation())
+                    error:SetErrorMessage("I could not locate the variable named " + name)
+                    CompilerErrorType errorType
+                    errorType:SetCurrentType(errorType:MISSING_CLASS)
+                    error:SetCompilerErrorType(errorType)
+                    CompilerErrorManager manager = GetCompilerErrorManager()
+                    manager:Add(error)
+                    return now
                 end
             else //get the most recent type off the stack
                 ActionCallOpcode code = stack:Get(stack:GetSize() - 1)
+                
                 Type type = code:GetType()
                 if not type:IsPrimitive() //if it is, again previous phase will catch this
                     text staticKey = type:GetStaticKey()
-                    SymbolTable table = GetSymbolTable()
                     clazz = table:GetClass(staticKey)
                     
-                    //get a field. It has to be there, otherwise a previous phase would have complained
+                    //get a field.
                     field = clazz:GetVariable(name)
                     if field not= undefined
                         Type fieldType = field:GetType()
@@ -807,6 +858,18 @@ class QuorumBytecodeListener is QuorumSourceListener
                         actionCall:SetIsField(true)
                         actionCall:SetField(field)
                         actionCall:SetFieldHolder(clazz)
+                        actionCall:SetCallingClass(currentClass)
+                        actionCall:SetChainedCall(true)
+                    else
+                        CompilerError error
+                        error:SetLocation(context:GetLocation())
+                        error:SetErrorMessage("I could not locate the variable named " + name)
+                        CompilerErrorType errorType
+                        errorType:SetCurrentType(errorType:MISSING_CLASS)
+                        error:SetCompilerErrorType(errorType)
+                        CompilerErrorManager manager = GetCompilerErrorManager()
+                        manager:Add(error)
+                        return now
                     end
                 end
             end

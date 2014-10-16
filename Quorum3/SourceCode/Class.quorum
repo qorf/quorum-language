@@ -743,6 +743,10 @@ class Class is Symbol
         return actions:GetValue(key)
     end
 
+    action GetVirtualAction(text key) returns Action
+        return virtualActions:GetValue(key)
+    end
+
     action GetActions returns Iterator<Action>
         return actions:GetValueIterator()
     end
@@ -880,6 +884,18 @@ class Class is Symbol
     end
 
     /*
+        This action converts the static key of this class to a 
+        name that can be used by the compiler as a class field name.
+        An example would be that Libraries.Language.Object becomes
+        $Libraries/Language/Object.
+    */
+    action ConvertStaticKeyToParentFieldInterfaceName returns text
+        text key = GetStaticKey()
+        text result = "$" + key:Replace(".", "$") + "$Interface"
+        return result
+    end
+
+    /*
         This returns a key related to the package a class is contained in. For
         example, if a class's fully qualified name is Libraries.Language.Object,
         then this would return Libraries.Langauge. If the class's fully qualified
@@ -907,7 +923,7 @@ class Class is Symbol
         Array<Action> named //actions with the right name
         Array<integer> scores
         Array<Action> matches
-        Iterator<Action> all = actions:GetValueIterator()
+        Iterator<Action> all = virtualActions:GetValueIterator()
         repeat while all:HasNext()
             Action act = all:Next()
             if act:GetName() = call:name //the name is right

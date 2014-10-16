@@ -197,14 +197,49 @@ class ClassOpcode is QuorumOpcode
     end
 
     private action WriteParentActionBytecode(Action act)
-        Class mom = act:GetParentClass()
-        
+
+        text null = undefined
+        text actionName = act:GetName()
+        text params = act:ConvertActionToBytecodeParameterInterfaceSignature()
+        JavaBytecodeMethodWriter parentActionWriter = classWriter:VisitMethod(opcodes:GetPublic(), 
+            actionName, params, null, undefined)
+
+        parentActionWriter:VisitCode()
+
+
+        Class p = act:GetParentClass()
+        text classBytecodeName = p:ConvertStaticKeyToBytecodeInterfacePath()
         //push on THIS
+        parentActionWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+
+        //push on the appropriate parent field variablep
+        text parentName = p:ConvertStaticKeyToParentFieldName()
+        text converted = p:ConvertStaticKeyToBytecodePath()
+        text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
+
+        //push false on the parents and call a separate constructor
+        parentActionWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), parentName, convertedParentNameType)
+        // 1: getfield      #38                 // Field quorum/Libraries/Language/Object$Interface.Libraries$Language$Object:Lquorum/Libraries/Language/Object;
+        //putfield      #24                 // Field Libraries$Language$Object:Lquorum/Libraries/Language/Object;
+
+        //push on all of the parameters
+        Iterator<Variable> parameterIterator = act:GetParameterIterator()
         
-        //push on the appropriate parent field variable
+        repeat while parameterIterator:HasNext()
+            Variable param = parameterIterator:Next()
+            parentActionWriter:VisitVariable(opcodes:GetLoadOpcode(param:GetType()), param:GetBytecodeLocation())
+        end
 
         //call the action on the field
+        parentActionWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+            p:ConvertStaticKeyToBytecodeInterfacePath(), act:GetName(), 
+            act:ConvertActionToBytecodeParameterInterfaceSignature(), true)
 
+        //set the return value
+        Type returnType = act:GetReturnType()
+        parentActionWriter:VisitInstruction(opcodes:GetReturnOpcode(returnType))
+        parentActionWriter:VisitMaxSize(1,1)
+        parentActionWriter:VisitEnd()
     end
 
     private action WriteBytecodeToDisk 
