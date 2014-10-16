@@ -271,54 +271,58 @@ class CompilerTestSuite
         result:name = testFile:GetPath()
 
         compiler:SetMain(testFile)
-//        compiler:Compile(files)
+        compiler:Compile(files)
 
 // NOTE - MAY HAVE TO SET THE PATH OF THE COMPLIER OBJECT
-//        if compiler:IsCompilationErrorFree()
-//            QuorumJarGenerator generator
-//
-//            File jar = compiler:GetDistributionFile()
-//            generator:SetCompiler(compiler)
-//            generator:Write()
-//            check
-//                result = RunClassFile(jar)
-//                if result:ranWithoutError
-//                    Array<text> lines = result:lines
+        if compiler:IsCompilationErrorFree()
+            QuorumJarGenerator generator
+
+            File jar = compiler:GetDistributionFile()
+            generator:SetCompiler(compiler)
+            generator:Write()
+            check
+                result = RunClassFile(jar)
+                if result:ranWithoutError
+                    Array<text> lines = result:lines
+                    output lines:GetSize()
 //                    integer n = lines:GetSize()
+//                    integer i = 0
 //                    result:passed = true
 //                    repeat n times
-//                        if lines:Get(n) not= reply:Get(n)
+//                        if lines:Get(i) not= reply:Get(i)
 //                           result:passed = false
 //                        end
+//                        i = i + 1
 //                    end
-//                else
-//                    result:passed = false
-//                end
-//            detect e
-//                text message = e:GetErrorMessage()
-//                result:passed = false
-//                result:errorMessage = message
-//                result:stackTrace = e:GetStackTrace()
-//            end
-//            result:isBytecodeTest = true
-//            Add(result)
-//        else
-//            compiler:OutputCompilerErrors()
-//        end
+                else
+                    result:passed = false
+                end
+            detect e
+                text message = e:GetErrorMessage()
+                result:passed = false
+                result:errorMessage = message
+                result:stackTrace = e:GetStackTrace()
+            end
+            result:isBytecodeTest = true
+            Add(result)
+        else
+            //compiler:OutputCompilerErrors()
+        end
 
 //temporary check to see if files exist
 //remove when compiler is put back together
-        integer i = files:GetSize()
-        integer j = 0
-        repeat i times
-            File f = files:Get(j)
-            if j = 0
-                output f:Exists() + ": " + f:GetFileName()
-            else
-                output "    Dep:" + f:Exists() + ": " + f:GetFileName()
-            end
-            j = j + 1
-        end
+//        integer i = files:GetSize()
+//        integer j = 0
+//        repeat i times
+//            File f = files:Get(j)
+//            if j = 0
+//                output f:Exists() + ": " + f:GetFileName()
+//            else
+//                output "    Dep:" + f:Exists() + ": " + f:GetFileName()
+//            end
+//            j = j + 1
+//        end
+
     end
 
     action TestJavaScript(Array<File> files, Array<text> reply)
@@ -339,33 +343,37 @@ class CompilerTestSuite
         CompilerTestResult result
         File testFile
         testFile = files:Get(0)
-//        result:name = testFile:GetPath()
-//        result:passed = false
-//        
-//        check
-//            compiler:SetMain(testFile)
-//            compiler:Compile(files)
-//        detect e
-//            result:passed = true
-//        end
-//        if compiler:IsCompilationErrorFree()
-//            result:passed = false
-//        end
-//        Add(result)
+        result:name = testFile:GetPath()
+
+        compiler:SetMain(testFile)
+        compiler:Compile(files)        
+
+        if compiler:IsCompilationErrorFree()
+            result:passed = false
+        else
+            result:passed = true
+        end
+
+        check
+
+        detect e
+
+        end
+        Add(result)
 
 //temporary check to see if files exist
 //remove when compiler is put back together
-        integer i = files:GetSize()
-        integer j = 0
-        repeat i times
-            File f = files:Get(j)
-            if j = 0
-                output f:Exists() + ": " + f:GetFileName()
-            else
-                output "    Dep:" + f:Exists() + ": " + f:GetFileName()
-            end
-            j = j + 1
-        end
+//        integer i = files:GetSize()
+//        integer j = 0
+//        repeat i times
+//            File f = files:Get(j)
+//            if j = 0
+//                output f:Exists() + ": " + f:GetFileName()
+//            else
+//                output "    Dep:" + f:Exists() + ": " + f:GetFileName()
+//            end
+//            j = j + 1
+//        end
     end
     
     action RunTest(text source, text reply)
