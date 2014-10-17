@@ -1001,6 +1001,7 @@ class Class is Symbol
             
             if points < minPoints
                 minPoints = points
+                finalMatches:Empty()
                 finalMatches:Add(act)
             elseif points = minPoints
                 finalMatches:Add(act)

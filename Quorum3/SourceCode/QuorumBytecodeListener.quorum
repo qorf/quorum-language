@@ -656,17 +656,82 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         actionCall:SetParameters(parameterOpcodes)
 
+        //check if this is an object call
+        text object = context:objectName
+        Variable variable = undefined
+        boolean isObjectCall = false
+        if object not= "" //this is a call to a field.
+            if isInAction 
+                variable = currentBlock:GetVariable(object)
+            else //must be a field
+                variable = currentClass:GetVariable(object)
+            end
+            isObjectCall = true
+        end
+
+        SymbolTable table = GetSymbolTable()
+        Type fieldType = undefined
+        Class fieldClass = undefined
+        if isObjectCall = true and variable = undefined
+            CompilerError classNotFoundError
+            classNotFoundError:SetLocation(context:GetLocation())
+            classNotFoundError:SetErrorMessage("I could not locate the variable named " + object + ". Did you spell it correctly?")
+            CompilerErrorType errorType
+            errorType:SetCurrentType(errorType:MISSING_VARIABLE)
+            classNotFoundError:SetCompilerErrorType(errorType)
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(classNotFoundError)
+            return now
+        elseif isObjectCall = true and variable not= undefined
+            fieldType = variable:GetType()
+            fieldClass= table:GetClass(fieldType:ConvertToNonPrimitiveStaticKey())
+            
+            if fieldClass = undefined
+                CompilerError classNotFoundError
+                classNotFoundError:SetLocation(context:GetLocation())
+                classNotFoundError:SetErrorMessage("I could not locate the Class named " + fieldType:GetStaticKey() + ".")
+                CompilerErrorType errorType
+                errorType:SetCurrentType(errorType:MISSING_CLASS)
+                classNotFoundError:SetCompilerErrorType(errorType)
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(classNotFoundError)
+                return now
+            end
+
+        end
+
+        Class testMe = undefined
+
         ActionCall call
+        if isObjectCall
+            testMe = fieldClass
+        else
+            testMe = currentClass
+        end
+
+        
         call:actualParameters = parameters
         call:name = context:name
         call:checker = GetTypeChecker()
-        call:table = GetSymbolTable()
-        ActionCallResolution resolved = currentClass:ResolveAction(call)
+        call:table = table
+        
+        ActionCallResolution resolved = testMe:ResolveAction(call)
+
+        if isObjectCall
+            resolved:classToMakeCallOn = fieldClass
+            resolved:callingClass = currentClass
+            actionCall:SetFieldHolder(currentClass)
+            actionCall:SetPushOnMe(false)
+            actionCall:SetField(variable)
+            actionCall:SetIsSoloObjectCall(true)
+        else
+            resolved:classToMakeCallOn = currentClass
+        end
 
         if resolved not= undefined and resolved:isResolved
             actionCall:SetActionCallResolution(resolved)
             actionCall:SetIsActionCall(true)
-
+            actionCall:SetCallingClass(currentClass)
             actionCall:SetActionCallResolution(resolved)
         else
             CompilerError error = resolved:error 

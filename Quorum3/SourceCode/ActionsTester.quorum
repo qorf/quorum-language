@@ -28,6 +28,7 @@ class ActionsTester
         Field()
         FieldCastParameter()
         FieldCastReturn()
+        FieldSoloCall()
         GCD()
         MultipleNestedFunctionCalls()
         MultipleNestedFunctionCallsDouble()
@@ -128,6 +129,11 @@ class ActionsTester
     action FieldCastReturn 
         suite:RunTest("Library/Tests/Actions/Pass/FieldCastReturn.quorum", "4.0")
         suite:RunJavaScriptTest("Library/Tests/Actions/Pass/FieldCastReturn.quorum", "4")
+    end
+
+    action FieldSoloCall
+        suite:RunTest("Library/Tests/Actions/Pass/FieldSoloCall.quorum", "Hello World!")
+        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/FieldSoloCall.quorum", "Hello World!")
     end
 
     action GCD 

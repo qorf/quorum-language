@@ -168,20 +168,8 @@ class Compiler
             TypeResolution()
         end
 
-//        if compilerErrorManager:IsCompilationErrorFree()
-//            i = 0
-//            repeat while i < allFiles:GetSize()
-//                File file = allFiles:Get(i)
-//                TypeCheckListener listener
-//                if file:GetPath() = fakePath
-//                    listener:SetFile(file)
-//                    Parse(source, listener)
-//                else
-//                    Parse(file, listener)
-//                end
-//                i = i + 1
-//            end
-//        end
+        Class m = GetMainClass()
+        m:SetIsMainClass(true)
 
         Array<ClassOpcode> classOpcodes
         if compilerErrorManager:IsCompilationErrorFree()
@@ -273,7 +261,7 @@ class Compiler
         repeat while errors:HasNext()
             CompilerError error = errors:Next()
             text t = error:GetDisplayName()
-            result = EOL + result + t
+            result = result + EOL + t
         end
         return result
     end

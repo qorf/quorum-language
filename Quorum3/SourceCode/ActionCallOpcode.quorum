@@ -18,6 +18,15 @@ class ActionCallOpcode is QuorumOpcode
     Array<QuorumOpcode> parameters = undefined
     Class callingClass = undefined
     boolean isChainedCall = false
+    boolean isSoloObjectCall = false
+
+    action IsSoloObjectCall returns boolean
+        return isSoloObjectCall
+    end
+
+    action SetIsSoloObjectCall(boolean call)
+        isSoloObjectCall = call
+    end
 
     action IsChainedCall returns boolean
         return isChainedCall
@@ -116,6 +125,22 @@ class ActionCallOpcode is QuorumOpcode
                 //push on the variable $hidden
             end
 
+            if isSoloObjectCall
+                if field:IsField()
+                    Type type = field:GetType()
+                    path = callingClass:ConvertStaticKeyToBytecodeInterfacePath()
+                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+                    getterName = fieldHolder:ConvertToActionNameFromField(field, true)
+                    methodName = type:ConvertToSignatureFromFieldInterface(true)
+
+                    methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+                        path, getterName, methodName, true)
+                else
+                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), field:GetBytecodeLocation())
+                end
+            //    methodWriter:VisitVariable(opcodes:GetObjectLoad(), field:GetBytecodeLocation())
+            end
+
             //actual plan - push on variables, if necessary
 
             //push on parameters, if necessary
@@ -133,6 +158,8 @@ class ActionCallOpcode is QuorumOpcode
                 methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
                     clazz:ConvertStaticKeyToBytecodeInterfacePath(), act:GetName(), 
                     act:ConvertActionToBytecodeParameterInterfaceSignature(), true)
+            else 
+                //alert("Compiler Bug: Class and Action should not be null at this stage.")
             end
         else
             Type type = GetType()
