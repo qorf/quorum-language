@@ -88,7 +88,7 @@ class ActionOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text
-        text result = "function " + method:ConvertActionToJavaScriptName() + "("
+        text result = "this." + method:ConvertActionToJavaScriptName() + " = function "  + "("
 
         Iterator<Variable> parameters = method:GetParameterIterator()
         integer position = 1
@@ -109,7 +109,7 @@ class ActionOpcode is QuorumOpcode
             result = result + opcode:WriteJavaScript()
         end
 
-        result = result + "}
+        result = result + "};
 
 "
 

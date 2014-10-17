@@ -18,11 +18,11 @@ class Main is WebResponder
         Compiler compiler
         output compiler:GetVersion()
         File main
-        main:SetPath("Library/Tests/Actions/Pass/VTableCompareTest.quorum")
+        main:SetPath("Library/Tests/Actions/Pass/AverageOfFiveNumbers.quorum")
         Array<File> files
 
         files:Add(main)
-        //compiler:SetOutputType(compiler:JAVASCRIPT)
+        compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:SetMain(main)
         compiler:Compile(files)
 

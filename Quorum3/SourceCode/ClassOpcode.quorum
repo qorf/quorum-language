@@ -37,8 +37,6 @@ class ClassOpcode is QuorumOpcode
     text runPath = ""
     File buildFile = undefined
     File buildInterfaceFile = undefined
-    
-    
 
     action GetBuildFile returns File
         return buildFile
@@ -540,7 +538,7 @@ class ClassOpcode is QuorumOpcode
         EOL = ""
         quote = EOL:GetDoubleQuote()
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
-        convertedSource = OUTPUT_VARIABLE + " = " + quote + quote + ";" + EOL
+        convertedSource = "var " + OUTPUT_VARIABLE + " = " + quote + quote + ";" + EOL
         convertedSource = convertedSource + EOL + "function "
             + clazz:ConvertStaticKeyToUnderScore() + "() {" + EOL
         
@@ -558,11 +556,13 @@ class ClassOpcode is QuorumOpcode
             convertedSource = convertedSource + act:WriteJavaScript()
         end
 
-        if clazz:HasMainAction()
-            convertedSource = convertedSource + "Main(); " + EOL
+        convertedSource = convertedSource + EOL + "};" + EOL
+        if clazz:IsMainClass()
+            convertedSource = convertedSource + "var $starter = new " + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+            convertedSource = convertedSource + "$starter.Main();" + EOL
+            convertedSource = convertedSource + OUTPUT_VARIABLE + ";" + EOL
         end
-        convertedSource = convertedSource + "return " + OUTPUT_VARIABLE + ";" + EOL + "}" + EOL
-        convertedSource = convertedSource + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+
         return convertedSource
     end
 

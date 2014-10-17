@@ -32,6 +32,7 @@ class Class is Symbol
     File file = undefined
     boolean hasSystemAction = false
     constant text LIBRARIES_LANGUAGE_OBJECT = "Libraries.Language.Object"
+    boolean isMainClass = false
 
     on create
         QualifiedName object
@@ -40,6 +41,15 @@ class Class is Symbol
         object:Add("Object")
 
         AddUnresolvedUseStatement(object)
+    end
+
+        
+    action IsMainClass returns boolean
+        return isMainClass
+    end
+
+    action SetIsMainClass(boolean main)
+        isMainClass = main
     end
 
     action AddGeneric(text name)

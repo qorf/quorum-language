@@ -153,7 +153,9 @@ class ActionCallOpcode is QuorumOpcode
                 
                 getterName = fieldHolder:ConvertToActionNameFromField(field, true)
                 methodName = type:ConvertToSignatureFromField(true)
-                //methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+                if pushOnMe
+                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+                end
                 methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
                     path, getterName, methodName, true)
             end
@@ -166,9 +168,10 @@ class ActionCallOpcode is QuorumOpcode
             Action act = actionResolution:resolvedAction
             Class clazz = act:GetParentClass()
             if not pushOnMe //object call
-                
+                text name = act:GetName()
+                result = result + "." + name + "("
             else 
-                text t = act:ConvertActionToJavaScriptName()
+                text t = "this." + act:ConvertActionToJavaScriptName()
                 result = result + t + "("
             end
             integer numParams = parameters:GetSize()

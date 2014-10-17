@@ -96,16 +96,6 @@ class Compiler
             TypeResolution()
         end
 
-//        if compilerErrorManager:IsCompilationErrorFree()
-//            i = 0
-//            repeat while i < allFiles:GetSize()
-//                File file = allFiles:Get(i)
-//                TypeCheckListener listener
-//                Parse(file, listener)
-//                i = i + 1
-//            end
-//        end
-
         Array<ClassOpcode> classOpcodes
         if compilerErrorManager:IsCompilationErrorFree()
             i = 0
@@ -119,6 +109,8 @@ class Compiler
             end
         end
 
+        Class m = GetMainClass()
+        m:SetIsMainClass(true)
         
         if compilerErrorManager:IsCompilationErrorFree()
             if currentOutputType = JAVA_BYTECODE

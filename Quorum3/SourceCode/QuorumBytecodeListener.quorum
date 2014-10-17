@@ -825,6 +825,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
                 if variable not= undefined
                     Type type = variable:GetType()
+                    actionCall:SetPushOnMe(true)
                     actionCall:SetType(type)
                     actionCall:SetField(variable)
                     actionCall:SetFieldHolder(currentClass)

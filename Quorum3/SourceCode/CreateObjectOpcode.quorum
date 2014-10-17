@@ -29,16 +29,11 @@ class CreateObjectOpcode is QuorumOpcode
         type:SetToObject(clazz)
     end
 
-//    action GetBytecodeLocation returns integer
-//        return bytecodeLocation
-//    end
-//
-//    action SetBytecodeLocation(integer location)
-//        bytecodeLocation = location
-//    end
-
     action WriteJavaScript returns text
-        return ""
+        EOL = ""
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        text result = "var " + variable:GetName() + " = new " + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+        return result
     end
 
     action Write
