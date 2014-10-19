@@ -1055,8 +1055,10 @@ class TypeChecker
         result = GetWideningConvertResult()
         points = result:points
         points:SetPoints(points:LOSSLESS_CONVERT)
+        CastOpcode caster = GetImplicitCastOpcode(opcodes:GetIntegerToDouble())
         type = result:result
         type:SetToNumber()
+        result:SetQuorumOpcode(caster)
         results:Add(key, result)
         
         op = GetOperation(opConstant:IMPLICIT_CAST)
@@ -1450,6 +1452,12 @@ class TypeChecker
         op:SetJavaOpcode(opcode)
         op:SetJavaOpcode2(secondOpcode)
         op:SetType(type)
+        return op
+    end
+
+    private action GetImplicitCastOpcode(integer opcode) returns CastOpcode
+        CastOpcode op
+        op:SetJavaOpcode(opcode)
         return op
     end
 

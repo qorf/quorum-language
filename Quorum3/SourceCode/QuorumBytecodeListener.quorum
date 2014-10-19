@@ -862,8 +862,26 @@ class QuorumBytecodeListener is QuorumSourceListener
             if resolved not= undefined and resolved:isResolved
                 actionCall:SetActionCallResolution(resolved)
                 actionCall:SetIsActionCall(true)
-
                 actionCall:SetActionCallResolution(resolved)
+
+                //handle any casts, if there are any
+                Array<QuorumOpcode> finalResolvedParameters
+                integer next = 0
+                Array<QuorumOpcode> conversions = resolved:converter
+                repeat parameters:GetSize() times
+                    QuorumOpcode previous = parameterOpcodes:Get(next)
+                    QuorumOpcode possibleCast = conversions:Get(next)
+                    if possibleCast not= undefined
+                        CastOpcode caster = cast(CastOpcode, possibleCast)
+                        caster:SetMethodWriter(methodWriter)
+                        caster:SetOpcodeToCast(previous)
+                        finalResolvedParameters:Add(caster)
+                    else //nothing to do with this opcode, just push it
+                        finalResolvedParameters:Add(previous)
+                    end
+                    next = next + 1
+                end
+                actionCall:SetParameters(finalResolvedParameters)
             else
                 CompilerError error = resolved:error 
                 if error not= undefined

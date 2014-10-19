@@ -1013,8 +1013,34 @@ class Class is Symbol
             i = i + 1
         end
 
-        if finalMatches:GetSize() = 1 //if there are no parameters and one method
+        if finalMatches:GetSize() = 1
             resolution:resolvedAction = finalMatches:Get(0)
+            Action final = finalMatches:Get(0)
+            //now compute any implicit casts, if there are any
+            Array<QuorumOpcode> casts
+            Iterator<Variable> variables = final:GetParameterIterator()
+            i = 0
+            repeat while variables:HasNext()
+                Type actual = parameters:Get(i)
+                text actualText = actual:GetStaticKey()
+                Variable var = variables:Next()
+                Type formal = var:GetType()
+                text formalText = formal:GetStaticKey()
+                TypeCheckResult result = checker:Check(formal, actual, implicit, false)
+                //this has to be correct, as it has already been checked
+                TypeConversionConstants constants = result:conversion
+                if constants:GetConversion() = constants:NONE
+                    casts:Add(undefined)
+                else
+                    QuorumOpcode op = result:GetQuorumOpcode()
+                    casts:Add(op)
+                end
+                resolution:converter = casts
+
+                i = i + 1
+            end
+
+
             resolution:isResolved = true
         elseif finalMatches:GetSize() > 1 //check all of the scores
             resolution:resolvedAction = undefined
