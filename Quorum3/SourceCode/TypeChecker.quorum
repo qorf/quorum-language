@@ -432,7 +432,7 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToNumber()
-        assignment = GetAssignmentOpcode(opcodes:GetIntegerToDouble(), opcodes:GetDoubleStore(), type)
+        assignment = GetAssignmentOpcode(opcodes:GetDoubleStore(), opcodes:GetIntegerToDouble(), type)
         result:SetQuorumOpcode(assignment)
         results:Add(key, result)
 

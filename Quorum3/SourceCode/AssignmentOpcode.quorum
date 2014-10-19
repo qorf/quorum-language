@@ -96,16 +96,18 @@ class AssignmentOpcode is QuorumOpcode
                     methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
                     rightHandSide:Write()
                     Type type = variable:GetType()
+                    if opcode2 not= -1
+                        methodWriter:VisitInstruction(opcode2)
+                    end
                     methodWriter:VisitField(opcodes:GetPutField(), 
                         clazz:ConvertStaticKeyToBytecodePath(), variable:GetName(), 
                         type:ConvertTypeToBytecodeSignature())
                 else
                     rightHandSide:Write()
-                    methodWriter:VisitVariable(opcode, variable:GetBytecodeLocation())
-
                     if opcode2 not= -1
-                        methodWriter:VisitVariable(opcode2, variable:GetBytecodeLocation())
+                        methodWriter:VisitInstruction(opcode2)
                     end
+                    methodWriter:VisitVariable(opcode, variable:GetBytecodeLocation())
                 end
             end
         else
@@ -115,6 +117,9 @@ class AssignmentOpcode is QuorumOpcode
             path = fieldHolder:ConvertStaticKeyToBytecodeInterfacePath()
             setterName = fieldHolder:ConvertToActionNameFromField(field, false)
             methodName = type:ConvertToSignatureFromField(false)
+            if opcode2 not= -1
+                methodWriter:VisitInstruction(opcode2)
+            end
             methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
                 path, setterName, methodName, true)
         end
