@@ -557,7 +557,7 @@ class ClassOpcode is QuorumOpcode
         end
 
         convertedSource = convertedSource + EOL + "};" + EOL
-        if clazz:IsMainClass()
+        if clazz:IsProgramStartingClass()
             convertedSource = convertedSource + "var $starter = new " + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
             convertedSource = convertedSource + "$starter.Main();" + EOL
             convertedSource = convertedSource + OUTPUT_VARIABLE + ";" + EOL

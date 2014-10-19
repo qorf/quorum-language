@@ -44,11 +44,11 @@ class Class is Symbol
     end
 
         
-    action IsMainClass returns boolean
+    action IsProgramStartingClass returns boolean
         return isMainClass
     end
 
-    action SetIsMainClass(boolean main)
+    action SetIsProgramStartingClass(boolean main)
         isMainClass = main
     end
 
@@ -694,7 +694,10 @@ class Class is Symbol
     end
 
     action HasMainAction returns boolean
-        return hasMain
+        if actions:GetValue("Main") not= undefined
+            return true
+        end
+        return false
     end
 
     action AddUnresolvedUseStatement(QualifiedName name)

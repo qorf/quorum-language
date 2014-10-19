@@ -75,6 +75,32 @@ class Compiler
         Build.
     */
     action Compile(Array<File> files)
+        boolean isInvalidCompile = false
+        if files = undefined
+            isInvalidCompile = true
+        elseif files:IsEmpty()
+            isInvalidCompile = true
+        end
+
+        if isInvalidCompile
+            CompilerError error
+            text message = ""
+            if files = undefined
+                message = "I cannot compile an array of files that is passed to me undefined"
+            elseif files:IsEmpty()
+                message = "I cannot compile an arry of files that is empty. Please specify which files you would like compiled."
+            end
+            error:SetErrorMessage(message)
+            CompilerErrorType t
+            t:SetCurrentType(t:MISSING_FILE)
+            error:SetCompilerErrorType(t)
+            error:SetLineNumber(1)
+            error:SetLineNumberEnd(1)
+            error:SetColumnNumber(1)
+            error:SetColumnNumberEnd(1)
+            compilerErrorManager:Add(error)
+            return now
+        end
 
         i = 0
         repeat while i < files:GetSize()
@@ -90,10 +116,14 @@ class Compiler
         Array<File> allFiles = undefined
         if compilerErrorManager:IsCompilationErrorFree()
             allFiles = GetAllRequiredFiles()
+        else 
+            return now
         end
 
         if compilerErrorManager:IsCompilationErrorFree()
             TypeResolution()
+        else 
+            return now
         end
 
         Array<ClassOpcode> classOpcodes
@@ -107,10 +137,12 @@ class Compiler
                 classOpcodes:Add(op)
                 i = i + 1
             end
+        else 
+            return now
         end
 
-        Class m = GetMainClass()
-        m:SetIsMainClass(true)
+        File starter = files:Get(0)
+        CheckMain(starter)
         
         if compilerErrorManager:IsCompilationErrorFree()
             if currentOutputType = JAVA_BYTECODE
@@ -147,6 +179,43 @@ class Compiler
         end
     end
 
+    private action CheckMain(File starter)
+        Class m = GetMainClass()
+        if m = undefined //no class that had a main method was selected, throw an error
+            AddMainError(starter)
+        elseif m not= undefined and m:HasMainAction() = false
+            AddMainError(starter)
+        else
+            m:SetIsProgramStartingClass(true)
+        end
+    end
+
+    private action AddMainError(File starter)
+        CompilerError error
+        text message = "I noticed that the class " + starter:GetPath() 
+            +   " was specified as the starting point for this program, " 
+            + "but it does not have an action named Main. " 
+
+        Class clazz = symbolTable:GetClassInFile(starter:GetAbsolutePath())
+        if clazz not= undefined
+            if clazz:GetAction("main") not= undefined
+                message = message + "This class does have an action named "
+                    + "main, with a lower case m, did you mean for it to be "
+                    + "capitalized?"
+            end
+        end
+        error:SetErrorMessage(message)
+        CompilerErrorType t
+        t:SetCurrentType(t:MISSING_MAIN)
+        error:SetCompilerErrorType(t)
+        error:SetFile(starter)
+        error:SetLineNumber(1)
+        error:SetLineNumberEnd(1)
+        error:SetColumnNumber(1)
+        error:SetColumnNumberEnd(1)
+        compilerErrorManager:Add(error)
+    end
+
     action CompileSingle(text source)
         Parser parser
         File fakeLocation //set a default. It doesn't matter what it is.
@@ -162,14 +231,17 @@ class Compiler
         Array<File> allFiles = undefined
         if compilerErrorManager:IsCompilationErrorFree()
             allFiles = GetAllRequiredFiles()
+        else 
+            return now
         end
 
         if compilerErrorManager:IsCompilationErrorFree()
             TypeResolution()
+        else 
+            return now
         end
 
-        Class m = GetMainClass()
-        m:SetIsMainClass(true)
+        CheckMain(fakeLocation)
 
         Array<ClassOpcode> classOpcodes
         if compilerErrorManager:IsCompilationErrorFree()
@@ -187,6 +259,8 @@ class Compiler
                 classOpcodes:Add(op)
                 i = i + 1
             end
+        else 
+            return now
         end
 
         if compilerErrorManager:IsCompilationErrorFree()
