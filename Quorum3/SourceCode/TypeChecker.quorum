@@ -1461,6 +1461,11 @@ class TypeChecker
         return op
     end
 
+    private action GetExplicitCastOpcode returns ExplicitCastOpcode
+        ExplicitCastOpcode op
+        return op
+    end
+
     private action GetReturnOpcode(integer opcode, integer secondOpcode, Type type) returns ReturnOpcode
         ReturnOpcode returnMe
         returnMe:SetJavaOpcode(opcode)
@@ -1805,13 +1810,17 @@ class TypeChecker
             key = GenerateTypeCheckKey(parentKey, staticKey, op, false)
             result = GetSubclassNarrowingConvertResult()
             type = result:result
+            ExplicitCastOpcode caster = GetExplicitCastOpcode()
+            result:SetQuorumOpcode(caster)
             type:SetToObject(staticKey)
             results:Add(key, result)
 
-            //line 1584
+            //line 1584. This is allowed, but nothing needs to be done at compile time
             op = GetOperation(opConstant:CAST)
             key = GenerateTypeCheckKey(staticKey, parentKey, op, false)
             result = GetSubclassWideningConvertResult()
+            caster = GetExplicitCastOpcode()
+            result:SetQuorumOpcode(caster)
             type = result:result
             type:SetToObject(staticKey)
             results:Add(key, result)

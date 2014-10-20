@@ -14,6 +14,9 @@ class TypeCheckResult
     QuorumOpcode opcode = undefined
 
     action GetQuorumOpcode returns QuorumOpcode
+        if opcode = undefined
+            return undefined
+        end
         return opcode:GetTemplateCopy()
     end
 

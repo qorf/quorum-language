@@ -41,6 +41,14 @@ class Class is Symbol
         object:Add("Object")
 
         AddUnresolvedUseStatement(object)
+
+//        QualifiedName textObject
+//        textObject:Add("Libraries")
+//        textObject:Add("Language")
+//        textObject:Add("Types")
+//        textObject:Add("Text")
+//
+//        AddUnresolvedUseStatement(textObject)
     end
 
         
@@ -257,10 +265,21 @@ class Class is Symbol
         //next resolve all parents
         ResolveParents(table, errors)
 
+        //now resolve all the fields
+        ResolveFields(table, errors)
+
         //next resolve all actions and their blocks
         ResolveActions(table, errors)
 
         isTypeResolved = true
+    end
+
+    private action ResolveFields(SymbolTable table, CompilerErrorManager errors)
+        Iterator<Variable> iterator = GetVariables()    
+        repeat while iterator:HasNext()
+            Variable var = iterator:Next()
+            ResolveVariable(var, table, errors)
+        end
     end
 
     action GetInterfaceName returns text
@@ -340,6 +359,48 @@ class Class is Symbol
             return now
         end
         ResolveType(variable, type, table, errors)
+    end
+
+    action ResolveType(Location location, Type type, SymbolTable table, CompilerErrorManager errors)
+        if not type:IsPrimitive() //if it's a primitive, do nothing
+            text key = type:GetStaticKey()
+            Class clazz = GetClass(key, table, errors)
+            if clazz not= undefined
+                type:SetToObject(clazz:GetStaticKey())
+                if type:HasGenerics()
+                    //check to see if the number of generics matches with the class
+                    if clazz:GetNumberGenerics() not= type:GetNumberGenerics() 
+                        CompilerError error
+                        error:SetLocation(location)
+                        CompilerErrorType t
+                        t:SetCurrentType(t:MISMATCHED_TEMPLATES)
+                        error:SetCompilerErrorType(t)
+                        error:SetErrorMessage("I noticed there is a variable of type "
+                            +  key + ". This class requires " + clazz:GetNumberGenerics()
+                            + " generics, but there are " + type:GetNumberGenerics() + " defined.")
+                        errors:Add(error)
+                    end
+
+
+                    Iterator<Type> generics = type:GetGenerics()
+                    repeat while generics:HasNext()
+                        Type generic = generics:Next()
+                        if type:HasGenerics()
+                            ResolveType(location, generic, table, errors)
+                        end
+                    end
+                end
+            else
+                CompilerError error
+                error:SetLocation(location)
+                CompilerErrorType t
+                t:SetCurrentType(t:MISSING_USE)
+                error:SetCompilerErrorType(t)
+                error:SetErrorMessage("I could not locate a type named "
+                    +  key + ". Are you sure it was spelled it correct?" )
+                errors:Add(error)
+            end
+        end
     end
 
     private action ResolveType(Variable variable, Type type, SymbolTable table, CompilerErrorManager errors)
@@ -445,10 +506,10 @@ class Class is Symbol
                 end
 
                 //does the type have generics
-                if type:HasGenerics()
-                    Iterator<Type> generics = type:GetGenerics()
-                    final = final + GetGenericKey(generics, table, errors)
-                end
+                //if type:HasGenerics()
+                //    Iterator<Type> generics = type:GetGenerics()
+                //    final = final + GetGenericKey(generics, table, errors)
+                //end
             end
         end
 

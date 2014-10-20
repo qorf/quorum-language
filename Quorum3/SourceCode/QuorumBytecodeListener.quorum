@@ -169,6 +169,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             Location loc = b:GetLocation()
             loc:SetLocation(context:GetLocation())
             EnterBlock(b)
+            isInAction = true
         end
     end
 
@@ -1001,6 +1002,35 @@ class QuorumBytecodeListener is QuorumSourceListener
             currentBlockOpcode:Add(opcode)
         end
     end
+
+    action ExitCast(CastContext context) 
+        TypeChecker checker = GetTypeChecker()
+        QuorumOpcode right = opcodeStack:Peek()
+        Operation op
+        op:SetOperation(op:CAST)
+
+        Type left = context:type //this has to be resolved
+        currentClass:ResolveType(context:GetLocation(), left, GetSymbolTable(), GetCompilerErrorManager())
+
+
+        TypeCheckResult result = checker:Check(left, right:GetType(), op)
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
+        ExplicitCastOpcode theCast = cast(ExplicitCastOpcode, result:GetQuorumOpcode())
+        if theCast not= undefined
+            theCast:SetType(result:result)
+            theCast:SetOpcodeToCast(opcodeStack:Pop())
+            opcodeStack:Push(theCast)
+        end
+    end
+
+
+    
 
     action ExitInequality(InequalityContext context) 
         TypeChecker checker = GetTypeChecker()

@@ -1,0 +1,36 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+
+class ExplicitCastOpcode is QuorumOpcode
+    QuorumOpcode opcodeToCast = undefined
+
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+        opcodeToCast:SetMethodWriterToAllChildren(writer)
+    end
+
+    action Write
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        if opcodeToCast not= undefined
+            opcodeToCast:Write()
+        end
+    end
+
+    action GetOpcodeToCast returns QuorumOpcode
+        return opcodeToCast
+    end
+
+    action SetOpcodeToCast(QuorumOpcode op)
+        opcodeToCast = op
+    end
+    
+    action WriteJavaScript returns text
+        return opcodeToCast:WriteJavaScript()
+    end
+
+    action GetTemplateCopy returns QuorumOpcode
+        ExplicitCastOpcode op
+        return op
+    end
+end
