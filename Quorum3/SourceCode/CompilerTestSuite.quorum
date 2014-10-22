@@ -51,7 +51,7 @@ class CompilerTestSuite
         expressions:Test()
         output ""
         output typeChecks:GetName()
-        typeChecks:Test()
+        //typeChecks:Test()
         output ""
         output ifStatementChecks:GetName()
         ifStatementChecks:Test()
@@ -268,7 +268,6 @@ class CompilerTestSuite
 
         File testFile 
         testFile = files:Get(0)
-        result:name = testFile:GetPath()
 
         compiler:SetMain(testFile)
         compiler:Compile(files)
@@ -304,6 +303,13 @@ class CompilerTestSuite
                 result:stackTrace = e:GetStackTrace()
             end
             result:isBytecodeTest = true
+            result:name = testFile:GetPath()
+            Add(result)
+        else
+            result:passed = false
+            result:isBytecodeTest = true
+            result:errorMessage = "Compiler Ran With Error"
+            result:name = testFile:GetPath()
             Add(result)
         end
     end
@@ -314,7 +320,7 @@ class CompilerTestSuite
         integer j = 0
         repeat i times
             File f = files:Get(j)
-            output f:Exists() + ": " + f:GetFileName()
+            output f:Exists() + ": " + f:GetPath()
             j = j + 1
         end
     end
@@ -502,7 +508,11 @@ class CompilerTestSuite
                 end
             end
         elseif not result:exceptionThrown and result:passed = false
-            value = value + "... fail: Incorrect output."
+            if result:errorMessage not= ""
+                value = value + "... fail: " + result:errorMessage
+            else
+                value = value + "... fail: Incorrect output."
+            end
         else
             value = value + " ... " + "passed"
         end
