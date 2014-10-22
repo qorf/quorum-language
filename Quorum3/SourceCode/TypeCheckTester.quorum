@@ -11,25 +11,30 @@ use Libraries.System.StackTraceItem
 
 class TypeCheckTester 
     CompilerTestSuite suite = undefined
+    text path = "Library/Tests/TypeChecker/"
+    text passPath = path + "Pass/"
+    text failPath = path + "Fail/"
+
     action Test
-        AutoBoxingAndMethodOverloading()
+        path = passPath
+        AutoBoxingAndMethodOverloadingInt()
+        AutoBoxingAndMethodOverloadingNum()
         AutoboxBoolObj()
         AutoboxBoolObjSemiWrapped()
-        AutoboxBoolean()
-        AutoboxBooleanSemiWrapped()
+        //AutoboxBoolean()
+        //AutoboxBooleanSemiWrapped()
         AutoboxIntObj()
         AutoboxIntObjSemiWrapped()
-        AutoboxInteger()
-        AutoboxIntegerSemiWrapped()
+        //AutoboxInteger()
+        //AutoboxIntegerSemiWrapped()
         AutoboxNumObj()
         AutoboxNumObjSemiWrapped()
-        AutoboxNumber()
-        AutoboxNumberSemiWrapped()
-        AutoboxTempClass()            //not a TEST...CORRECT???
-        AutoboxText()
+        //AutoboxNumber()
+        //AutoboxNumberSemiWrapped()
         AutoboxTextObj()
         AutoboxTextObjSemiWrapped()
-        AutoboxTextSemiWrapped()
+        //AutoboxText()
+        //AutoboxTextSemiWrapped()
         B()                           //not a TEST...CORRECT???                    
         BooleanCompare()
         BooleanEquals()
@@ -168,7 +173,8 @@ class TypeCheckTester
         TypeInferenceText()
         CompareBugTest()
 
-    //Tests that should fail
+//FAIL TESTS
+        path = failPath
 //        ExpAssignBoolObjBoolean()
 //        ExpAssignBoolObjIntObj()
 //        ExpAssignBoolObjInteger()
@@ -313,92 +319,267 @@ class TypeCheckTester
         me:suite = suite
     end
 
-    action AutoBoxingAndMethodOverloading
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoBoxingAndMethodOverloading.quorum", "2")
+    action AutoBoxingAndMethodOverloadingInt
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AutoBoxingAndMethodOverloadingInt.quorum")
+        files:Add(main)
+        results:Add(0, "2")
+
+        suite:Test(files, results)
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoBoxingAndMethodOverloading.quorum", "2")
+    end
+
+action AutoBoxingAndMethodOverloadingNum
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AutoBoxingAndMethodOverloadingNum.quorum")
+        files:Add(main)
+        results:Add(0, "1.0")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoBoxingAndMethodOverloading.quorum", "2")
     end
 
     action AutoboxBoolObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxBoolObj.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxBoolObj.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "true")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBoolObj.quorum", "true")
     end
 
     action AutoboxBoolObjSemiWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxBoolObjSemiWrapped.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxBoolObjSemiWrapped.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "true")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBoolObjSemiWrapped.quorum", "true")
     end
 
     action AutoboxBoolean
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxBoolean.quorum", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxBoolean.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "true")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBoolean.quorum", "false")
     end
 
     action AutoboxBooleanSemiWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxBooleanSemiWrapped.quorum", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxBooleanSemiWrapped.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "true")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBooleanSemiWrapped.quorum", "false")
     end
 
     action AutoboxIntObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxIntObj.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxIntObj.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "5")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxIntObj.quorum", "5")
     end
 
     action AutoboxIntObjSemiWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxIntObjSemiWrapped.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxIntObjSemiWrapped.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "5")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxIntObjSemiWrapped.quorum", "5")
     end
 
     action AutoboxInteger
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxInteger.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxInteger.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "5")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxInteger.quorum", "5")
     end
 
     action AutoboxIntegerSemiWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxIntegerSemiWrapped.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxIntegerSemiWrapped.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "5")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxIntegerSemiWrapped.quorum", "5")
     end
 
     action AutoboxNumObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxNumObj.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxNumObj.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "7.5")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumObj.quorum", "7.5")
     end
 
     action AutoboxNumObjSemiWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxNumObjSemiWrapped.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxNumObjSemiWrapped.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "7.5")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumObjSemiWrapped.quorum", "7.5")
     end
 
     action AutoboxNumber
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxNumber.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxNumber.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "7.5")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumber.quorum", "7.5")
     end
 
     action AutoboxNumberSemiWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxNumberSemiWrapped.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxNumberSemiWrapped.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "7.5")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumberSemiWrapped.quorum", "7.5")
     end
 
-    action AutoboxTempClass
-        //NOT A TEST
-    end
-
-    action AutoboxText
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxText.quorum", "0")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxText.quorum", "0")
-    end
-
     action AutoboxTextObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxTextObj.quorum", "0")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxTextObj.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "text")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxTextObj.quorum", "0")
     end
 
     action AutoboxTextObjSemiWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxTextObjSemiWrapped.quorum", "0")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxTextObjSemiWrapped.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "text")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxTextObjSemiWrapped.quorum", "0")
     end
 
+    action AutoboxText
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxText.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "text")
+
+        suite:Test(files, results)
+        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxText.quorum", "0")
+    end
+
     action AutoboxTextSemiWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/AutoboxTextSemiWrapped.quorum", "0")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxTextSemiWrapped.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "text")
+
+        suite:Test(files, results)
         //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxTextSemiWrapped.quorum", "0")
     end
 
