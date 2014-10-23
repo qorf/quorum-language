@@ -182,6 +182,7 @@ class CompilerTestSuite
         else
             CompilerTestResult result2
             result = result2
+            result:errorMessage = "compilation had errors"
         end
         result:name = testFile:GetPath()
         return result
