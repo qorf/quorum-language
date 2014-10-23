@@ -128,8 +128,7 @@ class ExpressionsTester
         results:Add(0, "true text")
         results:Add(1, "false text")
         suite:Test(files, results)
-        
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddBooleanText.quorum", "true text", "false text")
+        suite:TestJavaScript(files, results)
     end
 
     action AddDoubleDouble
