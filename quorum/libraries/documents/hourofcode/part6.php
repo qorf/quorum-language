@@ -44,11 +44,11 @@
     slideArray[4] = "<h5>Calling Actions</h5>\n\
         <ul>\n\
         <li>Now, in order to complete this program we need to call our <code>PrintMsg</code> action from our <code>Main</code> action so that it will execute.</li>\n\
-        <li>In Quorum, this is very easy to do, we just insert a line of code in the <code>Main</code> action that redirects the computer to the other action.  We do this adding the line <code>OutputTest()</code> to the <code>Main</code> action.</li>\n\
+        <li>In Quorum, this is very easy to do, we just insert a line of code in the <code>Main</code> action that redirects the computer to the other action.  We do this adding the line <code>PrintMsg()</code> to the <code>Main</code> action.</li>\n\
         <li>The parentheses are necessary after the action name to notify the computer that it should run an action.</li>\n\
         <span class=\"title\">Try it!</span>\n\
-        <div class =\"task\"><p>Call <code>OutputTest</code> from <code>Main</code>:<br>\n\
-        <code>OutputTest()</code></p></div>\n\
+        <div class =\"task\"><p>Call <code>PrintMsg</code> from <code>Main</code>:<br>\n\
+        <code>PrintMsg()</code></p></div>\n\
         </ul>";
     
     slideArray[5] = "<h5>Actions: More Information</h5>\n\
