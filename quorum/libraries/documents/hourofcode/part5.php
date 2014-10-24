@@ -14,11 +14,10 @@
     
     slideArray[1] = "<h5>Implementing the Logic: Part 1</h5>\n\
         <ul>\n\
-        <li>Now that we have the <code>repeat</code> loop set up, we need to complete the code block inside the loop that will be repeated.</li>\n\
-        <li>We will use the modulus operator <code>%</code> to determine if a number is even or odd. Remember that the modulus operator returns the remainder when dividing two numbers, so any even number divided by two will have a zero remainder and any odd number will have a remainder of 1.</li>\n\
-        <li>So all we need to do is check if the remainder is zero.</li>\n\
+        <li>Now that we have the <code>repeat</code> loop set up, we need to complete the code block to repeat inside the loop.</li>\n\
+        <li>We will use the modulus operator <code>mod</code> to determine if a number is even or odd. Remember that the modulus operator returns the remainder when dividing two numbers, so any even number divided by two will have a remainder of 0 and any odd number will have a remainder of 1.</li>\n\
         <span class=\"title\">Try it!</span>\n\
-        <div class =\"task\"><p>Create an <code>if</code> statement inside the <code>repeat</code> loop checking the modulus of the variable:<br><code>if testNumber % 2 = 0</code>  End the statement with <code>end</code>.</div>\n\
+        <div class =\"task\"><p>Create an <code>if</code> statement inside the <code>repeat</code> loop checking the modulus of the variable:<br><code>if testNumber mod 2 = 0</code><br><code>end</code>.</div>\n\
         </ul>";
     
     slideArray[2] = "<h5>Implementing the Logic: Part 2</h5>\n\
@@ -40,7 +39,7 @@ Finally, we need to increment our testing variable by one on each pass of the lo
     
     slideArray[4] = "<h5>Example Code</h5><p class =\"code\">number testNumber = 0<br>\n\
         repeat until testNumber = 10<br>\n\
-        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspif testNumber % 2 = 0<br>\n\
+        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspif testNumber mod 2 = 0<br>\n\
         &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspoutput testNumber + \" is even\"<br>\n\
         &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspelse<br>\n\
         &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspoutput testNumber + \" is odd\"<br>\n\
@@ -49,7 +48,7 @@ Finally, we need to increment our testing variable by one on each pass of the lo
         end</p>";
     
     $(document).ready(function(){
-        $('#IDE-input').text('number testNumber = 0\nrepeat until testNumber = 10\n    if testNumber % 2 = 0\n        output testNumber + \" is even\"\n    else\n        output testNumber + \" is odd\"\n    end\n    testNumber = testNumber + 1\nend');
+        $('#IDE-input').text('number testNumber = 0\nrepeat until testNumber = 10\n    if testNumber mod 2 = 0\n        output testNumber + \" is even\"\n    else\n        output testNumber + \" is odd\"\n    end\n    testNumber = testNumber + 1\nend');
     });
 </script>
 <?php include("slideshow.php"); ?>
