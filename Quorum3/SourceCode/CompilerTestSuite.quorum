@@ -135,7 +135,7 @@ class CompilerTestSuite
         else
             CompilerTestResult result2
             result = result2
-            result:errorMessage = "compilation had errors"
+            result:errorMessage = "Compilation had errors"
         end
         result:name = testFile:GetPath()
         return result
@@ -182,7 +182,7 @@ class CompilerTestSuite
         else
             CompilerTestResult result2
             result = result2
-            result:errorMessage = "compilation had errors"
+            result:errorMessage = "Compilation had errors"
         end
         result:name = testFile:GetPath()
         return result
@@ -200,6 +200,7 @@ class CompilerTestSuite
 
         if compiler:IsCompilationErrorFree()
             result:passed = false
+            result:errorMessage = "Compilation was error free"
         else
             result:passed = true
         end
@@ -219,6 +220,7 @@ class CompilerTestSuite
 
         if compiler:IsCompilationErrorFree()
             result:passed = false
+            result:errorMessage = "Compilation was error free"
         else
             result:passed = true
         end
