@@ -25,7 +25,7 @@
         <ul>\n\
         <li>An alternative type of loop is to repeat a block of code while a certain condition is met.</li>\n\
         <li>In Quorum we do this by using a <code>repeat while</code> statement. After the keyword <code>while</code>, we include a condition, just like we did with an <code>if</code> statement.</li>\n\
-        <li>If we want to mimic the behavior of the last example, we could just repeat while our variable is less than or equal to 10.</li>\n\
+        <li>If we want to mimic the last example, we could just repeat while our variable is less than or equal to 10.</li>\n\
         <li>Note that the value of the variable will be 12, but the output statement is skipped when the repeat condition is false.</li>\n\
         <span class=\"title\">Try it!</span>\n\
         <div class =\"task\"><p>Output five even numbers again by changing the repeat statement to: <code>repeat while evenNumber <= 10</code></p></div>\n\
@@ -46,7 +46,7 @@
         </ul>";
     
     $(document).ready(function(){
-        $('#IDE-input').text('number evenNumber = 0\nrepeat 5 times\n        output evenNumber\n        evenNumber = evenNumber + 2\nend');
+        $('#IDE-input').text('number evenNumber = 2\nrepeat 5 times\n        output evenNumber\n        evenNumber = evenNumber + 2\nend');
     });
 </script>
 <?php include("slideshow.php"); ?>
