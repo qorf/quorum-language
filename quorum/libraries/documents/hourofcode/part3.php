@@ -20,8 +20,8 @@
     
     slideArray[1] = "<h5 role=\"heading\">Control Structures: If (Structure)</h5>\n\
         <ul>\n\
-        <li>One powerful ability of a computer is to make a decision and then execute different instructions under different conditions.  These decisions can be made with a simple conditional statement, which in Quorum uses the keyword <code>if</code>.</li>\n\
-        <li>An <code>if</code> statement has three parts: the keyword <code>if</code> followed by a condition, followed by the block of code to execute if the condition is <code>true</code>, followed by the keyword <code>end</code>.</li>\n\
+        <li>One powerful ability of a computer is to evaluate a condition and make a decision about which instructions to execute. These decisions can be made with a simple conditional statement, which in Quorum uses the keyword <code>if</code>.</li>\n\
+        <li>An <code>if</code> statement has three parts: the keyword <code>if</code> followed by a condition, followed by the block of code to execute if the condition is <code>true</code>, followed by <code>end</code>.</li>\n\
         <li><code>boolean</code> variables are often used to specify the condition.</li>\n\
         <span class=\"title\">Try it!</span>\n\
         <div class =\"task\"><p>Create an <code>if</code> statement using the <code>boolean</code> from the last slide: <code>if sayStatement = true</code> and then type <code>end</code> on a new line.</p>\n\</div>\n\
@@ -39,7 +39,7 @@
     
     slideArray[3] = "<h5 role=\"heading\">Control Structures: If (elseif)</h5>\n\
         <ul>\n\
-        <li>You can also specify an alternatve condition to evaluate if the condition in the first part of the <code>if</code> statement is <code>false</code> by using the keyword <code>elseif</code> after the original <code>if</code> statement.</li>\n\
+        <li>You can also specify an alternatve condition to evaluate if the condition in the first part of the <code>if</code> statement is <code>false</code> by using the keyword <code>elseif</code> before the <code>end</code>.</li>\n\
         <li>We can include as many <code>elseif</code> conditions as we want and include code blocks to execute in each case.</li>\n\
         <li>There is a single <code>end</code> statement at the conclusion.</li>\n\
         <span class=\"title\">Try it!</span>\n\
