@@ -28,19 +28,19 @@
         <li>Just like with output statements, the computer can say the contents of a stored variable or a string that we type in.</li>\n\
         <li><span class = \"bold\">Note:</span> Say statements may not work with all web browsers.</li>\n\
         <span class=\"title\">Try it!</span>\n\
-        <div class =\"task\">Tell the computer to say the result of the area calculation you just completed by typing a new line: <code>say \"The area is\" + area</code></div>\n\
+        <div class =\"task\">Tell the computer to say the result of the area calculation you just completed by typing a new line: <code>say \"The area is \" + area</code></div>\n\
         </ul>"; //operators, concat
     
     slideArray[3] = "<h5 role=\"heading\">Additional Information</h5>\n\
         <ul>\n\
-        <li>There are 5 main operators when using numbers: <code>+</code> (addition), <code>-</code> (subtraction), <code>*</code> (multiplication), <code>/</code> division and <code>%</code> (modulus).</li>\n\
-        <li>The modulus operator is used for finding the remainder of a division operation, for example: <code>15 % 10</code> will give us a result of 5.</li>\n\
-        <li>One example of how to use the modulus operator is to deterimine if a number is even or odd: <code>evenNum % 2</code>  equals 0 and <code>oddNum % 2</code> equals 1.</li>\n\
+        <li>There are 5 main operators when using numbers: <code>+</code> (addition), <code>-</code> (subtraction), <code>*</code> (multiplication), <code>/</code> division and <code>mod</code> (modulus).</li>\n\
+        <li>The modulus operator is used for finding the remainder of a division operation, for example: <code>15 mod 10</code> will give us a result of 5.</li>\n\
+        <li>One example of how to use the modulus operator is to deterimine if a number is even or odd: <code>evenNum mod 2</code>  equals 0 and <code>oddNum mod 2</code> equals 1.</li>\n\
         <li>When using <code>say</code> or <code>output</code> statements, you can concatenate (add) things to be output one after another using the <code>+</code> operator, just like in the previous slide.</li>\n\
         </ul>";
     
     $(document).ready(function(){
-        $('#IDE-input').text('number pi = 3.14159\nnumber radius = 3\nnumber area = pi * radius * radius\nsay "The area is" + area');
+        $('#IDE-input').text('number pi = 3.14159\nnumber radius = 3\nnumber area = pi * radius * radius\nsay "The area is " + area');
     });
 </script>
 <?php include("slideshow.php"); ?>
