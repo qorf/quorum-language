@@ -1,0 +1,14 @@
+class Main
+    action Main
+        integer a = 2
+        output foo(a)
+    end
+
+    action foo (integer a) returns text
+        if a < 0
+            return "negative"
+        else
+            return "positive"
+        end
+    end
+end

@@ -1,0 +1,18 @@
+class Main
+    action Main
+        number a = -2
+        number x
+        x = bar(foo(a))
+        output x
+    end
+
+    action foo (number a) returns number
+        a = a * -1
+        return a
+    end
+
+    action bar(number a) returns number
+        a = a * 10
+        return a
+    end
+end

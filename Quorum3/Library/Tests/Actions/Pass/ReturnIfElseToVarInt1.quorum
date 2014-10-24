@@ -1,0 +1,16 @@
+class Main
+    action Main
+        integer a = -2
+        integer x
+        x = foo(a)
+        output x
+    end
+
+    action foo (integer a) returns integer
+        if a < 0
+            return -1
+        else
+            return 1
+        end
+    end
+end
