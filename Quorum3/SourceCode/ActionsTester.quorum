@@ -30,6 +30,13 @@ class ActionsTester
         FieldCastReturn()
         FieldSoloCall()
         GCD()
+        HourOfCodePart1()
+        HourOfCodePart1Wrapped()
+        HourOfCodePart2()
+        HourOfCodePart3()
+        HourOfCodePart4()
+        HourOfCodePart5()
+        HourOfCodePart6()
         //MultipleClassManyReturnsAndNested()
         MultipleClassNestedCallsAndReturns()
         MultipleClassReturnMixedTypes()
@@ -176,6 +183,115 @@ class ActionsTester
     action GCD 
         suite:RunTest("Library/Tests/Actions/Pass/GCD.quorum", "5")
         suite:RunJavaScriptTest("Library/Tests/Actions/Pass/GCD.quorum", "5")
+    end
+
+    action HourOfCodePart1
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "HourOfCodePart1.quorum")
+        files:Add(main)
+        results:Add(0, "GATTACA")
+        results:Add(1, "Welcome to GATTACA")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action HourOfCodePart1Wrapped
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "HourOfCodePart1Wrapped.quorum")
+        files:Add(main)
+        results:Add(0, "GATTACA")
+        results:Add(1, "Welcome to GATTACA")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action HourOfCodePart2
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "HourOfCodePart2.quorum")
+        files:Add(main)
+        results:Add(0, "The area is 28.274309999999996")
+        results:Add(1, "5")
+        results:Add(2, "0")
+        results:Add(3, "1.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action HourOfCodePart3
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "HourOfCodePart3.quorum")
+        files:Add(main)
+        results:Add(0, "I live in a giant bucket!")
+        results:Add(1, "I live in a giant bucket!")
+        results:Add(2, "1 + 1 = 2")
+        results:Add(3, "3")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action HourOfCodePart4
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "HourOfCodePart4.quorum")
+        files:Add(main)
+        results:Add(0, "2.0")
+        results:Add(1, "4.0")
+        results:Add(2, "6.0")
+        results:Add(3, "8.0")
+        results:Add(4, "10.0")
+        results:Add(5, "12.0")
+        results:Add(6, "2.0")
+        results:Add(7, "4.0")
+        results:Add(8, "6.0")
+        results:Add(9, "8.0")
+        results:Add(10, "10.0")
+        results:Add(11, "2.0")
+        results:Add(12, "4.0")
+        results:Add(13, "6.0")
+        results:Add(14, "8.0")
+        results:Add(15, "10.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action HourOfCodePart5
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "HourOfCodePart5.quorum")
+        files:Add(main)
+        results:Add(0, "0.0 is even")
+        results:Add(1, "1.0 is odd")
+        results:Add(2, "2.0 is even")
+        results:Add(3, "3.0 is odd")
+        results:Add(4, "4.0 is even")
+        results:Add(5, "5.0 is odd")
+        results:Add(6, "6.0 is even")
+        results:Add(7, "7.0 is odd")
+        results:Add(8, "8.0 is even")
+        results:Add(9, "9.0 is odd")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action HourOfCodePart6
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "HourOfCodePart6.quorum")
+        files:Add(main)
+        results:Add(0, "Programming in Quorum is Fun!!!")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action MultipleClassManyReturnsAndNested
