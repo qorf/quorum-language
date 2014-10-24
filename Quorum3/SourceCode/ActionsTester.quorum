@@ -15,8 +15,8 @@ class ActionsTester
     text passPath = path + "Pass/"
     text failPath = path + "Fail/"
 
-
     action Test
+        path = passPath
         AverageOfFiveNumbers()
         CallObjectAction()
         CastLastArgument()
@@ -30,6 +30,9 @@ class ActionsTester
         FieldCastReturn()
         FieldSoloCall()
         GCD()
+        //MultipleClassManyReturnsAndNested()
+        MultipleClassNestedCallsAndReturns()
+        MultipleClassReturnMixedTypes()
         MultipleNestedFunctionCalls()
         MultipleNestedFunctionCallsDouble()
         MultipleNestedFunctionCallsInSoloCall()
@@ -39,7 +42,35 @@ class ActionsTester
         NestedConditionalRepeat2()
         NestedFunctionCall()
         NestedFunctionCallDouble()
+        NonParallelNestedReturn()
         RepeatTextCall()
+        Return2ActionsBool()
+        Return2ActionsBoolToVar()
+        Return2ActionsInt()
+        Return2ActionsIntToVar()
+        Return2ActionsNum()
+        Return2ActionsNumToVar()
+        Return2ActionsText()
+        Return2ActionsTextToVar()
+        ReturnCast2ActionsBool()
+        ReturnCast2ActionsNum()
+        ReturnCast2ActionsText()
+        ReturnIfElseBool1()
+        ReturnIfElseBool2()
+        ReturnIfElseInt1()
+        ReturnIfElseInt2()
+        ReturnIfElseNum1()
+        ReturnIfElseNum2()
+        ReturnIfElseText1()
+        ReturnIfElseText2()
+        ReturnIfElseToVarBool1()
+        ReturnIfElseToVarBool2()
+        ReturnIfElseToVarInt1()
+        ReturnIfElseToVarInt2()
+        ReturnIfElseToVarNum1()
+        ReturnIfElseToVarNum2()
+        ReturnIfElseToVarText1()
+        ReturnIfElseToVarText2()
         SimpleActionPassObject()
         SimpleCastArgument()
         SimpleNestedActions()
@@ -61,6 +92,12 @@ class ActionsTester
 
 //FAIL TESTS
         path = failPath
+        IncorrectAssignment()
+        MissingReturn1()
+        MissingReturn2()
+        MissingReturn3()
+        //MissingReturn4()
+        ReturnCast2ActionsInt()
         SetterBeforeUseFail()
     end
 
@@ -141,6 +178,49 @@ class ActionsTester
         suite:RunJavaScriptTest("Library/Tests/Actions/Pass/GCD.quorum", "5")
     end
 
+    action MultipleClassManyReturnsAndNested
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "MultipleClassManyReturnsAndNested.quorum")
+        files:Add(main)
+        results:Add(0, "Odd")
+        results:Add(1, "true")
+        results:Add(2, "true")
+        results:Add(3, "StackOverflow")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action MultipleClassNestedCallsAndReturns
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "MultipleClassNestedCallsAndReturns.quorum")
+        files:Add(main)
+        results:Add(0, "10")
+        results:Add(1, "14")
+        results:Add(2, "300")
+        results:Add(3, "141")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action MultipleClassReturnMixedTypes
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "MultipleClassReturnMixedTypes.quorum")
+        files:Add(main)
+        results:Add(0, "Spring11")
+        results:Add(1, "Summer12")
+        results:Add(2, "Fall30")
+        results:Add(3, "Winter04")
+        results:Add(4, "Winter05")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
     action MultipleNestedFunctionCalls 
         suite:RunTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCalls.quorum", "65536")
         suite:RunJavaScriptTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCalls.quorum", "65536")
@@ -186,9 +266,323 @@ class ActionsTester
         suite:RunJavaScriptTest("Library/Tests/Actions/Pass/NestedFunctionCallDouble.quorum", "300")
     end
 
+    action NonParallelNestedReturn
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NonParallelNestedReturn.quorum")
+        files:Add(main)
+        results:Add(0, "Spring")
+        results:Add(1, "Summer")
+        results:Add(2, "Fall")
+        results:Add(3, "Winter")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
     action RepeatTextCall 
         suite:RunTest("Library/Tests/Actions/Pass/RepeatTextCall.quorum", "321...Liftoff")
         suite:RunJavaScriptTest("Library/Tests/Actions/Pass/RepeatTextCall.quorum", "321...Liftoff")
+    end
+    
+    action Return2ActionsBool
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Return2ActionsBool.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+    
+    action Return2ActionsBoolToVar
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Return2ActionsBoolToVar.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+    
+    action Return2ActionsInt 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Return2ActionsInt.quorum")
+        files:Add(main)
+        results:Add(0, "20")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+    
+    action Return2ActionsIntToVar
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Return2ActionsIntToVar.quorum")
+        files:Add(main)
+        results:Add(0, "20")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+    
+    action Return2ActionsNum
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Return2ActionsNum.quorum")
+        files:Add(main)
+        results:Add(0, "20.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+    
+    action Return2ActionsNumToVar
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Return2ActionsNumToVar.quorum")
+        files:Add(main)
+        results:Add(0, "20.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Return2ActionsText
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Return2ActionsText.quorum")
+        files:Add(main)
+        results:Add(0, "foobar")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+    
+    action Return2ActionsTextToVar
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Return2ActionsTextToVar.quorum")
+        files:Add(main)
+        results:Add(0, "foobar")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+    
+    action ReturnCast2ActionsBool
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnCast2ActionsBool.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnCast2ActionsNum
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnCast2ActionsNum.quorum")
+        files:Add(main)
+        results:Add(0, "2")
+        results:Add(1, "20.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnCast2ActionsText
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnCast2ActionsText.quorum")
+        files:Add(main)
+        results:Add(0, "foo")
+        results:Add(1, "foobar")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnIfElseBool1
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseBool1.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnIfElseBool2
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseBool2.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnIfElseInt1
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseInt1.quorum")
+        files:Add(main)
+        results:Add(0, "-1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnIfElseInt2
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseInt2.quorum")
+        files:Add(main)
+        results:Add(0, "1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnIfElseNum1
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseNum1.quorum")
+        files:Add(main)
+        results:Add(0, "-1.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnIfElseNum2
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseNum2.quorum")
+        files:Add(main)
+        results:Add(0, "1.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnIfElseText1
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseText1.quorum")
+        files:Add(main)
+        results:Add(0, "negative")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnIfElseText2
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseText2.quorum")
+        files:Add(main)
+        results:Add(0, "positive")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnIfElseToVarBool1
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseToVarBool1.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnIfElseToVarBool2
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseToVarBool2.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnIfElseToVarInt1
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseToVarInt1.quorum")
+        files:Add(main)
+        results:Add(0, "-1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnIfElseToVarInt2
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseToVarInt2.quorum")
+        files:Add(main)
+        results:Add(0, "1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnIfElseToVarNum1
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseToVarNum1.quorum")
+        files:Add(main)
+        results:Add(0, "-1.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnIfElseToVarNum2
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseToVarNum2.quorum")
+        files:Add(main)
+        results:Add(0, "1.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+   action ReturnIfElseToVarText1
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseToVarText1.quorum")
+        files:Add(main)
+        results:Add(0, "negative")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ReturnIfElseToVarText2
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturnIfElseToVarText2.quorum")
+        files:Add(main)
+        results:Add(0, "positive")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action SimpleActionPassObject 
@@ -279,11 +673,66 @@ class ActionsTester
         suite:RunTest("Library/Tests/Actions/Pass/SetterBeforeUse.quorum", "0")
     end
 
+    action IncorrectAssignment
+        Array<File> files
+        File main
+        main:SetPath(path + "IncorrectAssignment.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingReturn1
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingReturn1.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingReturn2
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingReturn2.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingReturn3
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingReturn3.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingReturn4
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingReturn4.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ReturnCast2ActionsInt
+        Array<File> files
+        File main
+        main:SetPath(path + "ReturnCast2ActionsInt.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
     action SetterBeforeUseFail
         Array<File> files
         File main
         main:SetPath(path + "SetterBeforeUseFail.quorum")
         files:Add(main)
         suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 end
