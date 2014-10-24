@@ -46,7 +46,7 @@
         <li>We can also use the <code>+</code> operator to put more than one thing into a variable.</li>\n\
         <li>For <code>text</code> variables putting two strings into the same variable puts them one after the other.</li>\n\
         <span class=\"title\">Try it!</span>\n\
-            <div class =\"task\">Create a new variable called <code>text msg</code> and then use the <code>=</code> operator to put the string and variable <code>\"Welcome to \" + msg</code> into it.  On the next line, output the msg variable.</div>\n\
+            <div class =\"task\">Create a new variable called <code>text msg</code> and then use the <code>=</code> operator to put the string and variable <code>\"Welcome to \" + dna</code> into it.  On the next line, output the msg variable.</div>\n\
         </ul>";
 
     slideArray[5] = "<h5 role=\"heading\">Additional Information Regarding Variables</h5>\n\
@@ -58,7 +58,7 @@
         </ul>";
 
     $(document).ready(function () {
-        $('#IDE-input').text('text dna = "GATTACA"\noutput dna\ntext dna2 = dna\noutput dna2');
+        $('#IDE-input').text('text dna = "GATTACA"\noutput dna\ntext msg = "Welcome to " + dna\noutput msg');
     });
 </script>
 <?php include("slideshow.php"); ?>
