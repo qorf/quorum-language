@@ -30,6 +30,7 @@ class Compiler
     public constant integer JAVA_BYTECODE = 0
     public constant integer JAVASCRIPT = 1
     integer currentOutputType = 0
+    boolean outputSpeechCommands = true
 
     on create //load default dependencies
         standardLibraryFolder = GetStandardLibraryFolder()
@@ -37,6 +38,14 @@ class Compiler
         LoadDependency("/Library/Standard/Plugins/plugins", "/plugins")
         //LoadDependency("/antlr", "/antlr")
         //LoadDependency("/asm", "/asm")
+    end
+
+    action SetOutputSpeech(boolean doSay)
+        outputSpeechCommands = doSay
+    end
+
+    action GetOutputSpeech returns boolean
+        return outputSpeechCommands
     end
 
     action LoadDependency(text from, text to)
@@ -132,6 +141,10 @@ class Compiler
             repeat while i < allFiles:GetSize()
                 File file = allFiles:Get(i)
                 QuorumBytecodeListener listener
+                if not outputSpeechCommands
+                    listener:SetOutputSpeech(outputSpeechCommands)
+                end
+
                 Parse(file, listener)
                 ClassOpcode op = listener:GetClassOpcode()
                 classOpcodes:Add(op)
@@ -249,6 +262,11 @@ class Compiler
             repeat while i < allFiles:GetSize()
                 File file = allFiles:Get(i)
                 QuorumBytecodeListener listener
+
+                if not outputSpeechCommands
+                    listener:SetOutputSpeech(outputSpeechCommands)
+                end
+
                 if file:GetPath() = fakePath
                     listener:SetFile(file)
                     Parse(source, listener)

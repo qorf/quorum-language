@@ -1,0 +1,66 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
+
+class SayOpcode is QuorumOpcode
+
+    QuorumOpcode opcode = undefined
+    JavaBytecodeMethodWriter methodWriter = undefined
+    JavaBytecodeOpcodes opcodes
+    QuorumBytecodeConverter converter
+    boolean outputSpeechCommands = true
+
+    action GetOpcode returns QuorumOpcode
+        return opcode
+    end
+
+    action SetOpcode(QuorumOpcode op)
+        opcode = op
+    end
+
+    action SetOutputSpeech(boolean doSay)
+        outputSpeechCommands = doSay
+    end
+
+    action GetOutputSpeech returns boolean
+        return outputSpeechCommands
+    end
+
+    action GetMethodWriter returns JavaBytecodeMethodWriter
+        return methodWriter
+    end
+
+    action SetMethodWriter(JavaBytecodeMethodWriter writer)
+        methodWriter = writer
+    end
+
+    action Write
+        if outputSpeechCommands
+            methodWriter:VisitField(opcodes:GetStaticField(), "java/lang/System", "out", "Ljava/io/PrintStream;")
+            Type type = opcode:GetType()
+            opcode:Write()
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), "java/io/PrintStream", "println",
+                    "(" + converter:ConvertTypeToBytecodeSignature(type) + ")V", false)
+        end //else write nothing
+    end
+
+    action WriteJavaScript returns text
+        if outputSpeechCommands
+            text rhs = opcode:WriteJavaScript()
+            text utterance = "$utterance = new SpeechSynthesisUtterance(" + rhs + ");"
+            JSOutput = utterance + "speechSynthesis.speak($utterance);"
+            return JSOutput
+        else
+            return ""
+        end
+    end
+
+    action GetTemplateCopy returns QuorumOpcode
+        SayOpcode op
+        return op
+    end
+end

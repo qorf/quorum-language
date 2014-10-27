@@ -18,11 +18,12 @@ class Main is WebResponder
         Compiler compiler
         output compiler:GetVersion()
         File main
-        main:SetPath("Library/Tests/TypeChecker/Pass/TypeInferenceBoolean.quorum")
+        main:SetPath("Library/Tests/Actions/Pass/HourOfCodePart4.quorum")
         Array<File> files
 
         files:Add(main)
-        //compiler:SetOutputType(compiler:JAVASCRIPT)
+        compiler:SetOutputSpeech(false) //don't speak while in test mode
+        compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:SetMain(main)
         compiler:Compile(files)
 

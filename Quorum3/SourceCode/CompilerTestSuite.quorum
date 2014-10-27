@@ -48,16 +48,16 @@ class CompilerTestSuite
         output ""
         output "List of Tests:"
         output expressions:GetName()
-        expressions:Test()
+        //expressions:Test()
         output ""
         output typeChecks:GetName()
         //typeChecks:Test()
         output ""
         output ifStatementChecks:GetName()
-        ifStatementChecks:Test()
+        //ifStatementChecks:Test()
         output ""
         output loopsChecks:GetName()
-        loopsChecks:Test()
+        //loopsChecks:Test()
         output ""
         output actionsChecks:GetName()
         actionsChecks:Test()
@@ -124,6 +124,7 @@ class CompilerTestSuite
     action RunTestFile (Array<File> files) returns CompilerTestResult
         CompilerTestResult result = undefined
         Compiler compiler
+        compiler:SetOutputSpeech(false) //don't speak while in test mode
         File testFile 
         testFile = files:Get(0)
         compiler:SetMain(testFile)
@@ -170,6 +171,7 @@ class CompilerTestSuite
     action RunJavaScriptTestFile(Array<File> files) returns CompilerTestResult
         CompilerTestResult result = undefined
         Compiler compiler
+        compiler:SetOutputSpeech(false) //don't speak while in test mode
         File testFile 
         testFile = files:Get(0)
         compiler:SetMain(testFile)
@@ -209,6 +211,7 @@ class CompilerTestSuite
 
     action TestJavaScriptFail(Array<File> files)
         Compiler compiler
+        compiler:SetOutputSpeech(false) //don't speak while in test mode
         CompilerTestResult result
         File testFile 
         testFile = files:Get(0)
@@ -297,6 +300,7 @@ class CompilerTestSuite
     action RunTest(text source) returns CompilerTestResult
         CompilerTestResult result = undefined
         Compiler compiler
+        compiler:SetOutputSpeech(false) //don't speak while in test mode
         File file
         file:SetPath(source)
         compiler:SetMain(file)

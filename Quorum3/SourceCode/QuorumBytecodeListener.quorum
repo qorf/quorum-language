@@ -57,6 +57,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     integer currentActionStack = 0
     integer loopCounter = 0
     integer ifCount = 0
+    boolean outputSpeechCommands = true
 
     action GetClassOpcode returns ClassOpcode
         return currentClassOpcode
@@ -68,6 +69,14 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action GetBuildInterfaceFile returns File
         return buildInterfaceFile
+    end
+
+    action SetOutputSpeech(boolean doSay)
+        outputSpeechCommands = doSay
+    end
+
+    action GetOutputSpeech returns boolean
+        return outputSpeechCommands
     end
     
     private action SetNormalAction 
@@ -279,6 +288,19 @@ class QuorumBytecodeListener is QuorumSourceListener
     action ExitOutputStatement(OutputContext context)
         QuorumOpcode op = opcodeStack:Pop()
         OutputOpcode out
+        out:SetOpcode(op)
+        out:SetMethodWriter(methodWriter)
+        currentBlockOpcode:Add(out)
+    end
+
+    action ExitSayStatement(SayContext context)
+        QuorumOpcode op = opcodeStack:Pop()
+        SayOpcode out
+
+        if not outputSpeechCommands
+            out:SetOutputSpeech(outputSpeechCommands)
+        end
+
         out:SetOpcode(op)
         out:SetMethodWriter(methodWriter)
         currentBlockOpcode:Add(out)
@@ -613,7 +635,6 @@ class QuorumBytecodeListener is QuorumSourceListener
             assignment:SetRightHandSide(right)
             assignment:SetType(value)
             assignment:SetMethodWriter(methodWriter)
-            //assignment:SetBytecodeLocation(location)
             assignment:SetVariable(variable)
             currentBlockOpcode:Add(assignment)
         end
