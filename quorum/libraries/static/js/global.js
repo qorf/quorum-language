@@ -471,7 +471,7 @@ var submitCodeSample = function(){
                 //var msg = new SpeechSynthesisUtterance('28.27431');
 		console.log(codeData);
 		$.ajax({
-			type: "POST",
+			type: "GET",
 			url: "http://beta.quorumlanguage.com/proxy.php",
 			data: codeData,
 			success: function(result){

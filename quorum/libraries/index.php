@@ -64,7 +64,7 @@
 
    <textarea id="IDE-input" class="ide inputArea small-IDE-input" role="textbox" aria-multiline="true">output "Hello World!"</textarea><div id="IDE-output-container">
         <pre id="IDE-output" class="outputArea  small-IDE-output" role="log" aria-live="polite"></pre><div id="run-button" class="btn-group">
-                <button class="btn btn-success small-IDE-run-button" href="#">Run</button>
+                <a class="btn btn-success small-IDE-run-button" href="#">Run</a>
         </div>
 </div>    
         
