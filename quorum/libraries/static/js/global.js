@@ -464,7 +464,7 @@ var submitCodeSample = function(){
 //	})
 
         
-        $("#run-button a").on("click", function(e) {
+        $("#run-button button").on("click", function(e) {
 		e.preventDefault();
 		$(".outputArea").text("");
 		var codeData = {code: $('.inputArea').val()};

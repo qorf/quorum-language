@@ -59,14 +59,14 @@
 		<div class="navbar navbar-inverse navbar-fixed-top">
 			<div class="navbar-inner">
 				<div class="navbar-container">
-                                    <a class="brand" href="/"><img src="../../static/img/quorum_logo.png"> Quorum</a>
+                                    <a class="brand" href="/"><img src="../../../static/img/quorum_logo.png"> Quorum</a>
 					<ul class="nav">
 						<?php
-							createNavBarLink("Learn","syntax.php", 1);
-							createNavBarLink("Libraries","libraries.php", 1);
-							createNavBarLink("Curriculum","curriculum.php", 1);
 							createNavBarLink("Download","download.php", 1);
-							createNavBarLink("Blog","http://blog.quorumlanguage.com/");
+							createNavBarLink("Reference","syntax.php", 1);
+							createNavBarLink("Libraries","libraries.php", 1);
+							createNavBarLink("Tutorials","curriculum.php", 1);
+							createNavBarLink("Social","https://www.facebook.com/quorumlanguage");
 							createNavBarLink("Bugs","https://quorum.atlassian.net/");
 						?>
 					</ul>
