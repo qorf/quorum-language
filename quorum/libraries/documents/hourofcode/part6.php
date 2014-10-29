@@ -64,7 +64,7 @@
         </ul>";
     
     $(document).ready(function(){
-        $('#IDE-input').text('');
+//        $('#IDE-input').text('');
     });
 </script>
 <?php include("slideshow.php"); ?>

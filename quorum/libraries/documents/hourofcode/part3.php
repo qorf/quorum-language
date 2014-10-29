@@ -60,7 +60,7 @@
         </ul>";
     
     $(document).ready(function(){
-        $('#IDE-input').text('boolean sayStatement = true\ntext greeting = "I live in a giant bucket"\nif sayStatement\n        say greeting\nelseif sayStatement = false\n        output greeting\nend');
+//        $('#IDE-input').text('boolean sayStatement = true\ntext greeting = "I live in a giant bucket"\nif sayStatement\n        say greeting\nelseif sayStatement = false\n        output greeting\nend');
     });
 </script>
 <?php include("slideshow.php"); ?>

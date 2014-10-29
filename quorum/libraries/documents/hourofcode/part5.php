@@ -48,7 +48,7 @@ Finally, we need to increment our testing variable by one on each pass of the lo
         end</p>";
     
     $(document).ready(function(){
-        $('#IDE-input').text('number testNumber = 0\nrepeat until testNumber = 10\n    if testNumber mod 2 = 0\n        output testNumber + \" is even\"\n    else\n        output testNumber + \" is odd\"\n    end\n    testNumber = testNumber + 1\nend');
+//        $('#IDE-input').text('number testNumber = 0\nrepeat until testNumber = 10\n    if testNumber mod 2 = 0\n        output testNumber + \" is even\"\n    else\n        output testNumber + \" is odd\"\n    end\n    testNumber = testNumber + 1\nend');
     });
 </script>
 <?php include("slideshow.php"); ?>

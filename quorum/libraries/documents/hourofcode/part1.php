@@ -58,7 +58,7 @@
         </ul>";
 
     $(document).ready(function () {
-        $('#IDE-input').text('text dna = "GATTACA"\noutput dna\ntext msg = "Welcome to " + dna\noutput msg');
+//        $('#IDE-input').text('text dna = "GATTACA"\noutput dna\ntext msg = "Welcome to " + dna\noutput msg');
     });
 </script>
 <?php include("slideshow.php"); ?>

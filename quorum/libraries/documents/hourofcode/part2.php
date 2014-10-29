@@ -40,7 +40,7 @@
         </ul>";
     
     $(document).ready(function(){
-        $('#IDE-input').text('number pi = 3.14159\nnumber radius = 3\nnumber area = pi * radius * radius\nsay "The area is " + area');
+//        $('#IDE-input').text('number pi = 3.14159\nnumber radius = 3\nnumber area = pi * radius * radius\nsay "The area is " + area');
     });
 </script>
 <?php include("slideshow.php"); ?>

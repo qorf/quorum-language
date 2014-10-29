@@ -46,7 +46,7 @@
         </ul>";
     
     $(document).ready(function(){
-        $('#IDE-input').text('number evenNumber = 2\nrepeat 5 times\n        output evenNumber\n        evenNumber = evenNumber + 2\nend');
+//        $('#IDE-input').text('number evenNumber = 2\nrepeat 5 times\n        output evenNumber\n        evenNumber = evenNumber + 2\nend');
     });
 </script>
 <?php include("slideshow.php"); ?>
