@@ -484,6 +484,8 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "20.0")
         suite:Test(files, results)
+
+        results:Set(0, "20")
         suite:TestJavaScript(files, results)
     end
     
@@ -495,6 +497,8 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "20.0")
         suite:Test(files, results)
+
+        results:Set(0, "20")
         suite:TestJavaScript(files, results)
     end
 
@@ -541,6 +545,8 @@ class ActionsTester
         results:Add(0, "2")
         results:Add(1, "20.0")
         suite:Test(files, results)
+
+        results:Set(1, "20")
         suite:TestJavaScript(files, results)
     end
 
@@ -608,6 +614,8 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "-1.0")
         suite:Test(files, results)
+
+        results:Set(0, "-1")
         suite:TestJavaScript(files, results)
     end
 
@@ -619,6 +627,8 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "1.0")
         suite:Test(files, results)
+
+        results:Set(0, "1")
         suite:TestJavaScript(files, results)
     end
 
@@ -696,6 +706,8 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "-1.0")
         suite:Test(files, results)
+
+        results:Set(0, "-1")
         suite:TestJavaScript(files, results)
     end
 
@@ -707,6 +719,8 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "1.0")
         suite:Test(files, results)
+
+        results:Set(0, "1")
         suite:TestJavaScript(files, results)
     end
 

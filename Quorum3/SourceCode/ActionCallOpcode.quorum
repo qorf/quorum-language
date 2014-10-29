@@ -195,8 +195,18 @@ class ActionCallOpcode is QuorumOpcode
             Action act = actionResolution:resolvedAction
             Class clazz = act:GetParentClass()
             if not pushOnMe //object call
-                text name = act:GetName()
-                result = result + "." + name + "("
+                text name = act:ConvertActionToJavaScriptName()
+                if field = undefined
+                    result = result + "." + name + "("
+                else 
+                    if field:IsField()
+                        result = result + "this." + field:GetName() + "." + name + "("
+                    else
+                        result = result + field:GetName() + "." + name + "("
+                    end
+                end
+                
+                
             else 
                 text t = "this." + act:ConvertActionToJavaScriptName()
                 result = result + t + "("
