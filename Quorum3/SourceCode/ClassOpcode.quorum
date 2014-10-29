@@ -541,19 +541,17 @@ class ClassOpcode is QuorumOpcode
         convertedSource = "var " + OUTPUT_VARIABLE + " = " + quote + quote + ";" + EOL
         convertedSource = convertedSource + EOL + "function "
             + clazz:ConvertStaticKeyToUnderScore() + "() {" + EOL
-        
-
-        Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
-        repeat while fieldIterator:HasNext()
-            QuorumOpcode field = fieldIterator:Next()
-            convertedSource = convertedSource + field:WriteJavaScript()
-        end
-
 
         Iterator<ActionOpcode> actionIterator = actions:GetIterator()
         repeat while actionIterator:HasNext()
             ActionOpcode act = actionIterator:Next()
             convertedSource = convertedSource + act:WriteJavaScript()
+        end
+
+        Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
+        repeat while fieldIterator:HasNext()
+            QuorumOpcode field = fieldIterator:Next()
+            convertedSource = convertedSource + field:WriteJavaScript()
         end
 
         convertedSource = convertedSource + EOL + "};" + EOL
@@ -563,6 +561,7 @@ class ClassOpcode is QuorumOpcode
             convertedSource = convertedSource + OUTPUT_VARIABLE + ";" + EOL
         end
 
+        
         return convertedSource
     end
 

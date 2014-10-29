@@ -127,7 +127,12 @@ class AssignmentOpcode is QuorumOpcode
 
     action WriteJavaScript returns text 
         text result = ""
-        result = result + variable:GetName() 
+
+        if variable:IsField()
+            result = result + "this." + variable:GetName()
+        else
+            result = result + variable:GetName() 
+        end
         result = result + " = " + rightHandSide:WriteJavaScript() + ";"
         EOL = ""
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
