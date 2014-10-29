@@ -100,6 +100,7 @@ class ActionsTester
 //FAIL TESTS
         path = failPath
         IncorrectAssignment()
+        MissingEnd()
         MissingReturn1()
         MissingReturn2()
         MissingReturn3()
@@ -838,6 +839,15 @@ class ActionsTester
         Array<File> files
         File main
         main:SetPath(path + "IncorrectAssignment.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingEnd
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingEnd.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
