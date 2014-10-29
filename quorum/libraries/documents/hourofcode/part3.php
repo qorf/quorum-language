@@ -3,7 +3,7 @@
     document.title = 'Hour of Code: Part 3 | Quorum Programming Language';
     
     //slide array
-    var slideArray = new Array();
+    var slideArray = [];
     
     slideArray[0] = "<h5 role=\"heading\">Boolean Variables</h5>\n\
         <ul>\n\
@@ -12,8 +12,8 @@
         <span class=\"title\">Try it!</span>\n\
         <div class =\"task\">\n\
             <ul>\n\
-            <li>Make a <code>boolean</code> variable and assign it a value of true: <code>boolean sayStatement = true</code>.</li>\n\
-            <li>Create a <code>text</code> variable named \"greeting\" and assign it a string you like in double quotes: <code>text greeting = \"I live in a giant bucket!\"</code></li>\n\
+            <li>Make a <code>boolean</code> variable and assign it a value of false: <code>boolean sayStatement = false</code>.</li>\n\
+            <li>Create a <code>text</code> variable named \"greeting\" and assign it a string you like in double quotes: <code>text greeting = \"Hello!\"</code></li>\n\
             <li>We will use these variables later.</li>\n\
             </ul></div>\n\
         </ul>";

@@ -3,7 +3,7 @@
     document.title = 'Hour of Code: Part 5 | Quorum Programming Language';
     
     //slide array
-    var slideArray = new Array();
+    var slideArray = [];
     slideArray[0] = "<h5>Putting It All Together</h5>\n\
         <ul>\n\
         <li>We've learned quite a bit up to this point and now it's time use all of our new skills to write a program that will detect if a number is even or odd.</li>\n\

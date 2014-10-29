@@ -3,7 +3,7 @@
     document.title = 'Hour of Code: Part 1 | Quorum Programming Language';
 
     //slide array
-    var slideArray = new Array();
+    var slideArray = [];
     slideArray[0] = "<h5 role=\"heading\">Variables</h5>\n\
         <ul>\n\
         <li>In programming, a <code>variable</code> is a container to store information that can be used at a later time.</li>\n\
@@ -58,7 +58,7 @@
         </ul>";
 
     $(document).ready(function () {
-//        $('#IDE-input').text('text dna = "GATTACA"\noutput dna\ntext msg = "Welcome to " + dna\noutput msg');
+//        $('#IDE-output').html("GATTACA<br>Welcome to GATTACA<br>");
     });
 </script>
 <?php include("slideshow.php"); ?>
