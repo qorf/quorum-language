@@ -100,6 +100,7 @@ class ActionsTester
 //FAIL TESTS
         path = failPath
         IncorrectAssignment()
+        MissingEnd()
         MissingReturn1()
         MissingReturn2()
         MissingReturn3()
@@ -484,6 +485,8 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "20.0")
         suite:Test(files, results)
+
+        results:Set(0, "20")
         suite:TestJavaScript(files, results)
     end
     
@@ -495,6 +498,8 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "20.0")
         suite:Test(files, results)
+
+        results:Set(0, "20")
         suite:TestJavaScript(files, results)
     end
 
@@ -541,6 +546,8 @@ class ActionsTester
         results:Add(0, "2")
         results:Add(1, "20.0")
         suite:Test(files, results)
+
+        results:Set(1, "20")
         suite:TestJavaScript(files, results)
     end
 
@@ -608,6 +615,8 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "-1.0")
         suite:Test(files, results)
+
+        results:Set(0, "-1")
         suite:TestJavaScript(files, results)
     end
 
@@ -619,6 +628,8 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "1.0")
         suite:Test(files, results)
+
+        results:Set(0, "1")
         suite:TestJavaScript(files, results)
     end
 
@@ -696,6 +707,8 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "-1.0")
         suite:Test(files, results)
+
+        results:Set(0, "-1")
         suite:TestJavaScript(files, results)
     end
 
@@ -707,6 +720,8 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "1.0")
         suite:Test(files, results)
+
+        results:Set(0, "1")
         suite:TestJavaScript(files, results)
     end
 
@@ -824,6 +839,15 @@ class ActionsTester
         Array<File> files
         File main
         main:SetPath(path + "IncorrectAssignment.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingEnd
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingEnd.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

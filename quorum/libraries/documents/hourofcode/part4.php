@@ -10,14 +10,18 @@
         <li>In Quorum, we create a loop using the keyword <code>repeat</code>.</li>\n\
         <li>We mark the end of a loop in the same way we marked the end of an <code>if</code> statement, by using the keyword <code>end</code>.</li>\n\
         <li>In this example, we will explore three different ways to control loops using the statements: <code>repeat {number} times</code>, <code>repeat while {condition}</code> and <code>repeat until {condition}</code>.</li>\n\
-        </ul?";
+        </ul><br><p>Move on to the next slide when you are ready.<p>";
     
     slideArray[1] = "<h5>Control Structures: Repeat Times</h5>\n\
         <ul>\n\
         <li>The most basic type of loop involves just telling the computer how many times to repeat something.</li>\n\
         <li>In Quorum, if we want to do something 5 times, we can type: <code>repeat 5 times</code> or if we have a numeric variable, we can place that in the \"5\" position like: <code>repeat x times</code>.</li>\n\
         <span class=\"title\">Try it!</span>\n\
-        <div class =\"task\"><p>Output five even numbers:<br><code>number evenNumber = 2</code><br><code>repeat 5 times</code><br>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<code>output evenNumber</code><br>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<code>evenNumber = evenNumber + 2</code><br><code>end</code></p>\n\
+        <div class =\"task\"><p>Output five even numbers:<br><code>number evenNumber = 2</code><br>\n\
+        <code>repeat 5 times</code><br>\n\
+        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<code>output evenNumber</code><br>\n\
+        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<code>evenNumber = evenNumber + 2</code><br>\n\
+        <code>end</code>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp(Then Run your code)</p>\n\
         </div>\n\
         </ul>";
     
@@ -28,7 +32,7 @@
         <li>If we want to mimic the last example, we could just repeat while our variable is less than or equal to 10.</li>\n\
         <li>Note that the value of the variable will be 12, but the output statement is skipped when the repeat condition is false.</li>\n\
         <span class=\"title\">Try it!</span>\n\
-        <div class =\"task\"><p>Output five even numbers again by changing the repeat statement to: <code>repeat while evenNumber <= 10</code></p></div>\n\
+        <div class =\"task\"><p>Output the even numbers again by changing line 2 to: <code>repeat while evenNumber <= 10</code>, then hit Run.</p></div>\n\
         </ul>";
     
     slideArray[3] = "<h5>Control Structures: Repeat Until</h5>\n\
@@ -37,7 +41,7 @@
         <li>The difference is that the <code>repeat until</code> loop stops when a specific condition is met instead of repeating while a condition is met.</li>\n\
         <li>You can represent the same logical control with either format, so it is your choice which one you use, but sometimes one is more natural than the other.</li>\n\
         <span class=\"title\">Try it!</span>\n\
-        <div class =\"task\"><p>Output five even numbers by changing the repeat statement to: <code>repeat until evenNumber > 10</code></p></div>\n\
+        <div class =\"task\"><p>Output the even numbers by changing line 2 to: <code>repeat until evenNumber > 10</code>, then hit Run</p></div>\n\
         </ul>";
     
     slideArray[4] = "<h5>Control Structures: Additional Information</h5>\n\
