@@ -191,7 +191,15 @@ parent_call
 
 expression
     :
-        (ME COLON)? action_call (COLON (action_call*))?                                         #VariableFunctionCall
+        LEFT_PAREN expression RIGHT_PAREN                                                       #ParenthesisExpression
+    |   INT                                                                                     #Integer
+    |   BOOLEAN                                                                                 #Boolean
+    |   DECIMAL                                                                                 #Decimal
+    |   STRING                                                                                  #String
+    |   NULL                                                                                    #Null
+    |   ME                                                                                      #Me
+    |   INPUT LEFT_PAREN expression RIGHT_PAREN                                                 #Input
+    |   (ME COLON)? action_call (COLON (action_call*))?                                         #VariableFunctionCall
     |   (ME COLON)? parent_call (COLON action_call)+                                            #ParentVariableFunctionCall
     |   MINUS expression                                                                        #Minus
     |   NOT expression                                                                          #Not
@@ -203,14 +211,6 @@ expression
     |   expression (EQUALITY | NOTEQUALS) expression                                            #Equals
     |   expression (AND) expression                                                             #And
     |   expression (OR) expression                                                              #Or
-    |   INT                                                                                     #Integer
-    |   BOOLEAN                                                                                 #Boolean
-    |   DECIMAL                                                                                 #Decimal
-    |   STRING                                                                                  #String
-    |   NULL                                                                                    #Null
-    |   ME                                                                                      #Me
-    |   INPUT LEFT_PAREN expression RIGHT_PAREN                                                 #Input
-    |   LEFT_PAREN expression RIGHT_PAREN                                                       #ParenthesisExpression
     ;
 
 
