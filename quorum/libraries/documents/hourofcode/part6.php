@@ -8,7 +8,7 @@
         <ul>\n\
         <li>Often times inside a program, we want to run the same code sections many times in different places. We usually want to eliminate this duplicate code to save time, reduce errors and make things easier to change.</li>\n\
         <li>We do this by writing procedures that we call whenever we want code to run.  In Quorum, these are called actions.</li>\n\
-        <li>You didn't realize it, but we have actually already been using an action called <code>Main</code>. The computer always starts running our program from our <code>Main</code> action.  We haven't had to use it so far, because Quorum automatically puts our code inside a <code>Main</code> action if we don't use any other actions.</li>\n\
+        <li>You didn't realize it, but we have already been using an action called <code>Main</code>. The computer always starts running our program from our <code>Main</code> action.  We haven't had to use it so far, because Quorum automatically puts our code inside a <code>Main</code> action if we don't use any other actions.</li>\n\
         <li>Now that we are going to use other actions though, we always need to include it.</li>\n\
 </ul>";
     
@@ -18,7 +18,7 @@
         <li>Since we are going to have a code block inside the action, we also need to include an <code>end</code> to mark where the action ends.</li>\n\
         <span class=\"title\">Try it!</span><div class =\"task\"><p>Lets start a new program by creating a Main action:<br>\n\
         <code>action Main</code><br>\n\
-        <code>end</code></p>\n\
+        <code>end</code>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp(then move to the next slide)</p>\n\
         </div>\n\
         </ul>";
     
@@ -29,7 +29,7 @@
         <li>To do this, just create a new action after the <code>end</code> statement of the <code>Main</code> action.</li>\n\
             <span class=\"title\">Try it!</span><div class =\"task\"><p>Create an action called <code>PrintMsg</code> after the <code>Main</code> action:<br>\n\
         <code>action PrintMsg</code>.<br>\n\
-        <code>end</code>.</p></div>\n\
+        <code>end</code>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp(then move to the next slide).</p></div>\n\
         </ul>";
     
     slideArray[3] = "<h5>Creating Actions: Part 3</h5>\n\
@@ -38,7 +38,7 @@
         <li>To keep our example simple, we are going to write a simple output message to the screen.</li>\n\
         <span class=\"title\">Try it!</span>\n\
         <div class =\"task\"><p>Insert an <code>output</code> statement inside the <code>PrintMsg</code> action:<br>\n\
-        <code>output \"Programming in Quorum is Fun!!!\"</p></div>\n\
+        <code>output \"Programming in Quorum is Fun!!!\"</code><br>(then move to the next slide)</div></p>\n\
         </ul>";
     
     slideArray[4] = "<h5>Calling Actions</h5>\n\
@@ -48,7 +48,7 @@
         <li>The parentheses are necessary after the action name to notify the computer that it should run an action.</li>\n\
         <span class=\"title\">Try it!</span>\n\
         <div class =\"task\"><p>Call <code>PrintMsg</code> from <code>Main</code>:<br>\n\
-        <code>PrintMsg()</code></p></div>\n\
+        <code>PrintMsg()</code>nbsp&nbsp&nbsp&nbsp&nbsp&nbsp(then Run your code).</p></div>\n\
         </ul>";
     
     slideArray[5] = "<h5>Actions: More Information</h5>\n\
