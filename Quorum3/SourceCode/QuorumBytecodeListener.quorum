@@ -611,11 +611,18 @@ class QuorumBytecodeListener is QuorumSourceListener
                     CompilerErrorType errorType
                     errorType:SetCurrentType(errorType:VARIABLE_INFERENCE)
                     error:SetCompilerErrorType(errorType)
-                    Type otherType = right:GetType()
-                    error:SetErrorMessage("I will not infer the type of the " + 
-                        "right hand side of this expression automatically. To " +
-                        " fix this, change the declaration to " + otherType:GetStaticKeyWithGenerics() + 
-                        " " + variable:GetName() + ".")
+                    if right not= undefined
+                        Type otherType = right:GetType()
+                        error:SetErrorMessage("I will not infer the type of the " + 
+                            "right hand side of this expression automatically. To " +
+                            " fix this, change the declaration to " + otherType:GetStaticKeyWithGenerics() + 
+                            " " + variable:GetName() + ".")
+                        
+                    else
+                        error:SetErrorMessage("I will not infer the type of the " + 
+                            "right hand side of this expression automatically, as the right hand side of this expression's type is undefined.")
+                    end
+
                     CompilerErrorManager manager = GetCompilerErrorManager()
                     manager:Add(error)
                     return now
@@ -628,15 +635,17 @@ class QuorumBytecodeListener is QuorumSourceListener
             
             TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
 
-            integer location = variable:GetBytecodeLocation()
-            Type value = result:result
-            AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
-            assignment:SetClass(currentClass)
-            assignment:SetRightHandSide(right)
-            assignment:SetType(value)
-            assignment:SetMethodWriter(methodWriter)
-            assignment:SetVariable(variable)
-            currentBlockOpcode:Add(assignment)
+            if result:errorType = undefined
+                integer location = variable:GetBytecodeLocation()
+                Type value = result:result
+                AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+                assignment:SetClass(currentClass)
+                assignment:SetRightHandSide(right)
+                assignment:SetType(value)
+                assignment:SetMethodWriter(methodWriter)
+                assignment:SetVariable(variable)
+                currentBlockOpcode:Add(assignment)
+            end
         end
     end
     
@@ -934,6 +943,21 @@ class QuorumBytecodeListener is QuorumSourceListener
 
                 if variable not= undefined
                     Type type = variable:GetType()
+                    //if this is null, a variable was used before it was assigned
+                    //a type, and thus cannot be infered
+                    if type = undefined
+                        CompilerError error
+                        error:SetLocation(context:GetLocation())
+                        error:SetErrorMessage("I found the variable " + name + ", but it cannot be used before it is defined.")
+                        CompilerErrorType errorType
+                        errorType:SetCurrentType(errorType:MISSING_CLASS)
+                        error:SetCompilerErrorType(errorType)
+                        CompilerErrorManager manager = GetCompilerErrorManager()
+                        manager:Add(error)
+                        return now
+                    end
+
+
                     actionCall:SetPushOnMe(true)
                     actionCall:SetType(type)
                     actionCall:SetField(variable)

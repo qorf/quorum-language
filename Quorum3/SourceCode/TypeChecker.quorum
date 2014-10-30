@@ -1941,7 +1941,19 @@ class TypeChecker
 
     action CanInfer(QuorumOpcode opcode) returns InferenceResult
         InferenceResult result
+
+        if opcode = undefined //can't infer a non-existent type
+            result:canInfer = false
+            return result
+        end
+
         Type inferedType = opcode:GetType()
+
+        if inferedType = undefined //can't infer a non-existent type
+            result:canInfer = false
+            return result
+        end
+
         //by default, do not allow objects to be infered
         //TODO: Run empirical study to determine how flexible this system
         //is. AKA: Does the amount of inference impact human comprehension?
@@ -1980,6 +1992,8 @@ class TypeChecker
             end
 
             return (rLeft and rRight)
+        elseif opcode is BinaryAndOrOpcode
+            return true
         else
             return false
         end
