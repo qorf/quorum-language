@@ -75,7 +75,11 @@ public class QuorumErrorListener extends BaseErrorListener{
                 type.SetCurrentType(type.LEXER_NO_VIABLE_ALTERNATIVE);
             } else if(rec instanceof NoViableAltException) {
                 type.SetCurrentType(type.PARSER_NO_VIABLE_ALTERNATIVE);
+            } else {
+                type.SetCurrentType(type.OTHER);
             }
+        } else {
+            type.SetCurrentType(type.OTHER);
         }
         error.SetCompilerErrorType(type);
         error.SetErrorMessage(message);
