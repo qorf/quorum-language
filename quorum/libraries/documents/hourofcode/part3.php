@@ -12,8 +12,8 @@
         <span class=\"title\">Try it!</span>\n\
         <div class =\"task\">\n\
             <ul>\n\
-            <li>Make a <code>boolean</code> variable and assign it a value of true: <code>boolean sayStatement = true</code>.</li>\n\
-            <li>Create a <code>text</code> variable named \"greeting\" and assign it a string you like in double quotes: <code>text greeting = \"I live in a giant bucket!\"</code></li>\n\
+            <li>Make a <code>boolean</code> variable and assign it a value of true: <code>boolean sayStatement = false</code>.</li>\n\
+            <li>Create a <code>text</code> variable named \"greeting\" and assign it a string you like in double quotes: <code>text greeting = \"Hello!\"</code></li>\n\
             <li>We will use these variables in a couple slides.</li>\n\
             </ul></div>\n\
         </ul>";

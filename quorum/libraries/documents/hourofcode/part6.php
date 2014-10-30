@@ -38,7 +38,7 @@
         <li>To keep our example simple, we are going to write a simple output message to the screen.</li>\n\
         <span class=\"title\">Try it!</span>\n\
         <div class =\"task\"><p>Insert an <code>output</code> statement inside the <code>PrintMsg</code> action:<br>\n\
-        <code>output \"Programming in Quorum is Fun!!!\"</code><br>(then move to the next slide)</div></p>\n\
+        <code>output \"Programming in Quorum is fun!!!\"</code><br>(then move to the next slide)</div></p>\n\
         </ul>";
     
     slideArray[4] = "<h5>Calling Actions</h5>\n\

@@ -28,7 +28,7 @@
         <li>Just like with output statements, the computer can say the contents of a variable or a string that we type in.</li>\n\
         <li><span class = \"bold\">Note:</span> Say statements may not work with all web browsers.</li>\n\
         <span class=\"title\">Try it!</span>\n\
-        <div class =\"task\">Tell the computer to say the result of the area calculation you just completed by typing a new line: <code>say \"The area is \" + area</code> and then Run your code.</div>\n\
+        <div class =\"task\">Tell the computer to say the result of the area calculation you just completed by typing a new line: <code>say \"The area is \" + area</code> followed by <code>output \"The area is \" + area</code> and then Run your code.</div>\n\
         </ul>"; //operators, concat
     
     slideArray[3] = "<h5 role=\"heading\">Additional Information</h5>\n\
