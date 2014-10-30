@@ -446,23 +446,26 @@ var submitCodeSample = function(){
 			url: "http://beta.quorumlanguage.com/proxy.php",
 			data: codeData,
 			success: function(result){
-                                console.log(result);
-                                try {
-                                    $("#IDE-output").html(eval(result));
-                                } catch (e) {
-                                    if (e instanceof SyntaxError) {
-                                        $("#IDE-output").text(result);
-                                    }
+                            var hadCompilerError = false;
+                            console.log(result);
+                            try {
+                                $("#IDE-output").html(eval(result));
+                            } catch (e) {
+                                if (e instanceof SyntaxError) {
+                                    $("#IDE-output").text(result);
+                                    hadCompilerError = true;
                                 }
-                                //window.speechSynthesis.speak(msg);
-                                
-                                //check hour of code output based on the page
+                            }
+                            //window.speechSynthesis.speak(msg);
+
+                            //check hour of code output based on the page
+                            if(!hadCompilerError) {
                                 var pageNumber = window.location.pathname;
                                 pageNumber = pageNumber.charAt(pageNumber.length - 5);
-                                if (pageNumber >= 1 || pageNumber <= 6) { //7th page has no exercises
+                                if (pageNumber >= 1 && pageNumber <= 6) { //7th page has no exercises
                                     checkOutput(pageNumber, $('#IDE-output').html());
                                 }
-                                
+                            }
                                 
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
@@ -492,7 +495,7 @@ var checkOutput = function(pageNumber, output) {
     }
     else {
         //failure
-        alert("The result was not correct, try again.");
+        //alert("The result was not correct, try again.");
     }
     
 }
