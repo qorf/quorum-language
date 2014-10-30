@@ -459,7 +459,7 @@ var submitCodeSample = function(){
                                 //check hour of code output based on the page
                                 var pageNumber = window.location.pathname;
                                 pageNumber = pageNumber.charAt(pageNumber.length - 5);
-                                if (pageNumber >= 1 || pageNumber <= 6) { //7th page has no exercises
+                                if (pageNumber >= 1 && pageNumber <= 6) { //7th page has no exercises
                                     checkOutput(pageNumber, $('#IDE-output').html());
                                 }
                                 
