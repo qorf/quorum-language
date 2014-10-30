@@ -3,31 +3,31 @@
     document.title = 'Hour of Code: Part 1 | Quorum Programming Language';
 
     //slide array
-    var slideArray = new Array();
+    var slideArray = [];
     slideArray[0] = "<h5 role=\"heading\">Variables</h5>\n\
         <ul>\n\
         <li>In programming, a <code>variable</code> is a container to store information that can be used at a later time.</li>\n\
         <li>In Quorum, there are four types of basic variables: <code>text</code>, <code>number</code>, <code>integer</code> and <code>boolean</code>.  Each type of variable holds a different kind of information.</li>\n\
-        <li>In this first example, we will create a <code>text</code> variable, which holds a string of anything you want to type in. We'll explain the other types in the next sections.</li>\n\
+        <li>In this first example, we will create a <code>text</code> variable, which holds a text string of anything you want to type in. We'll explain the other types in the next sections.</li>\n\
         <li>Notice that a <code>text</code> string is enclosed in two double quotation marks.</li>\n\
-        </ul>";
+        </ul><br><p>Move on to the next slide when you are ready.<p>";
 
     slideArray[1] = "<h5 role=\"heading\">Creating Variables</h5>\n\
         <ul>\n\
         <li>To create a variable in Quorum, we start by telling the computer what type of variable we want to make, in this case it's a <code>text</code> variable, followed by a space and a name for the variable.</li>\n\
-        <li>The important thing to remember about naming a variable is that a variable needs to start with a letter.  After that, you can have numbers or symbols or more letters in the name.</li>\n\
+        <li>The important thing to remember about naming a variable is that a variable needs to start with a letter.  After that, you can have numbers or more letters in the name.</li>\n\
         <span class=\"title\">Try it!</span>\n\
-        <div class =\"task\">Create a text variable named dna in the window at the right by typing the code: <code>text dna</code>.</div>\n\
+        <div class =\"task\">Create a text variable named dna in the window at the right by typing the code: <code>text dna</code> then go to the next slide.</div>\n\
         </ul>";
 
     slideArray[2] = "<h5 role=\"heading\">Storing Text in Variables: Literals</h5>\n\
         <ul>\n\
-        <li>Now we have made a variable nameed <code>dna</code>, but we haven't stored any information in it yet, so it's empty.</li>\n\
-        <li>To store a value into a variable we use the <code>=</code> operator followed by the information we want stored.</li>\n\
-        <li>For this example, let's store the text \"GATTACA\" in our <code>dna</code> variable.</li>\n\
+        <li>Now we have made a variable named <code>dna</code>, but we haven't stored any information in it yet, so it's empty.</li>\n\
+        <li>To store a value into a variable we use the <code>=</code> operator, followed by the information we want stored.</li>\n\
+        <li>For this example, let's store the text string \"GATTACA\" in our <code>dna</code> variable.</li>\n\
         <li>Remember to put double quotes around the string we're storing in a text variable to tell the computer we want to store exactly what we typed.</li>\n\
         <span class=\"title\">Try it!</span>\n\
-        <div class =\"task\">Store the text \"GATTACA\" to the <code>dna</code> variable: <code>text dna = \"GATTACA\"</code> on the first line.</div>\n\
+        <div class =\"task\">Store the text \"GATTACA\" to the <code>dna</code> variable: <code>text dna = \"GATTACA\"</code> then go to the next slide.</div>\n\
         </ul>";
 
     //rewrite the example to include a literal string concatenate with a variable holding a string
@@ -37,7 +37,7 @@
         <li>To demonstrate this, let's take what we have stored in our variable and display it to the screen.</li>\n\
         <li>In Quorum, to output information to the screen we type the word <code>output</code> followed by a space and then whatever we want to show up on screen.</li>\n\
         <span class=\"title\">Try it!</span>\n\
-        <div class =\"task\">Output the contents of the dna variable by typing <code>output dna</code> on a new second line and hit the green Run button.</div>\n\
+        <div class =\"task\">Output the contents of the dna variable by typing <code>output dna</code> on a new second line and hit the green Run button to see the output.</div>\n\
         </ul>";
 
     slideArray[4] = "<h5 role=\"heading\">Storing Text in Variables: From Variables</h5>\n\
@@ -46,7 +46,7 @@
         <li>We can also use the <code>+</code> operator to put more than one thing into a variable.</li>\n\
         <li>For <code>text</code> variables putting two strings into the same variable puts them one after the other.</li>\n\
         <span class=\"title\">Try it!</span>\n\
-            <div class =\"task\">Create a new variable called <code>text msg</code> and then use the <code>=</code> operator to put the string and variable <code>\"Welcome to \" + dna</code> into it.  On the next line, output the msg variable.</div>\n\
+            <div class =\"task\">Create a new variable called <code>text msg</code> and then use the <code>=</code> operator to put the string and variable <code>\"Welcome to \" + dna</code> into it.  On the next line, output the msg variable: <code>output msg</code>.</div>\n\
         </ul>";
 
     slideArray[5] = "<h5 role=\"heading\">Additional Information Regarding Variables</h5>\n\
@@ -58,7 +58,7 @@
         </ul>";
 
     $(document).ready(function () {
-//        $('#IDE-input').text('text dna = "GATTACA"\noutput dna\ntext msg = "Welcome to " + dna\noutput msg');
+//        $('#IDE-output').html("GATTACA<br>Welcome to GATTACA<br>");
     });
 </script>
 <?php include("slideshow.php"); ?>

@@ -3,7 +3,7 @@
     document.title = 'Hour of Code: Part 7 | Quorum Programming Language';
     
     //slide array
-    var slideArray = new Array();
+    var slideArray = [];
     slideArray[0] = "<h5>Hour of Code Review - Variables</h5>\n\
         <ul>\n\
         <li>Variables are containers for information.</li>\n\

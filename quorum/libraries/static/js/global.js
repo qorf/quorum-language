@@ -435,35 +435,6 @@ var expandAndCollapseLeftSideMenu = function() {
 
 var submitCodeSample = function(){
     //front page IDE
-    
-//	$("#run a").on("click", function(e) {
-//		e.preventDefault();
-//		$(".outputArea").text("");
-//		
-//		var codeData = {code: $(".inputArea").val()};
-//		console.log(codeData);
-//		$.ajax({
-//			type: "POST",
-//			url: "controllers/IDE.controller.php",
-//			data: codeData,
-//			success: function(result){
-//				var start = 0;
-//				result.indexOf("|") > 0  ? start = result.indexOf("|")+1 : start = 0;
-//				var output = result.substring(start, result.length-1);
-//				console.log(output);
-//				//$(".outputArea").text(output);
-//                                //document.getElementById("myDiv").innerHTML='<script type="text/javascript" id="runscript">alert("This alert was produced from the AJAX call");<\/script>';
-//                                var value = eval(output);
-//                                $(".outputArea").text(value);
-//			},
-//			error: function (xhr, ajaxOptions, thrownError) {
-//				console.log(xhr, ajaxOptions, thrownError);
-//                                $(".outputArea").text("Error: Could not connect to server");
-//			}
-//		});
-//	})
-
-        
         $("#run-button button").on("click", function(e) {
 		e.preventDefault();
 		$(".outputArea").text("");
@@ -484,6 +455,15 @@ var submitCodeSample = function(){
                                     }
                                 }
                                 //window.speechSynthesis.speak(msg);
+                                
+                                //check hour of code output based on the page
+                                var pageNumber = window.location.pathname;
+                                pageNumber = pageNumber.charAt(pageNumber.length - 5);
+                                if (pageNumber >= 1 || pageNumber <= 6) { //7th page has no exercises
+                                    checkOutput(pageNumber, $('#IDE-output').html());
+                                }
+                                
+                                
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
 				console.log(xhr, ajaxOptions, thrownError);
@@ -493,53 +473,77 @@ var submitCodeSample = function(){
 	})
 }
 
-var IsDNA = function(DNA) {
-    for (var i = 0; i < DNA.length; i++) {
-        if ((DNA.charAt(i) == 'A') || (DNA.charAt(i) == 'C') || (DNA.charAt(i) == 'G') || (DNA.charAt(i) == 'T')) {
-        }
-        else {
-            return false;
-        }
+var checkOutput = function(pageNumber, output) {
+    var outputArray = [];
+    outputArray[0] = 'GATTACA<br>Welcome to GATTACA<br>';
+    outputArray[1] = 'The area is 28.';
+    outputArray[2] = 'Hello!<br>';
+    outputArray[3] = '2<br>4<br>6<br>8<br>10<br>';
+    outputArray[4] = '0 is even<br>1 is odd<br>2 is even<br>3 is odd<br>4 is even<br>5 is odd<br>6 is even<br>7 is odd<br>8 is even<br>9 is odd<br>';
+    outputArray[5] = 'Programming in Quorum is fun!!<br>';
+    
+    if (pageNumber == 2) {
+        output = output.substring(0,15); //to get around any rounding errors
     }
-    return true;
+    
+    if (outputArray[pageNumber - 1] == output) {
+        //success
+        alert("Good Job! You've completed this exercise.");
+    }
+    else {
+        //failure
+        alert("The result was not correct, try again.");
+    }
+    
 }
 
-var CloneDNA = function(DNA) {
-    //loop through the DNA one character at a time, 1% chance to mutate a letter
-    var randomNumber = Math.floor((Math.random() * 100) + 1); //random 1 - 100
-    var cloneDNA = "";
-    for (var i = 0; i < DNA.length; i++) {
-        console.log(randomNumber);
-        if (randomNumber == 42) {
-            //mutate
-            var randomNumber2 = Math.floor((Math.random() * 4) + 1); //random 1 - 4
-            switch (randomNumber2) {
-                case 1:
-                    cloneDNA = cloneDNA + 'A';
-                    break;
-                case 2:
-                    cloneDNA = cloneDNA + 'C';
-                    break;
-                case 3:
-                    cloneDNA = cloneDNA + 'G';
-                    break;
-                case 4:
-                    cloneDNA = cloneDNA + 'T';
-                    break;
-            }
-        }
-        else {
-            cloneDNA = cloneDNA + DNA.charAt(i);
-        }
-        
-        if (cloneDNA.length == DNA.length) {
-            if (cloneDNA != DNA) {
-                document.write(cloneDNA);
-            }
-            cloneDNA = "";
-        }
-    }
-}
+//var IsDNA = function(DNA) {
+//    for (var i = 0; i < DNA.length; i++) {
+//        if ((DNA.charAt(i) == 'A') || (DNA.charAt(i) == 'C') || (DNA.charAt(i) == 'G') || (DNA.charAt(i) == 'T')) {
+//        }
+//        else {
+//            return false;
+//        }
+//    }
+//    return true;
+//}
+//
+//var CloneDNA = function(DNA) {
+//    //loop through the DNA one character at a time, 1% chance to mutate a letter
+//    var randomNumber = Math.floor((Math.random() * 100) + 1); //random 1 - 100
+//    var cloneDNA = "";
+//    for (var i = 0; i < DNA.length; i++) {
+//        console.log(randomNumber);
+//        if (randomNumber == 42) {
+//            //mutate
+//            var randomNumber2 = Math.floor((Math.random() * 4) + 1); //random 1 - 4
+//            switch (randomNumber2) {
+//                case 1:
+//                    cloneDNA = cloneDNA + 'A';
+//                    break;
+//                case 2:
+//                    cloneDNA = cloneDNA + 'C';
+//                    break;
+//                case 3:
+//                    cloneDNA = cloneDNA + 'G';
+//                    break;
+//                case 4:
+//                    cloneDNA = cloneDNA + 'T';
+//                    break;
+//            }
+//        }
+//        else {
+//            cloneDNA = cloneDNA + DNA.charAt(i);
+//        }
+//        
+//        if (cloneDNA.length == DNA.length) {
+//            if (cloneDNA != DNA) {
+//                document.write(cloneDNA);
+//            }
+//            cloneDNA = "";
+//        }
+//    }
+//}
 
 //var AreYouMyMommy = function(mom, child) {
 //    if (mom.length == 0 || child.length == 0) {
