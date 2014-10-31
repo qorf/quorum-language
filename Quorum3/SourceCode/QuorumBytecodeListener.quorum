@@ -585,6 +585,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
     end
 
+    action EnterNoTypeAssignment(NoTypeAssignmentContext context) 
+        a = 5
+    end
     action ExitNoTypeAssignment(NoTypeAssignmentContext context) 
         text name = context:name
         Variable variable = undefined
