@@ -890,6 +890,8 @@ class TypeChecker
         ////////////////////////////////////////////////////////////////////////
         //TYPE CASTING - EXPLICIT
         ////////////////////////////////////////////////////////////////////////
+        CastOpcode caster = undefined
+        ExplicitCastOpcode explicitCaster = undefined
         op = GetOperation(opConstant:CAST)
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
@@ -1005,6 +1007,8 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
         type = result:result
+        BooleanToTextOpcode booleanToTextOp
+        result:SetQuorumOpcode(booleanToTextOp)
         type:SetToText()
         results:Add(key, result)
 
@@ -1055,7 +1059,7 @@ class TypeChecker
         result = GetWideningConvertResult()
         points = result:points
         points:SetPoints(points:LOSSLESS_CONVERT)
-        CastOpcode caster = GetImplicitCastOpcode(opcodes:GetIntegerToDouble())
+        caster = GetImplicitCastOpcode(opcodes:GetIntegerToDouble())
         type = result:result
         type:SetToNumber()
         result:SetQuorumOpcode(caster)
