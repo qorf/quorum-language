@@ -2928,6 +2928,7 @@ public class QuorumParser extends Parser {
 		}
 	}
 	public static class CastContext extends ExpressionContext {
+		public Assignment_declarationContext type;
 		public Assignment_declarationContext assignment_declaration() {
 			return getRuleContext(Assignment_declarationContext.class,0);
 		}
@@ -3272,7 +3273,7 @@ public class QuorumParser extends Parser {
 				_prevctx = _localctx;
 				setState(474); match(CAST);
 				setState(475); match(LEFT_PAREN);
-				setState(476); assignment_declaration();
+				setState(476); ((CastContext)_localctx).type = assignment_declaration();
 				setState(477); match(COMMA);
 				setState(478); expression(0);
 				setState(479); match(RIGHT_PAREN);

@@ -16,6 +16,7 @@ import quorum.Libraries.Language.Compile.Context.*;
 import quorum.Libraries.Language.Compile.QualifiedName;
 import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
 import quorum.Libraries.Language.Compile.Symbol.Type;
+import quorum.Libraries.Language.Compile.Symbol.Type$Interface;
 import quorum.Libraries.Language.Compile.Symbol.Variable;
 import quorum.Libraries.Language.Types.Text;
 import quorum.Libraries.System.File$Interface;
@@ -75,6 +76,7 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitCast(QuorumParser.CastContext ctx) {
         quorum.Libraries.Language.Compile.Context.CastContext context = 
                 new quorum.Libraries.Language.Compile.Context.CastContext();
+        context.type = ctx.type.type;
         setLocation(ctx, context);
         listener.ExitCast(context);
     }

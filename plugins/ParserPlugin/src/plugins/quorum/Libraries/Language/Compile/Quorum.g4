@@ -203,7 +203,7 @@ expression
     |   (ME COLON)? parent_call (COLON action_call)+                                            #ParentVariableFunctionCall
     |   MINUS expression                                                                        #Minus
     |   NOT expression                                                                          #Not
-    |   CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN                     #Cast
+    |   CAST LEFT_PAREN type=assignment_declaration COMMA expression RIGHT_PAREN                #Cast
     |   expression (MULTIPLY | DIVIDE |MODULO) expression                                       #Multiplication
     |   expression (PLUS | MINUS) expression                                                    #Addition
     |   expression (GREATER | GREATER_EQUAL | LESS | LESS_EQUAL) expression                     #Greater
