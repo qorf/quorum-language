@@ -199,7 +199,7 @@ expression
     |   NULL                                                                                    #Null
     |   ME                                                                                      #Me
     |   INPUT LEFT_PAREN expression RIGHT_PAREN                                                 #Input
-    |   (ME COLON)? action_call (COLON (action_call*))?                                         #VariableFunctionCall
+    |   (ME COLON)? action_call (COLON (action_call))*                                          #VariableFunctionCall
     |   (ME COLON)? parent_call (COLON action_call)+                                            #ParentVariableFunctionCall
     |   MINUS expression                                                                        #Minus
     |   NOT expression                                                                          #Not
