@@ -3,7 +3,7 @@
     document.title = 'Hour of Code: Part 4 | Quorum Programming Language';
     
     //slide array
-    var slideArray = new Array();
+    var slideArray = [];
     slideArray[0] = "<h5>Control Structures: Repeat</h5>\n\
         <ul>\n\
         <li>If we want the computer to repeat a task multiple times, we can use a loop in our program.  This is usually a lot less work than typing the instruction repeatedly and more flexible because we can have the instructions executed a variable number of times.</li>\n\
@@ -50,7 +50,7 @@
         </ul>";
     
     $(document).ready(function(){
-//        $('#IDE-input').text('number evenNumber = 2\nrepeat 5 times\n        output evenNumber\n        evenNumber = evenNumber + 2\nend');
+//        $('#IDE-output').html('2<br>4<br>6<br>8<br>10<br>');
     });
 </script>
 <?php include("slideshow.php"); ?>

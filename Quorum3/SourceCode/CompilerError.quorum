@@ -37,6 +37,12 @@ class CompilerError is Location
         return path + ", Line " + line + ", Column " + column + ": " + message
     end
 
+    action GetShortDisplayName returns text
+        text line = "" + GetLineNumber()
+        text column = "" + GetColumnNumber()
+        return "Line " + line + ", Column " + column + ": " + message
+    end
+
     action SetErrorMessage(text value) 
         message = value
     end

@@ -3,17 +3,17 @@
     document.title = 'Hour of Code: Part 7 | Quorum Programming Language';
     
     //slide array
-    var slideArray = new Array();
+    var slideArray = [];
     slideArray[0] = "<h5>Hour of Code Review - Variables</h5>\n\
         <ul>\n\
         <li>Variables are containers for information.</li>\n\
         <li>To create a variable, declare the type of the variable followed by the name.</li>\n\
         <li>To assign a value into a variable, use the <code>=</code> operator.</li>\n\
         <li>There are four main types of variables in Quorum, each for specific kinds of data:<br>\n\
-        &nbsp&nbsp&nbsp&nbsp<code>text</code> for text strings<br>\n\
+        &nbsp&nbsp&nbsp&nbsp<code>text</code> for any number of characters<br>\n\
         &nbsp&nbsp&nbsp&nbsp<code>integer</code> for positive and negative whole numbers<br>\n\
-        &nbsp&nbsp&nbsp&nbsp<code>number</code> for real numbers (decimals)<br>\n\
-        &nbsp&nbsp&nbsp&nbsp<code>boolean</code> for true/false values.</li>\n\
+        &nbsp&nbsp&nbsp&nbsp<code>number</code> for values with a demical point<br>\n\
+        &nbsp&nbsp&nbsp&nbsp<code>boolean</code> for true or false values.</li>\n\
         <li>When creating a variable name, always start it with a letter (usually lower case, but this is not required).</li>\n\
         <li>More information on variables can be found <a href=\"http://quorumlanguage.com/documents/syntax/types.php\">here</a>.</li>\n\
         </ul>";

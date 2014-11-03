@@ -358,6 +358,19 @@ class Compiler
         return result
     end
 
+    action GetCompilerErrorsAsShortText returns text
+        text EOL = ""
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        text result =  "I found problems:" + EOL
+        Iterator<CompilerError> errors = compilerErrorManager:GetIterator()
+        repeat while errors:HasNext()
+            CompilerError error = errors:Next()
+            text t = error:GetShortDisplayName()
+            result = result + EOL + t
+        end
+        return result
+    end
+
     /*
         This action is called after the parsing phase, returning an array
         of all files were required for building the project.

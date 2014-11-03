@@ -285,7 +285,7 @@ class ClassOpcode is QuorumOpcode
             Variable variable = fields:Next()
             text varName = variable:GetName()
             Type type = variable:GetType()
-            text converted = type:ConvertTypeToBytecodeSignature()
+            text converted = type:ConvertTypeToBytecodeSignatureInterface()
             
             //write them as public. This doesn't really matter, because
             //at the bytecode level it doesn't provide any security anyway

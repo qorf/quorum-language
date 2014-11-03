@@ -101,7 +101,7 @@ class AssignmentOpcode is QuorumOpcode
                     end
                     methodWriter:VisitField(opcodes:GetPutField(), 
                         clazz:ConvertStaticKeyToBytecodePath(), variable:GetName(), 
-                        type:ConvertTypeToBytecodeSignature())
+                        type:ConvertTypeToBytecodeSignatureInterface())
                 else
                     rightHandSide:Write()
                     if opcode2 not= -1

@@ -1,16 +1,58 @@
-/*Evan's additions (mostly Hour of Code related)*/
+/*Evan's additions (mostly Hour of Code and accessibility related)*/
+
+#pageTitle {
+    display: block;
+    font-size: 60px;
+    /*line-height: 60px;*/
+    margin-top: 10px;
+    letter-spacing: -2;
+    
+    color: #eeeeee;
+    font-weight: 300;
+    line-height: 1;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 0 #036690;
+}
+
+#facebook-iframe {
+    border: none;
+    visibility: visible;
+    width: 450px;
+    height: 25px;
+}
+
+#facebook-links {
+    vertical-align: bottom;
+    width: 450px;
+    height: 25px;
+}
+
+.screenReaderContent {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+}
+
+nav li a {
+    font-size: 13px;
+}
 
 .search-box-small input.search-query {
   width: 230px !important;
 }
 
-.prontPageList {
-    margin-bottom: 20px;
-}
-
 .tileContainer {
     display: block;
     width: 100%;
+}
+
+.tileContainer ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+.tileContainer li {
+    display: inline-block;
 }
 
 .tile {
@@ -64,6 +106,7 @@
 
 .brand img {
     vertical-align: top;
+    padding-right: 12px;
 }
 
 .title {
@@ -333,7 +376,8 @@
     height: 100%;
 }
 
-#IDE h2 {
+#IDE h1 {
+    font-size: 32px;
     margin: 0;
     background: #0694d0;
     padding: 5px 10px;
@@ -341,7 +385,7 @@
     text-shadow: 1px 1px 1px darken(#0694d0, 30%);
 }
 
-.full-screen-IDE-h2 {
+.full-screen-IDE-h1 {
     font-size: 48px;
     line-height: 54px;
 }
@@ -421,6 +465,7 @@
     margin: 0;
     padding: 4px 0px 4px 6px;
     overflow: auto;
+    padding-right: 64px;
 }
 
 .small-IDE-output {
@@ -437,14 +482,12 @@
 
 #run-button {
     position: absolute;
-    top: 4px;
+    top: 280px;
     right: 4px;
     box-sizing: border-box;
     vertical-align: top;
-    background-color: #F5F5F5;
-}
-
-#run-button a {
+    /*background-color: #F5F5F5;*/
+    z-index: 1;
     outline: none;
 }
 

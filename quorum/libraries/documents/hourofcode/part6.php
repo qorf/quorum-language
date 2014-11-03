@@ -3,7 +3,7 @@
     document.title = 'Hour of Code: Part 6 | Quorum Programming Language';
     
     //slide array
-    var slideArray = new Array();
+    var slideArray = [];
     slideArray[0] = "<h5>Actions</h5>\n\
         <ul>\n\
         <li>Often times inside a program, we want to run the same code sections many times in different places. We usually want to eliminate this duplicate code to save time, reduce errors and make things easier to change.</li>\n\
@@ -38,7 +38,7 @@
         <li>To keep our example simple, we are going to write a simple output message to the screen.</li>\n\
         <span class=\"title\">Try it!</span>\n\
         <div class =\"task\"><p>Insert an <code>output</code> statement inside the <code>PrintMsg</code> action:<br>\n\
-        <code>output \"Programming in Quorum is Fun!!!\"</code><br>(then move to the next slide)</div></p>\n\
+        <code>output \"Programming in Quorum is fun!!!\"</code><br>(then move to the next slide)</div></p>\n\
         </ul>";
     
     slideArray[4] = "<h5>Calling Actions</h5>\n\
