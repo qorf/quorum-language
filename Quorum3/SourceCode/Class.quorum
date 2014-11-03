@@ -25,7 +25,7 @@ class Class is Symbol
     HashTable<text, Class> validUsesFullyQualified
     HashTable<text, Class> parents
     Array<text> generics
-    HashTable<text, text> genericHash
+    HashTable<text, integer> genericHash
     boolean areParentsResolved = false
     boolean isResolvingParents = false
     boolean isTypeResolved = false
@@ -78,7 +78,7 @@ class Class is Symbol
 
     action AddGeneric(text name)
         generics:Add(name)
-        genericHash:Add(name, name)
+        genericHash:Add(name, generics:GetSize() - 1)
     end
 
     action GetNumberGenerics returns integer
@@ -89,8 +89,25 @@ class Class is Symbol
         return generics:Get(location)
     end
 
+    /*
+        This action determines whether a generic of a particular name 
+        exists in this class.
+    */
     action HasGeneric(text name) returns boolean
         return genericHash:HasKey(name)
+    end
+
+    /*
+        This action digs through the generics and, if it finds one
+        by this name, returns its index. If no generic by this name
+        is found, then this returns -1.
+    */
+    action GetIndexOfGeneric(text name) returns integer
+        if HasGeneric(name)
+            return genericHash:GetValue(name)
+        else
+            return -1
+        end
     end
 
     /*
