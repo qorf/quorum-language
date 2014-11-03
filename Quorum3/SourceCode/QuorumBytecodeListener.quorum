@@ -667,13 +667,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         stack:Add(actionCall)
     end
 
-    action ExitVariableSoloFunctionCall(VariableFunctionCallContext context)
-        Array<ActionCallOpcode> actionArray = actionCallStacks:GetValue(0)
-        ActionCallOpcode actionCall = actionArray:Get(0)
-        actionCall:SetPushOnMe(true)
-        ActionExpressionListContext params =  actionCallParameterStack:Pop()
-        size = params:size
-
+    private action ComputeInitialParameters(integer size, ActionCallOpcode actionCall)
         Array<QuorumOpcode> parametersBackward
         repeat size times
             QuorumOpcode param = opcodeStack:Pop()
@@ -691,6 +685,17 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
 
         actionCall:SetParameters(parameterOpcodes)
+        actionCall:SetParameterTypes(parameters)
+    end
+
+    action ExitVariableSoloFunctionCall(VariableFunctionCallContext context)
+        Array<ActionCallOpcode> actionArray = actionCallStacks:GetValue(0)
+        ActionCallOpcode actionCall = actionArray:Get(0)
+        actionCall:SetPushOnMe(true)
+        ActionExpressionListContext params =  actionCallParameterStack:Pop()
+        size = params:size
+
+        ComputeInitialParameters(size, actionCall)
 
         //check if this is an object call
         text object = context:objectName
@@ -711,7 +716,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         if isObjectCall = true and variable = undefined
             CompilerError classNotFoundError
             classNotFoundError:SetLocation(context:GetLocation())
-            classNotFoundError:SetErrorMessage("I could not locate the variable named " + object + ". Did you spell it correctly?")
+            classNotFoundError:SetErrorMessage("I could not locate the variable " + object + ". Is it correctly?")
             CompilerErrorType errorType
             errorType:SetCurrentType(errorType:MISSING_VARIABLE)
             classNotFoundError:SetCompilerErrorType(errorType)
@@ -725,7 +730,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             if fieldClass = undefined
                 CompilerError classNotFoundError
                 classNotFoundError:SetLocation(context:GetLocation())
-                classNotFoundError:SetErrorMessage("I could not locate the Class named " + fieldType:GetStaticKey() + ".")
+                classNotFoundError:SetErrorMessage("I could not locate the Class " + fieldType:GetStaticKey() + ".")
                 CompilerErrorType errorType
                 errorType:SetCurrentType(errorType:MISSING_CLASS)
                 classNotFoundError:SetCompilerErrorType(errorType)
@@ -744,39 +749,13 @@ class QuorumBytecodeListener is QuorumSourceListener
         else
             testMe = currentClass
         end
-
         
-        call:actualParameters = parameters
+        call:actualParameters = actionCall:GetParameterTypes()
         call:name = context:name
         call:checker = GetTypeChecker()
         call:table = table
         
-        ActionCallResolution resolved = testMe:ResolveAction(call)
-
-        if isObjectCall
-            resolved:classToMakeCallOn = fieldClass
-            resolved:callingClass = currentClass
-            actionCall:SetFieldHolder(currentClass)
-            actionCall:SetPushOnMe(false)
-            actionCall:SetField(variable)
-            actionCall:SetIsSoloObjectCall(true)
-        else
-            resolved:classToMakeCallOn = currentClass
-        end
-
-        if resolved not= undefined and resolved:isResolved
-            actionCall:SetActionCallResolution(resolved)
-            actionCall:SetIsActionCall(true)
-            actionCall:SetCallingClass(currentClass)
-            actionCall:SetActionCallResolution(resolved)
-            actionCall:SetParameters(ComputeFinalParameters(parameterOpcodes, resolved:converter))
-        else
-            CompilerError error = resolved:error 
-            if error not= undefined
-                CompilerErrorManager manager = GetCompilerErrorManager()
-                manager:Add(error)
-            end
-        end
+        ActionCallResolution resolved = ResolveActionCall(testMe, isObjectCall, fieldClass, variable, call, actionCall)
 
         isNextVariableReferenceMe = false
         Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
@@ -791,6 +770,41 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
 
         currentBlockOpcode:Add(ops)
+    end
+
+    private action ResolveActionCall(Class testMe, boolean isObjectCall, 
+        Class fieldClass, Variable variable, ActionCall call, ActionCallOpcode actionCall) returns ActionCallResolution
+        ActionCallResolution resolved = testMe:ResolveAction(call)
+
+        if isObjectCall
+            resolved:classToMakeCallOn = fieldClass
+            resolved:callingClass = currentClass
+            actionCall:SetFieldHolder(currentClass)
+            actionCall:SetPushOnMe(false)
+            actionCall:SetField(variable)
+            actionCall:SetIsSoloObjectCall(true)
+        else
+            resolved:classToMakeCallOn = currentClass
+        end
+
+        FinishActionResolution(actionCall, resolved)
+        return resolved
+    end
+
+    action FinishActionResolution(ActionCallOpcode actionCall, ActionCallResolution resolved)
+        if resolved not= undefined and resolved:isResolved
+            actionCall:SetActionCallResolution(resolved)
+            actionCall:SetIsActionCall(true)
+            actionCall:SetCallingClass(currentClass)
+            actionCall:SetActionCallResolution(resolved)
+            actionCall:SetParameters(ComputeFinalParameters(actionCall:GetParameters(), resolved:converter))
+        else
+            CompilerError error = resolved:error 
+            if error not= undefined
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(error)
+            end
+        end
     end
 
     action EnterParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) end
@@ -892,45 +906,16 @@ class QuorumBytecodeListener is QuorumSourceListener
                 end
             end
 
-            Array<QuorumOpcode> parametersBackward
-            repeat size times
-                QuorumOpcode param = opcodeStack:Pop()
-                parametersBackward:Add(param)
-            end
-
-            Array<Type> parameters
-            Array<QuorumOpcode> parameterOpcodes
-            i = size - 1
-            repeat size times
-                QuorumOpcode op = parametersBackward:Get(i)
-                parameters:Add(op:GetType())
-                parameterOpcodes:Add(op)
-                i = i - 1
-            end
-
-            actionCall:SetParameters(parameterOpcodes)
+            ComputeInitialParameters(size, actionCall)
             ActionCall call
-            call:actualParameters = parameters
+            call:actualParameters = actionCall:GetParameterTypes()
             call:name = context:name
             call:checker = GetTypeChecker()
             call:table = GetSymbolTable()
             ActionCallResolution resolved = classToMakeCallOn:ResolveAction(call)
             resolved:classToMakeCallOn = classToMakeCallOn
             resolved:callingClass = currentClass
-            if resolved not= undefined and resolved:isResolved
-                actionCall:SetActionCallResolution(resolved)
-                actionCall:SetIsActionCall(true)
-                actionCall:SetActionCallResolution(resolved)
-                actionCall:SetParameters(ComputeFinalParameters(parameterOpcodes, resolved:converter))
-            else
-                CompilerError error = resolved:error 
-                if error not= undefined
-                    CompilerErrorManager manager = GetCompilerErrorManager()
-                    manager:Add(error)
-                end
-            end
-
-            i = i
+            FinishActionResolution(actionCall, resolved)
         else //push the variable
             actionCall:SetIsActionCall(false)
             name = context:name

@@ -16,6 +16,7 @@ class ActionCallOpcode is QuorumOpcode
     Variable field = undefined
     Class fieldHolder = undefined
     Array<QuorumOpcode> parameters = undefined
+    Array<Type> parameterTypes = undefined
     Class callingClass = undefined
     boolean isChainedCall = false
     boolean isSoloObjectCall = false
@@ -50,6 +51,14 @@ class ActionCallOpcode is QuorumOpcode
 
     action SetParameters(Array<QuorumOpcode> array)
         parameters = array
+    end
+
+    action GetParameterTypes returns Array<Type>
+        return parameterTypes
+    end
+
+    action SetParameterTypes(Array<Type> array)
+        parameterTypes = array
     end
 
     action IsField returns boolean
