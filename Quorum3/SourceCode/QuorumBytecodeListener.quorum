@@ -798,6 +798,30 @@ class QuorumBytecodeListener is QuorumSourceListener
             actionCall:SetCallingClass(currentClass)
             actionCall:SetActionCallResolution(resolved)
             actionCall:SetParameters(ComputeFinalParameters(actionCall:GetParameters(), resolved:converter))
+
+            //check to see if the return type needs to be auto-boxed back
+            //into another type.
+            Action act = resolved:resolvedAction
+            Type returnType = act:GetReturnType()
+            if not actionCall:GetPushOnMe() //if it's a me call, it doesn't matter
+                if returnType:IsMappedToGeneric() //it is mapped to a generic, so find the variable it is mapped to
+                    Type t = resolved:typeToMakeCallOn
+                    Class c = resolved:classToMakeCallOn
+                    integer index = c:GetIndexOfGeneric(returnType:GetMappedGeneric())
+                    if index not= -1
+                        Type gen = t:GetGeneric(index)
+                        TypeChecker checker = GetTypeChecker()
+                        
+                        a = 5
+                    else //this generic doesn't exist, throw an error
+
+                    end
+
+                    a = 5
+                end
+            end
+
+            
         else
             CompilerError error = resolved:error 
             if error not= undefined
@@ -878,12 +902,14 @@ class QuorumBytecodeListener is QuorumSourceListener
             boolean isPrimitive = false
             Array<ActionCallOpcode> stack = actionCallStacks:GetValue(currentActionStack - 1)
 
+            Type calledType = undefined
             if stack:IsEmpty() //this is a solo call, push on this
                 actionCall:SetPushOnMe(true)
                 classToMakeCallOn = currentClass
             else //else we're making a call on a field, so get it off the stack and take a look
                 ActionCallOpcode op = stack:GetFromEnd()
                 Type t = op:GetType()
+                calledType = t
                 if t:IsPrimitive()
                     isPrimitive = true
                 end
@@ -912,7 +938,12 @@ class QuorumBytecodeListener is QuorumSourceListener
             call:name = context:name
             call:checker = GetTypeChecker()
             call:table = GetSymbolTable()
+
+            if currentClass:GetName() = "Main"
+                a = 5
+            end
             ActionCallResolution resolved = classToMakeCallOn:ResolveAction(call)
+            resolved:typeToMakeCallOn = calledType
             resolved:classToMakeCallOn = classToMakeCallOn
             resolved:callingClass = currentClass
             FinishActionResolution(actionCall, resolved)
