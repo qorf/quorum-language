@@ -435,7 +435,7 @@ var expandAndCollapseLeftSideMenu = function() {
 
 var submitCodeSample = function(){
     //front page IDE
-        $("#run-button button").on("click", function(e) {
+        $("#run-button").on("click", function(e) {
 		e.preventDefault();
 		$(".outputArea").text("");
 		var codeData = {code: $('.inputArea').val()};

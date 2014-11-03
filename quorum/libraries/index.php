@@ -1,7 +1,7 @@
 <?php require_once("static/templates/pageheader.template.php"); ?>
 <div class="hero-unit">
     <div class="hero-unit-container">
-        <h1>The Quorum Programming Language</h1>
+        <span id="pageTitle">The Quorum Programming Language</span>
         <p>The world's first <a href="evidence.php">evidence-oriented programming language.</a></p>
         <h3 class ="screenReaderContent">Facebook Controls</h3>
         <div id="facebook-links" class="fb-like fb_iframe_widget" data-href="https://www.facebook.com/quorumlanguage" data-layout="standard" data-action="like" data-show-faces="true" data-share="true" fb-xfbml-state="rendered" fb-iframe-plugin-query="action=like&amp;app_id=&amp;href=https%3A%2F%2Fwww.facebook.com%2Fquorumlanguage&amp;layout=standard&amp;locale=en_US&amp;sdk=joey&amp;share=true&amp;show_faces=true">
@@ -62,12 +62,13 @@
         </select>
 
         <textarea id="IDE-input" class="ide inputArea small-IDE-input" role="textbox" aria-multiline="true">output "Hello World!"</textarea>
+        
+        <button id="run-button" class="btn btn-success" href="#">Run</button>
+        
         <div id="IDE-output-container">
             <h2 id="output-label" class="hidden">Output</h2>
             <pre id="IDE-output" class="outputArea  small-IDE-output" role="log" aria-labeledby="output-label" aria-live="polite"></pre>
-        </div>
-        <div id="run-button" class="btn-group"><button class="btn btn-success" href="#">Run</button>
-        </div>    
+        </div>   
 
     </div>   
 
