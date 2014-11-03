@@ -16,11 +16,11 @@ class Type
     boolean isVoid = false
     boolean isPrimitive = false
     boolean isConstant = false
-    boolean isGeneric = false
     boolean isUndefined = false
     text genericName = ""
     text staticKey = ""
     Array<Type> generics
+    text mappedGeneric = ""
 
     public constant text OBJECT_KEY = "Libraries.Language.Object"
     public constant text INTEGER_PRIMITIVE_KEY = "integer"
@@ -88,6 +88,25 @@ class Type
         end
         return staticKey
     end
+
+    action IsMappedToGeneric returns boolean
+        return not (mappedGeneric = undefined)
+    end
+
+    action GetMappedGeneric returns text
+        return mappedGeneric
+    end
+
+    /* 
+        This action sets up this type value to be equivalent to a particular
+        generic in a generic list. For example, if we have
+        Array<Item>, and the array class is defined at class Array<type>
+        then returning "type" would be equivalent to Item in this instance.
+    */
+    action MapToGeneric(text key)
+        mappedGeneric = key
+    end
+
 
     /*
         This action adds a generic to this type as a subtype.
@@ -229,14 +248,6 @@ class Type
 
     action SetIsConstant(boolean final) 
         isConstant = final
-    end
-
-    action IsGeneric returns boolean
-        return isGeneric
-    end
-
-    action SetIsGeneric(boolean generic) 
-        isGeneric = generic
     end
 
     action IsVoid returns boolean

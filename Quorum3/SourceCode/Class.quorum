@@ -50,21 +50,21 @@ class Class is Symbol
 //
 //        AddUnresolvedUseStatement(textObject)
 
-//        QualifiedName booleanObject
-//        booleanObject:Add("Libraries")
-//        booleanObject:Add("Language")
-//        booleanObject:Add("Types")
-//        booleanObject:Add("Boolean")
-//
-//        AddUnresolvedUseStatement(booleanObject)
+        QualifiedName booleanObject
+        booleanObject:Add("Libraries")
+        booleanObject:Add("Language")
+        booleanObject:Add("Types")
+        booleanObject:Add("Boolean")
 
-//        QualifiedName errorObject
-//        errorObject:Add("Libraries")
-//        errorObject:Add("Language")
-//        errorObject:Add("Errors")
-//        errorObject:Add("Error")
-//
-//        AddUnresolvedUseStatement(errorObject)
+        AddUnresolvedUseStatement(booleanObject)
+
+        QualifiedName errorObject
+        errorObject:Add("Libraries")
+        errorObject:Add("Language")
+        errorObject:Add("Errors")
+        errorObject:Add("Error")
+
+        AddUnresolvedUseStatement(errorObject)
     end
 
         
@@ -325,6 +325,12 @@ class Class is Symbol
             if next:GetBlock() not= undefined
                 ResolveBlock(next:GetBlock(), table, errors)
             end
+        end
+
+        //now resolve the constructor, if one exists
+        Action constructor = GetConstructor()
+        if constructor not= undefined
+            ResolveBlock(constructor:GetBlock(), table, errors)
         end
 
         //now we pull all actions out of the hash and re-hash them,

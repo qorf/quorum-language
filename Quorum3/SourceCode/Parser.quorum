@@ -208,18 +208,6 @@ class Parser is QuorumSourceListener
     action ExitSystemAction(ActionContext context) 
     end
 
-    action EnterConstructor 
-        if currentClass not= undefined
-            Action constructor
-            currentAction = constructor
-            currentClass:SetConstructor(constructor)
-        end
-    end
-
-    action ExitConstructor 
-        currentAction = undefined
-    end
-
     action EnterBlueprintAction(ActionContext context) 
         Action act
         currentAction = act
@@ -288,7 +276,9 @@ class Parser is QuorumSourceListener
         end
     end
 
-    action ExitConstructor(ConstructorContext context) end
+    action ExitConstructor(ConstructorContext context) 
+        currentAction = undefined
+    end
 
     action EnterAction(ActionContext context) 
         Action act
