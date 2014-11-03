@@ -50,21 +50,21 @@ class Class is Symbol
 //
 //        AddUnresolvedUseStatement(textObject)
 
-        QualifiedName booleanObject
-        booleanObject:Add("Libraries")
-        booleanObject:Add("Language")
-        booleanObject:Add("Types")
-        booleanObject:Add("Boolean")
-
-        AddUnresolvedUseStatement(booleanObject)
-
-        QualifiedName errorObject
-        errorObject:Add("Libraries")
-        errorObject:Add("Language")
-        errorObject:Add("Errors")
-        errorObject:Add("Error")
-
-        AddUnresolvedUseStatement(errorObject)
+//        QualifiedName booleanObject
+//        booleanObject:Add("Libraries")
+//        booleanObject:Add("Language")
+//        booleanObject:Add("Types")
+//        booleanObject:Add("Boolean")
+//
+//        AddUnresolvedUseStatement(booleanObject)
+//
+//        QualifiedName errorObject
+//        errorObject:Add("Libraries")
+//        errorObject:Add("Language")
+//        errorObject:Add("Errors")
+//        errorObject:Add("Error")
+//
+//        AddUnresolvedUseStatement(errorObject)
     end
 
         
@@ -473,6 +473,16 @@ class Class is Symbol
     private action ResolveType(Action act, Type type, SymbolTable table, CompilerErrorManager errors)
         if not type:IsPrimitive() //if it's a primitive, do nothing
             text key = type:GetStaticKey()
+            Class parentForAction = act:GetParentClass()
+            if parentForAction:HasGeneric(type:GetStaticKey())
+                //this is referencing a generic, so there's no need to check
+                //the symbol table. Grab Object and tell it its mapped
+                //generic name
+                type:MapToGeneric(key)
+                type:SetToObject(type:OBJECT_KEY)
+                return now
+            end
+
             Class clazz = GetClass(key, table, errors)
             if clazz not= undefined
                 type:SetToObject(clazz:GetStaticKey())

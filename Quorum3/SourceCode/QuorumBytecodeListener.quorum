@@ -509,9 +509,6 @@ class QuorumBytecodeListener is QuorumSourceListener
             variable = currentBlock:GetVariable(name)
         end
 
-        if currentClass:GetStaticKey() = "Libraries.Language.Errors.Error"
-            a = 5
-        end
         Type left = variable:GetType()
         QuorumOpcode right = undefined
         if context:hasRightHandSide = false
