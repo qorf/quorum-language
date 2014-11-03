@@ -179,7 +179,7 @@ class ActionCallOpcode is QuorumOpcode
                 end
                 
                 getterName = fieldHolder:ConvertToActionNameFromField(field, true)
-                methodName = type:ConvertToSignatureFromField(true)
+                methodName = type:ConvertToSignatureFromFieldInterface(true)
                 if pushOnMe
                     methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
                 end
