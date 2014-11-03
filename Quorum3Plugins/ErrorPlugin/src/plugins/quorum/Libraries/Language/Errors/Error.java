@@ -4,8 +4,6 @@
  */
 package plugins.quorum.Libraries.Language.Errors;
 
-import java.util.HashMap;
-
 /**
  *
  * @author Andreas Stefik
@@ -99,7 +97,7 @@ public class Error {
     }
     
     /**
-     * TODO: This should return the last rnuntime error, if possible...
+     * TODO: This should return the last runtime error, if possible...
      * @return 
      */
     public String InitMessage() {
