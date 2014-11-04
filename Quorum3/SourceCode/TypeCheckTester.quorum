@@ -35,11 +35,9 @@ class TypeCheckTester
         AutoboxTextObjSemiWrapped()
         //AutoboxText()
         //AutoboxTextSemiWrapped()
-        B()                           //not a TEST...CORRECT???                    
         BooleanCompare()
         BooleanEquals()
         BooleanGetText()
-        C()                           //not a TEST...CORRECT???
         CastFieldIntObjDest()
         CastFieldIntObjSource()
         CastFieldIntObjSourceDest()
@@ -50,7 +48,6 @@ class TypeCheckTester
         CastLocalVarObjInt()
         CastParamIntObj()
         CastParamObjInt()
-        D()                           //not a TEST...CORRECT???
         ExpAssignBoolObjBoolObj()
         ExpAssignBooleanBoolObj()
         //ExpAssignBooleanBoolean()
@@ -326,9 +323,8 @@ class TypeCheckTester
         main:SetPath(path + "AutoBoxingAndMethodOverloadingInt.quorum")
         files:Add(main)
         results:Add(0, "2")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoBoxingAndMethodOverloading.quorum", "2")
+        suite:TestJavaScript(files, results)
     end
 
 action AutoBoxingAndMethodOverloadingNum
@@ -338,9 +334,8 @@ action AutoBoxingAndMethodOverloadingNum
         main:SetPath(path + "AutoBoxingAndMethodOverloadingNum.quorum")
         files:Add(main)
         results:Add(0, "1.0")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoBoxingAndMethodOverloading.quorum", "2")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxBoolObj
@@ -353,9 +348,8 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         files:Add(dependent1)
         results:Add(0, "true")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBoolObj.quorum", "true")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxBoolObjSemiWrapped
@@ -368,9 +362,8 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         files:Add(dependent1)
         results:Add(0, "true")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBoolObjSemiWrapped.quorum", "true")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxBoolean
@@ -383,9 +376,8 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         files:Add(dependent1)
         results:Add(0, "true")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBoolean.quorum", "false")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxBooleanSemiWrapped
@@ -398,9 +390,8 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         files:Add(dependent1)
         results:Add(0, "true")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxBooleanSemiWrapped.quorum", "false")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxIntObj
@@ -413,9 +404,8 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         files:Add(dependent1)
         results:Add(0, "5")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxIntObj.quorum", "5")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxIntObjSemiWrapped
@@ -428,9 +418,8 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         files:Add(dependent1)
         results:Add(0, "5")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxIntObjSemiWrapped.quorum", "5")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxInteger
@@ -443,9 +432,8 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         files:Add(dependent1)
         results:Add(0, "5")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxInteger.quorum", "5")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxIntegerSemiWrapped
@@ -458,9 +446,8 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         files:Add(dependent1)
         results:Add(0, "5")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxIntegerSemiWrapped.quorum", "5")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxNumObj
@@ -473,9 +460,8 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         files:Add(dependent1)
         results:Add(0, "7.5")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumObj.quorum", "7.5")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxNumObjSemiWrapped
@@ -488,9 +474,8 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         files:Add(dependent1)
         results:Add(0, "7.5")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumObjSemiWrapped.quorum", "7.5")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxNumber
@@ -503,9 +488,8 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         files:Add(dependent1)
         results:Add(0, "7.5")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumber.quorum", "7.5")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxNumberSemiWrapped
@@ -518,9 +502,8 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         files:Add(dependent1)
         results:Add(0, "7.5")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxNumberSemiWrapped.quorum", "7.5")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxTextObj
@@ -533,9 +516,8 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         files:Add(dependent1)
         results:Add(0, "text")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxTextObj.quorum", "0")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxTextObjSemiWrapped
@@ -550,7 +532,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "text")
 
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxTextObjSemiWrapped.quorum", "0")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxText
@@ -563,9 +545,8 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         files:Add(dependent1)
         results:Add(0, "text")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxText.quorum", "0")
+        suite:TestJavaScript(files, results)
     end
 
     action AutoboxTextSemiWrapped
@@ -578,86 +559,153 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         files:Add(dependent1)
         results:Add(0, "text")
-
         suite:Test(files, results)
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/AutoboxTextSemiWrapped.quorum", "0")
-    end
-
-    action B 
-            //NOT A TEST
+        suite:TestJavaScript(files, results)
     end
 
     action BooleanCompare 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/BooleanCompare.quorum", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/BooleanCompare.quorum", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "BooleanCompare.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action BooleanEquals 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/BooleanEquals.quorum", "false", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/BooleanEquals.quorum", "false", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "BooleanEquals.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action BooleanGetText 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/BooleanGetText.quorum", "false", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/BooleanGetText.quorum", "false", "false")
-    end
-
-    action C 
-            //NOT A TEST
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "BooleanGetText.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action CastFieldIntObjDest 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/CastFieldIntObjDest.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastFieldIntObjDest.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastFieldIntObjDest.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action CastFieldIntObjSource 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/CastFieldIntObjSource.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastFieldIntObjSource.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastFieldIntObjSource.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action CastFieldIntObjSourceDest 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/CastFieldIntObjSourceDest.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastFieldIntObjSourceDest.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastFieldIntObjSourceDest.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action CastFieldObjIntDest 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/CastFieldObjIntDest.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastFieldObjIntDest.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastFieldObjIntDest.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action CastFieldObjIntSource 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/CastFieldObjIntSource.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastFieldObjIntSource.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastFieldObjIntSource.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action CastFieldObjIntSourceDest 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/CastFieldObjIntSourceDest.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastFieldObjIntSourceDest.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastFieldObjIntSourceDest.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action CastLocalVarIntObj 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/CastLocalVarIntObj.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastLocalVarIntObj.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastFieldObjIntSourceDest.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action CastLocalVarObjInt 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/CastLocalVarObjInt.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastLocalVarObjInt.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastLocalVarObjInt.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action CastParamIntObj 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/CastParamIntObj.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastParamIntObj.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastParamIntObj.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action CastParamObjInt 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/CastParamObjInt.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/CastParamObjInt.quorum", "5")
-    end
-
-    action D 
-            //NOT A TEST
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastParamObjInt.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignBoolObjBoolObj
