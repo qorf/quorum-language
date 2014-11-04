@@ -3,6 +3,7 @@ package Libraries.Language.Compile.Symbol
 use Libraries.Containers.Array
 use Libraries.Language.Compile.Translate.QuorumOpcode
 use Libraries.Language.Compile.CompilerError
+use Libraries.Language.Compile.Location
 
 class ActionCallResolution 
     public Action resolvedAction = undefined
@@ -13,4 +14,5 @@ class ActionCallResolution
     public Class callingClass = undefined
     public Array<QuorumOpcode> converter
     public Type typeToMakeCallOn = undefined
+    public Location location = undefined
 end

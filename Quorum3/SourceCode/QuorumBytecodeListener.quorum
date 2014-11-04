@@ -756,6 +756,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         call:table = table
         
         ActionCallResolution resolved = ResolveActionCall(testMe, isObjectCall, fieldClass, variable, call, actionCall)
+        resolved:location = context:GetLocation()
 
         isNextVariableReferenceMe = false
         Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
@@ -809,12 +810,40 @@ class QuorumBytecodeListener is QuorumSourceListener
                     Class c = resolved:classToMakeCallOn
                     integer index = c:GetIndexOfGeneric(returnType:GetMappedGeneric())
                     if index not= -1
-                        Type gen = t:GetGeneric(index)
+                        Type left = t:GetGeneric(index)
                         TypeChecker checker = GetTypeChecker()
                         
+                        //get the type of the thing. If it is a primitive
+                        //it is stored type erased, but might look like a
+                        //primitive, so get the object version
+                        Type right
+                        text boxedKey = left:ConvertToNonPrimitiveStaticKey()
+                        right:SetToObject(boxedKey)
+                        Operation op
+                        op:SetOperation(op:IMPLICIT_CAST)
+                        TypeCheckResult result = checker:Check(left, right, op, false)
+                        if result:errorType = undefined
+                            QuorumOpcode opcode = result:GetQuorumOpcode()
+                            //this may be null or ignored
+                            actionCall:SetAutoBoxOpcode(opcode)
+                        else
+                            CompilerErrorManager manager = GetCompilerErrorManager()
+                            manager:Add(result:GetCompilerError(resolved:location))
+                        end
+
                         a = 5
                     else //this generic doesn't exist, throw an error
-
+//                        CompilerError error
+//                        error:SetLocation(resolved:location)
+//                        error:SetErrorMessage("I found a return with the value " + t:GetStaticKey() + 
+//                            ", but could find no definition for " + " the generic " +
+//                            "in the class " + c:GetStaticKey())
+//                        CompilerErrorType errorType
+//                        errorType:SetCurrentType(errorType:MISSING_CLASS)
+//                        error:SetCompilerErrorType(errorType)
+//                        CompilerErrorManager manager = GetCompilerErrorManager()
+//                        manager:Add(error)
+//                        return now
                     end
 
                     a = 5
@@ -946,6 +975,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             resolved:typeToMakeCallOn = calledType
             resolved:classToMakeCallOn = classToMakeCallOn
             resolved:callingClass = currentClass
+            resolved:location = context:GetLocation()
             FinishActionResolution(actionCall, resolved)
         else //push the variable
             actionCall:SetIsActionCall(false)

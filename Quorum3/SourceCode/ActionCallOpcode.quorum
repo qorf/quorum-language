@@ -20,6 +20,15 @@ class ActionCallOpcode is QuorumOpcode
     Class callingClass = undefined
     boolean isChainedCall = false
     boolean isSoloObjectCall = false
+    QuorumOpcode autoBoxing = undefined
+
+    action GetAutoBoxOpcode returns QuorumOpcode
+        return autoBoxing
+    end
+
+    action SetAutoBoxOpcode(QuorumOpcode opcode)
+        autoBoxing = opcode
+    end
 
     action IsSoloObjectCall returns boolean
         return isSoloObjectCall
@@ -167,6 +176,11 @@ class ActionCallOpcode is QuorumOpcode
                 methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
                     clazz:ConvertStaticKeyToBytecodeInterfacePath(), act:GetName(), 
                     act:ConvertActionToBytecodeParameterInterfaceSignature(), true)
+
+                if autoBoxing not= undefined
+                    autoBoxing:Write()
+                end
+
             else 
                 //alert("Compiler Bug: Class and Action should not be null at this stage.")
             end
