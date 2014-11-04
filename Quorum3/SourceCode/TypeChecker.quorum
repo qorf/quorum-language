@@ -1115,7 +1115,10 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:INTEGER_OBJECT_KEY, op, false)
         result = GetSubclassNarrowingConvertResult()
         type = result:result
-        type:SetToIntegerObject()
+        type:SetToInteger()
+        AutoBoxReverseOpcode autoReverse = GetAutoBoxReverseOpcode()
+        autoReverse:SetType(type)
+        result:SetQuorumOpcode(autoReverse)
         points = result:points
         points:SetPoints(points:EXACT_AUTOBOX)
         results:Add(key, result)
@@ -1467,6 +1470,11 @@ class TypeChecker
 
     private action GetExplicitCastOpcode returns ExplicitCastOpcode
         ExplicitCastOpcode op
+        return op
+    end
+
+    private action GetAutoBoxReverseOpcode returns AutoBoxReverseOpcode
+        AutoBoxReverseOpcode op
         return op
     end
 
