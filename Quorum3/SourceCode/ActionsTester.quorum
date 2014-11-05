@@ -99,14 +99,29 @@ class ActionsTester
 
 //FAIL TESTS
         path = failPath
+//        ActionLetter()
+//        ActionOutside()
         IncorrectAssignment()
-        MissingEnd()
+//        InvalidActionNumber()
+//        InvalidActionSymbol1()
+//        InvalidActionSymbol2()
+//        InvalidVarName1()
+//        InvalidVarName2()
+//        InvalidVarName3()
+//        InvalidVarName4()
+//        InvalidVarName5()
+//        InvalidVarName6()
+//        MissingEnd()
+        MissingMain()
+        MissingParen()
         MissingReturn1()
         MissingReturn2()
         MissingReturn3()
         //MissingReturn4()
         ReturnCast2ActionsInt()
         SetterBeforeUseFail()
+        TextJunk1()
+        TextJunk2()
     end
 
     action GetName returns text
@@ -835,6 +850,24 @@ class ActionsTester
         suite:RunTest("Library/Tests/Actions/Pass/SetterBeforeUse.quorum", "0")
     end
 
+    action ActionLetter
+        Array<File> files
+        File main
+        main:SetPath(path + "ActionLetter.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ActionOutside
+        Array<File> files
+        File main
+        main:SetPath(path + "ActionOutside.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
     action IncorrectAssignment
         Array<File> files
         File main
@@ -844,10 +877,109 @@ class ActionsTester
         suite:TestJavaScriptFail(files)
     end
 
+    action InvalidActionNumber
+        Array<File> files
+        File main
+        main:SetPath(path + "InvalidActionNumber.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+    
+    action InvalidActionSymbol1
+        Array<File> files
+        File main
+        main:SetPath(path + "InvalidActionSymbol1.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+    
+    action InvalidActionSymbol2
+        Array<File> files
+        File main
+        main:SetPath(path + "InvalidActionSymbol2.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+    
+    action InvalidVarName1
+        Array<File> files
+        File main
+        main:SetPath(path + "InvalidVarName1.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+    
+    action InvalidVarName2
+        Array<File> files
+        File main
+        main:SetPath(path + "InvalidVarName2.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+    
+    action InvalidVarName3
+        Array<File> files
+        File main
+        main:SetPath(path + "InvalidVarName3.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+    
+    action InvalidVarName4
+        Array<File> files
+        File main
+        main:SetPath(path + "InvalidVarName4.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+    
+    action InvalidVarName5
+        Array<File> files
+        File main
+        main:SetPath(path + "InvalidVarName5.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+    
+    action InvalidVarName6
+        Array<File> files
+        File main
+        main:SetPath(path + "InvalidVarName6.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
     action MissingEnd
         Array<File> files
         File main
         main:SetPath(path + "MissingEnd.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingMain
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingMain.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingParen
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingParen.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
@@ -902,6 +1034,24 @@ class ActionsTester
         Array<File> files
         File main
         main:SetPath(path + "SetterBeforeUseFail.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TextJunk1
+        Array<File> files
+        File main
+        main:SetPath(path + "TextJunk1.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TextJunk2
+        Array<File> files
+        File main
+        main:SetPath(path + "TextJunk2.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
