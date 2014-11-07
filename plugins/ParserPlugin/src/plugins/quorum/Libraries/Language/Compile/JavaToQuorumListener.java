@@ -874,12 +874,20 @@ public class JavaToQuorumListener implements QuorumListener {
     private void setLocation(ParserRuleContext context,
             quorum.Libraries.Language.Compile.Context.ParseContext$Interface quorumContext) {
         quorum.Libraries.Language.Compile.Location$Interface location = quorumContext.GetLocation();
-        location.SetLineNumber(context.getStart().getLine());
-        location.SetLineNumberEnd(context.getStop().getLine());
-        location.SetColumnNumber(context.getStart().getCharPositionInLine());
-        location.SetColumnNumberEnd(context.getStop().getCharPositionInLine());
-        location.SetIndex(context.getStart().getStartIndex());
-        location.SetIndex(context.getStop().getStartIndex());
+        Token start = context.getStart();
+        Token stop = context.getStop();
+        
+        if(start != null) {
+            location.SetLineNumber(start.getLine());
+            location.SetColumnNumber(start.getCharPositionInLine());
+            location.SetIndex(start.getStartIndex());
+        }
+        
+        if(stop != null) {
+            location.SetLineNumberEnd(stop.getLine());
+            location.SetColumnNumberEnd(stop.getCharPositionInLine());
+            location.SetIndex(stop.getStartIndex());
+        }
         location.SetFile(file);
     }
 
@@ -980,8 +988,11 @@ public class JavaToQuorumListener implements QuorumListener {
             variable.SetIsParameter(true);
             context.parameters.Add(variable);
         }
+        TerminalNode ID = ctx.ID();
+        if(ID != null) {
+            context.actionName = ID.getText();
+        }
         
-        context.actionName = ctx.ID().getText();
         if(ctx.RETURNS() != null) {
             context.returnType = ctx.return_type.type;
         } else {
@@ -1010,7 +1021,10 @@ public class JavaToQuorumListener implements QuorumListener {
             context.parameters.Add(variable);
         }
         
-        context.actionName = ctx.ID().getText();
+        TerminalNode ID = ctx.ID();
+        if(ID != null) {
+            context.actionName = ID.getText();
+        }
         if(ctx.RETURNS() != null) {
             context.returnType = ctx.return_type.type;
         } else {
@@ -1200,7 +1214,10 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterNormalAssignment(QuorumParser.NormalAssignmentContext ctx) {
         NormalAssignmentContext context = new NormalAssignmentContext();
         setLocation(ctx, context);
-        context.name = ctx.name.getText();
+        Token name = ctx.name;
+        if(name != null) {
+            context.name = ctx.name.getText();
+        }
         listener.EnterNormalAssignment(context);
     }
 
@@ -1213,7 +1230,10 @@ public class JavaToQuorumListener implements QuorumListener {
             context.isConstant = true;
         }
         
-        context.name = ctx.name.getText();
+        Token name = ctx.name;
+        if(name != null) {
+            context.name = ctx.name.getText();
+        }
         if(ctx.modifier != null) {
             TerminalNode PUBLIC = ctx.modifier.PUBLIC();
             if(PUBLIC != null) {
