@@ -106,6 +106,9 @@ class ExpressionsTester
         path = failPath
         MainNotCapitalized()
         InvalidExpression()
+        BadText()
+        WeirdText()
+        InvalidVariableName()
     end
 
     action GetName returns text
@@ -572,6 +575,33 @@ class ExpressionsTester
         Array<File> files
         File main
         main:SetPath(path + "InvalidExpression.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action BadText
+        Array<File> files
+        File main
+        main:SetPath(path + "BadText.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action WeirdText
+        Array<File> files
+        File main
+        main:SetPath(path + "WeirdText.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action InvalidVariableName
+        Array<File> files
+        File main
+        main:SetPath(path + "InvalidVariableName.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

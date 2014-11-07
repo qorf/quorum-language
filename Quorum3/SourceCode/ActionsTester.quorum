@@ -122,6 +122,7 @@ class ActionsTester
         SetterBeforeUseFail()
         TextJunk1()
         TextJunk2()
+        InvalidActionName()
     end
 
     action GetName returns text
@@ -1052,6 +1053,15 @@ class ActionsTester
         Array<File> files
         File main
         main:SetPath(path + "TextJunk2.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action InvalidActionName
+        Array<File> files
+        File main
+        main:SetPath(path + "InvalidActionName.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
