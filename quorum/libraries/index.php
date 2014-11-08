@@ -32,7 +32,7 @@
                 based on <a href="netbeans.org">NetBeans</a>.</li>
         </ul>-->
 
-        <nav class="tileContainer"><ul><li><a href ="download.php" class="tile">Download</a></li><li><a href ="syntax.php" class="tile">Reference</a></li><li><a href ="libraries.php" class="tile">Libraries</a></li><li><a href ="curriculum.php" class="tile">Tutorials</a></li><li><a href ="developers.php" class="tile">Developers</a></li><li><a href ="https://www.facebook.com/quorumlanguage" class="tile">Social</a></li><li><a href ="epiq.php" class="tile">EPIQ 2015</a></li><li><a href ="about.php" class="tile">About Quorum</a></li></ul></nav>
+        <nav class="tileContainer"><ul><li><a href ="download.php" class="tile">Download<img src="static/img/download.png" alt="download" /></a></li><li><a href ="syntax.php" class="tile">Reference<img src="static/img/reference.png" alt="reference" /></a></li><li><a href ="libraries.php" class="tile">Libraries<img src="static/img/libraries.png" alt="libraries" /></a></li><li><a href ="curriculum.php" class="tile">Tutorials<img src="static/img/tutorials.png" alt="tutorials" /></a></li><li><a href ="developers.php" class="tile">Developers<img src="static/img/developers.png" alt="developers" /></a></li><li><a href ="https://www.facebook.com/quorumlanguage" class="tile">Social<img src="static/img/social.png" alt="social" /></a></li><li><a href ="epiq.php" class="tile">EPIQ 2015<img src="static/img/epiq.png" alt="EPIQ Logo" /></a></li><li><a href ="about.php" class="tile">About Quorum<img src="static/img/more.png" alt="about Quorum" /></a></li></ul></nav>
         <!--<ul>
             <li>Here is the <a href="download.php">download and installation</a> page. 
                 Quorum also comes included in 
