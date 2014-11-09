@@ -1,36 +1,101 @@
 <?php require_once("static/templates/pageheader.template.php"); ?>
 <div class="hero-unit">
     <div class="hero-unit-container">
-        <h1>Experience Programming in Quorum (EPIQ 2015)</h1>
-        <p align="justify">A conference for exploring and learning programming in the Quorum programming language</p>
+        <h1>EPIQ 2015</h1>
+        <p align="justify">A conference for <strong>E</strong>xperiencing 
+            <strong>P</strong>rogramming <strong>I</strong>n the <strong>Q</strong>uorum programming language</p>
     </div>
 </div>
 
 <div class="content index-content">
-    <h4>What Is the EPIQ Workshop?</h4>
+    <h1>About EPIQ</h1>
+    <h4>What Is EPIQ 2015?</h4>
     <p align="justify">
         The Experience Programming in Quorum (EPIQ) 
         Workshop is an international professional development workshop for educators 
         to learn the foundational skills necessary to teach students computer science using the Quorum 
-        programming language. Not everyone can go to EPIQ, due to limited space/funding and
+        programming language. While we want to invite or include as many people as possible, 
+        we typically have more applications than spots for EPIQ, due to limited space/funding and
         high demand. We will put out applications in approximately March of 2015.
     </p>
-
-    <h4>What is Quorum?</h4>
-    <p align="justify">
-        Quorum is a Java Virtual Machine (JVM) based programming language that 
-        was invented by Dr. Andreas Stefik and others. Check the primary 
-        <a href="http://quorumlanguage.com/">Quorum Website</a> for more information.
-    </p>
-
+    
     <h4>Who can attend?</h4>
     <p align="justify">
         Any educator (K-12 or post-secondary) with an interest in learning about an 
         exciting, fully-accessible programming language and how to teach it to ALL 
         students, including students with visual impairments and blindness can attend.
-        We do open the workshop to others, but generally give priority to educators.
+        If we have external funding to help people attend, we tend to give priority
+        to educators that will teach students (with or without disabilities) in
+        the classroom.
     </p>
+    
+    <h4>I'm a professional programmer interested in Quorum. Can I attend EPIQ?</h4>
+    <p align="justify">
+        In previous years, we have allowed a small number of professionals to attend EPIQ. 
+        No decision has been made yet on this for EPIQ 2015 as to what kind of industry
+        groups we will allow in, how this will work, or what the funding model will
+        be. Ultimately, we are trying to slowly open up the venue more broadly 
+        while keeping it cheap or free for educators.
+    </p>
+    
+    <h4>Who is on the committees for EPIQ 2015?</h4>
+    <h5>Steering Committee</h5>
+    <table style="width:100%" id="developerTable">
+      <tr>
+        <th><strong>Who</strong></th>
+        <th><strong>Affiliation</strong></th>
+      </tr>
+      <tr>
+        <td>Andreas Stefik</td>
+        <td>University of Nevada, Las Vegas</td>
+      </tr>
+      <tr>
+        <td>Derrick Smith</td>
+        <td>University of Alabama, Huntsville</td>
+      </tr>
+      <tr>
+        <td>Mike Bicknell</td>
+        <td>Washington State School for the Blind</td>
+      </tr>
+      <tr>
+        <td>Sina Bahram</td>
+        <td>Prime Access Consulting, Inc.</td>
+      </tr>
+      <tr>
+        <td>Sam Shaw</td>
+        <td>Perkins</td>
+      </tr>
+    </table>
 
+    <h5>Curriculum Committee</h5>
+    <table style="width:100%" id="developerTable">
+      <tr>
+        <th><strong>Who</strong></th>
+        <th><strong>Affiliation</strong></th>
+      </tr>
+      <tr>
+        <td>Jason Martin</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>Cynthia Burkes</td>
+        <td>Clark County School District (Las Vegas, NV)</td>
+      </tr>
+      <tr>
+        <td>Ko Inamura</td>
+        <td>Lincoln Public Schools</td>
+      </tr>
+      <tr>
+        <td>Jill Dunaway</td>
+        <td>Alabama School for the Blind</td>
+      </tr>
+      <tr>
+        <td>Amanda Rodda-Tyler</td>
+        <td>Illinois School for the Visually Impaired</td>
+      </tr>
+    </table>
+
+    <h1>Educational Information</h1>
     <h4>What do we learn at EPIQ?</h4>
     <p align="justify">During the week, you will learn computer programming while working through the 
         student curriculum. You will be provided direct instruction in the 
@@ -56,7 +121,7 @@
         blindness.</p>
 
 
-
+    <h1>Travel Information</h1>
     <h4>Where Is EPIQ held?</h4>
     <p align="justify"> The EPIQ Workshop is held on the campus of the Washington State 
         School for the Blind in Vancouver, WA.</p>
@@ -106,7 +171,7 @@
         car or drive their own cars. Free parking is available.</p>
 
 
-
+    <h1>Other EPIQ Questions</h1>
     <h4>What will we do all day?</h4>
     <p align="justify">You will work with leading professionals on learning how to program in Quorum 
         while working through the curriculum that you would use with your students. 
