@@ -1,9 +1,8 @@
 <?php require_once("static/templates/pageheader.template.php"); ?>
 <div class="hero-unit">
     <div class="hero-unit-container">
-        <h1>The First International Experience Programming in Quorum Workshop (EPIQ)</h1>
-        <p align="justify"><a href="https://docs.google.com/forms/d/14Jrn6KrRqV7t7Ryh0uTM1_d3Go6W2EcOAxOVjXjmfvE/edit#">
-        Apply now!</a></p>
+        <h1>Experience Programming in Quorum (EPIQ 2015)</h1>
+        <p align="justify">A conference for exploring and learning programming in the Quorum programming language</p>
     </div>
 </div>
 
@@ -13,8 +12,8 @@
         The Experience Programming in Quorum (EPIQ) 
         Workshop is an international professional development workshop for educators 
         to learn the foundational skills necessary to teach students computer science using the Quorum 
-        programming language. Click on the <a href="https://docs.google.com/forms/d/14Jrn6KrRqV7t7Ryh0uTM1_d3Go6W2EcOAxOVjXjmfvE/edit#">Sign up form</a> if you would like
-        to apply.
+        programming language. Not everyone can go to EPIQ, due to limited space/funding and
+        high demand. We will put out applications in approximately March of 2015.
     </p>
 
     <h4>What is Quorum?</h4>
@@ -32,11 +31,18 @@
         We do open the workshop to others, but generally give priority to educators.
     </p>
 
-    <h4>What do we learn at Epiq?</h4>
+    <h4>What do we learn at EPIQ?</h4>
     <p align="justify">During the week, you will learn computer programming while working through the 
         student curriculum. You will be provided direct instruction in the 
         programming activities and will also be given 
         resources to implement the curriculum with your students.</p>
+    
+    <h4>I went to EPIQ 2014. What new things will we learn this year? </h4>
+    <p align="justify">We have a variety of new things planned, including details
+    on the new Quorum 3 compiler and new versions of the programming environments. 
+    Besides this, we have a number of not-yet-public features planned for release, which
+    we hope to announce and teach at the workshop. To say the least, this will be
+    an exciting and new year of EPIQ.</p>
 
     <h4>What kind of students can learn programming?</h4>
     <p align="justify"> We believe that all students can learn to program. This 
@@ -51,14 +57,14 @@
 
 
 
-    <h4>Where Is Epiq held?</h4>
+    <h4>Where Is EPIQ held?</h4>
     <p align="justify"> The EPIQ Workshop is held on the campus of the Washington State 
         School for the Blind in Vancouver, WA.</p>
 
 
 
-    <h4>When is Epiq held?</h4>
-    <p align="justify">This year, the dates are: July 17-23, 2014</p>
+    <h4>When is EPIQ held?</h4>
+    <p align="justify">For next year's EPIQ, the dates are July 22-29, 2015.</p>
 
 
 
@@ -76,8 +82,8 @@
     “cottages” have a full kitchen, washer/dryer, and living room. Internet is 
     provided for free throughout the campus.  However, there are hotels in the area, 
     if you would prefer to stay off-campus at your own expense. We do not have
-    unlimited space in our free housing, so please apply as soon as possible
-    to ensure you obtain a spot.
+    unlimited space in our free housing, so we would encourage anyone wanting
+    to attend to apply shortly after the application comes out next year.
 
     <h4>What about food?</h4>
     <p align="justify">Breakfast and lunch are provided by the WSSB and provided in the school’s 
@@ -86,7 +92,7 @@
 
 
     <h4>What about travel to Vancouver, WA?</h4>
-    <p align="justify">Vancouver, WA is on the border with Oregon and literally “across the river” 
+    <p align="justify">Vancouver, WA is on the border with Oregon and is “across the river” 
         from Portland. Air travel is easy in and out of the Portland International 
         Airport. At this time, we are securing funds to provide a select number of 
         applicants with stipends to help cover travel costs. However, stipends are
@@ -120,8 +126,7 @@
     </p>
 
     <h4>Do we do anything together for fun? </h4>
-    <p align="justify">This year, we are planning a day-trip to some local sites as part of the workshop.  
-        Plan to enjoy visiting a piece of the beautiful Northwest!  </p>
+    <p align="justify">We are still in the planning stages for activites for EPIQ 2015  </p>
 
 
 
@@ -141,8 +146,8 @@
 
     <h4>So what do I do now?</h4>
     <p align="justify">
-    <a href="https://docs.google.com/forms/d/14Jrn6KrRqV7t7Ryh0uTM1_d3Go6W2EcOAxOVjXjmfvE/edit#">
-        Apply!</a> The applications will be processed 
+    We would encourage anyone interested to apply as soon as the applications come out next year.
+    The applications will be processed 
     and reviewed by the EPIQ organizers. Depending on funding levels, we will invite 
     as many participants as possible. However, travel honorariums are based upon 
     funding amounts and applicant qualifications.</p>
