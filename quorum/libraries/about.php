@@ -35,13 +35,76 @@
     University of Nevada, Las Vegas, the Do it program at the University of Washington, 
     amongst others.
 </p>
-<h4>Who were the original developers of Quorum?</h4>
-<p align="justify">
-    The first version of Quorum was developed by Andreas Stefik. The modern version
-    of the language was written predominately by Andreas Stefik and Melissa Stefik, 
-    with important contributions by Jeff Wilson. Many others have made
-    contributions to the project.
-</p>
+<h4>Who are the current team members on Quorum?</h4>
+<table style="width:100%" id="developerTable">
+  <tr>
+    <th><strong>Who</strong></th>
+    <th><strong>Position</strong></th>
+    <th><strong>Location</strong></th>
+    <th><strong>Responsibilities</strong></th>
+  </tr>
+  <tr>
+    <td>Andreas Stefik</td>
+    <td>Assistant Professor</td>
+    <td>University of Nevada, Las Vegas</td>
+    <td>Lead Designer, Compiler</td>
+  </tr>
+  <tr>
+    <td>Patrick Daleiden</td>
+    <td>Ph.D. Student</td>
+    <td>University of Nevada, Las Vegas</td>
+    <td>Automated Testing, Empirical Study Design</td>
+  </tr>
+  <tr>
+    <td>Phillip (Merlin) Uesbeck</td>
+    <td>Ph.D. Student</td>
+    <td>University of Nevada, Las Vegas</td>
+    <td>Development Environment, Empirical Study Design</td>
+  </tr>
+  <tr>
+    <td>Evan Pierzina</td>
+    <td>Undergraduate Student</td>
+    <td>University of Nevada, Las Vegas</td>
+    <td>Web, Hour of Code</td>
+  </tr>
+</table>
+<h4>Were there any former team members and what did they do?</h4>
+<table style="width:100%" id="developerTable">
+  <tr>
+  <th><strong>Who</strong></th>
+  <th><strong>Contribution</strong></th>
+  </tr>
+  <tr>
+    <td>Melissa Stefik</td>
+    <td align="justify">
+    Melissa was the co-inventor, along with Andreas, of much of the Quorum programming language. 
+    She wrote the original implementation for the inheritance system, generics, 
+    aspects of the type system, and the Java Bytecode writer. She wrote a substantial
+    portion of the Quorum 1 and 2 versions of the compiler. Melissa contributed
+    substantively to the Quorum textbook.
+    </td>
+  </tr>
+  <tr>
+    <td>Jeff Wilson</td>
+    <td align="justify">Jeff was an undergraduate student at Southern Illinois University Edwardsville.
+    He worked predominately on accessibility issues in the development environment 
+    for Quorum (Sodbeans). This included work on the magnification system, speech system,
+    and a variety of other components on the project, including the Quorum 2 compiler. 
+    Jeff contributed to the Quorum textbook.</td>
+  </tr>
+  <tr>
+    <td>Susanna Siebert</td>
+    <td align="justify">Susanna was a co-author on several publications related to the Quorum
+    project and was heavily involved in the design of studies testing syntactic
+    variants of versions of Quorum. She also helped write chapter 3 of the 
+    Quorum textbook.</td>
+  </tr>
+  <tr>
+    <td>Kerry Ritter</td>
+    <td align="justify">Kerry contributed a significant redesign to the Quorum website, for the 
+    Quorum 2.0 release.</td>
+  </tr>
+</table>
 <h4>What platforms does Quorum support?</h4>
 <p align="justify">
     Quorum can be run on most platforms that support the Java Virtual Machine. We have
