@@ -66,7 +66,7 @@
 							createNavBarLink("Download","download.php", 1);
 							createNavBarLink("Reference","syntax.php", 1);
 							createNavBarLink("Libraries","libraries.php", 1);
-							createNavBarLink("Tutorials","curriculum.php", 1);
+							createNavBarLink("Exercises","curriculum.php", 1);
 							createNavBarLink("Social","https://www.facebook.com/quorumlanguage");
 							createNavBarLink("Bugs","https://quorum.atlassian.net/");
 						?>

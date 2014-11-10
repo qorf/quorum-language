@@ -4,9 +4,8 @@
 </script>
 <div class="hero-unit">
 	<div class="hero-unit-container">
-		<h1>Quorum Curriculum</h1>
-		<p>These pages provide extra curricular material that can be 
-        freely used in the classroom.</p>
+		<h1>Quorum Exercises</h1>
+		<p>These pages provide extra labs and assignments that can be freely used in the classroom.</p>
 	</div>
 </div>
 
