@@ -88,3 +88,6 @@
 <p>
     When finished, debug and show your instructor your program.
 </p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

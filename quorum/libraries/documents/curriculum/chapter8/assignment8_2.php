@@ -185,3 +185,6 @@
     422
     500
 </pre>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

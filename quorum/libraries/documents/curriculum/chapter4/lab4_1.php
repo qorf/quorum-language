@@ -322,3 +322,6 @@ number k = Divide(6, 0)
 </code></pre></p>
 <p>
 The value of <code>k</code> should be 0.0. (division by zero has occurred).
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

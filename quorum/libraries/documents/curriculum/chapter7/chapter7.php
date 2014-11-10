@@ -210,3 +210,6 @@
         Traversing a tree with sounds
     </li>
 </ul>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

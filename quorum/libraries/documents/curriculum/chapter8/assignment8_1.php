@@ -285,3 +285,6 @@ end
     Percentage of calories from Fats: 20.6%
     Percentage of calories consumed so far: 10.5%
 </pre>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

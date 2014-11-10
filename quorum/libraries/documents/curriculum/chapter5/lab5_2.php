@@ -230,3 +230,6 @@ Notice that you are passing a <code>Car</code> object into actions.  This is one
 <p>
 Fill these actions with the appropriate code.  Call both <code>Change</code> and <code>Display</code> actions with the same values.  The program should still function the same with same results in the output as before.  Show the work to the instructor.
 </p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

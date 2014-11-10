@@ -190,3 +190,6 @@
     Enter 4 to exit this program
     Enter 5 to hear these options again
 </pre>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

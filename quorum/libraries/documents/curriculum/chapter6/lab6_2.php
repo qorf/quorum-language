@@ -176,3 +176,6 @@ Create six additional classes in this project.  Name  the classes <code>SuperHer
 <p>
   When finished, debug and fix any errors, then show your instructor you code.
 </p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

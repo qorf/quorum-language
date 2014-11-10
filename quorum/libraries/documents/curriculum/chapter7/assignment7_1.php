@@ -298,3 +298,6 @@
 <p>
   Output should look similiar to the output shown in the above examples.
 </p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

@@ -158,3 +158,6 @@
 <p>
   When you are done, debug and fix any errors, then show your code to your instructor.
 </p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

@@ -170,3 +170,6 @@
         How to read/write from/to a file
     </li>
 </ul>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

@@ -57,3 +57,6 @@ For each cast, put a comment using // on the top of each line identifying each c
 text value = &quot;Hello there THX&quot; + 1138
 say value
 </code></pre></p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

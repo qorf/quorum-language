@@ -142,3 +142,6 @@ end
 <p>
   When you're done with this lab, show your instructor your code.
 </p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

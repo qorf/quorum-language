@@ -164,3 +164,6 @@ Class <code>Pyramid</code> is derived from <code>ThreeDShape</code>.  It will ha
 </li><li>Surface area of a sphere: <strong>4 * pi * radius<sup>2</sup></strong><sup>
 </li><li>Volume of a pyramid: <strong>1/3 * (area of the base) * height</strong>
 </li></ul>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

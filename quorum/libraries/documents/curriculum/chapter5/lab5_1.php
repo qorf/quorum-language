@@ -138,3 +138,6 @@ From this foundation you should be able to code a few more characteristics, and 
 <p>
 So by the time you're finished you should have 4 variables: arms, legs, name, and color. It should also have these 5 methods: &quot;Display&quot;, &quot;ChangeArms&quot;, &quot;ChangeLegs&quot;, &quot;ChangeColor&quot;, and &quot;ChangeName&quot;.
 </p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

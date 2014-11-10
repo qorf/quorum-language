@@ -74,3 +74,6 @@ Your program should add all of the trial distances together and compute the aver
     </code>
   </pre>
 </p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

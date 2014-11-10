@@ -86,4 +86,7 @@ use Libraries.Sound.Music
 <li><a href="assignment2_3.php">Assignment Manual 2.3</a></li>
 <ul>
 <li>Write the music program that plays a combination of sounds and spoken text (music and lyrics).</li>
-</ul>include("../../../static/templates/pageheader.template.php"); ?>
+</ul>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

@@ -253,3 +253,6 @@ end
 </pre><p>
 Make changes to the <code>Main</code> class so that all actions, not including the <code>Main</code> action, are hidden from <code>Player</code> and <code>Coach</code> classes.  Run the program and it will function the same as before.  Show both Lab5_3A and Lab5_3B programs to the instructor.
 </p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

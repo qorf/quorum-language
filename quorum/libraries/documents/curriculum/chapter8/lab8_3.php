@@ -113,3 +113,6 @@
     hello
     Your encoded message: svool
 </pre>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

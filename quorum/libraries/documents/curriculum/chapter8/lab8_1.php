@@ -162,3 +162,6 @@
     Jeff jeff@mail.com
     Done. Contacts listed. Goodbye.
 </pre>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

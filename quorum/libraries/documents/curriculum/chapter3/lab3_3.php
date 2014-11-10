@@ -212,3 +212,6 @@ Show the work to the instructor.  Optionally, if there is enough time and if mor
 </td></tr><tr><td>Step Over</td><td>F8</td><td>Steps over one complete line of code.
 </td></tr><tr><td>Stop</td><td>SHIFT + F5</td><td>Turns the debugger off.
 </td></tr></table>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

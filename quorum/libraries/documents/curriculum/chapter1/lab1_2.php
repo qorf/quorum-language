@@ -77,3 +77,6 @@ To make the changes take affect, run the program.  It is now ready to use. Switc
 <p>
 Feel free to keep playing the game.  Change the answer to something different, then run the program again.
 </p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

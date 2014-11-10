@@ -135,3 +135,6 @@
     It took 6 seconds to populate a hash table with 384 values using chaining.
     It took 11 seconds to search a hash table for 384 values using chaining.
 </pre>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

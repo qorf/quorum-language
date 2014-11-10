@@ -35,6 +35,8 @@
 <li><a href="/documents/curriculum/chapter1/lab1_3.php">Lab Manual 1.3</a></li>
 <ul>
 <li>Build and execute a Jar file.</li>
-<li>Learn about the JVM and Java Bytecode.</li>
+<li>Learn about the Java Virtual Machine (JVM) and Java Bytecode.</li>
 <li>Use the command line.</li>
 </ul>
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

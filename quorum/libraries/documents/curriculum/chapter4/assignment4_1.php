@@ -204,3 +204,6 @@ Select an operation (1-6):
 7
 The value you entered is not valid. You must choose a value between 1 and 6.
 </code></pre></p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

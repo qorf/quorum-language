@@ -118,3 +118,6 @@ The total gas price for the trip is $18.03975
 <p>
 Show the work to the instructor.
 </p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

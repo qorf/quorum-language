@@ -129,3 +129,6 @@
     Captain Brandon
     Captain Brandon can fly. Captain Brandon wears a mask. Captain Brandon Uses a Hammer.
 </pre>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

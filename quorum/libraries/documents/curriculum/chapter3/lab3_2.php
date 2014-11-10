@@ -111,3 +111,6 @@ Once you have the <code>repeat until</code> loop working, have the work checked.
 <p>
 Show your work to the instructor.
 </p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

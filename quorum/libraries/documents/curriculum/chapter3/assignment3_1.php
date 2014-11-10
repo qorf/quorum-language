@@ -144,3 +144,6 @@ Total flight price to Chicago for 1 traveler(s) is $200.0
 Total hotel price for 1 room(s) at Standard Hotel for 1 night(s) is $98.5
 Total package price for flights and hotel is $298.5
 </code></pre></p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

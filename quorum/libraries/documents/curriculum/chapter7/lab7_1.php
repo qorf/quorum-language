@@ -208,3 +208,6 @@
 <p>
     Show your instructor your code when you're finished.
 </p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

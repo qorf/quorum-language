@@ -204,3 +204,6 @@ Game over
 <p>
 Debug your program and fix any compiler errors there might be. Now would be a great time to use the debugger to test your program. When an action is called use step into to see what happens when a particular action is called. Did your program run correctly? If not, fix any problems. Show the work to the instructor.
 </p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

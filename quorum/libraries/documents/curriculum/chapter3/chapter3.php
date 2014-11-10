@@ -96,3 +96,6 @@ end
 <li>Modify the existing travel reservation program.</li>
 <li>Use repeat statements to improve the reservation program.</li>
 <li>Check user input for errors.</li>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

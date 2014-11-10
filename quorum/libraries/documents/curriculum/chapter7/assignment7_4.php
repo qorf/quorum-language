@@ -114,3 +114,6 @@
     20
     the random integer is 2
 </pre>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

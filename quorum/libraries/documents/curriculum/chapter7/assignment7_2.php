@@ -249,3 +249,6 @@
     The integer 245 is not present in the tree.
     Now the tree looks like 200 300 400
 </pre>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

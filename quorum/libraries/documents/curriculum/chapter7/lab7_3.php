@@ -185,3 +185,6 @@
 <p>
   When you're done with the lab, show your code to your instructor.
 </p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 

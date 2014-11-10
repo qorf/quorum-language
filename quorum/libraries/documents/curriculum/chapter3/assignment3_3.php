@@ -125,3 +125,6 @@ Total flight price to Honolulu for 2 traveler(s) is $1300.0
 Total hotel price for 1 room(s) at Luxury Hotel for 5 night(s) is $998.75
 Total package price for flights and hotel is $2298.75
 </code></pre></p>
+
+</div>
+<?php include("../../../static/templates/pagefooter.template.php"); ?> 
