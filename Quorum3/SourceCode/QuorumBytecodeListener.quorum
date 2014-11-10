@@ -650,6 +650,11 @@ class QuorumBytecodeListener is QuorumSourceListener
                 assignment:SetMethodWriter(methodWriter)
                 assignment:SetVariable(variable)
                 currentBlockOpcode:Add(assignment)
+            else 
+                CompilerError error = result:GetCompilerError(context:GetLocation())
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(error)
+                return now
             end
         end
     end

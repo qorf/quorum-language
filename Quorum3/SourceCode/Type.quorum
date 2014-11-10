@@ -5,18 +5,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
 
 class Type 
-    boolean isInteger = false
-    boolean isText = false
-    boolean isNumber = false
-    boolean isBoolean = false
-    boolean isIntegerObject = false
-    boolean isTextObject = false
-    boolean isNumberObject = false
-    boolean isBooleanObject = false
-    boolean isVoid = false
-    boolean isPrimitive = false
     boolean isConstant = false
-    boolean isUndefined = false
     text genericName = ""
     text staticKey = ""
     Array<Type> generics
@@ -251,19 +240,19 @@ class Type
     end
 
     action IsVoid returns boolean
-        return isVoid
+        return staticKey = VOID_KEY
     end
 
     action IsInteger returns boolean
-        return isInteger
+        return staticKey = INTEGER_PRIMITIVE_KEY
     end
 
     action IsBoolean returns boolean
-        return isBoolean
+        return staticKey = BOOLEAN_PRIMITIVE_KEY
     end
 
     action IsNumber returns boolean
-        return isNumber
+        return staticKey = NUMBER_PRIMITIVE_KEY
     end
 
     action IsPrimitive returns boolean
@@ -274,171 +263,66 @@ class Type
     end
 
     action IsText returns boolean
-        return isText
+        return staticKey = TEXT_PRIMITIVE_KEY
     end
 
     action IsIntegerObject returns boolean
-        return isIntegerObject
+        return staticKey = INTEGER_OBJECT_KEY
     end
 
     action IsBooleanObject returns boolean
-        return isBooleanObject
+        return staticKey = BOOLEAN_OBJECT_KEY
     end
 
     action IsNumberObject returns boolean
-        return isNumberObject
+        return staticKey = NUMBER_OBJECT_KEY
     end
 
     action IsTextObject returns boolean
-        return isTextObject
+        return staticKey = TEXT_OBJECT_KEY
     end
 
     action SetToVoid
-        isInteger = false
-        isText = false
-        isNumber = false
-        isBoolean = false
-        isVoid = true
-        isUndefined = false
         staticKey = VOID_KEY
     end
 
     action SetToUndefined
-        isInteger = false
-        isText = false
-        isNumber = false
-        isBoolean = false
-        isVoid = false
-        isIntegerObject = false
-        isTextObject = false
-        isNumberObject = false
-        isBooleanObject = false
-        isPrimitive = false
-        isUndefined = true
         staticKey = UNDEFINED_KEY
     end
     
     action IsUndefined returns boolean
-        return isUndefined
+        return staticKey = UNDEFINED_KEY
     end
 
     action SetToInteger
-        isInteger = true
-        isText = false
-        isNumber = false
-        isBoolean = false
-        isVoid = false
-        isIntegerObject = false
-        isTextObject = false
-        isNumberObject = false
-        isBooleanObject = false
-        isPrimitive = true
-        isUndefined = false
         staticKey = INTEGER_PRIMITIVE_KEY
     end
 
     action SetToBoolean
-        isInteger = false
-        isText = false
-        isNumber = false
-        isBoolean = true
-        isVoid = false
-        isIntegerObject = false
-        isTextObject = false
-        isNumberObject = false
-        isBooleanObject = false
-        isPrimitive = true
-        isUndefined = false
         staticKey = BOOLEAN_PRIMITIVE_KEY
     end
 
     action SetToNumber
-        isInteger = false
-        isText = false
-        isNumber = true
-        isBoolean = false
-        isVoid = false
-        isIntegerObject = false
-        isTextObject = false
-        isNumberObject = false
-        isBooleanObject = false
-        isPrimitive = true
-        isUndefined = false
         staticKey = NUMBER_PRIMITIVE_KEY
     end
 
     action SetToText
-        isInteger = false
-        isText = true
-        isNumber = false
-        isBoolean = false
-        isVoid = false
-        isIntegerObject = false
-        isTextObject = false
-        isNumberObject = false
-        isBooleanObject = false
-        isPrimitive = true
-        isUndefined = false
         staticKey = TEXT_PRIMITIVE_KEY
     end
 
     action SetToIntegerObject
-        isInteger = false
-        isText = false
-        isNumber = false
-        isBoolean = false
-        isVoid = false
-        isIntegerObject = true
-        isTextObject = false
-        isNumberObject = false
-        isBooleanObject = false
-        isPrimitive = false
-        isUndefined = false
         staticKey = INTEGER_OBJECT_KEY
     end
 
     action SetToBooleanObject
-        isInteger = false
-        isText = false
-        isNumber = false
-        isBoolean = false
-        isVoid = false
-        isIntegerObject = false
-        isTextObject = false
-        isNumberObject = false
-        isBooleanObject = true
-        isPrimitive = false
-        isUndefined = false
         staticKey = BOOLEAN_OBJECT_KEY
     end
 
     action SetToNumberObject
-        isInteger = false
-        isText = false
-        isNumber = false
-        isBoolean = false
-        isVoid = false
-        isIntegerObject = false
-        isTextObject = false
-        isNumberObject = true
-        isBooleanObject = false
-        isPrimitive = false
-        isUndefined = false
         staticKey = NUMBER_OBJECT_KEY
     end
 
     action SetToTextObject
-        isInteger = false
-        isText = false
-        isNumber = false
-        isBoolean = false
-        isVoid = false
-        isIntegerObject = false
-        isTextObject = true
-        isNumberObject = false
-        isBooleanObject = false
-        isPrimitive = false
-        isUndefined = false
         staticKey = TEXT_OBJECT_KEY
     end
 
@@ -448,36 +332,12 @@ class Type
             objectName = val
             staticKey = val:GetStaticKey()
         end
-
-        isInteger = false
-        isText = false
-        isNumber = false
-        isBoolean = false
-        isVoid = false
-        isIntegerObject = false
-        isTextObject = true
-        isNumberObject = false
-        isBooleanObject = false
-        isUndefined = false
-        isPrimitive = false
     end
 
     action SetToObject(text name)
         if not(name = undefined)
             staticKey = name
         end
-
-        isInteger = false
-        isText = false
-        isNumber = false
-        isBoolean = false
-        isVoid = false
-        isIntegerObject = false
-        isTextObject = true
-        isNumberObject = false
-        isBooleanObject = false
-        isUndefined = false
-        isPrimitive = false
     end
 
     action SetToObject(Class clazz)

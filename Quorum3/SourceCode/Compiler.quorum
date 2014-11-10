@@ -456,6 +456,15 @@ class Compiler
         HashTable<text, File> unparsed)
         boolean done = false
         Class c = undefined
+
+        Type typeCheck
+        typeCheck:SetToObject(key)
+        //is this really just a primitive, pretending to be a class?
+        if typeCheck:IsPrimitive()
+            return now
+        end
+
+
         //first check if it's already valid by looking at the symbol
         //table
         c = symbolTable:GetClass(key)
