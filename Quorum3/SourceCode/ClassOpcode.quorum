@@ -332,7 +332,7 @@ class ClassOpcode is QuorumOpcode
             //TODO: Check that what is at line 2231 of QuorumJavaBytecodeStepVisitor
             //is not an artifact of that system and is actually important.
             methodWriter:VisitField(opcodes:GetField(), clazz:ConvertStaticKeyToBytecodePath(),
-                variable:GetName(), converted)
+                variable:GetName(), type:ConvertTypeToBytecodeSignatureInterface())
 
             methodWriter:VisitInstruction(opcodes:GetReturnOpcode(type))
             methodWriter:VisitMaxSize(1,1)
@@ -341,7 +341,7 @@ class ClassOpcode is QuorumOpcode
 
             //do the setter in the interface file
             text hiddenSetterName = clazz:ConvertToActionNameFromField(variable, false)
-            text hiddenSetterSignature = type:ConvertToSignatureFromField(false)
+            text hiddenSetterSignature = type:ConvertToSignatureFromFieldInterface(false)
 
             interfaceMethodWriter = 
                 interfaceWriter:VisitMethod(opcodes:GetPublic() + opcodes:GetAbstract(), 
@@ -358,7 +358,7 @@ class ClassOpcode is QuorumOpcode
             //is not an artifact of that system and is actually important.
             methodWriter:VisitVariable(opcodes:GetLoadOpcode(type), 1)
             methodWriter:VisitField(opcodes:PutField(), clazz:ConvertStaticKeyToBytecodePath(),
-                variable:GetName(), converted)
+                variable:GetName(), type:ConvertTypeToBytecodeSignatureInterface())
 
             methodWriter:VisitInstruction(opcodes:GetReturn())
             methodWriter:VisitMaxSize(1,1)
