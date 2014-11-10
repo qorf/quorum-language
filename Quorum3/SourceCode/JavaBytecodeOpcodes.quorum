@@ -231,6 +231,10 @@ class JavaBytecodeOpcodes
     constant integer IFNULL = 198
     constant integer IFNONNULL = 199
 
+    action GetCheckCast returns integer
+        return CHECKCAST
+    end
+
     /*
       Generates the appropriate opcode for loading an item onto the stack
       from a given Quorum type descriptor.

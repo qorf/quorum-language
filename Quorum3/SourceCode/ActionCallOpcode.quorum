@@ -21,6 +21,15 @@ class ActionCallOpcode is QuorumOpcode
     boolean isChainedCall = false
     boolean isSoloObjectCall = false
     QuorumOpcode autoBoxing = undefined
+    Type callerType = undefined
+
+    action GetCallerType returns Type
+        return callerType
+    end
+
+    action SetCallerType(Type type)
+        me:callerType = type
+    end
 
     action GetAutoBoxOpcode returns QuorumOpcode
         return autoBoxing
@@ -184,10 +193,14 @@ class ActionCallOpcode is QuorumOpcode
             else 
                 //alert("Compiler Bug: Class and Action should not be null at this stage.")
             end
+
+            if autoBoxing not= undefined
+                autoBoxing:Write()
+            end
         else
-            Type type = GetType()
+            Type type = GetCallerType()
             if not field:IsField()
-                methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetType()), field:GetBytecodeLocation())
+                methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetCallerType()), field:GetBytecodeLocation())
             else
                 //Now write the getter for the field
                 text path = ""

@@ -824,13 +824,20 @@ class QuorumBytecodeListener is QuorumSourceListener
                         Type right
                         text boxedKey = left:ConvertToNonPrimitiveStaticKey()
                         right:SetToObject(boxedKey)
+
+
+
+                        //since we know this is defined as a generic,
+                        //it is equivalent to a direct cast
                         Operation op
-                        op:SetOperation(op:IMPLICIT_CAST)
-                        TypeCheckResult result = checker:Check(left, right, op, false)
+                        op:SetOperation(op:CAST)
+                        TypeCheckResult result = checker:Check(left, returnType, op, false)
                         if result:errorType = undefined
                             QuorumOpcode opcode = result:GetQuorumOpcode()
+                            opcode:SetMethodWriter(methodWriter)
                             //this may be null or ignored
                             actionCall:SetAutoBoxOpcode(opcode)
+                            actionCall:SetType(left)
                         else
                             CompilerErrorManager manager = GetCompilerErrorManager()
                             manager:Add(result:GetCompilerError(resolved:location))
@@ -973,9 +980,6 @@ class QuorumBytecodeListener is QuorumSourceListener
             call:checker = GetTypeChecker()
             call:table = GetSymbolTable()
 
-            if currentClass:GetName() = "Main"
-                a = 5
-            end
             ActionCallResolution resolved = classToMakeCallOn:ResolveAction(call)
             resolved:typeToMakeCallOn = calledType
             resolved:classToMakeCallOn = classToMakeCallOn
@@ -1015,6 +1019,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
 
                     actionCall:SetPushOnMe(true)
+                    actionCall:SetCallerType(type)
                     actionCall:SetType(type)
                     actionCall:SetField(variable)
                     actionCall:SetFieldHolder(currentClass)
@@ -1042,6 +1047,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                     field = clazz:GetVariable(name)
                     if field not= undefined
                         Type fieldType = field:GetType()
+                        actionCall:SetCallerType(fieldType)
                         actionCall:SetType(fieldType)
                         //tell the action call opcode this is a field and of whom
                         //actionCall:SetBytecodeLocation(field:GetBytecodeLocation())

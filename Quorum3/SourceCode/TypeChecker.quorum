@@ -1468,8 +1468,9 @@ class TypeChecker
         return op
     end
 
-    private action GetExplicitCastOpcode returns ExplicitCastOpcode
+    private action GetExplicitCastOpcode(Type type) returns ExplicitCastOpcode
         ExplicitCastOpcode op
+        op:SetType(type)
         return op
     end
 
@@ -1822,7 +1823,7 @@ class TypeChecker
             key = GenerateTypeCheckKey(parentKey, staticKey, op, false)
             result = GetSubclassNarrowingConvertResult()
             type = result:result
-            ExplicitCastOpcode caster = GetExplicitCastOpcode()
+            ExplicitCastOpcode caster = GetExplicitCastOpcode(type)
             result:SetQuorumOpcode(caster)
             type:SetToObject(staticKey)
             results:Add(key, result)
@@ -1831,9 +1832,10 @@ class TypeChecker
             op = GetOperation(opConstant:CAST)
             key = GenerateTypeCheckKey(staticKey, parentKey, op, false)
             result = GetSubclassWideningConvertResult()
-            caster = GetExplicitCastOpcode()
-            result:SetQuorumOpcode(caster)
             type = result:result
+            caster = GetExplicitCastOpcode(type)
+            result:SetQuorumOpcode(caster)
+            
             type:SetToObject(staticKey)
             results:Add(key, result)
 
