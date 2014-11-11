@@ -919,6 +919,9 @@ class TypeChecker
         result = GetNarrowingConvertResult()
         type = result:result
         type:SetToInteger()
+        TextToIntegerCast textToIntegerCast
+        textToIntegerCast:SetType(type)
+        result:SetQuorumOpcode(textToIntegerCast)
         results:Add(key, result)
 
         op = GetOperation(opConstant:CAST)
@@ -926,9 +929,9 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToText()
-        TextToIntegerCast textToIntegerCast
-        textToIntegerCast:SetType(type)
-        result:SetQuorumOpcode(textToIntegerCast)
+        IntegerToTextCast integerToTextCast
+        integerToTextCast:SetType(type)
+        result:SetQuorumOpcode(integerToTextCast)
         results:Add(key, result)
 
         //text to number and back again

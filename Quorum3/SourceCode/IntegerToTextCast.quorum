@@ -2,7 +2,7 @@ package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
 
-class TextToIntegerCast is ExplicitCastOpcode
+class IntegerToTextCast is ExplicitCastOpcode
     JavaBytecodeOpcodes opcodes
 
     action Write
@@ -12,8 +12,8 @@ class TextToIntegerCast is ExplicitCastOpcode
         if opcodeToCast not= undefined
             opcodeToCast:Write()
         end
-        methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "java/lang/Integer", "parseInt",
-                "(Ljava/lang/String;)I", false)
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "java/lang/Integer", "toString",
+                "(I)Ljava/lang/String;", false)
     end
     
     action WriteJavaScript returns text
@@ -21,7 +21,7 @@ class TextToIntegerCast is ExplicitCastOpcode
     end
 
     action GetTemplateCopy returns QuorumOpcode
-        TextToIntegerCast op
+        IntegerToTextCast op
         op:SetType(me:GetType())
         return op
     end
