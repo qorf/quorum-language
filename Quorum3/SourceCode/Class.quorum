@@ -65,6 +65,14 @@ class Class is Symbol
         integerObject:Add("Integer")
 
         AddUnresolvedUseStatement(integerObject)
+
+        QualifiedName numberObject
+        numberObject:Add("Libraries")
+        numberObject:Add("Language")
+        numberObject:Add("Types")
+        numberObject:Add("Number")
+
+        AddUnresolvedUseStatement(numberObject)
 //
 //        QualifiedName errorObject
 //        errorObject:Add("Libraries")

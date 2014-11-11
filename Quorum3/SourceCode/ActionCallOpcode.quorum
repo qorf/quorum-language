@@ -187,10 +187,18 @@ class ActionCallOpcode is QuorumOpcode
             Action act = actionResolution:resolvedAction
             Class clazz = actionResolution:classToMakeCallOn
             if act not= undefined and clazz not= undefined
-                methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
-                    clazz:ConvertStaticKeyToBytecodeInterfacePath(), act:GetName(), 
-                    act:ConvertActionToBytecodeParameterInterfaceSignature(), true)
 
+                if actionResolution:isCallOnPrimitive
+                    text path = "plugins/" + clazz:ConvertStaticKeyToBytecodePath()
+                    text signature = act:ConvertPrimitiveActionToBytecodeParameterInterfaceSignature()
+                    text primitiveName = "Primitive" + act:GetName()
+                    methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), 
+                        path, primitiveName, signature, false)
+                else
+                    methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+                        clazz:ConvertStaticKeyToBytecodeInterfacePath(), act:GetName(), 
+                        act:ConvertActionToBytecodeParameterInterfaceSignature(), true)
+                end
                 if autoBoxing not= undefined
                     autoBoxing:Write()
                 end

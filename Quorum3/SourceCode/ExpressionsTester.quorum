@@ -351,12 +351,12 @@ class ExpressionsTester
 
     action IsA
         suite:RunTest("Library/Tests/Expressions/Pass/IsA.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/IsA.quorum", "true")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/IsA.quorum", "true")
     end
     
     action IsInfiniteNumberParameter
         suite:RunTest("Library/Tests/Expressions/Pass/IsInfiniteNumberParameter.quorum", "false")
-        suite:RunTest("Library/Tests/Expressions/Pass/IsInfiniteNumberParameter.quorum", "false")
+        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/IsInfiniteNumberParameter.quorum", "false")
     end
 
     action LTDoubleDouble

@@ -185,6 +185,45 @@ class Action is Symbol
         return parameters + returnText
     end
 
+    action ConvertPrimitiveActionToBytecodeParameterInterfaceSignature returns text
+        text parameters = "("
+
+        //check the action name. If it is not GetMaximumValue or GetMinimumValue
+        //add on a value corresponding to the parent of this action (e.g., integer, number)
+        Class clazz = me:GetParentClass()
+
+        text name = me:GetName()
+        boolean addParam = true
+        if name = "GetMaximumValue" or name = "GetMinimumValue"
+            addParam = false
+        end
+
+        if addParam
+            if clazz:GetStaticKey() = "Libraries.Language.Types.Integer"
+                parameters = parameters + "I"
+            elseif clazz:GetStaticKey() = "Libraries.Language.Types.Number"
+                parameters = parameters + "D"
+            elseif clazz:GetStaticKey() = "Libraries.Language.Types.Boolean"
+                parameters = parameters + "Z"
+            elseif clazz:GetStaticKey() = "Libraries.Language.Types.Text"
+                parameters = parameters + "Ljava/lang/String;"
+            end
+        end
+
+        Iterator<Variable> it = GetParameterIterator()
+        repeat while it:HasNext()
+            Variable param = it:Next()
+            Type type = param:GetType()
+            parameters = parameters + type:ConvertTypeToBytecodeSignatureInterface()
+        end
+        parameters = parameters + ")"
+
+        Type returnType = GetReturnType()
+        text returnText = returnType:ConvertTypeToBytecodeSignatureInterface()
+
+        return parameters + returnText
+    end
+
     action ConvertActionToJavaScriptName returns text
         text result = ""
         result = result + GetName()

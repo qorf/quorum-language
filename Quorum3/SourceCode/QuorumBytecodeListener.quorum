@@ -991,6 +991,23 @@ class QuorumBytecodeListener is QuorumSourceListener
             call:table = GetSymbolTable()
 
             ActionCallResolution resolved = classToMakeCallOn:ResolveAction(call)
+            if isPrimitive //make sure the call is allowed and inform the writer
+                Action act = resolved:resolvedAction
+                text name = act:GetName()
+                if name = "SetValue" or name = "SetValueNative" //these calls aren't allowed on primitives
+                    CompilerError error
+                    error:SetLocation(context:GetLocation())
+                    error:SetErrorMessage("I found a call to the primitive calling the action " + name + ", but SetValue and SetValueNative cannot be called on primitives.")
+                    CompilerErrorType errorType
+                    errorType:SetCurrentType(errorType:PRIMITIVE_INVALID_ACTION_CALL)
+                    error:SetCompilerErrorType(errorType)
+                    CompilerErrorManager manager = GetCompilerErrorManager()
+                    manager:Add(error)
+                    return now
+                else
+                    resolved:isCallOnPrimitive = true
+                end
+            end
             resolved:typeToMakeCallOn = calledType
             resolved:classToMakeCallOn = classToMakeCallOn
             resolved:callingClass = currentClass

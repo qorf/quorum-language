@@ -47,6 +47,7 @@ class CompilerErrorType
     constant text INPUT_MISMATCH_MESSAGE = "input does not match expected token"
     constant text LEXER_NO_VIABLE_ALTERNATIVE_MESSAGE = "No viable alternative in lexer"
     constant text PARSER_NO_VIABLE_ALTERNATIVE_MESSAGE = "No viable alternative in parser"
+    constant text PRIMITIVE_INVALID_ACTION_CALL_MESSAGE = "Cannot use SetValue or SetValueNative on primitive"
 
     public constant integer MISSING_VARIABLE = 0
     public constant integer EXPECTED_CLOSURE = 1
@@ -92,6 +93,7 @@ class CompilerErrorType
     public constant integer INPUT_MISMATCH = 41
     public constant integer LEXER_NO_VIABLE_ALTERNATIVE = 42
     public constant integer PARSER_NO_VIABLE_ALTERNATIVE = 43
+    public constant integer PRIMITIVE_INVALID_ACTION_CALL = 44
 
     HashTable<integer, text> messages
     integer currentType = -1
@@ -141,6 +143,7 @@ class CompilerErrorType
         messages:Add(INPUT_MISMATCH, INPUT_MISMATCH_MESSAGE)
         messages:Add(LEXER_NO_VIABLE_ALTERNATIVE, LEXER_NO_VIABLE_ALTERNATIVE_MESSAGE)
         messages:Add(PARSER_NO_VIABLE_ALTERNATIVE, PARSER_NO_VIABLE_ALTERNATIVE_MESSAGE)
+        messages:Add(PRIMITIVE_INVALID_ACTION_CALL, PRIMITIVE_INVALID_ACTION_CALL_MESSAGE)
     end
 
     action GetMessage() returns text
@@ -153,7 +156,7 @@ class CompilerErrorType
     end
 
     action SetCurrentType(integer type)
-        if type < MISSING_VARIABLE or type > PARSER_NO_VIABLE_ALTERNATIVE
+        if type < MISSING_VARIABLE or type > PRIMITIVE_INVALID_ACTION_CALL
             alert("Compiler bug: Invalid CompilerErrorType")
         end
 
