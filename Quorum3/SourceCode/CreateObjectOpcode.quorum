@@ -41,7 +41,9 @@ class CreateObjectOpcode is QuorumOpcode
             VisitLineNumber()
             JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
             if variable:IsField()
+                //Class fieldHolder = variable:GetParentClass()
                 methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+                //methodWriter:VisitType(opcodes:GetCheckCast(), fieldHolder:ConvertStaticKeyToBytecodeInterfacePath())
             end
             methodWriter:VisitType(opcodes:GetNew(), clazz:ConvertStaticKeyToBytecodePath())
             methodWriter:VisitInstruction(opcodes:GetDuplicate())
@@ -51,12 +53,15 @@ class CreateObjectOpcode is QuorumOpcode
                 Class fieldHolder = variable:GetParentClass()
                 path = fieldHolder:ConvertStaticKeyToBytecodePath()
                 //path = clazz:ConvertStaticKeyToBytecodeInterfacePath()
-                setterName = clazz:ConvertToActionNameFromField(variable, false)
+                setterName = fieldHolder:ConvertToActionNameFromField(variable, false)
                 Type type = variable:GetType()
-                methodName = type:ConvertToSignatureFromField(false)
+                methodName = type:ConvertToSignatureFromFieldInterface(false)
                 
-                methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
-                    path, setterName, methodName, true)
+                //cast this thing to the interface type
+                //methodWriter:VisitType(opcodes:GetCheckCast(), clazz:ConvertStaticKeyToBytecodeInterfacePath())
+
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
+                    path, setterName, methodName, false)
             else
                 methodWriter:VisitVariable(opcodes:GetObjectStore(), variable:GetBytecodeLocation())
             end
