@@ -29,6 +29,38 @@ public class Boolean {
         return "" + self;
     }
     
+    public static boolean NumberToBooleanCast(double number) {
+        boolean result = false;
+        if(number != 0) {
+            result = true;
+        }
+        return result;
+    }
+    
+    public static double BooleanToNumberCast(boolean bool) {
+        double result = 0.0;
+        if(bool == true) {
+            result = 1.0;
+        }
+        return result;
+    }
+    
+    public static boolean IntegerToBooleanCast(int number) {
+        boolean result = false;
+        if(number != 0) {
+            result = true;
+        }
+        return result;
+    }
+    
+    public static int BooleanToIntegerCast(boolean bool) {
+        int result = 0;
+        if(bool == true) {
+            result = 1;
+        }
+        return result;
+    }
+    
     public static quorum.Libraries.Language.Support.CompareResult$Interface PrimitiveCompare(boolean self, quorum.Libraries.Language.Object$Interface obj){
         quorum.Libraries.Language.Support.CompareResult r = new quorum.Libraries.Language.Support.CompareResult();
         Boolean$Interface t = (Boolean$Interface)obj;
