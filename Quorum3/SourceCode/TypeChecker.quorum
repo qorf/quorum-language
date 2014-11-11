@@ -926,6 +926,9 @@ class TypeChecker
         result = GetWideningConvertResult()
         type = result:result
         type:SetToText()
+        TextToIntegerCast textToIntegerCast
+        textToIntegerCast:SetType(type)
+        result:SetQuorumOpcode(textToIntegerCast)
         results:Add(key, result)
 
         //text to number and back again
