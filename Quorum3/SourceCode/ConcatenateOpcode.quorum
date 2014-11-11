@@ -12,6 +12,7 @@ class ConcatenateOpcode is BinaryOpcode
     JavaBytecodeOpcodes opcodes
 
     action Write
+        VisitLineNumber()
         QuorumOpcode left = GetLeftOpcode()
         left:Write()
         WriteLeft()

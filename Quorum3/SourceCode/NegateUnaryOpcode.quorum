@@ -14,6 +14,7 @@ class NegateUnaryOpcode is UnaryOpcode
     end
 
     action Write
+        VisitLineNumber()
         QuorumOpcode op = me:GetOpcode()
         op:Write()
 

@@ -31,6 +31,7 @@ class OutputOpcode is QuorumOpcode
     end
 
     action Write
+        VisitLineNumber()
         methodWriter:VisitField(opcodes:GetStaticField(), "java/lang/System", "out", "Ljava/io/PrintStream;")
         Type type = opcode:GetType()
         opcode:Write()

@@ -537,6 +537,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 SymbolTable table = me:GetSymbolTable()
                 Class clazz = table:GetClass(left:GetStaticKey())
                 CreateObjectOpcode opcode
+                opcode:SetLocation(context:GetLocation())
                 opcode:SetMethodWriter(methodWriter)
                 opcode:SetClass(clazz)
                 opcode:SetVariable(variable)
@@ -573,6 +574,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         Type value = result:result
         QuorumOpcode qop = result:GetQuorumOpcode()
         AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+        assignment:SetLocation(context:GetLocation())
         assignment:SetClass(currentClass)
         assignment:SetRightHandSide(right)
         assignment:SetType(value)
@@ -595,67 +597,72 @@ class QuorumBytecodeListener is QuorumSourceListener
         Variable variable = undefined
         TypeChecker checker = GetTypeChecker()
 
-        if context:hasMe or context:isField
+        if context:hasMe or context:isField or not isInAction
             variable = currentClass:GetVariable(name)
-            //write the field
         else 
             variable = currentBlock:GetVariable(name)
-            Type left = variable:GetType()
+        end
 
-            QuorumOpcode right = opcodeStack:Pop()
-            if left = undefined //if the type is undefined, it might be possible to infer it
-                InferenceResult infer = checker:CanInfer(right)
-                if infer:canInfer //hey awesome, that was easy!
-                    Type rightType = right:GetType()
-                    rightType = rightType:Copy()
-                    left = rightType
-                    variable:SetType(left)
+        Type left = variable:GetType()
+
+        QuorumOpcode right = opcodeStack:Pop()
+        if left = undefined //if the type is undefined, it might be possible to infer it
+            InferenceResult infer = checker:CanInfer(right)
+            if infer:canInfer //hey awesome, that was easy!
+                Type rightType = right:GetType()
+                rightType = rightType:Copy()
+                left = rightType
+                variable:SetType(left)
+            else
+                CompilerError error
+                error:SetLocation(variable)
+                CompilerErrorType errorType
+                errorType:SetCurrentType(errorType:VARIABLE_INFERENCE)
+                error:SetCompilerErrorType(errorType)
+                if right not= undefined
+                    Type otherType = right:GetType()
+                    error:SetErrorMessage("I will not infer the type of the " + 
+                        "right hand side of this expression automatically. To " +
+                        " fix this, change the declaration to " + otherType:GetStaticKeyWithGenerics() + 
+                        " " + variable:GetName() + ".")
+
                 else
-                    CompilerError error
-                    error:SetLocation(variable)
-                    CompilerErrorType errorType
-                    errorType:SetCurrentType(errorType:VARIABLE_INFERENCE)
-                    error:SetCompilerErrorType(errorType)
-                    if right not= undefined
-                        Type otherType = right:GetType()
-                        error:SetErrorMessage("I will not infer the type of the " + 
-                            "right hand side of this expression automatically. To " +
-                            " fix this, change the declaration to " + otherType:GetStaticKeyWithGenerics() + 
-                            " " + variable:GetName() + ".")
-                        
-                    else
-                        error:SetErrorMessage("I will not infer the type of the " + 
-                            "right hand side of this expression automatically, as the right hand side of this expression's type is undefined.")
-                    end
-
-                    CompilerErrorManager manager = GetCompilerErrorManager()
-                    manager:Add(error)
-                    return now
+                    error:SetErrorMessage("I will not infer the type of the " + 
+                        "right hand side of this expression automatically, as the right hand side of this expression's type is undefined.")
                 end
-            end
 
-            Operation assign
-            assign:SetOperation(assign:EQUALS)
-
-            
-            TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
-
-            if result:errorType = undefined
-                integer location = variable:GetBytecodeLocation()
-                Type value = result:result
-                AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
-                assignment:SetClass(currentClass)
-                assignment:SetRightHandSide(right)
-                assignment:SetType(value)
-                assignment:SetMethodWriter(methodWriter)
-                assignment:SetVariable(variable)
-                currentBlockOpcode:Add(assignment)
-            else 
-                CompilerError error = result:GetCompilerError(context:GetLocation())
                 CompilerErrorManager manager = GetCompilerErrorManager()
                 manager:Add(error)
                 return now
             end
+        end
+
+        Operation assign
+        assign:SetOperation(assign:EQUALS)
+
+
+        TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
+
+        if result:errorType = undefined
+            integer location = variable:GetBytecodeLocation()
+            Type value = result:result
+            AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+            assignment:SetLocation(context:GetLocation())
+            assignment:SetClass(currentClass)
+            assignment:SetRightHandSide(right)
+            assignment:SetType(value)
+            assignment:SetMethodWriter(methodWriter)
+            assignment:SetVariable(variable)
+            if context:hasMe or context:isField or not isInAction
+                currentClassOpcode:AddField(assignment)
+            else
+                currentBlockOpcode:Add(assignment)
+            end
+        else 
+            CompilerError error = result:GetCompilerError(context:GetLocation())
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
         end
     end
     
@@ -667,6 +674,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
 
         ActionCallOpcode actionCall
+        actionCall:SetLocation(context:GetLocation())
         actionCall:SetMethodWriter(methodWriter)
         actionCall:SetIsActionCall(true)
         stack:Add(actionCall)
@@ -768,6 +776,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         currentActionStack = currentActionStack - 1
 
         ChainedActionCallOpcode ops
+        ops:SetLocation(context:GetLocation())
         ops:SetIsSoloCall(true)
         Iterator<ActionCallOpcode> it = stack:GetIterator()
         repeat while it:HasNext()
@@ -888,6 +897,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         currentActionStack = currentActionStack - 1
 
         ChainedActionCallOpcode ops
+        ops:SetLocation(context:GetLocation())
         Iterator<ActionCallOpcode> it = stack:GetIterator()
         repeat while it:HasNext()
             ActionCallOpcode op = it:Next()
@@ -994,7 +1004,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             Array<ActionCallOpcode> stack = actionCallStacks:GetValue(currentActionStack - 1)
 
             if stack:IsEmpty() //This is the first call, so push on the me pointer
-                if isNextVariableReferenceMe
+                if isNextVariableReferenceMe or not isInAction
                     variable = currentClass:GetVariable(name)
                 else 
                     variable = currentBlock:GetVariable(name)
@@ -1099,11 +1109,13 @@ class QuorumBytecodeListener is QuorumSourceListener
             end
 
             ReturnOpcode opcode = cast(ReturnOpcode, result:GetQuorumOpcode())
+            opcode:SetLocation(context:GetLocation())
             opcode:SetReturnValue(right)
             opcode:SetMethodWriter(methodWriter)
             currentBlockOpcode:Add(opcode)
         else //if it is a void method, just do a normal return, but don't pop off the opcode stack
             ReturnOpcode opcode
+            opcode:SetLocation(context:GetLocation())
             opcode:SetType(type)
             opcode:SetMethodWriter(methodWriter)
             currentBlockOpcode:Add(opcode)
@@ -1133,6 +1145,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
         ExplicitCastOpcode theCast = cast(ExplicitCastOpcode, result:GetQuorumOpcode())
         if theCast not= undefined
+            theCast:SetLocation(context:GetLocation())
             theCast:SetMethodWriter(methodWriter)
             theCast:SetType(result:result)
             theCast:SetOpcodeToCast(opcodeStack:Pop())
@@ -1168,6 +1181,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         Type value = result:result
         ComparisonOpcode compare = cast(ComparisonOpcode, result:GetQuorumOpcode())
+        compare:SetLocation(context:GetLocation())
         compare:SetMethodWriter(methodWriter)
         compare:SetType(value)
         compare:SetLeftOpcode(left)
@@ -1196,6 +1210,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         Type value = result:result
         ComparisonOpcode compare = cast(ComparisonOpcode, result:GetQuorumOpcode())
+        compare:SetLocation(context:GetLocation())
         compare:SetMethodWriter(methodWriter)
         compare:SetType(value)
         compare:SetLeftOpcode(left)
@@ -1229,6 +1244,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         Type value = result:result
         BinaryAndOrOpcode binary
+        binary:SetLocation(context:GetLocation())
         binary:isAnd = context:isAnd
         binary:methodWriter = methodWriter
         binary:SetType(value)
@@ -1280,6 +1296,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         Type value = result:result
         BinaryOpcode binary = cast(BinaryOpcode, result:GetQuorumOpcode())
+        binary:SetLocation(context:GetLocation())
         binary:SetMethodWriter(methodWriter)
         binary:SetType(value)
         binary:SetLeftOpcode(left)
@@ -1308,6 +1325,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         Type value = result:result
         BinaryOpcode binary = cast(BinaryOpcode, result:GetQuorumOpcode())
+        binary:SetLocation(addition:GetLocation())
         binary:SetMethodWriter(methodWriter)
         binary:SetType(value)
         binary:SetLeftOpcode(left)
@@ -1331,6 +1349,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         Type value = result:result
         NegateUnaryOpcode binary = cast(NegateUnaryOpcode, result:GetQuorumOpcode())
+        binary:SetLocation(context:GetLocation())
         binary:SetMethodWriter(methodWriter)
         binary:SetType(value)
         binary:SetOpcode(left)
@@ -1353,6 +1372,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         Type value = result:result
         FlipBooleanOpcode binary = cast(FlipBooleanOpcode, result:GetQuorumOpcode())
+        binary:SetLocation(context:GetLocation())
         binary:SetMethodWriter(methodWriter)
         binary:SetType(value)
         binary:SetOpcode(left)
@@ -1365,6 +1385,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         type:SetToUndefined()
 
         QuorumConstant const
+        const:SetLocation(context:GetLocation())
         const:SetMethodWriter(methodWriter)
         const:SetType(type)
         opcodeStack:Push(const)
@@ -1376,6 +1397,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         type:SetIntegerConstant(context:value)
 
         QuorumConstant const
+        const:SetLocation(context:GetLocation())
         const:SetMethodWriter(methodWriter)
         const:SetType(type)
         const:integerValue = context:value
@@ -1388,6 +1410,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         type:SetTextConstant(context:value)
 
         QuorumConstant const
+        const:SetLocation(context:GetLocation())
         const:SetMethodWriter(methodWriter)
         const:SetType(type)
         const:textValue = context:value
@@ -1400,6 +1423,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         type:SetBooleanConstant(context:value)
 
         QuorumConstant const
+        const:SetLocation(context:GetLocation())
         const:SetMethodWriter(methodWriter)
         const:SetType(type)
         const:booleanValue = context:value
@@ -1412,6 +1436,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         type:SetNumberConstant(context:value)
 
         QuorumConstant const
+        const:SetLocation(context:GetLocation())
         const:SetMethodWriter(methodWriter)
         const:SetType(type)
         const:numberValue = context:value

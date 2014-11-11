@@ -6,7 +6,7 @@ use Libraries.Containers.Blueprints.Iterator
 
 class CreateObjectOpcode is QuorumOpcode
     //integer bytecodeLocation = -1
-    JavaBytecodeMethodWriter methodWriter = undefined
+    //JavaBytecodeMethodWriter methodWriter = undefined
     JavaBytecodeOpcodes opcodes
     Class clazz = undefined
     Variable variable = undefined
@@ -38,20 +38,39 @@ class CreateObjectOpcode is QuorumOpcode
 
     action Write
         if clazz not= undefined
+            VisitLineNumber()
+            JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+            if variable:IsField()
+                methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+            end
             methodWriter:VisitType(opcodes:GetNew(), clazz:ConvertStaticKeyToBytecodePath())
             methodWriter:VisitInstruction(opcodes:GetDuplicate())
             methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), clazz:ConvertStaticKeyToBytecodePath(), "<init>", "()V", false)
-            methodWriter:VisitVariable(opcodes:GetObjectStore(), variable:GetBytecodeLocation())
+
+            if variable:IsField()
+                Class fieldHolder = variable:GetParentClass()
+                path = fieldHolder:ConvertStaticKeyToBytecodePath()
+                //path = clazz:ConvertStaticKeyToBytecodeInterfacePath()
+                setterName = clazz:ConvertToActionNameFromField(variable, false)
+                Type type = variable:GetType()
+                methodName = type:ConvertToSignatureFromField(false)
+                
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+                    path, setterName, methodName, true)
+            else
+                methodWriter:VisitVariable(opcodes:GetObjectStore(), variable:GetBytecodeLocation())
+            end
+            
         end
     end
 
-    action GetMethodWriter returns JavaBytecodeMethodWriter
-        return methodWriter
-    end
-
-    action SetMethodWriter(JavaBytecodeMethodWriter writer)
-        methodWriter = writer
-    end
+//    action GetMethodWriter returns JavaBytecodeMethodWriter
+//        return methodWriter
+//    end
+//
+//    action SetMethodWriter(JavaBytecodeMethodWriter writer)
+//        methodWriter = writer
+//    end
 
     action GetTemplateCopy returns QuorumOpcode
         CreateObjectOpcode con

@@ -5,7 +5,7 @@ use Libraries.Language.Compile.Symbol.Type
 class IsOpcode is QuorumOpcode
 
     action Write
-
+        VisitLineNumber()
     end
 
     action WriteJavaScript returns text

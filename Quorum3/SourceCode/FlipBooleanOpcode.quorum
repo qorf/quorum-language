@@ -5,6 +5,7 @@ use Libraries.Language.Compile.Symbol.Type
 class FlipBooleanOpcode is UnaryOpcode
     JavaBytecodeOpcodes opcodes
     action Write
+        VisitLineNumber()
         JavaBytecodeLabel jumpNotEqual
         JavaBytecodeLabel jumpPastLabel
         //write whatever needs to onto the stack.

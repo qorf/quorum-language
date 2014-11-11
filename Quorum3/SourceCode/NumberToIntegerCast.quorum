@@ -6,6 +6,7 @@ class NumberToIntegerCast is ExplicitCastOpcode
     JavaBytecodeOpcodes opcodes
 
     action Write
+        VisitLineNumber()
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
 
         QuorumOpcode opcodeToCast = GetOpcodeToCast()

@@ -114,7 +114,11 @@ class ActionCallOpcode is QuorumOpcode
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
-        integer numParams = parameters:GetSize()
+        integer numParams = 0
+        if parameters not= undefined
+            numParams = parameters:GetSize()
+        end
+
         i = 0
         repeat numParams times
             QuorumOpcode param = parameters:Get(i)
@@ -144,6 +148,7 @@ class ActionCallOpcode is QuorumOpcode
 
     action Write //TODO: make this work for action calls and fields
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        VisitLineNumber()
         if isActionCall
             //if there's a variable, load it.
             //this isn't right, but load "THIS" onto the stack for testing

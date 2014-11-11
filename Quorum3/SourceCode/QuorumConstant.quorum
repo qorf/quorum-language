@@ -26,6 +26,7 @@ class QuorumConstant is QuorumOpcode
 
     action Write
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        VisitLineNumber()
         Type type = GetType()
         if type:IsInteger()
             methodWriter:VisitConstant(integerValue)

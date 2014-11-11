@@ -8,7 +8,9 @@ class ExplicitCastOpcode is QuorumOpcode
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
-        opcodeToCast:SetMethodWriterToAllChildren(writer)
+        if opcodeToCast not= undefined
+            opcodeToCast:SetMethodWriterToAllChildren(writer)
+        end
     end
 
     action Write

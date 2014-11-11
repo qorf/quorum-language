@@ -18,14 +18,14 @@ class Main is WebResponder
         Compiler compiler
         output compiler:GetVersion()
         File main
-        main:SetPath("Library/Tests/TypeChecker/Pass/AutoboxIntObj.quorum")
+        main:SetPath("Library/Tests/Expressions/Pass/CastTest.quorum")
 
         File class2
-        class2:SetPath("Library/Tests/TypeChecker/Pass/AutoboxTempClass.quorum")
+        //class2:SetPath("Library/Tests/TypeChecker/Pass/AutoboxTempClass.quorum")
         Array<File> files
 
         files:Add(main)
-        files:Add(class2)
+        //files:Add(class2)
         compiler:SetOutputSpeech(false) //don't speak while in test mode
         //compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:SetMain(main)

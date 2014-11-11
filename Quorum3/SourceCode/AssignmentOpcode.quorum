@@ -89,7 +89,7 @@ class AssignmentOpcode is QuorumOpcode
 
     action Write 
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
-        
+        VisitLineNumber()
         if not isObjectField
             if variable not= undefined
                 if variable:IsField()

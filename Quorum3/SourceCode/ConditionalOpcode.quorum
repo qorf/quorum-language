@@ -67,6 +67,7 @@ class ConditionalOpcode is QuorumOpcode
     end
 
     action Write
+        VisitLineNumber()
         //create all the labels that we need for writing this block
         JavaBytecodeLabel ifLabel = undefined
         Array<JavaBytecodeLabel> labels

@@ -6,6 +6,7 @@ class AutoBoxReverseOpcode is QuorumOpcode
 
     action Write
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        VisitLineNumber()
     end
 
     

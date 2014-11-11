@@ -222,6 +222,7 @@ class Parser is QuorumSourceListener
         if context:isTimes
             constant text LOOP_NAME = "Loopy"
             Variable variable
+            variable:SetParentClass(currentClass)
             variable:SetName(loopCounter + LOOP_NAME)
             variable:SetIsParameter(false)
             variable:SetVisibleToDebugger(false)
@@ -291,6 +292,7 @@ class Parser is QuorumSourceListener
 
     action ExitNormalAssignment(NormalAssignmentContext context)
         Variable variable
+        variable:SetParentClass(currentClass)
         variable:SetLocation(context:GetLocation())
         if context:isPublic
             variable:SetPublic()
@@ -325,6 +327,7 @@ class Parser is QuorumSourceListener
     action EnterNoTypeAssignment(NoTypeAssignmentContext context) end
     action ExitNoTypeAssignment(NoTypeAssignmentContext context) 
         Variable variable
+        variable:SetParentClass(currentClass)
         variable:SetLocation(context:GetLocation())
         variable:SetName(context:name)
         variable:SetIsParameter(false)

@@ -16,6 +16,15 @@ class Variable is Symbol
     integer parameterLocation = -1
     List<Location> locations
     boolean isVisibileToDebugger = true
+    Class parentClass = undefined
+
+    action GetParentClass returns Class
+        return parentClass
+    end
+
+    action SetParentClass(Class c)
+        parentClass = c
+    end
 
     action IsVisibleToDebugger returns boolean
         return isVisibileToDebugger

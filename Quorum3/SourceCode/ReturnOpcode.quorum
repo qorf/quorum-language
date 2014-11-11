@@ -38,6 +38,7 @@ class ReturnOpcode is QuorumOpcode
     action Write
         Type type = GetType()
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        VisitLineNumber()
         if returnValue not= undefined
             returnValue:Write()
         end

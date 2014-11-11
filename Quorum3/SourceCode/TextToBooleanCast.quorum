@@ -7,7 +7,7 @@ class TextToBooleanCast is ExplicitCastOpcode
 
     action Write
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
-
+        VisitLineNumber()
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         if opcodeToCast not= undefined
             opcodeToCast:Write()

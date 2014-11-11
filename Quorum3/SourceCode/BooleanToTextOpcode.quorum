@@ -5,6 +5,7 @@ use Libraries.Language.Compile.Symbol.Type
 class BooleanToTextOpcode is ExplicitCastOpcode
     JavaBytecodeOpcodes opcodes
     action Write
+        VisitLineNumber()
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         if opcodeToCast not= undefined

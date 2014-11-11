@@ -19,16 +19,6 @@ class LoopOpcode is QuorumOpcode
         me:variable = field
     end
 
-//    integer bytecodeLocation = -1
-//
-//    action GetBytecodeLocation returns integer
-//        return bytecodeLocation
-//    end
-//
-//    action SetBytecodeLocation(integer location) 
-//        bytecodeLocation = location
-//    end
-
     action SetWhile
         isUntil = false
         isTimes = false
@@ -69,6 +59,7 @@ class LoopOpcode is QuorumOpcode
     end
 
     action Write
+        VisitLineNumber()
         JavaBytecodeLabel startLabel
         JavaBytecodeLabel endLabel
 

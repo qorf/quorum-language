@@ -130,6 +130,7 @@ class BinaryOpcode is QuorumOpcode
     end
 
     action Write
+        VisitLineNumber()
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         left:Write()
         WriteLeft()

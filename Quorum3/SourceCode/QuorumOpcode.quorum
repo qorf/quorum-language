@@ -1,11 +1,13 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Location
 
 class QuorumOpcode 
     Type type = undefined
     boolean isIfExpression = false
     JavaBytecodeMethodWriter methodWriter = undefined
+    Location location = undefined
 
     blueprint action Write
 
@@ -17,6 +19,14 @@ class QuorumOpcode
 
     action SetType(Type type)
         me:type = type
+    end
+
+    action GetLocation returns Location
+        return location
+    end
+
+    action SetLocation(Location loc)
+        location = loc
     end
 
     action GetIsIfExpression returns boolean
@@ -37,6 +47,15 @@ class QuorumOpcode
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         methodWriter = writer
+    end
+
+    action VisitLineNumber()
+        JavaBytecodeMethodWriter liner = GetMethodWriter()
+        if location not= undefined and liner not= undefined
+            JavaBytecodeLabel start
+            liner:VisitLabel(start)
+            liner:VisitLine(location:GetLineNumber(), start)
+        end
     end
 
     /*

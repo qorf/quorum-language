@@ -81,6 +81,7 @@ class BinaryAndOrOpcode is QuorumOpcode
     end
 
     action Write
+        VisitLineNumber()
         leftHandSideLabel = GetLeftHandSideLabel()
         rightHandSideLabel = GetRightHandSideLabel()
         if not hasParent
