@@ -134,11 +134,11 @@ public class Integer {
         return java.lang.Integer.toOctalString(self);
     }
     
-    public static int PrimitiveGetMaximumValue(int self){
+    public static int PrimitiveGetMaximumValue(){
         return java.lang.Integer.MAX_VALUE;
     }
     
-    public static int PrimitiveGetMinimumValue(int self){
+    public static int PrimitiveGetMinimumValue(){
         return java.lang.Integer.MIN_VALUE;
     }
     
