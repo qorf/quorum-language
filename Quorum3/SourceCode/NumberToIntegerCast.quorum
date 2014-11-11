@@ -1,0 +1,27 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+
+class NumberToIntegerCast is ExplicitCastOpcode
+    JavaBytecodeOpcodes opcodes
+
+    action Write
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            opcodeToCast:Write()
+        end
+        methodWriter:VisitInstruction(opcodes:GetDoubleToInteger())
+    end
+    
+    action WriteJavaScript returns text
+        return ""
+    end
+
+    action GetTemplateCopy returns QuorumOpcode
+        NumberToIntegerCast op
+        op:SetType(me:GetType())
+        return op
+    end
+end

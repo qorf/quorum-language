@@ -1,0 +1,28 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+
+class NumberToTextCast is ExplicitCastOpcode
+    JavaBytecodeOpcodes opcodes
+
+    action Write
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            opcodeToCast:Write()
+        end
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "java/lang/Double", "toString",
+                "(D)Ljava/lang/String;", false)
+    end
+    
+    action WriteJavaScript returns text
+        return ""
+    end
+
+    action GetTemplateCopy returns QuorumOpcode
+        NumberToTextCast op
+        op:SetType(me:GetType())
+        return op
+    end
+end

@@ -917,7 +917,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             QuorumOpcode previous = parameterOpcodes:Get(next)
             QuorumOpcode possibleCast = conversions:Get(next)
             if possibleCast not= undefined
-                CastOpcode caster = cast(CastOpcode, possibleCast)
+                ExplicitCastOpcode caster = cast(ExplicitCastOpcode, possibleCast)
                 caster:SetMethodWriter(methodWriter)
                 caster:SetOpcodeToCast(previous)
                 finalResolvedParameters:Add(caster)
