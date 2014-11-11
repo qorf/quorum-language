@@ -135,6 +135,11 @@ public class JavaBytecodeMethodWriter {
         methodVisitor.visitLabel(l);
     }
     
+    public void VisitLine(int line, quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface label) {
+        Label start = getLabel((quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel)label);
+        methodVisitor.visitLineNumber(line, start);
+    }
+    
     public Label getLabel(quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel label) {
         try {
             //get the plugin from the passed class
