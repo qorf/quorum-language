@@ -4,15 +4,9 @@
  */
 package plugins.quorum.Libraries.System;
 
-import java.awt.Dialog.ModalityType;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import javax.swing.JDialog;
-import javax.swing.JOptionPane;
-import org.sodbeans.phonemic.SpeechPriority;
-import org.sodbeans.phonemic.TextToSpeechFactory;
-import org.sodbeans.phonemic.tts.TextToSpeech;
 
 /**
  * A compiler plugin for basic console input/output.
@@ -21,37 +15,8 @@ import org.sodbeans.phonemic.tts.TextToSpeech;
  */
 public class Console {
     public java.lang.Object $me = null;
-    private static JOptionPane optionPane = null;
-    private static JDialog dialog = null;
-    private static boolean useDialog = false;
-    private static TextToSpeech speech = null;
     public static String[] commandLineArguments = new String[0];
-    public static boolean loadAWT = true;
-    
-    static {
-        try {
-            if (System.getProperty(Quorum.QUORUM_TEST_JVM_FLAG) == null
-                    && loadAWT) {
-                optionPane = new JOptionPane();
-                optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
-                optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
-                optionPane.setWantsInput(true);
-                dialog = optionPane.createDialog("Input Dialog");
-                dialog.setModalityType(ModalityType.APPLICATION_MODAL);
-                dialog.pack();
-
-                // Allow dialog to be used.
-                useDialog = true;
-
-                // Set up speech if we get here.
-                speech = TextToSpeechFactory.getDefaultTextToSpeech();
-            }
-        } catch (Throwable e) {
-            // If SWING or AWT not available, we will use standard input
-            // only.
-            useDialog = false;
-        }
-    }
+  
     public Console() {
 
     }
@@ -60,15 +25,14 @@ public class Console {
     }
 
     public String Input() {
-        return grabInput();
+        return StaticInput();
     }
 
     public String Input(String message) {
-        System.out.print(message + " ");
-        return grabInput();
+        return StaticInput(message);
     }
     
-    private String grabInput() {
+    public static String StaticInput() {
         StringBuilder builder = new StringBuilder();
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
@@ -93,60 +57,14 @@ public class Console {
      * @return 
      */
     public static String StaticInput(String text) {
-        if (useDialog) {
-            // Read the user the prompt message if we are in sodbeans.
-            // Sodbeans calls Quorum programs using the -D flag, like so:
-            // java -Dsodbeans=1 -jar <Default.jar> ...
-            if (System.getProperty("sodbeans") != null)
-                speech.speak(text, SpeechPriority.MEDIUM_HIGH);
-            
-            // Now, show the input dialog.
-            String answer = "";
-            optionPane = new JOptionPane();
-            optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
-            optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
-            optionPane.setWantsInput(true);
-            dialog = optionPane.createDialog("Input Dialog");
-            dialog.setModalityType(ModalityType.APPLICATION_MODAL);
-            dialog.pack();
-            optionPane.setMessage(text);
-            optionPane.setInitialSelectionValue("");
-            dialog.setVisible(true); 
-            dialog.requestFocus();
-
-            answer = (String) optionPane.getInputValue();
-            return answer;
-        } else {
-            // TODO refactor
-            System.out.print(text + " " );
-            StringBuilder builder = new StringBuilder();
-            try {
-                BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-                String str = "";
-                while ((str = in.readLine()) != null) {
-
-                    builder.append(str);
-                    if(!str.isEmpty()) {
-                        break;
-                    }
-                }
-            } catch (IOException e) {
-            }
-            return builder.toString();
-        }
+        System.out.print(text + " " );
+        return StaticInput();
     }
 
     public static void Load() {
     }
     
     public static void Unload() {
-        if (useDialog && dialog != null) {
-            dialog.dispose();
-        }
-        System.out.flush();
-        System.err.flush();
-        System.out.close();
-        System.err.flush();
     }
     
     public static void main(String args[]) {
