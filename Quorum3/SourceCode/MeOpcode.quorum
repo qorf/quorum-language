@@ -1,0 +1,37 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Location
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Symbol.Type
+
+class MeOpcode is QuorumOpcode
+
+    Class this = undefined
+
+    action GetThis returns Class
+        return this
+    end
+
+    action SetThis(Class clazz)
+        me:this = clazz
+        Type type
+        type:SetToObject(clazz)
+        SetType(type)
+    end
+
+    action Write
+        VisitLineNumber()
+        
+    end
+
+    action WriteJavaScript returns text
+        return ""
+    end
+
+    action GetTemplateCopy returns QuorumOpcode
+        MeOpcode opcode
+        
+        return opcode
+    end
+end

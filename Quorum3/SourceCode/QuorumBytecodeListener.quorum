@@ -1400,6 +1400,21 @@ class QuorumBytecodeListener is QuorumSourceListener
         opcodeStack:Push(binary)
     end
 
+    action ExitMe(MeContext context) 
+        MeOpcode opcode
+        opcode:SetLocation(context:GetLocation())
+        opcode:SetMethodWriter(methodWriter)
+        opcode:SetThis(currentClass)
+        opcodeStack:Push(opcode)
+    end
+
+    action ExitInput(InputContext context) 
+        InputOpcode opcode
+        opcode:SetLocation(context:GetLocation())
+        opcode:SetMethodWriter(methodWriter)
+        opcodeStack:Push(opcode)
+    end
+
     action ExitUndefined(UndefinedContext context) 
         Type type
         type:SetIsConstant(true)

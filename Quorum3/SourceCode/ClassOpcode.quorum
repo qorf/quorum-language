@@ -380,6 +380,8 @@ class ClassOpcode is QuorumOpcode
         classWriter:VisitMethod(opcodes:GetPublic() + opcodes:GetStatic(), 
             "main", "([Ljava/lang/String;)V", null, undefined)
 
+        methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+        methodWriter:VisitField(opcodes:PutStaticField(), "plugins/quorum/Libraries/System/Console", "commandLineArguments", "[Ljava/lang/String;")
         text key = clazz:GetStaticKey()
         text bytecode = converter:ConvertStaticKeyToBytecodePath(key)
 

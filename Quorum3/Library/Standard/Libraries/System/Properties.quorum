@@ -49,6 +49,22 @@ class Properties
     end
 
     /*
+        This action sets a property on the system.
+
+        Attribute: Parameter key the property being requested
+        Attribute: Parameter value the property value being set
+        Attribute: Example
+
+        use Libraries.System.Properties
+
+        Properties properties
+        properties:SetProperty("my.custom.property", "value")
+    */
+    action SetProperty(text key, text value)
+        SetPropertyNative(key, value)
+    end
+
+    /*
         This action returns an environment variable from the system.
 
         Attribute: Parameter key the property being requested
@@ -98,6 +114,7 @@ class Properties
         return GetEnvironmentVariable(requestedWebPage)
     end
 
+    private system action SetPropertyNative(text key, text value)
     private system action GetPropertyNative(text key) returns text
     private system action HasPropertyNative(text key) returns boolean
 

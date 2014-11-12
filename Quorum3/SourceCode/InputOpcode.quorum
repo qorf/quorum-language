@@ -1,0 +1,28 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Location
+
+class InputOpcode is QuorumOpcode
+
+    on create
+        Type type
+        type:SetToText()
+        me:SetType(type)
+    end
+
+    action Write
+        VisitLineNumber()
+        
+    end
+
+    action WriteJavaScript returns text
+        return ""
+    end
+
+    action GetTemplateCopy returns QuorumOpcode
+        InputOpcode opcode
+        
+        return opcode
+    end
+end
