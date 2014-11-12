@@ -1078,9 +1078,9 @@ class Class is Symbol
         if named:IsEmpty()
             resolution:isResolved = false
             CompilerError error
-
+            error:SetLocation(call)
             //TODO: Improve this error message
-            error:SetErrorMessage("I could not find any action with the name '" + 
+            error:SetErrorMessage("I could not find an action named '" + 
                 call:name + "' in the class '" + me:GetStaticKey() + "'")
             error:SetLocation(call)
             resolution:error = error
@@ -1195,11 +1195,10 @@ class Class is Symbol
             resolution:resolvedAction = undefined
             resolution:isResolved = false
             CompilerError error
-
-            //TODO: Improve this error message
-            error:SetErrorMessage("I could not find any action with the name '" + 
-                call:name + "' in the class '" + me:GetStaticKey() + "'")
             error:SetLocation(call)
+            //TODO: Improve this error message
+            error:SetErrorMessage("I could not find an action named '" + 
+                call:name + "' in the class '" + me:GetStaticKey() + "'")
             resolution:error = error
         end
 

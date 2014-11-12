@@ -757,6 +757,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         Class testMe = undefined
 
         ActionCall call
+        call:SetLocation(context:GetLocation())
         if isObjectCall
             testMe = fieldClass
         else
@@ -843,10 +844,12 @@ class QuorumBytecodeListener is QuorumSourceListener
                         TypeCheckResult result = checker:Check(left, returnType, op, false)
                         if result:errorType = undefined
                             QuorumOpcode opcode = result:GetQuorumOpcode()
-                            opcode:SetMethodWriter(methodWriter)
-                            //this may be null or ignored
-                            actionCall:SetAutoBoxOpcode(opcode)
-                            actionCall:SetType(left)
+                            if opcode not= undefined
+                                opcode:SetMethodWriter(methodWriter)
+                                //this may be null or ignored
+                                actionCall:SetAutoBoxOpcode(opcode)
+                                actionCall:SetType(left)
+                            end
                         else
                             CompilerErrorManager manager = GetCompilerErrorManager()
                             manager:Add(result:GetCompilerError(resolved:location))
@@ -985,6 +988,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
             ComputeInitialParameters(size, actionCall)
             ActionCall call
+            call:SetLocation(context:GetLocation())
             call:actualParameters = actionCall:GetParameterTypes()
             call:name = context:name
             call:checker = GetTypeChecker()
