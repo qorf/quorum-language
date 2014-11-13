@@ -1,22 +1,35 @@
 use Libraries.Language.Support.CompareResult
-
 // not quite sure what happens here but this thing throws weird errors
-class CompareBugTest
+// PMD: Test case was wrong before...needed Integer object to use Compare, not primitive
 
+class CompareBugTest
+    Integer power
+    
     action Main
+        power:SetValue(0)
         CompareBugTest test
         output "a"
+        output GetPower()
+        output Comp(test)
     end
-
-    integer power = 0
 
     action GetPower returns integer
-        return me:power
+        return power:GetValue()
     end
     
-    action Compare(CompareBugTest otherPower) returns CompareResult
+    action Comp(CompareBugTest otherPower) returns text
         CompareResult outcome = power:Compare(otherPower:GetPower())
-        return outcome
+        t = ""
+        if outcome:result = outcome:LARGER
+            t = "Larger"
+        elseif outcome:result = outcome:SMALLER
+            t = "Smaller"
+        elseif outcome:result = outcome:EQUAL
+            t = "Equal"
+        elseif outcome:result = outcome:INVALID
+            t = "Invalid"
+        end
+        return t
     end
 
 end
