@@ -838,7 +838,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
 
                         //since we know this is defined as a generic,
-                        //it is equivalent to a direct cast
+                        //it is equivalent to an implicit cast
                         Operation op
                         op:SetOperation(op:CAST)
                         TypeCheckResult result = checker:Check(left, returnType, op, false)

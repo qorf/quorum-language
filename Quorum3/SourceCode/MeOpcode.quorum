@@ -8,6 +8,7 @@ use Libraries.Language.Compile.Symbol.Type
 class MeOpcode is QuorumOpcode
 
     Class this = undefined
+    JavaBytecodeOpcodes opcodes
 
     action GetThis returns Class
         return this
@@ -22,6 +23,10 @@ class MeOpcode is QuorumOpcode
 
     action Write
         VisitLineNumber()
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+        //load the class's hidden variable field.
+        //the inheritance system needs to be finished before this can be completed
         
     end
 
