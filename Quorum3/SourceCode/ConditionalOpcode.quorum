@@ -13,8 +13,23 @@ class ConditionalOpcode is QuorumOpcode
     BlockOpcode elseBlock
 
     JavaBytecodeLabel endLabel = undefined
-    JavaBytecodeMethodWriter methodWriter = undefined
     JavaBytecodeOpcodes opcodes
+
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+        Iterator<BlockOpcode> it = elseIfBlocks:GetIterator()
+        repeat while it:HasNext()
+            BlockOpcode op = it:Next()
+            op:SetMethodWriterToAllChildren(writer)
+        end
+        elseBlock:SetMethodWriterToAllChildren(writer)
+
+        Iterator<QuorumOpcode> ops = elseIfExpressions:GetIterator()
+        repeat while ops:HasNext()
+            QuorumOpcode op = ops:Next()
+            op:SetMethodWriterToAllChildren(writer)
+        end
+    end
 
     action AddElseIf(QuorumOpcode expression, BlockOpcode block)
         elseIfExpressions:Add(expression)
@@ -27,14 +42,6 @@ class ConditionalOpcode is QuorumOpcode
 
     action SetElseBlock(BlockOpcode block)
         elseBlock = block
-    end
-
-    action GetMethodWriter returns JavaBytecodeMethodWriter
-        return methodWriter
-    end
-
-    action SetMethodWriter(JavaBytecodeMethodWriter writer)
-        methodWriter = writer
     end
 
     action GetNewLabel returns JavaBytecodeLabel
@@ -68,6 +75,7 @@ class ConditionalOpcode is QuorumOpcode
 
     action Write
         VisitLineNumber()
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         //create all the labels that we need for writing this block
         JavaBytecodeLabel ifLabel = undefined
         Array<JavaBytecodeLabel> labels
@@ -135,6 +143,7 @@ class ConditionalOpcode is QuorumOpcode
     end
 
     private action WriteExpression(QuorumOpcode opcode, JavaBytecodeLabel label)
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         if opcode is BinaryOpcode
             BinaryOpcode bop = cast(BinaryOpcode, opcode)
             methodWriter:VisitJump(bop:GetJavaOpcode(), label)

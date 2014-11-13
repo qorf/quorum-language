@@ -5,11 +5,17 @@ use Libraries.Language.Compile.Symbol.all
 class LoopOpcode is QuorumOpcode
     QuorumOpcode expression = undefined
     BlockOpcode block = undefined
-    JavaBytecodeMethodWriter methodWriter = undefined
     JavaBytecodeOpcodes opcodes
     boolean isUntil = false
     boolean isTimes = false
     Variable variable = undefined
+
+
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+        block:SetMethodWriterToAllChildren(writer)
+        expression:SetMethodWriterToAllChildren(writer)
+    end
 
     action GetVariable returns Variable
         return variable
@@ -34,14 +40,6 @@ class LoopOpcode is QuorumOpcode
         isTimes = true
     end
 
-    action GetMethodWriter returns JavaBytecodeMethodWriter
-        return methodWriter
-    end
-
-    action SetMethodWriter(JavaBytecodeMethodWriter writer)
-        methodWriter = writer
-    end
-
     action GetExpression returns QuorumOpcode
         return expression
     end
@@ -60,6 +58,7 @@ class LoopOpcode is QuorumOpcode
 
     action Write
         VisitLineNumber()
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         JavaBytecodeLabel startLabel
         JavaBytecodeLabel endLabel
 
