@@ -31,9 +31,9 @@ class TypeCheckTester
         AutoboxNumObjSemiWrapped()
         //AutoboxNumber()
         //AutoboxNumberSemiWrapped()
+        //AutoboxText()
         AutoboxTextObj()
         AutoboxTextObjSemiWrapped()
-        //AutoboxText()
         //AutoboxTextSemiWrapped()
         BooleanCompare()
         BooleanEquals()
@@ -48,6 +48,7 @@ class TypeCheckTester
         CastLocalVarObjInt()
         CastParamIntObj()
         CastParamObjInt()
+        CompareBugTest()
         ExpAssignBoolObjBoolObj()
         ExpAssignBooleanBoolObj()
         //ExpAssignBooleanBoolean()
@@ -117,9 +118,9 @@ class TypeCheckTester
         InstanceTypeChildOfChild()
         InstanceTypeCurrent()
         InstanceTypeDirectChild()
-        InstanceTypeDirectParent()
-        InstanceTypeObject()
-        InstanceTypeParentOfParent()
+        //InstanceTypeDirectParent()
+        //InstanceTypeObject()
+        //InstanceTypeParentOfParent()
         IntegerBitCount()
         IntegerCompare()
         IntegerEquals()
@@ -140,8 +141,6 @@ class TypeCheckTester
         NumberGetText()
         NumberIsInfinite()
         NumberIsNotANumber()
-        PrimitiveTextGetValue()
-        PrimitiveTextSetValue()
         ReturningIntegerInPlaceOfNumber()
         TextAppend()
         TextCompare()
@@ -161,147 +160,151 @@ class TypeCheckTester
         TextToUpperCase()
         TextTrim()
         TypeInferenceBoolean()
+        TypeInferenceBooleanAnd()
         //TypeInferenceCast()
         TypeInferenceInteger()
         TypeInferenceLiterals()
         TypeInferenceNestedFunctionCalls()
         TypeInferenceNumber()
-        TypeInferenceReturnTypes()
+        TypeInferenceReturnTypesInt()
+        TypeInferenceReturnTypesIntNum()
+        TypeInferenceReturnTypesNum()
         TypeInferenceText()
-        CompareBugTest()
 
 //FAIL TESTS
         path = failPath
-//        ExpAssignBoolObjBoolean()
-//        ExpAssignBoolObjIntObj()
-//        ExpAssignBoolObjInteger()
-//        ExpAssignBoolObjNumObj()
-//        ExpAssignBoolObjNumber()
-//        ExpAssignBoolObjText()
-//        ExpAssignBoolObjTextObj()
-//        ExpAssignIntObjBoolObj()
-//        ExpAssignIntObjBoolean()
-//        ExpAssignIntObjInteger()
-//        ExpAssignIntObjNumObj()
-//        ExpAssignIntObjNumber()
-//        ExpAssignIntObjText()
-//        ExpAssignIntObjTextObj()
-//        ExpAssignNumObjBoolObj()
-//        ExpAssignNumObjBoolean()
-//        ExpAssignNumObjIntObj()
-//        ExpAssignNumObjInteger()
-//        ExpAssignNumObjNumber()
-//        ExpAssignNumObjText()
-//        ExpAssignNumObjTextObj()
-//        ExpAssignTextObjBoolObj()
-//        ExpAssignTextObjBoolean()
-//        ExpAssignTextObjIntObj()
-//        ExpAssignTextObjInteger()
-//        ExpAssignTextObjNumbObj()
-//        ExpAssignTextObjNumber()
-//        ExpAssignTextObjText()
-//        ImpAssignBoolObjBoolean()
-//        ImpAssignBoolObjBooleanWrapped()
-//        ImpAssignBoolObjIntObj()
-//        ImpAssignBoolObjIntObjWrapped()
-//        ImpAssignBoolObjInteger()
-//        ImpAssignBoolObjIntegerWrapped()
-//        ImpAssignBoolObjNumbObj()
-//        ImpAssignBoolObjNumbObjWrapped()
-//        ImpAssignBoolObjNumber()
-//        ImpAssignBoolObjNumberWrapped()
-//        ImpAssignBoolObjText()
-//        ImpAssignBoolObjTextObj()
-//        ImpAssignBoolObjTextObjWrapped()
-//        ImpAssignBoolObjTextWrapped()
-//        ImpAssignBooleanIntObj()
-//        ImpAssignBooleanIntObjWrapped()
-//        ImpAssignBooleanInteger()
-//        ImpAssignBooleanIntegerWrapped()
-//        ImpAssignBooleanNumObj()
-//        ImpAssignBooleanNumObjWrapped()
-//        ImpAssignBooleanNumber()
-//        ImpAssignBooleanNumberWrapped()
-//        ImpAssignBooleanText()
-//        ImpAssignBooleanTextObj()
-//        ImpAssignBooleanTextObjWrapped()
-//        ImpAssignBooleanTextWrapped()
-//        ImpAssignIntObjBoolObj()
-//        ImpAssignIntObjBoolObjWrapped()
-//        ImpAssignIntObjBoolean()
-//        ImpAssignIntObjBooleanWrapped()
-//        ImpAssignIntObjInteger()
-//        ImpAssignIntObjIntegerWrapped()
-//        ImpAssignIntObjNumObj()
-//        ImpAssignIntObjNumObjWrapped()
-//        ImpAssignIntObjNumber()
-//        ImpAssignIntObjNumberWrapped()
-//        ImpAssignIntObjText()
-//        ImpAssignIntObjTextObj()
-//        ImpAssignIntObjTextObjWrapped()
-//        ImpAssignIntObjTextWrapped()
-//        ImpAssignIntegerBoolObj()
-//        ImpAssignIntegerBoolObjWrapped()
-//        ImpAssignIntegerBoolean()
-//        ImpAssignIntegerBooleanWrapped()
-//        ImpAssignIntegerNumObj()
-//        ImpAssignIntegerNumObjWrapped()
-//        ImpAssignIntegerNumber()
-//        ImpAssignIntegerNumberWrapped()
-//        ImpAssignIntegerText()
-//        ImpAssignIntegerTextObj()
-//        ImpAssignIntegerTextObjWrapped()
-//        ImpAssignIntegerTextWrapped()
-//        ImpAssignNumObjBoolObj()
-//        ImpAssignNumObjBoolObjWrapped()
-//        ImpAssignNumObjBoolean()
-//        ImpAssignNumObjBooleanWrapped()
-//        ImpAssignNumObjIntObj()
-//        ImpAssignNumObjIntObjWrapped()
-//        ImpAssignNumObjInteger()
-//        ImpAssignNumObjIntegerWrapped()
-//        ImpAssignNumObjNumber()
-//        ImpAssignNumObjNumberWrapped()
-//        ImpAssignNumObjText()
-//        ImpAssignNumObjTextObj()
-//        ImpAssignNumObjTextObjWrapped()
-//        ImpAssignNumObjTextWrapped()
-//        ImpAssignNumberBoolObj()
-//        ImpAssignNumberBoolObjWrapped()
-//        ImpAssignNumberBoolean()
-//        ImpAssignNumberBooleanWrapped()
-//        ImpAssignNumberText()
-//        ImpAssignNumberTextObj()
-//        ImpAssignNumberTextObjWrapped()
-//        ImpAssignNumberTextWrapped()
-//        ImpAssignTextBoolObj()
-//        ImpAssignTextBoolObjWrapped()
-//        ImpAssignTextBoolean()
-//        ImpAssignTextBooleanWrapped()
-//        ImpAssignTextIntObj()
-//        ImpAssignTextIntObjWrapped()
-//        ImpAssignTextInteger()
-//        ImpAssignTextIntegerWrapped()
-//        ImpAssignTextNumObj()
-//        ImpAssignTextNumObjWrapped()
-//        ImpAssignTextNumber()
-//        ImpAssignTextNumberWrapped()
-//        ImpAssignTextObjBoolObj()
-//        ImpAssignTextObjBoolObjWrapped()
-//        ImpAssignTextObjBoolean()
-//        ImpAssignTextObjBooleanWrapped()
-//        ImpAssignTextObjIntObj()
-//        ImpAssignTextObjIntObjWrapped()
-//        ImpAssignTextObjInteger()
-//        ImpAssignTextObjIntegerWrapped()
-//        ImpAssignTextObjNumObj()
-//        ImpAssignTextObjNumObjWrapped()
-//        ImpAssignTextObjNumber()
-//        ImpAssignTextObjNumberWrapped()
-//        InstanceTypeUnrelatedTypes()
-//        TypeInferenceDifferentLiteralTypes()
-//        TypeInferenceDifferentReturnTypes()
-//        TypeInferenceDifferentTypes()
+        ExpAssignBoolObjBoolean()
+        ExpAssignBoolObjIntObj()
+        ExpAssignBoolObjInteger()
+        ExpAssignBoolObjNumObj()
+        ExpAssignBoolObjNumber()
+        ExpAssignBoolObjText()
+        ExpAssignBoolObjTextObj()
+        ExpAssignIntObjBoolObj()
+        ExpAssignIntObjBoolean()
+        ExpAssignIntObjInteger()
+        ExpAssignIntObjNumObj()
+        ExpAssignIntObjNumber()
+        ExpAssignIntObjText()
+        ExpAssignIntObjTextObj()
+        ExpAssignNumObjBoolObj()
+        ExpAssignNumObjBoolean()
+        ExpAssignNumObjIntObj()
+        ExpAssignNumObjInteger()
+        ExpAssignNumObjNumber()
+        ExpAssignNumObjText()
+        ExpAssignNumObjTextObj()
+        ExpAssignTextObjBoolObj()
+        ExpAssignTextObjBoolean()
+        ExpAssignTextObjIntObj()
+        ExpAssignTextObjInteger()
+        ExpAssignTextObjNumbObj()
+        ExpAssignTextObjNumber()
+        ExpAssignTextObjText()
+        ImpAssignBoolObjBoolean()
+        ImpAssignBoolObjBooleanWrapped()
+        ImpAssignBoolObjIntObj()
+        ImpAssignBoolObjIntObjWrapped()
+        ImpAssignBoolObjInteger()
+        ImpAssignBoolObjIntegerWrapped()
+        ImpAssignBoolObjNumbObj()
+        ImpAssignBoolObjNumbObjWrapped()
+        ImpAssignBoolObjNumber()
+        ImpAssignBoolObjNumberWrapped()
+        ImpAssignBoolObjText()
+        ImpAssignBoolObjTextObj()
+        ImpAssignBoolObjTextObjWrapped()
+        ImpAssignBoolObjTextWrapped()
+        ImpAssignBooleanIntObj()
+        ImpAssignBooleanIntObjWrapped()
+        ImpAssignBooleanInteger()
+        ImpAssignBooleanIntegerWrapped()
+        ImpAssignBooleanNumObj()
+        ImpAssignBooleanNumObjWrapped()
+        ImpAssignBooleanNumber()
+        ImpAssignBooleanNumberWrapped()
+        ImpAssignBooleanText()
+        ImpAssignBooleanTextObj()
+        ImpAssignBooleanTextObjWrapped()
+        ImpAssignBooleanTextWrapped()
+        ImpAssignIntObjBoolObj()
+        ImpAssignIntObjBoolObjWrapped()
+        ImpAssignIntObjBoolean()
+        ImpAssignIntObjBooleanWrapped()
+        ImpAssignIntObjInteger()
+        ImpAssignIntObjIntegerWrapped()
+        ImpAssignIntObjNumObj()
+        ImpAssignIntObjNumObjWrapped()
+        ImpAssignIntObjNumber()
+        ImpAssignIntObjNumberWrapped()
+        ImpAssignIntObjText()
+        ImpAssignIntObjTextObj()
+        ImpAssignIntObjTextObjWrapped()
+        ImpAssignIntObjTextWrapped()
+        ImpAssignIntegerBoolObj()
+        ImpAssignIntegerBoolObjWrapped()
+        ImpAssignIntegerBoolean()
+        ImpAssignIntegerBooleanWrapped()
+        ImpAssignIntegerNumObj()
+        ImpAssignIntegerNumObjWrapped()
+        ImpAssignIntegerNumber()
+        ImpAssignIntegerNumberWrapped()
+        ImpAssignIntegerText()
+        ImpAssignIntegerTextObj()
+        ImpAssignIntegerTextObjWrapped()
+        ImpAssignIntegerTextWrapped()
+        ImpAssignNumObjBoolObj()
+        ImpAssignNumObjBoolObjWrapped()
+        ImpAssignNumObjBoolean()
+        ImpAssignNumObjBooleanWrapped()
+        ImpAssignNumObjIntObj()
+        ImpAssignNumObjIntObjWrapped()
+        ImpAssignNumObjInteger()
+        ImpAssignNumObjIntegerWrapped()
+        ImpAssignNumObjNumber()
+        ImpAssignNumObjNumberWrapped()
+        ImpAssignNumObjText()
+        ImpAssignNumObjTextObj()
+        ImpAssignNumObjTextObjWrapped()
+        ImpAssignNumObjTextWrapped()
+        ImpAssignNumberBoolObj()
+        ImpAssignNumberBoolObjWrapped()
+        ImpAssignNumberBoolean()
+        ImpAssignNumberBooleanWrapped()
+        ImpAssignNumberText()
+        ImpAssignNumberTextObj()
+        ImpAssignNumberTextObjWrapped()
+        ImpAssignNumberTextWrapped()
+        ImpAssignTextBoolObj()
+        ImpAssignTextBoolObjWrapped()
+        ImpAssignTextBoolean()
+        ImpAssignTextBooleanWrapped()
+        ImpAssignTextIntObj()
+        ImpAssignTextIntObjWrapped()
+        ImpAssignTextInteger()
+        ImpAssignTextIntegerWrapped()
+        ImpAssignTextNumObj()
+        ImpAssignTextNumObjWrapped()
+        ImpAssignTextNumber()
+        ImpAssignTextNumberWrapped()
+        ImpAssignTextObjBoolObj()
+        ImpAssignTextObjBoolObjWrapped()
+        ImpAssignTextObjBoolean()
+        ImpAssignTextObjBooleanWrapped()
+        ImpAssignTextObjIntObj()
+        ImpAssignTextObjIntObjWrapped()
+        ImpAssignTextObjInteger()
+        ImpAssignTextObjIntegerWrapped()
+        ImpAssignTextObjNumObj()
+        ImpAssignTextObjNumObjWrapped()
+        ImpAssignTextObjNumber()
+        ImpAssignTextObjNumberWrapped()
+        PrimitiveTextGetValue()
+        PrimitiveTextSetValue()
+        InstanceTypeUnrelatedTypes()
+        TypeInferenceDifferentLiteralTypes()
+        TypeInferenceDifferentReturnTypes()
+        TypeInferenceDifferentTypes()
     end
 
     action GetName returns text
@@ -375,7 +378,7 @@ action AutoBoxingAndMethodOverloadingNum
         dependent1:SetPath(path + "AutoboxTempClass.quorum")
         files:Add(main)
         files:Add(dependent1)
-        results:Add(0, "true")
+        results:Add(0, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -389,7 +392,7 @@ action AutoBoxingAndMethodOverloadingNum
         dependent1:SetPath(path + "AutoboxTempClass.quorum")
         files:Add(main)
         files:Add(dependent1)
-        results:Add(0, "true")
+        results:Add(0, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -506,6 +509,20 @@ action AutoBoxingAndMethodOverloadingNum
         suite:TestJavaScript(files, results)
     end
 
+    action AutoboxText
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "AutoboxText.quorum")
+        dependent1:SetPath(path + "AutoboxTempClass.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "text")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
     action AutoboxTextObj
         Array<File> files
         Array<text> results
@@ -526,21 +543,6 @@ action AutoBoxingAndMethodOverloadingNum
         File main
         File dependent1
         main:SetPath(path + "AutoboxTextObjSemiWrapped.quorum")
-        dependent1:SetPath(path + "AutoboxTempClass.quorum")
-        files:Add(main)
-        files:Add(dependent1)
-        results:Add(0, "text")
-
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action AutoboxText
-        Array<File> files
-        Array<text> results
-        File main
-        File dependent1
-        main:SetPath(path + "AutoboxText.quorum")
         dependent1:SetPath(path + "AutoboxTempClass.quorum")
         files:Add(main)
         files:Add(dependent1)
@@ -708,1274 +710,2634 @@ action AutoBoxingAndMethodOverloadingNum
         suite:TestJavaScript(files, results)
     end
 
+    action CompareBugTest
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CompareBugTest.quorum")
+        files:Add(main)
+        results:Add(0, "a")
+        results:Add(1, "0")
+        results:Add(2, "Equal")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
     action ExpAssignBoolObjBoolObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBoolObjBoolObj.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBoolObjBoolObj.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignBoolObjBoolObj.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignBooleanBoolObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanBoolObj.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanBoolObj.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignBooleanBoolObj.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignBooleanBoolean
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanBoolean.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanBoolean.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignBooleanBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignBooleanIntObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanIntObj.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanIntObj.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignBooleanIntObj.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignBooleanInteger
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanInteger.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanInteger.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignBooleanInteger.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignBooleanNumObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanNumObj.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanNumObj.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignBooleanNumObj.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignBooleanNumber
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanNumber.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanNumber.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignBooleanNumber.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignBooleanText
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanText.quorum", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanText.quorum", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignBooleanText.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignBooleanTextObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanText.quorum", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignBooleanText.quorum", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignBooleanTextObj.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignIntObjIntObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntObjIntObj.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntObjIntObj.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignIntObjIntObj.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignIntegerBoolObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerBoolObj.quorum", "1")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerBoolObj.quorum", "1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignIntegerBoolObj.quorum")
+        files:Add(main)
+        results:Add(0, "1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignIntegerBoolean
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerBoolean.quorum", "1")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerBoolean.quorum", "1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignIntegerBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignIntegerIntObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerIntObj.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerIntObj.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignIntegerIntObj.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignIntegerInteger
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerInteger.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerInteger.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignIntegerInteger.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignIntegerNumObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerNumObj.quorum", "7")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerNumObj.quorum", "7")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignIntegerNumObj.quorum")
+        files:Add(main)
+        results:Add(0, "7")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignIntegerNumber
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerNumber.quorum", "7")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerNumber.quorum", "7")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignIntegerNumber.quorum")
+        files:Add(main)
+        results:Add(0, "7")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignIntegerText
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerText.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerText.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignIntegerText.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignIntegerTextObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerTextObj.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignIntegerTextObj.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignIntegerTextObj.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignNumObjNumObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumObjNumObj.quorum", "7.5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumObjNumObj.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignNumObjNumObj.quorum")
+        files:Add(main)
+        results:Add(0, "7.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignNumberBoolObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberBoolObj.quorum", "1.0")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberBoolObj.quorum", "1.0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignNumberBoolObj.quorum")
+        files:Add(main)
+        results:Add(0, "1.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignNumberBoolean
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberBoolean.quorum", "1.0")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberBoolean.quorum", "1.0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignNumberBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "1.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignNumberIntObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberIntObj.quorum", "5.0")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberIntObj.quorum", "5.0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignNumberIntObj.quorum")
+        files:Add(main)
+        results:Add(0, "5.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignNumberInteger
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberInteger.quorum", "5.0")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberInteger.quorum", "5.0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignNumberInteger.quorum")
+        files:Add(main)
+        results:Add(0, "5.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignNumberNumObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberNumObj.quorum", "7.5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberNumObj.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignNumberNumObj.quorum")
+        files:Add(main)
+        results:Add(0, "7.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignNumberNumber
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberNumber.quorum", "7.5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberNumber.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignNumberNumber.quorum")
+        files:Add(main)
+        results:Add(0, "7.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignNumberText
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberText.quorum", "7.5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberText.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignNumberText.quorum")
+        files:Add(main)
+        results:Add(0, "7.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignNumberTextObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberTextObj.quorum", "7.5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignNumberTextObj.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignNumberTextObj.quorum")
+        files:Add(main)
+        results:Add(0, "7.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignTextBoolObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextBoolObj.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextBoolObj.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignTextBoolObj.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
-    action ExpAssignTextBoolean 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextBoolean.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextBoolean.quorum", "true")
+    action ExpAssignTextBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignTextBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignTextIntObj 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextIntObj.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextIntObj.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignTextIntObj.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignTextInteger 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextInteger.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextInteger.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignTextInteger.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignTextNumObj 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextNumObj.quorum", "7.5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextNumObj.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignTextNumObj.quorum")
+        files:Add(main)
+        results:Add(0, "7.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignTextNummber 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextNummber.quorum", "7.5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextNummber.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignTextNummber.quorum")
+        files:Add(main)
+        results:Add(0, "7.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignTextObjTextObj 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextObjTextObj.quorum", "text")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextObjTextObj.quorum", "text")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignTextObjTextObj.quorum")
+        files:Add(main)
+        results:Add(0, "text")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignTextText
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextText.quorum", "text")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextText.quorum", "text")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignTextText.quorum")
+        files:Add(main)
+        results:Add(0, "text")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ExpAssignTextTextObj 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ExpAssignTextTextObj.quorum", "text")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ExpAssignTextTextObj.quorum", "text")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignTextTextObj.quorum")
+        files:Add(main)
+        results:Add(0, "text")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
     
     action ImpAssignBoolObjBoolObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignBoolObjBoolObj.quorum", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignBoolObjBoolObj.quorum", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignBoolObjBoolObj.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignBoolObjBoolObjWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignBoolObjBoolObjWrapped.quorum", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignBoolObjBoolObjWrapped.quorum", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignBoolObjBoolObjWrapped.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignBooleanBoolObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBoolObj.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBoolObj.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignBooleanBoolObj.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignBooleanBoolObjWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBoolObjWrapped.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBoolObjWrapped.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignBooleanBoolObjWrapped.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignBooleanBoolean
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBoolean.quorum", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBoolean.quorum", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignBooleanBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignBooleanBooleanWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBooleanWrapped.quorum", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignBooleanBooleanWrapped.quorum", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignBooleanBooleanWrapped.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignIntObjIntObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignIntObjIntObj.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignIntObjIntObj.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignIntObjIntObj.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignIntObjIntObjWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignIntObjIntObjWrapped.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignIntObjIntObjWrapped.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignIntObjIntObjWrapped.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignIntegerIntObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerIntObj.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerIntObj.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignIntegerIntObj.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignIntegerIntObjWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerIntObjWrapped.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerIntObjWrapped.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignIntegerIntObjWrapped.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignIntegerInteger
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerInteger.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerInteger.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignIntegerInteger.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        results:Add(1, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignIntegerIntegerWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerIntegerWrapped.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignIntegerIntegerWrapped.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignIntegerIntegerWrapped.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        results:Add(1, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignNumObjNumObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumObjNumObj.quorum", "7.5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumObjNumObj.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignNumObjNumObj.quorum")
+        files:Add(main)
+        results:Add(0, "7.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignNumObjNumObjWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumObjNumObjWrapped.quorum", "7.5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumObjNumObjWrapped.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignNumObjNumObjWrapped.quorum")
+        files:Add(main)
+        results:Add(0, "7.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignNumberIntObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberIntObj.quorum", "5.0")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberIntObj.quorum", "5.0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignNumberIntObj.quorum")
+        files:Add(main)
+        results:Add(0, "5.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignNumberIntObjWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberIntObj.quorum", "5.0")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberIntObj.quorum", "5.0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignNumberIntObjWrapped.quorum")
+        files:Add(main)
+        results:Add(0, "5.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignNumberInteger
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberInteger.quorum", "5.0")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberInteger.quorum", "5.0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignNumberInteger.quorum")
+        files:Add(main)
+        results:Add(0, "5.0")
+        results:Add(1, "5.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignNumberIntegerWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberIntegerWrapped.quorum", "5.0")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberIntegerWrapped.quorum", "5.0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignNumberIntegerWrapped.quorum")
+        files:Add(main)
+        results:Add(0, "5.0")
+        results:Add(1, "5.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignNumberNumObj
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumObj.quorum", "7.5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumObj.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignNumberNumObj.quorum")
+        files:Add(main)
+        results:Add(0, "7.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignNumberNumObjWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumObjWrapped.quorum", "7.5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumObjWrapped.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignNumberNumObjWrapped.quorum")
+        files:Add(main)
+        results:Add(0, "7.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignNumberNumber
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumber.quorum", "7.5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumber.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignNumberNumber.quorum")
+        files:Add(main)
+        results:Add(0, "7.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignNumberNumberWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumberWrapped.quorum", "7.5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignNumberNumberWrapped.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignNumberNumberWrapped.quorum")
+        files:Add(main)
+        results:Add(0, "7.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignTextObjTextObj 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignTextObjTextObj.quorum", "t")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignTextObjTextObj.quorum", "t")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignTextObjTextObj.quorum")
+        files:Add(main)
+        results:Add(0, "t")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignTextObjTextObjWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignTextObjTextObjWrapped.quorum", "t")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignTextObjTextObjWrapped.quorum", "t")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignTextObjTextObjWrapped.quorum")
+        files:Add(main)
+        results:Add(0, "t")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignTextText
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignTextText.quorum", "t")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignTextText.quorum", "t")
-    end
-
-    action ImpAssignTextTextWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignTextTextWrapped.quorum", "t")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignTextTextWrapped.quorum", "t")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignTextText.quorum")
+        files:Add(main)
+        results:Add(0, "t")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignTextTextObj 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignTextTextObj.quorum", "t")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignTextTextObj.quorum", "t")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignTextTextObj.quorum")
+        files:Add(main)
+        results:Add(0, "t")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignTextTextObjWrapped
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ImpAssignTextTextObjWrapped.quorum", "t")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ImpAssignTextTextObjWrapped.quorum", "t")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignTextTextObjWrapped.quorum")
+        files:Add(main)
+        results:Add(0, "t")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignTextTextWrapped
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignTextTextWrapped.quorum")
+        files:Add(main)
+        results:Add(0, "t")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IndexOfPrefix 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/IndexOfPrefix.quorum", "2", "2")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IndexOfPrefix.quorum", "2", "2")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IndexOfPrefix.quorum")
+        files:Add(main)
+        results:Add(0, "2")
+        results:Add(1, "2")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IndexOfPrefixIndex 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/IndexOfPrefixIndex.quorum", "3", "3")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IndexOfPrefixIndex.quorum", "3", "3")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IndexOfPrefixIndex.quorum")
+        files:Add(main)
+        results:Add(0, "3")
+        results:Add(1, "3")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action InstanceTypeChildOfChild 
-        suite:RunTest("Library/Tests/TypeChecker/Pass/InstanceTypeChildOfChild.quorum", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/InstanceTypeChildOfChild.quorum", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "InstanceTypeChildOfChild.quorum")
+        dependent1:SetPath(path + "A.quorum")
+        dependent2:SetPath(path + "B.quorum")
+        dependent3:SetPath(path + "C.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        results:Add(0, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action InstanceTypeCurrent
-        suite:RunTest("Library/Tests/TypeChecker/Pass/InstanceTypeCurrent.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/InstanceTypeCurrent.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "InstanceTypeCurrent.quorum")
+        dependent1:SetPath(path + "A.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action InstanceTypeDirectChild
-        suite:RunTest("Library/Tests/TypeChecker/Pass/InstanceTypeDirectChild.quorum", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/InstanceTypeDirectChild.quorum", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        File dependent2
+        main:SetPath(path + "InstanceTypeDirectChild.quorum")
+        dependent1:SetPath(path + "A.quorum")
+        dependent2:SetPath(path + "B.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action InstanceTypeDirectParent
-        suite:RunTest("Library/Tests/TypeChecker/Pass/InstanceTypeDirectParent.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/InstanceTypeDirectParent.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        File dependent2
+        main:SetPath(path + "InstanceTypeDirectParent.quorum")
+        files:Add(main)
+        dependent1:SetPath(path + "B.quorum")
+        dependent2:SetPath(path + "C.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action InstanceTypeObject
-        suite:RunTest("Library/Tests/TypeChecker/Pass/InstanceTypeObject.quorum", "")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/InstanceTypeObject.quorum", "")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "InstanceTypeObject.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action InstanceTypeParentOfParent
-        suite:RunTest("Library/Tests/TypeChecker/Pass/InstanceTypeParentOfParent.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/InstanceTypeParentOfParent.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "InstanceTypeParentOfParent.quorum")
+        dependent1:SetPath(path + "A.quorum")
+        dependent1:SetPath(path + "B.quorum")
+        dependent1:SetPath(path + "C.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IntegerBitCount
-        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerBitCount.quorum", "7", "7")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerBitCount.quorum", "7", "7")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IntegerBitCount.quorum")
+        files:Add(main)
+        results:Add(0, "7")
+        results:Add(1, "7")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IntegerCompare
-        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerCompare.quorum", "a")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerCompare.quorum", "a")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IntegerCompare.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IntegerEquals
-        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerEquals.quorum", "false", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerEquals.quorum", "false", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IntegerEquals.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IntegerGetBinary
-        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerGetBinary.quorum", "101111101", "101111101")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerGetBinary.quorum", "101111101", "101111101")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IntegerGetBinary.quorum")
+        files:Add(main)
+        results:Add(0, "101111101")
+        results:Add(1, "101111101")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IntegerGetOctal
-        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerGetOctal.quorum", "575", "575")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerGetOctal.quorum", "575", "575")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IntegerGetOctal.quorum")
+        files:Add(main)
+        results:Add(0, "575")
+        results:Add(1, "575")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IntegerGetText
-        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerGetText.quorum", "5", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerGetText.quorum", "5", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IntegerGetText.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        results:Add(1, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IntegerHighestOneBit
-        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerHighestOneBit.quorum", "256", "256")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerHighestOneBit.quorum", "256", "256")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IntegerHighestOneBit.quorum")
+        files:Add(main)
+        results:Add(0, "256")
+        results:Add(1, "256")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IntegerLeadingZeros
-        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerLeadingZeros.quorum", "23", "23")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerLeadingZeros.quorum", "23", "23")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IntegerLeadingZeros.quorum")
+        files:Add(main)
+        results:Add(0, "23")
+        results:Add(1, "23")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IntegerLowestOneBit
-        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerLowestOneBit.quorum", "1", "1")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerLowestOneBit.quorum", "1", "1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IntegerLowestOneBit.quorum")
+        files:Add(main)
+        results:Add(0, "1")
+        results:Add(1, "1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IntegerReverse
-        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerReverse.quorum", "-1098907648", "-1098907648")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerReverse.quorum", "-1098907648", "-1098907648")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IntegerReverse.quorum")
+        files:Add(main)
+        results:Add(0, "-1098907648")
+        results:Add(1, "-1098907648")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IntegerRotateLeft
-        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerRotateLeft.quorum", "1524", "1524")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerRotateLeft.quorum", "1524", "1524")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IntegerRotateLeft.quorum")
+        files:Add(main)
+        results:Add(0, "1524")
+        results:Add(1, "1524")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IntegerRotateRight
-        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerRotateRight.quorum", "1073741919", "1073741919")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerRotateRight.quorum", "1073741919", "1073741919")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IntegerRotateRight.quorum")
+        files:Add(main)
+        results:Add(0, "1073741919")
+        results:Add(1, "1073741919")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IntegerTrailingZeros
-        suite:RunTest("Library/Tests/TypeChecker/Pass/IntegerTrailingZeros.quorum", "0", "0")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/IntegerTrailingZeros.quorum", "0", "0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IntegerTrailingZeros.quorum")
+        files:Add(main)
+        results:Add(0, "0")
+        results:Add(1, "0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NumberCompare
-        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberCompare.quorum", "a")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberCompare.quorum", "a")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NumberCompare.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NumberEquals
-        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberEquals.quorum", "false", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberEquals.quorum", "false", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NumberEquals.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NumberGetHex
-        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberGetHex.quorum", "0x1.4cccccccccccdp2", "0x1.4cccccccccccdp2")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberGetHex.quorum", "0x1.4cccccccccccdp2", "0x1.4cccccccccccdp2")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NumberGetHex.quorum")
+        files:Add(main)
+        results:Add(0, "0x1.4cccccccccccdp2")
+        results:Add(1, "0x1.4cccccccccccdp2")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NumberGetInteger
-        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberGetInteger.quorum", "5", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberGetInteger.quorum", "5", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NumberGetInteger.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        results:Add(1, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NumberGetText
-        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberGetText.quorum", "5.2", "5.2")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberGetText.quorum", "5.2", "5.2")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NumberGetText.quorum")
+        files:Add(main)
+        results:Add(0, "5.2")
+        results:Add(1, "5.2")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NumberIsInfinite
-        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberIsInfinite.quorum", "false", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberIsInfinite.quorum", "false", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NumberIsInfinite.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NumberIsNotANumber
-        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberIsNotANumber.quorum", "false", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberIsNotANumber.quorum", "false", "false")
-    end
-
-    action PrimitiveTextGetValue
-        suite:RunTest("Library/Tests/TypeChecker/Pass/PrimitiveTextGetValue.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/PrimitiveTextGetValue.quorum", "5")
-    end
-
-    action PrimitiveTextSetValue
-        //no value seems to be returned from this test...is this just a test to see if it breaks or not
-        //or should we call GetValue to see if it is 5
-        suite:RunTest("Library/Tests/TypeChecker/Pass/PrimitiveTextSetValue.quorum", "")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/PrimitiveTextSetValue.quorum", "")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NumberIsNotANumber.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ReturningIntegerInPlaceOfNumber
-        suite:RunTest("Library/Tests/TypeChecker/Pass/ReturningIntegerInPlaceOfNumber.quorum", "4.0")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/ReturningIntegerInPlaceOfNumber.quorum", "4.0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReturningIntegerInPlaceOfNumber.quorum")
+        files:Add(main)
+        results:Add(0, "4.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextAppend
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextAppend.quorum", "hello5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextAppend.quorum", "hello5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextAppend.quorum")
+        files:Add(main)
+        results:Add(0, "hello5")
+        results:Add(1, "hello5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextCompare
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextCompare.quorum", "a")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextCompare.quorum", "a")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextCompare.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextContains
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextContains.quorum", "true", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextContains.quorum", "true", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextContains.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextEndsWith
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextEndsWith.quorum", "true", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextEndsWith.quorum", "true", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextEndsWith.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextEquals
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextEquals.quorum", "false", "false")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextEquals.quorum", "false", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextEquals.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextEqualsIgnoringCase
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextEqualsIgnoringCase.quorum", "true", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextEqualsIgnoringCase.quorum", "true", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextEqualsIgnoringCase.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextGetCharacter
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextGetCharacter.quorum", "o", "o")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextGetCharacter.quorum", "o", "o")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextGetCharacter.quorum")
+        files:Add(main)
+        results:Add(0, "o")
+        results:Add(1, "o")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextGetLength
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextGetLength.quorum", "5", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextGetLength.quorum", "5", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextGetLength.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        results:Add(1, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextGetSubtext
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextGetSubtext.quorum", "he", "he")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextGetSubtext.quorum", "he", "he")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextGetSubtext.quorum")
+        files:Add(main)
+        results:Add(0, "he")
+        results:Add(1, "he")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextGetSubtextWithEnd
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextGetSubtextWithEnd.quorum", "he", "he")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextGetSubtextWithEnd.quorum", "he", "he")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignIntegerNumObj.quorum")
+        files:Add(main)
+        results:Add(0, "lo")
+        results:Add(1, "lo")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextIsEmpty
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextIsEmpty.quorum", "true", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextIsEmpty.quorum", "true", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextIsEmpty.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextReplace
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextReplace.quorum", "help", "help")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextReplace.quorum", "help", "help")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextReplace.quorum")
+        files:Add(main)
+        results:Add(0, "help")
+        results:Add(1, "help")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextSetAndGetValue
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextSetAndGetValue.quorum", "5")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextSetAndGetValue.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextSetAndGetValue.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextStartsWith
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextStartsWith.quorum", "true", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextStartsWith.quorum", "true", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextStartsWith.quorum")
+        files:Add(main)
+        results:Add(0, "he")
+        results:Add(1, "he")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextToLowerCase
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextToLowerCase.quorum", "hello", "hello")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextToLowerCase.quorum", "hello", "hello")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextToLowerCase.quorum")
+        files:Add(main)
+        results:Add(0, "hello")
+        results:Add(1, "hello")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextToUpperCase
-        suite:RunTest("Library/Tests/TypeChecker/Pass/NumberIsInfinite.quorum", "HELLO", "HELLO")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/NumberIsInfinite.quorum", "HELLO", "HELLO")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextToUpperCase.quorum")
+        files:Add(main)
+        results:Add(0, "HELLO")
+        results:Add(1, "HELLO")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TextTrim
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TextTrim.quorum", "hello", "hello")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TextTrim.quorum", "hello", "hello")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextTrim.quorum")
+        files:Add(main)
+        results:Add(0, "hello")
+        results:Add(1, "hello")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TypeInferenceBoolean
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceBoolean.quorum", "true")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceBoolean.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TypeInferenceBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TypeInferenceBooleanAnd
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TypeInferenceBooleanAnd.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TypeInferenceCast
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceCast.quorum", "3", "3")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceCast.quorum", "3", "3")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TypeInferenceCast.quorum")
+        files:Add(main)
+        results:Add(0, "3")
+        results:Add(1, "3")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TypeInferenceInteger
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceInteger.quorum", "3", "3")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceInteger.quorum", "3", "3")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TypeInferenceInteger.quorum")
+        files:Add(main)
+        results:Add(0, "3")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TypeInferenceLiterals
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceLiterals.quorum", "1", "1.9", "true", "hello")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceLiterals.quorum", "1", "1.9", "true", "hello")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TypeInferenceLiterals.quorum")
+        files:Add(main)
+        results:Add(0, "1")
+        results:Add(1, "1.9")
+        results:Add(2, "true")
+        results:Add(3, "hello")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TypeInferenceNestedFunctionCalls
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceNestedFunctionCalls.quorum", "4")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceNestedFunctionCalls.quorum", "4")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TypeInferenceNestedFunctionCalls.quorum")
+        files:Add(main)
+        results:Add(0, "4")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TypeInferenceNumber
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceNumber.quorum", "3.0")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceNumber.quorum", "3.0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TypeInferenceNumber.quorum")
+        files:Add(main)
+        results:Add(0, "3.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
-    action TypeInferenceReturnTypes
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceReturnTypes.quorum", "3")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceReturnTypes.quorum", "3")
+    action TypeInferenceReturnTypesInt
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TypeInferenceReturnTypesInt.quorum")
+        files:Add(main)
+        results:Add(0, "3")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TypeInferenceReturnTypesIntNum
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TypeInferenceReturnTypesIntNum.quorum")
+        files:Add(main)
+        results:Add(0, "3.4")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TypeInferenceReturnTypesNum
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TypeInferenceReturnTypesNum.quorum")
+        files:Add(main)
+        results:Add(0, "3.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TypeInferenceText
-        suite:RunTest("Library/Tests/TypeChecker/Pass/TypeInferenceText.quorum", "hello world")
-        //suite:RunJavaScriptTest("Library/Tests/TypeChecker/Pass/TypeInferenceText.quorum", "hello world")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ExpAssignIntegerNumObj.quorum")
+        files:Add(main)
+        results:Add(0, "hello world")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
-    action CompareBugTest
-        suite:RunTest("Library/Tests/TypeChecker/Pass/CompareBugTest.quorum", "a")
-    end
-
-    //Tests that should fail
+    //FAIL TESTS
 
     action ExpAssignBoolObjBoolean
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjBoolean.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjBoolean.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignBoolObjBoolean.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignBoolObjIntObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjIntObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjIntObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignBoolObjIntObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignBoolObjInteger
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjInteger.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjInteger.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignBoolObjInteger.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignBoolObjNumObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjNumObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjNumObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignBoolObjNumObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignBoolObjNumber
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjNumber.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjNumber.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignBoolObjNumber.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignBoolObjText
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjText.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjText.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignBoolObjText.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignBoolObjTextObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjTextObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignBoolObjTextObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignBoolObjTextObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignIntObjBoolObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjBoolObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjBoolObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignIntObjBoolObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignIntObjBoolean
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjBoolean.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjBoolean.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignIntObjBoolean.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignIntObjInteger
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjInteger.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjInteger.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignIntObjInteger.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignIntObjNumObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjNumObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjNumObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignIntObjNumObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignIntObjNumber
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjNumber.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjNumber.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignIntObjNumber.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignIntObjText
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjText.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjText.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignIntObjText.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignIntObjTextObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjTextObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignIntObjTextObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignIntObjTextObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignNumObjBoolObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjBoolObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjBoolObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignNumObjBoolObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignNumObjBoolean
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjBoolean.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjBoolean.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignNumObjBoolean.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignNumObjIntObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjIntObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjIntObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignNumObjIntObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignNumObjInteger
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjInteger.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjInteger.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignNumObjInteger.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignNumObjNumber
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjNumber.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjNumber.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignNumObjNumber.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignNumObjText
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjText.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjText.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignNumObjText.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignNumObjTextObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjTextObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignNumObjTextObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignNumObjTextObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignTextObjBoolObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjBoolObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjBoolObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignTextObjBoolObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignTextObjBoolean
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjBoolean.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjBoolean.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignTextObjBoolean.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignTextObjIntObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjIntObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjIntObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignTextObjIntObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignTextObjInteger
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjInteger.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjInteger.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignTextObjInteger.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignTextObjNumbObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjNumbObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjNumbObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignTextObjNumbObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignTextObjNumber
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjNumber.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjNumber.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignTextObjNumber.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ExpAssignTextObjText
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjText.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ExpAssignTextObjText.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignTextObjText.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBoolObjBoolean
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjBoolean.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjBoolean.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBoolObjBoolean.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBoolObjBooleanWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjBooleanWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjBooleanWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBoolObjBooleanWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBoolObjIntObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjIntObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjIntObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBoolObjIntObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBoolObjIntObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjIntObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjIntObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBoolObjIntObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBoolObjInteger
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjInteger.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjInteger.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBoolObjInteger.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBoolObjIntegerWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjIntegerWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjIntegerWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBoolObjIntegerWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBoolObjNumbObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumbObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumbObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBoolObjNumbObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBoolObjNumbObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumbObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumbObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBoolObjNumbObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBoolObjNumber
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumber.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumber.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBoolObjNumber.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBoolObjNumberWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumberWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjNumberWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBoolObjNumberWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBoolObjText
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjText.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjText.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBoolObjText.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBoolObjTextObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjTextObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjTextObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBoolObjTextObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBoolObjTextObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjTextObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjTextObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBoolObjTextObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBoolObjTextWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjTextWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBoolObjTextWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBoolObjTextWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBooleanIntObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanIntObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanIntObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBooleanIntObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBooleanIntObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanIntObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanIntObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBooleanIntObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBooleanInteger
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanInteger.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanInteger.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBooleanInteger.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBooleanIntegerWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanIntegerWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanIntegerWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBooleanIntegerWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBooleanNumObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBooleanNumObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBooleanNumObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBooleanNumObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBooleanNumber
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumber.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumber.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBooleanNumber.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBooleanNumberWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumberWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanNumberWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBooleanNumberWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBooleanText
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanText.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanText.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBooleanText.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBooleanTextObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanTextObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanTextObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBooleanTextObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBooleanTextObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanTextObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanTextObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBooleanTextObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignBooleanTextWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanTextWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignBooleanTextWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignBooleanTextWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntObjBoolObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBoolObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBoolObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntObjBoolObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntObjBoolObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBoolObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBoolObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntObjBoolObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntObjBoolean
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBoolean.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBoolean.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntObjBoolean.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntObjBooleanWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBooleanWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjBooleanWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntObjBooleanWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntObjInteger
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjInteger.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjInteger.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntObjInteger.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntObjIntegerWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjIntegerWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjIntegerWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntObjIntegerWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntObjNumObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntObjNumObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntObjNumObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntObjNumObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntObjNumber
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumber.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumber.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntObjNumber.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntObjNumberWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumberWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjNumberWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntObjNumberWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntObjText
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjText.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjText.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntObjText.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntObjTextObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjTextObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjTextObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntObjTextObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntObjTextObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjTextObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjTextObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntObjTextObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntObjTextWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjTextWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntObjTextWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntObjTextWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntegerBoolObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBoolObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBoolObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntegerBoolObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntegerBoolObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBoolObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBoolObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntegerBoolObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntegerBoolean
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBoolean.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBoolean.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntegerBoolean.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntegerBooleanWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBooleanWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerBooleanWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntegerBooleanWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntegerNumObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntegerNumObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntegerNumObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntegerNumObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntegerNumber
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumber.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumber.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntegerNumber.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntegerNumberWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumberWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerNumberWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntegerNumberWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntegerText
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerText.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerText.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntegerText.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntegerTextObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerTextObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerTextObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntegerTextObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntegerTextObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerTextObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerTextObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntegerTextObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignIntegerTextWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerTextWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignIntegerTextWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignIntegerTextWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumObjBoolObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBoolObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBoolObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumObjBoolObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumObjBoolObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBoolObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBoolObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumObjBoolObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumObjBoolean
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBoolean.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBoolean.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumObjBoolean.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumObjBooleanWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBooleanWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjBooleanWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumObjBooleanWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumObjIntObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjIntObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjIntObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumObjIntObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumObjIntObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjIntObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjIntObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumObjIntObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumObjInteger
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjInteger.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjInteger.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumObjInteger.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumObjIntegerWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjIntegerWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjIntegerWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumObjIntegerWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumObjNumber
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjNumber.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjNumber.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumObjNumber.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumObjNumberWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjNumberWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjNumberWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumObjNumberWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumObjText
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjText.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjText.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumObjText.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumObjTextObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjTextObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjTextObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumObjTextObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumObjTextObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjTextObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjTextObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumObjTextObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumObjTextWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjTextWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumObjTextWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumObjTextWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumberBoolObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBoolObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBoolObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumberBoolObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumberBoolObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBoolObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBoolObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumberBoolObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumberBoolean
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBoolean.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBoolean.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumberBoolean.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumberBooleanWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBooleanWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberBooleanWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumberBooleanWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumberText
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberText.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberText.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumberText.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumberTextObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberTextObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberTextObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumberTextObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumberTextObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberTextObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberTextObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumberTextObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignNumberTextWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberTextWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignNumberTextWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignNumberTextWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextBoolObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBoolObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBoolObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextBoolObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextBoolObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBoolObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBoolObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextBoolObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextBoolean
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBoolean.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBoolean.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextBoolean.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextBooleanWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBooleanWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextBooleanWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextBooleanWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextIntObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextIntObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextIntObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextIntObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextIntObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextIntObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextIntObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextIntObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextInteger
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextInteger.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextInteger.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextInteger.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextIntegerWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextIntegerWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextIntegerWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextIntegerWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextNumObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextNumObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextNumObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextNumObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextNumber
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumber.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumber.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextNumber.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextNumberWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumberWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextNumberWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextNumberWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextObjBoolObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBoolObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBoolObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextObjBoolObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextObjBoolObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBoolObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBoolObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextObjBoolObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextObjBoolean
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBoolean.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBoolean.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextObjBoolean.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextObjBooleanWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBooleanWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjBooleanWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextObjBooleanWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextObjIntObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjIntObj.quorum")
-       // suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjIntObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextObjIntObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextObjIntObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjIntObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjIntObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextObjIntObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextObjInteger
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjInteger.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjInteger.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextObjInteger.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextObjIntegerWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjIntegerWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjIntegerWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextObjIntegerWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextObjNumObj
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumObj.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumObj.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextObjNumObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextObjNumObjWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumObjWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumObjWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextObjNumObjWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextObjNumber
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumber.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumber.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextObjNumber.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextObjNumberWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumberWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjNumberWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextObjNumberWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextObjText
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjText.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjText.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextObjText.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action ImpAssignTextObjTextWrapped
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjTextWrapped.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/ImpAssignTextObjTextWrapped.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "ImpAssignTextObjTextWrapped.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action InstanceTypeUnrelatedTypes
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/InstanceTypeUnrelatedTypes.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/InstanceTypeUnrelatedTypes.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "InstanceTypeUnrelatedTypes.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action PrimitiveTextGetValue
+        Array<File> files
+        File main
+        main:SetPath(path + "PrimitiveTextGetValue.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action PrimitiveTextSetValue
+        Array<File> files
+        File main
+        main:SetPath(path + "PrimitiveTextSetValue.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action TypeInferenceDifferentLiteralTypes
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/TypeInferenceDifferentLiteralTypes.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/TypeInferenceDifferentLiteralTypes.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "TypeInferenceDifferentLiteralTypes.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action TypeInferenceDifferentReturnTypes
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/TypeInferenceDifferentReturnTypes.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/TypeInferenceDifferentReturnTypes.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "TypeInferenceDifferentReturnTypes.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action TypeInferenceDifferentTypes
-        suite:RunTestFail("Library/Tests/TypeChecker/Fail/TypeInferenceDifferentTypes.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/TypeChecker/Fail/TypeInferenceDifferentTypes.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "TypeInferenceDifferentTypes.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
-   
 end
 
