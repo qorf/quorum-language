@@ -21,6 +21,14 @@ public class Text {
     public java.lang.Object $me = null;
     private String text = "";
     
+    public static String ConvertObjectToString(Object$Interface object) {
+        if(object == null) {
+            return null;
+        }
+        Text$Interface text = (Text$Interface) object;
+        return text.GetValue();
+    }
+    
     public int ParseInteger() throws ParseError{
         try{
             int parseInt = java.lang.Integer.parseInt(text);
