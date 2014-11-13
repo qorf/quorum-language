@@ -8,6 +8,15 @@ class BlockOpcode is QuorumOpcode
     List<QuorumOpcode> opcodes
     BlockOpcode parentOpcode = undefined
 
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+        Iterator<QuorumOpcode> it = opcodes:GetIterator()
+        repeat while it:HasNext()
+            QuorumOpcode op = it:Next()
+            op:SetMethodWriterToAllChildren(writer)
+        end
+    end
+
     action Write
         Iterator<QuorumOpcode> iterator = opcodes:GetIterator()
         repeat while iterator:HasNext()

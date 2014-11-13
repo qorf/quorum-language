@@ -252,10 +252,38 @@ class QuorumBytecodeListener is QuorumSourceListener
     action EnterConstructor(ConstructorContext context) 
         currentAction = currentClass:GetConstructor()
         isInAction = true
+
+        ActionOpcode actionOpcode
+        currentActionOpcode = actionOpcode
+        currentActionOpcode:SetAction(currentAction)
+        currentActionOpcode:SetClass(currentClass)
+        currentActionOpcode:SetMethodWriter(methodWriter)
+
+        currentClassOpcode:SetConstructor(currentActionOpcode)
     end
 
     action ExitConstructor(ConstructorContext context) 
+        ClearActionState()
+        
+        if currentActionOpcode not= undefined
+            if not poppedBlockOpcodes:IsEmpty()
+                currentActionOpcode:Add(poppedBlockOpcodes:Pop())
+            end
+
+            //if there are opcodes on the opcode stack for a return, pop them
+            //there should never be more than 1, so throw an error if there is
+            remaining = opcodeStack:GetSize()
+            if remaining not= 0
+                if remaining not= 1
+                    //alert("Compiler Bug: Cannot have more than 1 remaining opcode on the opcode stack at the end of an action.")
+                else 
+                    QuorumOpcode op = opcodeStack:Pop()
+                    currentActionOpcode:Add(op)
+                end
+            end
+        end
         currentAction = undefined
+        currentActionOpcode = undefined
         isInAction = false
     end
 
@@ -777,6 +805,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         currentActionStack = currentActionStack - 1
 
         ChainedActionCallOpcode ops
+        ops:SetMethodWriter(methodWriter)
         ops:SetLocation(context:GetLocation())
         ops:SetIsSoloCall(true)
         Iterator<ActionCallOpcode> it = stack:GetIterator()
@@ -785,6 +814,13 @@ class QuorumBytecodeListener is QuorumSourceListener
             ops:Add(op)
         end
 
+        //since this is a solo call, there is no assignment statement.
+        //thus, if there's a return type, we need to pop it off the stack.
+        ActionCallOpcode op = stack:GetFromEnd()
+        Type returnType = op:GetType()
+        if not returnType:IsVoid()
+            ops:SetPopReturn(true)
+        end
         currentBlockOpcode:Add(ops)
     end
 

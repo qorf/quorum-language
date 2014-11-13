@@ -9,10 +9,16 @@ use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
 class OutputOpcode is QuorumOpcode
 
     QuorumOpcode opcode = undefined
-    JavaBytecodeMethodWriter methodWriter = undefined
+    //JavaBytecodeMethodWriter methodWriter = undefined
     JavaBytecodeOpcodes opcodes
     QuorumBytecodeConverter converter
     
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+        if opcode not= undefined
+            opcode:SetMethodWriterToAllChildren(writer)
+        end
+    end
 
     action GetOpcode returns QuorumOpcode
         return opcode
@@ -22,16 +28,17 @@ class OutputOpcode is QuorumOpcode
         opcode = op
     end
 
-    action GetMethodWriter returns JavaBytecodeMethodWriter
-        return methodWriter
-    end
-
-    action SetMethodWriter(JavaBytecodeMethodWriter writer)
-        methodWriter = writer
-    end
+//    action GetMethodWriter returns JavaBytecodeMethodWriter
+//        return methodWriter
+//    end
+//
+//    action SetMethodWriter(JavaBytecodeMethodWriter writer)
+//        methodWriter = writer
+//    end
 
     action Write
         VisitLineNumber()
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         methodWriter:VisitField(opcodes:GetStaticField(), "java/lang/System", "out", "Ljava/io/PrintStream;")
         Type type = opcode:GetType()
         opcode:Write()

@@ -3,10 +3,29 @@ package Libraries.Language.Compile.Translate
 use Libraries.Language.Compile.Translate.QuorumOpcode
 use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Symbol.Type
 
 class ChainedActionCallOpcode is QuorumOpcode
     boolean isSoloCall = false
     Array<ActionCallOpcode> ops
+    boolean popReturn = false
+    JavaBytecodeOpcodes opcodes
+
+    /*
+        If this action returns true, then this opcode will automatically
+        pop the return value off the stack.
+    */
+    action GetPopReturn returns boolean
+        return popReturn
+    end
+
+    /*
+        This action sets whether or not this chained action call should
+        pop the return value off the stack.
+    */
+    action SetPopReturn(boolean pop)
+        popReturn = pop
+    end
 
     action IsSoloCall returns boolean
         return isSoloCall
@@ -35,6 +54,17 @@ class ChainedActionCallOpcode is QuorumOpcode
         repeat while it:HasNext()
             ActionCallOpcode op = it:Next()
             op:Write()
+        end
+
+        ActionCallOpcode last = ops:GetFromEnd()
+        Type type = last:GetType()
+        if popReturn
+            JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+            if type:IsNumber()
+                methodWriter:VisitInstruction(opcodes:GetPopDouble())
+            else
+                methodWriter:VisitInstruction(opcodes:GetPop())
+            end
         end
     end
 
