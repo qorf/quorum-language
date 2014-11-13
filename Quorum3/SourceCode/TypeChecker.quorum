@@ -1128,6 +1128,19 @@ class TypeChecker
         Operation opConstant
         TypeConversionPoints points = undefined
 
+
+        //implicit cast from Integer to text
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToText()
+        ObjectToPrimitiveTextCast objectToPrimitiveTextCast
+        objectToPrimitiveTextCast:SetType(type)
+        result:SetQuorumOpcode(objectToPrimitiveTextCast)
+        results:Add(key, result)
+
+
         //implicit cast from integer to object
         op = GetOperation(opConstant:IMPLICIT_CAST)
         key = GenerateTypeCheckKey(constants:OBJECT_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)

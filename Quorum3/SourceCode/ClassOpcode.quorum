@@ -174,7 +174,10 @@ class ClassOpcode is QuorumOpcode
 
             
             Action method = act:GetAction()
-
+            if clazz:GetName() = "Array" and method:GetName() = "RemoveAll"
+                a = 5
+            end
+            //output clazz:GetName() + ", " + method:GetName()
             //write to the class
             act:Write()
 
@@ -452,6 +455,7 @@ class ClassOpcode is QuorumOpcode
         WriteFields(methodWriter)
 
         if clazz:HasConstructor()
+            constructor:SetMethodWriterToAllChildren(methodWriter)
             constructor:Write()
         end
 

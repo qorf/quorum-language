@@ -1,0 +1,28 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+
+class ObjectToPrimitiveTextCast is ExplicitCastOpcode
+    JavaBytecodeOpcodes opcodes
+
+    action Write
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        VisitLineNumber()
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            opcodeToCast:Write()
+        end
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "java/lang/Boolean", "ConvertObjectToString",
+                "(LLibraries/Language/Object$Interface;)Ljava/lang/String;", false)
+    end
+    
+    action WriteJavaScript returns text
+        return ""
+    end
+
+    action GetTemplateCopy returns QuorumOpcode
+        ObjectToPrimitiveTextCast op
+        op:SetType(me:GetType())
+        return op
+    end
+end

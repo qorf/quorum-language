@@ -263,6 +263,9 @@ class Parser is QuorumSourceListener
         act:SetParentClass(currentClass)
         currentAction:SetName("on create")
         currentAction:SetLocation(context:GetLocation())
+        Type type
+        type:SetToVoid()
+        act:SetReturnType(type)
         
         if currentClass:GetConstructor() not= undefined
             CompilerError error

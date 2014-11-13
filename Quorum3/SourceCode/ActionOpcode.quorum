@@ -16,7 +16,11 @@ class ActionOpcode is QuorumOpcode
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
-        //no need to write to children, because this can't be called in a constructor
+        Iterator<QuorumOpcode> it = opcodeList:GetIterator()
+        repeat while it:HasNext()
+            QuorumOpcode op = it:Next()
+            op:SetMethodWriterToAllChildren(writer)
+        end
     end
 
     action GetAction returns Action

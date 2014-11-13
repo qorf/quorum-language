@@ -389,6 +389,10 @@ class Class is Symbol
                 b:AssignBytecodeLocations()
             end
         end
+        if constructor not= undefined
+            Block b = constructor:GetBlock()
+            b:AssignBytecodeLocations()
+        end
     end
 
     private action ResolveBlock(Block block, SymbolTable table, CompilerErrorManager errors)
