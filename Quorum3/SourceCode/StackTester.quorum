@@ -1,0 +1,191 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.QuorumJarGenerator
+use Libraries.System.StackTraceItem
+
+class StackTester 
+    CompilerTestSuite suite = undefined
+    text path = "Library/Tests/Stack/"
+    text passPath = path + "Pass/"
+    text failPath = path + "Fail/"
+    
+    action Test
+    //PASS TESTS
+        path = passPath
+        Add()
+        Contains()
+        Copy()
+        Empty()
+        IsEmpty()
+        Iterator()
+        Peek()
+        Pop()
+        Push()
+        RemoveAll()
+        RemoveValue()
+        Size()
+        
+    //FAIL TESTS
+        path = failPath
+    end
+
+    action GetName returns text
+        return "Stack Tests"
+    end
+
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+    action Add
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "Add.quorum")
+            files:Add(main)
+            results:Add(0, "FiveFourThreeTwoOne")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action Contains
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "Contains.quorum")
+            files:Add(main)
+            results:Add(0, "true")
+            results:Add(1, "false")
+            results:Add(2, "true")
+            results:Add(3, "false")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action Copy
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "Copy.quorum")
+            files:Add(main)
+            results:Add(0, "FiveFourThreeTwoOne")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action Empty
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "Empty.quorum")
+            files:Add(main)
+            results:Add(0, "FiveFourThreeTwoOne")
+            results:Add(1, "true")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action IsEmpty
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "IsEmpty.quorum")
+            files:Add(main)
+            results:Add(0, "false")
+            results:Add(1, "true")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action Iterator
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "Iterator.quorum")
+            files:Add(main)
+            results:Add(0, "OneTwoThreeFourFiveSixSeven")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action Peek
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "Peek.quorum")
+            files:Add(main)
+            results:Add(0, "Five")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action Pop
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "Pop.quorum")
+            files:Add(main)
+            results:Add(0, "Six")
+            results:Add(1, "Five")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action Push
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "Push.quorum")
+            files:Add(main)
+            results:Add(0, "FiveFourThreeTwoOne")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action RemoveAll
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "RemoveAll.quorum")
+            files:Add(main)
+            results:Add(0, "SixFiveFourTwo")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action RemoveValue
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "RemoveValue.quorum")
+            files:Add(main)
+            results:Add(0, "FiveFourTwoOne")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action Size
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "Size.quorum")
+            files:Add(main)
+            results:Add(0, "5")
+            results:Add(1, "4")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    //FAIL TESTS
+
+end
