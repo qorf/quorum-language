@@ -1,0 +1,39 @@
+use Libraries.Containers.Stack
+
+/**
+ * Uses:
+ * action AddToTop( Type value )
+ * action IsEmpty() returns boolean
+**/
+
+/**
+ * Description:
+ * this test case tests the IsEmpty action.
+**/
+
+/**
+ * Expected Results:
+ * bool1 = false
+ * bool2 = true
+**/
+
+/*
+ * @author Elliot Motl
+*/
+class Main
+    action Main
+       Stack<text> s1
+       Stack<text> s2
+       s1:Push("One")
+       s1:Push("Two")
+       s1:Push("Three")
+       s1:Push("Four")
+       s1:Push("Five")
+
+       boolean bool1 = s1:IsEmpty()
+       boolean bool2 = s2:IsEmpty()
+
+       output bool1
+       output bool2
+    end
+end
