@@ -14,26 +14,23 @@ use Libraries.Containers.Blueprints.Iterator
 
 /**
  * Expected Results:
- * result = "OneTwoThreeFourFiveSixSeven"
+ * result = "7654321"
 **/
 
-/*
- * @author Elliot Motl
-*/
 class Main
     action Main
-       Stack<text> s
+       Stack<integer> s
 
-       s:Add("One")
-       s:Add("Two")
-       s:Add("Three")
-       s:Add("Four")
-       s:Add("Five")
-       s:Add("Six")
-       s:Add("Seven")
+       s:Add(1)
+       s:Add(2)
+       s:Add(3)
+       s:Add(4)
+       s:Add(5)
+       s:Add(6)
+       s:Add(7)
 
        text result = ""
-       Iterator<text> it = s:GetIterator()
+       Iterator<integer> it = s:GetIterator()
        repeat while it:HasNext()
             result = result + it:Next()
        end
