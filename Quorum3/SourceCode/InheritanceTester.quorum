@@ -11,30 +11,36 @@ use Libraries.System.StackTraceItem
 
 class InheritanceTester 
     CompilerTestSuite suite = undefined
+    text path = "Library/Tests/Inheritance/"
+    text passPath = path + "Pass/"
+    text failPath = path + "Fail/"
 
     action Test
-        //AssignToParentsVariable()
-        //CallInheritedAction()
-        //CallMethodCallingBlueprint()
-        //DerivedCall()
-        //DogMain()
-        //InheritedTemplatedMethods()
-        //MultipleInheritanceCallingAmbiguousBlueprints()
-        //ParentActionCall()
-        //ParentCallingBlueprint()
-        //ParentFullyQualified()
-        //SimpleCast()
-        //SingleInheritanceParentsHaveFoo()
-        //SingleInheritanceSimpleOneLayer()
-        //SystemActionInherit()
-        //TruckMain()
+//PASS TESTS
+        path = passPath
+        AssignToParentsVariable()
+        CallInheritedAction()
+        CallMethodCallingBlueprint()
+        CallMethodCallingInheritedBlueprint()
+        DerivedCall()
+        DogMain()
+        InheritedTemplatedMethods()
+        InstanceOverloadingMain()
+        MultipleInheritanceCallingAmbiguousBlueprints()
+        ParentActionCall()
+        ParentFullyQualified()
+        SimpleCast()
+        SystemActionInherit()
+        TruckMain()
         //InheritanceOverloading()
 //Tests in InheritanceTester.java that need to be implemented
 //MultipleInheritanceBlueprints
 //MultipleInheritanceCallingInheritedBlueprints
         
-        //FAIL tests
-        //MultipleInheritanceAmbiguousMethod  
+//FAIL tests
+        path = failPath
+        MultipleInheritanceAmbiguousMethod()
+        CircularInheritance()
 
     end
 
@@ -51,89 +57,292 @@ class InheritanceTester
     end
 
     action AssignToParentsVariable 
-        suite:RunTest("Library/Tests/Inheritance/Pass/AssignToParentsVariable.quorum", "6", "5", "117", "117")
-        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/AssignToParentsVariable.quorum", "6", "5", "117", "117")
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        main:SetPath(path + "AssignToParentsVariable.quorum")
+        dependent1:SetPath(path + "Test1.quorum")
+        dependent2:SetPath(path + "Test2.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "6")
+        results:Add(1, "5")
+        results:Add(2, "117")
+        results:Add(3, "117")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action CallInheritedAction 
-        suite:RunTest("Library/Tests/Inheritance/Pass/CallInheritedAction.quorum", "implemented by A", "implemented by B", "implemented by B")
-        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/CallInheritedAction.quorum", "implemented by A", "implemented by B", "implemented by B")
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "CallInheritedAction.quorum")
+        dependent1:SetPath(path + "A.quorum")
+        dependent2:SetPath(path + "B.quorum")
+        dependent3:SetPath(path + "C.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "implemented by A")
+        results:Add(1, "implemented by B")
+        results:Add(2, "implemented by B")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action CallMethodCallingBlueprint
-        suite:RunTest("Library/Tests/Inheritance/Pass/CallMethodCallingBlueprint.quorum", "child")
-        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/CallMethodCallingBlueprint.quorum", "child")
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        main:SetPath(path + "CallMethodCallingBlueprint.quorum")
+        dependent1:SetPath(path + "ParentCallingBlueprint.quorum")
+        dependent2:SetPath(path + "ChildImplementingBlueprint.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "child")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action CallMethodCallingInheritedBlueprint
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "CallMethodCallingInheritedBlueprint.quorum")
+        dependent1:SetPath(path + "ParentCallingBlueprint.quorum")
+        dependent2:SetPath(path + "ChildCallingBlueprint.quorum")
+        dependent3:SetPath(path + "GrandChildImplementingBlueprint.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        results:Add(0, "grandchild")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action DerivedCall 
-        suite:RunTest("Library/Tests/Inheritance/Pass/DerivedCall.quorum", "This is We Win.")
-        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/DerivedCall.quorum", "This is We Win.")
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        main:SetPath(path + "DerivedCall.quorum")
+        dependent1:SetPath(path + "Test.quorum")
+        dependent2:SetPath(path + "Kid.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "This is We Win.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action DogMain 
-        suite:RunTest("Library/Tests/Inheritance/Pass/DogMain.quorum", "true", "true")
-        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/DogMain.quorum", "true", "true")
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        main:SetPath(path + "DogMain.quorum")
+        dependent1:SetPath(path + "Dog.quorum")
+        dependent2:SetPath(path + "Mammal.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "true")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action InheritedTemplatedMethods 
-        suite:RunTest("Library/Tests/Inheritance/Pass/InheritedTemplatedMethods.quorum", "true", "true" , "1.2", "10")
-        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/InheritedTemplatedMethods.quorum", "true", "true" , "1.2", "10")
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        File dependent4
+        main:SetPath(path + "InheritedTemplatedMethods.quorum")
+        dependent1:SetPath(path + "ATemplated.quorum")
+        dependent2:SetPath(path + "BTemplated.quorum")
+        dependent3:SetPath(path + "CTemplated.quorum")
+        dependent4:SetPath(path + "DTemplated.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        files:Add(dependent4)
+        results:Add(0, "true")
+        results:Add(1, "true")
+        results:Add(2, "1.2")
+        results:Add(3, "10")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action InstanceOverloadingMain 
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        main:SetPath(path + "InstanceOverloadingMain.quorum")
+        dependent1:SetPath(path + "InstanceOverloadingA.quorum")
+        dependent2:SetPath(path + "InstanceOverloadingB.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "Class")
+        results:Add(1, "SubClass")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action MultipleInheritanceCallingAmbiguousBlueprints 
-        suite:RunTest("Library/Tests/Inheritance/Pass/MultipleInheritanceCallingAmbiguousBlueprints.quorum", "grandchild")
-        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/MultipleInheritanceCallingAmbiguousBlueprints.quorum", "grandchild")
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        File dependent4
+        main:SetPath(path + "MultipleInheritanceCallingAmbiguousBlueprints.quorum")
+        dependent1:SetPath(path + "ParentCallingBlueprint.quorum")
+        dependent2:SetPath(path + "Aunt.quorum")
+        dependent3:SetPath(path + "ChildInheritingBlueprintAction.quorum")
+        dependent4:SetPath(path + "GrandChildWithMultiple.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        files:Add(dependent4)
+        results:Add(0, "grandchild")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ParentActionCall 
-       suite:RunTest("Library/Tests/Inheritance/Pass/ParentActionCall.quorum", "")
-       //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/ParentActionCall.quorum", "")
+        Array<File> files
+        Array<Text> results
+        File main
+        main:SetPath(path + "ParentActionCall.quorum")
+        files:Add(main)
+        results:Add(0, "success")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
-
-    action ParentCallingBlueprint 
-       suite:RunTest("Library/Tests/Inheritance/Pass/ParentActionCall.quorum", "child")
-       //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/ParentActionCall.quorum", "child")
-    end
-
+   
     action ParentFullyQualified 
-       suite:RunTest("Library/Tests/Inheritance/Pass/ParentFullyQualified.quorum", "")
-       //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/ParentFullyQualified.quorum", "")
+        Array<File> files
+        Array<Text> results
+        File main
+        main:SetPath(path + "ParentFullyQualified.quorum")
+        files:Add(main)
+        results:Add(0, "success")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action SimpleCast 
-        suite:RunTest("Library/Tests/Inheritance/Pass/SimpleCast.quorum", "Implemented by B")
-        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/SimpleCast.quorum", "Implemented by B")
-    end
-
-    action SingleInheritanceParentsHaveFoo 
-        suite:RunTest("Library/Tests/Inheritance/Pass/SingleInheritanceParentsHaveFoo.quorum", "")
-        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/SingleInheritanceParentsHaveFoo.quorum", "")
-    end
-
-    action SingleInheritanceSimpleOneLayer 
-        suite:RunTest("Library/Tests/Inheritance/Pass/SingleInheritanceSimpleOneLayer.quorum", "")
-        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/SingleInheritanceSimpleOneLayer.quorum", "")
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "SimpleCast.quorum")
+        dependent1:SetPath(path + "A.quorum")
+        dependent2:SetPath(path + "B.quorum")
+        dependent3:SetPath(path + "C.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "implemented by B")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action SystemActionInherit 
-        suite:RunTest("Library/Tests/Inheritance/Pass/SystemActionInherit.quorum", "")
-        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/SystemActionInherit.quorum", "")
+        Array<File> files
+        Array<Text> results
+        File main
+        main:SetPath(path + "SystemActionInherit.quorum")
+        files:Add(main)
+        results:Add(0, "success")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TruckMain 
-        suite:RunTest("Library/Tests/Inheritance/Pass/TruckMain.quorum", "Number of wheels: 4", "Size of gas tank (gallons): 20")
-        //suite:RunJavaScriptTest("Library/Tests/Inheritance/Pass/TruckMain.quorum", "Number of wheels: 4", "Size of gas tank (gallons): 20")
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "TruckMain.quorum")
+        dependent1:SetPath(path + "LandVehicle.quorum")
+        dependent2:SetPath(path + "GasPoweredVehicle.quorum")
+        dependent3:SetPath(path + "Truck.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "Number of wheels: 4")
+        results:Add(1, "Size of gas tank (gallons): 20")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
-    action InheritanceOverloading   
-        suite:RunTest("Library/Tests/Inheritance/Pass/InheritanceOverloadingMain.quorum", "SubClass")
-    end
-
-    //FAIL Tests
-
+//FAIL Tests
     action MultipleInheritanceAmbiguousMethod 
-        suite:RunTestFail("Library/Tests/Inheritance/Fail/MultipleInheritanceAmbiguousMethod.quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/Inheritance/Fail/MultipleInheritanceAmbiguousMethod.quorum", "")
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "MultipleInheritanceAmbiguousMethod.quorum")
+        dependent1:SetPath(path + "A.quorum")
+        dependent2:SetPath(path + "B.quorum")
+        dependent3:SetPath(path + "C.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action CircularInheritance 
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "CircularInheritance.quorum")
+        dependent1:SetPath(path + "D.quorum")
+        dependent2:SetPath(path + "E.quorum")
+        dependent3:SetPath(path + "F.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
 end
