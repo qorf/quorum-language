@@ -18,18 +18,30 @@ class StackTester
     action Test
     //PASS TESTS
         path = passPath
-        Add()
-        Contains()
-        Copy()
-        Empty()
-        IsEmpty()
-        Iterator()
-        Peek()
-        Pop()
-        Push()
-        RemoveAll()
-        RemoveValue()
-        Size()
+        AddInt()
+        AddText()
+        ContainsInt()
+        ContainsText()
+        CopyInt()
+        CopyText()
+        EmptyInt()
+        EmptyText()
+        IsEmptyInt()
+        IsEmptyText()
+        IteratorInt()
+        IteratorText()
+        PeekInt()
+        PeekText()
+        PopInt()
+        PopText()
+        PushInt()
+        PushText()
+        RemoveAllInt()
+        RemoveAllText()
+        RemoveValueInt()
+        RemoveValueText()
+        SizeInt()
+        SizeText()
         
     //FAIL TESTS
         path = failPath
@@ -47,22 +59,33 @@ class StackTester
         me:suite = suite
     end
 
-    action Add
+    action AddInt
             Array<File> files
             Array<text> results
             File main
-            main:SetPath(path + "Add.quorum")
+            main:SetPath(path + "AddInt.quorum")
+            files:Add(main)
+            results:Add(0, "54321")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action AddText
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "AddText.quorum")
             files:Add(main)
             results:Add(0, "FiveFourThreeTwoOne")
             suite:Test(files, results)
             suite:TestJavaScript(files, results)
     end
 
-    action Contains
+    action ContainsInt
             Array<File> files
             Array<text> results
             File main
-            main:SetPath(path + "Contains.quorum")
+            main:SetPath(path + "ContainsInt.quorum")
             files:Add(main)
             results:Add(0, "true")
             results:Add(1, "false")
@@ -72,22 +95,59 @@ class StackTester
             suite:TestJavaScript(files, results)
     end
 
-    action Copy
+    action ContainsText
             Array<File> files
             Array<text> results
             File main
-            main:SetPath(path + "Copy.quorum")
+            main:SetPath(path + "ContainsText.quorum")
+            files:Add(main)
+            results:Add(0, "true")
+            results:Add(1, "false")
+            results:Add(2, "true")
+            results:Add(3, "false")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action CopyInt
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "CopyInt.quorum")
+            files:Add(main)
+            results:Add(0, "54321")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action CopyText
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "CopyText.quorum")
             files:Add(main)
             results:Add(0, "FiveFourThreeTwoOne")
             suite:Test(files, results)
             suite:TestJavaScript(files, results)
     end
 
-    action Empty
+    action EmptyInt
             Array<File> files
             Array<text> results
             File main
-            main:SetPath(path + "Empty.quorum")
+            main:SetPath(path + "EmptyInt.quorum")
+            files:Add(main)
+            results:Add(0, "54321")
+            results:Add(1, "true")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action EmptyText
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "EmptyText.quorum")
             files:Add(main)
             results:Add(0, "FiveFourThreeTwoOne")
             results:Add(1, "true")
@@ -95,11 +155,11 @@ class StackTester
             suite:TestJavaScript(files, results)
     end
 
-    action IsEmpty
+    action IsEmptyInt
             Array<File> files
             Array<text> results
             File main
-            main:SetPath(path + "IsEmpty.quorum")
+            main:SetPath(path + "IsEmptyInt.quorum")
             files:Add(main)
             results:Add(0, "false")
             results:Add(1, "true")
@@ -107,33 +167,79 @@ class StackTester
             suite:TestJavaScript(files, results)
     end
 
-    action Iterator
+    action IsEmptyText
             Array<File> files
             Array<text> results
             File main
-            main:SetPath(path + "Iterator.quorum")
+            main:SetPath(path + "IsEmptyText.quorum")
             files:Add(main)
-            results:Add(0, "OneTwoThreeFourFiveSixSeven")
+            results:Add(0, "false")
+            results:Add(1, "true")
             suite:Test(files, results)
             suite:TestJavaScript(files, results)
     end
 
-    action Peek
+    action IteratorInt
             Array<File> files
             Array<text> results
             File main
-            main:SetPath(path + "Peek.quorum")
+            main:SetPath(path + "IteratorInt.quorum")
+            files:Add(main)
+            results:Add(0, "7654321")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action IteratorText
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "IteratorText.quorum")
+            files:Add(main)
+            results:Add(0, "SevenSixFiveFourThreeTwoOne")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action PeekInt
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "PeekInt.quorum")
+            files:Add(main)
+            results:Add(0, "5")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action PeekText
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "PeekText.quorum")
             files:Add(main)
             results:Add(0, "Five")
             suite:Test(files, results)
             suite:TestJavaScript(files, results)
     end
 
-    action Pop
+    action PopInt
             Array<File> files
             Array<text> results
             File main
-            main:SetPath(path + "Pop.quorum")
+            main:SetPath(path + "PopInt.quorum")
+            files:Add(main)
+            results:Add(0, "6")
+            results:Add(1, "5")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action PopText
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "PopText.quorum")
             files:Add(main)
             results:Add(0, "Six")
             results:Add(1, "Five")
@@ -141,44 +247,90 @@ class StackTester
             suite:TestJavaScript(files, results)
     end
 
-    action Push
+    action PushInt
             Array<File> files
             Array<text> results
             File main
-            main:SetPath(path + "Push.quorum")
+            main:SetPath(path + "PushInt.quorum")
+            files:Add(main)
+            results:Add(0, "54321")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+
+    action PushText
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "PushText.quorum")
             files:Add(main)
             results:Add(0, "FiveFourThreeTwoOne")
             suite:Test(files, results)
             suite:TestJavaScript(files, results)
     end
 
-    action RemoveAll
+    action RemoveAllInt
             Array<File> files
             Array<text> results
             File main
-            main:SetPath(path + "RemoveAll.quorum")
+            main:SetPath(path + "RemoveAllInt.quorum")
+            files:Add(main)
+            results:Add(0, "6542")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action RemoveAllText
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "RemoveAllText.quorum")
             files:Add(main)
             results:Add(0, "SixFiveFourTwo")
             suite:Test(files, results)
             suite:TestJavaScript(files, results)
     end
 
-    action RemoveValue
+    action RemoveValueInt
             Array<File> files
             Array<text> results
             File main
-            main:SetPath(path + "RemoveValue.quorum")
+            main:SetPath(path + "RemoveValueInt.quorum")
+            files:Add(main)
+            results:Add(0, "5421")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action RemoveValueText
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "RemoveValueText.quorum")
             files:Add(main)
             results:Add(0, "FiveFourTwoOne")
             suite:Test(files, results)
             suite:TestJavaScript(files, results)
     end
 
-    action Size
+    action SizeInt
             Array<File> files
             Array<text> results
             File main
-            main:SetPath(path + "Size.quorum")
+            main:SetPath(path + "SizeInt.quorum")
+            files:Add(main)
+            results:Add(0, "5")
+            results:Add(1, "4")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action SizeText
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "SizeText.quorum")
             files:Add(main)
             results:Add(0, "5")
             results:Add(1, "4")
