@@ -1,0 +1,53 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.QuorumJarGenerator
+use Libraries.System.StackTraceItem
+
+class ArrayTester 
+    CompilerTestSuite suite = undefined
+    text path = "Library/Tests/ArrayTester/"
+    text passPath = path + "Pass/"
+    text failPath = path + "Fail/"
+
+    action Test
+        path = passPath
+
+//FAIL TESTS
+        path = failPath
+    end
+
+    action GetName returns text
+        return "Array Tests"
+    end
+
+    action Sample
+        Array<File> files
+        Array<text> results
+        File main
+        File dependent1
+        main:SetPath(path + "Sample.quorum")
+        dependent1:SetPath(path + "Sample.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action SampleFail
+        Array<File> files
+        File main
+        main:SetPath(path + "SampleFail.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+end
+
