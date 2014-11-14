@@ -1,6 +1,9 @@
 class Main
     action main
-        integer result = me:GetHashCode()
-        output result
+        integer result = 0
+        result = me:GetHashCode()
+        if result not= 0
+            output "success"
+        end
     end
 end
