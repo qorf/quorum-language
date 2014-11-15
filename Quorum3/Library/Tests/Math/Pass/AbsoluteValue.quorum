@@ -6,8 +6,14 @@ use Libraries.Compute.Math
 class Main
     action Main
        Math math
-       number result = math:AbsoluteValue(-1)
+       number result1 = math:AbsoluteValue(-1)
+       number result2 = math:AbsoluteValue(1)
+       integer result3 = math:AbsoluteValue(-1)
+       integer result4 = math:AbsoluteValue(1)
 
-       output result
+       output result1
+       output result2
+       output result3
+       output result4
     end
 end

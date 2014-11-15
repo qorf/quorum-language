@@ -12,7 +12,9 @@ use Libraries.Compute.Math
 
 /**
  * Expected Results:
- * result = 0.69897
+ * result1 = 0.69897
+ * result2 = 2.0
+ * result3 = 0.90309
 **/
 
 /*
@@ -21,7 +23,11 @@ use Libraries.Compute.Math
 class Main
     action Main
         Math math
-        number result = math:Round(math:Logarithm(5.0),5)
-        output result
+        number result1 = math:Round(math:Logarithm(5.0),5)
+        number result2 = math:Round(math:Logarithm(100.0),5)
+        number result3 = math:Round(math:Logarithm(8.0),5)
+        output result1
+        output result2
+        output result3
     end
 end

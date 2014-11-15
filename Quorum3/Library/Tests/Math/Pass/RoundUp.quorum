@@ -15,13 +15,15 @@ use Libraries.Compute.Math
  * result = 3.0
 **/
 
-/*
- * @author James Daniel
-*/
 class Main
     action Main
         Math math
         number result = math:Round(2.96)
         output result
+        output round(math:pi, 1)
+        output round(math:pi, 2)
+        output round(math:pi, 3)
+        output round(math:pi, 4)
+        output round(math:pi, 5)
     end
 end
