@@ -1,0 +1,329 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.QuorumJarGenerator
+use Libraries.System.StackTraceItem
+
+class MathTester
+    CompilerTestSuite suite = undefined
+    text path = "Library/Tests/Math/"
+    text passPath = path + "Pass/"
+    text failPath = path + "Fail/"
+
+    action Test
+        path = passPath
+        AbsoluteValue()
+        Cosine()
+        HyperbolicCosine()
+        HyperbolicSine()
+        HyperbolicTangent()
+        InverseCosine()
+        InverseHyperbolicCosine()
+        InverseHyperbolicSine()
+        InverseHyperbolicTangent()
+        Logarithm()
+        NaturalLogarithm()
+        RaiseToPower()
+        RoundDown()
+        RoundDownToDecimal()
+        RoundUp()
+        RoundUpToDecimal()
+        Sine()
+        SquareRoot()
+        Tangent()
+
+//FAIL TESTS
+        path = failPath
+    end
+
+    action GetName returns text
+        return "Math Tests"
+    end
+
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+    action AbsoluteValue
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AbsoluteValue.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "1.0")
+        results:Add(1, "1.0")
+        results:Add(2, "1")
+        results:Add(3, "1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Cosine
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Cosine.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "87758")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action HyperbolicCosine
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "HyperbolicCosine.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "1.12763")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action HyperbolicSine
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "HyperbolicSine.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "0.5211")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action HyperbolicTangent
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "HyperbolicTangent.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "0.46212")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action InverseCosine
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "InverseCosine.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "1.0472")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action InverseHyperbolicCosine
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "InverseHyperbolicCosine.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "1.31696")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action InverseHyperbolicSine
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "InverseHyperbolicSine.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "0.88137")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action InverseHyperbolicTangent
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "InverseHyperbolicTangent.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "1.31696")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action InverseSine
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "InverseSine.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "0.5236")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action InverseTangent
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "InverseTangent.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "0.46365")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Logarithm
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Logarithm.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "0.69897")
+        results:Add(1, "2.0")
+        results:Add(2, "0.90309")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action NaturalLogarithm
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NaturalLogarithm.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "1.60944")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action RaiseToPower
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RaiseToPower.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "9.0")
+        results:Add(1, "27.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action RoundDown
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RoundDown.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "3.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action RoundDownToDecimal
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RoundDownToDecimal.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "3.5")
+        results:Add(1, "3.6")
+        results:Add(2, "3.1")
+        results:Add(3, "3.14")
+        results:Add(4, "3.141")
+        results:Add(5, "3.1416")
+        results:Add(6, "3.14159")
+        results:Add(7, "3.141592")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action RoundUp
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RoundUp.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "3.0")
+        results:Add(1, "3.1")
+        results:Add(2, "3.14")
+        results:Add(3, "3.141")
+        results:Add(4, "3.1416")
+        results:Add(5, "3.14159")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action RoundUpToDecimal
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RoundUpToDecimal.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "3.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Sine
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Sine.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "0.47943")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action SquareRoot
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SquareRoot.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "3.0")
+        results:Add(1, "1.4142135623730951")
+        results:Add(1, "1.414")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Tangent
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Tangent.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "0.5463")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+end
+
