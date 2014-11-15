@@ -101,6 +101,7 @@ class ActionsTester
         path = failPath
 //        ActionLetter()
 //        ActionOutside()
+        HOCUndefinedVariable()
         IncorrectAssignment()
 //        InvalidActionNumber()
 //        InvalidActionSymbol1()
@@ -864,6 +865,15 @@ class ActionsTester
         Array<File> files
         File main
         main:SetPath(path + "ActionOutside.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action HOCUndefinedVariable
+        Array<File> files
+        File main
+        main:SetPath(path + "HOCUndefinedVariable.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
