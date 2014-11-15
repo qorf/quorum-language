@@ -29,6 +29,9 @@ class CompilerTestSuite
     InheritanceTester inheritanceChecks
     TemplatingTester templatingChecks
     ExceptionTester exceptionChecks
+    ArrayTester arrayChecks
+    StackTester stackChecks
+    MathTester mathChecks
 
     on create
         expressions:SetCompilerTestSuite(me)
@@ -39,6 +42,9 @@ class CompilerTestSuite
         inheritanceChecks:SetCompilerTestSuite(me)
         templatingChecks:SetCompilerTestSuite(me)
         exceptionChecks:SetCompilerTestSuite(me)
+        arrayChecks:SetCompilerTestSuite(me)
+        stackChecks:SetCompilerTestSuite(me)
+        mathChecks:SetCompilerTestSuite(me)
     end
 
     action Main
@@ -48,28 +54,37 @@ class CompilerTestSuite
         output ""
         output "List of Tests:"
         output expressions:GetName()
-        expressions:Test()
+//        expressions:Test()
         output ""
         output typeChecks:GetName()
-        typeChecks:Test()
+//        typeChecks:Test()
         output ""
         output ifStatementChecks:GetName()
-        ifStatementChecks:Test()
+//        ifStatementChecks:Test()
         output ""
         output loopsChecks:GetName()
-        loopsChecks:Test()
+//        loopsChecks:Test()
         output ""
         output actionsChecks:GetName()
-        actionsChecks:Test()
+//        actionsChecks:Test()
         output ""
         output inheritanceChecks:GetName()
-        inheritanceChecks:Test()
+//        inheritanceChecks:Test()
         output ""
         output templatingChecks:GetName()
-        //templatingChecks:Test()
+//        templatingChecks:Test()
         output ""
         output exceptionChecks:GetName()
-        //exceptionChecks:Test()
+        exceptionChecks:Test()
+        output ""
+        output arrayChecks:GetName()
+//        arrayChecks:Test()
+        output ""
+        output stackChecks:GetName()
+//        stackChecks:Test()
+        output ""
+        output mathChecks:GetName()
+        mathChecks:Test()
         output ""
 
         text EOL = ""

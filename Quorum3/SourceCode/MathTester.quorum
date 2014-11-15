@@ -59,7 +59,6 @@ class MathTester
         File main
         main:SetPath(path + "AbsoluteValue.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "1.0")
         results:Add(1, "1.0")
         results:Add(2, "1")
@@ -74,7 +73,6 @@ class MathTester
         File main
         main:SetPath(path + "Cosine.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "87758")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -86,7 +84,6 @@ class MathTester
         File main
         main:SetPath(path + "HyperbolicCosine.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "1.12763")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -98,7 +95,6 @@ class MathTester
         File main
         main:SetPath(path + "HyperbolicSine.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "0.5211")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -110,7 +106,6 @@ class MathTester
         File main
         main:SetPath(path + "HyperbolicTangent.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "0.46212")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -122,7 +117,6 @@ class MathTester
         File main
         main:SetPath(path + "InverseCosine.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "1.0472")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -134,7 +128,6 @@ class MathTester
         File main
         main:SetPath(path + "InverseHyperbolicCosine.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "1.31696")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -146,7 +139,6 @@ class MathTester
         File main
         main:SetPath(path + "InverseHyperbolicSine.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "0.88137")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -158,7 +150,6 @@ class MathTester
         File main
         main:SetPath(path + "InverseHyperbolicTangent.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "1.31696")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -170,7 +161,6 @@ class MathTester
         File main
         main:SetPath(path + "InverseSine.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "0.5236")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -182,7 +172,6 @@ class MathTester
         File main
         main:SetPath(path + "InverseTangent.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "0.46365")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -194,7 +183,6 @@ class MathTester
         File main
         main:SetPath(path + "Logarithm.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "0.69897")
         results:Add(1, "2.0")
         results:Add(2, "0.90309")
@@ -208,7 +196,6 @@ class MathTester
         File main
         main:SetPath(path + "NaturalLogarithm.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "1.60944")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -220,7 +207,6 @@ class MathTester
         File main
         main:SetPath(path + "RaiseToPower.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "9.0")
         results:Add(1, "27.0")
         suite:Test(files, results)
@@ -233,7 +219,6 @@ class MathTester
         File main
         main:SetPath(path + "RoundDown.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "3.0")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -245,7 +230,6 @@ class MathTester
         File main
         main:SetPath(path + "RoundDownToDecimal.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "3.5")
         results:Add(1, "3.6")
         results:Add(2, "3.1")
@@ -264,7 +248,6 @@ class MathTester
         File main
         main:SetPath(path + "RoundUp.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "3.0")
         results:Add(1, "3.1")
         results:Add(2, "3.14")
@@ -281,7 +264,6 @@ class MathTester
         File main
         main:SetPath(path + "RoundUpToDecimal.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "3.0")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -293,7 +275,6 @@ class MathTester
         File main
         main:SetPath(path + "Sine.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "0.47943")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -305,7 +286,6 @@ class MathTester
         File main
         main:SetPath(path + "SquareRoot.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "3.0")
         results:Add(1, "1.4142135623730951")
         results:Add(1, "1.414")
@@ -319,7 +299,6 @@ class MathTester
         File main
         main:SetPath(path + "Tangent.quorum")
         files:Add(main)
-        files:Add(dependent1)
         results:Add(0, "0.5463")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
