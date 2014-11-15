@@ -1,5 +1,5 @@
-<div id="IDE" class="small-IDE">
-<h1>Try Quorum!<span class="IDE-subtitle small-IDE-subtitle">Enter Quorum code below and press "Run" to execute it</span></h1>
+<main id="IDE" class="small-IDE">
+        <h1>Try Quorum!</h1><p class="IDE-subtitle small-IDE-subtitle">Enter Quorum code below and press "Run" to execute it</p>
     <label for="IDE-input" class="hidden">Code Area</label>
     <textarea id="IDE-input" class="ide inputArea small-IDE-input" role="textbox" aria-multiline="true"></textarea>
     <button id="run-button" class="btn btn-success" href="#">Run</button>
@@ -9,4 +9,4 @@
         </div>
            
         
-</div>
+</main>

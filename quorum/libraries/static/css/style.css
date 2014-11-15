@@ -1,5 +1,45 @@
 /*Evan's additions (mostly Hour of Code and accessibility related)*/
 
+#HOC-banner {
+    position: relative;
+    width: 100%;
+    opacity: 0.65;
+    margin: 10px 0;
+    box-shadow: 0 1px 4px #333333;
+    border-radius: 12px;
+    background: none repeat scroll 0 0 #eeeeee;
+    text-align: center;
+    transition-timing-function: ease-in;
+}
+
+#HOC-banner:hover {
+    transition-duration: .2s;
+    opacity: 1;
+}
+
+#HOC-banner-a {
+    display: inline-block;
+    height: 220px;
+    width: 100%;
+    color: #333333;
+    text-decoration: none;
+}
+
+#HOC-banner img {
+    margin-top: 10px;
+    margin-bottom: -10px;
+}
+
+h4.sub-heading {
+    color: #deedee;
+    text-shadow: 1px 1px 10px #025577;
+    font-weight: 200;
+    display: inline-block;
+    vertical-align: top;
+    line-height: 30px;
+    margin-top: 0;
+}
+
 #pageTitle {
     display: block;
     font-size: 60px;
@@ -38,7 +78,7 @@ nav li a {
 }
 
 .search-box-small input.search-query {
-  width: 230px !important;
+  width: 210px !important;
 }
 
 .tileContainer {
@@ -53,6 +93,7 @@ nav li a {
 }
 .tileContainer li {
     display: inline-block;
+    position: relative;
 }
 
 .tile {
@@ -72,6 +113,8 @@ nav li a {
     line-height: 1.25em;
     /*text-shadow: 1px 1px 1px #022a3b;*/
     box-shadow: 0 3px 10px #999999;
+    border-radius: 12px;
+    transition-timing-function: ease-in;
 }
 
 .tile:hover {
@@ -314,32 +357,7 @@ nav li a {
     cursor: default !important;
 }
 
-.front-page-grid-item {
-    background: none repeat scroll 0 0 #eeeeee;
-    border-radius: 0 !important;
-    box-shadow: 0 1px 4px #333333;
-    cursor: pointer;
-    float: left;
-    height: 220px;
-    margin: 10px 0 !important;
-    opacity: 0.65;
-    position: relative !important;
-    transition: background 0.2s ease-in 0s;
-    width: 100% !important;
-}
 
-.front-page-grid-item i {
-    margin: 0 auto !important;
-}
-
-.front-page-grid-item a {
-    text-decoration: none;
-    color: #333;
-}
-
-.front-page-grid-item a:hover {
-    color: #333;
-}
 
 //syntax page
 
@@ -359,6 +377,44 @@ nav li a {
     background: #EEEEEE;
     overflow: hidden;
     position: relative;
+    
+}
+
+.front-page-IDE {
+    float: right;
+    width:40%;
+    height:535px;
+    margin-left: 0.5%;
+}
+
+.front-page-IDE button {
+    top: 425px !important;
+}
+
+#front-page-IDE-input {
+    display: block;
+    position: relative;
+    resize:none;
+    font-family: Menlo, monospace;
+    text-align: left;
+    overflow: scroll;
+    overflow-y: scroll;
+    overflow-x: hidden;	
+    overflow:-moz-scrollbars-vertical;
+    border-radius: 0;
+    border-right: none;
+    border-left: none;
+    border-bottom: solid 1px lightgrey;
+    margin: 0;
+    padding-bottom: 0;
+    overflow: auto;
+    width: 100%;
+    min-height:350px;
+}
+
+.front-page-IDE-output {
+    height: 122px;
+    width: 100%;
 }
 
 .small-IDE {
@@ -400,9 +456,12 @@ nav li a {
     display: inline-block;
     line-height: 20px;
     margin: 0;
-    position: relative;
-    top: 10px;
+    padding-left: 10px; 
     text-shadow: 0 0 0;
+    background-color: #0694d0;
+    width: 100%;
+    padding-bottom: 4px;
+    margin-top: -4px;
 }
 
 .small-IDE-subtitle {

@@ -60,8 +60,9 @@
 			<div class="navbar-inner">
 				<div class="navbar-container">
                                     <a class="brand" href="/"><img src="../../../static/img/quorum_logo.png" alt="">Quorum<span class="screenReaderContent"> home page</span></a>
-                                    <h3 class = "screenReaderContent">Navigation</h3>
-					<nav class="nav">
+					<nav>
+                                            <h3 class = "screenReaderContent">Navigation</h3>
+                                            <ul class="nav">
 						<?php
 							createNavBarLink("Download","download.php", 1);
 							createNavBarLink("Reference","syntax.php", 1);
@@ -70,6 +71,7 @@
 							createNavBarLink("Social","https://www.facebook.com/quorumlanguage");
 							createNavBarLink("Bugs","https://quorum.atlassian.net/");
 						?>
+                                            </ul>
 					</nav>
 					
                                         

@@ -64,7 +64,7 @@ Now, to increment our testing variable by one on each pass of the loop, insert a
       <?php include("sidebar.php"); ?><div id="content-box"><div id="slide-navigation"></div>
           <div id="slide-box-wrapper" role="description" aria-live="polite"><button id="leftArrow" class="leftArrow-disabled" aria-hidden="true" aria-label="Previous Slide"></button><div id ="slide-box"></div></div><button id="rightArrow" aria-label="Next Slide"></button>
 </div><?php include ("../../ide.php"); ?><div id="video-container">
-    <iframe width="946" height="710" src="//www.youtube.com/embed/xZJCkKSXmq4?rel=0" frameborder="0" allowfullscreen></iframe>
+    <iframe width="946" height="571" src="//www.youtube.com/embed/xZJCkKSXmq4?rel=0" frameborder="0" allowfullscreen></iframe>
 </div>
 
 <?php require_once("../../static/templates/pagefooter.template.php"); ?>
