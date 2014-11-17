@@ -62,8 +62,8 @@
 
 <div class="hero-unit">
 	<div class="hero-unit-container" role="banner">
-		<h1>Hour of Code: Part 7</h1>
-                <p>The End of the World</p>
+		<h2 id="pageTitle">Hour of Code: Part 7</h2>
+                <h4 class="sub-heading">The End of the World</h4>
 	</div>
 </div>
   <?php include("../../static/templates/contentwrapperheader.template.php"); ?>

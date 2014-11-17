@@ -59,7 +59,7 @@
 		<div class="navbar navbar-inverse navbar-fixed-top">
 			<div class="navbar-inner">
 				<div class="navbar-container">
-                                    <a class="brand" href="/"><img src="../../../static/img/quorum_logo.png" alt="">Quorum<span class="screenReaderContent"> home page</span></a>
+                                    <a class="brand" href="/"><img src="/static/img/quorum_logo.png" alt="">Quorum<span class="screenReaderContent"> home page</span></a>
 					<nav>
                                             <h3 class = "screenReaderContent">Navigation</h3>
                                             <ul class="nav">

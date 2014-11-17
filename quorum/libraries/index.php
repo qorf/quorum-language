@@ -1,6 +1,6 @@
 <?php require_once("static/templates/pageheader.template.php"); ?>
 <div class="hero-unit">
-    <div class="hero-unit-container">
+    <div class="hero-unit-container" role="banner">
         <h2 id="pageTitle">The Quorum Programming Language</h2>
         <h4 class="sub-heading">The world's first <a href="evidence.php">evidence-oriented programming language.</a></h4>
         <h3 class ="screenReaderContent">Facebook Controls</h3>

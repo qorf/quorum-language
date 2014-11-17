@@ -55,8 +55,8 @@ Now, to increment our testing variable by one on each pass of the loop, insert a
 
 <div class="hero-unit">
 	<div class="hero-unit-container" role="banner">
-		<h1>Hour of Code: Part 5</h1>
-                <p>Choose My Clothing!</p>
+		<h2 id="pageTitle">Hour of Code: Part 5</h2>
+                <h4 class="sub-heading">Choose My Clothing!</h4>
 	</div>
 </div>
   <?php include("../../static/templates/contentwrapperheader.template.php"); ?>

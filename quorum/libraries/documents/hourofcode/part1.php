@@ -65,8 +65,8 @@
 
 <div class="hero-unit">
     <div class="hero-unit-container" role="banner">
-        <h1>Hour of Code: Part 1</h1>
-        <p>Got a New Gig</p>
+        <h2 id="pageTitle">Hour of Code: Part 1</h2>
+        <h4 class="sub-heading">Got a New Gig</h4>
     </div>
 </div>
 <?php include("../../static/templates/contentwrapperheader.template.php"); ?>

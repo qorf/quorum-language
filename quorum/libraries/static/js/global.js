@@ -489,6 +489,7 @@ var checkOutput = function(pageNumber, output) {
         output = output.substring(0,15); //to get around any rounding errors
     }
     
+    //Should make this case insensitive
     if (outputArray[pageNumber - 1] == output) {
         //success
         alert("Good Job! You've completed this exercise.");

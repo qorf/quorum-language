@@ -57,8 +57,8 @@
 
 <div class="hero-unit">
 	<div class="hero-unit-container" role="banner">
-		<h1>Hour of Code: Part 4</h1>
-                <p>Clothing Picker</p>
+		<h2 id="pageTitle">Hour of Code: Part 4</h2>
+                <h4 class="sub-heading">Clothing Picker</h4>
 	</div>
 </div>
   <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
