@@ -443,7 +443,7 @@ var submitCodeSample = function(){
 		console.log(codeData);
 		$.ajax({
 			type: "GET",
-			url: "http://beta.quorumlanguage.com/proxy.php",
+			url: "http://quorumlanguage.com/proxy.php",
 			data: codeData,
 			success: function(result){
                             var hadCompilerError = false;
