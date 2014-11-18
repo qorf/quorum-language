@@ -2,7 +2,7 @@
 <div class="hero-unit">
 	<div class="hero-unit-container">
 		<h1>About Quorum</h1>
-		<p>What is the Quorum Programming Language?</p>
+		<p>What is the Quorum project all about?</p>
 	</div>
 </div>
 
