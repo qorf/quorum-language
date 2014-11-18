@@ -1135,9 +1135,23 @@ class TypeChecker
         result = GetSubclassNarrowingConvertResult()
         type = result:result
         type:SetToText()
+        points = result:points
+        points:SetPoints(points:EXACT_AUTOBOX)
         ObjectToPrimitiveTextCast objectToPrimitiveTextCast
         objectToPrimitiveTextCast:SetType(type)
         result:SetQuorumOpcode(objectToPrimitiveTextCast)
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:OBJECT_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToInteger()
+        points = result:points
+        points:SetPoints(points:EXACT_AUTOBOX)
+        ObjectToPrimitiveIntegerCast objectToPrimitiveIntegerCast
+        objectToPrimitiveIntegerCast:SetType(type)
+        result:SetQuorumOpcode(objectToPrimitiveIntegerCast)
         results:Add(key, result)
 
 
@@ -1149,6 +1163,9 @@ class TypeChecker
         type:SetToIntegerObject()
         points = result:points
         points:SetPoints(points:EXACT_AUTOBOX)
+        IntegerPrimitiveToObjectCast integerPrimitiveToObjectCast
+        integerPrimitiveToObjectCast:SetType(type)
+        result:SetQuorumOpcode(integerPrimitiveToObjectCast)
         results:Add(key, result)
 
         //implicit cast integer to Integer

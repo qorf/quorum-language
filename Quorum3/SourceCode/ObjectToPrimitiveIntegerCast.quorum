@@ -2,7 +2,7 @@ package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
 
-class ObjectToPrimitiveTextCast is ExplicitCastOpcode
+class ObjectToPrimitiveIntegerCast is ExplicitCastOpcode
     JavaBytecodeOpcodes opcodes
 
     action Write
@@ -12,8 +12,8 @@ class ObjectToPrimitiveTextCast is ExplicitCastOpcode
         if opcodeToCast not= undefined
             opcodeToCast:Write()
         end
-        methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Types/Text", "ConvertObjectToString",
-                "(Lquorum/Libraries/Language/Object$Interface;)Ljava/lang/String;", false)
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Types/Integer", "ConvertObjectToInteger",
+                "(Lquorum/Libraries/Language/Object$Interface;)I", false)
     end
     
     action WriteJavaScript returns text
@@ -21,7 +21,7 @@ class ObjectToPrimitiveTextCast is ExplicitCastOpcode
     end
 
     action GetTemplateCopy returns QuorumOpcode
-        ObjectToPrimitiveTextCast op
+        ObjectToPrimitiveIntegerCast op
         op:SetType(me:GetType())
         return op
     end

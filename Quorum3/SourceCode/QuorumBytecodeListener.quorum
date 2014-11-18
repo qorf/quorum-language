@@ -1197,9 +1197,6 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now
         end
 
-        if currentClass:GetName() = "Integer"
-            a = 5
-        end
         ExplicitCastOpcode theCast = cast(ExplicitCastOpcode, result:GetQuorumOpcode())
         if theCast not= undefined
             theCast:SetLocation(context:GetLocation())

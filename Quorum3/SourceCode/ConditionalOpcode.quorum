@@ -17,6 +17,15 @@ class ConditionalOpcode is QuorumOpcode
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
+
+        if expression not= undefined
+            expression:SetMethodWriterToAllChildren(writer)
+        end
+
+        if block not= undefined
+            block:SetMethodWriterToAllChildren(writer)
+        end
+
         Iterator<BlockOpcode> it = elseIfBlocks:GetIterator()
         repeat while it:HasNext()
             BlockOpcode op = it:Next()

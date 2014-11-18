@@ -199,10 +199,6 @@ class ActionCallOpcode is QuorumOpcode
                         clazz:ConvertStaticKeyToBytecodeInterfacePath(), act:GetName(), 
                         act:ConvertActionToBytecodeParameterInterfaceSignature(), true)
                 end
-                if autoBoxing not= undefined
-                    autoBoxing:Write()
-                end
-
             else 
                 //alert("Compiler Bug: Class and Action should not be null at this stage.")
             end
@@ -213,6 +209,9 @@ class ActionCallOpcode is QuorumOpcode
         else
             Type type = GetCallerType()
             if not field:IsField()
+                if methodWriter = undefined
+                    a = 5
+                end
                 methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetCallerType()), field:GetBytecodeLocation())
             else
                 //Now write the getter for the field
