@@ -30,8 +30,10 @@ class Main
        s:Add("Four")
        s:Add("Five")
        s:Add("Six")
-
+       
+       output s:GetSize()
        s:RemoveAll("One")
+       output s:GetSize()
        text result = ""
        integer i = 0
        repeat 4 times 

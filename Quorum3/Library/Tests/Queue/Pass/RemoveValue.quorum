@@ -29,7 +29,9 @@ class Main
        s:Add("Four")
        s:Add("Five")
 
+       output s:GetSize()
        s:Remove("Three")
+       output s:GetSize()
 
        text result = ""
        integer i = 0
@@ -37,7 +39,7 @@ class Main
            result = result + s:RemoveFromFront()
            i = i + 1
        end
-
+       output s:GetSize()
        output result
     end
 end

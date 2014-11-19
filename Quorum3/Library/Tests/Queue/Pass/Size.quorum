@@ -22,13 +22,13 @@ use Libraries.Containers.Queue
 class Main
     action Main
        Queue<text> s
-
+       output s:GetSize()
        s:Add("One")
        s:Add("Two")
        s:Add("Three")
        s:Add("Four")
        s:Add("Five")
-
+       
        integer result = s:GetSize()
 
        output result
