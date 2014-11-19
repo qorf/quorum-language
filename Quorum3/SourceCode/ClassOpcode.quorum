@@ -149,17 +149,53 @@ class ClassOpcode is QuorumOpcode
             classWriter:VisitSource(name)
         end
 
-        classWriter:Visit(version, access, clazz:ConvertStaticKeyToBytecodePath(), null, JAVA_OBJECT, interfaces)
-        interfaceWriter:Visit(version, opcodes:GetPublic() + opcodes:GetAbstract() + 
-            opcodes:GetInterface(), clazz:ConvertStaticKeyToBytecodeInterfacePath(), null, JAVA_OBJECT, parentsForInterface)
+        //if this class is Libraries.Language.Errors.Error, do different things to handle exceptions
+        if clazz:GetStaticKey() = QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
+            interfaces:Empty()
+            classWriter:Visit(version, access, clazz:ConvertStaticKeyToBytecodePath(), null, clazz:ConvertStaticKeyToBytecodeInterfacePath(), interfaces)
+            //classWriter:Visit(version, access, clazz:ConvertStaticKeyToBytecodePath(), null, JAVA_THROWABLE, interfaces)
 
+            //because of the way the JDK's throwable class works, this has to be a class
+            interfaceWriter:Visit(version, opcodes:GetPublic() + opcodes:GetAbstract(), 
+                clazz:ConvertStaticKeyToBytecodeInterfacePath(), null, JAVA_THROWABLE, parentsForInterface)
+//
+//
+//            //write two constructors for the "interface" class for errors
+            JavaBytecodeMethodWriter fakeConstructor = interfaceWriter:VisitMethod(opcodes:GetPublic(), "<init>", "()V", null, undefined)
+            fakeConstructor:VisitCode()
+            fakeConstructor:VisitVariable(opcodes:GetObjectLoad(), ME)
+            fakeConstructor:VisitMethodInvoke(opcodes:GetInvokeSpecial(), JAVA_THROWABLE, CONSTRUCTOR_JAVA_NAME, "()V", false)
+            fakeConstructor:VisitInstruction(opcodes:GetReturn())
+            fakeConstructor:VisitMaxSize(1, 1)
+            fakeConstructor:VisitEnd()
+//
+//            fakeConstructor = interfaceWriter:VisitMethod(opcodes:GetPublic(), "<init>", "(Z)V", null, undefined)
+//            fakeConstructor:VisitCode()
+//            fakeConstructor:VisitVariable(opcodes:GetObjectLoad(), ME)
+//            fakeConstructor:VisitMethodInvoke(opcodes:GetInvokeSpecial(), JAVA_THROWABLE, CONSTRUCTOR_JAVA_NAME, "()V", false)
+//            fakeConstructor:VisitInstruction(opcodes:GetReturn())
+//            fakeConstructor:VisitMaxSize(1, 1)
+//            fakeConstructor:VisitEnd()
+        elseif clazz:HasParentClass(QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR)
+            //interfaces:Empty()
+            classWriter:Visit(version, access, clazz:ConvertStaticKeyToBytecodePath(), null, QUORUM_ERROR_INTERFACE, interfaces)
+            //classWriter:Visit(version, access, clazz:ConvertStaticKeyToBytecodePath(), null, JAVA_THROWABLE, interfaces)
+
+            //because of the way the JDK's throwable class works, this has to be a class
+            interfaceWriter:Visit(version, opcodes:GetPublic() + opcodes:GetAbstract(), 
+                clazz:ConvertStaticKeyToBytecodeInterfacePath(), null, JAVA_THROWABLE, parentsForInterface)
+        else
+            classWriter:Visit(version, access, clazz:ConvertStaticKeyToBytecodePath(), null, JAVA_OBJECT, interfaces)
+            interfaceWriter:Visit(version, opcodes:GetPublic() + opcodes:GetAbstract() + 
+                opcodes:GetInterface(), clazz:ConvertStaticKeyToBytecodeInterfacePath(), null, JAVA_OBJECT, parentsForInterface)
+        end
 
 
         WriteFieldDeclarations()
         
-
         ComputeConstructor(true)
         ComputeConstructor(false)
+        
 
         //does this class have a main method?
         if clazz:HasMainAction()
@@ -429,7 +465,8 @@ class ClassOpcode is QuorumOpcode
         //handle inheritance with the error system
         text key = me:clazz:GetStaticKey()
         if key = QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
-            methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), JAVA_THROWABLE, CONSTRUCTOR_JAVA_NAME, "()V", false)
+            //methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), JAVA_THROWABLE, CONSTRUCTOR_JAVA_NAME, "()V", false)
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), QUORUM_ERROR_INTERFACE, CONSTRUCTOR_JAVA_NAME, "()V", false)
         elseif clazz:HasParentClass(QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR)
             methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), QUORUM_ERROR, CONSTRUCTOR_JAVA_NAME, "()V", false)
         else
@@ -439,7 +476,7 @@ class ClassOpcode is QuorumOpcode
         if clazz:HasSystemAction()
             WritePlugin(methodWriter)
         end
-
+        
         //setup a hidden variable with the $me variable
         methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
         methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
@@ -458,7 +495,7 @@ class ClassOpcode is QuorumOpcode
             constructor:SetMethodWriterToAllChildren(methodWriter)
             constructor:Write()
         end
-
+        
         methodWriter:VisitInstruction(opcodes:GetReturn())
         methodWriter:VisitMaxSize(1, 1)
         methodWriter:VisitEnd()
@@ -537,12 +574,18 @@ class ClassOpcode is QuorumOpcode
     end
 
     action WriteFields (JavaBytecodeMethodWriter methodWriter)
+        key = clazz:GetStaticKey() 
+        //if not key:StartsWith("Ma")
+        
         Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
         repeat while fieldIterator:HasNext()
             QuorumOpcode field = fieldIterator:Next()
             field:SetMethodWriterToAllChildren(methodWriter)
             field:Write()
         end
+        //else 
+        //    a = 5
+        //end
     end
 
     action WriteJavaScript returns text

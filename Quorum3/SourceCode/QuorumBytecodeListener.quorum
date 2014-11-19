@@ -315,6 +315,14 @@ class QuorumBytecodeListener is QuorumSourceListener
         isInAction = false
     end
 
+    action ExitAlertStatement(AlertContext context) 
+        QuorumOpcode op = opcodeStack:Pop()
+        AlertOpcode al
+        al:SetOpcode(op)
+        al:SetMethodWriter(methodWriter)
+        currentBlockOpcode:Add(al)
+    end
+
     action ExitOutputStatement(OutputContext context)
         QuorumOpcode op = opcodeStack:Pop()
         OutputOpcode out
@@ -427,6 +435,11 @@ class QuorumBytecodeListener is QuorumSourceListener
     
 
     action ExitIfStatement(IfContext context) 
+
+        if me:currentClass:GetName() = "Array" and me:currentAction:GetName() = "Add"
+            a = 5
+        end
+
         ConditionalOpcode conditional = ifStack:Pop()
         QuorumOpcode qop = opcodeStack:Pop()
         qop:SetIsIfExpression(true)
@@ -452,6 +465,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         conditional:SetElseBlock(recentlyPopped)
     end
+
+    
+
 
     action ExitObjectAssignment(ObjectAssignmentContext context) 
         text name = context:name
@@ -818,8 +834,10 @@ class QuorumBytecodeListener is QuorumSourceListener
         //thus, if there's a return type, we need to pop it off the stack.
         ActionCallOpcode op = stack:GetFromEnd()
         Type returnType = op:GetType()
-        if not returnType:IsVoid()
-            ops:SetPopReturn(true)
+        if returnType not= undefined
+            if not returnType:IsVoid()
+                ops:SetPopReturn(true)
+            end
         end
         currentBlockOpcode:Add(ops)
     end

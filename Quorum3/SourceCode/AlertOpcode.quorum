@@ -6,10 +6,9 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.Language.Compile.Symbol.Action
 use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
 
-class OutputOpcode is QuorumOpcode
+class AlertOpcode is QuorumOpcode
 
     QuorumOpcode opcode = undefined
-    //JavaBytecodeMethodWriter methodWriter = undefined
     JavaBytecodeOpcodes opcodes
     QuorumBytecodeConverter converter
     
@@ -31,25 +30,16 @@ class OutputOpcode is QuorumOpcode
     action Write
         VisitLineNumber()
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
-        methodWriter:VisitField(opcodes:GetStaticField(), "java/lang/System", "out", "Ljava/io/PrintStream;")
-        Type type = opcode:GetType()
         opcode:Write()
-        methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), "java/io/PrintStream", "println",
-                "(" + converter:ConvertTypeToBytecodeSignature(type) + ")V", false)
+        methodWriter:VisitInstruction(opcodes:GetObjectThrow())
     end
 
     action WriteJavaScript returns text
-        constant text OUTPUT_VARIABLE = "OuTpUt_$tRiNg_"
-        EOL = ""
-        quote = EOL:GetDoubleQuote()
-        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
-        opcodeResult = opcode:WriteJavaScript()
-        JSOutput = OUTPUT_VARIABLE + " += " + opcodeResult + " + " + quote + "<br />" + quote + ";" + EOL
-        return JSOutput
+        return ""
     end
 
     action GetTemplateCopy returns QuorumOpcode
-        OutputOpcode op
+        AlertOpcode op
         return op
     end
 end

@@ -249,6 +249,10 @@ class JavaBytecodeOpcodes
         return ALOAD
     end
 
+    action GetObjectThrow returns integer
+        return ATHROW
+    end
+
     action GetReturnOpcode(Type type) returns integer
         if type:IsBoolean()
             return GetBooleanReturn()
