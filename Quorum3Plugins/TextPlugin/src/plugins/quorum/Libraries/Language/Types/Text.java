@@ -5,10 +5,10 @@
 package plugins.quorum.Libraries.Language.Types;
 
 import quorum.Libraries.Containers.Array$Interface;
-import quorum.Libraries.Language.Errors.Error;
-import quorum.Libraries.Language.Errors.InvalidLocationError;
-import quorum.Libraries.Language.Errors.ParseError;
-import quorum.Libraries.Language.Errors.UndefinedObjectError;
+//import quorum.Libraries.Language.Errors.Error;
+//import quorum.Libraries.Language.Errors.InvalidLocationError;
+//import quorum.Libraries.Language.Errors.ParseError;
+//import quorum.Libraries.Language.Errors.UndefinedObjectError;
 import quorum.Libraries.Language.Object$Interface;
 import quorum.Libraries.Language.Types.Text$Interface;
 
@@ -29,36 +29,45 @@ public class Text {
         return text.GetValue();
     }
     
-    public int ParseInteger() throws ParseError{
+    public static Object$Interface ConvertTextToObject(String value) {
+        Text$Interface i = new quorum.Libraries.Language.Types.Text();
+        i.SetValue(value);
+        return i;
+    }
+    
+    public int ParseInteger() {//throws ParseError{
         try{
             int parseInt = java.lang.Integer.parseInt(text);
             return parseInt;
         }catch(NumberFormatException e){
-            ParseError error = new ParseError();
-            error.SetErrorMessage("Parse Error: The text value could not be converted to an integer.");
-            throw(error);
+            throw(e);
+          //  ParseError error = new ParseError();
+          //  error.SetErrorMessage("Parse Error: The text value could not be converted to an integer.");
+          //  throw(error);
         }
     }
     
-    public double ParseNumber() throws ParseError{
+    public double ParseNumber() {//throws ParseError{
         try{
             double parseInt = java.lang.Double.parseDouble(text);
             return parseInt;
         }catch(NumberFormatException e){
-            ParseError error = new ParseError();
-            error.SetErrorMessage("Parse Error: The text value could not be converted to an number.");
-            throw(error);
+            throw(e);
+//            ParseError error = new ParseError();
+//            error.SetErrorMessage("Parse Error: The text value could not be converted to an number.");
+//            throw(error);
         }
     }
         
-    public boolean ParseBoolean() throws ParseError{
+    public boolean ParseBoolean() {//throws ParseError{
         try{
             boolean parseInt = java.lang.Boolean.parseBoolean(text);
             return parseInt;
         }catch(NumberFormatException e){
-            ParseError error = new ParseError();
-            error.SetErrorMessage("Parse Error: The text value could not be converted to an boolean.");
-            throw(error);
+            throw(e);
+//            ParseError error = new ParseError();
+//            error.SetErrorMessage("Parse Error: The text value could not be converted to an boolean.");
+//            throw(error);
         }
     }
     
@@ -174,79 +183,87 @@ public class Text {
         }
     }
     
-    public static int PrimitiveParseInteger(String self) throws ParseError{
+    public static int PrimitiveParseInteger(String self) {// throws ParseError{
         try{
             int parseInt = java.lang.Integer.parseInt(self);
             return parseInt;
         }catch(NumberFormatException e){
-            ParseError error = new ParseError();
-            error.SetErrorMessage("Parse Error: The text value could not be converted to an integer.");
-            throw(error);
+            throw(e);
+//            ParseError error = new ParseError();
+//            error.SetErrorMessage("Parse Error: The text value could not be converted to an integer.");
+//            throw(error);
         }
     }
     
-    public static double PrimitiveParseNumber(String self) throws ParseError{
+    public static double PrimitiveParseNumber(String self) { //throws ParseError{
         try{
             double parseInt = java.lang.Double.parseDouble(self);
             return parseInt;
         }catch(NumberFormatException e){
-            ParseError error = new ParseError();
-            error.SetErrorMessage("Parse Error: The text value could not be converted to an number.");
-            throw(error);
+            throw(e);
+//            ParseError error = new ParseError();
+//            error.SetErrorMessage("Parse Error: The text value could not be converted to an number.");
+//            throw(error);
         }
     }
         
-    public static boolean PrimitiveParseBoolean(String self) throws ParseError{
+    public static boolean PrimitiveParseBoolean(String self) {//throws ParseError{
         try{
             boolean parseInt = java.lang.Boolean.parseBoolean(self);
             return parseInt;
         }catch(NumberFormatException e){
-            ParseError error = new ParseError();
-            error.SetErrorMessage("Parse Error: The text value could not be converted to an boolean.");
-            throw(error);
+            throw(e);
+//            ParseError error = new ParseError();
+//            error.SetErrorMessage("Parse Error: The text value could not be converted to an boolean.");
+//            throw(error);
         }
     }
     
-    public static int PrimitiveGetSize(String self) throws Error {
+    public static int PrimitiveGetSize(String self) {//throws Error {
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         return self.length();
     }
     
-    public static int PrimitiveGetHashCode(String self) throws Error {
+    public static int PrimitiveGetHashCode(String self) { //throws Error {
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         return self.hashCode();
     }
     
-    public static String PrimitiveGetCharacter(String self, int index) throws Error{
+    public static String PrimitiveGetCharacter(String self, int index) { //throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         int length = self.length();
         if(index < 0 || index >= length){
-            quorum.Libraries.Language.Errors.Error error = new InvalidLocationError();
-            error.SetErrorMessage("Text index out of range, " + index);
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new InvalidLocationError();
+//            error.SetErrorMessage("Text index out of range, " + index);
+//            throw(error);
         }
         return "" + self.charAt(index);
     }
     
-    public static Array$Interface PrimitiveSplit(String self, String delimiter) throws Error{
+    public static Array$Interface PrimitiveSplit(String self, String delimiter) { //throws Error{
         
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         String[] split = self.split(delimiter);
@@ -260,22 +277,24 @@ public class Text {
         return a;
     }
     
-    public static boolean PrimitiveEquals(String self, Object$Interface obj) throws Error{
+    public static boolean PrimitiveEquals(String self, Object$Interface obj) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         Text$Interface t = (Text$Interface)obj;
         return self.equals(t.GetValue());
     }
     
-    public static quorum.Libraries.Language.Support.CompareResult$Interface PrimitiveCompare(String self, quorum.Libraries.Language.Object$Interface obj) throws Error{
+    public static quorum.Libraries.Language.Support.CompareResult$Interface PrimitiveCompare(String self, quorum.Libraries.Language.Object$Interface obj) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         quorum.Libraries.Language.Support.CompareResult r = new quorum.Libraries.Language.Support.CompareResult();
@@ -292,11 +311,12 @@ public class Text {
         
     }
     
-    public static quorum.Libraries.Language.Support.CompareResult$Interface PrimitiveCompareIgnoringCase(String self, quorum.Libraries.Language.Object$Interface obj) throws Error{
+    public static quorum.Libraries.Language.Support.CompareResult$Interface PrimitiveCompareIgnoringCase(String self, quorum.Libraries.Language.Object$Interface obj) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         quorum.Libraries.Language.Support.CompareResult r = new quorum.Libraries.Language.Support.CompareResult();
@@ -313,208 +333,219 @@ public class Text {
         
     }
     
-    public static boolean PrimitiveContains(String self, String right) throws Error{
+    public static boolean PrimitiveContains(String self, String right) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         return self.contains(right); 
     }
     
-    public static boolean PrimitiveEndsWith(String self, String suffix) throws Error{
+    public static boolean PrimitiveEndsWith(String self, String suffix) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         return self.endsWith(suffix);
     }
     
-    public static boolean PrimitiveStartsWith(String self, String prefix) throws Error{
+    public static boolean PrimitiveStartsWith(String self, String prefix) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         return self.startsWith(prefix);
     }
     
-    public static boolean PrimitiveEqualsIgnoringCase(String self, Object$Interface right) throws Error{
+    public static boolean PrimitiveEqualsIgnoringCase(String self, Object$Interface right) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         Text$Interface t = (Text$Interface)right;
         return self.equalsIgnoreCase(t.GetValue());
     }
     
-    public static int PrimitiveIndexOf(String self, String right) throws Error{
+    public static int PrimitiveIndexOf(String self, String right) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         return self.indexOf(right);
     }
     
-    public static int PrimitiveIndexOf(String self, String right, int index) throws Error{
+    public static int PrimitiveIndexOf(String self, String right, int index) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         int length = self.length();
         if(index < 0 || index >= length){
-            quorum.Libraries.Language.Errors.Error error = new InvalidLocationError();
-            error.SetErrorMessage("Text index out of range, " + index);
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new InvalidLocationError();
+//            error.SetErrorMessage("Text index out of range, " + index);
+//            throw(error);
         }
         return self.indexOf(right, index);
     }
     
-    public static boolean PrimitiveIsEmpty(String self) throws Error{
+    public static boolean PrimitiveIsEmpty(String self) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         return self.isEmpty();
     }
     
-    public static String PrimitiveReplace(String self, String old, String replacement) throws Error{
+    public static String PrimitiveReplace(String self, String old, String replacement) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         return self.replace(old, replacement);
     }
     
-    public static String PrimitiveGetSubtext(String self, int startIndex, int endIndex) throws quorum.Libraries.Language.Errors.Error{
+    public static String PrimitiveGetSubtext(String self, int startIndex, int endIndex) {//throws quorum.Libraries.Language.Errors.Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         int length = self.length();
         if(startIndex < 0 || startIndex >= length || endIndex < startIndex || endIndex >= length){
-            quorum.Libraries.Language.Errors.Error error = new InvalidLocationError();
-            error.SetErrorMessage("Text index out of range, " + startIndex + " - " + endIndex);
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new InvalidLocationError();
+//            error.SetErrorMessage("Text index out of range, " + startIndex + " - " + endIndex);
+//            throw(error);
         }
         return self.substring(startIndex, endIndex);
     }
     
-    public static String PrimitiveGetSubtext(String self, int startIndex) throws Error{
+    public static String PrimitiveGetSubtext(String self, int startIndex) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         int length = self.length();
         if(startIndex < 0 || startIndex >= length){
-            quorum.Libraries.Language.Errors.Error error = new InvalidLocationError();
-            error.SetErrorMessage("Text index out of range, " + startIndex);
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new InvalidLocationError();
+//            error.SetErrorMessage("Text index out of range, " + startIndex);
+//            throw(error);
         }
         return self.substring(startIndex);
     }
     
-    public static String PrimitiveToLowerCase(String self) throws Error{
+    public static String PrimitiveToLowerCase(String self) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         return self.toLowerCase();
     }
     
-    public static String PrimitiveToUpperCase(String self) throws Error{
+    public static String PrimitiveToUpperCase(String self) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         return self.toUpperCase();
     }
     
-    public static String PrimitiveTrim(String self) throws Error{
+    public static String PrimitiveTrim(String self) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         
         return self.trim();
     }
     
         
-    public static String PrimitiveGetCarriageReturn(String self) throws Error{
+    public static String PrimitiveGetCarriageReturn(String self) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         return "\r";
     }
     
-    public static String PrimitiveGetLineFeed(String self) throws Error{
+    public static String PrimitiveGetLineFeed(String self) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         return "\n";
     }
     
-    public static String PrimitiveGetTab(String self) throws Error{
+    public static String PrimitiveGetTab(String self) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         return "\t";
     }
     
-    public static String PrimitiveGetDoubleQuote(String self) throws Error{
+    public static String PrimitiveGetDoubleQuote(String self) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         return "\"";
     }
     
-    public static String PrimitiveGetUnicodeValue(String self, int unicode) throws Error{
+    public static String PrimitiveGetUnicodeValue(String self, int unicode) {//throws Error{
         if(self == null){
-            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-            error.SetErrorMessage("Text variable is undefined.");
-            throw(error);
+            throw(new RuntimeException());
+//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
+//            error.SetErrorMessage("Text variable is undefined.");
+//            throw(error);
         }
         return Character.toString((char)unicode);
     }
-//    
-//    public static void main(String[] args) {
-//        Text text = new Text();
-//        Text text2 = new Text();
-//        text.SetValueNative("Hi");
-//        text2.SetValueNative("Hi");
-//        
-//        int hash = text.GetHashCode();
-//        int hash2 = text2.GetHashCode();
-//    }
 }

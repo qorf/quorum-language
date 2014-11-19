@@ -25,7 +25,20 @@ public class Integer {
         return val.GetValue();
     }
     
+    public static int ConvertIntegerToIntegerObject(Integer$Interface object) {
+        if(object == null) {
+            throw new NullPointerException("Cannot convert an undefined type to an integer.");
+        }
+        return object.GetValue();
+    }
+    
     public static Object$Interface ConvertIntegerToObject(int value) {
+        Integer$Interface i = new quorum.Libraries.Language.Types.Integer();
+        i.SetValue(value);
+        return i;
+    }
+    
+    public static Integer$Interface ConvertIntegerToIntegerObject(int value) {
         Integer$Interface i = new quorum.Libraries.Language.Types.Integer();
         i.SetValue(value);
         return i;

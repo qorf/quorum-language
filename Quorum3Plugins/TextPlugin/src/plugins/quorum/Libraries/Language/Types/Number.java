@@ -16,6 +16,20 @@ public class Number {
     public java.lang.Object $me = null;
     private double number = -1;
     
+    public static double ConvertObjectToNumber(Object$Interface object) {
+        if(object == null) {
+            throw new NullPointerException("Cannot convert an undefined type to an integer.");
+        }
+        Number$Interface val = (Number$Interface) object;
+        return val.GetValue();
+    }
+    
+    public static Object$Interface ConvertNumberToObject(double value) {
+        Number$Interface i = new quorum.Libraries.Language.Types.Number();
+        i.SetValue(value);
+        return i;
+    }
+    
     public double GetMaximumValue(){
         return Double.MAX_VALUE;
     }

@@ -16,6 +16,20 @@ public class Boolean {
     private static final int trueHash = 1231;
     private static final int falseHash = 1237;
     
+    public static boolean ConvertObjectToBoolean(Object$Interface object) {
+        if(object == null) {
+            throw new NullPointerException("Cannot convert an undefined type to an integer.");
+        }
+        Boolean$Interface val = (Boolean$Interface) object;
+        return val.GetValue();
+    }
+    
+    public static Object$Interface ConvertBooleanToObject(boolean value) {
+        Boolean$Interface i = new quorum.Libraries.Language.Types.Boolean();
+        i.SetValue(value);
+        return i;
+    }
+    
     public void SetValueNative(boolean value){
         bool = value;
     }
