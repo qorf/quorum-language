@@ -102,6 +102,13 @@ class ActionsTester
 //        ActionLetter()
 //        ActionOutside()
 //        HOCUndefinedVariable()
+//        HOCReturnIntFromMain()
+//        HOCReturnIntFromMainDeclared()
+//        HOCReturnIntFromCalledProcedure()
+//        HOCReturnIntFromCalledProcedureWrongType1()
+//        HOCReturnIntFromCalledProcedureWrongType2()
+//        HOCUndeclaredVarToUndeclaredVar()
+//        HOCUndeclaredFunction()
         IncorrectAssignment()
 //        InvalidActionNumber()
 //        InvalidActionSymbol1()
@@ -865,6 +872,69 @@ class ActionsTester
         Array<File> files
         File main
         main:SetPath(path + "ActionOutside.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action HOCReturnIntFromMain
+        Array<File> files
+        File main
+        main:SetPath(path + "HOCReturnIntFromMain.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action HOCReturnIntFromMainDeclared
+        Array<File> files
+        File main
+        main:SetPath(path + "HOCReturnIntFromMainDeclared.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action HOCReturnIntFromCalledProcedure
+        Array<File> files
+        File main
+        main:SetPath(path + "HOCReturnIntFromCalledProcedure.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action HOCReturnIntFromCalledProcedureWrongType1
+        Array<File> files
+        File main
+        main:SetPath(path + "HOCReturnIntFromCalledProcedureWrongType1.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action HOCReturnIntFromCalledProcedureWrongType2
+        Array<File> files
+        File main
+        main:SetPath(path + "HOCReturnIntFromCalledProcedureWrongType2.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action HOCUndeclaredVarToUndeclaredVar
+        Array<File> files
+        File main
+        main:SetPath(path + "HOCUndeclaredVarToUndeclaredVar.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action HOCUndeclaredFunction
+        Array<File> files
+        File main
+        main:SetPath(path + "HOCUndeclaredFunction.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
