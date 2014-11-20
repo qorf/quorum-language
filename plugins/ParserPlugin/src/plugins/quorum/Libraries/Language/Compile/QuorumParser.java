@@ -3051,6 +3051,7 @@ public class QuorumParser extends Parser {
 		}
 	}
 	public static class InheritsContext extends ExpressionContext {
+		public Class_typeContext name;
 		public Class_typeContext class_type() {
 			return getRuleContext(Class_typeContext.class,0);
 		}
@@ -3381,7 +3382,7 @@ public class QuorumParser extends Parser {
 						setState(499);
 						if (!(precpred(_ctx, 4))) throw new FailedPredicateException(this, "precpred(_ctx, 4)");
 						setState(500); match(INHERITS);
-						setState(501); class_type();
+						setState(501); ((InheritsContext)_localctx).name = class_type();
 						}
 						break;
 					}

@@ -42,6 +42,10 @@ class CompilerErrorManager
     action IsCompilationErrorFree returns boolean
         return numberOfErrors = 0
     end
+
+    action GetErrorAmount returns integer
+        return numberOfErrors
+    end
     
     action GetIterator returns Iterator<CompilerError>
         HashListIterator<CompilerError> iterator
