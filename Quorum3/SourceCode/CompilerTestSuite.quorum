@@ -34,6 +34,7 @@ class CompilerTestSuite
     QueueTester queueChecks
     MathTester mathChecks
     ListTester listChecks
+    HashTableTester hashChecks
     SeparatedValueTester svChecks
 
     on create
@@ -50,6 +51,7 @@ class CompilerTestSuite
         queueChecks:SetCompilerTestSuite(me)
         mathChecks:SetCompilerTestSuite(me)
         listChecks:SetCompilerTestSuite(me)
+        hashChecks:SetCompilerTestSuite(me)
         svChecks:SetCompilerTestSuite(me)
     end
 
@@ -97,6 +99,9 @@ class CompilerTestSuite
         output ""
         output listChecks:GetName()
         listChecks:Test()
+        output ""
+        output hashChecks:GetName()
+        hashChecks:Test()
         output ""
         output svChecks:GetName()
         svChecks:Test()
