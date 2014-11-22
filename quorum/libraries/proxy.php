@@ -1,5 +1,5 @@
 <?php
-require_once("../models/codeSample.model.php");
+
 /*
  * Author - Rob Thomson <rob@marotori.com>
  *
@@ -36,29 +36,11 @@ if($_SERVER['HTTPS'] == 'on'){
 } else {
         $mydomain = 'http://'.$_SERVER['HTTP_HOST'];
 }
-$codeSample = new CodeSample($_GET(code));
-parse_str($url, $vars);
-
-$codeSample->setIP($_SERVER['REMOTE_ADDR']);
-if ( isset($_GET['uuid'])) {
-    $codeSample->setUUID($_GET['uuid']); }
-if ( isset($_GET['pagenumber'])) {
-    $codeSample->setPagenr($_GET['pagenumber']);
-}
-if ( isset($_GET['slidenumber'])) {
-    $codeSample->setSlidenr($_GET['slidenumber']);
-}
-
-unset($vars['uuid']);
-unset($vars['pagenumber']);
-unset($vars['slidenumber']);
-$queryString = http_build_query($vars);
-
 
 // Open the cURL session
 $curlSession = curl_init();
 
-curl_setopt ($curlSession, CURLOPT_URL, $queryString);
+curl_setopt ($curlSession, CURLOPT_URL, $url);
 curl_setopt ($curlSession, CURLOPT_HEADER, 1);
 
 
@@ -105,8 +87,7 @@ if (curl_error($curlSession)){
 
         $header = $ar[0];
         $body = $ar[1];
-        $codeSample->setOutput($body);
-        $codeSample->insertCodeSample();
+        
         //handle headers - simply re-outputing them
         $header_ar = split(chr(10),$header);
         foreach($header_ar as $k=>$v){

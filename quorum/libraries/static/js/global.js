@@ -450,7 +450,8 @@ var submitCodeSample = function(){
                 var pageNumber = window.location.pathname;
                 pageNumber = pageNumber.charAt(pageNumber.length - 5);
                 var id = getCookie("PHPSESSID");
-		var codeData = {code: $('.inputArea').val(), uuid: id, pagenumber: pageNumber, slidenumber: slideNr};
+                var tempCode = $('.inputArea').val();
+		var codeData = {code: tempCode};
                 //var msg = new SpeechSynthesisUtterance('28.27431');
 		console.log(codeData);
 		$.ajax({
@@ -469,21 +470,32 @@ var submitCodeSample = function(){
                                 }
                             }
                             //window.speechSynthesis.speak(msg);
-
+                            var completedcheck = 0;
                             //check hour of code output based on the page
                             if(!hadCompilerError) {
                                 
                                 if (pageNumber >= 1 && pageNumber <= 6) { //7th page has no exercises
-                                    checkOutput(pageNumber, $('#IDE-output').html());
+                                    completedcheck = checkOutput(pageNumber, $('#IDE-output').html());
                                 }
                             }
+                            
+                            var reportData = { code: tempCode, uuid: id, pagenumber: pageNumber, slidenumber: slideNr, resultCode: result, completed: completedcheck};
+                            $.ajax({
+                                type: "POST",
+                                url: "http://quorumlanguage.com/quorum_logger.php",
+                                data: reportData,
+                                success: function(result) {
+                                //       console.log("done " + result);
+                                }
                                 
+                            });
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
 				console.log(xhr, ajaxOptions, thrownError);
                                 $(".outputArea").html("Error: Could not connect to server: " + thrownError.toString());
 			}
 		});
+               
 	})
 }
 
@@ -504,10 +516,12 @@ var checkOutput = function(pageNumber, output) {
     if (outputArray[pageNumber - 1] == output) {
         //success
         alert("Good Job! You've completed this exercise.");
+        return 1;
     }
     else {
         //failure
         //alert("The result was not correct, try again.");
+        return 0;
     }
     
 }

@@ -14,6 +14,7 @@
                 public $ip = "";
                 public $slidenr = 0; //0 is undefined
                 public $pagenr = 0; //0 is undefined
+                public $completed = 0;
 		
 		function __construct($code)
 		{
@@ -26,6 +27,9 @@
                 }
                 public function setUUID($uuid) {
                     $this->uuid = $uuid;
+                }
+                public function setCompleted($comp) {
+                    $this->completed = $comp;
                 }
                 public function setSlidenr($slide) {
                     $this->slidenr=$slide;
@@ -88,7 +92,7 @@
 
         public function insertCodeSample()
 		{
-			$sqlQuery = "INSERT INTO " . $this->tableName . " (quorum_version, code, output, times_requested, UUID, IP, slidenr, pagenr) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+			$sqlQuery = "INSERT INTO " . $this->tableName . " (quorum_version, code, output, times_requested, UUID, IP, slidenr, pagenr, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 			$valuesToPrepare = array($this->quorumVersion, $this->code, $this->output, $this->timesRequested, $this->uuid, $this->ip, $this->slidenr, $this->pagenr);
 			$queryResults = $this->attempSQLQuery($sqlQuery,$valuesToPrepare);
 			$rows = $queryResults->rowCount();
