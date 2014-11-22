@@ -1,0 +1,226 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.QuorumJarGenerator
+use Libraries.System.StackTraceItem
+
+class RandomTester 
+    CompilerTestSuite suite = undefined
+    text path = "Library/Tests/Random/"
+    text passPath = path + "Pass/"
+    text failPath = path + "Fail/"
+
+    action Test
+        path = passPath
+//        RandomBoolean()
+//        RandomInteger()
+//        RandomIntegerBetween()
+//        RandomIntegerWithMaximum()
+//        RandomListOfIntegers()
+//        RandomListOfNumbers()
+//        SetSeed()
+//        TestDistribution()
+        
+//FAIL TESTS
+        path = failPath
+//        RandomIntegerBetweenWithInvalidRange()
+//        RandomIntegerBetweenWithNegativeNumbers()
+//        RandomIntegerBetweenWithSameValues()
+//        RandomIntegerFail()
+//        RandomListOfIntegersWithInvalidLength()
+//        RandomListOfNumbersWithInvalidLength()
+
+    end
+
+    action GetName returns text
+        return "Random Tests"
+    end
+    
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+    action RandomBoolean 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RandomBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action RandomInteger 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RandomInteger.quorum")
+        files:Add(main)
+        results:Add(0, "544657192")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action RandomIntegerBetween 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RandomIntegerBetween.quorum")
+        files:Add(main)
+        results:Add(0, "19")
+        results:Add(1, "15")
+        results:Add(2, "19")
+        results:Add(3, "15")
+        results:Add(4, "18")
+        results:Add(5, "18")
+        results:Add(6, "20")
+        results:Add(7, "16")
+        results:Add(8, "15")
+        results:Add(9, "15")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action RandomIntegerWithMaximum 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RandomIntegerWithMaximum.quorum")
+        files:Add(main)
+        results:Add(0, "4")
+        results:Add(1, "1")
+        results:Add(2, "12")
+        results:Add(3, "4")
+        results:Add(4, "14")
+        results:Add(5, "3")
+        results:Add(6, "6")
+        results:Add(7, "13")
+        results:Add(8, "4")
+        results:Add(9, "3")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action RandomListOfIntegers 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RandomListOfIntegers.quorum")
+        files:Add(main)
+        results:Add(0, "544657192")
+        results:Add(1, "264551322")
+        results:Add(2, "1651751212")
+        results:Add(3, "616702974")
+        results:Add(4, "1943051751")
+        results:Add(5, "true")
+        results:Add(6, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action RandomListOfNumbers 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RandomListOfNumbers.quorum")
+        files:Add(main)
+        results:Add(0, "0.2536257672785417")
+        results:Add(1, "0.7691565943833395")
+        results:Add(2, "0.9048039800926115")
+        results:Add(3, "0.3874507370773981")
+        results:Add(4, "0.3108243382133744")
+        results:Add(5, "true")
+        results:Add(6, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action SetSeed 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SetSeed.quorum")
+        files:Add(main)
+        results:Add(0, "")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TestDistribution 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TestDistribution.quorum")
+        files:Add(main)
+        results:Add(0, "Normal Distribution")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+//FAIL TESTS
+    action RandomIntegerBetweenWithInvalidRange 
+        Array<File> files
+        File main
+        main:SetPath(path + "RandomIntegerBetweenWithInvalidRange.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action RandomIntegerBetweenWithNegativeNumbers 
+        Array<File> files
+        File main
+        main:SetPath(path + "RandomIntegerBetweenWithNegativeNumbers.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action RandomIntegerBetweenWithSameValues 
+        Array<File> files
+        File main
+        main:SetPath(path + "RandomIntegerBetweenWithSameValues.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action RandomIntegerFail 
+        Array<File> files
+        File main
+        main:SetPath(path + "RandomIntegerFail.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action RandomListOfIntegersWithInvalidLength 
+        Array<File> files
+        File main
+        main:SetPath(path + "RandomListOfIntegersWithInvalidLength.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action RandomListOfNumbersWithInvalidLength 
+        Array<File> files
+        File main
+        main:SetPath(path + "RandomListOfNumbersWithInvalidLength.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+end
+

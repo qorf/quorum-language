@@ -51,6 +51,8 @@ class ArrayTester
 //        ArraySortInteger()
 //        ArraySortNumber()
 //        ArraySortText()
+//        AssignFromGetIntToNum()
+//        ComplexSet()
         VectorAdd()
         VectorAddAt()
 //        VectorAddToEnd()
@@ -521,6 +523,32 @@ class ArrayTester
             main:SetPath(path + "ArraySortText.quorum")
             files:Add(main)
             results:Add(0, "sorted")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action AssignFromGetIntToNum
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "AssignFromGetIntToNum.quorum")
+            files:Add(main)
+            results:Add(0, "1.0")
+            results:Add(1, "5.0")
+            results:Add(2, "6.0")
+            results:Add(3, "1.0")
+            results:Add(4, "5.0")
+            suite:Test(files, results)
+            suite:TestJavaScript(files, results)
+    end
+
+    action ComplexSet
+            Array<File> files
+            Array<text> results
+            File main
+            main:SetPath(path + "ComplexSet.quorum")
+            files:Add(main)
+            results:Add(0, "10")
             suite:Test(files, results)
             suite:TestJavaScript(files, results)
     end

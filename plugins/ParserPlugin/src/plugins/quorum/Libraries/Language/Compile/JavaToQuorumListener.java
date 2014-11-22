@@ -351,16 +351,21 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterInherits(QuorumParser.InheritsContext ctx) {
-        quorum.Libraries.Language.Compile.Context.IsContext context = 
+        quorum.Libraries.Language.Compile.Context.IsContext$Interface context = 
                 new quorum.Libraries.Language.Compile.Context.IsContext();
+        //QualifiedName name = ctx.name.qualified_name().qualifiedName;
+        //context.Set$Libraries$Language$Compile$Context$InheritStatementContext$name(name);
         setLocation(ctx, context);
         listener.EnterIs(context);
     }
 
     @Override
     public void exitInherits(QuorumParser.InheritsContext ctx) {
-        quorum.Libraries.Language.Compile.Context.IsContext context = 
+        quorum.Libraries.Language.Compile.Context.IsContext$Interface context = 
                 new quorum.Libraries.Language.Compile.Context.IsContext();
+        
+        QualifiedName name = Convert(ctx.name.qualified_name());
+        context.Set$Libraries$Language$Compile$Context$IsContext$name(name);
         setLocation(ctx, context);
         listener.ExitIs(context);
     }

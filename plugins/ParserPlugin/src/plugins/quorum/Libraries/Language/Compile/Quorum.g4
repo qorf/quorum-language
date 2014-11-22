@@ -207,7 +207,7 @@ expression
     |   expression (MULTIPLY | DIVIDE |MODULO) expression                                       #Multiplication
     |   expression (PLUS | MINUS) expression                                                    #Addition
     |   expression (GREATER | GREATER_EQUAL | LESS | LESS_EQUAL) expression                     #Greater
-    |   expression INHERITS class_type                                                          #Inherits
+    |   expression INHERITS name=class_type                                                     #Inherits
     |   expression (EQUALITY | NOTEQUALS) expression                                            #Equals
     |   expression (AND) expression                                                             #And
     |   expression (OR) expression                                                              #Or

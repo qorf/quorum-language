@@ -1,0 +1,10 @@
+use Libraries.Compute.Random
+
+class Main
+    action Main
+        Random random
+        random:SetSeed(1101102342)
+        boolean result = random:RandomBoolean()
+        output result
+    end
+end

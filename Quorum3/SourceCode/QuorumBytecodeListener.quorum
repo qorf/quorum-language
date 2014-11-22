@@ -323,6 +323,39 @@ class QuorumBytecodeListener is QuorumSourceListener
         currentBlockOpcode:Add(al)
     end
 
+    action ExitIs(IsContext context) 
+//        QualifiedName name = context:name
+//        //now resolve the name from the current class
+//        key = name:GetStaticKey()
+//        Type right
+//        right:SetToObject(key)
+//        CompilerErrorManager manager = GetCompilerErrorManager()
+//        errors = manager:GetErrorAmount()
+//        currentClass:ResolveType(context:GetLocation(), right, GetSymbolTable(), manager)
+//        //check if there was an error. If so, ignore the rest.
+//        errors2 = manager:GetErrorAmount()
+//
+//        if errors = errors2
+//            //now check to see if it's even possible that this type "is" the other type
+//            TypeChecker checker = GetTypeChecker()
+//            Operation operation
+//            operation:SetOperation(operation:IS)
+//
+//            QuorumOpcode op = opcodeStack:Pop()
+//            Type left = op:GetType()
+//            TypeCheckResult result = checker:Check(left, right, operation)
+//
+//            if result:errorType = undefined
+//                QuorumOpcode opcode = result:GetQuorumOpcode()
+//                opcode:SetMethodWriter(methodWriter)
+//                opcodeStack:Push(opcode)
+//            else
+//                CompilerError error = result:GetCompilerError(context:GetLocation())
+//                manager:Add(error)
+//            end
+//        end
+    end
+
     action ExitOutputStatement(OutputContext context)
         QuorumOpcode op = opcodeStack:Pop()
         OutputOpcode out

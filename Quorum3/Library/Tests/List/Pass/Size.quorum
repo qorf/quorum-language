@@ -25,7 +25,7 @@ class Main
        List<text> textList
 
        integer textSize = textList:GetSize()
-
+       output textSize
        textList:Add("one")
        textSize = textSize + textList:GetSize()
        textList:Add("five")
@@ -42,5 +42,6 @@ class Main
        textSize = textSize + textList:GetSize()
 
        output textSize
+       output textList:GetSize()
     end
 end
