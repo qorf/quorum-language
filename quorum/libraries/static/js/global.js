@@ -32,6 +32,8 @@ $(function() {
 	extendLeftSidebar(); // keep this at the end
 });
 
+var slideNr = 1;
+
 function getUrlVars() {
     var vars = {};
     var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
@@ -54,6 +56,7 @@ var bodyMessage = function(text, state) {
 		});
 	});
 }
+
 
 var successMessage = function(text) {
 	bodyMessage(text, "success");
@@ -433,12 +436,21 @@ var expandAndCollapseLeftSideMenu = function() {
 
 }
 
+function getCookie(name) {
+  var value = "; " + document.cookie;
+  var parts = value.split("; " + name + "=");
+  if (parts.length === 2) return parts.pop().split(";").shift();
+} 
+
 var submitCodeSample = function(){
     //front page IDE
         $("#run-button").on("click", function(e) {
 		e.preventDefault();
 		$(".outputArea").text("");
-		var codeData = {code: $('.inputArea').val()};
+                var pageNumber = window.location.pathname;
+                pageNumber = pageNumber.charAt(pageNumber.length - 5);
+                var id = getCookie("PHPSESSID");
+		var codeData = {code: $('.inputArea').val(), uuid: id, pagenumber: pageNumber, slidenumber: slideNr};
                 //var msg = new SpeechSynthesisUtterance('28.27431');
 		console.log(codeData);
 		$.ajax({
@@ -460,8 +472,7 @@ var submitCodeSample = function(){
 
                             //check hour of code output based on the page
                             if(!hadCompilerError) {
-                                var pageNumber = window.location.pathname;
-                                pageNumber = pageNumber.charAt(pageNumber.length - 5);
+                                
                                 if (pageNumber >= 1 && pageNumber <= 6) { //7th page has no exercises
                                     checkOutput(pageNumber, $('#IDE-output').html());
                                 }

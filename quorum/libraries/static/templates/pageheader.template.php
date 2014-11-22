@@ -45,7 +45,8 @@
                     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
                     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-                    ga('create', 'UA-26662794-3', 'quorumlanguage.com');
+                    // hoping that global.js is loaded before so that the cookie can be accessed like this
+                    ga('create', 'UA-26662794-3', 'quorumlanguage.com', { 'userId' : getCookie("PHPSESSID")});
                     ga('send', 'pageview');
 
                 </script>

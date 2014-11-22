@@ -38,6 +38,13 @@ $( document ).ready(function() {
         //changing slides
         var slide = function(index, direction) {
             //the slide animation
+            //keep track of slide number. for some reason left and right are reversed
+            if(direction === "right") {
+                slideNr--;
+            }
+            if (direction === "left") {
+                slideNr++;
+            }
             $('#content-box-wrapper').attr('aria-live', 'none');
             $('#slide-box').hide('slide', { direction: direction }, 400, function(){
                 //var div = $($.parseHTML(slideArray[index])).hide();

@@ -10,12 +10,30 @@
 		public $code = "";
 		public $output = "";
 		public $timesRequested = 1;
+                public $uuid = "";
+                public $ip = "";
+                public $slidenr = 0; //0 is undefined
+                public $pagenr = 0; //0 is undefined
 		
 		function __construct($code)
 		{
 			parent::__construct();
 			$this->code = $code;
 		}
+                
+                public function setIP($ip) {
+                    $this->ip = $ip;
+                }
+                public function setUUID($uuid) {
+                    $this->uuid = $uuid;
+                }
+                public function setSlidenr($slide) {
+                    $this->slidenr=$slide;
+                }
+                public function setPagenr($page) {
+                    $this->pagenr=$page;
+                }
+                    
 		public function getResultFromDatabase() {
 			$updateResult = $this->getOutput();
 
@@ -70,8 +88,8 @@
 
         public function insertCodeSample()
 		{
-			$sqlQuery = "INSERT INTO " . $this->tableName . " (quorum_version, code, output, times_requested) VALUES (?, ?, ?, ?)";
-			$valuesToPrepare = array($this->quorumVersion, $this->code, $this->output, $this->timesRequested);
+			$sqlQuery = "INSERT INTO " . $this->tableName . " (quorum_version, code, output, times_requested, UUID, IP, slidenr, pagenr) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+			$valuesToPrepare = array($this->quorumVersion, $this->code, $this->output, $this->timesRequested, $this->uuid, $this->ip, $this->slidenr, $this->pagenr);
 			$queryResults = $this->attempSQLQuery($sqlQuery,$valuesToPrepare);
 			$rows = $queryResults->rowCount();
 			if(is_int($rows))
