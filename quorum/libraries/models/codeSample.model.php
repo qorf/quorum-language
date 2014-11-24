@@ -6,7 +6,7 @@
 	class CodeSample extends QuorumDataModel
 	{
 		private $tableName = "run_code";
-		public $quorumVersion = "2.0";
+		public $quorumVersion = "3.0";
 		public $code = "";
 		public $output = "";
 		public $timesRequested = 1;
@@ -14,6 +14,8 @@
                 public $ip = "";
                 public $slidenr = 0; //0 is undefined
                 public $pagenr = 0; //0 is undefined
+                public $pageurl = "";
+                public $gacookie = "";
                 public $completed = 0;
 		
 		function __construct($code)
@@ -37,7 +39,15 @@
                 public function setPagenr($page) {
                     $this->pagenr=$page;
                 }
-                    
+                 
+                public function setPageURL($page) {
+                    $this->pageurl=$page;
+                }
+                
+                public function setGACookie($cook) {
+                    $this->gacookie=$cook;
+                }
+                
 		public function getResultFromDatabase() {
 			$updateResult = $this->getOutput();
 
@@ -92,8 +102,8 @@
 
         public function insertCodeSample()
 		{
-			$sqlQuery = "INSERT INTO " . $this->tableName . " (quorum_version, code, output, times_requested, UUID, IP, slidenr, pagenr, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-			$valuesToPrepare = array($this->quorumVersion, $this->code, $this->output, $this->timesRequested, $this->uuid, $this->ip, $this->slidenr, $this->pagenr);
+			$sqlQuery = "INSERT INTO " . $this->tableName . " (quorum_version, code, output, UUID, IP, slidenr, pagenr, completed, pageURL, google) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			$valuesToPrepare = array($this->quorumVersion, $this->code, $this->output, $this->uuid, $this->ip, $this->slidenr, $this->pagenr, $this->completed, $this->pageurl, $this->gacookie);
 			$queryResults = $this->attempSQLQuery($sqlQuery,$valuesToPrepare);
 			$rows = $queryResults->rowCount();
 			if(is_int($rows))

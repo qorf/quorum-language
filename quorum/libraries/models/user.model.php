@@ -1,6 +1,5 @@
 <?php
 	require_once("data.model.php");
-	require_once("config.php");
 
 	class User extends QuorumDataModel {
 		private $table_name = "sodbeans_users";
@@ -58,6 +57,11 @@
 				$valuesToPrepare = array($this->email, $this->google_id);
 			}
 
+                        $this->database = new database();
+			    $this->connection = $this->connectToDatabase();
+                        if($this->connection == NULL) {
+                            print "Hey, what's up with this?";
+                        }
 			$preparedStatement = $this->connection->prepare($sqlQuery);
 			$preparedStatement->execute($valuesToPrepare);
 

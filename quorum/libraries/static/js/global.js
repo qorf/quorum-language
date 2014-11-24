@@ -442,25 +442,31 @@ function getCookie(name) {
   if (parts.length === 2) return parts.pop().split(";").shift();
 } 
 
+function getGAClient(){
+    var client = ga.getAll()[0].get('clientId');
+    return client;
+};
+
 var submitCodeSample = function(){
     //front page IDE
         $("#run-button").on("click", function(e) {
 		e.preventDefault();
 		$(".outputArea").text("");
                 var pageNumber = window.location.pathname;
+                var pageURL = "";
+                pageURL =  window.location.protocol + "//" + window.location.host + pageNumber;
                 pageNumber = pageNumber.charAt(pageNumber.length - 5);
                 var id = getCookie("PHPSESSID");
+                var ga_cookie = getGAClient();
                 var tempCode = $('.inputArea').val();
 		var codeData = {code: tempCode};
-                //var msg = new SpeechSynthesisUtterance('28.27431');
-		console.log(codeData);
 		$.ajax({
 			type: "GET",
 			url: "http://quorumlanguage.com/proxy.php",
 			data: codeData,
 			success: function(result){
                             var hadCompilerError = false;
-                            console.log(result);
+                            //console.log(result);
                             try {
                                 $("#IDE-output").html(eval(result));
                             } catch (e) {
@@ -469,7 +475,6 @@ var submitCodeSample = function(){
                                     hadCompilerError = true;
                                 }
                             }
-                            //window.speechSynthesis.speak(msg);
                             var completedcheck = 0;
                             //check hour of code output based on the page
                             if(!hadCompilerError) {
@@ -479,19 +484,22 @@ var submitCodeSample = function(){
                                 }
                             }
                             
-                            var reportData = { code: tempCode, uuid: id, pagenumber: pageNumber, slidenumber: slideNr, resultCode: result, completed: completedcheck};
+                            var reportData = { code: tempCode, uuid: id, pagenumber: pageNumber, slidenumber: slideNr, resultCode: result, completed: completedcheck, pageurl: pageURL, gacookie: ga_cookie};
                             $.ajax({
                                 type: "POST",
                                 url: "http://quorumlanguage.com/quorum_logger.php",
                                 data: reportData,
                                 success: function(result) {
-                                //       console.log("done " + result);
+                                    console.log("Logged Result " + result);
+                                },
+                                error: function (xhr, ajaxOptions, thrownError) {
+                                    console.log(xhr, ajaxOptions, thrownError);
                                 }
                                 
                             });
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
-				console.log(xhr, ajaxOptions, thrownError);
+				//console.log(xhr, ajaxOptions, thrownError);
                                 $(".outputArea").html("Error: Could not connect to server: " + thrownError.toString());
 			}
 		});

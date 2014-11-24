@@ -15,8 +15,8 @@ require_once("models/codeSample.model.php");
     $codeSample->setUUID($_POST['uuid']);
     $codeSample->setPagenr($_POST['pagenumber']);
     $codeSample->setSlidenr($_POST['slidenumber']);
-
-
+    $codeSample->setPageURL($_POST['pageurl']);
+    $codeSample->setGACookie($_POST['gacookie']);
 
     $codeSample->insertCodeSample();
 
