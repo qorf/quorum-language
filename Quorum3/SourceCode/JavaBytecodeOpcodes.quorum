@@ -235,6 +235,10 @@ class JavaBytecodeOpcodes
         return CHECKCAST
     end
 
+    action GetInstanceOf returns integer
+        return INSTANCEOF
+    end
+
     /*
       Generates the appropriate opcode for loading an item onto the stack
       from a given Quorum type descriptor.

@@ -3,9 +3,40 @@ package Libraries.Language.Compile.Translate
 use Libraries.Language.Compile.Symbol.Type
 
 class IsOpcode is QuorumOpcode
+    QuorumOpcode opcode = undefined
+    JavaBytecodeOpcodes opcodes
+    Type castTo = undefined
+
+    action SetCastTo(Type type)
+        castTo = type
+    end
+
+    action GetCastTo returns Type
+        return castTo
+    end
+
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+        if opcode not= undefined
+            opcode:SetMethodWriterToAllChildren(writer)
+        end
+    end
+
+    action GetOpcode returns QuorumOpcode
+        return opcode
+    end
+
+    action SetOpcode(QuorumOpcode op)
+        opcode = op
+    end
 
     action Write
         VisitLineNumber()
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        Type type = opcode:GetType()
+        opcode:Write()
+        //methodVisitor.visitTypeInsn(INSTANCEOF, QuorumConverter.convertClassNameToInterfaceName(bytecodePath));
+        methodWriter:VisitType(opcodes:GetInstanceOf(), castTo:ConvertTypeToBytecodeSignatureInterface())
     end
 
     action WriteJavaScript returns text
@@ -14,7 +45,7 @@ class IsOpcode is QuorumOpcode
     
     action GetTemplateCopy returns QuorumOpcode
         IsOpcode op
-
+        op:SetType(GetType())
         return op
     end
 end
