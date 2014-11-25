@@ -722,7 +722,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         Operation assign
         assign:SetOperation(assign:EQUALS)
 
-
         TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
 
         if result:errorType = undefined
@@ -1087,8 +1086,25 @@ class QuorumBytecodeListener is QuorumSourceListener
             call:table = GetSymbolTable()
 
             ActionCallResolution resolved = classToMakeCallOn:ResolveAction(call)
+
+            if not resolved:isResolved
+                CompilerError actionNotFoundError
+                actionNotFoundError:SetLocation(context:GetLocation())
+                actionNotFoundError:SetErrorMessage("I could not locate the action named " + call:GetSignature())
+                CompilerErrorType errorType
+                errorType:SetCurrentType(errorType:MISSING_METHOD)
+                actionNotFoundError:SetCompilerErrorType(errorType)
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(actionNotFoundError)
+                return now
+            end
+
             if isPrimitive //make sure the call is allowed and inform the writer
                 Action act = resolved:resolvedAction
+                if act = undefined
+                    a = 5
+                end
+                
                 text name = act:GetName()
                 if name = "SetValue" or name = "SetValueNative" //these calls aren't allowed on primitives
                     CompilerError error

@@ -1931,7 +1931,7 @@ class TypeChecker
         type = result:result
         type:SetToObject(staticKey)
         results:Add(key, result)
-        
+
         Iterator<Class> parents = clazz:GetParentClasses()
         repeat while parents:HasNext()
             Class p = parents:Next()
@@ -1987,7 +1987,7 @@ class TypeChecker
             type = result:result
             ExplicitCastOpcode caster = GetExplicitCastOpcode(type)
             result:SetQuorumOpcode(caster)
-            type:SetToObject(staticKey)
+            type:SetToObject(parentKey)
             results:Add(key, result)
 
             //line 1584. This is allowed, but nothing needs to be done at compile time

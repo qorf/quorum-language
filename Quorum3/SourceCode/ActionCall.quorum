@@ -3,6 +3,7 @@ package Libraries.Language.Compile.Symbol
 use Libraries.Containers.Array
 use Libraries.Language.Compile.Translate.QuorumOpcode
 use Libraries.Language.Compile.Location
+use Libraries.Containers.Blueprints.Iterator
 
 /*
     This class contains information about action calls, allowing the compiler
@@ -13,4 +14,30 @@ class ActionCall is Location
     public text name = ""
     public SymbolTable table = undefined
     public TypeChecker checker = undefined
+
+    action GetSignature returns text
+        text sig = name 
+
+        if actualParameters not= undefined
+            Iterator<Type> types = actualParameters:GetIterator()
+            if types:HasNext()
+                sig = sig + "("
+            end
+            repeat while types:HasNext()
+                Type type = types:Next()
+                if type not= undefined
+                    key = type:GetStaticKey()
+                    sig = sig + key
+                end
+
+                if types:HasNext() 
+                    sig  = sig + ", "
+                end
+            end
+
+            sig = sig + ")"
+        end
+
+        return sig
+    end
 end

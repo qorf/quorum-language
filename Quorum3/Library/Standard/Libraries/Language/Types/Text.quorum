@@ -146,12 +146,12 @@ class Text is Object
         a:SetValue("hello ")
         a:Append("world.")
     */
-    action Append(text val)
-        me:value = me:value + val
-
-        // And update the native side.
-        SetValueNative(me:value)
-    end
+//    action Append(text val)
+//        me:value = me:value + val
+//
+//        // And update the native side.
+//        SetValueNative(me:value)
+//    end
 
     /*
         This action returns true if the Text value contains the text from the parameter
@@ -166,11 +166,11 @@ class Text is Object
         a:SetValue("hello ")
         boolean result = a:Contains("lo")
     */
-    action Contains(text val) returns boolean
-        return ContainsNative(value, val)
-    end
-
-    private system action ContainsNative(text lhv, text rhv) returns boolean
+//    action Contains(text val) returns boolean
+//        return ContainsNative(value, val)
+//    end
+//
+//    private system action ContainsNative(text lhv, text rhv) returns boolean
 
     /*
         This action returns true if the Text value ends with the given suffix.
@@ -310,7 +310,7 @@ class Text is Object
         if startIndex < size and startIndex >= 0
             return GetSubtextNative(value, startIndex)
         else
-            return -1
+            return ""
 //            InvalidLocationError error
 //            error:SetErrorMessage("Text index out of range, " + startIndex)
 //            alert(error)
