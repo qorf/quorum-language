@@ -35,6 +35,19 @@ public class Text {
         return i;
     }
     
+    public static String ConvertTextObjectToText(Text$Interface object) {
+        if(object == null) {
+            throw new NullPointerException("Cannot convert an undefined type to an integer.");
+        }
+        return object.GetValue();
+    }
+    
+    public static Text$Interface ConvertTextToTextObject(String value) {
+        Text$Interface i = new quorum.Libraries.Language.Types.Text();
+        i.SetValue(value);
+        return i;
+    }
+    
     public int ParseInteger() {//throws ParseError{
         try{
             int parseInt = java.lang.Integer.parseInt(text);

@@ -30,6 +30,19 @@ public class Number {
         return i;
     }
     
+    public static double ConvertNumberObjectToNumber(Number$Interface object) {
+        if(object == null) {
+            throw new NullPointerException("Cannot convert an undefined type to an integer.");
+        }
+        return object.GetValue();
+    }
+    
+    public static Number$Interface ConvertNumberToNumberObject(double value) {
+        Number$Interface i = new quorum.Libraries.Language.Types.Number();
+        i.SetValue(value);
+        return i;
+    }
+    
     public double GetMaximumValue(){
         return Double.MAX_VALUE;
     }

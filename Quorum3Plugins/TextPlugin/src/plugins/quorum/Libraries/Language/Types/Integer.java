@@ -25,7 +25,7 @@ public class Integer {
         return val.GetValue();
     }
     
-    public static int ConvertIntegerToIntegerObject(Integer$Interface object) {
+    public static int ConvertIntegerObjectToInteger(Integer$Interface object) {
         if(object == null) {
             throw new NullPointerException("Cannot convert an undefined type to an integer.");
         }

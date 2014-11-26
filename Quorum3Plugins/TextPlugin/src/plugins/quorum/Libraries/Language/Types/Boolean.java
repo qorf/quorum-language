@@ -30,6 +30,19 @@ public class Boolean {
         return i;
     }
     
+    public static boolean ConvertBooleanObjectToBoolean(Boolean$Interface object) {
+        if(object == null) {
+            throw new NullPointerException("Cannot convert an undefined type to an integer.");
+        }
+        return object.GetValue();
+    }
+    
+    public static Boolean$Interface ConvertBooleanToBooleanObject(boolean value) {
+        Boolean$Interface i = new quorum.Libraries.Language.Types.Boolean();
+        i.SetValue(value);
+        return i;
+    }
+    
     public void SetValueNative(boolean value){
         bool = value;
     }
