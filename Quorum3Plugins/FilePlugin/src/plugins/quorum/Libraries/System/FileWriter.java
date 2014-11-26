@@ -5,8 +5,6 @@
 package plugins.quorum.Libraries.System;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import quorum.Libraries.Language.Errors.*;
 
 /**

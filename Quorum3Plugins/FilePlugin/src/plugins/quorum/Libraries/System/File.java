@@ -4,13 +4,6 @@
  */
 package plugins.quorum.Libraries.System;
 
-import java.io.EOFException;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import quorum.Libraries.Language.Errors.*;
-
 /**
  * Java bytecode plugin for the "File" class. This is merely a wrapper for the
  * QuorumFilePlugin class.
