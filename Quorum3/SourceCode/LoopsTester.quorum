@@ -13,17 +13,17 @@ class LoopsTester
     CompilerTestSuite suite = undefined
     action Test
         RepeatFromToConstConst()
-//        RepeatFromToConstVar()
+        RepeatFromToConstVar()
         RepeatFromToNestedConstConst()
-//        RepeatFromToNestedConstVar()
+        RepeatFromToNestedConstVar()
         RepeatFromToNestedVarConst()
         RepeatFromToNestedVarVar()
         RepeatFromToVarConst()
-//        RepeatFromToVarVar()
-//        RepeatNestedFromTimesUntilWhile()
-//        RepeatNestedTimesFromUntilWhile()
-//        RepeatNestedUntilWhileTimesFrom()
-//        RepeatNestedWhileUntilTimesFrom()
+        RepeatFromToVarVar()
+        RepeatNestedFromTimesUntilWhile()
+        RepeatNestedTimesFromUntilWhile()
+        RepeatNestedUntilWhileTimesFrom()
+        RepeatNestedWhileUntilTimesFrom()
         RepeatTimesConst()
         RepeatTimesNestedConstConst()
         RepeatTimesNestedConstVar()
@@ -37,7 +37,7 @@ class LoopsTester
         RepeatUntilLessThan()
         RepeatUntilLessThanEqual()
         RepeatUntilNotEqual()
-//        RepeatWhileAndUntilWithParenNot()
+        RepeatWhileAndUntilWithParenNot()
         RepeatWhileBoolean()
         RepeatWhileEqual()
         RepeatWhileGreaterThan()
@@ -45,16 +45,16 @@ class LoopsTester
         RepeatWhileLessThan()
         RepeatWhileLessThanEqual()
         RepeatWhileNotEqual()
-        //RepeatWhileZeroTimes()
+        RepeatZeroTimes()
         SimpleRepeatWhile()
 
         //FAIL TESTS
-//        RepeatTimesConstBool()
-//        RepeatTimesConstDouble()
-//        RepeatTimesConstText()
-//        RepeatTimesVarBool()
-//        RepeatTimesVarDouble()
-//        RepeatTimesVarText()
+        RepeatTimesConstBool()
+        RepeatTimesConstDouble()
+        RepeatTimesConstText()
+        RepeatTimesVarBool()
+        RepeatTimesVarDouble()
+        RepeatTimesVarText()
     end
 
     action GetName returns text
@@ -234,9 +234,9 @@ class LoopsTester
         suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatWhileNotEqual.quorum", "5")
     end
 
-    action RepeatWhileZeroTimes 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatWhileZeroTimes.quorum", "0")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatWhileZeroTimes.quorum", "0")
+    action RepeatZeroTimes 
+        suite:RunTest("Library/Tests/Loops/Pass/RepeatZeroTimes.quorum", "0")
+        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatZeroTimes.quorum", "0")
     end
 
     action SimpleRepeatWhile 
@@ -245,34 +245,34 @@ class LoopsTester
     end
 
 //    //FAIL TESTS
-//    action RepeatTimesConstBool
-//        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesConstBool.quorum")
-//        //suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesConstBool.quorum")
-//    end
-//
-//    action RepeatTimesConstDouble
-//        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesConstDouble.quorum")
-//        //suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesConstDouble.quorum")
-//    end
-//
-//    action RepeatTimesConstText
-//        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesConstText.quorum")
-//        //suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesConstText.quorum")
-//    end
-//
-//    action RepeatTimesVarBool
-//        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesVarBool.quorum")
-//        //suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesVarBool.quorum")
-//    end
-//
-//    action RepeatTimesVarDouble
-//        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesVarDouble.quorum")
-//        //suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesVarDouble.quorum")
-//    end
-//
-//    action RepeatTimesVarText
-//        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesVarText.quorum")
-//        //suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesVarText.quorum")
-//    end
+    action RepeatTimesConstBool
+        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesConstBool.quorum")
+        suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesConstBool.quorum")
+    end
+
+    action RepeatTimesConstDouble
+        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesConstDouble.quorum")
+        suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesConstDouble.quorum")
+    end
+
+    action RepeatTimesConstText
+        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesConstText.quorum")
+        suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesConstText.quorum")
+    end
+
+    action RepeatTimesVarBool
+        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesVarBool.quorum")
+        suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesVarBool.quorum")
+    end
+
+    action RepeatTimesVarDouble
+        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesVarDouble.quorum")
+        suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesVarDouble.quorum")
+    end
+
+    action RepeatTimesVarText
+        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesVarText.quorum")
+        suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesVarText.quorum")
+    end
 
 end
