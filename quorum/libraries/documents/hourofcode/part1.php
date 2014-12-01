@@ -77,4 +77,6 @@
     <iframe width="946" height="571" src="//www.youtube.com/embed/pwRc8bjoACw?rel=0" frameborder="0" allowfullscreen></iframe>
 </div>
 
+<img src="http://code.org/api/hour/begin_quorum.png/" style="display:none">
+
 <?php require_once("../../static/templates/pagefooter.template.php"); ?>
