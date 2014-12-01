@@ -11,7 +11,11 @@ use Libraries.System.StackTraceItem
 
 class LoopsTester 
     CompilerTestSuite suite = undefined
+    text path = "Library/Tests/Loops/"
+    text passPath = path + "Pass/"
+    text failPath = path + "Fail/"
     action Test
+        path = passPath
         RepeatFromToConstConst()
         RepeatFromToConstVar()
         RepeatFromToNestedConstConst()
@@ -48,7 +52,8 @@ class LoopsTester
         RepeatZeroTimes()
         SimpleRepeatWhile()
 
-        //FAIL TESTS
+//FAIL TESTS
+        path = failPath
         RepeatTimesConstBool()
         RepeatTimesConstDouble()
         RepeatTimesConstText()
@@ -70,209 +75,452 @@ class LoopsTester
     end
 
     action RepeatFromToConstConst 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatFromToConstConst.quorum", "11")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatFromToConstConst.quorum", "11")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatFromToConstConst.quorum")
+        files:Add(main)
+        results:Add(0, "11")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatFromToConstVar 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatFromToConstVar.quorum", "11")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatFromToConstVar.quorum", "11")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatFromToConstVar.quorum")
+        files:Add(main)
+        results:Add(0, "11")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatFromToNestedConstConst 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatFromToNestedConstConst.quorum", "101")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatFromToNestedConstConst.quorum", "101")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatFromToNestedConstConst.quorum")
+        files:Add(main)
+        results:Add(0, "101")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatFromToNestedConstVar 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatFromToNestedConstVar.quorum")
+        files:Add(main)
+        results:Add(0, "11")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
         suite:RunTest("Library/Tests/Loops/Pass/RepeatFromToNestedConstVar.quorum", "11")
         suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatFromToNestedConstVar.quorum", "11")
     end
 
     action RepeatFromToNestedVarConst 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatFromToNestedVarConst.quorum", "101")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatFromToNestedVarConst.quorum", "101")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatFromToNestedVarConst.quorum")
+        files:Add(main)
+        results:Add(0, "101")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatFromToNestedVarVar 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatFromToNestedVarVar.quorum", "56")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatFromToNestedVarVar.quorum", "56")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatFromToNestedVarVar.quorum")
+        files:Add(main)
+        results:Add(0, "56")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatFromToVarConst 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatFromToVarConst.quorum", "11")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatFromToVarConst.quorum", "11")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatFromToVarConst.quorum")
+        files:Add(main)
+        results:Add(0, "11")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatFromToVarVar 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatFromToVarVar.quorum", "11")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatFromToVarVar.quorum", "11")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatFromToVarVar.quorum")
+        files:Add(main)
+        results:Add(0, "11")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatNestedFromTimesUntilWhile 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatNestedFromTimesUntilWhile.quorum", "82")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatNestedFromTimesUntilWhile.quorum", "82")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatNestedFromTimesUntilWhile.quorum")
+        files:Add(main)
+        results:Add(0, "82")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatNestedTimesFromUntilWhile 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatNestedTimesFromUntilWhile.quorum", "82")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatNestedTimesFromUntilWhile.quorum", "82")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatNestedTimesFromUntilWhile.quorum")
+        files:Add(main)
+        results:Add(0, "82")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatNestedUntilWhileTimesFrom 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatNestedUntilWhileTimesFrom.quorum", "82")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatNestedUntilWhileTimesFrom.quorum", "82")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatNestedUntilWhileTimesFrom.quorum")
+        files:Add(main)
+        results:Add(0, "82")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatNestedWhileUntilTimesFrom 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatNestedWhileUntilTimesFrom.quorum", "82")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatNestedWhileUntilTimesFrom.quorum", "82")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatNestedWhileUntilTimesFrom.quorum")
+        files:Add(main)
+        results:Add(0, "82")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatTimesConst 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatTimesConst.quorum", "5")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatTimesConst.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatTimesConst.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatTimesNestedConstConst 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatTimesNestedConstConst.quorum", "25")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatTimesNestedConstConst.quorum", "25")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatTimesNestedConstConst.quorum")
+        files:Add(main)
+        results:Add(0, "25")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatTimesNestedConstVar 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatTimesNestedConstVar.quorum", "25")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatTimesNestedConstVar.quorum", "25")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatTimesNestedConstVar.quorum")
+        files:Add(main)
+        results:Add(0, "25")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatTimesNestedVarConst 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatTimesNestedVarConst.quorum", "25")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatTimesNestedVarConst.quorum", "25")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatTimesNestedVarConst.quorum")
+        files:Add(main)
+        results:Add(0, "25")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatTimesNestedVarVar 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatTimesNestedVarVar.quorum", "25")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatTimesNestedVarVar.quorum", "25")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatTimesNestedVarVar.quorum")
+        files:Add(main)
+        results:Add(0, "25")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatTimesVar 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatTimesVar.quorum", "5")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatTimesVar.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatTimesVar.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatUntilBoolean 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatUntilBoolean.quorum", "6")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatUntilBoolean.quorum", "6")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatUntilBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "6")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatUntilEqual 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatUntilEqual.quorum", "5")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatUntilEqual.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatUntilEqual.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatUntilGreaterThan 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatUntilGreaterThan.quorum", "6")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatUntilGreaterThan.quorum", "6")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatUntilGreaterThan.quorum")
+        files:Add(main)
+        results:Add(0, "6")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatUntilGreaterThanEqual 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatUntilGreaterThanEqual.quorum", "5")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatUntilGreaterThanEqual.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatUntilGreaterThanEqual.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatUntilLessThan 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatUntilLessThan.quorum", "4")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatUntilLessThan.quorum", "4")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatUntilLessThan.quorum")
+        files:Add(main)
+        results:Add(0, "4")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatUntilLessThanEqual 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatUntilLessThanEqual.quorum", "5")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatUntilLessThanEqual.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatUntilLessThanEqual.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatUntilNotEqual 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatUntilNotEqual.quorum", "6")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatUntilNotEqual.quorum", "6")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatUntilNotEqual.quorum")
+        files:Add(main)
+        results:Add(0, "6")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatWhileAndUntilWithParenNot 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatWhileAndUntilWithParenNot.quorum", "101", "101", "false", "true", "done.")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatWhileAndUntilWithParenNot.quorum", "101", "101", "false", "true", "done.")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatWhileAndUntilWithParenNot.quorum")
+        files:Add(main)
+        results:Add(0, "101")
+        results:Add(1, "101")
+        results:Add(2, "false")
+        results:Add(3, "true")
+        results:Add(4, "done")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatWhileBoolean 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatWhileBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
         suite:RunTest("Library/Tests/Loops/Pass/RepeatWhileBoolean.quorum", "5")
         suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatWhileBoolean.quorum", "5")
     end
 
     action RepeatWhileEqual 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatWhileEqual.quorum", "0")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatWhileEqual.quorum", "0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatWhileEqual.quorum")
+        files:Add(main)
+        results:Add(0, "0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatWhileGreaterThan 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatWhileGreaterThan.quorum", "5")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatWhileGreaterThan.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatWhileGreaterThan.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatWhileGreaterThanEqual 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatWhileGreaterThanEqual.quorum", "4")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatWhileGreaterThanEqual.quorum", "4")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatWhileGreaterThanEqual.quorum")
+        files:Add(main)
+        results:Add(0, "4")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatWhileLessThan 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatWhileLessThan.quorum", "5")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatWhileLessThan.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatWhileLessThan.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatWhileLessThanEqual 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatWhileLessThanEqual.quorum", "6")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatWhileLessThanEqual.quorum", "6")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatWhileLessThanEqual.quorum")
+        files:Add(main)
+        results:Add(0, "6")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatWhileNotEqual 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatWhileNotEqual.quorum", "5")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatWhileNotEqual.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatWhileNotEqual.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action RepeatZeroTimes 
-        suite:RunTest("Library/Tests/Loops/Pass/RepeatZeroTimes.quorum", "0")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/RepeatZeroTimes.quorum", "0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatZeroTimes.quorum")
+        files:Add(main)
+        results:Add(0, "0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action SimpleRepeatWhile 
-        suite:RunTest("Library/Tests/Loops/Pass/SimpleRepeatWhile.quorum", "2")
-        suite:RunJavaScriptTest("Library/Tests/Loops/Pass/SimpleRepeatWhile.quorum", "2")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SimpleRepeatWhile.quorum")
+        files:Add(main)
+        results:Add(0, "2")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
-//    //FAIL TESTS
+//  FAIL TESTS
+    
     action RepeatTimesConstBool
-        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesConstBool.quorum")
-        suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesConstBool.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "RepeatTimesConstBool.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action RepeatTimesConstDouble
-        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesConstDouble.quorum")
-        suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesConstDouble.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "RepeatTimesConstDouble.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action RepeatTimesConstText
-        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesConstText.quorum")
-        suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesConstText.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "RepeatTimesConstText.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action RepeatTimesVarBool
-        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesVarBool.quorum")
-        suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesVarBool.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "RepeatTimesVarBool.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action RepeatTimesVarDouble
-        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesVarDouble.quorum")
-        suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesVarDouble.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "RepeatTimesVarDouble.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
     action RepeatTimesVarText
-        suite:RunTestFail("Library/Tests/Loops/Fail/RepeatTimesVarText.quorum")
-        suite:RunJavaScriptTestFail("Library/Tests/Loops/Fail/RepeatTimesVarText.quorum")
+        Array<File> files
+        File main
+        main:SetPath(path + "RepeatTimesVarText.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
     end
 
 end
