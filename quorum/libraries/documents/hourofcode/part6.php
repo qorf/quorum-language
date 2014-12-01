@@ -83,4 +83,6 @@
     <iframe width="946" height="571" src="//www.youtube.com/embed/qIvXHEhIQI8?rel=0" frameborder="0" allowfullscreen></iframe>
 </div>
 
+<img src="http://code.org/api/hour/finish_quorum.png/" style="display:none">
+
 <?php require_once("../../static/templates/pagefooter.template.php"); ?>
