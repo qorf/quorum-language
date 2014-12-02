@@ -99,6 +99,8 @@ class IfStatementTester
         MultipleIfElseBlocks_4BTrue()
 
         //FAIL TESTS
+        ElseIfBadVariable()
+        ElseIfNumber()
         IfStatementInt()
         IfStatementDouble()
         IfStatementText()
@@ -543,19 +545,28 @@ class IfStatementTester
     end
 
     //FAIL TESTS
+    action ElseIfBadVariable
+        suite:RunTestFail("Library/Tests/IfStatement/Fail/ElseIfBadVariable.quorum")
+        suite:RunJavaScriptTestFail("Library/Tests/IfStatement/Fail/ElseIfBadVariable.quorum")
+    end
+
+    action ElseIfNumber
+        suite:RunTestFail("Library/Tests/IfStatement/Fail/ElseIfNumber.quorum")
+        suite:RunJavaScriptTestFail("Library/Tests/IfStatement/Fail/ElseIfNumber.quorum")
+    end
+
     action IfStatementDouble
-        //suite:RunTestFail("Library/Tests/IfStatement/Fail/IfStatementDouble().quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/IfStatement/Pass/IfStatementDouble.quorum")
+        suite:RunTestFail("Library/Tests/IfStatement/Fail/IfStatementDouble.quorum")
+        suite:RunJavaScriptTestFail("Library/Tests/IfStatement/Fail/IfStatementDouble.quorum")
     end
 
     action IfStatementInt
-        //suite:RunTestFail("Library/Tests/IfStatement/Fail/IfStatementInt().quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/IfStatement/Pass/IfStatementDouble.quorum")
+        suite:RunTestFail("Library/Tests/IfStatement/Fail/IfStatementInt.quorum")
+        suite:RunJavaScriptTestFail("Library/Tests/IfStatement/Fail/IfStatementDouble.quorum")
     end
 
     action IfStatementText
-        //suite:RunTestFail("Library/Tests/IfStatement/Fail/IfStatementText().quorum")
-        //suite:RunJavaScriptTestFail("Library/Tests/IfStatement/Pass/IfStatementDouble.quorum")
+        suite:RunTestFail("Library/Tests/IfStatement/Fail/IfStatementText.quorum")
+        suite:RunJavaScriptTestFail("Library/Tests/IfStatement/Fail/IfStatementDouble.quorum")
     end
-
 end
