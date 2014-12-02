@@ -501,6 +501,19 @@ var submitCodeSample = function(){
 			error: function (xhr, ajaxOptions, thrownError) {
 				//console.log(xhr, ajaxOptions, thrownError);
                                 $(".outputArea").html("Error: Could not connect to server: " + thrownError.toString());
+                                var reportData = { code: tempCode, uuid: id, pagenumber: pageNumber, slidenumber: slideNr, resultCode: thrownError.toString(), completed: 0, pageurl: pageURL, gacookie: ga_cookie};
+                                $.ajax({
+                                    type: "POST",
+                                    url: "http://quorumlanguage.com/quorum_logger.php",
+                                    data: reportData,
+                                    success: function(result) {
+                                        console.log("Logged Result " + result);
+                                    },
+                                    error: function (xhr, ajaxOptions, thrownError) {
+                                        console.log(xhr, ajaxOptions, thrownError);
+                                    }
+
+                                });
 			}
 		});
                
