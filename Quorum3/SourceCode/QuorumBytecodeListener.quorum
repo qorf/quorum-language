@@ -454,6 +454,44 @@ class QuorumBytecodeListener is QuorumSourceListener
         QuorumOpcode qop = opcodeStack:Pop()
         qop:SetIsIfExpression(true)
         
+        Type type = qop:GetType()
+        if type = undefined
+            CompilerError error
+            error:SetErrorMessage("I cannot determine the type of the loop expression.")
+            error:SetLocation(context:GetLocation())
+            CompilerErrorType errorType
+            errorType:SetCurrentType(errorType:REPEAT_NON_BOOLEAN)
+            error:SetCompilerErrorType(errorType)
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
+        if loop:IsTimes()
+            if not type:IsInteger()
+                CompilerError error
+                error:SetErrorMessage("Repeat times statements can only accept integers, but the expression's type was " + type:GetStaticKey() + ".")
+                error:SetLocation(context:GetLocation())
+                CompilerErrorType errorType
+                errorType:SetCurrentType(errorType:REPEAT_TIMES_NON_INTEGER)
+                error:SetCompilerErrorType(errorType)
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(error)
+                return now
+            end
+        else
+            if not type:IsBoolean()
+                CompilerError error
+                error:SetErrorMessage("Repeat while and until statements can only accept booleans, but the expression's type was " + type:GetStaticKey() + ".")
+                error:SetLocation(context:GetLocation())
+                CompilerErrorType errorType
+                errorType:SetCurrentType(errorType:REPEAT_NON_BOOLEAN)
+                error:SetCompilerErrorType(errorType)
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(error)
+                return now
+            end
+        end        
 
         loop:SetExpression(qop)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
@@ -480,6 +518,30 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         ConditionalOpcode conditional = ifStack:Pop()
         QuorumOpcode qop = opcodeStack:Pop()
+
+        Type type = qop:GetType()
+        if type = undefined
+            CompilerError error
+            error:SetErrorMessage("If statements can only accept booleans, but the expression's type is unknown.")
+            error:SetLocation(context:GetLocation())
+            CompilerErrorType errorType
+            errorType:SetCurrentType(errorType:IF_INVALID_EXPRESSION)
+            error:SetCompilerErrorType(errorType)
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        elseif not type:IsBoolean()
+            CompilerError error
+            error:SetErrorMessage("If statements can only accept booleans, but the expression's type was " + type:GetStaticKey() + ".")
+            error:SetLocation(context:GetLocation())
+            CompilerErrorType errorType
+            errorType:SetCurrentType(errorType:IF_INVALID_EXPRESSION)
+            error:SetCompilerErrorType(errorType)
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
         qop:SetIsIfExpression(true)
         conditional:SetExpression(qop)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
@@ -492,6 +554,33 @@ class QuorumBytecodeListener is QuorumSourceListener
     action ExitElseIfStatement(IfContext context) 
         ConditionalOpcode conditional = ifStack:Peek()
         QuorumOpcode qop = opcodeStack:Pop()
+
+
+        Type type = qop:GetType()
+        if type = undefined
+            CompilerError error
+            error:SetErrorMessage("If statements can only accept booleans, but the expression's type is unknown.")
+            error:SetLocation(context:GetLocation())
+            CompilerErrorType errorType
+            errorType:SetCurrentType(errorType:IF_INVALID_EXPRESSION)
+            error:SetCompilerErrorType(errorType)
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        elseif not type:IsBoolean()
+            CompilerError error
+            error:SetErrorMessage("If statements can only accept booleans, but the expression's type was " + type:GetStaticKey() + ".")
+            error:SetLocation(context:GetLocation())
+            CompilerErrorType errorType
+            errorType:SetCurrentType(errorType:IF_INVALID_EXPRESSION)
+            error:SetCompilerErrorType(errorType)
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
+
+
         qop:SetIsIfExpression(true)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         conditional:AddElseIf(qop, recentlyPopped)
@@ -643,6 +732,11 @@ class QuorumBytecodeListener is QuorumSourceListener
         assign:SetOperation(assign:EQUALS)
 
         TypeChecker checker = GetTypeChecker()
+
+        if right = undefined //the system should have already output an error, so return
+            return now
+        end
+
         TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
         CompilerError error = result:GetCompilerError(context:GetLocation())
 
@@ -703,10 +797,16 @@ class QuorumBytecodeListener is QuorumSourceListener
                 error:SetCompilerErrorType(errorType)
                 if right not= undefined
                     Type otherType = right:GetType()
-                    error:SetErrorMessage("I will not infer the type of the " + 
-                        "right hand side of this expression automatically. To " +
-                        " fix this, change the declaration to " + otherType:GetStaticKeyWithGenerics() + 
-                        " " + variable:GetName() + ".")
+                    if otherType not= undefined
+                        error:SetErrorMessage("I will not infer the type of the " + 
+                            "right hand side of this expression automatically. To " +
+                            " fix this, change the declaration to " + otherType:GetStaticKeyWithGenerics() + 
+                            " " + variable:GetName() + ".")
+                    else 
+                        error:SetErrorMessage("I cannot infer the type of the " + 
+                            "right hand side of this expression assigning to the " +
+                            " variable " + variable:GetName() + ".")
+                    end
 
                 else
                     error:SetErrorMessage("I will not infer the type of the " + 

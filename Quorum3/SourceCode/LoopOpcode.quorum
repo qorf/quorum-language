@@ -25,9 +25,27 @@ class LoopOpcode is QuorumOpcode
         me:variable = field
     end
 
+    
+
     action SetWhile
         isUntil = false
         isTimes = false
+    end
+
+    action IsUntil returns boolean
+        return isUntil
+    end
+
+    action IsWhile returns boolean
+        if not isUntil and not isTimes
+            return true
+        end
+
+        return false
+    end
+
+    action IsTimes returns boolean
+        return isTimes
     end
 
     action SetUntil
