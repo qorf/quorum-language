@@ -1,7 +1,18 @@
 <hmtl>
     
     <header>
-        
+        <style type="text/css">
+            td {
+                white-space: pre;
+                padding: 10px;
+            }
+            tr:nth-child(even) {
+                background-color: #000000;
+            }
+            th {
+                background-color: #DDD;
+            }
+        </style>
     </header>
     
     <body>
@@ -39,7 +50,7 @@
                                 $resarray = $preparedStatement->fetchAll();
                                 foreach ($resarray as $item) {
                                     echo '<tr>';
-                                    echo '<td>'.$item['insertiontime'].'</td>';
+                                    echo '<td>'.$item['insertionTime'].'</td>';
                                     echo '<td>'.$item['quorum_version'].'</td>';
                                     echo '<td>'.$item['code'].'</td>';
                                     echo '<td>'.$item['output'].'</td>';
