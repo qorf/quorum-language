@@ -12,6 +12,9 @@
             th {
                 background-color: #DDD;
             }
+            .code {
+                font-family: "Courier New", Courier, monospace;
+            }
         </style>
     </header>
     
@@ -52,7 +55,7 @@
                                     echo '<tr>';
                                     echo '<td>'.$item['insertionTime'].'</td>';
                                     echo '<td>'.$item['quorum_version'].'</td>';
-                                    echo '<td>'.$item['code'].'</td>';
+                                    echo '<td class="code">'.$item['code'].'</td>';
                                     echo '<td>'.$item['output'].'</td>';
                                     echo '<td>'.$item['pagenr'].'</td>';
                                     echo '<td>'.$item['slidenr'].'</td>';
