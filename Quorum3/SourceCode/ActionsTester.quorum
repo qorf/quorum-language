@@ -146,68 +146,151 @@ class ActionsTester
     end
 
     action AverageOfFiveNumbers 
-        suite:RunTest("Library/Tests/Actions/Pass/AverageOfFiveNumbers.quorum", "337.546")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/AverageOfFiveNumbers.quorum", "337.546")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AverageOfFiveNumbers.quorum")
+        files:Add(main)
+        results:Add(0, "337.546")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action CallObjectAction 
-        suite:RunTest("Library/Tests/Actions/Pass/CallObjectAction.quorum", "I went")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/CallObjectAction.quorum", "I went")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CallObjectAction.quorum")
+        files:Add(main)
+        results:Add(0, "I went")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action CastLastArgument 
-        suite:RunTest("Library/Tests/Actions/Pass/CastLastArgument.quorum", "1.0")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/CastLastArgument.quorum", "1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastLastArgument.quorum")
+        files:Add(main)
+        results:Add(0, "1.0")
+        suite:Test(files, results)
+        results:Set(0,"1")
+        suite:TestJavaScript(files, results)
     end
 
     action CastMiddleArgument 
-        suite:RunTest("Library/Tests/Actions/Pass/CastMiddleArgument.quorum", "1.0")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/CastMiddleArgument.quorum", "1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastMiddleArgument.quorum")
+        files:Add(main)
+        results:Add(0, "1.0")
+        suite:Test(files, results)
+        results:Set(0,"1")
+        suite:TestJavaScript(files, results)
     end
 
     action CastReturn 
-        suite:RunTest("Library/Tests/Actions/Pass/CastReturn.quorum", "1.0")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/CastReturn.quorum", "1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastReturn.quorum")
+        files:Add(main)
+        results:Add(0, "1.0")
+        suite:Test(files, results)
+        results:Set(0,"1")
+        suite:TestJavaScript(files, results)
     end
 
     action CastReturnValue 
-        suite:RunTest("Library/Tests/Actions/Pass/CastReturnValue.quorum", "4.0")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/CastReturnValue.quorum", "4")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastReturnValue.quorum")
+        files:Add(main)
+        results:Add(0, "4.0")
+        suite:Test(files, results)
+        results:Set(0,"4")
+        suite:TestJavaScript(files, results)
     end
 
     action Factorial 
-        suite:RunTest("Library/Tests/Actions/Pass/Factorial.quorum", "120")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/Factorial.quorum", "120")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Factorial.quorum")
+        files:Add(main)
+        results:Add(0, "120")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action Fibonacci 
-        suite:RunTest("Library/Tests/Actions/Pass/Fibonacci.quorum", "55")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/Fibonacci.quorum", "55")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Fibonacci.quorum")
+        files:Add(main)
+        results:Add(0, "55")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action Field 
-        suite:RunTest("Library/Tests/Actions/Pass/Field.quorum", "4")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/Field.quorum", "4")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Field.quorum")
+        files:Add(main)
+        results:Add(0, "4")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action FieldCastParameter 
-        suite:RunTest("Library/Tests/Actions/Pass/FieldCastParameter.quorum", "4")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/FieldCastParameter.quorum", "4")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "FieldCastParameter.quorum")
+        files:Add(main)
+        results:Add(0, "4")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action FieldCastReturn 
-        suite:RunTest("Library/Tests/Actions/Pass/FieldCastReturn.quorum", "4.0")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/FieldCastReturn.quorum", "4")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "FieldCastReturn.quorum")
+        files:Add(main)
+        results:Add(0, "4.0")
+        suite:Test(files, results)
+        results:Set(0,"4")
+        suite:TestJavaScript(files, results)
     end
 
     action FieldSoloCall
-        suite:RunTest("Library/Tests/Actions/Pass/FieldSoloCall.quorum", "Hello World!")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/FieldSoloCall.quorum", "Hello World!")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "FieldSoloCall.quorum")
+        files:Add(main)
+        results:Add(0, "Hello World!")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action GCD 
-        suite:RunTest("Library/Tests/Actions/Pass/GCD.quorum", "5")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/GCD.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GCD.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action HourOfCodePart1
@@ -394,48 +477,111 @@ class ActionsTester
     end
 
     action MultipleNestedFunctionCalls 
-        suite:RunTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCalls.quorum", "65536")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCalls.quorum", "65536")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "MultipleNestedFunctionCalls.quorum")
+        files:Add(main)
+        results:Add(0, "65536")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action MultipleNestedFunctionCallsDouble 
-        suite:RunTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsDouble.quorum", "65536.0")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsDouble.quorum", "65536")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "MultipleNestedFunctionCallsDouble.quorum")
+        files:Add(main)
+        results:Add(0, "65536.0")
+        suite:Test(files, results)
+        results:Set(0, "65536")
+        suite:TestJavaScript(files, results)
     end
 
     action MultipleNestedFunctionCallsInSoloCall 
-        suite:RunTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsInSoloCall.quorum", "65536")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsInSoloCall.quorum", "65536")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "MultipleNestedFunctionCallsInSoloCall.quorum")
+        files:Add(main)
+        results:Add(0, "65536")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action MultipleNestedFunctionCallsWithAssignments
-        suite:RunTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsWithAssignments.quorum", "65536")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsWithAssignments.quorum", "65536")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "MultipleNestedFunctionCallsWithAssignments.quorum")
+        files:Add(main)
+        results:Add(0, "65536")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action MultipleNestedFunctionCallsWithAssignmentsDouble 
-        suite:RunTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsWithAssignmentsDouble.quorum", "65536.0")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/MultipleNestedFunctionCallsWithAssignmentsDouble.quorum", "65536")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "MultipleNestedFunctionCallsWithAssignmentsDouble.quorum")
+        files:Add(main)
+        results:Add(0, "65536.0")
+        suite:Test(files, results)
+        results:Set(0, "65536")
+        suite:TestJavaScript(files, results)
     end
 
     action NestedConditionalRepeat1
-        suite:RunTest("Library/Tests/Actions/Pass/NestedConditionalRepeat1.quorum", "1", "16", "81", "256")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/NestedConditionalRepeat1.quorum", "1", "16", "81", "256")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NestedConditionalRepeat1.quorum")
+        files:Add(main)
+        results:Add(0, "1")
+        results:Add(1, "16")
+        results:Add(2, "81")
+        results:Add(3, "256")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NestedConditionalRepeat2
-        suite:RunTest("Library/Tests/Actions/Pass/NestedConditionalRepeat2.quorum", "1", "512", "19683", "262144")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/NestedConditionalRepeat2.quorum", "1", "512", "19683", "262144")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NestedConditionalRepeat2.quorum")
+        files:Add(main)
+        results:Add(0, "1")
+        results:Add(1, "512")
+        results:Add(2, "19683")
+        results:Add(3, "262144")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NestedFunctionCall 
-        suite:RunTest("Library/Tests/Actions/Pass/NestedFunctionCall.quorum", "300")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/NestedFunctionCall.quorum", "300")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NestedFunctionCall.quorum")
+        files:Add(main)
+        results:Add(0, "300")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NestedFunctionCallDouble 
-        suite:RunTest("Library/Tests/Actions/Pass/NestedFunctionCallDouble.quorum", "300.0")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/NestedFunctionCallDouble.quorum", "300")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NestedFunctionCallDouble.quorum")
+        files:Add(main)
+        results:Add(0, "300.0")
+        suite:Test(files, results)
+        results:Set(0, "300")
+        suite:TestJavaScript(files, results)
     end
 
     action NonParallelNestedReturn
@@ -453,8 +599,14 @@ class ActionsTester
     end
 
     action RepeatTextCall 
-        suite:RunTest("Library/Tests/Actions/Pass/RepeatTextCall.quorum", "321...Liftoff")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/RepeatTextCall.quorum", "321...Liftoff")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RepeatTextCall.quorum")
+        files:Add(main)
+        results:Add(0, "321...Liftoff")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
     
     action Return2ActionsBool
@@ -509,7 +661,6 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "20.0")
         suite:Test(files, results)
-
         results:Set(0, "20")
         suite:TestJavaScript(files, results)
     end
@@ -522,7 +673,6 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "20.0")
         suite:Test(files, results)
-
         results:Set(0, "20")
         suite:TestJavaScript(files, results)
     end
@@ -570,7 +720,6 @@ class ActionsTester
         results:Add(0, "2")
         results:Add(1, "20.0")
         suite:Test(files, results)
-
         results:Set(1, "20")
         suite:TestJavaScript(files, results)
     end
@@ -639,7 +788,6 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "-1.0")
         suite:Test(files, results)
-
         results:Set(0, "-1")
         suite:TestJavaScript(files, results)
     end
@@ -652,7 +800,6 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "1.0")
         suite:Test(files, results)
-
         results:Set(0, "1")
         suite:TestJavaScript(files, results)
     end
@@ -731,7 +878,6 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "-1.0")
         suite:Test(files, results)
-
         results:Set(0, "-1")
         suite:TestJavaScript(files, results)
     end
@@ -744,7 +890,6 @@ class ActionsTester
         files:Add(main)
         results:Add(0, "1.0")
         suite:Test(files, results)
-
         results:Set(0, "1")
         suite:TestJavaScript(files, results)
     end
@@ -772,93 +917,210 @@ class ActionsTester
     end
 
     action SimpleActionPassObject 
-        suite:RunTest("Library/Tests/Actions/Pass/SimpleActionPassObject.quorum", "hello world")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleActionPassObject.quorum", "hello world")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SimpleActionPassObject.quorum")
+        files:Add(main)
+        results:Add(0, "hello world")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action SimpleCastArgument 
-        suite:RunTest("Library/Tests/Actions/Pass/SimpleCastArgument.quorum", "1.0")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleCastArgument.quorum", "1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SimpleCastArgument.quorum")
+        files:Add(main)
+        results:Add(0, "1.0")
+        suite:Test(files, results)
+        results:Set(0, "1")
+        suite:TestJavaScript(files, results)
     end
 
     action SimpleNestedActions 
-        suite:RunTest("Library/Tests/Actions/Pass/SimpleNestedActions.quorum", "125")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleNestedActions.quorum", "125")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SimpleNestedActions.quorum")
+        files:Add(main)
+        results:Add(0, "125")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action SimpleOneActionChangeParameter 
-        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionChangeParameter.quorum", "5")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionChangeParameter.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SimpleOneActionChangeParameter.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action SimpleOneActionConcatenateText 
-        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionConcatenateText.quorum", "Hello World!")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionConcatenateText.quorum", "Hello World!")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SimpleOneActionConcatenateText.quorum")
+        files:Add(main)
+        results:Add(0, "Hello World!")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action SimpleOneActionInControlExpression 
-        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionInControlExpression.quorum", "false")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionInControlExpression.quorum", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SimpleOneActionInControlExpression.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action SimpleOneActionNoParamsNoReturn 
-        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsNoReturn.quorum", "5")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsNoReturn.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SimpleOneActionNoParamsNoReturn.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action SimpleOneActionNoParamsReturnBoolean 
-        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnBoolean.quorum", "true")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnBoolean.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SimpleOneActionNoParamsReturnBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action SimpleOneActionNoParamsReturnInt 
-        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnInt.quorum", "5")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnInt.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SimpleOneActionNoParamsReturnInt.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action SimpleOneActionNoParamsReturnNumber 
-        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnNumber.quorum", "5.0")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnNumber.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SimpleOneActionNoParamsReturnNumber.quorum")
+        files:Add(main)
+        results:Add(0, "5.0")
+        suite:Test(files, results)
+        results:Set(0, "5")
+        suite:TestJavaScript(files, results)
     end
 
     action SimpleOneActionNoParamsReturnNumberConcatenate 
-        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnNumberConcatenate.quorum", "36.0")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnNumberConcatenate.quorum", "36")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SimpleOneActionNoParamsReturnNumberConcatenate.quorum")
+        files:Add(main)
+        results:Add(0, "36.0")
+        suite:Test(files, results)
+        results:Set(0, "36")
+        suite:TestJavaScript(files, results)
     end
 
     action SimpleOneActionNoParamsReturnText 
-        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnText.quorum", "5.0")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionNoParamsReturnText.quorum", "5.0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SimpleOneActionNoParamsReturnText.quorum")
+        files:Add(main)
+        results:Add(0, "5.0")
+        suite:Test(files, results)
+        results:Set(0, "5")
+        suite:TestJavaScript(files, results)
     end
 
     action SimpleOneActionTwoParamsReturnInt 
-        suite:RunTest("Library/Tests/Actions/Pass/SimpleOneActionTwoParamsReturnInt.quorum", "15")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/SimpleOneActionTwoParamsReturnInt.quorum", "15")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SimpleOneActionTwoParamsReturnInt.quorum")
+        files:Add(main)
+        results:Add(0, "15")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action TwoActionsDifferentParameters 
-        suite:RunTest("Library/Tests/Actions/Pass/TwoActionsDifferentParameters.quorum", "true", "false")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/TwoActionsDifferentParameters.quorum", "true", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TwoActionsDifferentParameters.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action VTableObjectTest 
-        suite:RunTest("Library/Tests/Actions/Pass/VTableObjectTest.quorum", "0","1")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/VTableObjectTest.quorum", "0","1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VTableObjectTest.quorum")
+        files:Add(main)
+        results:Add(0, "0")
+        results:Add(1, "1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action VTableCompareTest 
-        suite:RunTest("Library/Tests/Actions/Pass/VTableCompareTest.quorum", "1")
-        suite:RunJavaScriptTest("Library/Tests/Actions/Pass/VTableCompareTest.quorum", "1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VTableCompareTest.quorum")
+        files:Add(main)
+        results:Add(0, "1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action SetterAfterUse
-        suite:RunTest("Library/Tests/Actions/Pass/SetterAfterUse.quorum", "0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SetterAfterUse.quorum")
+        files:Add(main)
+        results:Add(0, "0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action SetterBeforeUse
-        suite:RunTest("Library/Tests/Actions/Pass/SetterBeforeUse.quorum", "0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SetterBeforeUse.quorum")
+        files:Add(main)
+        results:Add(0, "0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
+//FAIL TESTS
     action ActionLetter
         Array<File> files
         File main
