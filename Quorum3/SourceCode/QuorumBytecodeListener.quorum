@@ -1425,6 +1425,10 @@ class QuorumBytecodeListener is QuorumSourceListener
         else
             add:SetOperation(add:NOT_EQUALS)
         end
+
+        if left = undefined or right = undefined
+            return now //An error has already been issued.
+        end
         
         TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add)
         CompilerError error = result:GetCompilerError(context:GetLocation())
@@ -1458,6 +1462,10 @@ class QuorumBytecodeListener is QuorumSourceListener
             op:SetOperation(op:AND)
         else 
             op:SetOperation(op:OR)
+        end
+
+        if left = undefined or right = undefined
+            return now //An error has already been issued.
         end
 
         TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), op)
@@ -1512,6 +1520,10 @@ class QuorumBytecodeListener is QuorumSourceListener
             op:SetOperation(op:MODULUS)
         end
 
+        if left = undefined or right = undefined
+            return now //An error has already been issued.
+        end
+
         TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), op)
         CompilerError error = result:GetCompilerError(context:GetLocation())
         if error not= undefined
@@ -1541,6 +1553,10 @@ class QuorumBytecodeListener is QuorumSourceListener
             add:SetOperation(add:MINUS)
         end
 
+        if left = undefined or right = undefined
+            return now //An error has already been issued.
+        end
+
         TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add)
         CompilerError error = result:GetCompilerError(addition:GetLocation())
         if error not= undefined
@@ -1565,6 +1581,11 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         Operation notOp
         notOp:SetOperation(notOp:MINUS)
+
+        if left = undefined
+            return now //An error has already been issued.
+        end
+
         TypeCheckResult result = checker:Check(left:GetType(), notOp) 
         CompilerError error = result:GetCompilerError(context:GetLocation())
         if error not= undefined
@@ -1588,6 +1609,11 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         Operation notOp
         notOp:SetOperation(notOp:NOT)
+
+        if left = undefined
+            return now //An error has already been issued.
+        end
+
         TypeCheckResult result = checker:Check(left:GetType(), notOp) 
         CompilerError error = result:GetCompilerError(context:GetLocation())
         if error not= undefined
