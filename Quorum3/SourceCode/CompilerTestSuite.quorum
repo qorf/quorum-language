@@ -20,6 +20,10 @@ class CompilerTestSuite
     integer javaScriptPassed = 0
     integer passed = 0
     integer failed = 0
+    
+    boolean testBytecode = true
+    boolean testJavaScript = false
+  
     Math math
     ExpressionsTester expressions
     TypeCheckTester typeChecks
@@ -70,10 +74,10 @@ class CompilerTestSuite
         output ""
         output "List of Tests:"
         output expressions:GetName()
-        expressions:Test()
+//        expressions:Test()
         output ""
         output typeChecks:GetName()
-        typeChecks:Test()
+//        typeChecks:Test()
         output ""
         output ifStatementChecks:GetName()
         ifStatementChecks:Test()
@@ -151,6 +155,9 @@ class CompilerTestSuite
     end
 
     action Test(Array<File> files, Array<text> reply)
+        if testBytecode = false
+            return now
+        end
         CompilerTestResult result
         check
             result = RunTestFile(files)
@@ -198,6 +205,9 @@ class CompilerTestSuite
     end
 
     action TestJavaScript(Array<File> files, Array<text> reply)
+        if testJavaScript = false
+            return now
+        end
         CompilerTestResult result
         check
             result = RunJavaScriptTestFile(files)
@@ -246,6 +256,9 @@ class CompilerTestSuite
     end
 
     action TestFail(Array<File> files)
+        if testBytecode = false
+            return now
+        end
         Compiler compiler
         CompilerTestResult result
         File testFile
@@ -265,6 +278,9 @@ class CompilerTestSuite
     end
 
     action TestJavaScriptFail(Array<File> files)
+        if testJavaScript = false
+            return now
+        end
         Compiler compiler
         compiler:SetOutputSpeech(false) //don't speak while in test mode
         CompilerTestResult result
