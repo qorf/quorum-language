@@ -24,11 +24,11 @@ class ArrayTester
         ArrayAddToFront()
         ArrayCopy()
         ArrayEmpty()
-//        ArrayGetFirstLocationFound()
-//        ArrayGetFirstLocationNotFound()
-//        ArrayGetFromEnd()
-//        ArrayGetFromFront()
-//        ArrayGetLastLocationFound()
+        ArrayGetFirstLocationFound()
+        ArrayGetFirstLocationNotFound()
+        //ArrayGetFromEnd()
+        //ArrayGetFromFront()
+        ArrayGetLastLocationFound()
         ArrayGetMaxSize()
         ArrayGetSize()
         ArrayIsEmpty()
@@ -51,12 +51,12 @@ class ArrayTester
 //        ArraySortInteger()
 //        ArraySortNumber()
 //        ArraySortText()
-//        AssignFromGetIntToNum()
-//        ComplexSet()
+        AssignFromGetIntToNum()
+        ComplexSet()
         VectorAdd()
         VectorAddAt()
-//        VectorAddToEnd()
-//        VectorAddToFront()
+        VectorAddToEnd()
+        VectorAddToFront()
         VectorCopy()
         VectorEmpty()
 //        VectorGetFromEnd()
@@ -80,7 +80,7 @@ class ArrayTester
         ArrayOfTypeIntegerActionSetGetIntegerObject()
         ArrayOfTypeNumberActionSetGetNumberObject()
         ArrayOfTypeTextActionSetGetTextObject()
-        ArrayOverMaxSize()
+        //ArrayOverMaxSize()
     end
 
     action GetName returns text
@@ -389,7 +389,7 @@ class ArrayTester
             results:Add(6, "t")
             results:Add(7, "f")
             results:Add(8, "t")
-            results:Add(9, "f")
+            results:Add(9, "t")
             suite:Test(files, results)
             suite:TestJavaScript(files, results)
     end
@@ -489,7 +489,7 @@ class ArrayTester
             File main
             main:SetPath(path + "ArraySetSize.quorum")
             files:Add(main)
-            results:Add(0, "3")
+            results:Add(0, "6")
             suite:Test(files, results)
             suite:TestJavaScript(files, results)
     end
@@ -684,7 +684,7 @@ class ArrayTester
             Array<File> files
             Array<text> results
             File main
-            main:SetPath(path + "VectorGetSize.quorum")
+            main:SetPath(path + "VectorIsEmpty.quorum")
             files:Add(main)
             results:Add(0, "true")
             results:Add(1, "false")
@@ -786,7 +786,7 @@ class ArrayTester
             File main
             main:SetPath(path + "VectorSetSize.quorum")
             files:Add(main)
-            results:Add(0, "3")
+            results:Add(0, "6")
             suite:Test(files, results)
             suite:TestJavaScript(files, results)
     end
