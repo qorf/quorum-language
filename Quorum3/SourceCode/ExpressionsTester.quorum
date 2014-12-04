@@ -137,431 +137,1043 @@ class ExpressionsTester
     end
 
     action AddDoubleDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/AddDoubleDouble.quorum", "7.1", "7.1")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddDoubleDouble.quorum", "7.1", "7.1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AddDoubleDouble.quorum")
+        files:Add(main)
+        results:Add(0, "7.1")
+        results:Add(1, "7.1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action AddDoubleInt
-        suite:RunTest("Library/Tests/Expressions/Pass/AddDoubleInt.quorum", "7.2", "7.2")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddDoubleInt.quorum", "7.2", "7.2")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AddDoubleInt.quorum")
+        files:Add(main)
+        results:Add(0, "7.2")
+        results:Add(1, "7.2")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action AddDoubleText
-        suite:RunTest("Library/Tests/Expressions/Pass/AddDoubleText.quorum", "3.2 is a number.", "3.6 is a number.")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddDoubleText.quorum", "3.2 is a number.", "3.6 is a number.")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AddDoubleText.quorum")
+        files:Add(main)
+        results:Add(0, "3.2 is a number.")
+        results:Add(1, "3.6 is a number.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action AddIntDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/AddIntDouble.quorum", "13.5", "13.6")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddIntDouble.quorum", "13.5", "13.6")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AddIntDouble.quorum")
+        files:Add(main)
+        results:Add(0, "13.5")
+        results:Add(1, "13.6")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action AddIntInt
-        suite:RunTest("Library/Tests/Expressions/Pass/AddIntInt.quorum", "6")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddIntInt.quorum", "6")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AddIntInt.quorum")
+        files:Add(main)
+        results:Add(0, "6")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action AddIntText
-        suite:RunTest("Library/Tests/Expressions/Pass/AddIntText.quorum","1 is an integer", "2 is an integer")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddIntText.quorum","1 is an integer", "2 is an integer")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AddIntText.quorum")
+        files:Add(main)
+        results:Add(0, "1 is an integer")
+        results:Add(1, "2 is an integer")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action AddTextBoolean
-        suite:RunTest("Library/Tests/Expressions/Pass/AddTextBoolean.quorum","boolean is true", "boolean is false")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddTextBoolean.quorum","boolean is true", "boolean is false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AddTextBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "boolean is true")
+        results:Add(1, "boolean is false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action AddTextDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/AddTextDouble.quorum","number is 1.0", "number is 2.0")
-        //TODO: This works, but should we check to ensure Javascript outputs "exactly" the same output?
-        //Or, are minor deviations acceptable, given Javascript's quirks? 
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddTextDouble.quorum","number is 1", "number is 2")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AddTextDouble.quorum")
+        files:Add(main)
+        results:Add(0, "number is 1.0")
+        results:Add(1, "number is 2.0")
+        suite:Test(files, results)
+        results:Set(0, "number is 1")
+        results:Set(1, "number is 2")
+        suite:TestJavaScript(files, results)
     end
 
     action AddTextInt
-        suite:RunTest("Library/Tests/Expressions/Pass/AddTextInt.quorum","int is 1", "int is 2")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddTextInt.quorum","int is 1", "int is 2")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AddTextInt.quorum")
+        files:Add(main)
+        results:Add(0, "int is 1")
+        results:Add(1, "int is 2")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action AddTextText
-        suite:RunTest("Library/Tests/Expressions/Pass/AddTextText.quorum","hello world", "world hello")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AddTextText.quorum","hello world", "world hello")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AddTextText.quorum")
+        files:Add(main)
+        results:Add(0, "hello world")
+        results:Add(1, "world hello")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action AndBooleanBoolean
-        suite:RunTest("Library/Tests/Expressions/Pass/AndBooleanBoolean.quorum",
-            "true", "false", "false", "false")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/AndBooleanBoolean.quorum",
-            "true", "false", "false", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AndBooleanBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "false")
+        results:Add(2, "false")
+        results:Add(3, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action CastTest
-        suite:RunTest("Library/Tests/Expressions/Pass/CastTest.quorum", "1.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/CastTest.quorum", "1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastTest.quorum")
+        files:Add(main)
+        results:Add(0, "1.0")
+        suite:Test(files, results)
+        results:Set(0, "1")
+        suite:TestJavaScript(files, results)
     end
 
     action CompareTextTextField
-        suite:RunTest("Library/Tests/Expressions/Pass/CompareTextTextField.quorum", "1")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/CompareTextTextField.quorum", "1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CompareTextTextField.quorum")
+        files:Add(main)
+        results:Add(0, "1")
+        results:Add(1, "1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ComplexExpression
-        suite:RunTest("Library/Tests/Expressions/Pass/ComplexExpression.quorum", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ComplexExpression.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ComplexExpression.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action DivDoubleDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/DivDoubleDouble.quorum", "2.0", "2.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/DivDoubleDouble.quorum", "2", "2")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "DivDoubleDouble.quorum")
+        files:Add(main)
+        results:Add(0, "2.0")
+        results:Add(1, "2.0")
+        suite:Test(files, results)
+        results:Set(0, "2")
+        results:Set(1, "2")
+        suite:TestJavaScript(files, results)
     end
 
     action DivDoubleInt
-        suite:RunTest("Library/Tests/Expressions/Pass/DivDoubleInt.quorum", "2.0", "2.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/DivDoubleInt.quorum", "2", "2")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "DivDoubleInt.quorum")
+        files:Add(main)
+        results:Add(0, "2.0")
+        results:Add(1, "2.0")
+        suite:Test(files, results)
+        results:Set(0, "2")
+        results:Set(1, "2")
+        suite:TestJavaScript(files, results)
     end
 
     action DivIntDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/DivIntDouble.quorum", "2.0", "2.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/DivIntDouble.quorum", "2", "2")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "DivIntDouble.quorum")
+        files:Add(main)
+        results:Add(0, "2.0")
+        results:Add(1, "2.0")
+        suite:Test(files, results)
+        results:Set(0, "2")
+        results:Set(1, "2")
+        suite:TestJavaScript(files, results)
     end
 
     action DivIntInt
-        suite:RunTest("Library/Tests/Expressions/Pass/DivIntInt.quorum", "2", "2")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/DivIntInt.quorum", "2", "2")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "DivIntInt.quorum")
+        files:Add(main)
+        results:Add(0, "2")
+        results:Add(1, "2")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action EqualBooleanBoolean
-        suite:RunTest("Library/Tests/Expressions/Pass/EqualBooleanBoolean.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/EqualBooleanBoolean.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "EqualBooleanBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action EqualCustomCustom
-        suite:RunTest("Library/Tests/Expressions/Pass/EqualCustomCustom.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/EqualCustomCustom.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "EqualCustomCustom.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action EqualDoubleDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/EqualDoubleDouble.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/EqualDoubleDouble.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AddBooleanEqualDoubleDoubleText.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action EqualDoubleInt
-        suite:RunTest("Library/Tests/Expressions/Pass/EqualDoubleInt.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/EqualDoubleInt.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "EqualDoubleInt.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action EqualIntDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/EqualIntDouble.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/EqualIntDouble.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "EqualIntDouble.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action EqualIntInt
-        suite:RunTest("Library/Tests/Expressions/Pass/EqualIntInt.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/EqualIntInt.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "EqualIntInt.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action EqualTextText
-        suite:RunTest("Library/Tests/Expressions/Pass/EqualTextText.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/EqualTextText.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "EqualTextText.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action Expression
-        suite:RunTest("Library/Tests/Expressions/Pass/Expression.quorum", "15")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/Expression.quorum", "15")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Expression.quorum")
+        files:Add(main)
+        results:Add(0, "15")
+        results:Add(1, "15")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action GTDoubleDouble 
-        suite:RunTest("Library/Tests/Expressions/Pass/GTDoubleDouble.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GTDoubleDouble.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GTDoubleDouble.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action GTDoubleInt
-        suite:RunTest("Library/Tests/Expressions/Pass/GTDoubleInt.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GTDoubleInt.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GTDoubleInt.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action GTEDoubleDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/GTEDoubleDouble.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GTEDoubleDouble.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GTEDoubleDouble.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action GTEDoubleInt
-        suite:RunTest("Library/Tests/Expressions/Pass/GTEDoubleInt.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GTEDoubleInt.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GTEDoubleInt.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action GTEIntDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/GTEIntDouble.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GTEIntDouble.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GTEIntDouble.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action GTEIntInt
-        suite:RunTest("Library/Tests/Expressions/Pass/GTEIntInt.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GTEIntInt.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GTEIntInt.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action GTETextText
-        suite:RunTest("Library/Tests/Expressions/Pass/GTETextText.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GTETextText.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GTETextText.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action GTIntDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/GTIntDouble.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GTIntDouble.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GTIntDouble.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
     
     action GTIntInt
-        suite:RunTest("Library/Tests/Expressions/Pass/GTIntInt.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GTIntInt.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GTIntInt.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
     
     action GTTextText
-        suite:RunTest("Library/Tests/Expressions/Pass/GTTextText.quorum", "false", "false")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GTTextText.quorum", "false", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GTTextText.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
     
     action GetCharacterParameterText
-        suite:RunTest("Library/Tests/Expressions/Pass/GetCharacterParameterText.quorum", "false")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GetCharacterParameterText.quorum", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GetCharacterParameterText.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action GetMaxParameterInteger
-        suite:RunTest("Library/Tests/Expressions/Pass/GetMaxParameterInteger.quorum", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GetMaxParameterInteger.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GetMaxParameterInteger.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
     
     action GetTextParameterBoolean
-        suite:RunTest("Library/Tests/Expressions/Pass/GetTextParameterBoolean.quorum", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/GetTextParameterBoolean.quorum", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GetTextParameterBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action HelloWorld
-        suite:RunTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/HelloWorld.quorum", "Hello, World!")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "HelloWorld.quorum")
+        files:Add(main)
+        results:Add(0, "Hello, World!")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action HelloWorldNoClassNoActions
-        suite:RunTest("Library/Tests/Expressions/Pass/HelloWorldNoClassNoActions.quorum", "Hello World!")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/HelloWorldNoClassNoActions.quorum", "Hello World!")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "HelloWorldNoClassNoActions.quorum")
+        files:Add(main)
+        results:Add(0, "Hello, World!")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action HelloWorldNoClass
-        suite:RunTest("Library/Tests/Expressions/Pass/HelloWorldNoClass.quorum", "Hello World!")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/HelloWorldNoClass.quorum", "Hello World!")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "HelloWorldNoClass.quorum")
+        files:Add(main)
+        results:Add(0, "Hello, World!")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action IsA
-        suite:RunTest("Library/Tests/Expressions/Pass/IsA.quorum", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/IsA.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IsA.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
     
     action IsInfiniteNumberParameter
-        suite:RunTest("Library/Tests/Expressions/Pass/IsInfiniteNumberParameter.quorum", "false")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/IsInfiniteNumberParameter.quorum", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IsInfiniteNumberParameter.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action LTDoubleDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/LTDoubleDouble.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTDoubleDouble.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "LTDoubleDouble.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action LTDoubleInt
-        suite:RunTest("Library/Tests/Expressions/Pass/LTDoubleInt.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTDoubleInt.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "LTDoubleInt.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action LTEDoubleDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/LTEDoubleDouble.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTEDoubleDouble.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "LTEDoubleDouble.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action LTEDoubleInt
-        suite:RunTest("Library/Tests/Expressions/Pass/LTEDoubleInt.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTEDoubleInt.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "LTEDoubleInt.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action LTEIntDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/LTEIntDouble.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTEIntDouble.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "LTEIntDouble.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action LTEIntInt
-        suite:RunTest("Library/Tests/Expressions/Pass/LTEIntInt.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTEIntInt.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "LTEIntInt.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action LTETextText
-        suite:RunTest("Library/Tests/Expressions/Pass/LTETextText.quorum", "true", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTETextText.quorum", "true", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "LTETextText.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action LTIntDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/LTIntDouble.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTIntDouble.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "LTIntDouble.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action LTIntInt
-        suite:RunTest("Library/Tests/Expressions/Pass/LTIntInt.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTIntInt.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "LTIntInt.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action LTIntInt2
-        suite:RunTest("Library/Tests/Expressions/Pass/LTIntInt2.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTIntInt2.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "LTIntInt2.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action LTTextText
-        suite:RunTest("Library/Tests/Expressions/Pass/LTTextText.quorum", "true", "false")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LTTextText.quorum", "true", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "LTTextText.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action LocalVarDecl
-        //note this test is not in ExpressionsTester.java
-        suite:RunTest("Library/Tests/Expressions/Pass/LocalVarDecl.quorum", "1000", "3.0", "c", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/LocalVarDecl.quorum", "1000", "3", "c", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "LocalVarDecl.quorum")
+        files:Add(main)
+        results:Add(0, "1000")
+        results:Add(1, "3.0")
+        results:Add(2, "c")
+        results:Add(3, "false")
+        results:Add(4, "true")
+        suite:Test(files, results)
+        results:Set(1, "3")
+        suite:TestJavaScript(files, results)
     end
 
-    action MinusInteger()
-        suite:RunTest("Library/Tests/Expressions/Pass/MinusInteger.quorum", "-1", "-15")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MinusInteger.quorum", "-1", "-15")
+    action MinusInteger
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "MinusInteger.quorum")
+        files:Add(main)
+        results:Add(0, "-1")
+        results:Add(1, "-15")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
-    action MinusNumber()
-        suite:RunTest("Library/Tests/Expressions/Pass/MinusNumber.quorum", "-1.0", "-15.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MinusNumber.quorum", "-1", "-15")
+    action MinusNumber
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "MinusNumber.quorum")
+        files:Add(main)
+        results:Add(0, "-1.0")
+        results:Add(1, "-15.0")
+        suite:Test(files, results)
+        results:Set(0, "-1")
+        results:Set(1, "-15")
+        suite:TestJavaScript(files, results)
     end
 
     action ModDoubleDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/ModDoubleDouble.quorum", "1.0", "1.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ModDoubleDouble.quorum", "1", "1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ModDoubleDouble.quorum")
+        files:Add(main)
+        results:Add(0, "1.0")
+        results:Add(1, "1.0")
+        suite:Test(files, results)
+        results:Set(0, "1")
+        results:Set(1, "1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ModDoubleInt
-        suite:RunTest("Library/Tests/Expressions/Pass/ModDoubleInt.quorum", "1.0", "1.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ModDoubleInt.quorum", "1", "1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ModDoubleInt.quorum")
+        files:Add(main)
+        results:Add(0, "1.0")
+        results:Add(1, "1.0")
+        suite:Test(files, results)
+        results:Set(0, "1")
+        results:Set(1, "1")
+        suite:TestJavaScript(files, results)
     end
 
     action ModIntDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/ModIntDouble.quorum", "1.0", "1.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ModIntDouble.quorum", "1", "1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ModIntDouble.quorum")
+        files:Add(main)
+        results:Add(0, "1.0")
+        results:Add(1, "1.0")
+        suite:Test(files, results)
+        results:Set(0, "1")
+        results:Set(1, "1")
+        suite:TestJavaScript(files, results)
     end
 
     action ModIntInt
-        suite:RunTest("Library/Tests/Expressions/Pass/ModIntInt.quorum", "1", "1")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/ModIntInt.quorum", "1", "1")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ModIntInt.quorum")
+        files:Add(main)
+        results:Add(0, "1")
+        results:Add(1, "1")
+        suite:Test(files, results)
+        results:Set(0, "1")
+        results:Set(1, "1")
+        suite:TestJavaScript(files, results)
     end
 
     action MutlDoubleDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/MultDoubleDouble.quorum", "4.0", "4.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MultDoubleDouble.quorum", "4", "4")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "MutlDoubleDouble.quorum")
+        files:Add(main)
+        results:Add(0, "4.0")
+        results:Add(1, "4.0")
+        suite:Test(files, results)
+        results:Set(0, "4")
+        results:Set(1, "4")
+        suite:TestJavaScript(files, results)
     end
 
     action MultDoubleInt
-        suite:RunTest("Library/Tests/Expressions/Pass/MultDoubleInt.quorum", "4.0", "4.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MultDoubleInt.quorum", "4", "4")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "MultDoubleInt.quorum")
+        files:Add(main)
+        results:Add(0, "4.0")
+        results:Add(1, "4.0")
+        suite:Test(files, results)
+        results:Set(0, "4")
+        results:Set(1, "4")
+        suite:TestJavaScript(files, results)
     end
 
     action MultIntDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/MultIntDouble.quorum", "4.0", "4.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MultIntDouble.quorum", "4", "4")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "MultIntDouble.quorum")
+        files:Add(main)
+        results:Add(0, "4.0")
+        results:Add(1, "4.0")
+        suite:Test(files, results)
+        results:Set(0, "4")
+        results:Set(1, "4")
+        suite:TestJavaScript(files, results)
     end
 
     action MultIntInt
-        suite:RunTest("Library/Tests/Expressions/Pass/MultIntInt.quorum", "4", "4")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/MultIntInt.quorum", "4", "4")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "MultIntInt.quorum")
+        files:Add(main)
+        results:Add(0, "4")
+        results:Add(1, "4")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NotBoolean
-        //note this test is not in ExpressionsTester.java
-        suite:RunTest("Library/Tests/Expressions/Pass/NotBoolean.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotBoolean.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NotBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
     
     action NotEqualBooleanBoolean
-        suite:RunTest("Library/Tests/Expressions/Pass/NotEqualBooleanBoolean.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotEqualBooleanBoolean.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NotEqualBooleanBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NotEqualCustomCustom
-        suite:RunTest("Library/Tests/Expressions/Pass/NotEqualCustomCustom.quorum", "true", "false")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotEqualCustomCustom.quorum", "true", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NotEqualCustomCustom.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NotEqualDoubleDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/NotEqualDoubleDouble.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotEqualDoubleDouble.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NotEqualDoubleDouble.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NotEqualDoubleInt
-        suite:RunTest("Library/Tests/Expressions/Pass/NotEqualDoubleInt.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotEqualDoubleInt.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NotEqualDoubleInt.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NotEqualIntDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/NotEqualIntDouble.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotEqualIntDouble.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NotEqualIntDouble.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NotEqualIntInt
-        suite:RunTest("Library/Tests/Expressions/Pass/NotEqualIntInt.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotEqualIntInt.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NotEqualIntInt.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action NotEqualTextText
-        suite:RunTest("Library/Tests/Expressions/Pass/NotEqualTextText.quorum", "false", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/NotEqualTextText.quorum", "false", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NotEqualTextText.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action OrAndBooleanBoolean
-        suite:RunTest("Library/Tests/Expressions/Pass/OrAndBooleanBoolean.quorum", "false", "true", "true", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OrAndBooleanBoolean.quorum", "false", "true", "true", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "OrAndBooleanBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        results:Add(2, "true")
+        results:Add(3, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action OrBooleanBoolean
-        suite:RunTest("Library/Tests/Expressions/Pass/OrBooleanBoolean.quorum", "true", "true", "true", "false")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OrBooleanBoolean.quorum", "true", "true", "true", "false")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "OrBooleanBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "true")
+        results:Add(2, "true")
+        results:Add(3, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action OutputBoolean
-        suite:RunTest("Library/Tests/Expressions/Pass/OutputBoolean.quorum", "true")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OutputBoolean.quorum", "true")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "OutputBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
    
     action OutputDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/OutputDouble.quorum", "7.5")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OutputDouble.quorum", "7.5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "OutputDouble.quorum")
+        files:Add(main)
+        results:Add(0, "7.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action OutputInt
-        suite:RunTest("Library/Tests/Expressions/Pass/OutputInt.quorum", "5")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OutputInt.quorum", "5")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "OutputInt.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
    
     action OutputText
-        suite:RunTest("Library/Tests/Expressions/Pass/OutputText.quorum", "Hello, World!")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/OutputText.quorum", "Hello, World!")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "OutputText.quorum")
+        files:Add(main)
+        results:Add(0, "Hello, World!")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
 
     action SubDoubleDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/SubDoubleDouble.quorum", "0.0", "0.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/SubDoubleDouble.quorum", "0", "0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SubDoubleDouble.quorum")
+        files:Add(main)
+        results:Add(0, "0.0")
+        results:Add(1, "0.0")
+        suite:Test(files, results)
+        results:Set(0, "0")
+        results:Set(1, "0")
+        suite:TestJavaScript(files, results)
     end
 
     action SubDoubleInt
-        suite:RunTest("Library/Tests/Expressions/Pass/SubDoubleInt.quorum", "0.0", "0.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/SubDoubleInt.quorum", "0", "0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SubDoubleInt.quorum")
+        files:Add(main)
+        results:Add(0, "0.0")
+        results:Add(1, "0.0")
+        suite:Test(files, results)
+        results:Set(0, "0")
+        results:Set(1, "0")
+        suite:TestJavaScript(files, results)
     end
 
     action SubIntDouble
-        suite:RunTest("Library/Tests/Expressions/Pass/SubIntDouble.quorum", "0.0", "0.0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/SubIntDouble.quorum", "0", "0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SubIntDouble.quorum")
+        files:Add(main)
+        results:Add(0, "0.0")
+        results:Add(1, "0.0")
+        suite:Test(files, results)
+        results:Set(0, "0")
+        results:Set(1, "0")
+        suite:TestJavaScript(files, results)
     end
 
     action SubIntInt
-        suite:RunTest("Library/Tests/Expressions/Pass/SubIntInt.quorum", "0", "0")
-        suite:RunJavaScriptTest("Library/Tests/Expressions/Pass/SubIntInt.quorum", "0", "0")
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SubIntInt.quorum")
+        files:Add(main)
+        results:Add(0, "0")
+        results:Add(1, "0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
+
+//FAIL TESTS
 
     action MainNotCapitalized
         Array<File> files
