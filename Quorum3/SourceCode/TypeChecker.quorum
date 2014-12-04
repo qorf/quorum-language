@@ -2090,7 +2090,7 @@ class TypeChecker
             type = result:result
             type:SetToBoolean()
             IsOpcode isOpcode2
-            isOpcode:SetType(type)
+            isOpcode2:SetType(type)
             result:SetQuorumOpcode(isOpcode2)
             results:Add(key, result)
 
@@ -2102,7 +2102,7 @@ class TypeChecker
             type = result:result
             type:SetToBoolean()
             IsOpcode isOpcode3
-            isOpcode:SetType(type)
+            isOpcode3:SetType(type)
             result:SetQuorumOpcode(isOpcode3)
             results:Add(key, result)
 
@@ -2123,7 +2123,6 @@ class TypeChecker
             type = result:result
             caster = GetExplicitCastOpcode(type)
             result:SetQuorumOpcode(caster)
-            
             type:SetToObject(staticKey)
             results:Add(key, result)
 

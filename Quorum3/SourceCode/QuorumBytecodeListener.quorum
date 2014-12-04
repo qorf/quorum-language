@@ -990,10 +990,21 @@ class QuorumBytecodeListener is QuorumSourceListener
             actionCall:SetPushOnMe(false)
             actionCall:SetField(variable)
             actionCall:SetIsSoloObjectCall(true)
+
+//
+//            Class clazz = resolved:classToMakeCallOn
+//            Type t
+//            t:SetToObject(clazz:GetStaticKey())
+            resolved:typeToMakeCallOn = variable:GetType()
         else
             resolved:classToMakeCallOn = currentClass
+//            Class clazz = resolved:classToMakeCallOn
+//            Type t
+//            t:SetToObject(clazz:GetStaticKey())
+//            resolved:typeToMakeCallOn = t
         end
 
+        
         FinishActionResolution(actionCall, resolved)
         return resolved
     end
@@ -1016,6 +1027,16 @@ class QuorumBytecodeListener is QuorumSourceListener
                     Class c = resolved:classToMakeCallOn
                     integer index = c:GetIndexOfGeneric(returnType:GetMappedGeneric())
                     if index not= -1
+                        if t = undefined
+                            a = 5
+                        end
+
+
+                        check
+                            Type tk421 = t:GetGeneric(index)
+                        detect e
+                            a = 5
+                        end
                         Type left = t:GetGeneric(index)
                         TypeChecker checker = GetTypeChecker()
                         
