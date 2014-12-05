@@ -68,10 +68,10 @@
 </div>
   <?php include("../../static/templates/contentwrapperheader.template.php"); ?>
 
-      <?php include("sidebar.php"); ?><div id="content-box"><div id="slide-navigation"></div>
+      <?php include("sidebar.php"); ?><div id='content-box'><div id="slide-content-box"><div id="slide-navigation"></div>
           <div id="slide-box-wrapper" role="description" aria-live="polite"><button id="leftArrow" class="leftArrow-disabled" aria-hidden="true" aria-label="Previous Slide"></button><div id ="slide-box"></div></div><button id="rightArrow" aria-label="Next Slide"></button>
 </div><?php include ("../../ide.php"); ?><div id="video-container">
     <iframe width="946" height="571" src="//www.youtube.com/embed/6G5Vou8oojQ?rel=0" frameborder="0" allowfullscreen></iframe>
-</div>
+      </div></div>
 
 <?php require_once("../../static/templates/pagefooter.template.php"); ?>
