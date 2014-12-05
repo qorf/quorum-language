@@ -574,9 +574,6 @@ class ClassOpcode is QuorumOpcode
     end
 
     action WriteFields (JavaBytecodeMethodWriter methodWriter)
-        key = clazz:GetStaticKey() 
-        //if not key:StartsWith("Ma")
-        
         Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
         repeat while fieldIterator:HasNext()
             QuorumOpcode field = fieldIterator:Next()

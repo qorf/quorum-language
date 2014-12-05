@@ -62,6 +62,33 @@ class ActionOpcode is QuorumOpcode
                 method:ConvertActionToBytecodeParameterInterfaceSignature(), false)
 
             methodWriter:VisitInstruction(opcodes:GetReturnOpcode(method:GetReturnType()))
+        elseif method:IsBlueprint()
+            methodWriter:VisitCode()
+
+            Iterator<Variable> parameters = method:GetParameterIterator()
+            integer position = 1
+            repeat while parameters:HasNext()
+                Variable param = parameters:Next()
+                Type type = param:GetType()
+                methodWriter:VisitVariable(opcodes:GetLoadOpcode(type), position)
+                position = position + type:GetBytecodeSize()
+            end
+
+            Type type = method:GetReturnType()
+            if type:IsBoolean()
+                methodWriter:VisitConstant(false)
+                
+            elseif type:IsInteger()
+                methodWriter:VisitConstant(0)
+            elseif type:IsNumber()
+                methodWriter:VisitConstant(0.0)
+            elseif type:IsVoid()
+                //do nothing
+            else
+                methodWriter:VisitUndefinedConstant()
+            end
+
+            methodWriter:VisitInstruction(opcodes:GetReturnOpcode(method:GetReturnType()))
         else 
             methodWriter:VisitCode()
             Iterator<QuorumOpcode> iterator = opcodeList:GetIterator()
