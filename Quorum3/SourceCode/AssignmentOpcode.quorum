@@ -112,10 +112,6 @@ class AssignmentOpcode is QuorumOpcode
             end
         else
             Type type = field:GetType()
-            if variable:GetBytecodeLocation() = -1
-                a = 5
-            end
-
             if variable:IsField()
                 methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
                 Class isIn = variable:GetParentClass()

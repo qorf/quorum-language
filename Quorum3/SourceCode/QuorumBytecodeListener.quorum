@@ -823,9 +823,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         Operation assign
         assign:SetOperation(assign:EQUALS)
 
-        if right = undefined
-            a = 5
-        end
         TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
 
         if result:errorType = undefined
@@ -838,7 +835,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             assignment:SetType(value)
             assignment:SetMethodWriter(methodWriter)
             assignment:SetVariable(variable)
-            if context:hasMe or context:isField or not isInAction
+            if not isInAction
                 currentClassOpcode:AddField(assignment)
             else
                 currentBlockOpcode:Add(assignment)
@@ -1213,14 +1210,14 @@ class QuorumBytecodeListener is QuorumSourceListener
             ActionCallResolution resolved = classToMakeCallOn:ResolveAction(call)
 
             if not resolved:isResolved
-                CompilerError actionNotFoundError
-                actionNotFoundError:SetLocation(context:GetLocation())
-                actionNotFoundError:SetErrorMessage("I could not locate the action named " + call:GetSignature())
-                CompilerErrorType errorType
-                errorType:SetCurrentType(errorType:MISSING_METHOD)
-                actionNotFoundError:SetCompilerErrorType(errorType)
+                //CompilerError actionNotFoundError = resolved:error
+                //actionNotFoundError:SetLocation(context:GetLocation())
+                //actionNotFoundError:SetErrorMessage("I could not locate the action named " + call:GetSignature())
+                //CompilerErrorType errorType
+                //errorType:SetCurrentType(errorType:MISSING_METHOD)
+                //actionNotFoundError:SetCompilerErrorType(errorType)
                 CompilerErrorManager manager = GetCompilerErrorManager()
-                manager:Add(actionNotFoundError)
+                manager:Add(resolved:error)
                 return now
             end
 
