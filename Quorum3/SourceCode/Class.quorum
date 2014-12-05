@@ -342,16 +342,20 @@ class Class is Symbol
         repeat while actionIterator:HasNext()
             Action next = actionIterator:Next()
             temp:Add(next)
+
+//            if next:GetName() = "AddToEnd"// and GetStaticKey() = "Main"
+//                a = 5
+//            end
             //first, we resolve the parameters
             Iterator<Variable> parameters = next:GetParameterIterator()
             repeat while parameters:HasNext()
                 Variable param = parameters:Next()
-                ResolveVariable(param, table, errors)
+                ResolveParameterType(param, param:GetType(), table, errors)
             end
 
             Type returnType = next:GetReturnType()
             if not returnType:IsVoid()
-                ResolveType(next, returnType, table, errors)
+                ResolveParameterType(next, returnType, table, errors)
             end
 
             //next we resolve all of the variables in its blocks
@@ -408,6 +412,30 @@ class Class is Symbol
         repeat while blocks:HasNext()
             Block next = blocks:Next()
             ResolveBlock(next, table, errors)
+        end
+    end
+
+    private action ResolveParameterType(Location location, Type type, SymbolTable table, CompilerErrorManager errors)
+        if type = undefined //this is an implicit type, which has to be a primitive
+                            //therefore, it is safe to ignore this
+            return now
+        end
+
+        //check if this class has generics. If it does, either map
+        //the parameter to a generic or resolve it normally.
+        if GetNumberGenerics() > 0
+            key = type:GetStaticKey()
+            if HasGeneric(key)
+                //this is a generic parameter. Set it to object, but map it
+                //to this generic name
+                type:MapToGeneric(key)
+                type:SetToObject(type:OBJECT_KEY)
+            else
+                ResolveType(location, type, table, errors)
+            end
+
+        else
+            ResolveType(location, type, table, errors)
         end
     end
 
@@ -1158,8 +1186,53 @@ class Class is Symbol
                 Variable var = variables:Next()
                 Type formal = var:GetType()
                 text formalText = formal:GetStaticKey()
+
+                if final:GetName() = "SetAutoResize"
+                    a = 5
+                end
+                //if the formal parameter is a generic, check its declared type
+                //then check if there is a conversion from the actual parameter
+                //to that type
+                if formal:IsMappedToGeneric()
+                    Type mappedType
+                    Action act = resolution:resolvedAction
+                    Variable classInstance = call:variable
+
+                    //if this is null, it's a compiler bug, or a compiler error?
+                    if classInstance = undefined
+                        //alert("When resolving a generic, we must have a specific variable with a tangible type")
+                    else
+                        Type declaredGenericFormal = classInstance:GetType()
+                        text mappedName = formal:GetMappedGeneric()
+                        integer numGenerics = declaredGenericFormal:GetNumberGenerics()
+
+                        if i < numGenerics
+
+                            Type gen = declaredGenericFormal:GetGeneric(i)
+                            if gen:IsPrimitive()
+                                Type boxed = gen:Copy()
+                                boxed:SetToObject(boxed:ConvertToNonPrimitiveStaticKey())
+                                gen = boxed
+                                formal = boxed
+                            else //in the case where the generic is an object, do more searching 
+
+                            end
+                        end
+                    end
+                end
+
+
                 TypeCheckResult result = checker:Check(formal, actual, implicit, false)
-                //this has to be correct, as it has already been checked
+                //If this throws an error, it means that there was a generic
+                //type that was mismatched.
+
+                if result:errorType not= undefined
+                    resolution:isResolved = false
+                    CompilerError error = result:GetCompilerError(call)
+                    resolution:error = error
+                    return resolution
+                end
+
                 TypeConversionConstants constants = result:conversion
                 if constants:GetConversion() = constants:NONE
                     casts:Add(undefined)

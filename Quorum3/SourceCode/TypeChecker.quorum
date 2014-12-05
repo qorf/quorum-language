@@ -1281,6 +1281,29 @@ class TypeChecker
         result:SetQuorumOpcode(integerPrimitiveToIntegerObjectCast)
         results:Add(key, result)
 
+        //explicit cast from Integer to integer
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:NUMBER_OBJECT_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetSubclassWideningConvertResult()
+        type = result:result
+        type:SetToNumberObject()
+        points = result:points
+        points:SetPoints(points:PARENT_AUTOBOX)
+        IntegerPrimitiveToNumberObjectCast integerPrimitiveToNumberObjectCast
+        integerPrimitiveToNumberObjectCast:SetType(type)
+        result:SetQuorumOpcode(integerPrimitiveToNumberObjectCast)
+        results:Add(key, result)
+
+        //explicit cast from Integer to integer
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:NUMBER_OBJECT_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetSubclassWideningConvertResult()
+        type = result:result
+        type:SetToNumberObject()
+        points = result:points
+        points:SetPoints(points:PARENT_AUTOBOX)
+        result:SetQuorumOpcode(integerPrimitiveToNumberObjectCast)
+        results:Add(key, result)
 
 
 
