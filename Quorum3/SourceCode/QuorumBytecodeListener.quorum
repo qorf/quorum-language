@@ -655,6 +655,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         Type value = result:result
         QuorumOpcode qop = result:GetQuorumOpcode()
         AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+        assignment:SetLocation(context:GetLocation())
         assignment:SetClass(currentClass)
         assignment:SetRightHandSide(right)
         assignment:SetFieldHolder(fieldHolder)
@@ -822,6 +823,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         Operation assign
         assign:SetOperation(assign:EQUALS)
 
+        if right = undefined
+            a = 5
+        end
         TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
 
         if result:errorType = undefined

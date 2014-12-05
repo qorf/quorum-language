@@ -23,8 +23,8 @@ class Main
 end
 */
 class ArrayIterator<Type> is Iterator<Type>
-    Array<Type> array
-    integer count = 0
+//    Array<Type> array
+//    integer count = 0
 
     /*
         This action sets the array parameters up for the iterator. 
@@ -40,8 +40,8 @@ class ArrayIterator<Type> is Iterator<Type>
         iterator:Set(myArray)
     */
     action Set(Array<Type> newArray)
-        me:array = newArray
-        me:count = 0
+//        me:array = newArray
+//        me:count = 0
     end
 
     /*
@@ -58,7 +58,8 @@ class ArrayIterator<Type> is Iterator<Type>
         Array<integer> array = arrayIterator:GetArray()
     */
     action GetArray() returns Array<Type>
-        return array
+//        return array
+        return undefined
     end
 
     /*
@@ -76,11 +77,12 @@ class ArrayIterator<Type> is Iterator<Type>
 
     */
     action GetCurrent returns Type
-        if count = 0
-            return undefined
-        else
-            return array:Get(count - 1)
-        end
+//        if count = 0
+//            return undefined
+//        else
+//            return array:Get(count - 1)
+//        end
+        return undefined
     end
 
     /*
@@ -101,12 +103,12 @@ class ArrayIterator<Type> is Iterator<Type>
         end
     */
     action HasNext returns boolean
-        integer size = array:GetSize()
-        if count >= size
-            return false
-        else
-            return true
-        end
+//        integer size = array:GetSize()
+//        if count >= size
+//            return false
+//        else
+//            return true
+//        end
     end
 
     /*
@@ -123,9 +125,10 @@ class ArrayIterator<Type> is Iterator<Type>
 
     */
     action Next returns Type
-        Type result = array:Get(count)
-        count = count + 1
-        return result
+//        Type result = array:Get(count)
+//        count = count + 1
+//        return result
+        return undefined
     end
 
     /*
@@ -145,6 +148,6 @@ class ArrayIterator<Type> is Iterator<Type>
 
     */
     action Rewind
-        count = 0
+     //   count = 0
     end
 end

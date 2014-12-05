@@ -1,7 +1,7 @@
 package Libraries.Compute
 
 use Libraries.Containers.List
-use Libraries.Language.Errors.OutOfBoundsError
+//use Libraries.Language.Errors.OutOfBoundsError
 
 /*
 The Random class permits generation of pseudorandom numbers that can be used
@@ -103,9 +103,9 @@ class Random
     */
     action RandomInteger(integer maximum) returns integer
         if maximum <= 0
-            OutOfBoundsError e
-            e:SetErrorMessage("The maximum number must be a positive integer.")
-            alert(e)
+       //     OutOfBoundsError e
+       //     e:SetErrorMessage("The maximum number must be a positive integer.")
+       //     alert(e)
         end
 
         return me:RandomIntegerNative(maximum)
@@ -126,19 +126,19 @@ class Random
 
     */
     action RandomIntegerBetween(integer minimum, integer maximum) returns integer
-        if minimum >= maximum
-            OutOfBoundsError e
-            e:SetErrorMessage("The minimum number must be smaller than the maximum number.")
-            alert(e)
-        elseif minimum < 0 or maximum < 0
-            OutOfBoundsError e
-            e:SetErrorMessage("The minimum and maximum numbers must be greater than or equal to zero.")
-            alert(e)
-        elseif (maximum - minimum) <= 0
-            OutOfBoundsError e
-            e:SetErrorMessage("There is no integer between " + minimum + " and " + maximum + ".")
-            alert(e)
-        end
+//        if minimum >= maximum
+//            OutOfBoundsError e
+//            e:SetErrorMessage("The minimum number must be smaller than the maximum number.")
+//            alert(e)
+//        elseif minimum < 0 or maximum < 0
+//            OutOfBoundsError e
+//            e:SetErrorMessage("The minimum and maximum numbers must be greater than or equal to zero.")
+//            alert(e)
+//        elseif (maximum - minimum) <= 0
+//            OutOfBoundsError e
+//            e:SetErrorMessage("There is no integer between " + minimum + " and " + maximum + ".")
+//            alert(e)
+//        end
 
         return me:RandomInteger(maximum - minimum) + minimum
     end
@@ -161,9 +161,9 @@ class Random
     */
     action RandomListOfIntegers(integer length) returns List<integer>
         if length <= 0
-            OutOfBoundsError e
-            e:SetErrorMessage("The list length must be a positive integer.")
-            alert(e)
+//            OutOfBoundsError e
+//            e:SetErrorMessage("The list length must be a positive integer.")
+//            alert(e)
         end
 
         List<integer> newList
@@ -195,9 +195,9 @@ class Random
     */
     action RandomListOfNumbers(integer length) returns List<number>
         if length <= 0
-            OutOfBoundsError e
-            e:SetErrorMessage("The list length must be a positive integer.")
-            alert(e)
+//            OutOfBoundsError e
+//            e:SetErrorMessage("The list length must be a positive integer.")
+//            alert(e)
         end
 
         List<number> newList

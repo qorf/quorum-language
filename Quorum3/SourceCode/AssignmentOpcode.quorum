@@ -117,15 +117,15 @@ class AssignmentOpcode is QuorumOpcode
             end
 
             if variable:IsField()
-//                Class isIn = field:GetParentClass()
-//                path = isIn:ConvertStaticKeyToBytecodeInterfacePath()
-//                getterName = isIn:ConvertToActionNameFromField(variable, true)
-//
-//                Type t
-//                t:SetToObject(isIn:GetStaticKey())
-//                methodName = t:ConvertToSignatureFromField(true)
-//                methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
-//                    path, getterName, methodName, true)
+                methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+                Class isIn = variable:GetParentClass()
+                path = isIn:ConvertStaticKeyToBytecodeInterfacePath()
+                getterName = isIn:ConvertToActionNameFromField(variable, true)
+
+                Type t = variable:GetType()
+                methodName = t:ConvertToSignatureFromField(true)
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+                    path, getterName, methodName, true)
             else
                 methodWriter:VisitVariable(opcodes:GetObjectLoad(), variable:GetBytecodeLocation())
             end
