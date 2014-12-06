@@ -534,7 +534,7 @@ var checkOutput = function(pageNumber, output) {
     }
     
     //Should make this case insensitive
-    if (outputArray[pageNumber - 1] == output) {
+    if (outputArray[pageNumber - 1].toLowerCase() == output.toLowerCase()) {
         //success
         alert("Good Job! You've completed this exercise.");
         return 1;
