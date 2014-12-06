@@ -308,7 +308,14 @@ class JavaBytecodeOpcodes
             return IF_ICMPLE
         elseif op = IF_ICMPGE
             return IF_ICMPLT
+        end 
+
+        if op = IF_ACMPNE
+            return IF_ACMPEQ
+        elseif op = IF_ACMPEQ
+            return IF_ACMPNE
         end
+
         return -1
     end
 
