@@ -13,7 +13,7 @@ $(function() {
 	
     submitCodeSample();
     
-    hideOverlay();
+    overlayFunctions();
 
     fadeInLibraryTable();
 
@@ -547,7 +547,10 @@ var checkOutput = function(pageNumber, output) {
     
 }
 
-var hideOverlay = function() {
+var overlayFunctions = function() {
+    
+    $("#overlay").css('height', $(document).height());
+    
     $("#stayOnPage").click(function() {
         $("#overlay").hide();
     });
