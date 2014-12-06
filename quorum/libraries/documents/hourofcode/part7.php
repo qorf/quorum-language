@@ -58,6 +58,7 @@
 //        $('#IDE-input').text('');
     });
 </script>
+
 <?php include("slideshow.php"); ?>
 
 <div class="hero-unit">

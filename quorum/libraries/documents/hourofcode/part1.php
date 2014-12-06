@@ -61,6 +61,9 @@
 //        $('#IDE-output').html("GATTACA<br>Welcome to GATTACA<br>");
     });
 </script>
+
+<div id="overlay"><div id="overlay-content"><h3 class='overlay-text'>Congratulations, you've completed this exercise!</h3><p class='overlay-text'>Would you like to...</p><a href='part2.php' class='overlay-option'>Move on to Part 2</a><button id='stayOnPage' class='overlay-option'>Stay on this page</button><p class='overlay-text'>You can always navigate to any page at a later time.</p></div></div>
+
 <?php include("slideshow.php"); ?>
 
 <div class="hero-unit">

@@ -52,6 +52,9 @@ Now, to increment our testing variable by one on each pass of the loop, insert a
 //        $('#IDE-input').text('number testNumber = 0\nrepeat until testNumber = 10\n    if testNumber mod 2 = 0\n        output testNumber + \" is even\"\n    else\n        output testNumber + \" is odd\"\n    end\n    testNumber = testNumber + 1\nend');
     });
 </script>
+
+<div id="overlay"><div id="overlay-content"><h3 class='overlay-text'>Congratulations, you've completed this exercise!</h3><p class='overlay-text'>Would you like to...</p><a href='part6.php' class='overlay-option'>Move on to Part 6</a><button id='stayOnPage' class='overlay-option'>Stay on this page</button><p class='overlay-text'>You can always navigate to any page at a later time.</p></div></div>
+
 <?php include("slideshow.php"); ?>
 
 <div class="hero-unit">

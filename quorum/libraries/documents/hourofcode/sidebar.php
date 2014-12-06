@@ -11,7 +11,7 @@
         </ul>
 
     </nav>
-    <a id='finish' href='http://code.org/api/hour/finish'>I'm done with my hour of code <img alt="" src="/static/img/gridicons/hourofcode.png"></a>
+    <a id='finish' href='http://code.org/api/hour/finish'><img alt="" src="/static/img/gridicons/hourofcode.png">I'm done with my Hour of Code!</a>
 </div><script type="text/javascript">
     
     var url = window.location.pathname.substring(window.location.pathname.indexOf("hourofcode/") + "hourofcode/".length, window.location.pathname.indexOf(".php"));

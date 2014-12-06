@@ -1,5 +1,64 @@
 /*Evan's additions (mostly Hour of Code and accessibility related)*/
 
+#overlay {
+    display: none;
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    width: 100%;
+    min-width: 1190px;
+    height: 100%;
+    background-color: rgba(0,0,0,.5);
+    z-index:1001;
+/*    -moz-opacity: 0.8;
+    opacity:.80;
+    filter: alpha(opacity=80);*/
+}
+
+#overlay-content {
+    /*display: none;*/
+    opacity: .95;
+    position: absolute;
+    top: 40%;
+    left: 40%;
+    width: 357px; /* 30% */
+    padding: 16px;
+    border: 4px solid #0694d0;
+    background-color: white;
+    z-index:1002;
+    overflow: auto;
+    text-align: center;
+    padding: 10px;
+}
+
+.overlay-text {
+    color: #0694d0;
+    margin: 15px 0 0 0;
+}
+
+.overlay-text:first-child {
+    margin: 0;
+}
+
+.overlay-option {
+    box-sizing: border-box;
+    display: block;
+    background-color: #0694d0;
+    color: white;
+    width: 80%;
+    margin: 4px auto;
+    padding: 10px 0;
+    border: none;
+    opacity: .8;
+}
+
+.overlay-option:hover {
+    text-decoration: none;
+    color: white;
+    transition-duration: .2s;
+    opacity: 1;
+}
+
 #HOC-banner {
     position: relative;
     /*width: 100%;*/
@@ -196,10 +255,10 @@ nav li a {
 }
 
 #finish img {
-    display: inline-block;
+    display: block;
     height: 128px;
     width: 128px;
-    margin-top: 6px;
+    margin: 5px auto;
 }
 
 #finish:hover {

@@ -12,6 +12,8 @@ $(function() {
 	expandAndCollapseLeftSideMenu();
 	
     submitCodeSample();
+    
+    hideOverlay();
 
     fadeInLibraryTable();
 
@@ -448,43 +450,60 @@ function getGAClient(){
 };
 
 var submitCodeSample = function(){
-    //front page IDE
-        $("#run-button").on("click", function(e) {
-		e.preventDefault();
-		$(".outputArea").text("");
-                var pageNumber = window.location.pathname;
-                var pageURL = "";
-                pageURL =  window.location.protocol + "//" + window.location.host + pageNumber;
-                pageNumber = pageNumber.charAt(pageNumber.length - 5);
-                var id = getCookie("PHPSESSID");
-                var ga_cookie = getGAClient();
-                var tempCode = $('.inputArea').val();
-		var codeData = {code: tempCode};
-		$.ajax({
-			type: "GET",
-			url: "http://quorumlanguage.com/proxy.php",
-			data: codeData,
-			success: function(result){
-                            var hadCompilerError = false;
-                            //console.log(result);
-                            try {
-                                $("#IDE-output").html(eval(result));
-                            } catch (e) {
-                                if (e instanceof SyntaxError) {
-                                    $("#IDE-output").text(result);
-                                    hadCompilerError = true;
-                                }
+    //IDE
+    $("#run-button").on("click", function(e) {
+            e.preventDefault();
+            $(".outputArea").text("");
+            var pageNumber = window.location.pathname;
+            var pageURL = "";
+            pageURL =  window.location.protocol + "//" + window.location.host + pageNumber;
+            pageNumber = pageNumber.charAt(pageNumber.length - 5);
+            var id = getCookie("PHPSESSID");
+            var ga_cookie = getGAClient();
+            var tempCode = $('.inputArea').val();
+            var codeData = {code: tempCode};
+            $.ajax({
+                    type: "GET",
+                    url: "http://quorumlanguage.com/proxy.php",
+                    data: codeData,
+                    success: function(result){
+                        var hadCompilerError = false;
+                        //console.log(result);
+                        try {
+                            $("#IDE-output").html(eval(result));
+                        } catch (e) {
+                            if (e instanceof SyntaxError) {
+                                $("#IDE-output").text(result);
+                                hadCompilerError = true;
                             }
-                            var completedcheck = 0;
-                            //check hour of code output based on the page
-                            if(!hadCompilerError) {
-                                
-                                if (pageNumber >= 1 && pageNumber <= 6) { //7th page has no exercises
-                                    completedcheck = checkOutput(pageNumber, $('#IDE-output').html());
-                                }
+                        }
+                        var completedcheck = 0;
+                        //check hour of code output based on the page
+                        if(!hadCompilerError) {
+
+                            if (pageNumber >= 1 && pageNumber <= 6) { //7th page has no exercises
+                                completedcheck = checkOutput(pageNumber, $('#IDE-output').html());
                             }
-                            
-                            var reportData = { code: tempCode, uuid: id, pagenumber: pageNumber, slidenumber: slideNr, resultCode: result, completed: completedcheck, pageurl: pageURL, gacookie: ga_cookie};
+                        }
+
+                        var reportData = { code: tempCode, uuid: id, pagenumber: pageNumber, slidenumber: slideNr, resultCode: result, completed: completedcheck, pageurl: pageURL, gacookie: ga_cookie};
+                        $.ajax({
+                            type: "POST",
+                            url: "http://quorumlanguage.com/quorum_logger.php",
+                            data: reportData,
+                            success: function(result) {
+                                console.log("Logged Result " + result);
+                            },
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                console.log(xhr, ajaxOptions, thrownError);
+                            }
+
+                        });
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                            //console.log(xhr, ajaxOptions, thrownError);
+                            $(".outputArea").html("Error: Could not connect to server: " + thrownError.toString());
+                            var reportData = { code: tempCode, uuid: id, pagenumber: pageNumber, slidenumber: slideNr, resultCode: thrownError.toString(), completed: 0, pageurl: pageURL, gacookie: ga_cookie};
                             $.ajax({
                                 type: "POST",
                                 url: "http://quorumlanguage.com/quorum_logger.php",
@@ -495,29 +514,10 @@ var submitCodeSample = function(){
                                 error: function (xhr, ajaxOptions, thrownError) {
                                     console.log(xhr, ajaxOptions, thrownError);
                                 }
-                                
                             });
-			},
-			error: function (xhr, ajaxOptions, thrownError) {
-				//console.log(xhr, ajaxOptions, thrownError);
-                                $(".outputArea").html("Error: Could not connect to server: " + thrownError.toString());
-                                var reportData = { code: tempCode, uuid: id, pagenumber: pageNumber, slidenumber: slideNr, resultCode: thrownError.toString(), completed: 0, pageurl: pageURL, gacookie: ga_cookie};
-                                $.ajax({
-                                    type: "POST",
-                                    url: "http://quorumlanguage.com/quorum_logger.php",
-                                    data: reportData,
-                                    success: function(result) {
-                                        console.log("Logged Result " + result);
-                                    },
-                                    error: function (xhr, ajaxOptions, thrownError) {
-                                        console.log(xhr, ajaxOptions, thrownError);
-                                    }
-
-                                });
-			}
-		});
-               
-	})
+                    }
+            });
+    })
 }
 
 var checkOutput = function(pageNumber, output) {
@@ -527,7 +527,7 @@ var checkOutput = function(pageNumber, output) {
     outputArray[2] = 'Hello!<br>';
     outputArray[3] = '2<br>4<br>6<br>8<br>10<br>';
     outputArray[4] = '0 is even<br>1 is odd<br>2 is even<br>3 is odd<br>4 is even<br>5 is odd<br>6 is even<br>7 is odd<br>8 is even<br>9 is odd<br>';
-    outputArray[5] = 'Programming in Quorum is fun!!<br>';
+    outputArray[5] = 'Programming in Quorum is fun!<br>';
     
     if (pageNumber == 2) {
         output = output.substring(0,15); //to get around any rounding errors
@@ -536,7 +536,7 @@ var checkOutput = function(pageNumber, output) {
     //Should make this case insensitive
     if (outputArray[pageNumber - 1].toLowerCase() == output.toLowerCase()) {
         //success
-        alert("Good Job! You've completed this exercise.");
+        $( "#overlay" ).show();
         return 1;
     }
     else {
@@ -547,98 +547,17 @@ var checkOutput = function(pageNumber, output) {
     
 }
 
-//var IsDNA = function(DNA) {
-//    for (var i = 0; i < DNA.length; i++) {
-//        if ((DNA.charAt(i) == 'A') || (DNA.charAt(i) == 'C') || (DNA.charAt(i) == 'G') || (DNA.charAt(i) == 'T')) {
-//        }
-//        else {
-//            return false;
-//        }
-//    }
-//    return true;
-//}
-//
-//var CloneDNA = function(DNA) {
-//    //loop through the DNA one character at a time, 1% chance to mutate a letter
-//    var randomNumber = Math.floor((Math.random() * 100) + 1); //random 1 - 100
-//    var cloneDNA = "";
-//    for (var i = 0; i < DNA.length; i++) {
-//        console.log(randomNumber);
-//        if (randomNumber == 42) {
-//            //mutate
-//            var randomNumber2 = Math.floor((Math.random() * 4) + 1); //random 1 - 4
-//            switch (randomNumber2) {
-//                case 1:
-//                    cloneDNA = cloneDNA + 'A';
-//                    break;
-//                case 2:
-//                    cloneDNA = cloneDNA + 'C';
-//                    break;
-//                case 3:
-//                    cloneDNA = cloneDNA + 'G';
-//                    break;
-//                case 4:
-//                    cloneDNA = cloneDNA + 'T';
-//                    break;
-//            }
-//        }
-//        else {
-//            cloneDNA = cloneDNA + DNA.charAt(i);
-//        }
-//        
-//        if (cloneDNA.length == DNA.length) {
-//            if (cloneDNA != DNA) {
-//                document.write(cloneDNA);
-//            }
-//            cloneDNA = "";
-//        }
-//    }
-//}
-
-//var AreYouMyMommy = function(mom, child) {
-//    if (mom.length == 0 || child.length == 0) {
-//        if (mom.length == 0) {
-//        return "Error: the variable containing the parent's DNA is empty";
-//        }
-//        else {
-//        return "Error: the variable containing the child's DNA is empty";
-//        }
-//    }
-//    
-//    else {
-//        //TODO: check to make sure string consists of ony ACGT chars
-//        
-//        if (mom.length != child.length) {
-//            return "Error: DNA sequences are of different sizes";
-//        }
-//        
-//        else {
-//            var matches = 0;
-//            for (var i = 0; i < mom.length; i++) {
-//                if (mom.charAt(i) == child.charAt(i)) {
-//                    matches++;
-//                }
-//            }
-//            if ((matches / mom.length) < .26) {
-//                return "I am not your mommy.";
-//            }
-//            else {
-//                return "I am your mommy!";
-//            }
-//        }
-//    }
-//};
-
-//var Person = function(eyeColor, hairColor) {
-//  this.eyeColor = eyeColor;
-//  this.hairColor = hairColor;
-//}
-//
-//var CreateChild = function(parent1, parent2) {
-//    var parents = [parent1, parent2];
-//    var child = new Person(parents[Math.floor(Math.random() + 0.5)].eyeColor, parents[Math.floor(Math.random() + 0.5)].hairColor);
-//    return child;
-//}
+var hideOverlay = function() {
+    $("#stayOnPage").click(function() {
+        $("#overlay").hide();
+    });
+    
+    $("#overlay").on('click', function(e) {
+    if (e.target !== this)
+        return;
+    $("#overlay").hide();
+    });
+}
         
 
 

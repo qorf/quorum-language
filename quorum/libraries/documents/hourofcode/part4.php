@@ -53,6 +53,9 @@
 //        $('#IDE-output').html('2<br>4<br>6<br>8<br>10<br>');
     });
 </script>
+
+<div id="overlay"><div id="overlay-content"><h3 class='overlay-text'>Congratulations, you've completed this exercise!</h3><p class='overlay-text'>Would you like to...</p><a href='part5.php' class='overlay-option'>Move on to Part 5</a><button id='stayOnPage' class='overlay-option'>Stay on this page</button><p class='overlay-text'>You can always navigate to any page at a later time.</p></div></div>
+
 <?php include("slideshow.php"); ?>
 
 <div class="hero-unit">

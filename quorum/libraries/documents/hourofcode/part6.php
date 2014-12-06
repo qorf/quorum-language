@@ -38,7 +38,7 @@
         <li>To keep our example simple, we are going to write a simple output message to the screen.</li>\n\
         <span class=\"title\">Try it!</span>\n\
         <div class =\"task\"><p>Insert an <code>output</code> statement inside the <code>PrintMsg</code> action:<br>\n\
-        <code>output \"Programming in Quorum is fun!!!\"</code><br>(then move to the next slide)</div></p>\n\
+        <code>output \"Programming in Quorum is fun!\"</code><br>(then move to the next slide)</div></p>\n\
         </ul>";
     
     slideArray[4] = "<h5>Calling Actions</h5>\n\
@@ -58,7 +58,7 @@
         <code>&nbsp&nbsp&nbsp&nbspPrintMsg()</code><br>\n\
         <code>end</code><br><br>\n\
         <code>action PrintMsg</code><br>\n\
-        <code>&nbsp&nbsp&nbsp&nbspoutput \"Programming in Quorum is Fun!!!\"</code><br>\n\
+        <code>&nbsp&nbsp&nbsp&nbspoutput \"Programming in Quorum is Fun!\"</code><br>\n\
         <code>end</code><br>\n\</li>\n\<li>Actions are an important and useful concept in programming, but we've only covered the basics so far. You can also do things like pass variables to an action and return values from an action.</li>\n\
         <li>For more information on actions, click <a href=\"http://quorumlanguage.com/documents/syntax/actions.php\">here</a></li>\n\
         <li>Mary's project covering actions can be found <a href=\"projects/actions_and_classes.zip\">here</a>.</li>\n\
@@ -68,6 +68,9 @@
 //        $('#IDE-input').text('');
     });
 </script>
+
+<div id="overlay"><div id="overlay-content"><h3 class='overlay-text'>Congratulations, you've completed this exercise!</h3><p class='overlay-text'>Would you like to...</p><a href="http://code.org/api/hour/finish" class="overlay-option" target="_blank">Complete my Hour of Code!</a><a href='part7.php' class='overlay-option'>See the conclusion</a><button id='stayOnPage' class='overlay-option'>Stay on this page</button><p class='overlay-text'>You can always navigate to any page at a later time.</p></div></div>
+
 <?php include("slideshow.php"); ?>
 
 <div class="hero-unit">
