@@ -42,9 +42,9 @@ class ListTester
 //FAIL TESTS
         path = failPath
         AddWrongTypeToList()
-        GetLocationEmptyList()
-        GetLocationOutOfBounds()
-        GetLocationEmptyListNeg()
+        //GetLocationEmptyList()
+        //GetLocationOutOfBounds()
+        //GetLocationEmptyListNeg()
     end
 
     action GetName returns text
@@ -98,7 +98,7 @@ class ListTester
         File main
         main:SetPath(path + "Clear.quorum")
         files:Add(main)
-        results:Add(0, "ThisIsATextLinkedList")
+        results:Add(0, "ThisIsATextLinkedList!")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -168,9 +168,9 @@ class ListTester
         Array<File> files
         Array<text> results
         File main
-        main:SetPath(path + "Five.quorum")
+        main:SetPath(path + "GetLast.quorum")
         files:Add(main)
-        results:Add(0, "FirstPurpleDinosaurChairWhiteCouchLego")
+        results:Add(0, "Five")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -179,9 +179,9 @@ class ListTester
         Array<File> files
         Array<text> results
         File main
-        main:SetPath(path + "4.quorum")
+        main:SetPath(path + "GetLastIndexOf.quorum")
         files:Add(main)
-        results:Add(0, "FirstPurpleDinosaurChairWhiteCouchLego")
+        results:Add(0, "4")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -226,7 +226,7 @@ class ListTester
         File main
         main:SetPath(path + "Remove.quorum")
         files:Add(main)
-        results:Add(0, "FiveNineOneThreeOne")
+        results:Add(0, "FiveNineOneEightThreeOne")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -237,7 +237,8 @@ class ListTester
         File main
         main:SetPath(path + "RemoveAll.quorum")
         files:Add(main)
-        results:Add(0, "FiveNineEightThree")
+        results:Add(0, "true")
+        results:Add(1, "FiveNineEightThree")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -259,8 +260,7 @@ class ListTester
         File main
         main:SetPath(path + "RemoveFirst.quorum")
         files:Add(main)
-        results:Add(0, "FiveNineOneEightThree")
-        results:Add(1, "6")
+        results:Add(0, "FiveNineOneEightThreeOne")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

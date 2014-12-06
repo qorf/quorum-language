@@ -1187,9 +1187,6 @@ class Class is Symbol
                 Type formal = var:GetType()
                 text formalText = formal:GetStaticKey()
 
-                if final:GetName() = "SetAutoResize"
-                    a = 5
-                end
                 //if the formal parameter is a generic, check its declared type
                 //then check if there is a conversion from the actual parameter
                 //to that type
@@ -1198,24 +1195,46 @@ class Class is Symbol
                     Action act = resolution:resolvedAction
                     Variable classInstance = call:variable
 
+                    
+
                     //if this is null, it's a compiler bug, or a compiler error?
                     if classInstance = undefined
                         //alert("When resolving a generic, we must have a specific variable with a tangible type")
                     else
                         Type declaredGenericFormal = classInstance:GetType()
                         text mappedName = formal:GetMappedGeneric()
-                        integer numGenerics = declaredGenericFormal:GetNumberGenerics()
 
-                        if i < numGenerics
+                        if HasGeneric(mappedName)
+                            integer index = GetIndexOfGeneric(mappedName)
+                            integer numGenerics = declaredGenericFormal:GetNumberGenerics()
+                            if index not= -1
 
-                            Type gen = declaredGenericFormal:GetGeneric(i)
-                            if gen:IsPrimitive()
-                                Type boxed = gen:Copy()
-                                boxed:SetToObject(boxed:ConvertToNonPrimitiveStaticKey())
-                                gen = boxed
-                                formal = boxed
-                            else //in the case where the generic is an object, do more searching 
+                                if index >= numGenerics //the user created an object with the wrong generics and it wasn't caught somewhere else
+                                    resolution:isResolved = false
+                                    CompilerError error
+                                    error:SetLocation(call)
+                                    CompilerErrorType errorType
+                                    errorType:SetCurrentType(errorType:MISMATCHED_TEMPLATES)
+                                    error:SetCompilerErrorType(errorType)
+                                    error:SetErrorMessage("I found an action with a declared generic of " +
+                                        mappedName + ", which is at position " + index + 
+                                        " in the class " + declaredGenericFormal:GetStaticKey() + "." +
+                                        " However, no generic was declared in the variable " + 
+                                        classInstance:GetName() + ".")
+                                    error:SetLocation(call)
+                                    resolution:error = error
+                                    return resolution
+                                else
+                                    Type gen = declaredGenericFormal:GetGeneric(index)
+                                    if gen:IsPrimitive()
+                                        Type boxed = gen:Copy()
+                                        boxed:SetToObject(boxed:ConvertToNonPrimitiveStaticKey())
+                                        gen = boxed
+                                        formal = boxed
+                                    else //in the case where the generic is an object, do more searching 
 
+                                    end
+                                end
                             end
                         end
                     end

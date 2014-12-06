@@ -429,6 +429,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action EnterLoopStatement(LoopContext context) 
         LoopOpcode loop
+        loop:SetLocation(context:GetLocation())
         loop:SetMethodWriter(methodWriter)
         if context:isUntil
             loop:SetUntil()

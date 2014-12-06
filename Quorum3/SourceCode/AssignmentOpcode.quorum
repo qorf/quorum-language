@@ -110,32 +110,35 @@ class AssignmentOpcode is QuorumOpcode
                     methodWriter:VisitVariable(opcode, variable:GetBytecodeLocation())
                 end
             end
-        else
-            Type type = field:GetType()
-            if variable:IsField()
-                methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-                Class isIn = variable:GetParentClass()
-                path = isIn:ConvertStaticKeyToBytecodeInterfacePath()
-                getterName = isIn:ConvertToActionNameFromField(variable, true)
 
-                Type t = variable:GetType()
-                methodName = t:ConvertToSignatureFromField(true)
-                methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
-                    path, getterName, methodName, true)
-            else
-                methodWriter:VisitVariable(opcodes:GetObjectLoad(), variable:GetBytecodeLocation())
-            end
-            
-            rightHandSide:Write()
-            path = fieldHolder:ConvertStaticKeyToBytecodeInterfacePath()
-            setterName = fieldHolder:ConvertToActionNameFromField(field, false)
-            methodName = type:ConvertToSignatureFromField(false)
-            if opcode2 not= -1
-                methodWriter:VisitInstruction(opcode2)
-            end
-            methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
-                path, setterName, methodName, true)
+            return now
         end
+
+
+        Type type = field:GetType()
+        if variable:IsField()
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+            Class isIn = variable:GetParentClass()
+            path = isIn:ConvertStaticKeyToBytecodeInterfacePath()
+            getterName = isIn:ConvertToActionNameFromField(variable, true)
+
+            Type t = variable:GetType()
+            methodName = t:ConvertToSignatureFromFieldInterface(true)
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+                path, getterName, methodName, true)
+        else
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), variable:GetBytecodeLocation())
+        end
+
+        rightHandSide:Write()
+        path = fieldHolder:ConvertStaticKeyToBytecodeInterfacePath()
+        setterName = fieldHolder:ConvertToActionNameFromField(field, false)
+        methodName = type:ConvertToSignatureFromFieldInterface(false)
+        if opcode2 not= -1
+            methodWriter:VisitInstruction(opcode2)
+        end
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+            path, setterName, methodName, true)
     end
 
     action WriteJavaScript returns text 
