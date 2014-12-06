@@ -80,7 +80,7 @@ class ExpressionsTester
         ModDoubleInt()
         ModIntDouble()
         ModIntInt()
-        MutlDoubleDouble()
+        MultDoubleDouble()
         MultDoubleInt()
         MultIntDouble()
         MultIntInt()
@@ -389,7 +389,7 @@ class ExpressionsTester
         Array<File> files
         Array<text> results
         File main
-        main:SetPath(path + "AddBooleanEqualDoubleDoubleText.quorum")
+        main:SetPath(path + "EqualDoubleDouble.quorum")
         files:Add(main)
         results:Add(0, "false")
         results:Add(1, "true")
@@ -627,7 +627,7 @@ class ExpressionsTester
         File main
         main:SetPath(path + "HelloWorldNoClassNoActions.quorum")
         files:Add(main)
-        results:Add(0, "Hello, World!")
+        results:Add(0, "Hello World!")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -638,7 +638,7 @@ class ExpressionsTester
         File main
         main:SetPath(path + "HelloWorldNoClass.quorum")
         files:Add(main)
-        results:Add(0, "Hello, World!")
+        results:Add(0, "Hello World!")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -850,7 +850,6 @@ class ExpressionsTester
         suite:Test(files, results)
         results:Set(0, "1")
         results:Set(1, "1")
-        suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
 
@@ -896,11 +895,11 @@ class ExpressionsTester
         suite:TestJavaScript(files, results)
     end
 
-    action MutlDoubleDouble
+    action MultDoubleDouble
         Array<File> files
         Array<text> results
         File main
-        main:SetPath(path + "MutlDoubleDouble.quorum")
+        main:SetPath(path + "MultDoubleDouble.quorum")
         files:Add(main)
         results:Add(0, "4.0")
         results:Add(1, "4.0")
