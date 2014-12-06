@@ -61,6 +61,7 @@
         <code>&nbsp&nbsp&nbsp&nbspoutput \"Programming in Quorum is Fun!!!\"</code><br>\n\
         <code>end</code><br>\n\</li>\n\<li>Actions are an important and useful concept in programming, but we've only covered the basics so far. You can also do things like pass variables to an action and return values from an action.</li>\n\
         <li>For more information on actions, click <a href=\"http://quorumlanguage.com/documents/syntax/actions.php\">here</a></li>\n\
+        <li>Mary's project covering actions can be found <a href=\"projects/actions_and_classes.zip\">here</a>.</li>\n\
         </ul>";
     
     $(document).ready(function(){

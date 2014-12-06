@@ -45,7 +45,8 @@ Now, to increment our testing variable by one on each pass of the loop, insert a
         &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspoutput testNumber + \" is odd\"<br>\n\
         &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspend<br>\n\
         &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsptestNumber = testNumber + 1<br>\n\
-        end</p>";
+        end</p><br>\n\
+        <ul><li>Mary's full version of the clothing picker can be found <a href=\"projects/clothing_picker.zip\">here</a>.</li></ul>";
     
     $(document).ready(function(){
 //        $('#IDE-input').text('number testNumber = 0\nrepeat until testNumber = 10\n    if testNumber mod 2 = 0\n        output testNumber + \" is even\"\n    else\n        output testNumber + \" is odd\"\n    end\n    testNumber = testNumber + 1\nend');
