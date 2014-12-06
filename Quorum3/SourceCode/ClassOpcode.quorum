@@ -565,7 +565,7 @@ class ClassOpcode is QuorumOpcode
                 
                 //now load the same parents into the grand parents
                 methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-                methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), parentName, convertedParentName)
+                methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), parentName, convertedParentNameType)
                 methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
                 methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), grandParentName, convertedGrandParent)
                 methodWriter:VisitField(opcodes:GetPutField(), convertedParentName, grandParentName, convertedGrandParent)
@@ -574,18 +574,12 @@ class ClassOpcode is QuorumOpcode
     end
 
     action WriteFields (JavaBytecodeMethodWriter methodWriter)
-        key = clazz:GetStaticKey() 
-        //if not key:StartsWith("Ma")
-        
         Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
         repeat while fieldIterator:HasNext()
             QuorumOpcode field = fieldIterator:Next()
             field:SetMethodWriterToAllChildren(methodWriter)
             field:Write()
         end
-        //else 
-        //    a = 5
-        //end
     end
 
     action WriteJavaScript returns text

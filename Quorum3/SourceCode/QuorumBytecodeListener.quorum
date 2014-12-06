@@ -823,9 +823,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         Operation assign
         assign:SetOperation(assign:EQUALS)
 
-        if right = undefined
-            a = 5
-        end
         TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
 
         if result:errorType = undefined
@@ -838,7 +835,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             assignment:SetType(value)
             assignment:SetMethodWriter(methodWriter)
             assignment:SetVariable(variable)
-            if context:hasMe or context:isField or not isInAction
+            if not isInAction
                 currentClassOpcode:AddField(assignment)
             else
                 currentBlockOpcode:Add(assignment)
@@ -954,6 +951,10 @@ class QuorumBytecodeListener is QuorumSourceListener
         call:checker = GetTypeChecker()
         call:table = table
         
+        if currentClass:GetStaticKey() = "Main" and context:name = "AddToEnd"
+            a = 5
+        end
+
         ActionCallResolution resolved = ResolveActionCall(testMe, isObjectCall, fieldClass, variable, call, actionCall)
         resolved:location = context:GetLocation()
 
@@ -985,6 +986,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     private action ResolveActionCall(Class testMe, boolean isObjectCall, 
         Class fieldClass, Variable variable, ActionCall call, ActionCallOpcode actionCall) returns ActionCallResolution
+        call:variable = variable
         ActionCallResolution resolved = testMe:ResolveAction(call)
 
         if isObjectCall
@@ -994,18 +996,9 @@ class QuorumBytecodeListener is QuorumSourceListener
             actionCall:SetPushOnMe(false)
             actionCall:SetField(variable)
             actionCall:SetIsSoloObjectCall(true)
-
-//
-//            Class clazz = resolved:classToMakeCallOn
-//            Type t
-//            t:SetToObject(clazz:GetStaticKey())
             resolved:typeToMakeCallOn = variable:GetType()
         else
             resolved:classToMakeCallOn = currentClass
-//            Class clazz = resolved:classToMakeCallOn
-//            Type t
-//            t:SetToObject(clazz:GetStaticKey())
-//            resolved:typeToMakeCallOn = t
         end
 
         
@@ -1019,11 +1012,14 @@ class QuorumBytecodeListener is QuorumSourceListener
             actionCall:SetIsActionCall(true)
             actionCall:SetCallingClass(currentClass)
             actionCall:SetActionCallResolution(resolved)
+
+            Action act = resolved:resolvedAction
+            
             actionCall:SetParameters(ComputeFinalParameters(actionCall:GetParameters(), resolved:converter))
 
             //check to see if the return type needs to be auto-boxed back
             //into another type.
-            Action act = resolved:resolvedAction
+            
             Type returnType = act:GetReturnType()
             if not actionCall:GetPushOnMe() //if it's a me call, it doesn't matter
                 if returnType:IsMappedToGeneric() //it is mapped to a generic, so find the variable it is mapped to
@@ -1031,16 +1027,6 @@ class QuorumBytecodeListener is QuorumSourceListener
                     Class c = resolved:classToMakeCallOn
                     integer index = c:GetIndexOfGeneric(returnType:GetMappedGeneric())
                     if index not= -1
-                        if t = undefined
-                            a = 5
-                        end
-
-
-                        check
-                            Type tk421 = t:GetGeneric(index)
-                        detect e
-                            a = 5
-                        end
                         Type left = t:GetGeneric(index)
                         TypeChecker checker = GetTypeChecker()
                         
@@ -1051,10 +1037,12 @@ class QuorumBytecodeListener is QuorumSourceListener
                         text boxedKey = left:ConvertToNonPrimitiveStaticKey()
                         right:SetToObject(boxedKey)
 
-
+                        if currentClass:GetStaticKey() = "Main" and act:GetName() = "Get"
+                            a = 5
+                        end
 
                         //since we know this is defined as a generic,
-                        //it is equivalent to an implicit cast
+                        //it is equivalent to a cast
                         Operation op
                         op:SetOperation(op:CAST)
                         TypeCheckResult result = checker:Check(left, returnType, op, false)
@@ -1213,14 +1201,8 @@ class QuorumBytecodeListener is QuorumSourceListener
             ActionCallResolution resolved = classToMakeCallOn:ResolveAction(call)
 
             if not resolved:isResolved
-                CompilerError actionNotFoundError
-                actionNotFoundError:SetLocation(context:GetLocation())
-                actionNotFoundError:SetErrorMessage("I could not locate the action named " + call:GetSignature())
-                CompilerErrorType errorType
-                errorType:SetCurrentType(errorType:MISSING_METHOD)
-                actionNotFoundError:SetCompilerErrorType(errorType)
                 CompilerErrorManager manager = GetCompilerErrorManager()
-                manager:Add(actionNotFoundError)
+                manager:Add(resolved:error)
                 return now
             end
 

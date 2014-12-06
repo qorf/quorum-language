@@ -6,6 +6,7 @@ package plugins.quorum.Libraries.Language.Types;
 
 import quorum.Libraries.Language.Object$Interface;
 import quorum.Libraries.Language.Types.Integer$Interface;
+import quorum.Libraries.Language.Types.Number$Interface;
 
 /**
  * Integer plugin for handling Integer class functions for objects and primitives.
@@ -30,6 +31,12 @@ public class Integer {
             throw new NullPointerException("Cannot convert an undefined type to an integer.");
         }
         return object.GetValue();
+    }
+    
+    public static Number$Interface ConvertIntegerPrimitiveToNumberObject(int value) {
+        Number$Interface num = new quorum.Libraries.Language.Types.Number();
+        num.SetValue(value);
+        return num;
     }
     
     public static Object$Interface ConvertIntegerToObject(int value) {

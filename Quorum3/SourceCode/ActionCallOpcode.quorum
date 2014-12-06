@@ -209,9 +209,6 @@ class ActionCallOpcode is QuorumOpcode
         else
             Type type = GetCallerType()
             if not field:IsField()
-                if methodWriter = undefined
-                    a = 5
-                end
                 methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetCallerType()), field:GetBytecodeLocation())
             else
                 //Now write the getter for the field
