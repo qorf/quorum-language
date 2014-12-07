@@ -16,6 +16,7 @@ class Class is Symbol
     HashTable<text, Action> actions
     HashTable<text, Action> virtualActions
     HashTable<text, Action> parentActions
+    HashTable<text, Array<Type>> parentGenerics
     HashTable<text, Variable> fields
     Action constructor = undefined
     boolean hasMain = false
@@ -83,6 +84,17 @@ class Class is Symbol
 //        AddUnresolvedUseStatement(errorObject)
     end
 
+    action HasParentGenerics(text key) returns boolean
+        return parentGenerics:HasKey(key)
+    end
+
+    action GetParentGenerics(text key) returns Array<Type>
+        return parentGenerics:GetValue(key)
+    end
+
+    action SetParentGenerics(text key, Array<Type> types)
+        parentGenerics:Set(key, types)
+    end
         
     action IsProgramStartingClass returns boolean
         return isMainClass
@@ -167,12 +179,42 @@ class Class is Symbol
                         Class dad = baseAction:GetParentClass()
                         Type baseReturnType = baseAction:GetReturnType()
                         text baseReturnKey = baseReturnType:GetStaticKey()
+
+                        //if the returnType of the parent (returnType) has a generic, map it
+                        //to the specific isntance located in the class template declaration
+                        //if it isn't an Object or isn't a generic, don't map generic types
+                        if returnType:IsMappedToGeneric() and returnType:GetStaticKey() = returnType:OBJECT_KEY
+                            text genericName = returnType:GetMappedGeneric()
+
+                            if mom:HasGeneric(genericName)
+                                //get the index of the generic from the parent
+                                integer index = mom:GetIndexOfGeneric(genericName)
+
+                                //this tells us the index of the template
+                                //now grab the nth element from the declared type list
+                                //if it exists. If it doesn't, ignore this
+                                Array<Type> values = GetParentGenerics(mom:GetStaticKey())
+                                if values not= undefined //sizing is already checked
+                                    Type actualType = values:Get(index)
+                                    //if it's not a generic, set the return type value
+                                    //to the declared value and see if it matches
+                                    if actualType:GetStaticKey() not= actualType:OBJECT_KEY
+                                        returnType = actualType
+                                        returnKey = returnType:GetStaticKey()
+                                    end
+                                end
+                            end
+                        end
+
                         if returnKey not= baseReturnKey //this is an error
                             CompilerError error
+                            CompilerErrorType t
+                            t:SetCurrentType(t:INHERITANCE_MISSMATCHED_RETURN)
+                            error:SetCompilerErrorType(t)
                             error:SetErrorMessage("The action " + key + " is defined in the parent "
                                 + dad:GetStaticKey() + ", but the return types (" 
                                 + baseReturnKey + " and "+ returnKey + ") do not match.")
-                                error:SetLocation(act)
+                            error:SetLocation(act)
                             errors:Add(error)
                         end //otherwise, everything is fine, so ignore it
                     else //the base action is undefined, so this is an error, as
@@ -314,6 +356,13 @@ class Class is Symbol
         //next resolve all parents
         ResolveParents(table, errors)
 
+        if GetName() = "HashTableIterator"
+            a = 5
+        end
+        //now all parents are resolved. Resolve the generics of those parents
+        //first rehash all of the parent uses
+        ResolveParentGenerics(table, errors)
+
         //now resolve all the fields
         ResolveFields(table, errors)
 
@@ -321,6 +370,101 @@ class Class is Symbol
         ResolveActions(table, errors)
 
         isTypeResolved = true
+    end
+
+    action HasGenerics returns boolean
+        return GetNumberGenerics() not= 0
+    end
+
+    private action ResolveParentGenerics(SymbolTable table, CompilerErrorManager errors)
+        HashTable<text, Array<Type>> newParentGenerics
+        Iterator<text> keys = parentGenerics:GetKeyIterator()
+        repeat while keys:HasNext()
+            text key = keys:Next()
+            Array<Type> theTypes = parentGenerics:GetValue(key)
+            Class clazz = me:GetValidUseName(key)
+            if clazz = undefined //could be ok if this is a generic
+                if HasGeneric(key) //hash it as the type, which will be unique
+                    newParentGenerics:Set(key, theTypes)
+                else 
+                    CompilerError error
+                    error:SetLocation(me)
+                    error:SetErrorMessage("I could not locate a class named " + key
+                        + " from the class " + GetStaticKey() + "."
+                    )
+                    CompilerErrorType errorType
+                    errorType:SetCurrentType(errorType:MISSING_USE)
+                    error:SetCompilerErrorType(errorType)
+                    errors:Add(error)
+                end
+            else
+                newParentGenerics:Set(clazz:GetStaticKey(), theTypes)
+            end
+        end
+        parentGenerics = newParentGenerics
+
+
+        Iterator<Class> parentIterator = parents:GetValueIterator()
+        repeat while parentIterator:HasNext()
+            Class next = parentIterator:Next()
+            key = next:GetStaticKey()
+            Array<Type> types = GetParentGenerics(key)
+
+            //first check if the class actually has any declared generics
+            //if it doesn't, make sure the user didn't specify any
+            boolean hasGenerics = next:HasGenerics()
+            if hasGenerics = false
+                if types not= undefined
+                    if not types:IsEmpty() //the class has no generics, but the user tried to specify them
+                        CompilerError error
+                        error:SetLocation(me)
+                        error:SetErrorMessage("I noticed there were generics specified for "
+                            + "the parent " + next:GetStaticKey() + ", but this class "
+                            + "does not have any generics."
+                        )
+                        CompilerErrorType errorType
+                        errorType:SetCurrentType(errorType:MISMATCHED_TEMPLATES)
+                        error:SetCompilerErrorType(errorType)
+                        errors:Add(error)
+                    end
+                end
+            else
+                //if it does have generics, but the user didn't specify any
+                //that's just fine. No need to do anything for this case
+                
+
+                //if there are generics, and they are specified, make sure
+                //that the number of generics is exactly the same. If it isn't
+                //that's an error, as it has to match.
+                if types not= undefined
+                    //first check that the number of parameters matches
+                    baseSize = types:GetSize()
+                    parentSize = next:GetNumberGenerics()
+                    if baseSize not= parentSize
+                        CompilerError error
+                        error:SetLocation(me)
+                        error:SetErrorMessage("I noticed there were generics specified for "
+                            + "the parent " + next:GetStaticKey() + ", but this class "
+                            + "has " + parentSize + " generics declared, but you " 
+                            + "specified " + baseSize + "."
+                        )
+                        CompilerErrorType errorType
+                        errorType:SetCurrentType(errorType:MISMATCHED_TEMPLATES)
+                        error:SetCompilerErrorType(errorType)
+                        errors:Add(error)
+                    else 
+                        //the numbers match, so line them up.
+                        i = 0
+                        repeat baseSize times
+                            Type baseType = types:Get(i)
+                            //resolve this type. If there are no errors, we're good.
+                            ResolveType(me, baseType, table, errors)
+                            i = i + 1
+                        end
+                    end
+                end
+            end
+        end
     end
 
     private action ResolveFields(SymbolTable table, CompilerErrorManager errors)
@@ -343,9 +487,6 @@ class Class is Symbol
             Action next = actionIterator:Next()
             temp:Add(next)
 
-//            if next:GetName() = "AddToEnd"// and GetStaticKey() = "Main"
-//                a = 5
-//            end
             //first, we resolve the parameters
             Iterator<Variable> parameters = next:GetParameterIterator()
             repeat while parameters:HasNext()

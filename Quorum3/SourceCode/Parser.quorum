@@ -155,7 +155,10 @@ class Parser is QuorumSourceListener
     end
 
     action ExitInheritStatement(InheritStatementContext context) 
+        QualifiedName p = context:name
+        Array<Type> gen = context:generics
         currentClass:AddUnresolvedParent(context:name)
+        currentClass:SetParentGenerics(p:GetStaticKey(), gen)
     end
 
     action AddClass(text name)

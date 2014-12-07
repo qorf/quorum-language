@@ -116,9 +116,10 @@ class ActionOpcode is QuorumOpcode
 
         //output me:clazz:GetStaticKey() + ", " + method:GetStaticKey()
         
-        if method:GetStaticKey() = "Main"
-            a = 5
-        end
+//        if method:GetName() = "GetKey"
+//            a = 5
+//        end
+        
         methodWriter:VisitMaxSize(0,0)
         methodWriter:VisitEnd()
     end

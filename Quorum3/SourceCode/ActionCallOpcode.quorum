@@ -1,6 +1,7 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Location
 use Libraries.Language.Compile.Symbol.ActionCallResolution
 use Libraries.Language.Compile.Symbol.Action
 use Libraries.Language.Compile.Symbol.Class
@@ -149,6 +150,12 @@ class ActionCallOpcode is QuorumOpcode
     action Write //TODO: make this work for action calls and fields
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         VisitLineNumber()
+
+        Location location = GetLocation()
+        if callingClass:GetName() = "HashTable" and location:GetLineNumber() = 114
+            a = 5 
+        end
+
         if isActionCall
             //if there's a variable, load it.
             //this isn't right, but load "THIS" onto the stack for testing

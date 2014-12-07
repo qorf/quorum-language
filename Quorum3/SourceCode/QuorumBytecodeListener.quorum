@@ -1149,6 +1149,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action ExitActionCall(ActionCallContext context)
         ActionCallOpcode actionCall
+        actionCall:SetLocation(context:GetLocation())
         actionCall:SetMethodWriter(methodWriter)
         SymbolTable table = GetSymbolTable()
 
