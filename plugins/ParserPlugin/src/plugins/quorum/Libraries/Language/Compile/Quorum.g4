@@ -36,7 +36,7 @@ inherit_stmnts
 	;
 inherit_stmt
         :
-            qualified_name generic_declaration? 
+            qualified_name generic_statement? 
         ;
 access_modifier
 	:	PUBLIC

@@ -534,21 +534,24 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitInherit_stmt(QuorumParser.Inherit_stmtContext ctx) {
         quorum.Libraries.Language.Compile.Context.InheritStatementContext context = 
                 new quorum.Libraries.Language.Compile.Context.InheritStatementContext();
-        QuorumParser.Qualified_nameContext name = ctx.qualified_name();
-        QuorumParser.Generic_declarationContext generic = ctx.generic_declaration();
         
+        //first get the name
+        QuorumParser.Qualified_nameContext name = ctx.qualified_name();        
         context.name = Convert(name);
         
+        //add generics if there are any.
+        QuorumParser.Generic_statementContext generic = ctx.generic_statement();
         if(generic != null) {
-            List<Token> tokenList = generic.ids;
-            Iterator<Token> tokens = tokenList.iterator();
-            while(tokens.hasNext()) {
-                Token token = tokens.next();
-                String value = token.getText();
-                context.name.AddGeneric(value);
+            List<QuorumParser.Assignment_declarationContext> decls = generic.assignment_declaration();
+            if(decls != null) {
+                Iterator<QuorumParser.Assignment_declarationContext> it = decls.iterator();
+                while(it.hasNext()) {
+                    QuorumParser.Assignment_declarationContext next = it.next();
+                    Type type = next.type;
+                    context.generics.Add(type);
+                }
             }
         }
-        
         setLocation(ctx, context);
         listener.ExitInheritStatement(context);
     }
