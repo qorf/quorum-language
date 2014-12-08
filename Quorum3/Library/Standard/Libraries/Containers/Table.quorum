@@ -2,7 +2,7 @@ package Libraries.Containers
 
 use Libraries.Containers.Blueprints.TableBlueprint
 use Libraries.Containers.Array
-use Libraries.Language.Errors.InvalidLocationError
+//use Libraries.Language.Errors.InvalidLocationError
 use Libraries.Containers.Blueprints.Iterator
 
 /*
@@ -61,14 +61,14 @@ class Table<Type> is TableBlueprint<Type>
             if column < size and column >= 0
                 rowArray:Set(column, value)
             else
-                InvalidLocationError error
-                error:SetErrorMessage("Invalid Location Error: the column location is invalid.")
-                alert(error)
+//                InvalidLocationError error
+//                error:SetErrorMessage("Invalid Location Error: the column location is invalid.")
+//                alert(error)
             end
         else
-            InvalidLocationError error
-            error:SetErrorMessage("Invalid Location Error: the row location is invalid.")
-            alert(error)
+//            InvalidLocationError error
+//            error:SetErrorMessage("Invalid Location Error: the row location is invalid.")
+//            alert(error)
         end
     end
 
@@ -97,15 +97,16 @@ class Table<Type> is TableBlueprint<Type>
             if column < size and column >= 0
                 return rowArray:Get(column)
             else
-                InvalidLocationError error
-                error:SetErrorMessage("Invalid Location Error: the column location is invalid.")
-                alert(error)
+//                InvalidLocationError error
+//                error:SetErrorMessage("Invalid Location Error: the column location is invalid.")
+//                alert(error)
             end
         else
-            InvalidLocationError error
-            error:SetErrorMessage("Invalid Location Error: the row location is invalid.")
-            alert(error)
+//            InvalidLocationError error
+//            error:SetErrorMessage("Invalid Location Error: the row location is invalid.")
+//            alert(error)
         end
+        return undefined
     end
 
     /*
@@ -194,8 +195,8 @@ class Table<Type> is TableBlueprint<Type>
     */
     action SetSize(integer row, integer column)
         if row < 0 or column < 0
-            InvalidLocationError error
-            alert(error)
+//            InvalidLocationError error
+//            alert(error)
         else
             table:SetSize(row)
             integer size = table:GetSize()
@@ -239,9 +240,10 @@ class Table<Type> is TableBlueprint<Type>
             Array<Type> rowArray = table:Get(row)
             return rowArray:GetSize()
         else
-            InvalidLocationError error
-            error:SetErrorMessage("Invalid Location Error: the row location is invalid.")
-            alert(error)
+            return -1
+//            InvalidLocationError error
+//            error:SetErrorMessage("Invalid Location Error: the row location is invalid.")
+//            alert(error)
         end
     end
 
@@ -304,9 +306,9 @@ class Table<Type> is TableBlueprint<Type>
         integer capacity = table:GetMaxSize()
         
         if not table:GetAutoResize() and size = capacity
-            InvalidLocationError error
-            error:SetErrorMessage("Invalid Location Error: cannot add to the table because the row size has been reached")
-            alert(error)
+//            InvalidLocationError error
+//            error:SetErrorMessage("Invalid Location Error: cannot add to the table because the row size has been reached")
+//            alert(error)
         end
         
         if row <= size and row >= 0
@@ -329,22 +331,22 @@ class Table<Type> is TableBlueprint<Type>
             capacity = rowArray:GetMaxSize()
 
             if not rowArray:GetAutoResize() and size = capacity
-                InvalidLocationError error
-                error:SetErrorMessage("Invalid Location Error: cannot add to the table because the column size has been reached")
-                alert(error)
+//                InvalidLocationError error
+//                error:SetErrorMessage("Invalid Location Error: cannot add to the table because the column size has been reached")
+//                alert(error)
             end
 
             if column <= size and column >= 0
                 rowArray:Add(column, value)
             else
-                InvalidLocationError error
-                error:SetErrorMessage("Invalid Location Error: cannot add to the table because the column location is invalid.")
-                alert(error)
+//                InvalidLocationError error
+//                error:SetErrorMessage("Invalid Location Error: cannot add to the table because the column location is invalid.")
+//                alert(error)
             end
         else
-            InvalidLocationError error
-            error:SetErrorMessage("Invalid Location Error: cannot add to the table because the row location is invalid.")
-            alert(error)
+//            InvalidLocationError error
+//            error:SetErrorMessage("Invalid Location Error: cannot add to the table because the row location is invalid.")
+//            alert(error)
         end
     end
 
@@ -538,13 +540,13 @@ class Table<Type> is TableBlueprint<Type>
                 if column < size and column >= 0
                     return rowArray:RemoveAt(column)
                 else
-                    InvalidLocationError error
-                    alert(error)
+//                    InvalidLocationError error
+//                    alert(error)
                 end
             end
         else
-            InvalidLocationError error
-            alert(error)
+//            InvalidLocationError error
+//            alert(error)
         end
         return undefined
     end
