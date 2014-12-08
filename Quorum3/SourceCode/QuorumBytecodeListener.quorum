@@ -258,7 +258,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         currentActionOpcode:SetAction(currentAction)
         currentActionOpcode:SetClass(currentClass)
         currentActionOpcode:SetMethodWriter(methodWriter)
-
+        currentActionOpcode:SetIsConstructor(true)
         currentClassOpcode:SetConstructor(currentActionOpcode)
     end
 

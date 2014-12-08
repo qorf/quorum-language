@@ -13,6 +13,15 @@ class ActionOpcode is QuorumOpcode
     Action method = undefined
     Class clazz = undefined
     JavaBytecodeOpcodes opcodes
+    boolean isConstructor = false
+
+    action SetIsConstructor(boolean constructor)
+        isConstructor = constructor
+    end
+
+    action IsConstructor returns boolean
+        return isConstructor
+    end
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
@@ -41,6 +50,17 @@ class ActionOpcode is QuorumOpcode
 
     action Write
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+
+        //if this is a constructor, pretend this is just a block
+        //and ignore the rest.
+        if isConstructor
+            Iterator<QuorumOpcode> iterator = opcodeList:GetIterator()
+            repeat while iterator:HasNext()
+                QuorumOpcode opcode = iterator:Next()
+                opcode:Write()
+            end
+            return now
+        end
 
         if method:IsSystem()
             methodWriter:VisitCode()
