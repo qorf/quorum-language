@@ -113,7 +113,7 @@ class CompilerTestSuite
         listChecks:Test()
         output ""
         output hashChecks:GetName()
-        //hashChecks:Test()
+        hashChecks:Test()
         output ""
         output svChecks:GetName()
         svChecks:Test()
@@ -128,7 +128,7 @@ class CompilerTestSuite
         randomChecks:Test()
         output ""
         output tableChecks:GetName()
-        //tableChecks:Test()
+        tableChecks:Test()
         output ""
 
         text EOL = ""
@@ -176,7 +176,7 @@ class CompilerTestSuite
             end
         detect e
             text message = e:GetErrorMessage()
-            result:errorMessage = message
+            result:SetErrorMessage(message)
             result:stackTrace = e:GetStackTrace()
         end
         result:isBytecodeTest = true

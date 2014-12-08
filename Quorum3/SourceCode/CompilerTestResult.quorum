@@ -16,4 +16,12 @@ class CompilerTestResult
     public text errorMessage = ""
     public boolean isBytecodeTest = false
     public boolean isJavaScriptTest = false
+
+    /*
+        This action is a workaround for the rare bug with field values, which
+        should be gone in Quorum 3.
+    */
+    action SetErrorMessage(text mess)
+        errorMessage = mess
+    end
 end

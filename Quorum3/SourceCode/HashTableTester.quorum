@@ -89,7 +89,8 @@ class HashTableTester
         File main
         main:SetPath(path + "GetKeyIterator.quorum")
         files:Add(main)
-        results:Add(0, "age")
+        results:Add(0, "height")
+        results:Add(1, "age")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
