@@ -556,39 +556,39 @@ class TypeChecker
         results:Add(key, result)
 
         //integer text
-        op = GetOperation(opConstant:RETURN)
-        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
-            constants:INTEGER_PRIMITIVE_KEY, op, false)
-        result = GetWideningConvertResult()
-        type = result:result
-        type:SetToText()
-        returnMe = GetReturnOpcode(opcodes:GetIntegerToDouble(), opcodes:GetDoubleReturn(), type)
-        result:SetQuorumOpcode(returnMe)
-        points = result:points
-        points:SetPoints(points:LOSSLESS_CONVERT)
-        results:Add(key, result)
+//        op = GetOperation(opConstant:RETURN)
+//        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+//            constants:INTEGER_PRIMITIVE_KEY, op, false)
+//        result = GetWideningConvertResult()
+//        type = result:result
+//        type:SetToText()
+//        returnMe = GetReturnOpcode(opcodes:GetIntegerToDouble(), opcodes:GetDoubleReturn(), type)
+//        result:SetQuorumOpcode(returnMe)
+//        points = result:points
+//        points:SetPoints(points:LOSSLESS_CONVERT)
+//        results:Add(key, result)
 
         //text number
-        op = GetOperation(opConstant:RETURN)
-        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
-            constants:NUMBER_PRIMITIVE_KEY, op, false)
-        result = GetWideningConvertResult()
-        type = result:result
-        type:SetToText()
-        points = result:points
-        points:SetPoints(points:LOSSLESS_CONVERT)
-        results:Add(key, result)
+//        op = GetOperation(opConstant:RETURN)
+//        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+//            constants:NUMBER_PRIMITIVE_KEY, op, false)
+//        result = GetWideningConvertResult()
+//        type = result:result
+//        type:SetToText()
+//        points = result:points
+//        points:SetPoints(points:LOSSLESS_CONVERT)
+//        results:Add(key, result)
 
         //text boolean
-        op = GetOperation(opConstant:RETURN)
-        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
-            constants:BOOLEAN_PRIMITIVE_KEY, op, false)
-        result = GetWideningConvertResult()
-        type = result:result
-        type:SetToText()
-        points = result:points
-        points:SetPoints(points:LOSSLESS_CONVERT)
-        results:Add(key, result)
+//        op = GetOperation(opConstant:RETURN)
+//        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+//            constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+//        result = GetWideningConvertResult()
+//        type = result:result
+//        type:SetToText()
+//        points = result:points
+//        points:SetPoints(points:LOSSLESS_CONVERT)
+//        results:Add(key, result)
 
         ////////////////////////////////////////////////////////////////////////
         //INTEGER NUMBER

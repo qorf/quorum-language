@@ -1,5 +1,10 @@
 package Libraries.Containers.Blueprints
 
+use Libraries.Containers.Blueprints.Copyable
+use Libraries.Containers.Blueprints.Addable
+use Libraries.Containers.Blueprints.Iterative
+use Libraries.Containers.Blueprints.Container
+
 /*
 
 Inheriting from the StackBlueprint class provides a basic blueprint for a
@@ -17,7 +22,7 @@ class MyStack<Type> is StackBlueprint<Type>
     end
 end
 */
-class StackBlueprint <Type> is Addable<Type>, Container<Type>, Copyable<Type>, Iterative<Type>
+class StackBlueprint <Type> is Addable<Type>, Container, Copyable, Iterative<Type>
 
     /*
         This action gets the item at the top of the stack(the item will remain in the stack). 

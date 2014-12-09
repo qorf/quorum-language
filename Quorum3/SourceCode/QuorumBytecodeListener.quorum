@@ -687,25 +687,53 @@ class QuorumBytecodeListener is QuorumSourceListener
         if context:hasRightHandSide = false
             Type typeOriginal = context:leftHandSide
             if typeOriginal:IsPrimitive()
-                Type type = typeOriginal:Copy()
-                type:SetIsConstant(true)
-                QuorumConstant const
-                const:SetMethodWriter(methodWriter)
-                const:SetType(type)
-                if type:IsInteger()
-                    type:SetIntegerConstant(0)
-                    const:integerValue = 0
-                elseif type:IsBoolean()
-                    type:SetBooleanConstant(false)
-                    const:booleanValue = false
-                elseif type:IsNumber()
-                    type:SetNumberConstant(0.0)
-                    const:numberValue = 0.0
-                elseif type:IsText()
-                    type:SetTextConstant("")
-                    const:textValue = ""
+                //Note: We need to investigate/run a study on whether this decision
+                //matters or not. 
+
+                CompilerError error
+                error:SetLocation(context:GetLocation())
+                CompilerErrorType t
+                t:SetCurrentType(t:NO_RIGHT_HAND_SIDE_ON_NORMAL_ASSIGNMENT)
+                error:SetCompilerErrorType(t)
+                text message = "I noticed that the variable " + variable:GetName()
+                    + " has the declared type of " + left:GetStaticKey() 
+                    + ", but the right hand side of the statement was blank." 
+                if left:IsInteger()
+                    message = message + " For example, you might try integer " + variable:GetName()
+                        + " = 0"
+                elseif left:IsBoolean()
+                    message = message + " For example, you might try boolean " + variable:GetName()
+                        + " = true"
+                elseif left:IsNumber()
+                    message = message + " For example, you might try number " + variable:GetName()
+                        + " = 0.0"
+                elseif left:IsText()
+                    message = message + " For example, you might try text " + variable:GetName()
+                        + " = " + message:GetDoubleQuote() + message:GetDoubleQuote()
                 end
-                opcodeStack:Push(const)
+
+                error:SetErrorMessage(message)
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(error)
+//                Type type = typeOriginal:Copy()
+//                type:SetIsConstant(true)
+//                QuorumConstant const
+//                const:SetMethodWriter(methodWriter)
+//                const:SetType(type)
+//                if type:IsInteger()
+//                    type:SetIntegerConstant(0)
+//                    const:integerValue = 0
+//                elseif type:IsBoolean()
+//                    type:SetBooleanConstant(false)
+//                    const:booleanValue = false
+//                elseif type:IsNumber()
+//                    type:SetNumberConstant(0.0)
+//                    const:numberValue = 0.0
+//                elseif type:IsText()
+//                    type:SetTextConstant("")
+//                    const:textValue = ""
+//                end
+//                opcodeStack:Push(const)
             else 
                 SymbolTable table = me:GetSymbolTable()
                 Class clazz = table:GetClass(left:GetStaticKey())
@@ -714,7 +742,6 @@ class QuorumBytecodeListener is QuorumSourceListener
                 opcode:SetMethodWriter(methodWriter)
                 opcode:SetClass(clazz)
                 opcode:SetVariable(variable)
-                //opcode:SetBytecodeLocation(variable:GetBytecodeLocation())
 
                 if isInAction
                     currentBlockOpcode:Add(opcode)
@@ -1297,8 +1324,6 @@ class QuorumBytecodeListener is QuorumSourceListener
                         Type fieldType = field:GetType()
                         actionCall:SetCallerType(fieldType)
                         actionCall:SetType(fieldType)
-                        //tell the action call opcode this is a field and of whom
-                        //actionCall:SetBytecodeLocation(field:GetBytecodeLocation())
                         actionCall:SetIsField(true)
                         actionCall:SetField(field)
                         actionCall:SetFieldHolder(clazz)
@@ -1317,16 +1342,10 @@ class QuorumBytecodeListener is QuorumSourceListener
                     end
                 end
             end
-            
-            
-            
-
-            
         end
 
         Array<ActionCallOpcode> stack = actionCallStacks:GetValue(currentActionStack - 1)
         stack:Add(actionCall)
-        //opcodeStack:Push(actionCall)
     end
 
     action ExitReturnStatement(ReturnContext context) 

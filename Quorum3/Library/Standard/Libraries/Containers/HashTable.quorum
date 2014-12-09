@@ -33,7 +33,7 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
     //the maximum ratio of nodeCount to threshold before a rehash must be done.
     number maxResizeRatio = 0.75
     integer arraySize = 8//128
-    integer maxItemsBeforeResize
+    integer maxItemsBeforeResize = 0
     //the items stored in the hash table
     Array<HashNode<Key, Value>> array
     BitwiseOperations bitwise
