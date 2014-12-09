@@ -1,5 +1,10 @@
 package Libraries.Containers.Blueprints
 
+use Libraries.Containers.Blueprints.Copyable
+use Libraries.Containers.Blueprints.Addable
+use Libraries.Containers.Blueprints.Iterative
+use Libraries.Containers.Blueprints.Container
+
 /*
 
 Inheriting from the QueueBlueprint class provides a basic blueprint for a
@@ -17,7 +22,7 @@ class MyQueue<Type> is QueueBlueprint<Type>
     end
 end
 */
-class QueueBlueprint<Type>  is Addable<Type>, Container<Type>, Copyable<Type>, Iterative<Type>
+class QueueBlueprint<Type>  is Addable<Type>, Container, Copyable, Iterative<Type>
     /*
         This action adds an item to the end of the queue.
 

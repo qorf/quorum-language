@@ -682,6 +682,19 @@ class QuorumBytecodeListener is QuorumSourceListener
             variable = currentBlock:GetVariable(name)
         end
 
+        if variable = undefined
+            CompilerError error
+            error:SetLocation(context:GetLocation())
+            CompilerErrorType t
+            t:SetCurrentType(t:MISSING_VARIABLE)
+            error:SetCompilerErrorType(t)
+            text message = "I could not locate the variable " + name
+            error:SetErrorMessage(message)
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+
         Type left = variable:GetType()
         QuorumOpcode right = undefined
         if context:hasRightHandSide = false
@@ -1143,10 +1156,80 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action EnterParentVariableFunctionCall(ParentVariableFunctionCallContext context)
-        a =5
+        Array<ActionCallOpcode> stack
+        actionCallStacks:Add(me:currentActionStack, stack)
+        currentActionStack = currentActionStack + 1
     end
+
     action ExitParentVariableFunctionCall(ParentVariableFunctionCallContext context)
-        a =5
+        boolean hasMe = context:hasMe
+        text variableName = context:variableName
+        QualifiedName parentName = context:parentName
+        
+        Variable variable = undefined
+        TypeChecker checker = GetTypeChecker()
+        CompilerErrorManager manager = GetCompilerErrorManager()
+        SymbolTable table = GetSymbolTable()
+
+        if not (variableName = undefined)
+            if hasMe or not isInAction
+                variable = currentClass:GetVariable(variableName)
+            else 
+                variable = currentBlock:GetVariable(variableName)
+            end
+
+            if variable = undefined
+                CompilerError error
+                error:SetLocation(context:GetLocation())
+                CompilerErrorType t
+                t:SetCurrentType(t:MISSING_VARIABLE)
+                error:SetCompilerErrorType(t)
+                text message = "I could not locate the variable " + variableName + "."
+                error:SetErrorMessage(message)
+                manager:Add(error)
+                return now
+            end
+        end
+        
+        Type resolvedType
+        resolvedType:SetToObject(parentName:GetStaticKey())
+        currentClass:ResolveType(context:GetLocation(), resolvedType, GetSymbolTable(), GetCompilerErrorManager())
+
+        Type variableType = variable:GetType()
+        key = variableType:GetStaticKey()
+
+        //this can't be null, because resolution happened already. If it is
+        //it's a compiler bug, not a user error.
+        Class fieldClass = table:GetClass(key)
+        hasParent = fieldClass:HasParentClass(resolvedType:GetStaticKey())
+        if not hasParent
+            CompilerError error
+            error:SetLocation(context:GetLocation())
+            CompilerErrorType t
+            t:SetCurrentType(t:MISSING_PARENT)
+            error:SetCompilerErrorType(t)
+            text message = "I could not locate a parent class named " + resolvedType:GetStaticKey() + "."
+            error:SetErrorMessage(message)
+            manager:Add(error)
+            return now
+        end
+        
+        Class parentClass = fieldClass:GetParentClass(resolvedType:GetStaticKey())
+        
+        //now check to see if the variable is a known class variable in the parent
+        //
+        Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
+        currentActionStack = currentActionStack - 1
+
+        ChainedActionCallOpcode ops
+        ops:SetLocation(context:GetLocation())
+        Iterator<ActionCallOpcode> it = stack:GetIterator()
+        repeat while it:HasNext()
+            ActionCallOpcode op = it:Next()
+            ops:Add(op)
+        end
+
+        opcodeStack:Push(ops)
     end
 
     action ExitActionExpressionList(ActionExpressionListContext context) 

@@ -235,9 +235,6 @@ class QuorumSourceListener
     action EnterActionCall(ActionCallContext ctx) end
     action ExitActionCall(ActionCallContext ctx) end
 
-    action EnterParentCall(ParentCallContext ctx) end
-    action ExitParentCall(ParentCallContext ctx) end
-
     /*
         This action is called only under the condition that we are receiving
         error message events from the underlying parser technology (e.g., ANTLR).

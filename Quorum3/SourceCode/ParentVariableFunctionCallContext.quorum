@@ -1,4 +1,10 @@
 package Libraries.Language.Compile.Context
 
+use Libraries.Language.Compile.QualifiedName
+
 class ParentVariableFunctionCallContext is ParseContext
+    public boolean hasMe = false
+    public text variableName = ""
+    public QualifiedName parentName = undefined
+    public text actionName = ""
 end
