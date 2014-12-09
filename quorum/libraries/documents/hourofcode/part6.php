@@ -69,7 +69,7 @@
     });
 </script>
 
-<div id="overlay"><div id="overlay-content"><h3 class='overlay-text'>Congratulations, you've completed this exercise!</h3><p class='overlay-text'>Would you like to...</p><a href="http://code.org/api/hour/finish" class="overlay-option" target="_blank">Complete my Hour of Code!</a><a href='part7.php' class='overlay-option'>See the conclusion</a><button id='stayOnPage' class='overlay-option'>Stay on this page</button><p class='overlay-text'>You can always navigate to any page at a later time.</p></div></div>
+<div id="modal" aria-hidden="true" aria-labelledby="modalTitle" aria-describedby="modalDescription" role="dialog"><div id="modalDescription" class="screenReaderContent">Beginning of dialog window. It congratulates you on completing this exercise. Escape will cancel and close the window.</div><div id="overlay-content"><h3 class='overlay-text' id="modalTitle">Congratulations, you've completed this exercise!</h3><p class='overlay-text'>Would you like to...</p><a href='part7.php' class='overlay-option'>Move on to Part 7</a><button id="modalCloseButton" class="modalCloseButton overlay-option" href="javascript:void(0)" title="Close dialog window">Stay on this page</button><p class='overlay-text'>You can always navigate to any page at a later time.</p></div></div>
 
 <?php include("slideshow.php"); ?>
 
