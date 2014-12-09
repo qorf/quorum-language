@@ -186,19 +186,6 @@ public class QuorumBaseListener implements QuorumListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterParent_call(@NotNull QuorumParser.Parent_callContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitParent_call(@NotNull QuorumParser.Parent_callContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterMe(@NotNull QuorumParser.MeContext ctx) { }
 	/**
 	 * {@inheritDoc}
