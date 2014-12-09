@@ -7,6 +7,4 @@
             <h2 id="output-label" class="hidden">Output</h2>
             <pre id="IDE-output" class="outputArea  small-IDE-output" role="log" aria-labeledby="output-label" aria-live="polite"></pre>
         </div>
-           
-        
 </main>
