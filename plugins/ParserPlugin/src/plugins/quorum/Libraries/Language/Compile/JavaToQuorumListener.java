@@ -1397,6 +1397,9 @@ public class JavaToQuorumListener implements QuorumListener {
         
         if(ctx.fieldName != null) {
             context.variableName = ctx.fieldName.getText();
+            if(context.variableName.isEmpty()) {
+                context.variableName = null;
+            }
         }
         
         QualifiedName name = Convert(ctx.parent);
@@ -1415,6 +1418,9 @@ public class JavaToQuorumListener implements QuorumListener {
         
         if(ctx.fieldName != null) {
             context.variableName = ctx.fieldName.getText();
+            if(context.variableName.isEmpty()) {
+                context.variableName = null;
+            }
         }
         
         QualifiedName name = Convert(ctx.parent);
