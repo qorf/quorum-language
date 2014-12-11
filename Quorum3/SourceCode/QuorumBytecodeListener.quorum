@@ -46,6 +46,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     Stack<QuorumOpcode> opcodeStack
     Stack<ConditionalOpcode> ifStack
     Stack<LoopOpcode> loopStack
+    Stack<ParentVariableFunctionCallContext> parentCallStack
     File buildFile = undefined
     File buildInterfaceFile = undefined
     BlockOpcode currentBlockOpcode = undefined
@@ -1156,12 +1157,18 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action EnterParentVariableFunctionCall(ParentVariableFunctionCallContext context)
+        isNextVariableReferenceMe = context:hasMe
         Array<ActionCallOpcode> stack
         actionCallStacks:Add(me:currentActionStack, stack)
         currentActionStack = currentActionStack + 1
+
+        parentCallStack:Push(context)
     end
 
-    action ExitParentVariableFunctionCall(ParentVariableFunctionCallContext context)
+    private action AdaptToParentActionCall(ParentVariableFunctionCallContext context, ActionCallOpcode actionCall) returns ActionCallOpcode
+        //actionCall:SetMethodWriter(methodWriter)
+        actionCall:SetIsParentCall(true)
+
         boolean hasMe = context:hasMe
         text variableName = context:variableName
         QualifiedName parentName = context:parentName
@@ -1187,7 +1194,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 text message = "I could not locate the variable " + variableName + "."
                 error:SetErrorMessage(message)
                 manager:Add(error)
-                return now
+                return undefined
             end
         end
         
@@ -1198,9 +1205,13 @@ class QuorumBytecodeListener is QuorumSourceListener
         Type variableType = variable:GetType()
         key = variableType:GetStaticKey()
 
+        actionCall:SetVariableToMakeParentCallOn(variable)
+
+
         //this can't be null, because resolution happened already. If it is
         //it's a compiler bug, not a user error.
         Class fieldClass = table:GetClass(key)
+        
         hasParent = fieldClass:HasParentClass(resolvedType:GetStaticKey())
         if not hasParent
             CompilerError error
@@ -1211,13 +1222,21 @@ class QuorumBytecodeListener is QuorumSourceListener
             text message = "I could not locate a parent class named " + resolvedType:GetStaticKey() + "."
             error:SetErrorMessage(message)
             manager:Add(error)
-            return now
+            return undefined
         end
-        
+        actionCall:SetClassToMakeParentCallOn(fieldClass)
         Class parentClass = fieldClass:GetParentClass(resolvedType:GetStaticKey())
-        
-        //now check to see if the variable is a known class variable in the parent
-        //
+        actionCall:SetParentToCallOn(parentClass)
+        Type type
+        type:SetToObject(parentClass:GetStaticKey())
+        actionCall:SetType(type)
+        actionCall:SetCallingClass(currentClass)
+
+        return actionCall
+    end
+
+
+    action ExitParentVariableFunctionCall(ParentVariableFunctionCallContext context)
         Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
         currentActionStack = currentActionStack - 1
 
@@ -1261,6 +1280,12 @@ class QuorumBytecodeListener is QuorumSourceListener
         ActionCallOpcode actionCall
         actionCall:SetLocation(context:GetLocation())
         actionCall:SetMethodWriter(methodWriter)
+
+        if not parentCallStack:IsEmpty()
+            ParentVariableFunctionCallContext parentContext = parentCallStack:Pop()
+            AdaptToParentActionCall(parentContext, actionCall)
+        end
+
         SymbolTable table = GetSymbolTable()
 
         if context:isActionCall //push the "this" pointer
@@ -1354,6 +1379,10 @@ class QuorumBytecodeListener is QuorumSourceListener
             if stack:IsEmpty() //This is the first call, so push on the me pointer
                 if isNextVariableReferenceMe or not isInAction
                     variable = currentClass:GetVariable(name)
+                elseif actionCall:IsParentCall()
+                    Class parentClass = actionCall:GetParentToCallOn()
+                    variable = parentClass:GetVariable(name)
+                    isNextVariableReferenceMe = false
                 else 
                     variable = currentBlock:GetVariable(name)
                     isNextVariableReferenceMe = false
