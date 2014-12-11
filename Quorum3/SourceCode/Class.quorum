@@ -138,6 +138,12 @@ class Class is Symbol
         end
     end
 
+    action ConvertStaticKeyToParentActionName returns text
+        key = GetStaticKey()
+        result = "$parent$" + key:Replace(".", "$")
+        return result
+    end
+
     /*
         This action looks at all actions listed in this class's declared
         action table, in addition to those actions declared in parents,

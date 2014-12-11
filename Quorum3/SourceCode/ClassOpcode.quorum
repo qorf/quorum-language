@@ -234,13 +234,53 @@ class ClassOpcode is QuorumOpcode
             WriteParentActionBytecode(act)
         end
 
+        WriteParentGetActions()
+
         classWriter:VisitEnd()
         interfaceWriter:VisitEnd()
         WriteBytecodeToDisk()
     end
 
-    private action WriteParentActionBytecode(Action act)
+    private action WriteParentGetActions
+        Iterator<Class> parents = clazz:GetParentClasses()
+        text classBytecodeName = converter:ConvertStaticKeyToBytecodePath(staticKey)
 
+        //initialize all of the parent objects as fields
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            text parentName = p:ConvertStaticKeyToParentFieldName()
+            text converted = p:ConvertStaticKeyToBytecodePath()
+            text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
+
+            text parentActionName = p:ConvertStaticKeyToParentActionName()
+            text null = undefined
+            JavaBytecodeMethodWriter parentWriter = classWriter:VisitMethod(opcodes:GetPublic(), 
+                parentActionName, "()" + p:ConvertStaticKeyToBytecodePathTypeName(), null, undefined)
+
+            parentWriter:VisitCode()
+            
+            //load the ME pointer
+            parentWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+            
+            //load the parent variable
+            parentWriter:VisitField(opcodes:GetField(), 
+                clazz:ConvertStaticKeyToBytecodePath(),
+                p:ConvertStaticKeyToParentFieldName(),
+                p:ConvertStaticKeyToBytecodePathTypeName())
+            //return the parent variable
+            parentWriter:VisitInstruction(opcodes:GetObjectReturn())
+
+            parentWriter:VisitMaxSize(0,0)
+            parentWriter:VisitEnd()
+
+            JavaBytecodeMethodWriter parentWriterInterface = interfaceWriter:VisitMethod(opcodes:GetPublic()+ opcodes:GetAbstract(), 
+                parentActionName, "()" + p:ConvertStaticKeyToBytecodePathTypeName(), null, undefined)
+                parentWriterInterface:VisitEnd()
+        end
+    end
+
+    private action WriteParentActionBytecode(Action act)
         text null = undefined
         text actionName = act:GetName()
         text params = act:ConvertActionToBytecodeParameterInterfaceSignature()

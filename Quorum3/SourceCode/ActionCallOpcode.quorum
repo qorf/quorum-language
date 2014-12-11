@@ -263,6 +263,7 @@ class ActionCallOpcode is QuorumOpcode
 
                         getterName = callingClass:ConvertToActionNameFromField(variableToMakeParentCallOn, true)
                         methodName = type:ConvertToSignatureFromFieldInterface(true)
+                        methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
                         methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
                             path, getterName, methodName, true)
                     end
@@ -272,13 +273,16 @@ class ActionCallOpcode is QuorumOpcode
 
                 text owner = ""
                 if variableToMakeParentCallOn not= undefined
-                    owner = classToMakeParentCallOn:ConvertStaticKeyToBytecodePath()
+                    owner = classToMakeParentCallOn:ConvertStaticKeyToBytecodeInterfacePath()
                 else
                     owner = callingClass:ConvertStaticKeyToBytecodePath()
                 end
-                text name = parentToCallOn:ConvertStaticKeyToParentFieldName()
-                text description = parentToCallOn:ConvertStaticKeyToBytecodePathTypeName()
-                methodWriter:VisitField(opcodes:GetField(), owner, name, description)
+                text name = parentToCallOn:ConvertStaticKeyToParentActionName()
+                text description = "()" + parentToCallOn:ConvertStaticKeyToBytecodePathTypeName()
+
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+                    owner, name, description, true)
+                //methodWriter:VisitField(opcodes:GetField(), owner, name, description)
 
 
                 
