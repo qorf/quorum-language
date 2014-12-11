@@ -29,6 +29,7 @@ class InheritanceTester
         MultipleInheritanceCallingAmbiguousBlueprints()
         OutputParentValue()
         OutputParentValueField()
+        OutputParentValueClass()
         ParentActionCall()
         ParentFullyQualified()
         SimpleCast()
@@ -263,6 +264,24 @@ class InheritanceTester
         File dependent1
         File dependent2
         main:SetPath(path + "OutputParentValueField.quorum")
+        dependent1:SetPath(path + "Test1.quorum")
+        dependent2:SetPath(path + "Test2.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "6")
+        results:Add(1, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action OutputParentValueClass
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        main:SetPath(path + "OutputParentValueClass.quorum")
         dependent1:SetPath(path + "Test1.quorum")
         dependent2:SetPath(path + "Test2.quorum")
         files:Add(main)

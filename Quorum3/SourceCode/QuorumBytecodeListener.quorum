@@ -1178,7 +1178,13 @@ class QuorumBytecodeListener is QuorumSourceListener
         CompilerErrorManager manager = GetCompilerErrorManager()
         SymbolTable table = GetSymbolTable()
 
-        if not (variableName = undefined)
+        boolean skipFieldVariable = variableName = undefined
+
+        if not skipFieldVariable
+            skipFieldVariable = variableName:IsEmpty()
+        end
+
+        if not skipFieldVariable //this parent call has a field variable
             if hasMe or not isInAction
                 variable = currentClass:GetVariable(variableName)
             else 
@@ -1196,43 +1202,70 @@ class QuorumBytecodeListener is QuorumSourceListener
                 manager:Add(error)
                 return undefined
             end
+
+            Type resolvedType
+            resolvedType:SetToObject(parentName:GetStaticKey())
+            currentClass:ResolveType(context:GetLocation(), resolvedType, GetSymbolTable(), GetCompilerErrorManager())
+
+            Type variableType = variable:GetType()
+            key = variableType:GetStaticKey()
+
+            actionCall:SetVariableToMakeParentCallOn(variable)
+
+
+            //this can't be null, because resolution happened already. If it is
+            //it's a compiler bug, not a user error.
+            Class fieldClass = table:GetClass(key)
+
+            hasParent = fieldClass:HasParentClass(resolvedType:GetStaticKey())
+            if not hasParent
+                CompilerError error
+                error:SetLocation(context:GetLocation())
+                CompilerErrorType t
+                t:SetCurrentType(t:MISSING_PARENT)
+                error:SetCompilerErrorType(t)
+                text message = "I could not locate a parent class named " + resolvedType:GetStaticKey() + "."
+                error:SetErrorMessage(message)
+                manager:Add(error)
+                return undefined
+            end
+            actionCall:SetClassToMakeParentCallOn(fieldClass)
+            Class parentClass = fieldClass:GetParentClass(resolvedType:GetStaticKey())
+            actionCall:SetParentToCallOn(parentClass)
+            Type type
+            type:SetToObject(parentClass:GetStaticKey())
+            actionCall:SetType(type)
+            actionCall:SetCallingClass(currentClass)
+
+            return actionCall
+        else //this parent call does not have a field variable
+
+            
+
+            Type resolvedType
+            resolvedType:SetToObject(parentName:GetStaticKey())
+            currentClass:ResolveType(context:GetLocation(), resolvedType, GetSymbolTable(), GetCompilerErrorManager())
+
+            Class parentClass = currentClass:GetParentClass(resolvedType:GetStaticKey())
+            hasParent = currentClass:HasParentClass(resolvedType:GetStaticKey())
+            if not hasParent
+                CompilerError error
+                error:SetLocation(context:GetLocation())
+                CompilerErrorType t
+                t:SetCurrentType(t:MISSING_PARENT)
+                error:SetCompilerErrorType(t)
+                text message = "I could not locate a parent class named " + resolvedType:GetStaticKey() + "."
+                error:SetErrorMessage(message)
+                manager:Add(error)
+                return undefined
+            end
+
+            actionCall:SetParentToCallOn(parentClass)
+            return actionCall
+
         end
         
-        Type resolvedType
-        resolvedType:SetToObject(parentName:GetStaticKey())
-        currentClass:ResolveType(context:GetLocation(), resolvedType, GetSymbolTable(), GetCompilerErrorManager())
-
-        Type variableType = variable:GetType()
-        key = variableType:GetStaticKey()
-
-        actionCall:SetVariableToMakeParentCallOn(variable)
-
-
-        //this can't be null, because resolution happened already. If it is
-        //it's a compiler bug, not a user error.
-        Class fieldClass = table:GetClass(key)
         
-        hasParent = fieldClass:HasParentClass(resolvedType:GetStaticKey())
-        if not hasParent
-            CompilerError error
-            error:SetLocation(context:GetLocation())
-            CompilerErrorType t
-            t:SetCurrentType(t:MISSING_PARENT)
-            error:SetCompilerErrorType(t)
-            text message = "I could not locate a parent class named " + resolvedType:GetStaticKey() + "."
-            error:SetErrorMessage(message)
-            manager:Add(error)
-            return undefined
-        end
-        actionCall:SetClassToMakeParentCallOn(fieldClass)
-        Class parentClass = fieldClass:GetParentClass(resolvedType:GetStaticKey())
-        actionCall:SetParentToCallOn(parentClass)
-        Type type
-        type:SetToObject(parentClass:GetStaticKey())
-        actionCall:SetType(type)
-        actionCall:SetCallingClass(currentClass)
-
-        return actionCall
     end
 
 
@@ -1381,7 +1414,13 @@ class QuorumBytecodeListener is QuorumSourceListener
                     variable = currentClass:GetVariable(name)
                 elseif actionCall:IsParentCall()
                     Class parentClass = actionCall:GetParentToCallOn()
-                    variable = parentClass:GetVariable(name)
+
+                    if parentClass not= undefined //it's not in the current class
+                        variable = parentClass:GetVariable(name)
+                    else
+                        variable = currentClass:GetVariable(name)
+                    end
+
                     isNextVariableReferenceMe = false
                 else 
                     variable = currentBlock:GetVariable(name)
