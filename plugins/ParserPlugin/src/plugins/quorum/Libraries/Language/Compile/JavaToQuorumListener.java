@@ -1390,6 +1390,17 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterParentVariableFunctionCall(QuorumParser.ParentVariableFunctionCallContext ctx) {
         ParentVariableFunctionCallContext context = new ParentVariableFunctionCallContext();
         setLocation(ctx, context);
+        
+        if(ctx.ME() != null) {
+            context.hasMe = true;
+        }
+        
+        if(ctx.fieldName != null) {
+            context.variableName = ctx.fieldName.getText();
+        }
+        
+        QualifiedName name = Convert(ctx.parent);
+        context.parentName = name;
         listener.EnterParentVariableFunctionCall(context);
     }
 
@@ -1408,10 +1419,6 @@ public class JavaToQuorumListener implements QuorumListener {
         
         QualifiedName name = Convert(ctx.parent);
         context.parentName = name;
-        
-        if(ctx.var != null) {
-            context.actionName = ctx.var.getText();
-        }
         
         listener.ExitParentVariableFunctionCall(context);
     }

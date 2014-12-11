@@ -196,7 +196,7 @@ expression
     |   ME                                                                                      #Me
     |   INPUT LEFT_PAREN expression RIGHT_PAREN                                                 #Input
     |   (ME COLON)? action_call (COLON (action_call))*                                          #VariableFunctionCall
-    |   ((ME COLON)? (fieldName=ID COLON))? PARENT COLON parent=qualified_name COLON var=ID (LEFT_PAREN function_expression_list RIGHT_PAREN)? #ParentVariableFunctionCall
+    |   ((ME COLON)? (fieldName=ID COLON))? PARENT COLON parent=qualified_name COLON action_call (COLON (action_call))* #ParentVariableFunctionCall
     |   MINUS expression                                                                        #Minus
     |   NOT expression                                                                          #Not
     |   CAST LEFT_PAREN type=assignment_declaration COMMA expression RIGHT_PAREN                #Cast
