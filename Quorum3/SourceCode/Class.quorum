@@ -34,6 +34,7 @@ class Class is Symbol
     boolean hasSystemAction = false
     constant text LIBRARIES_LANGUAGE_OBJECT = "Libraries.Language.Object"
     boolean isMainClass = false
+    Array<Array<Class>> resolvedParentLevels
 
     on create
         QualifiedName object
@@ -228,10 +229,10 @@ class Class is Symbol
                          //in the base class.
                          Class dad = actionCopy:GetParentClass()
                          CompilerError error
-                         error:SetErrorMessage("The action " + key + " is defined "
+                         error:SetErrorMessage("The action " + key + " is defined"
                             +   " in the parent classes " + mom:GetStaticKey() + " and " 
-                            + dad:GetStaticKey() + ". I cannot determine which action should "
-                            + " be called and therefore the action must be overriden in the "
+                            + dad:GetStaticKey() + ". I cannot determine which action should"
+                            + " be called and therefore the action must be overriden in the"
                             + " base class " + me:GetStaticKey())
                          error:SetLocation(act)
                          errors:Add(error)
@@ -361,6 +362,7 @@ class Class is Symbol
 
         //next resolve all parents
         ResolveParents(table, errors)
+        ResolveParentLevels(table)
 
         if GetName() = "HashTableIterator"
             a = 5
@@ -873,6 +875,61 @@ class Class is Symbol
         return undefined
     end
 
+    action ResolveParentLevels(SymbolTable table)
+        HashTable<text, Class> tempParents
+        Array<Array<Class>> leveledParents
+        Array<Class> levelOneParents
+        leveledParents:Add(levelOneParents)
+
+        Iterator<QualifiedName> names = GetUnresolvedParents()
+        repeat while names:HasNext()
+            QualifiedName name = names:Next()
+            
+            Class myParent = table:GetClass(name:GetStaticKey())
+
+            if myParent not= undefined //if it is defined, add it as a valid parent
+                if not tempParents:HasKey(myParent:GetStaticKey())
+                    levelOneParents:Add(myParent)
+                    tempParents:Add(myParent:GetStaticKey(), myParent)
+                end
+            end //if it is not, ignore it, as an error has already been issued
+        end
+
+        Array<Class> currentLevelParents = levelOneParents
+        Array<Class> nextLevelParents
+        Iterator<Class> nextLevel = currentLevelParents:GetIterator()
+        repeat while nextLevel:HasNext()
+            Class next = nextLevel:Next()
+
+            Iterator<QualifiedName> nextNames = next:GetUnresolvedParents()
+            repeat while nextNames:HasNext()
+                QualifiedName name = nextNames:Next()
+
+                Class myParent = table:GetClass(name:GetStaticKey())
+
+                if myParent not= undefined
+                    if not tempParents:HasKey(myParent:GetStaticKey())
+                        nextLevelParents:Add(myParent)
+                        tempParents:Add(myParent:GetStaticKey(), myParent)
+                    end
+                end //if it is not, ignore it, as an error has already been issued
+            end
+
+            //check if this is the last parent in this level.
+            //if it is start going over the next level, which might be empty.
+            if not nextLevel:HasNext()
+                if not nextLevelParents:IsEmpty()
+                    leveledParents:Add(nextLevelParents)
+                end
+                currentLevelParents = nextLevelParents
+                Array<Class> classes
+                nextLevelParents = classes
+                nextLevel = currentLevelParents:GetIterator()
+            end
+        end
+
+        resolvedParentLevels = leveledParents
+    end
 
     action ResolveParents(SymbolTable table, CompilerErrorManager errors)
         isResolvingParents = true
