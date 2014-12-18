@@ -1258,7 +1258,7 @@ public class JavaToQuorumListener implements QuorumListener {
             context.leftHandSide = ctx.assignment_declaration().type;
         }
         
-        if(ctx.rhs == null) {
+        if(ctx.EQUALITY() == null) {
             context.hasRightHandSide = false;
         } else {
             context.hasRightHandSide = true;
