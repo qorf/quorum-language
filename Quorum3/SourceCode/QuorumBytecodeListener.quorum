@@ -1066,10 +1066,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         call:name = context:name
         call:checker = GetTypeChecker()
         call:table = table
-        
-        if currentClass:GetStaticKey() = "Main" and context:name = "AddToEnd"
-            a = 5
-        end
 
         ActionCallResolution resolved = ResolveActionCall(testMe, isObjectCall, fieldClass, variable, call, actionCall)
         resolved:location = context:GetLocation()
@@ -1135,13 +1131,26 @@ class QuorumBytecodeListener is QuorumSourceListener
 
             //check to see if the return type needs to be auto-boxed back
             //into another type.
+
+//            if currentClass:GetStaticKey() = "Main"
+//                a = 5
+//            end
             
             Type returnType = act:GetReturnType()
             if not actionCall:GetPushOnMe() //if it's a me call, it doesn't matter
                 if returnType:IsMappedToGeneric() //it is mapped to a generic, so find the variable it is mapped to
                     Type t = resolved:typeToMakeCallOn
                     Class c = resolved:classToMakeCallOn
-                    integer index = c:GetIndexOfGeneric(returnType:GetMappedGeneric())
+
+                    integer index = -1
+                    Class parentClass = act:GetParentClass()
+                    if parentClass:GetStaticKey() = c:GetStaticKey()
+                        index = c:GetIndexOfGeneric(returnType:GetMappedGeneric())
+                    else //this action must be defined in a parent. Map its generics separately
+                        index = parentClass:GetIndexOfGeneric(returnType:GetMappedGeneric())
+                        index = c:MapParentGenericToMe(parentClass:GetStaticKey(), index)
+                    end
+
                     if index not= -1
                         Type left = t:GetGeneric(index)
                         TypeChecker checker = GetTypeChecker()
@@ -1152,10 +1161,6 @@ class QuorumBytecodeListener is QuorumSourceListener
                         Type right
                         text boxedKey = left:ConvertToNonPrimitiveStaticKey()
                         right:SetToObject(boxedKey)
-
-                        if currentClass:GetStaticKey() = "Main" and act:GetName() = "Get"
-                            a = 5
-                        end
 
                         //since we know this is defined as a generic,
                         //it is equivalent to a cast

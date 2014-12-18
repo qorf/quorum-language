@@ -400,6 +400,31 @@ class Class is Symbol
         return GetNumberGenerics() not= 0
     end
 
+    action MapParentGenericToMe(text parentKey, integer index) returns integer
+        if HasParentClass(parentKey)
+            Class parentClass = GetParentClass(parentKey)
+            integer size = GetNumberGenerics()
+            if index >=0 and index < size
+                text gen = GetGeneric(0)
+                Array<Type> gens = GetParentGenerics(parentKey)
+                //see if one of them has this name
+                if gens = undefined //couldn't find a mapping for this parent
+                    return -1
+                end
+                i = 0
+                repeat gens:GetSize() times
+                    Type type = gens:Get(i)
+                    if type:GetMappedGeneric() = gen
+                        return i
+                    end
+                    i = i + 1
+                end
+            end
+        end
+
+        return -1
+    end
+
     private action ResolveParentGenerics(SymbolTable table, CompilerErrorManager errors)
         HashTable<text, Array<Type>> newParentGenerics
         Iterator<text> keys = parentGenerics:GetKeyIterator()
@@ -618,6 +643,10 @@ class Class is Symbol
             text key = type:GetStaticKey()
             Class clazz = GetClass(key, table, errors)
             if clazz not= undefined
+                has = HasGeneric(key)
+                if has
+                    type:MapToGeneric(key)
+                end
                 type:SetToObject(clazz:GetStaticKey())
                 if type:HasGenerics()
                     //check to see if the number of generics matches with the class
