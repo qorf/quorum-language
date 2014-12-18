@@ -674,6 +674,80 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
     end
 
+    action ExitParentAssignment(ParentAssignmentContext context) 
+        text variableName = context:name
+        QualifiedName parentName = context:parentName
+
+        SymbolTable table = GetSymbolTable()
+        CompilerErrorManager manager = GetCompilerErrorManager()
+        TypeChecker checker = GetTypeChecker()
+
+        Type resolvedType
+        resolvedType:SetToObject(parentName:GetStaticKey())
+        currentClass:ResolveType(context:GetLocation(), resolvedType, table, manager)
+        
+        hasParent = currentClass:HasParentClass(resolvedType:GetStaticKey())
+        if not hasParent
+            CompilerError error
+            error:SetLocation(context:GetLocation())
+            CompilerErrorType t
+            t:SetCurrentType(t:MISSING_PARENT)
+            error:SetCompilerErrorType(t)
+            text message = "I could not locate a parent class named " + resolvedType:GetStaticKey() + "."
+            error:SetErrorMessage(message)
+            manager:Add(error)
+            return now
+        end
+        Class parentClass = currentClass:GetParentClass(resolvedType:GetStaticKey())
+        Variable var = parentClass:GetVariable(variableName)
+        if var = undefined
+            CompilerError error
+            error:SetLocation(context:GetLocation())
+            CompilerErrorType t
+            t:SetCurrentType(t:MISSING_VARIABLE)
+            error:SetCompilerErrorType(t)
+            text message = "I could not locate a variable named " + variableName + " in class " + parentClass:GetStaticKey()
+            error:SetErrorMessage(message)
+            manager:Add(error)
+            return now
+        end
+
+        Type left = var:GetType()
+        
+        right = opcodeStack:Pop()
+        Operation assign
+        assign:SetOperation(assign:EQUALS)
+
+        if right = undefined //the system should have already output an error, so return
+            return now
+        end
+
+        TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+
+        if error not= undefined
+            manager:Add(error)
+            return now
+        end
+
+        Type value = result:result
+        QuorumOpcode qop = result:GetQuorumOpcode()
+        AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+        assignment:SetLocation(context:GetLocation())
+        assignment:SetClass(currentClass)
+        assignment:SetRightHandSide(right)
+        assignment:SetType(value)
+        assignment:SetMethodWriter(methodWriter)
+        assignment:SetVariable(var)
+        assignment:SetParentWithField(parentClass)
+
+        if isInAction
+            currentBlockOpcode:Add(assignment)
+        else //add the opcode to the field calculator
+            currentClassOpcode:AddField(assignment)
+        end
+    end
+
     action ExitNormalAssignment(NormalAssignmentContext context) 
         text name = context:name
         Variable variable = undefined

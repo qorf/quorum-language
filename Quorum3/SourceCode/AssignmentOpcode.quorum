@@ -17,6 +17,15 @@ class AssignmentOpcode is QuorumOpcode
     boolean isObjectField = false
     Variable field = undefined
     Class fieldHolder = undefined
+    Class parentWithField = undefined
+
+    action SetParentWithField(Class myParent)
+        parentWithField = myParent
+    end
+
+    action GetParentWithField returns Class
+        return parentWithField
+    end
 
     action GetFieldHolder returns Class
         return fieldHolder
@@ -90,6 +99,35 @@ class AssignmentOpcode is QuorumOpcode
     action Write 
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         VisitLineNumber()
+
+        if parentWithField not= undefined
+            //push on me
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+
+            //push on the parent
+            text owner = clazz:ConvertStaticKeyToBytecodePath()
+            text name = parentWithField:ConvertStaticKeyToParentFieldName()
+            text description = parentWithField:ConvertStaticKeyToBytecodePathTypeName()
+            methodWriter:VisitField(opcodes:GetField(), owner, name, description)
+
+            //write the right hand side
+            rightHandSide:Write()
+
+            //push any opcodes listed for assignment
+            if opcode2 not= -1
+                methodWriter:VisitInstruction(opcode2)
+            end
+            
+            //do final assignment. This is guaranteed to be a field
+            Type type = variable:GetType()
+            path = parentWithField:ConvertStaticKeyToBytecodeInterfacePath()
+            setterName = parentWithField:ConvertToActionNameFromField(variable, false)
+            methodName = type:ConvertToSignatureFromFieldInterface(false)
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+                path, setterName, methodName, true)
+            return now
+        end
+
         if not isObjectField
             if variable not= undefined
                 if variable:IsField()
