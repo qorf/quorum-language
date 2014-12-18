@@ -184,16 +184,25 @@ class ActionCallOpcode is QuorumOpcode
         isActionCall = act
     end
 
+    action LoadHiddenMe
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+        //owner, name, description
+        text owner = callingClass:ConvertStaticKeyToBytecodePath()
+        text name = "$hidden$"
+        text description = callingClass:ConvertStaticKeyToBytecodePathTypeNameInterface()
+        methodWriter:VisitField(opcodes:GetField(), owner, name, description)
+    end
+
     action Write //TODO: make this work for action calls and fields
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         VisitLineNumber()
 
         if isActionCall
             //if there's a variable, load it.
-            //this isn't right, but load "THIS" onto the stack for testing
             if pushOnMe
-                methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
                 //push on the variable $hidden
+                LoadHiddenMe()
             end
 
             if isSoloObjectCall

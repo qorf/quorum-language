@@ -1,0 +1,19 @@
+class Main
+    text resultA = ""
+    text resultB = ""
+    text resultC = ""
+
+    action Main
+        A a
+        B b
+        C c
+
+        resultA = a:MethodOfA()
+        resultB = b:MethodOfA()
+        resultC = c:MethodOfA()
+
+        output resultA
+        output resultB
+        output resultC
+    end
+end

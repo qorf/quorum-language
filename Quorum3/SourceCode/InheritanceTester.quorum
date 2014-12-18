@@ -20,6 +20,7 @@ class InheritanceTester
         path = passPath
         AssignToParentsVariable()
         CallInheritedAction()
+        CallInheritedActionFieldAssignment()
         CallMethodCallingBlueprint()
         CallMethodCallingInheritedBlueprint()
         DerivedCall()
@@ -93,6 +94,29 @@ class InheritanceTester
         files:Add(main)
         files:Add(dependent1)
         files:Add(dependent2)
+        files:Add(dependent3)
+        results:Add(0, "implemented by A")
+        results:Add(1, "implemented by B")
+        results:Add(2, "implemented by B")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action CallInheritedActionFieldAssignment
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "CallInheritedActionFieldAssignment.quorum")
+        dependent1:SetPath(path + "A.quorum")
+        dependent2:SetPath(path + "B.quorum")
+        dependent3:SetPath(path + "C.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
         results:Add(0, "implemented by A")
         results:Add(1, "implemented by B")
         results:Add(2, "implemented by B")

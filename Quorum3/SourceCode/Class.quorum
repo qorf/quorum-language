@@ -25,6 +25,7 @@ class Class is Symbol
     HashTable<text, Class> validUses
     HashTable<text, Class> validUsesFullyQualified
     HashTable<text, Class> parents
+    Array<Class> directParents
     Array<text> generics
     HashTable<text, integer> genericHash
     boolean areParentsResolved = false
@@ -159,85 +160,100 @@ class Class is Symbol
             virtualActions:Add(act:GetStaticKey(), act)
         end
 
+        HashTable<text, Class> computed
         //now dig through all parents and add any virtual methods that are
         //necessary
         Iterator<Class> parentIterator = GetParentClasses()
         repeat while parentIterator:HasNext()
             Class mom = parentIterator:Next()
-            
+            computed:Add(mom:GetStaticKey(), mom)
             Iterator<Action> momActions = mom:GetActions()
             repeat while momActions:HasNext()
                 Action act = momActions:Next()
-                
-                text key = act:GetStaticKey()
-                Type returnType = act:GetReturnType()
-                text returnKey = returnType:GetStaticKey()
+                WeaveActionFromDirectParent(mom, act, errors)                
+            end
+        end
+    end
+    
+    action WeaveActionFromDirectParent(Class mom, Action act, CompilerErrorManager errors)
+        text key = act:GetStaticKey()
+        Type returnType = act:GetReturnType()
+        text returnKey = returnType:GetStaticKey()
 
-                Action actionCopy = virtualActions:GetValue(key)
-                if actionCopy = undefined //it doesn't exist, so add it.
-                   virtualActions:Add(key, act) 
-                   parentActions:Add(key, act) 
-                else
-                    //check to see if the action is overriden
-                    Action baseAction = actions:GetValue(key)
-                    
-                    //if it exists, just make sure it has the same return type
-                    if baseAction not= undefined
-                        Class dad = baseAction:GetParentClass()
-                        Type baseReturnType = baseAction:GetReturnType()
-                        text baseReturnKey = baseReturnType:GetStaticKey()
+        Action actionCopy = virtualActions:GetValue(key)
+        if actionCopy = undefined //it doesn't exist, so add it.
+           virtualActions:Add(key, act) 
+           parentActions:Add(key, act) 
+        else
+            //check to see if the action is overriden
+            Action baseAction = actions:GetValue(key)
 
-                        //if the returnType of the parent (returnType) has a generic, map it
-                        //to the specific isntance located in the class template declaration
-                        //if it isn't an Object or isn't a generic, don't map generic types
-                        if returnType:IsMappedToGeneric() and returnType:GetStaticKey() = returnType:OBJECT_KEY
-                            text genericName = returnType:GetMappedGeneric()
+            //if it exists, just make sure it has the same return type
+            if baseAction not= undefined
+                Class dad = baseAction:GetParentClass()
+                Type baseReturnType = baseAction:GetReturnType()
+                text baseReturnKey = baseReturnType:GetStaticKey()
 
-                            if mom:HasGeneric(genericName)
-                                //get the index of the generic from the parent
-                                integer index = mom:GetIndexOfGeneric(genericName)
+                //if the returnType of the parent (returnType) has a generic, map it
+                //to the specific isntance located in the class template declaration
+                //if it isn't an Object or isn't a generic, don't map generic types
+                if returnType:IsMappedToGeneric() and returnType:GetStaticKey() = returnType:OBJECT_KEY
+                    text genericName = returnType:GetMappedGeneric()
 
-                                //this tells us the index of the template
-                                //now grab the nth element from the declared type list
-                                //if it exists. If it doesn't, ignore this
-                                Array<Type> values = GetParentGenerics(mom:GetStaticKey())
-                                if values not= undefined //sizing is already checked
-                                    Type actualType = values:Get(index)
-                                    //if it's not a generic, set the return type value
-                                    //to the declared value and see if it matches
-                                    if actualType:GetStaticKey() not= actualType:OBJECT_KEY
-                                        returnType = actualType
-                                        returnKey = returnType:GetStaticKey()
-                                    end
-                                end
+                    if mom:HasGeneric(genericName)
+                        //get the index of the generic from the parent
+                        integer index = mom:GetIndexOfGeneric(genericName)
+
+                        //this tells us the index of the template
+                        //now grab the nth element from the declared type list
+                        //if it exists. If it doesn't, ignore this
+                        Array<Type> values = GetParentGenerics(mom:GetStaticKey())
+                        if values not= undefined //sizing is already checked
+                            Type actualType = values:Get(index)
+                            //if it's not a generic, set the return type value
+                            //to the declared value and see if it matches
+                            if actualType:GetStaticKey() not= actualType:OBJECT_KEY
+                                returnType = actualType
+                                returnKey = returnType:GetStaticKey()
                             end
                         end
-
-                        if returnKey not= baseReturnKey //this is an error
-                            CompilerError error
-                            CompilerErrorType t
-                            t:SetCurrentType(t:INHERITANCE_MISSMATCHED_RETURN)
-                            error:SetCompilerErrorType(t)
-                            error:SetErrorMessage("The action " + key + " is defined in the parent "
-                                + dad:GetStaticKey() + ", but the return types (" 
-                                + baseReturnKey + " and "+ returnKey + ") do not match.")
-                            error:SetLocation(act)
-                            errors:Add(error)
-                        end //otherwise, everything is fine, so ignore it
-                    else //the base action is undefined, so this is an error, as
-                         //multiple parents have the same action, but it is not overridden
-                         //in the base class.
-                         Class dad = actionCopy:GetParentClass()
-                         CompilerError error
-                         error:SetErrorMessage("The action " + key + " is defined"
-                            +   " in the parent classes " + mom:GetStaticKey() + " and " 
-                            + dad:GetStaticKey() + ". I cannot determine which action should"
-                            + " be called and therefore the action must be overriden in the"
-                            + " base class " + me:GetStaticKey())
-                         error:SetLocation(act)
-                         errors:Add(error)
                     end
                 end
+
+                if returnKey not= baseReturnKey //this is an error
+                    CompilerError error
+                    CompilerErrorType t
+                    t:SetCurrentType(t:INHERITANCE_MISSMATCHED_RETURN)
+                    error:SetCompilerErrorType(t)
+                    error:SetErrorMessage("The action " + key + " is defined in the parent "
+                        + dad:GetStaticKey() + ", but the return types (" 
+                        + baseReturnKey + " and "+ returnKey + ") do not match.")
+                    error:SetLocation(mom)
+                    errors:Add(error)
+                end //otherwise, everything is fine, so ignore it
+            else //the base action is undefined, this could be an error
+                 //or it could be the case that the method is from a subclass,
+                 //and as such, this is just fine. Or, it could be the case
+                 //that the method is in a super class, and as such, needs to be
+                 //overriden
+                 Class dad = actionCopy:GetParentClass()
+                 if dad:HasParentClass(mom:GetStaticKey()) //ignore this, everything is fine
+                    a = 5
+                 elseif mom:HasParentClass(dad:GetStaticKey())
+                    virtualActions:Set(key, act) 
+                    parentActions:Set(key, act) 
+                 else
+
+
+                    CompilerError error
+                    error:SetErrorMessage("The action " + key + " is defined"
+                       +   " in the parent classes " + mom:GetStaticKey() + " and " 
+                       + dad:GetStaticKey() + ". I cannot determine which action should"
+                       + " be called and therefore the action must be overriden in the"
+                       + " base class " + me:GetStaticKey())
+                    error:SetLocation(mom)
+                    errors:Add(error)
+                 end
             end
         end
     end
@@ -895,6 +911,8 @@ class Class is Symbol
             end //if it is not, ignore it, as an error has already been issued
         end
 
+        directParents = levelOneParents
+
         Array<Class> currentLevelParents = levelOneParents
         Array<Class> nextLevelParents
         Iterator<Class> nextLevel = currentLevelParents:GetIterator()
@@ -1019,8 +1037,20 @@ class Class is Symbol
         return parents:GetValue(key)
     end
 
+    /*
+        Obtains a list of all parents reachable from this class. This includes
+        parents and the parents of parents as a flattened list.
+    */
     action GetParentClasses returns Iterator<Class>
         return parents:GetValueIterator()
+    end
+
+    /*
+        This action returns those parents that are directly specified 
+        in the class. Object is also always included in this list.
+    */
+    action GetDirectParentClasses returns Iterator<Class>
+        return directParents:GetIterator()
     end
 
     action AddValidUse(Class clazz) returns CompilerError
