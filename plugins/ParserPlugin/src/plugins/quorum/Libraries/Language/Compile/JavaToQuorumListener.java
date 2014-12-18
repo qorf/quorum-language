@@ -1270,7 +1270,7 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterParentAssignment(QuorumParser.ParentAssignmentContext ctx) {
         ParentAssignmentContext context = new ParentAssignmentContext();
         setLocation(ctx, context);
-        context.parentName = ctx.parent.qualifiedName;
+        context.parentName = Convert(ctx.parent);
         context.name = ctx.name.getText();
         listener.EnterParentAssignment(context);
     }
@@ -1279,7 +1279,8 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitParentAssignment(QuorumParser.ParentAssignmentContext ctx) {
         ParentAssignmentContext context = new ParentAssignmentContext();
         setLocation(ctx, context);
-        context.parentName = ctx.parent.qualifiedName;
+        
+        context.parentName = Convert(ctx.parent);
         context.name = ctx.name.getText();
         listener.ExitParentAssignment(context);
     }
