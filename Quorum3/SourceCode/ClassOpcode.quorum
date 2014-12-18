@@ -579,11 +579,11 @@ class ClassOpcode is QuorumOpcode
             methodWriter:VisitField(opcodes:GetPutField(), classBytecodeName, parentName, convertedParentNameType)
 
             
-            //text convertedHiddenType = p:ConvertStaticKeyToBytecodePathTypeName()
-            //methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-            //methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), parentName, convertedHiddenType)
-            //methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-            //methodWriter:VisitField(opcodes:GetPutField(), converted, p:GetHiddenVariableName(), convertedHiddenType)
+            text convertedHiddenType = p:ConvertStaticKeyToBytecodePathTypeNameInterface()
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+            methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), parentName, p:ConvertStaticKeyToBytecodePathTypeName())
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+            methodWriter:VisitField(opcodes:GetPutField(), converted, p:GetHiddenVariableName(), convertedHiddenType)
         end
         
         //now that all parents have been instantiated, get 

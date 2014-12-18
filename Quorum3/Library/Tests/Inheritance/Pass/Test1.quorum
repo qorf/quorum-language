@@ -4,11 +4,10 @@ class Test1 is Test2
     public integer x = 6
 
     action Set(integer y)
-//        parent:Test2:y = y
+        parent:Test2:y = y
     end
 
     action Get returns integer
-        return 0
-        //return parent:Test2:y 
+        return parent:Test2:y 
     end
 end
