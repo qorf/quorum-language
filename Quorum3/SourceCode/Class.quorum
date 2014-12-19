@@ -17,6 +17,7 @@ class Class is Symbol
     HashTable<text, Action> virtualActions
     HashTable<text, Action> parentActions
     HashTable<text, Array<Type>> parentGenerics
+    HashTable<text, HashTable<integer, integer>> parentGenericMap = undefined
     HashTable<text, Variable> fields
     Action constructor = undefined
     boolean hasMain = false
@@ -386,13 +387,14 @@ class Class is Symbol
         //now all parents are resolved. Resolve the generics of those parents
         //first rehash all of the parent uses
         ResolveParentGenerics(table, errors)
-
+        
         //now resolve all the fields
         ResolveFields(table, errors)
 
         //next resolve all actions and their blocks
         ResolveActions(table, errors)
 
+        MapParentGenerics()
         isTypeResolved = true
     end
 
@@ -400,26 +402,154 @@ class Class is Symbol
         return GetNumberGenerics() not= 0
     end
 
-    action MapParentGenericToMe(text parentKey, integer index) returns integer
-        if HasParentClass(parentKey)
-            Class parentClass = GetParentClass(parentKey)
-            integer size = GetNumberGenerics()
-            if index >=0 and index < size
-                text gen = GetGeneric(0)
-                Array<Type> gens = GetParentGenerics(parentKey)
-                //see if one of them has this name
-                if gens = undefined //couldn't find a mapping for this parent
-                    return -1
-                end
-                i = 0
-                repeat gens:GetSize() times
-                    Type type = gens:Get(i)
-                    if type:GetMappedGeneric() = gen
-                        return i
+    private action MapParentGenerics
+        HashTable<text, HashTable<integer, integer>> map
+        text key = GetStaticKey()
+
+        Iterator<text> parents = parentGenerics:GetKeyIterator()
+        repeat while parents:HasNext()
+            text next = parents:Next()
+            HashTable<integer, integer> parentMap
+            Array<Type> gens = GetParentGenerics(next)
+            i = 0
+            repeat while i < gens:GetSize()
+                Type type = gens:Get(i)
+                if type:IsMappedToGeneric()
+                    text gen = type:GetMappedGeneric()
+                    if HasGeneric(gen)
+                        text mappedValue = undefined
+                        integer mappedIndex = -1
+                        j = 0
+                        repeat while j < generics:GetSize()
+                            text myGeneric = generics:Get(j)
+                            if myGeneric = gen
+                                mappedValue = gen
+                                mappedIndex = j
+                            end
+                            j = j + 1
+                        end
+
+                        if not (mappedValue = undefined)
+                            parentMap:Add(i, mappedIndex)
+                        end
+                    else
+
                     end
-                    i = i + 1
+                    
+                end
+                if not parentMap:IsEmpty()
+                    map:Add(next, parentMap)
+                end
+                i = i + 1
+            end
+        end
+        parentGenericMap = map
+    end
+
+    action HasGenericMapToParent(text key) returns boolean
+        if parentGenericMap:HasKey(key)
+            return true
+        end
+
+        return false
+    end
+
+    action ComputeGenericsTables
+        Iterator<text> it = parentGenericMap:GetKeyIterator()
+        HashTable<text, HashTable<integer, integer>> tempParentMap
+        
+        HashTable<text, HashTable<integer, integer>> finalParentMap
+        repeat while it:HasNext()
+            text next = it:Next()
+            tempParentMap:Add(next, parentGenericMap:GetValue(next))
+            finalParentMap:Add(next, parentGenericMap:GetValue(next))
+        end
+
+        it = tempParentMap:GetKeyIterator()
+        text key = GetStaticKey()
+        b = 5
+
+        repeat while it:HasNext()
+            HashTable<text, HashTable<integer, integer>> newTempParentMap
+            repeat while it:HasNext()
+                text next = it:Next()
+                Class par = GetParentClass(next)
+                HashTable<text, HashTable<integer, integer>> parentMap = par:GetParentGenericMap()
+                if not parentMap:IsEmpty()
+                    Iterator<text> parentIt = parentMap:GetKeyIterator()
+                    HashTable<integer, integer> directParentMap = tempParentMap:GetValue(next)
+
+                    repeat while parentIt:HasNext()
+                        text nextParent = parentIt:Next()
+                        //do we already have a map from this class to this parent?
+
+                        HashTable<integer, integer> values = parentMap:GetValue(nextParent)
+                        HashTable<integer, integer> myValues = parentGenericMap:GetValue(nextParent)
+                        //if so, check it for consistency
+                        if values not= undefined
+                            if myValues = undefined //we don't have a map to this parent
+                                HashTable<integer, integer> newMap
+                                Iterator<integer> myClassValues = directParentMap:GetValueIterator()
+                                repeat while myClassValues:HasNext()
+                                    integer val = myClassValues:Next()
+                                    if values:HasKey(val)
+                                        newMap:Add(val, values:GetValue(val))
+                                    end
+                                end
+                                if not newMap:IsEmpty()
+                                    if not parentGenericMap:HasKey(nextParent)
+                                        newTempParentMap:Add(nextParent, newMap)
+                                        parentGenericMap:Add(nextParent, newMap)
+                                    end
+                                end
+                            end
+                        end
+                    end
                 end
             end
+
+            tempParentMap = newTempParentMap
+            it = tempParentMap:GetKeyIterator()
+        end
+    end
+
+    private action GetParentGenericMap returns HashTable<text, HashTable<integer, integer>>
+        return parentGenericMap
+    end
+
+    action MapParentGenericToMe(text parentKey, integer index) returns integer
+        if HasParentClass(parentKey)
+
+            //do we have a map for this generic?
+            HashTable<integer, integer> map = parentGenericMap:GetValue(parentKey)
+            if map not= undefined
+                return map:GetValue(index)
+            else //we couldn't find the map. Ask the parent, and any of its parents, if it has one
+                //check all of the maps to see if any of them lead to the one
+                //in question. If this is not unique, is this an issue? Think on this more
+                
+
+            end
+
+
+//            Class parentClass = GetParentClass(parentKey)
+//            integer size = GetNumberGenerics()
+//            if index >=0 and index < size
+//                text gen = GetGeneric(0)
+//                Array<Type> gens = GetParentGenerics(parentKey)
+//                //see if one of them has this name
+//                if gens = undefined //couldn't find a mapping for this parent
+//                    return -1
+//                end
+//                i = 0
+//                repeat gens:GetSize() times
+//                    Type type = gens:Get(i)
+//                    if type:GetMappedGeneric() = gen
+//                        return i
+//                    end
+//                    i = i + 1
+//                end
+//            end
         end
 
         return -1

@@ -1462,10 +1462,10 @@ class QuorumBytecodeListener is QuorumSourceListener
                 end
                 
                 text name = act:GetName()
-                if name = "SetValue" or name = "SetValueNative" //these calls aren't allowed on primitives
+                if name = "SetValue" or name = "SetValueNative" or name = "GetValue" or name = "GetValueNative"//these calls aren't allowed on primitives
                     CompilerError error
                     error:SetLocation(context:GetLocation())
-                    error:SetErrorMessage("I found a call to the primitive calling the action " + name + ", but SetValue and SetValueNative cannot be called on primitives.")
+                    error:SetErrorMessage("I found a call to the primitive calling the action " + name + ", but this cannot be called on a primitive.")
                     CompilerErrorType errorType
                     errorType:SetCurrentType(errorType:PRIMITIVE_INVALID_ACTION_CALL)
                     error:SetCompilerErrorType(errorType)
