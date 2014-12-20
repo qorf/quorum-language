@@ -454,7 +454,7 @@ class Class is Symbol
         return false
     end
 
-    action ComputeGenericsTables
+    action ComputeGenericsTables(CompilerErrorManager compilerErrorManager)
         Iterator<text> it = parentGenericMap:GetKeyIterator()
         HashTable<text, HashTable<integer, integer>> tempParentMap
         
@@ -502,6 +502,13 @@ class Class is Symbol
                                         parentGenericMap:Add(nextParent, newMap)
                                     end
                                 end
+                            else
+                                boolean test = CheckHashTableConsistency(
+                                    compilerErrorManager, values, 
+                                    myValues, next, nextParent)
+                                
+                                //I don't think anything needs to be done with this value
+                                //if it fails, as an error will be issued.
                             end
                         end
                     end
@@ -511,6 +518,67 @@ class Class is Symbol
             tempParentMap = newTempParentMap
             it = tempParentMap:GetKeyIterator()
         end
+    end
+
+    private action CheckHashTableConsistency(CompilerErrorManager compilerErrorManager, 
+        HashTable<integer, integer> left, HashTable<integer, integer> right, text next, text nextParent) returns boolean
+        lsize = left:GetSize()
+        rsize = right:GetSize()
+
+        //if these do not match, it's an error
+        if lsize not= rsize
+            CompilerError error
+            error:SetLocation(me)
+            CompilerErrorType t
+            t:SetCurrentType(t:MISMATCHED_TEMPLATES)
+            error:SetCompilerErrorType(t)
+            text message = "The class " + GetStaticKey() + " defines generics "
+            message = message + "that lead to its parent class " + nextParent + 
+                " having two different definitions."
+            error:SetErrorMessage(message)
+            compilerErrorManager:Add(error)
+            return false
+        end
+
+        Iterator<integer> lit = left:GetKeyIterator()
+        repeat while lit:HasNext()
+            lkey = lit:Next()
+
+            lval = left:GetValue(lkey)
+
+            if right:HasKey(lkey)
+                rval = right:GetValue(lkey)
+                if lval not= rval
+                    CompilerError error
+                    error:SetLocation(me)
+                    CompilerErrorType t
+                    t:SetCurrentType(t:MISMATCHED_TEMPLATES)
+                    error:SetCompilerErrorType(t)
+                    text message = "The class " + GetStaticKey() + " defines generics "
+                    message = message + "that lead to its parent class " + nextParent + 
+                        " having two contradictory values, position " + lval + " (" + GetGeneric(lval) + "), and position " + 
+                        rval + " (" + GetGeneric(rval) + "). In this case, this is caused by "
+                        + "the definition of the parent " + next + "."
+                    error:SetErrorMessage(message)
+                    compilerErrorManager:Add(error)
+                    return false
+                end
+            else
+                CompilerError error
+                error:SetLocation(me)
+                CompilerErrorType t
+                t:SetCurrentType(t:MISMATCHED_TEMPLATES)
+                error:SetCompilerErrorType(t)
+                text message = "The class " + GetStaticKey() + " defines generics "
+                message = message + "that lead to its parent class " + nextParent + 
+                    " having two contradictory values, position " + lval + " (" + GetGeneric(lval) + "), and an undefined definition."
+                error:SetErrorMessage(message)
+                compilerErrorManager:Add(error)
+                return false
+            end
+        end
+
+        return true
     end
 
     private action GetParentGenericMap returns HashTable<text, HashTable<integer, integer>>

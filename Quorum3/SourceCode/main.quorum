@@ -20,16 +20,16 @@ class Main is WebResponder
         Compiler compiler
         output compiler:GetVersion()
         File main
-        main:SetPath("Library/Tests/Inheritance/Pass/InheritTemplatedMethods.quorum")
+        main:SetPath("Library/Tests/Inheritance/Fail/BadTemplate.quorum")
 
         File class2
-        class2:SetPath("Library/Tests/Inheritance/Pass/ATemplated.quorum")
+        class2:SetPath("Library/Tests/Inheritance/Fail/TemplateA.quorum")
 
         File class3
-        class3:SetPath("Library/Tests/Inheritance/Pass/BTemplated.quorum")
+        class3:SetPath("Library/Tests/Inheritance/Fail/TemplateB.quorum")
 
         File class4
-        class4:SetPath("Library/Tests/Inheritance/Pass/CTemplated.quorum")
+        class4:SetPath("Library/Tests/Inheritance/Fail/TemplateD.quorum")
 
         File class5
         class5:SetPath("Library/Tests/Inheritance/Pass/DTemplated.quorum")
@@ -39,7 +39,7 @@ class Main is WebResponder
         files:Add(class2)
         files:Add(class3)
         files:Add(class4)
-        files:Add(class5)
+        //files:Add(class5)
 
         compiler:SetOutputSpeech(false) //don't speak while in test mode
         //compiler:SetOutputType(compiler:JAVASCRIPT)

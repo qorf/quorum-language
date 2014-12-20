@@ -45,7 +45,7 @@ class InheritanceTester
         path = failPath
         MultipleInheritanceAmbiguousMethod()
         CircularInheritance()
-
+        BadTemplate()
     end
 
     action GetName returns text
@@ -426,4 +426,21 @@ class InheritanceTester
         suite:TestJavaScriptFail(files)
     end
 
+    action BadTemplate 
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "BadTemplate.quorum")
+        dependent1:SetPath(path + "TemplateA.quorum")
+        dependent2:SetPath(path + "TemplateB.quorum")
+        dependent3:SetPath(path + "TemplateD.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
 end

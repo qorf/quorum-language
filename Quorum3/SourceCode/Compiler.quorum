@@ -337,7 +337,7 @@ class Compiler
         repeat while classes:HasNext()
             Class next = classes:Next()
             next:ComputeVirtualActionTable(compilerErrorManager)
-            next:ComputeGenericsTables()
+            next:ComputeGenericsTables(compilerErrorManager)
             checker:Add(next)
         end
     end
