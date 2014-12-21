@@ -520,6 +520,33 @@ class Class is Symbol
         end
     end
 
+    private action GetPositionName(integer pos) returns text
+        text message = "the "
+        if pos = 0
+            return message + "first"
+        elseif pos = 1
+            return message + "second"
+        elseif pos = 2
+            return message + "third"
+        elseif pos = 3
+            return message + "fourth"
+        elseif pos = 4
+            return message + "fifth"
+        elseif pos = 5
+            return message + "sixth"
+        elseif pos = 6
+            return message + "seventh"
+        elseif pos = 7
+            return message + "eighth"
+        elseif pos = 8
+            return message + "ninth"
+        elseif pos = 9
+            return message + "tenth"
+        end
+
+        return " position " + (pos + 1) 
+    end
+
     private action CheckHashTableConsistency(CompilerErrorManager compilerErrorManager, 
         HashTable<integer, integer> left, HashTable<integer, integer> right, text next, text nextParent) returns boolean
         lsize = left:GetSize()
@@ -556,8 +583,8 @@ class Class is Symbol
                     error:SetCompilerErrorType(t)
                     text message = "The class " + GetStaticKey() + " defines generics "
                     message = message + "that lead to its parent class " + nextParent + 
-                        " having two contradictory values, position " + lval + " (" + GetGeneric(lval) + "), and position " + 
-                        rval + " (" + GetGeneric(rval) + "). In this case, this is caused by "
+                        " having two contradictory values, " + GetPositionName(lval) + " (" + GetGeneric(lval) + "), and " + 
+                        GetPositionName(rval) + " (" + GetGeneric(rval) + "). In this case, this is caused by "
                         + "the definition of the parent " + next + "."
                     error:SetErrorMessage(message)
                     compilerErrorManager:Add(error)
