@@ -26,7 +26,7 @@ class InheritanceTester
         DerivedCall()
         DogMain()
         InheritedTemplatedMethods()
-        InstanceOverloadingMain()
+        InheritanceOverloadingMain()
         MultipleInheritanceCallingAmbiguousBlueprints()
         OutputParentValue()
         OutputParentValueField()
@@ -222,15 +222,15 @@ class InheritanceTester
         suite:TestJavaScript(files, results)
     end
 
-    action InstanceOverloadingMain 
+    action InheritanceOverloadingMain 
         Array<File> files
         Array<Text> results
         File main
         File dependent1
         File dependent2
-        main:SetPath(path + "InstanceOverloadingMain.quorum")
-        dependent1:SetPath(path + "InstanceOverloadingA.quorum")
-        dependent2:SetPath(path + "InstanceOverloadingB.quorum")
+        main:SetPath(path + "InheritanceOverloadingMain.quorum")
+        dependent1:SetPath(path + "InheritanceOverloadingA.quorum")
+        dependent2:SetPath(path + "InheritanceOverloadingB.quorum")
         files:Add(main)
         files:Add(dependent1)
         files:Add(dependent2)
