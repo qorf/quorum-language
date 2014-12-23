@@ -290,7 +290,6 @@ class ExpressionsTester
         main:SetPath(path + "CompareTextTextField.quorum")
         files:Add(main)
         results:Add(0, "1")
-        results:Add(1, "1")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -302,7 +301,6 @@ class ExpressionsTester
         main:SetPath(path + "ComplexExpression.quorum")
         files:Add(main)
         results:Add(0, "true")
-        results:Add(1, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -452,7 +450,6 @@ class ExpressionsTester
         main:SetPath(path + "Expression.quorum")
         files:Add(main)
         results:Add(0, "15")
-        results:Add(1, "15")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
