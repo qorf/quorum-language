@@ -73,7 +73,7 @@ class MathTester
         File main
         main:SetPath(path + "Cosine.quorum")
         files:Add(main)
-        results:Add(0, "87758")
+        results:Add(0, "0.87758")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -150,7 +150,7 @@ class MathTester
         File main
         main:SetPath(path + "InverseHyperbolicTangent.quorum")
         files:Add(main)
-        results:Add(0, "1.31696")
+        results:Add(0, "0.54931")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -288,7 +288,6 @@ class MathTester
         files:Add(main)
         results:Add(0, "3.0")
         results:Add(1, "1.4142135623730951")
-        results:Add(1, "1.414")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
