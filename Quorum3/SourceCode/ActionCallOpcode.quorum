@@ -199,8 +199,13 @@ class ActionCallOpcode is QuorumOpcode
         VisitLineNumber()
 
         if isActionCall
-            //if there's a variable, load it.
-            if pushOnMe
+
+
+            if isParentCall //if this is a parent variable, push it on.
+                WriteParentVariable()
+                 
+                //return now
+            elseif pushOnMe //if there's a variable, load it.
                 //push on the variable $hidden
                 LoadHiddenMe()
             end
@@ -234,6 +239,11 @@ class ActionCallOpcode is QuorumOpcode
 
             Action act = actionResolution:resolvedAction
             Class clazz = actionResolution:classToMakeCallOn
+            if isParentCall
+                clazz = parentToCallOn
+            end
+            
+
             if act not= undefined and clazz not= undefined
 
                 if actionResolution:isCallOnPrimitive
@@ -257,40 +267,8 @@ class ActionCallOpcode is QuorumOpcode
         else
 
             if isParentCall //if this is a parent variable, push it on.
+                WriteParentVariable()
                 
-                //if this parent call was made on a variable, push that on.
-                //otherwise, make the call on the current class this is in.
-
-                if variableToMakeParentCallOn not= undefined
-                    if not variableToMakeParentCallOn:IsField()
-                        methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(variableToMakeParentCallOn:GetType()), variableToMakeParentCallOn:GetBytecodeLocation())
-                    else
-                        Type type = variableToMakeParentCallOn:GetType()
-                        text path = ""
-                        path = callingClass:ConvertStaticKeyToBytecodeInterfacePath()
-
-
-                        getterName = callingClass:ConvertToActionNameFromField(variableToMakeParentCallOn, true)
-                        methodName = type:ConvertToSignatureFromFieldInterface(true)
-                        methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
-                        methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
-                            path, getterName, methodName, true)
-                    end
-                else 
-                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
-                end
-
-                text owner = ""
-                if variableToMakeParentCallOn not= undefined
-                    owner = classToMakeParentCallOn:ConvertStaticKeyToBytecodeInterfacePath()
-                else
-                    owner = callingClass:ConvertStaticKeyToBytecodeInterfacePath()
-                end
-                text name = parentToCallOn:ConvertStaticKeyToParentActionName()
-                text description = "()" + parentToCallOn:ConvertStaticKeyToBytecodePathTypeName()
-
-                methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
-                    owner, name, description, true)
                 
                 Type type = GetCallerType()
                 if not field:IsField()
@@ -341,8 +319,40 @@ class ActionCallOpcode is QuorumOpcode
         end
     end
 
-    action WriteVariable
+    action WriteParentVariable
+        //if this parent call was made on a variable, push that on.
+                //otherwise, make the call on the current class this is in.
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        if variableToMakeParentCallOn not= undefined
+            if not variableToMakeParentCallOn:IsField()
+                methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(variableToMakeParentCallOn:GetType()), variableToMakeParentCallOn:GetBytecodeLocation())
+            else
+                Type type = variableToMakeParentCallOn:GetType()
+                text path = ""
+                path = callingClass:ConvertStaticKeyToBytecodeInterfacePath()
 
+
+                getterName = callingClass:ConvertToActionNameFromField(variableToMakeParentCallOn, true)
+                methodName = type:ConvertToSignatureFromFieldInterface(true)
+                methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+                    path, getterName, methodName, true)
+            end
+        else 
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+        end
+
+        text owner = ""
+        if variableToMakeParentCallOn not= undefined
+            owner = classToMakeParentCallOn:ConvertStaticKeyToBytecodeInterfacePath()
+        else
+            owner = callingClass:ConvertStaticKeyToBytecodeInterfacePath()
+        end
+        text name = parentToCallOn:ConvertStaticKeyToParentActionName()
+        text description = "()" + parentToCallOn:ConvertStaticKeyToBytecodePathTypeName()
+
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+            owner, name, description, true)
     end
 
     action WriteJavaScript returns text 
