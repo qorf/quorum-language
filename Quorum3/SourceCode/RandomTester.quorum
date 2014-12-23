@@ -28,12 +28,14 @@ class RandomTester
         
 //FAIL TESTS
         path = failPath
-        RandomIntegerBetweenWithInvalidRange()
-        RandomIntegerBetweenWithNegativeNumbers()
-        RandomIntegerBetweenWithSameValues()
-        RandomIntegerFail()
-        RandomListOfIntegersWithInvalidLength()
-        RandomListOfNumbersWithInvalidLength()
+        //These tests don't actually cause compiler errors. They cause errors
+        //to be thrown (exceptions). We need a different strategy for this.
+//        RandomIntegerBetweenWithInvalidRange()
+//        RandomIntegerBetweenWithNegativeNumbers()
+//        RandomIntegerBetweenWithSameValues()
+//        RandomIntegerFail()
+//        RandomListOfIntegersWithInvalidLength()
+//        RandomListOfNumbersWithInvalidLength()
 
     end
 
@@ -82,7 +84,7 @@ class RandomTester
         results:Add(2, "19")
         results:Add(3, "15")
         results:Add(4, "18")
-        results:Add(5, "18")
+        results:Add(5, "16")
         results:Add(6, "20")
         results:Add(7, "16")
         results:Add(8, "15")
@@ -151,7 +153,7 @@ class RandomTester
         File main
         main:SetPath(path + "SetSeed.quorum")
         files:Add(main)
-        results:Add(0, "")
+        results:Add(0, "2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
