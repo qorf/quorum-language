@@ -1209,8 +1209,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
     end
 
-    action EnterParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) end
-    action ExitParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) end
+    
 
     action EnterVariableFunctionCall(VariableFunctionCallContext context) 
         isNextVariableReferenceMe = context:hasMe
@@ -1233,6 +1232,40 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
 
         opcodeStack:Push(ops)
+    end
+
+    action EnterParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) 
+        isNextVariableReferenceMe = context:hasMe
+        Array<ActionCallOpcode> stack
+        actionCallStacks:Add(me:currentActionStack, stack)
+        currentActionStack = currentActionStack + 1
+
+        parentCallStack:Push(context)
+    end
+
+    action ExitParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) 
+        Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
+        currentActionStack = currentActionStack - 1
+
+        ChainedActionCallOpcode ops
+        ops:SetMethodWriter(methodWriter)
+        ops:SetLocation(context:GetLocation())
+        Iterator<ActionCallOpcode> it = stack:GetIterator()
+        repeat while it:HasNext()
+            ActionCallOpcode op = it:Next()
+            ops:Add(op)
+        end
+
+        //since this is a solo call, there is no assignment statement.
+        //thus, if there's a return type, we need to pop it off the stack.
+        ActionCallOpcode op = stack:GetFromEnd()
+        Type returnType = op:GetType()
+        if returnType not= undefined
+            if not returnType:IsVoid()
+                ops:SetPopReturn(true)
+            end
+        end
+        currentBlockOpcode:Add(ops)
     end
 
     action EnterParentVariableFunctionCall(ParentVariableFunctionCallContext context)
