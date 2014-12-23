@@ -244,16 +244,28 @@ class Class is Symbol
                     virtualActions:Set(key, act) 
                     parentActions:Set(key, act) 
                  else
+                    if act:IsBlueprint() or actionCopy:IsBlueprint()
+                       //check to see if the one in the v-table is a blueprint
+                       //check to make sure both of them aren't blueprints
+                       if not (act:IsBlueprint() and actionCopy:IsBlueprint())
+                           //at least one is not a blueprint, so make sure
+                           //that is the one in the v-table
+                           if actionCopy:IsBlueprint()
+                               virtualActions:Set(act:GetStaticKey(), act)
+                           end
+                       end
 
+                    else
 
-                    CompilerError error
-                    error:SetErrorMessage("The action " + key + " is defined"
-                       +   " in the parent classes " + mom:GetStaticKey() + " and " 
-                       + dad:GetStaticKey() + ". I cannot determine which action should"
-                       + " be called and therefore the action must be overriden in the"
-                       + " base class " + me:GetStaticKey())
-                    error:SetLocation(mom)
-                    errors:Add(error)
+                       CompilerError error
+                       error:SetErrorMessage("The action " + key + " is defined"
+                          +   " in parents " + mom:GetStaticKey() + " and " 
+                          + dad:GetStaticKey() + ". Since I cannot determine which action should"
+                          + " be called, the action must be overriden in the"
+                          + " base class " + me:GetStaticKey() + ".")
+                       error:SetLocation(me)
+                       errors:Add(error)
+                    end
                  end
             end
         end
