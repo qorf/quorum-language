@@ -248,13 +248,13 @@ class SeparatedValue
     action SetSeparator(text separator)
         text sep = separator
         if (sep = undefined)
-            alert("Separator cannot be undefined")
+         //   alert("Separator cannot be undefined")
         end
 
         if not sep:IsEmpty()
             me:separator = sep:GetCharacter(0)
         else
-            alert("Separators cannot exceed a single character.")
+        //    alert("Separators cannot exceed a single character.")
         end
     end
 end

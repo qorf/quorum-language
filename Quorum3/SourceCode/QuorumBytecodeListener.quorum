@@ -503,6 +503,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action EnterIfStatement(IfContext context) 
+        if me:currentClass:GetName() = "SeparatedValue" and currentAction:GetName() = "SetSeparator"
+            a = 5
+        end
         ConditionalOpcode conditional
         conditional:SetIfLabelInteger(ifCount)
         conditional:SetMethodWriter(methodWriter)
@@ -513,14 +516,12 @@ class QuorumBytecodeListener is QuorumSourceListener
     
 
     action ExitIfStatement(IfContext context) 
-
-        if me:currentClass:GetName() = "Array" and me:currentAction:GetName() = "Add"
-            a = 5
-        end
-
         ConditionalOpcode conditional = ifStack:Pop()
         QuorumOpcode qop = opcodeStack:Pop()
 
+        if qop = undefined //there is a problem and we have previously thrown a compiler error
+            return now
+        end
         Type type = qop:GetType()
         if type = undefined
             CompilerError error
