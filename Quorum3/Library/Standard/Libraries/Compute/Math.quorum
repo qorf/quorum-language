@@ -291,7 +291,7 @@ class Math
             return Round(value)
         else
             number remains = AbsoluteValue(value) mod 1.0
-            if remains < 0.5
+            if remains > 0.5
                 return Ceiling(value)
             else
                 return Floor(value)
@@ -325,14 +325,7 @@ class Math
             decimalPlace = 15
         end
 
-        integer decimals = cast(integer, me:AbsoluteValue(decimalPlace))
-
-        number log = me:Logarithm(decimals)
-
-        log = me:Round(log, false)
-        integer power = decimals - cast(integer, log)
-
-        number exponent = me:RaiseToPower(10, power)
+        number exponent = me:RaiseToPower(10, decimalPlace)
 
         number answer = me:Round(value * exponent)
         answer = answer / exponent
@@ -367,14 +360,7 @@ class Math
             decimalPlace = 15
         end
 
-        integer decimals = cast(integer, me:AbsoluteValue(decimalPlace))
-
-        number log = me:Logarithm(decimals)
-
-        log = me:Round(log, false)
-        integer power = decimals - cast(integer, log)
-
-        number exponent = me:RaiseToPower(10, power)
+        number exponent = me:RaiseToPower(10, decimalPlace)
         
         number answer = me:Round(value * exponent, roundUp)
         answer = answer / exponent
