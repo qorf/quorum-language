@@ -1359,6 +1359,19 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterParentVariableSoloFunctionCall(QuorumParser.ParentVariableSoloFunctionCallContext ctx) {
         ParentVariableFunctionCallContext context = new ParentVariableFunctionCallContext();
         setLocation(ctx, context);
+        if(ctx.ME() != null) {
+            context.hasMe = true;
+        }
+        
+        if(ctx.fieldName != null) {
+            context.variableName = ctx.fieldName.getText();
+            if(context.variableName.isEmpty()) {
+                context.variableName = null;
+            }
+        }
+        
+        QualifiedName name = Convert(ctx.parent);
+        context.parentName = name;
         listener.EnterParentVariableSoloFunctionCall(context);
     }
 
@@ -1366,6 +1379,19 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitParentVariableSoloFunctionCall(QuorumParser.ParentVariableSoloFunctionCallContext ctx) {
         ParentVariableFunctionCallContext context = new ParentVariableFunctionCallContext();
         setLocation(ctx, context);
+        if(ctx.ME() != null) {
+            context.hasMe = true;
+        }
+        
+        if(ctx.fieldName != null) {
+            context.variableName = ctx.fieldName.getText();
+            if(context.variableName.isEmpty()) {
+                context.variableName = null;
+            }
+        }
+        
+        QualifiedName name = Convert(ctx.parent);
+        context.parentName = name;
         listener.ExitParentVariableSoloFunctionCall(context);
     }
     
