@@ -96,7 +96,7 @@ class ActionsTester
         VTableCompareTest()
         SetterAfterUse()
 //        SetterBeforeUse()
-
+        SubtextTest()
 //FAIL TESTS
         path = failPath
 //        ActionLetter()
@@ -1116,6 +1116,17 @@ class ActionsTester
         main:SetPath(path + "SetterBeforeUse.quorum")
         files:Add(main)
         results:Add(0, "0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action SubtextTest
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SubtextTest.quorum")
+        files:Add(main)
+        results:Add(0, "fo")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
