@@ -329,7 +329,7 @@ class TypeChecker
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfNotEquals(), -1, -1, type)
         compare:SetOperation(op)
-        compare:isTextCompare = true
+        compare:isTextEquality = true
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 
@@ -341,7 +341,59 @@ class TypeChecker
         type:SetToBoolean()
         compare = GetBinaryComparisonOpcode(opcodes:GetIfEquals(), -1, -1, type)
         compare:SetOperation(op)
-        compare:isTextCompare = true
+        compare:isTextEquality = true
+        result:SetQuorumOpcode(compare)
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:EQUALS)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:UNDEFINED_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfNonNull(), -1, -1, type)
+        compare:SetOperation(op)
+        compare:isTextEquality = true
+        compare:isRightUndefined = true
+        result:SetQuorumOpcode(compare)
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:EQUALS)
+        key = GenerateTypeCheckKey(constants:UNDEFINED_KEY,
+            constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfNonNull(), -1, -1, type)
+        compare:SetOperation(op)
+        compare:isTextEquality = true
+        compare:isLeftUndefined = true
+        result:SetQuorumOpcode(compare)
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:NOT_EQUALS)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:UNDEFINED_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfNull(), -1, -1, type)
+        compare:SetOperation(op)
+        compare:isRightUndefined = true
+        compare:isTextEquality = true
+        result:SetQuorumOpcode(compare)
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:NOT_EQUALS)
+        key = GenerateTypeCheckKey(constants:UNDEFINED_KEY,
+            constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToBoolean()
+        compare = GetBinaryComparisonOpcode(opcodes:GetIfNull(), -1, -1, type)
+        compare:SetOperation(op)
+        compare:isTextEquality = true
+        compare:isLeftUndefined = true
         result:SetQuorumOpcode(compare)
         results:Add(key, result)
 

@@ -49,6 +49,10 @@ class IfStatementTester
         IfStatementOneCondition_VarEqual_True()
         IfStatementOneCondition_VarNotEqual_False()
         IfStatementOneCondition_VarNotEqual_True()
+        IfTextCompareUndefined()
+        IfTextCompareUndefinedLeft()
+        IfTextNotEqualUndefined()
+        IfTextNotEqualUndefinedLeft()
         IfWithElse_Const()
         IfWithElse_Var()
         Lab3_1_0()
@@ -482,6 +486,50 @@ class IfStatementTester
         main:SetPath(path + "IfStatementOneCondition_VarNotEqual_True.quorum")
         files:Add(main)
         results:Add(0, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action IfTextCompareUndefined
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IfTextCompareUndefined.quorum")
+        files:Add(main)
+        results:Add(0, "is not undefined")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action IfTextCompareUndefinedLeft
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IfTextCompareUndefinedLeft.quorum")
+        files:Add(main)
+        results:Add(0, "is not undefined")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action IfTextNotEqualUndefined
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IfTextNotEqualUndefined.quorum")
+        files:Add(main)
+        results:Add(0, "is not undefined")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action IfTextNotEqualUndefinedLeft
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IfTextNotEqualUndefinedLeft.quorum")
+        files:Add(main)
+        results:Add(0, "is not undefined")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

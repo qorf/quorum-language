@@ -231,6 +231,14 @@ class JavaBytecodeOpcodes
     constant integer IFNULL = 198
     constant integer IFNONNULL = 199
 
+    action GetIfNonNull returns integer
+        return IFNONNULL
+    end
+
+    action GetIfNull returns integer
+        return IFNULL
+    end
+
     action GetCheckCast returns integer
         return CHECKCAST
     end

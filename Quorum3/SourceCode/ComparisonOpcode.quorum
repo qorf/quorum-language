@@ -7,6 +7,9 @@ use Libraries.Language.Compile.Symbol.Operation
 class ComparisonOpcode is BinaryOpcode 
     JavaBytecodeOpcodes opcodes
     public boolean isTextCompare = false
+    public boolean isTextEquality = false
+    public boolean isRightUndefined = false
+    public boolean isLeftUndefined = false
     public integer textCompareValue = -2
 
     action Write
@@ -14,20 +17,36 @@ class ComparisonOpcode is BinaryOpcode
         JavaBytecodeLabel jumpNotEqual
         JavaBytecodeLabel jumpPastLabel
         
-        QuorumOpcode left = me:GetLeftOpcode()
-        left:Write()
-        WriteLeft()
+        if not (isTextEquality and isLeftUndefined)
+            QuorumOpcode left = me:GetLeftOpcode()
+            left:Write()
+            WriteLeft()
+        end
 
-        QuorumOpcode right = me:GetRightOpcode()
-        right:Write()
-        WriteRight()
-
-        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
-        if isTextCompare
-            methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), "java/lang/String", "compareTo", "(Ljava/lang/String;)I", false)
+        //Do not write the right hand side if it is undefined and this is a text compare
+        if not (isTextEquality and isRightUndefined)
+            QuorumOpcode right = me:GetRightOpcode()
+            right:Write()
+            WriteRight()
         end
 
         boolean isInIf = me:GetIsIfExpression()
+
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+
+        if isTextEquality
+            //If either side is null, skip this and the final block will be called
+            //which includes an appropriate not null opcode.
+            //
+            if not isRightUndefined and not isLeftUndefined
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), "java/lang/String", "compareTo", "(Ljava/lang/String;)I", false)
+                //methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), "java/lang/String", "equals", "(Ljava/lang/Object;)Z", false)
+            end
+        elseif isTextCompare
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), "java/lang/String", "compareTo", "(Ljava/lang/String;)I", false)
+        end
+
+        
         
         if not isInIf
             methodWriter:VisitJump(GetJavaOpcode(), jumpNotEqual)
@@ -74,6 +93,9 @@ class ComparisonOpcode is BinaryOpcode
         op:SetJavaRightOpcode2(GetJavaRightOpcode2())
         op:isTextCompare = isTextCompare
         op:textCompareValue = textCompareValue
+        op:isTextEquality = isTextEquality
+        op:isLeftUndefined = isLeftUndefined
+        op:isRightUndefined = isRightUndefined
 
         Operation newOp
         Operation oldOp = me:GetOperation()
