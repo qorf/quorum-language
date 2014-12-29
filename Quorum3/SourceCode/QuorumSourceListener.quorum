@@ -157,8 +157,11 @@ class QuorumSourceListener
     action EnterInheritStatement(InheritStatementContext context) end
     action ExitInheritStatement(InheritStatementContext context) end
 
-    action EnterDetectParameter(DetectParameterContext context) end
-    action ExitDetectParameter(DetectParameterContext context) end
+    action EnterDetectStatement(DetectStatementContext context) end
+    action ExitDetectStatement(DetectStatementContext context) end
+
+    action EnterAlwaysStatement(AlwaysStatementContext context) end
+    action ExitAlwaysStatement(AlwaysStatementContext context) end
 
     action EnterAddition(AdditionContext addition) end
     action ExitAddition(AdditionContext addition) end

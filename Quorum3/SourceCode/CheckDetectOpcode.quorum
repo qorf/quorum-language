@@ -1,0 +1,41 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Translate.BlockOpcode
+use Libraries.Language.Compile.Location
+
+class CheckDetectOpcode is QuorumOpcode
+    BlockOpcode block = undefined
+    integer whichCheck = 0
+
+    action GetCheckLabelInteger returns integer
+        return whichCheck
+    end
+
+    action SetCheckLabelInteger(integer value)
+        whichCheck = value
+    end
+
+    action SetBlock(BlockOpcode block)
+        me:block = block
+    end
+
+    action GetBlock returns BlockOpcode
+        return block
+    end
+
+    action Write 
+
+    end
+
+    action WriteJavaScript returns text
+        return ""
+    end
+
+    action GetTemplateCopy returns QuorumOpcode
+        CheckDetectOpcode op
+
+
+        return op
+    end
+end

@@ -44,6 +44,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     boolean isBluePrintAction = false
     boolean isNextVariableReferenceMe = false
     Stack<QuorumOpcode> opcodeStack
+    Stack<CheckDetectOpcode> checkStack
     Stack<ConditionalOpcode> ifStack
     Stack<LoopOpcode> loopStack
     Stack<ParentVariableFunctionCallContext> parentCallStack
@@ -58,6 +59,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     integer currentActionStack = 0
     integer loopCounter = 0
     integer ifCount = 0
+    integer checkCount = 0
     boolean outputSpeechCommands = true
 
     action GetClassOpcode returns ClassOpcode
@@ -502,10 +504,40 @@ class QuorumBytecodeListener is QuorumSourceListener
         currentBlockOpcode:Add(loop)
     end
 
+    action EnterCheckStatement(CheckContext context) 
+        CheckDetectOpcode ch
+        ch:SetCheckLabelInteger(checkCount)
+        ch:SetMethodWriter(methodWriter)
+        checkCount = checkCount + 1
+        checkStack:Push(ch)
+    end
+    
+    action ExitCheckStatement(CheckContext context) 
+        CheckDetectOpcode checkOp = checkStack:Pop()
+        BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
+        checkOp:SetBlock(recentlyPopped)
+        
+        currentBlockOpcode:Add(checkOp)
+
+        checkCount = checkCount + 1
+    end
+
+    action EnterDetectStatement(DetectStatementContext context) 
+        a = 5
+    end
+
+    action ExitDetectStatement(DetectStatementContext context) 
+        a = 5
+    end
+
+    action EnterAlwaysStatement(AlwaysStatementContext context) 
+        a = 5
+    end
+    action ExitAlwaysStatement(AlwaysStatementContext context) 
+        a = 5
+    end
+
     action EnterIfStatement(IfContext context) 
-        if me:currentClass:GetName() = "SeparatedValue" and currentAction:GetName() = "SetSeparator"
-            a = 5
-        end
         ConditionalOpcode conditional
         conditional:SetIfLabelInteger(ifCount)
         conditional:SetMethodWriter(methodWriter)

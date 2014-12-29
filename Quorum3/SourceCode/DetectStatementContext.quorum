@@ -1,0 +1,9 @@
+package Libraries.Language.Compile.Context
+
+use Libraries.Containers.List
+use Libraries.Language.Compile.QualifiedName
+
+class DetectStatementContext is ParseContext
+    public List<QualifiedName> parents
+    public text name = ""
+end
