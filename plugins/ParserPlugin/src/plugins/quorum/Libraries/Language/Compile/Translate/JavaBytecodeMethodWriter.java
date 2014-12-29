@@ -135,6 +135,18 @@ public class JavaBytecodeMethodWriter {
         methodVisitor.visitLabel(l);
     }
     
+    public void VisitTryCatchBlock(
+        quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface tryStart, 
+        quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface tryEnd, 
+        quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface catchStart, 
+        String type) {
+        methodVisitor.visitTryCatchBlock(
+            getLabel((quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel) tryStart), 
+            getLabel((quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel)tryEnd), 
+            getLabel((quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel)catchStart), 
+            type);
+    }
+    
     public void VisitLine(int line, quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface label) {
         Label start = getLabel((quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel)label);
         methodVisitor.visitLineNumber(line, start);
