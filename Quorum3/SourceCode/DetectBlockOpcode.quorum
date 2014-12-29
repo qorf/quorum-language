@@ -1,0 +1,35 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Translate.BlockOpcode
+use Libraries.Language.Compile.Location
+use Libraries.Containers.List
+
+class DetectBlockOpcode is QuorumOpcode
+    BlockOpcode block = undefined
+
+    action SetBlock(BlockOpcode block)
+        me:block = block
+    end
+
+    action GetBlock returns BlockOpcode
+        return block
+    end
+
+    action Write 
+        if block not= undefined
+            block:Write()
+        end
+    end
+
+    action WriteJavaScript returns text
+        return ""
+    end
+
+    action GetTemplateCopy returns QuorumOpcode
+        DetectBlockOpcode op
+
+
+        return op
+    end
+end

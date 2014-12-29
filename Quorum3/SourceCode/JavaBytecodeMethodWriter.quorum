@@ -16,5 +16,6 @@ class JavaBytecodeMethodWriter
     system action VisitUndefinedConstant
     system action VisitLabel(JavaBytecodeLabel label)
     system action VisitJump(integer opcode, JavaBytecodeLabel label)
+    system action VisitTryCatchBlock(JavaBytecodeLabel tryStart, JavaBytecodeLabel tryEnd, JavaBytecodeLabel catchStart, text type)
     system action VisitLine(integer line, JavaBytecodeLabel label)
 end

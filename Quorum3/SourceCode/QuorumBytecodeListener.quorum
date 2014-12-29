@@ -516,25 +516,28 @@ class QuorumBytecodeListener is QuorumSourceListener
         CheckDetectOpcode checkOp = checkStack:Pop()
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         checkOp:SetBlock(recentlyPopped)
-        
         currentBlockOpcode:Add(checkOp)
-
         checkCount = checkCount + 1
     end
 
     action EnterDetectStatement(DetectStatementContext context) 
-        a = 5
     end
 
     action ExitDetectStatement(DetectStatementContext context) 
-        a = 5
+        CheckDetectOpcode checkOp = checkStack:Peek()
+        DetectBlockOpcode op
+        BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
+        op:SetBlock(recentlyPopped)
+        checkOp:AddDetectBlock(op)
     end
 
     action EnterAlwaysStatement(AlwaysStatementContext context) 
-        a = 5
     end
+
     action ExitAlwaysStatement(AlwaysStatementContext context) 
-        a = 5
+        CheckDetectOpcode checkOp = checkStack:Peek()
+        BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
+        checkOp:SetAlwaysBlock(recentlyPopped)
     end
 
     action EnterIfStatement(IfContext context) 

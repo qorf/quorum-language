@@ -3,10 +3,20 @@ package Libraries.Language.Compile.Translate
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Translate.BlockOpcode
 use Libraries.Language.Compile.Location
+use Libraries.Containers.List
 
 class CheckDetectOpcode is QuorumOpcode
     BlockOpcode block = undefined
+    BlockOpcode alwaysBlock = undefined
+    List<DetectBlockOpcode> detectBlocks
+    JavaBytecodeOpcodes opcodes
+
     integer whichCheck = 0
+
+
+    action AddDetectBlock(DetectBlockOpcode op)
+        detectBlocks:Add(op)
+    end
 
     action GetCheckLabelInteger returns integer
         return whichCheck
@@ -24,8 +34,38 @@ class CheckDetectOpcode is QuorumOpcode
         return block
     end
 
-    action Write 
+    action SetAlwaysBlock(BlockOpcode block)
+        me:alwaysBlock = block
+    end
 
+    action GetAlwaysBlock returns BlockOpcode
+        return alwaysBlock
+    end
+
+    action Write 
+        JavaBytecodeLabel checkStart
+        JavaBytecodeLabel checkEnd
+        JavaBytecodeLabel fullEnd
+
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        
+        if block not= undefined
+            methodWriter:VisitLabel(checkStart)
+            block:Write()
+            //methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
+            methodWriter:VisitLabel(checkEnd)
+        end
+
+
+        if alwaysBlock not= undefined
+            JavaBytecodeLabel alwaysStart
+            methodWriter:VisitLabel(alwaysStart)
+            alwaysBlock:Write()
+            text null = undefined //workaround
+            methodWriter:VisitTryCatchBlock(checkStart, checkEnd, alwaysStart, "java/lang/Exception")
+        end
+
+        methodWriter:VisitLabel(fullEnd)
     end
 
     action WriteJavaScript returns text
