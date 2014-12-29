@@ -568,20 +568,49 @@ public class JavaToQuorumListener implements QuorumListener {
         return name;
     }
 
-    @Override
-    public void enterDetect_parameter(QuorumParser.Detect_parameterContext ctx) {
-        quorum.Libraries.Language.Compile.Context.DetectParameterContext context = 
-                new quorum.Libraries.Language.Compile.Context.DetectParameterContext();
+     @Override
+    public void enterAlways_statement(QuorumParser.Always_statementContext ctx) {
+        quorum.Libraries.Language.Compile.Context.AlwaysStatementContext context = 
+                new quorum.Libraries.Language.Compile.Context.AlwaysStatementContext();
         setLocation(ctx, context);
-        listener.EnterDetectParameter(context);
+        listener.EnterAlwaysStatement(context);
     }
 
     @Override
-    public void exitDetect_parameter(QuorumParser.Detect_parameterContext ctx) {
-        quorum.Libraries.Language.Compile.Context.DetectParameterContext context = 
-                new quorum.Libraries.Language.Compile.Context.DetectParameterContext();
+    public void exitAlways_statement(QuorumParser.Always_statementContext ctx) {
+        quorum.Libraries.Language.Compile.Context.AlwaysStatementContext context = 
+                new quorum.Libraries.Language.Compile.Context.AlwaysStatementContext();
         setLocation(ctx, context);
-        listener.ExitDetectParameter(context);
+        listener.ExitAlwaysStatement(context);
+    }
+
+    @Override
+    public void enterDetect_statement(QuorumParser.Detect_statementContext ctx) {
+        quorum.Libraries.Language.Compile.Context.DetectStatementContext context = 
+                new quorum.Libraries.Language.Compile.Context.DetectStatementContext();
+        setLocation(ctx, context);
+        String text = ctx.name.getText();
+        context.name = text;
+        List<QuorumParser.Qualified_nameContext> names = ctx.qualified_name();
+        if(names != null) {
+            Iterator<QuorumParser.Qualified_nameContext> iterator = names.iterator();
+            while(iterator.hasNext()) {
+                QuorumParser.Qualified_nameContext next = iterator.next();
+                QualifiedName qn = Convert(next);
+                if(qn != null) {
+                    context.parents.Add(qn);
+                }
+            }
+        }
+        listener.EnterDetectStatement(context);
+    }
+
+    @Override
+    public void exitDetect_statement(QuorumParser.Detect_statementContext ctx) {
+        quorum.Libraries.Language.Compile.Context.DetectStatementContext context = 
+                new quorum.Libraries.Language.Compile.Context.DetectStatementContext();
+        setLocation(ctx, context);
+        listener.ExitDetectStatement(context);
     }
 
     @Override

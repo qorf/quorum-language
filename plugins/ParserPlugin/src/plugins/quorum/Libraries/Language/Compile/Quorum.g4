@@ -94,20 +94,21 @@ alert_statement
 	
 check_statement
 	:   CHECK block 
-	    ((DETECT 
-	    detect_parameter block
-	    )+ 
-	    (ALWAYS
-	    block
-	    )? 
-	|   ALWAYS 
-	    block
-	    ) END
+	    (
+                    (detect_statement)+ (always_statement)? 
+                |   always_statement
+            ) 
+            END
 	 ;	
     
-detect_parameter
-	: 	ID (INHERITS  qualified_name(OR qualified_name)*)?
+detect_statement
+	: 	DETECT name=ID (INHERITS  qualified_name (OR qualified_name)*)? block
 	;
+
+always_statement
+        :   ALWAYS block
+        ;
+
 print_statement 
 	:	OUTPUT expression
 	;
