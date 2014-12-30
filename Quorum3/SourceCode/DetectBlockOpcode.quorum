@@ -4,9 +4,29 @@ use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Translate.BlockOpcode
 use Libraries.Language.Compile.Location
 use Libraries.Containers.List
+use Libraries.Language.Compile.Symbol.Variable
 
 class DetectBlockOpcode is QuorumOpcode
     BlockOpcode block = undefined
+    Variable exceptionVariable = undefined
+    JavaBytecodeOpcodes opcodes
+    boolean isAlways = false
+
+    action SetIsAlways(boolean isAlways)
+        me:isAlways = isAlways
+    end
+
+    action GetIsAlways returns boolean
+        return isAlways
+    end
+
+    action SetExceptionVariable(Variable variable)
+        exceptionVariable = variable
+    end
+
+    action GetExceptionVariable returns Variable
+        return exceptionVariable
+    end
 
     action SetBlock(BlockOpcode block)
         me:block = block
@@ -17,6 +37,9 @@ class DetectBlockOpcode is QuorumOpcode
     end
 
     action Write 
+
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        methodWriter:VisitVariable(opcodes:GetObjectStore(), exceptionVariable:GetBytecodeLocation())
         if block not= undefined
             block:Write()
         end

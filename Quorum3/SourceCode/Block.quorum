@@ -16,6 +16,7 @@ class Block
     Action parentAction = undefined
     integer bytecodeLocation = 0
     integer bytecodeLocationStartOfBlock = 0
+    Variable exceptionVariable = undefined
     Array<Variable> orderedVariables
 
     action Add(Variable variable) returns CompilerError
@@ -31,6 +32,23 @@ class Block
         return undefined
     end
 
+    action SetExceptionVariable(Variable variable) returns CompilerError
+        if variables:HasKey(variable:GetStaticKey())
+            CompilerError error
+            error:SetLineNumber(variable:GetLineNumber())
+            error:SetFile(variable:GetFile())
+            error:SetErrorMessage("Variable " + variable:GetDisplayName() + " has already been defined.")
+            return error
+        end
+        exceptionVariable = variable
+        variables:Add(variable:GetStaticKey(), variable)
+        return undefined
+    end
+
+    action GetExceptionVariable returns Variable
+        return exceptionVariable
+    end
+
     action AssignBytecodeLocations
         bytecodeLocation = 0
         
@@ -40,6 +58,13 @@ class Block
             bytecodeLocation = parentAction:GetBytecodeLocation()
         end
         
+        if exceptionVariable not= undefined
+            Type type = exceptionVariable:GetType()
+            size = type:GetBytecodeSize()
+            exceptionVariable:SetBytecodeLocation(bytecodeLocation)
+            bytecodeLocation = bytecodeLocation + size
+        end
+
         i = 0 
         repeat while i < orderedVariables:GetSize()
             Variable var = orderedVariables:Get(i)

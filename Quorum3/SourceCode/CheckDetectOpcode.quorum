@@ -4,13 +4,13 @@ use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Translate.BlockOpcode
 use Libraries.Language.Compile.Location
 use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
 
 class CheckDetectOpcode is QuorumOpcode
     BlockOpcode block = undefined
-    BlockOpcode alwaysBlock = undefined
+    DetectBlockOpcode alwaysBlock = undefined
     List<DetectBlockOpcode> detectBlocks
     JavaBytecodeOpcodes opcodes
-
     integer whichCheck = 0
 
 
@@ -34,34 +34,43 @@ class CheckDetectOpcode is QuorumOpcode
         return block
     end
 
-    action SetAlwaysBlock(BlockOpcode block)
+    action SetAlwaysBlock(DetectBlockOpcode block)
         me:alwaysBlock = block
     end
 
-    action GetAlwaysBlock returns BlockOpcode
+    action GetAlwaysBlock returns DetectBlockOpcode
         return alwaysBlock
     end
 
     action Write 
         JavaBytecodeLabel checkStart
+        JavaBytecodeLabel alwaysStart
         JavaBytecodeLabel checkEnd
         JavaBytecodeLabel fullEnd
 
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
-        
+        text null = undefined //workaround
         if block not= undefined
             methodWriter:VisitLabel(checkStart)
             block:Write()
-            //methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
             methodWriter:VisitLabel(checkEnd)
+            methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
+            
         end
 
+        Iterator<DetectBlockOpcode> it = detectBlocks:GetIterator()
+        repeat while it:HasNext()
+            JavaBytecodeLabel detectStart
+            methodWriter:VisitLabel(detectStart)
+            DetectBlockOpcode det = it:Next()
+            det:Write()
+            methodWriter:VisitTryCatchBlock(checkStart, checkEnd, detectStart, "java/lang/Exception")
+        end
 
         if alwaysBlock not= undefined
-            JavaBytecodeLabel alwaysStart
             methodWriter:VisitLabel(alwaysStart)
+            methodWriter:VisitVariable(opcodes:GetObjectStore(), 1)
             alwaysBlock:Write()
-            text null = undefined //workaround
             methodWriter:VisitTryCatchBlock(checkStart, checkEnd, alwaysStart, "java/lang/Exception")
         end
 

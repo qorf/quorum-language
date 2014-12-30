@@ -15,6 +15,7 @@ class Parser is QuorumSourceListener
     Action currentAction = undefined
     Class currentClass = undefined
     Block currentBlock = undefined
+    Block recentlyPoppedBlock = undefined
     integer loopCounter = 0
     Stack<Block> blocks
     Array<QualifiedName> unresolvedUseStatements
@@ -203,10 +204,39 @@ class Parser is QuorumSourceListener
     
     action ExitBlock(BlockContext context)
         if currentBlock not= undefined
+            recentlyPoppedBlock = currentBlock
             currentBlock = currentBlock:GetParentBlock() //might be null, which is fine
         end
     end
 
+    action ExitDetectStatement(DetectStatementContext context)
+        text name = context:name
+        Variable variable
+        variable:SetParentClass(currentClass)
+        variable:SetName(name)
+        variable:SetIsParameter(false)
+        variable:SetVisibleToDebugger(true)
+
+        Type type
+        type:SetToObject("Libraries.Language.Errors.Error")
+        variable:SetType(type)
+
+        recentlyPoppedBlock:SetExceptionVariable(variable)
+    end
+
+    action ExitAlwaysStatement(AlwaysStatementContext context) 
+        Variable variable
+        variable:SetParentClass(currentClass)
+        variable:SetName("$hidden_always")
+        variable:SetIsParameter(false)
+        variable:SetVisibleToDebugger(false)
+
+        Type type
+        type:SetToObject("Libraries.Language.Errors.Error")
+        variable:SetType(type)
+
+        recentlyPoppedBlock:SetExceptionVariable(variable)
+    end
 
     action ExitSystemAction(ActionContext context) 
     end

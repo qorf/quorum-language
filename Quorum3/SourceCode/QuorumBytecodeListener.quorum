@@ -31,6 +31,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     Class currentClass = undefined
     Block currentBlock = undefined
+    Block recentlyPoppedBlock = undefined
     constant integer ME = 0
     text build = "TestBuild"
     text run = "TestRun"
@@ -415,6 +416,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     
     action ExitBlock(BlockContext context)
         if currentBlock not= undefined
+            recentlyPoppedBlock = currentBlock
             currentBlock = currentBlock:GetParentBlock() //may be undefined
             blockPositionStack:Pop()
         end
@@ -526,18 +528,31 @@ class QuorumBytecodeListener is QuorumSourceListener
     action ExitDetectStatement(DetectStatementContext context) 
         CheckDetectOpcode checkOp = checkStack:Peek()
         DetectBlockOpcode op
+        op:SetMethodWriter(methodWriter)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         op:SetBlock(recentlyPopped)
+
+        //get the exception variable from the block
+        Variable exceptionVariable = recentlyPoppedBlock:GetExceptionVariable()
+        op:SetExceptionVariable(exceptionVariable)
         checkOp:AddDetectBlock(op)
     end
 
-    action EnterAlwaysStatement(AlwaysStatementContext context) 
+    action EnterAlwaysStatement(AlwaysStatementContext context)
     end
 
     action ExitAlwaysStatement(AlwaysStatementContext context) 
         CheckDetectOpcode checkOp = checkStack:Peek()
+
+        DetectBlockOpcode op
+        op:SetMethodWriter(methodWriter)
+        op:SetIsAlways(true)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
-        checkOp:SetAlwaysBlock(recentlyPopped)
+        Variable exceptionVariable = recentlyPoppedBlock:GetExceptionVariable()
+        op:SetExceptionVariable(exceptionVariable)
+        op:SetBlock(recentlyPopped)
+
+        checkOp:SetAlwaysBlock(op)
     end
 
     action EnterIfStatement(IfContext context) 

@@ -2,14 +2,12 @@ use Libraries.Language.Errors.Error
 
 class Main 
     action Main
-
-        output "hi, from outside the block."
         check
-            output "hi, from the block"
+            output "Try Block"
             //Error error
             //alert(error)
-        always
-            output "Hi, from the always"
+        detect bob
+            output "Catch Block"
         end
     end
 end
