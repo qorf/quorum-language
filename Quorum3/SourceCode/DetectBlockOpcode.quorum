@@ -4,13 +4,24 @@ use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Translate.BlockOpcode
 use Libraries.Language.Compile.Location
 use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
 use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Language.Compile.Symbol.Class
 
 class DetectBlockOpcode is QuorumOpcode
     BlockOpcode block = undefined
     Variable exceptionVariable = undefined
     JavaBytecodeOpcodes opcodes
     boolean isAlways = false
+    List<Class> declaredDetects
+
+    action AddDetect(Class clazz)
+        declaredDetects:Add(clazz)
+    end
+
+    action GetDetectIterator returns Iterator<Class>
+        return declaredDetects:GetIterator()
+    end
 
     action SetIsAlways(boolean isAlways)
         me:isAlways = isAlways

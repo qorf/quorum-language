@@ -5,6 +5,7 @@ use Libraries.Language.Compile.Translate.BlockOpcode
 use Libraries.Language.Compile.Location
 use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Symbol.Class
 
 class CheckDetectOpcode is QuorumOpcode
     BlockOpcode block = undefined
@@ -60,11 +61,16 @@ class CheckDetectOpcode is QuorumOpcode
 
         Iterator<DetectBlockOpcode> it = detectBlocks:GetIterator()
         repeat while it:HasNext()
-            JavaBytecodeLabel detectStart
-            methodWriter:VisitLabel(detectStart)
             DetectBlockOpcode det = it:Next()
-            det:Write()
-            methodWriter:VisitTryCatchBlock(checkStart, checkEnd, detectStart, "java/lang/Exception")
+            Iterator<Class> detects = det:GetDetectIterator()
+            repeat while detects:HasNext()
+                JavaBytecodeLabel detectStart
+                methodWriter:VisitLabel(detectStart)
+                Class clazz = detects:Next()
+                det:Write()
+                methodWriter:VisitTryCatchBlock(checkStart, checkEnd, detectStart, clazz:ConvertStaticKeyToBytecodePath())
+            end
+            
         end
 
         if alwaysBlock not= undefined
