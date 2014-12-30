@@ -610,6 +610,19 @@ public class JavaToQuorumListener implements QuorumListener {
         quorum.Libraries.Language.Compile.Context.DetectStatementContext context = 
                 new quorum.Libraries.Language.Compile.Context.DetectStatementContext();
         setLocation(ctx, context);
+        String text = ctx.name.getText();
+        context.name = text;
+        List<QuorumParser.Qualified_nameContext> names = ctx.qualified_name();
+        if(names != null) {
+            Iterator<QuorumParser.Qualified_nameContext> iterator = names.iterator();
+            while(iterator.hasNext()) {
+                QuorumParser.Qualified_nameContext next = iterator.next();
+                QualifiedName qn = Convert(next);
+                if(qn != null) {
+                    context.parents.Add(qn);
+                }
+            }
+        }
         listener.ExitDetectStatement(context);
     }
 
