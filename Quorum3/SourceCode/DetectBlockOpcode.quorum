@@ -15,6 +15,13 @@ class DetectBlockOpcode is QuorumOpcode
     boolean isAlways = false
     List<Class> declaredDetects
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+        if block not= undefined
+            block:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+    end
+
     action AddDetect(Class clazz)
         declaredDetects:Add(clazz)
     end
@@ -48,12 +55,30 @@ class DetectBlockOpcode is QuorumOpcode
     end
 
     action Write 
-
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
-        methodWriter:VisitVariable(opcodes:GetObjectStore(), exceptionVariable:GetBytecodeLocation())
+
+        if not isAlways
+            WriteExceptionVariable()
+        end
+
         if block not= undefined
             block:Write()
         end
+    end
+
+    action WriteExceptionVariable
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        if exceptionVariable not= undefined
+            methodWriter:VisitVariable(opcodes:GetObjectStore(), exceptionVariable:GetBytecodeLocation())
+        else
+            methodWriter:VisitVariable(opcodes:GetObjectStore(), GetBytecodeOffset() + 1)
+        end
+    end
+
+    action Rethrow
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        methodWriter:VisitVariable(opcodes:GetObjectLoad(), GetBytecodeOffset() + 1)
+        methodWriter:VisitInstruction(opcodes:GetObjectThrow())
     end
 
     action WriteJavaScript returns text

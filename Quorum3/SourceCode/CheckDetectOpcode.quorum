@@ -45,9 +45,10 @@ class CheckDetectOpcode is QuorumOpcode
 
     action Write 
         JavaBytecodeLabel checkStart
-        JavaBytecodeLabel alwaysStart
+        //JavaBytecodeLabel alwaysStart
         JavaBytecodeLabel checkEnd
         JavaBytecodeLabel fullEnd
+        JavaBytecodeLabel finalAlways
 
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         text null = undefined //workaround
@@ -55,6 +56,15 @@ class CheckDetectOpcode is QuorumOpcode
             methodWriter:VisitLabel(checkStart)
             block:Write()
             methodWriter:VisitLabel(checkEnd)
+
+            if alwaysBlock not= undefined
+                JavaBytecodeLabel alwaysStart
+                methodWriter:VisitLabel(alwaysStart)
+                alwaysBlock:Write()
+                //methodWriter:VisitTryCatchBlock(checkStart, checkEnd, finalAlways, null)
+                methodWriter:VisitTryCatchBlock(checkStart, checkEnd, finalAlways, null)
+            end
+
             methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
             
         end
@@ -69,15 +79,29 @@ class CheckDetectOpcode is QuorumOpcode
                 Class clazz = detects:Next()
                 det:Write()
                 methodWriter:VisitTryCatchBlock(checkStart, checkEnd, detectStart, clazz:ConvertStaticKeyToBytecodePath())
+
+                if alwaysBlock not= undefined
+                    JavaBytecodeLabel alwaysStart
+                    methodWriter:VisitLabel(alwaysStart)
+                    alwaysBlock:Write()
+                    methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
+                    methodWriter:VisitTryCatchBlock(detectStart, alwaysStart, finalAlways, null)
+                end
             end
+
             
         end
 
         if alwaysBlock not= undefined
-            methodWriter:VisitLabel(alwaysStart)
-            methodWriter:VisitVariable(opcodes:GetObjectStore(), 1)
+            JavaBytecodeLabel finalAlwaysEnd
+            methodWriter:VisitLabel(finalAlways)
+            alwaysBlock:SetBytecodeWriteOffsetToAllChildren(3)
+            alwaysBlock:WriteExceptionVariable()
+            methodWriter:VisitLabel(finalAlwaysEnd)
             alwaysBlock:Write()
-            methodWriter:VisitTryCatchBlock(checkStart, checkEnd, alwaysStart, "java/lang/Exception")
+            alwaysBlock:Rethrow()
+            
+            methodWriter:VisitTryCatchBlock(finalAlways, finalAlwaysEnd, finalAlways, null)
         end
 
         methodWriter:VisitLabel(fullEnd)

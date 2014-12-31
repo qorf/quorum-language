@@ -8,6 +8,20 @@ class QuorumOpcode
     boolean isIfExpression = false
     JavaBytecodeMethodWriter methodWriter = undefined
     Location location = undefined
+    integer bytecodeOffset = 0
+
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        bytecodeOffset = offset
+    end
+
+    action SetBytecodeWriteOffset(integer offset)
+        bytecodeOffset = offset
+    end
+
+    action GetBytecodeOffset returns integer
+        return bytecodeOffset
+    end
+
 
     blueprint action Write
 

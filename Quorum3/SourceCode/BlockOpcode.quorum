@@ -17,6 +17,15 @@ class BlockOpcode is QuorumOpcode
         end
     end
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+        Iterator<QuorumOpcode> it = opcodes:GetIterator()
+        repeat while it:HasNext()
+            QuorumOpcode op = it:Next()
+            op:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+    end
+
     action Write
         Iterator<QuorumOpcode> iterator = opcodes:GetIterator()
         repeat while iterator:HasNext()

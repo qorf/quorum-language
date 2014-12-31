@@ -2,12 +2,18 @@ use Libraries.Language.Errors.Error
 
 class Main 
     action Main
+        a = 5
         check
+            b = 10
             output "Try Block"
-            Error error
-            alert(error)
+//            Error error
+//            alert(error)
         detect bob is Error
+            c = 12
             output "Catch Block"
+        always
+            d = 14
+            output "Always"
         end
     end
 end

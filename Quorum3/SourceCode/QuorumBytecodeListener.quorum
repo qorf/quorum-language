@@ -531,6 +531,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         op:SetMethodWriter(methodWriter)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         op:SetBlock(recentlyPopped)
+        integer loc = recentlyPoppedBlock:GetBytecodeLocation()
         Type type
 
         List<QualifiedName> parents = context:parents

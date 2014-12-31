@@ -225,17 +225,17 @@ class Parser is QuorumSourceListener
     end
 
     action ExitAlwaysStatement(AlwaysStatementContext context) 
-        Variable variable
-        variable:SetParentClass(currentClass)
-        variable:SetName("$hidden_always")
-        variable:SetIsParameter(false)
-        variable:SetVisibleToDebugger(false)
-
-        Type type
-        type:SetToObject("Libraries.Language.Errors.Error")
-        variable:SetType(type)
-
-        recentlyPoppedBlock:SetExceptionVariable(variable)
+//        Variable variable
+//        variable:SetParentClass(currentClass)
+//        variable:SetName("$hidden_always")
+//        variable:SetIsParameter(false)
+//        variable:SetVisibleToDebugger(false)
+//
+//        Type type
+//        type:SetToObject("Libraries.Language.Errors.Error")
+//        variable:SetType(type)
+//
+//        recentlyPoppedBlock:SetExceptionVariable(variable)
     end
 
     action ExitSystemAction(ActionContext context) 

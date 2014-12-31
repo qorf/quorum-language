@@ -221,12 +221,9 @@ class ActionCallOpcode is QuorumOpcode
                     methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
                         path, getterName, methodName, true)
                 else
-                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), field:GetBytecodeLocation())
+                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), field:GetBytecodeLocation() + GetBytecodeOffset())
                 end
-            //    methodWriter:VisitVariable(opcodes:GetObjectLoad(), field:GetBytecodeLocation())
             end
-
-            //actual plan - push on variables, if necessary
 
             //push on parameters, if necessary
             integer numParams = parameters:GetSize()
@@ -272,7 +269,7 @@ class ActionCallOpcode is QuorumOpcode
                 
                 Type type = GetCallerType()
                 if not field:IsField()
-                    methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetCallerType()), field:GetBytecodeLocation())
+                    methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetCallerType()), field:GetBytecodeLocation() + GetBytecodeOffset())
                 else
                     //Now write the getter for the field
                     text path = ""
@@ -294,7 +291,7 @@ class ActionCallOpcode is QuorumOpcode
 
             Type type = GetCallerType()
             if not field:IsField()
-                methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetCallerType()), field:GetBytecodeLocation())
+                methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetCallerType()), field:GetBytecodeLocation() + GetBytecodeOffset())
             else
                 //Now write the getter for the field
                 text path = ""
