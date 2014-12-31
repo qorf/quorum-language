@@ -412,6 +412,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             currentBlockOpcode = block
             currentBlocks:Push(block)
         end
+        currentBlockOpcode:SetBlock(currentBlock)
     end
     
     action ExitBlock(BlockContext context)

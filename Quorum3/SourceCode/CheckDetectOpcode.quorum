@@ -1,6 +1,7 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Symbol.Block
 use Libraries.Language.Compile.Translate.BlockOpcode
 use Libraries.Language.Compile.Location
 use Libraries.Containers.List
@@ -13,7 +14,8 @@ class CheckDetectOpcode is QuorumOpcode
     List<DetectBlockOpcode> detectBlocks
     JavaBytecodeOpcodes opcodes
     integer whichCheck = 0
-
+    List<ErrorBlockLabels> detectValues
+    List<ErrorBlockLabels> alwaysValues
 
     action AddDetectBlock(DetectBlockOpcode op)
         detectBlocks:Add(op)
@@ -45,7 +47,6 @@ class CheckDetectOpcode is QuorumOpcode
 
     action Write 
         JavaBytecodeLabel checkStart
-        //JavaBytecodeLabel alwaysStart
         JavaBytecodeLabel checkEnd
         JavaBytecodeLabel fullEnd
         JavaBytecodeLabel finalAlways
@@ -61,12 +62,14 @@ class CheckDetectOpcode is QuorumOpcode
                 JavaBytecodeLabel alwaysStart
                 methodWriter:VisitLabel(alwaysStart)
                 alwaysBlock:Write()
-                //methodWriter:VisitTryCatchBlock(checkStart, checkEnd, finalAlways, null)
-                methodWriter:VisitTryCatchBlock(checkStart, checkEnd, finalAlways, null)
+                ErrorBlockLabels labels
+                labels:left = checkStart
+                labels:middle = checkEnd
+                labels:right = finalAlways
+                labels:type = null
+                alwaysValues:Add(labels)
             end
-
             methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
-            
         end
 
         Iterator<DetectBlockOpcode> it = detectBlocks:GetIterator()
@@ -78,33 +81,74 @@ class CheckDetectOpcode is QuorumOpcode
                 methodWriter:VisitLabel(detectStart)
                 Class clazz = detects:Next()
                 det:Write()
-                methodWriter:VisitTryCatchBlock(checkStart, checkEnd, detectStart, clazz:ConvertStaticKeyToBytecodePath())
+                ErrorBlockLabels detectLabels
+                detectLabels:left = checkStart
+                detectLabels:middle = checkEnd
+                detectLabels:right = detectStart
+                detectLabels:type = clazz:ConvertStaticKeyToBytecodePath()
+                detectValues:Add(detectLabels)
 
                 if alwaysBlock not= undefined
                     JavaBytecodeLabel alwaysStart
                     methodWriter:VisitLabel(alwaysStart)
                     alwaysBlock:Write()
                     methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
-                    methodWriter:VisitTryCatchBlock(detectStart, alwaysStart, finalAlways, null)
+
+                    ErrorBlockLabels labels
+                    labels:left = detectStart
+                    labels:middle = alwaysStart
+                    labels:right = finalAlways
+                    labels:type = null
+                    alwaysValues:Add(labels)
                 end
             end
-
-            
         end
 
         if alwaysBlock not= undefined
             JavaBytecodeLabel finalAlwaysEnd
             methodWriter:VisitLabel(finalAlways)
-            alwaysBlock:SetBytecodeWriteOffsetToAllChildren(3)
+
+            //get the parent block's final bytecode location and put it in as an offset.
+            BlockOpcode bo = alwaysBlock:GetBlock()
+            Block b = bo:GetBlock()
+            integer loc = b:GetBytecodeLocation()
+
+            //put in the offset. This is somewhat expensive
+            alwaysBlock:SetBytecodeWriteOffsetToAllChildren(loc)
             alwaysBlock:WriteExceptionVariable()
             methodWriter:VisitLabel(finalAlwaysEnd)
             alwaysBlock:Write()
             alwaysBlock:Rethrow()
+
+            //reset it, in case someone else uses
+            alwaysBlock:SetBytecodeWriteOffsetToAllChildren(0)
             
-            methodWriter:VisitTryCatchBlock(finalAlways, finalAlwaysEnd, finalAlways, null)
+            ErrorBlockLabels labels
+            labels:left = finalAlways
+            labels:middle = finalAlwaysEnd
+            labels:right = finalAlways
+            labels:type = null
+            alwaysValues:Add(labels)
         end
 
+        //now write all the detect values
+        WriteExceptionTable()
         methodWriter:VisitLabel(fullEnd)
+    end
+
+    private action WriteExceptionTable
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        Iterator<ErrorBlockLabels> it = detectValues:GetIterator()
+        repeat while it:HasNext()
+            ErrorBlockLabels labels = it:Next()
+            methodWriter:VisitTryCatchBlock(labels:left, labels:middle, labels:right, labels:type)
+        end
+
+        it = alwaysValues:GetIterator()
+        repeat while it:HasNext()
+            ErrorBlockLabels labels = it:Next()
+            methodWriter:VisitTryCatchBlock(labels:left, labels:middle, labels:right, labels:type)
+        end
     end
 
     action WriteJavaScript returns text

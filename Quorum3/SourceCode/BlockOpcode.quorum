@@ -1,12 +1,22 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Symbol.Block
 use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
 
 class BlockOpcode is QuorumOpcode
     List<QuorumOpcode> opcodes
     BlockOpcode parentOpcode = undefined
+    Block block = undefined
+
+    action SetBlock(Block block)
+        me:block = block
+    end
+
+    action GetBlock returns Block
+        return block
+    end
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
