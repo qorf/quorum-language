@@ -7,11 +7,11 @@ class Main
         check
             b = 10
             output "Try Block"
-           Error error
+           CastError error
            alert(error)
         detect bob is Error
             c = 12
-            //output bob:GetErrorMessage()
+            output bob:GetErrorMessage()
             output "Catch Block"
         always
             d = 14

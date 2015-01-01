@@ -254,7 +254,7 @@ class ActionCallOpcode is QuorumOpcode
                     methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), 
                         path, primitiveName, signature, false)
                 else
-                    if not callingClass:IsError()
+                    if not clazz:IsError()
                         methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
                             clazz:ConvertStaticKeyToBytecodeInterfacePath(), act:GetName(), 
                             act:ConvertActionToBytecodeParameterInterfaceSignature(), true)
