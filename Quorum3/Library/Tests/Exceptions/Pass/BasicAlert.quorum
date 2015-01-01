@@ -1,4 +1,5 @@
 use Libraries.Language.Errors.Error
+use Libraries.Language.Errors.CastError
 
 class Main 
     action Main
@@ -6,10 +7,11 @@ class Main
         check
             b = 10
             output "Try Block"
-//            Error error
-//            alert(error)
+           Error error
+           alert(error)
         detect bob is Error
             c = 12
+            //output bob:GetErrorMessage()
             output "Catch Block"
         always
             d = 14
