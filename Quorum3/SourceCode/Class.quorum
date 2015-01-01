@@ -35,6 +35,7 @@ class Class is Symbol
     File file = undefined
     boolean hasSystemAction = false
     constant text LIBRARIES_LANGUAGE_OBJECT = "Libraries.Language.Object"
+    constant text LIBRARIES_LANGUAGE_ERRORS_ERROR = "Libraries.Language.Errors.Error"
     boolean isMainClass = false
     Array<Array<Class>> resolvedParentLevels
 
@@ -329,6 +330,21 @@ class Class is Symbol
     */
     action IsObject returns boolean
         if GetStaticKey() = LIBRARIES_LANGUAGE_OBJECT
+            return true
+        else
+            return false
+        end
+    end
+
+
+    /*
+        This action returns true if this class is either Libraries.Language.Errors.Error
+        or is a subclass.
+    */
+    action IsError returns boolean
+        if GetStaticKey() = LIBRARIES_LANGUAGE_ERRORS_ERROR
+            return true
+        elseif HasParentClass(LIBRARIES_LANGUAGE_ERRORS_ERROR)
             return true
         else
             return false

@@ -103,22 +103,22 @@ class Error
         errorMessage = message
         SystemSetMessage(errorMessage)
     end
-//
-//    /*
-//        This action gets the error message of an object. 
-//
-//        Attribute: Returns The errors message.
-//
-//        Attribute: Example
-//
-//        use Libraries.Language.Errors.Error
-//        Error error
-//        text message = error:GetErrorMessage()
-//    */
-//    action GetErrorMessage() returns text
-//        return errorMessage
-//    end
-//
+
+    /*
+        This action gets the error message of an object. 
+
+        Attribute: Returns The errors message.
+
+        Attribute: Example
+
+        use Libraries.Language.Errors.Error
+        Error error
+        text message = error:GetErrorMessage()
+    */
+    action GetErrorMessage() returns text
+        return errorMessage
+    end
+
 //    /*
 //        This action gets the stack trace size. 
 //

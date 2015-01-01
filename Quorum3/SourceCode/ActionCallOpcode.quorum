@@ -187,11 +187,15 @@ class ActionCallOpcode is QuorumOpcode
     action LoadHiddenMe
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
-        //owner, name, description
-        text owner = callingClass:ConvertStaticKeyToBytecodePath()
-        text name = "$hidden$"
-        text description = callingClass:ConvertStaticKeyToBytecodePathTypeNameInterface()
-        methodWriter:VisitField(opcodes:GetField(), owner, name, description)
+
+        //if this is an error class, it is a class, not an interface.
+        if not callingClass:IsError()
+            //owner, name, description
+            text owner = callingClass:ConvertStaticKeyToBytecodePath()
+            text name = "$hidden$"
+            text description = callingClass:ConvertStaticKeyToBytecodePathTypeNameInterface()
+            methodWriter:VisitField(opcodes:GetField(), owner, name, description)
+        end
     end
 
     action Write //TODO: make this work for action calls and fields
@@ -199,11 +203,8 @@ class ActionCallOpcode is QuorumOpcode
         VisitLineNumber()
 
         if isActionCall
-
-
             if isParentCall //if this is a parent variable, push it on.
                 WriteParentVariable()
-                 
                 //return now
             elseif pushOnMe //if there's a variable, load it.
                 //push on the variable $hidden
@@ -218,8 +219,13 @@ class ActionCallOpcode is QuorumOpcode
                     getterName = fieldHolder:ConvertToActionNameFromField(field, true)
                     methodName = type:ConvertToSignatureFromFieldInterface(true)
 
-                    methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
-                        path, getterName, methodName, true)
+                    if not callingClass:IsError()
+                        methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+                            path, getterName, methodName, true)
+                    else
+                        methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
+                            callingClass:ConvertStaticKeyToBytecodePath(), getterName, methodName, false)
+                    end
                 else
                     methodWriter:VisitVariable(opcodes:GetObjectLoad(), field:GetBytecodeLocation() + GetBytecodeOffset())
                 end
@@ -239,10 +245,8 @@ class ActionCallOpcode is QuorumOpcode
             if isParentCall
                 clazz = parentToCallOn
             end
-            
 
             if act not= undefined and clazz not= undefined
-
                 if actionResolution:isCallOnPrimitive
                     text path = "plugins/" + clazz:ConvertStaticKeyToBytecodePath()
                     text signature = act:ConvertPrimitiveActionToBytecodeParameterInterfaceSignature()
@@ -250,9 +254,15 @@ class ActionCallOpcode is QuorumOpcode
                     methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), 
                         path, primitiveName, signature, false)
                 else
-                    methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
-                        clazz:ConvertStaticKeyToBytecodeInterfacePath(), act:GetName(), 
-                        act:ConvertActionToBytecodeParameterInterfaceSignature(), true)
+                    if not callingClass:IsError()
+                        methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+                            clazz:ConvertStaticKeyToBytecodeInterfacePath(), act:GetName(), 
+                            act:ConvertActionToBytecodeParameterInterfaceSignature(), true)
+                    else
+                        methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
+                            clazz:ConvertStaticKeyToBytecodePath(), act:GetName(), 
+                            act:ConvertActionToBytecodeParameterInterfaceSignature(), false)
+                    end
                 end
             else 
                 //alert("Compiler Bug: Class and Action should not be null at this stage.")
@@ -265,7 +275,6 @@ class ActionCallOpcode is QuorumOpcode
 
             if isParentCall //if this is a parent variable, push it on.
                 WriteParentVariable()
-                
                 
                 Type type = GetCallerType()
                 if not field:IsField()
@@ -296,12 +305,20 @@ class ActionCallOpcode is QuorumOpcode
                 //Now write the getter for the field
                 text path = ""
                 if isChainedCall
-                    path = fieldHolder:ConvertStaticKeyToBytecodeInterfacePath()
+                    if not callingClass:IsError()
+                        path = fieldHolder:ConvertStaticKeyToBytecodeInterfacePath()
+                    else
+                        path = fieldHolder:ConvertStaticKeyToBytecodePath()
+                    end
                     integer a = 0
                 end
 
                 if not isChainedCall
-                    path = callingClass:ConvertStaticKeyToBytecodeInterfacePath()
+                    if not callingClass:IsError()
+                        path = callingClass:ConvertStaticKeyToBytecodeInterfacePath()
+                    else
+                        path = callingClass:ConvertStaticKeyToBytecodePath()
+                    end
                     integer a = 0
                 end
                 
@@ -310,8 +327,14 @@ class ActionCallOpcode is QuorumOpcode
                 if pushOnMe and not isParentCall
                     methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
                 end
-                methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
-                    path, getterName, methodName, true)
+
+                if not callingClass:IsError()
+                    methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+                        path, getterName, methodName, true)
+                else
+                    methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
+                        path, getterName, methodName, false)
+                end
             end
         end
     end
